@@ -36,6 +36,7 @@ impl UserService {
         }
         let hash = hash_password(password)?;
         let user = User {
+            username: mobile.to_string(),
             mobile: mobile.to_string(),
             nickname: nickname.map(String::from),
             password: hash,
