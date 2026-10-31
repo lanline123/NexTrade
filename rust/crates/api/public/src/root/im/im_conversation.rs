@@ -143,9 +143,9 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 // ——————————————————————————————————————————————
 
 /// 是否后台身份（Java `TigUtils.getClientTypeByToken()`）：
-/// `AuthUser.admin_type` 有值 ⇒ 管理员/店铺/门店 token。
+/// `AuthUser.admin_type` 有值且不是会员 token ⇒ 管理员/店铺/门店 token。
 fn is_admin_token(auth: &AuthUser) -> bool {
-    auth.admin_type.is_some()
+    matches!(auth.admin_type.as_deref(), Some(kind) if kind != "member")
 }
 
 /// 当前管理员 ID（Java `SecurityUtils.getCurrentAdminId()`：前台 token 为 null）。
