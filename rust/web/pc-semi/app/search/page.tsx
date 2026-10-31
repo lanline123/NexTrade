@@ -102,6 +102,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
               ))}
             </div>
             {categoryId ? <span className="pc-list-filter-tip">分类 ID：{categoryId}</span> : null}
+            <Link href="/search/image" className="pc-image-search-entry">以图搜图</Link>
           </div>
 
           <div className="pc-list-toolbar">
