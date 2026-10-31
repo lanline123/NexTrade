@@ -58,7 +58,7 @@ use tigshop_core::{Error, Result};
 ///
 /// 顺序与 `entities::ShippingTpl` 的字段声明顺序一致。
 const TPL_SELECT: &str = "SELECT shipping_tpl_id, shipping_time, shipping_tpl_name, \
-                          is_free, pricing_type, is_default, shop_id FROM shipping_tpl";
+                          is_free, CAST(pricing_type AS SIGNED) AS pricing_type, is_default, shop_id FROM shipping_tpl";
 
 /// `shipping_tpl_info` 固定 SELECT 列清单（顺序同 `entities::ShippingTplInfo`）。
 const INFO_SELECT: &str = "SELECT id, shipping_type_id, shipping_tpl_id, is_free, is_default, \
