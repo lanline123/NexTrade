@@ -16,8 +16,8 @@ function translateTextNode(node: Text, map: TranslationMap) {
   let value = map[key];
   let matched = key;
   if (!value) {
-    // 导航/下拉项常把箭头、数量拼在同一文本节点：拆出主文案再匹配。
-    const suffix = key.match(/^(.+?)(\s*[▾›⌄]|\s+\d+)$/);
+    // 导航/下拉项常把箭头、数量、冒号拼在同一文本节点：拆出主文案再匹配。
+    const suffix = key.match(/^(.+?)(\s*[▾›⌄：:]|\s+\d+)$/);
     if (suffix) {
       matched = suffix[1].trim();
       value = map[matched];
