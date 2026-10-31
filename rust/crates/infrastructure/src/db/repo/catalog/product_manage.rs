@@ -1209,7 +1209,7 @@ impl ProductManageRepository {
         if !shop_ids.is_empty() {
             let ph = vec!["?"; shop_ids.len()].join(", ");
             let sql = format!(
-                "SELECT * FROM shipping_tpl WHERE shop_id IN ({ph}) ORDER BY shipping_tpl_id ASC",
+                "SELECT shipping_tpl_id, shipping_time, shipping_tpl_name, is_free, CAST(pricing_type AS SIGNED) AS pricing_type, is_default, shop_id FROM shipping_tpl WHERE shop_id IN ({ph}) ORDER BY shipping_tpl_id ASC",
             );
             let mut q = sqlx::query_as::<_, ShippingTpl>(&sql);
             for id in shop_ids {
@@ -1218,7 +1218,7 @@ impl ProductManageRepository {
             return q.fetch_all(&self.pool).await.map_err(map_err);
         }
         sqlx::query_as::<_, ShippingTpl>(
-            "SELECT * FROM shipping_tpl WHERE (? IS NULL OR shop_id = ?) ORDER BY shipping_tpl_id ASC",
+            "SELECT shipping_tpl_id, shipping_time, shipping_tpl_name, is_free, CAST(pricing_type AS SIGNED) AS pricing_type, is_default, shop_id FROM shipping_tpl WHERE (? IS NULL OR shop_id = ?) ORDER BY shipping_tpl_id ASC",
         )
         .bind(shop_id)
         .bind(shop_id)
