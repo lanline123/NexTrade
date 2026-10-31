@@ -143,7 +143,11 @@ export default function CustomerServiceWidget() {
             {!messages.length ? <div className="pc-cs__tip">您好，有什么可以帮您？</div> : null}
             {messages.map((message, index) => {
               const mine = message.type === 1;
-              const body = message.content?.content || '';
+              const body = (message.content?.content || '')
+                .replace(/<[^>]*>/g, '')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&amp;/g, '&')
+                .trim();
               return (
                 <div key={message.id || index} className={`pc-cs__msg ${mine ? 'is-mine' : ''}`}>
                   {body}
