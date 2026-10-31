@@ -6,8 +6,8 @@
 ## 部署版本
 
 ```text
-Rust 后端：build-144
-PC 前端：pc-semi 最新构建
+Rust 后端：build-145
+PC 前端：pc-semi v19
 数据库：tigshopmall
 ```
 
@@ -136,6 +136,16 @@ Fallback = 0
 ## 当前部署
 
 ```text
-Rust：build-144
+Rust：build-145
 PC：v19
+```
+
+
+## 最终统一构建
+
+```text
+build-145
+sha256：f45c566da9ae195d947ed053cda7873b4902985cdde81036f0da293f06af134c
+备份：/www/backup/tigshop.preB145.bak
+HTTP=200 ACTIVE=active
 ```
