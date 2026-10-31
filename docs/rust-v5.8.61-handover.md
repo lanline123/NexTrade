@@ -518,3 +518,73 @@ build-132 部署记录：
 缺口登记：
   docs/rust-v5.8.61-full-gap-register.md
 ```
+
+---
+
+## 20. 2026-11-01 最新进展（build-143）
+
+> 本节覆盖前面 build-135 的旧结论，以本节为准。
+
+### 生产版本
+
+```text
+Rust：build-143
+sha256：9b5d753df1add611cf382622c4552c43550556cd91acca00f2b630888ff8bf8f
+备份：/www/backup/tigshop.preB143.bak
+PC：pc-semi 最新构建已发布
+```
+
+### 已验证完成
+
+```text
+图搜：已启用，阿里云实例连通
+图搜：全量图库构建 64 商品，62 入库
+图搜：真实图片上传返回相似商品
+图搜：PC /search/image 页面真实浏览器通过
+支付宝：useAlipay=1
+支付宝：裸 Base64 / PKCS#1 / PKCS#8 私钥兼容
+支付宝：真实订单创建支付单成功
+支付宝：支付宝网关接受 RSA2 签名，返回收银台
+PC：支付页显示支付宝，点击拉起 openapi.alipay.com
+订单：真实会员下单成功（测试订单 40）
+会员：注册空 username 唯一键问题修复
+会员：真实注册/登录/会员页浏览器回归通过
+PC：购物车 -> 结算 -> 确认订单浏览器回归通过
+PC：公开页 13 页、登录态会员页 8 页浏览器回归通过
+PC：图搜页、站内消息、留言反馈已上线
+PC：全站运行时 i18n 翻译层
+```
+
+### 外部配置阻塞
+
+```text
+Google OAuth：
+  redirect_uri_mismatch
+  Google Console 未登记 https://battery.recy.cc/oauth/callback
+
+Facebook OAuth：
+  client_id=32132 是占位值
+  返回 PLATFORM__INVALID_APP_ID
+```
+
+说明 OAuth 前后端跳转链路正常，阻塞在第三方控制台配置。
+
+### 仍未验证
+
+```text
+支付宝真实付款/回调/退款（需实际付款或沙箱）
+微信支付 / PayPal / Stripe / Xendit / Antom 真实渠道
+动态分类/商品/装修内容多语言
+PC 装修模块逐项视觉 parity
+admin-semi 生产部署
+```
+
+### 关键新增提交
+
+```text
+1469d3f4 fix(pc): translate nav labels with suffix symbols
+bbb66f50 fix(pc): render string payment method list
+9b5d753  fix(payment): support PKCS1 alipay keys
+fix(image-search): remove duplicate RegionId
+fix(member): set username on mobile registration
+```
