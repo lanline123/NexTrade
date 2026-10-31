@@ -82,3 +82,60 @@ PC 装修模块逐项视觉 parity 未逐条核对
 公开页/会员页/图搜/IM/支付页冒烟通过
 剩余主要是外部渠道配置、真实付款和内容级 parity
 ```
+
+---
+
+## 多语言回归（2026-11-01）
+
+8 个语种首页真实浏览器检查：
+
+| locale | HTTP | html lang | JS 错误 | 购物车文案 |
+| --- | --- | --- | --- | --- |
+| zh | 200 | zh-CN | 0 | 已翻译/默认 |
+| en | 200 | en | 0 | My Cart |
+| ko | 200 | ko | 0 | 장바구니 |
+| ja | 200 | ja | 0 | カート |
+| zh-Hant | 200 | zh-Hant | 0 | 購物車 |
+| es | 200 | es | 0 | Carrito |
+| fr | 200 | fr | 0 | panier |
+| ru | 200 | ru | 0 | Корзина |
+
+翻译数据来源：
+
+```text
+translations_data
+en / ko / ja / zh-Hant / es / fr / ru
+```
+
+种子文件：
+
+```text
+docs/i18n-home-en-seed.sql
+docs/i18n-home-multilang-seed.sql
+docs/i18n-home-esfrru-seed.sql
+```
+
+## 装修模块回归
+
+```text
+/preview/decorate 共 25 个模块
+9 个自制 kebab 模块
+16 个 Java 契约模块
+pageerror = 0
+Fallback = 0
+```
+
+修复：
+
+```text
+图片广告 3:1 高度约束
+分组轮播 3:1 高度约束
+页面高度 3340 -> 1917
+```
+
+## 当前部署
+
+```text
+Rust：build-144
+PC：v19
+```
