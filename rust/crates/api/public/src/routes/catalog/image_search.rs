@@ -286,7 +286,6 @@ async fn upload_transfer(
     let auth_params = vec![
         ("Action".to_string(), "AuthorizeFileUpload".to_string()),
         ("Product".to_string(), "ImageSearch".to_string()),
-        ("RegionId".to_string(), region.to_string()),
         ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
         ("Timestamp".to_string(), Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
     ];

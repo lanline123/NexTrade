@@ -412,6 +412,12 @@ async fn run_build(state: AdminState, job_id: i64, product_id: i32) -> Result<()
         .build()
         .map_err(|e| e.to_string())?;
     set_job_state(&state, job_id, "RUNNING", 0).await;
+    sqlx::query("UPDATE image_search_sync_job SET last_error='', updated_at=? WHERE id=?")
+        .bind(tigshop_common::utils::now_seconds() as i64)
+        .bind(job_id)
+        .execute(&state.repos.pool)
+        .await
+        .ok();
     let sql = if product_id > 0 {
         "SELECT product_id,product_status,is_delete,pic_url,pic_original,pic_large,pic_thumb FROM product WHERE product_id=? LIMIT 1"
     } else {
