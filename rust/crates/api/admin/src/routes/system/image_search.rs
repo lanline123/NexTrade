@@ -586,19 +586,25 @@ async fn upload_transfer(
     let params = vec![
         ("Action".to_string(), "AuthorizeFileUpload".to_string()),
         ("Product".to_string(), "ImageSearch".to_string()),
-        ("RegionId".to_string(), region.to_string()),
         ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
         ("Timestamp".to_string(), chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
     ];
     let query = sign_version("GET", key, secret, region, "2019-12-19", &params);
-    let auth: Value = client.get(format!("https://openplatform.aliyuncs.com/?{query}"))
-        .send().await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
+    let response = client.get(format!("https://openplatform.aliyuncs.com/?{query}"))
+        .send().await.map_err(|e| e.to_string())?;
+    let status = response.status();
+    let text = response.text().await.map_err(|e| e.to_string())?;
+    let auth: Value = serde_json::from_str(&text)
+        .map_err(|e| format!("OSS 授权响应解析失败: {e} / {text}"))?;
+    if !status.is_success() {
+        return Err(format!("获取 OSS 上传授权失败: HTTP {status} {text}"));
+    }
     let s = |k: &str| auth.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
     let bucket = s("Bucket");
     let endpoint = s("Endpoint");
     let object_key = s("ObjectKey");
     if bucket.is_empty() || endpoint.is_empty() || object_key.is_empty() {
-        return Err("获取 OSS 上传授权失败".into());
+        return Err(format!("获取 OSS 上传授权失败: {text}"));
     }
     let part = Part::bytes(bytes.to_vec()).file_name(object_key.clone()).mime_str("application/octet-stream")
         .map_err(|e| e.to_string())?;
