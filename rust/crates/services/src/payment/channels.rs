@@ -221,9 +221,26 @@ pub fn alipay_sign_content(params: &BTreeMap<String, String>) -> String {
         .join("&")
 }
 
+/// 支付宝后台可能保存裸 Base64 密钥；统一补成 PEM（并清理 NUL）。
+fn normalize_rsa_pem(raw: &str, label: &str) -> String {
+    let cleaned = raw.replace('\0', "").replace('\r', "");
+    if cleaned.contains("-----BEGIN") {
+        return cleaned.trim().to_string();
+    }
+    let body: String = cleaned.chars().filter(|c| !c.is_whitespace()).collect();
+    let mut out = format!("-----BEGIN {label}-----\n");
+    for chunk in body.as_bytes().chunks(64) {
+        out.push_str(&String::from_utf8_lossy(chunk));
+        out.push('\n');
+    }
+    out.push_str(&format!("-----END {label}-----"));
+    out
+}
+
 /// 支付宝 RSA2（SHA256withRSA）签名，返回 base64。
 pub fn alipay_rsa2_sign(private_key_pem: &str, content: &str) -> Result<String> {
-    let key = RsaPrivateKey::from_pkcs8_pem(private_key_pem)
+    let normalized = normalize_rsa_pem(private_key_pem, "PRIVATE KEY");
+    let key = RsaPrivateKey::from_pkcs8_pem(&normalized)
         .map_err(|e| Error::Validation(format!("支付宝应用私钥解析失败: {e}")))?;
     let signature = key
         .sign(Pkcs1v15Sign::new::<Sha256>(), &sha256(content.as_bytes()))
@@ -241,7 +258,8 @@ pub fn alipay_verify_notify(
         .cloned()
         .ok_or_else(|| Error::biz(1001, "支付宝回调缺少 sign"))?;
     let content = alipay_sign_content(params);
-    let key = RsaPublicKey::from_public_key_pem(alipay_public_key_pem)
+    let normalized = normalize_rsa_pem(alipay_public_key_pem, "PUBLIC KEY");
+    let key = RsaPublicKey::from_public_key_pem(&normalized)
         .map_err(|e| Error::Validation(format!("支付宝公钥解析失败: {e}")))?;
     key.verify(
         Pkcs1v15Sign::new::<Sha256>(),
