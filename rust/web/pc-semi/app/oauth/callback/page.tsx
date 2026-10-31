@@ -10,7 +10,9 @@ export default function OAuthCallbackPage() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code') || '';
       const state = params.get('state') || '';
-      const source = (params.get('source') || params.get('provider') || 'google').toLowerCase();
+      // 后端把 provider 编码进 state 前缀（provider:uuid）。
+      const stateSource = state.includes(':') ? state.split(':')[0] : '';
+      const source = (params.get('source') || params.get('provider') || stateSource || 'google').toLowerCase();
       if (!code) {
         setMessage('缺少第三方授权 code，请重新登录');
         return;

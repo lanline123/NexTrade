@@ -1208,7 +1208,13 @@ impl LoginService {
         } else {
             format!("{base}/oauth/callback")
         };
-        let state = uuid::Uuid::new_v4().simple().to_string();
+        // 第三方回调地址不能带自定义 query（必须与控制台完全一致），
+        // 因此把来源编码进 state 前缀，供回调页选择正确的 provider。
+        let state = format!(
+            "{}:{}",
+            source,
+            uuid::Uuid::new_v4().simple().to_string()
+        );
         let code_verifier = if source == "twitter" {
             Some(twitter_code_verifier())
         } else {
