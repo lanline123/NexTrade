@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Button, Card, Radio, RadioGroup, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+type PaymentMethod = string | { type?: string; name?: string; typeName?: string };
+
 interface PayInfo {
   order?: {
     orderId?: number;
@@ -12,8 +14,30 @@ interface PayInfo {
     unpaidAmount?: number | string;
     payTypeId?: number;
   };
-  paymentList?: Array<{ type?: string; name?: string; typeName?: string }>;
+  paymentList?: PaymentMethod[];
   offlinePaymentList?: Record<string, unknown>;
+}
+
+const CHANNEL_LABELS: Record<string, string> = {
+  alipay: '支付宝',
+  wechat: '微信支付',
+  wxpay: '微信支付',
+  paypal: 'PayPal',
+  stripe: 'Stripe',
+  xendit: 'Xendit',
+  antom: 'Antom',
+};
+
+function normalizePaymentMethods(list: PaymentMethod[] | undefined): Array<{ type: string; label: string }> {
+  return (list || [])
+    .map((item) => {
+      if (typeof item === 'string') {
+        return { type: item, label: CHANNEL_LABELS[item.toLowerCase()] || item };
+      }
+      const type = String(item?.type || '');
+      return { type, label: item?.name || item?.typeName || CHANNEL_LABELS[type.toLowerCase()] || type };
+    })
+    .filter((item) => item.type);
 }
 
 interface ChannelResult {
@@ -37,7 +61,7 @@ export default function PayClient({ orderId }: { orderId: number }) {
     apiGet<PayInfo>('order/pay/index', { id: orderId })
       .then((result) => {
         setInfo(result);
-        setPayType(result.paymentList?.[0]?.type || '');
+        setPayType(normalizePaymentMethods(result.paymentList)[0]?.type || '');
       })
       .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '订单支付信息加载失败' }))
       .finally(() => setLoading(false));
@@ -174,9 +198,9 @@ export default function PayClient({ orderId }: { orderId: number }) {
           <div className="pc-pay__methods">
             <div className="pc-pay__label">支付方式</div>
             <RadioGroup value={payType} onChange={(value) => setPayType(String(value))}>
-              {info.paymentList.map((method) => (
+              {normalizePaymentMethods(info.paymentList).map((method) => (
                 <Radio key={method.type} value={method.type}>
-                  {method.name || method.typeName || method.type}
+                  {method.label}
                 </Radio>
               ))}
             </RadioGroup>
