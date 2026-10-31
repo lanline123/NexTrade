@@ -13,6 +13,7 @@ use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes256Gcm, Nonce};
 use base64::Engine;
 use hmac::{Hmac, Mac};
+use rsa::pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey};
 use rsa::pkcs8::{DecodePrivateKey, DecodePublicKey};
 use rsa::{Pkcs1v15Sign, RsaPrivateKey, RsaPublicKey};
 use sha2::{Digest, Sha256};
@@ -239,9 +240,15 @@ fn normalize_rsa_pem(raw: &str, label: &str) -> String {
 
 /// 支付宝 RSA2（SHA256withRSA）签名，返回 base64。
 pub fn alipay_rsa2_sign(private_key_pem: &str, content: &str) -> Result<String> {
-    let normalized = normalize_rsa_pem(private_key_pem, "PRIVATE KEY");
-    let key = RsaPrivateKey::from_pkcs8_pem(&normalized)
-        .map_err(|e| Error::Validation(format!("支付宝应用私钥解析失败: {e}")))?;
+    let pkcs8 = normalize_rsa_pem(private_key_pem, "PRIVATE KEY");
+    let key = match RsaPrivateKey::from_pkcs8_pem(&pkcs8) {
+        Ok(key) => key,
+        Err(_) => {
+            let pkcs1 = normalize_rsa_pem(private_key_pem, "RSA PRIVATE KEY");
+            RsaPrivateKey::from_pkcs1_pem(&pkcs1)
+                .map_err(|e| Error::Validation(format!("支付宝应用私钥解析失败: {e}")))?
+        }
+    };
     let signature = key
         .sign(Pkcs1v15Sign::new::<Sha256>(), &sha256(content.as_bytes()))
         .map_err(|e| Error::Internal(format!("支付宝签名失败: {e}")))?;
@@ -258,9 +265,15 @@ pub fn alipay_verify_notify(
         .cloned()
         .ok_or_else(|| Error::biz(1001, "支付宝回调缺少 sign"))?;
     let content = alipay_sign_content(params);
-    let normalized = normalize_rsa_pem(alipay_public_key_pem, "PUBLIC KEY");
-    let key = RsaPublicKey::from_public_key_pem(&normalized)
-        .map_err(|e| Error::Validation(format!("支付宝公钥解析失败: {e}")))?;
+    let x509 = normalize_rsa_pem(alipay_public_key_pem, "PUBLIC KEY");
+    let key = match RsaPublicKey::from_public_key_pem(&x509) {
+        Ok(key) => key,
+        Err(_) => {
+            let pkcs1 = normalize_rsa_pem(alipay_public_key_pem, "RSA PUBLIC KEY");
+            RsaPublicKey::from_pkcs1_pem(&pkcs1)
+                .map_err(|e| Error::Validation(format!("支付宝公钥解析失败: {e}")))?
+        }
+    };
     key.verify(
         Pkcs1v15Sign::new::<Sha256>(),
         &sha256(content.as_bytes()),
