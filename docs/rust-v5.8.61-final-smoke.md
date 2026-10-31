@@ -6,8 +6,8 @@
 ## 部署版本
 
 ```text
-Rust 后端：build-145
-PC 前端：pc-semi v19
+Rust 后端：build-146
+PC 前端：pc-semi v20
 数据库：tigshopmall
 ```
 
@@ -136,7 +136,7 @@ Fallback = 0
 ## 当前部署
 
 ```text
-Rust：build-145
+Rust：build-146
 PC：v19
 ```
 
@@ -144,8 +144,20 @@ PC：v19
 ## 最终统一构建
 
 ```text
-build-145
-sha256：f45c566da9ae195d947ed053cda7873b4902985cdde81036f0da293f06af134c
-备份：/www/backup/tigshop.preB145.bak
+build-146
+sha256：b5a9c39b3a882a3e6d511ec20df5d5fb45c460e6f26f7ec2049687367e873089
+备份：/www/backup/tigshop.preB146.bak
 HTTP=200 ACTIVE=active
+```
+
+
+## Round 35 复验
+
+```text
+公开页 15 个：全部 200
+会员页 6 个：全部 200，无登录重定向
+IM：历史消息显示正常
+图搜：真实上传返回 VoltBot-E1，接口 200
+pageerror：0
+failed：[]
 ```
