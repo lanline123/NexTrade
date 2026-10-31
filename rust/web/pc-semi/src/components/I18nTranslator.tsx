@@ -13,9 +13,18 @@ function translateTextNode(node: Text, map: TranslationMap) {
   const raw = node.nodeValue || '';
   const key = raw.trim();
   if (!key || key.length > 200) return;
-  const value = map[key];
-  if (!value || value === key) return;
-  node.nodeValue = raw.replace(key, value);
+  let value = map[key];
+  let matched = key;
+  if (!value) {
+    // 导航/下拉项常把箭头、数量拼在同一文本节点：拆出主文案再匹配。
+    const suffix = key.match(/^(.+?)(\s*[▾›⌄]|\s+\d+)$/);
+    if (suffix) {
+      matched = suffix[1].trim();
+      value = map[matched];
+    }
+  }
+  if (!value || value === matched) return;
+  node.nodeValue = raw.trim().startsWith(matched) ? raw.replace(matched, value) : raw.replace(key, value);
 }
 
 function walk(root: Node, map: TranslationMap) {
