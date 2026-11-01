@@ -843,29 +843,50 @@ export function MobileSearchStyle() {
  * ========================================================================= */
 export function MobileCatNav() {
   const columns: ColumnConfig<any>[] = [
-    { title: '首页分类栏名称', dataIndex: 'categoryName', width: 180 },
+    { title: '首页分类栏名称', dataIndex: 'categoryName', width: 200, render: (v: any, row: any) => v || `分类 ${row.categoryId || ''}` },
     {
       title: '分类颜色',
-      dataIndex: 'categoryColor',
-      width: 120,
-      render: (c: any) => <div style={{ width: 24, height: 24, background: c || '#ff5000', borderRadius: 4 }} />,
+      dataIndex: 'catColor',
+      width: 110,
+      render: (c: any) => <div style={{ width: 22, height: 22, background: c || '#ff5000', borderRadius: 4, border: '1px solid #eee' }} />,
     },
     {
       title: '是否显示',
       dataIndex: 'isShow',
       width: 110,
-      render: (v: any) => <Tag color={v ? 'green' : 'grey'}>{v ? '显示' : '隐藏'}</Tag>,
+      render: (v: any, row: any) => (
+        <Switch
+          size="small"
+          checked={Number(v) === 1}
+          onChange={async (checked) => {
+            await apiPost('/decorate/mobileCatNav/updateField', {
+              id: row.mobileCatNavId,
+              field: 'isShow',
+              val: checked ? 1 : 0,
+            });
+            Toast.success('操作成功');
+          }}
+        />
+      ),
     },
-    { title: '排序', dataIndex: 'sortOrder', width: 90 },
     {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
-        </Space>
+      title: '排序',
+      dataIndex: 'sortOrder',
+      width: 110,
+      render: (v: any, row: any) => (
+        <InputNumber
+          size="small"
+          value={Number(v) || 0}
+          style={{ width: 80 }}
+          onChange={async (next) => {
+            await apiPost('/decorate/mobileCatNav/updateField', {
+              id: row.mobileCatNavId,
+              field: 'sortOrder',
+              val: Number(next ?? 0),
+            });
+            Toast.success('操作成功');
+          }}
+        />
       ),
     },
   ];
@@ -874,27 +895,57 @@ export function MobileCatNav() {
     <div>
       <ListPage
         api="/decorate/mobileCatNav/list"
-        rowKey="id"
+        rowKey="mobileCatNavId"
         columns={columns}
-        filters={[
-          { field: 'categoryName', label: '首页分类栏名称', type: 'input' },
-        ]}
+        filters={[{ field: 'categoryName', label: '首页分类栏名称', type: 'input' }]}
         drawer={{
           title: '分类导航配置',
-          addText: '添加分类导航',
-          width: 600,
+          addText: '添加首页分类栏',
+          width: 680,
           createApi: '/decorate/mobileCatNav/create',
           updateApi: '/decorate/mobileCatNav/update',
+          detailApi: '/decorate/mobileCatNav/detail',
           deleteApi: '/decorate/mobileCatNav/del',
+          idField: 'mobileCatNavId',
+          toPayload: (values) => {
+            const splitIds = (value: unknown) =>
+              typeof value === 'string'
+                ? value.split(/[,，\s]+/).map((item) => Number(item)).filter((item) => item > 0)
+                : Array.isArray(value) ? value : [];
+            const imgUrl = typeof values.imgUrl === 'string'
+              ? values.imgUrl.split(/\s+/).map((item) => item.trim()).filter(Boolean)
+              : values.imgUrl;
+            return {
+              ...values,
+              categoryId: Number(values.categoryId) || 0,
+              childCatIds: splitIds(values.childCatIds),
+              brandIds: splitIds(values.brandIds),
+              imgUrl: Array.isArray(imgUrl) ? imgUrl : [],
+              isShow: Number(values.isShow) ? 1 : 0,
+              sortOrder: Number(values.sortOrder) || 50,
+            };
+          },
           sections: [
             {
               key: 'basic',
               title: '基础配置',
               fields: [
-                { field: 'categoryName', label: '首页分类栏名称', type: 'input', required: true },
-                { field: 'categoryColor', label: '分类颜色', type: 'input' },
-                { field: 'isShow', label: '是否显示', type: 'switch' },
-                { field: 'sortOrder', label: '排序', type: 'input' },
+                {
+                  field: 'categoryId',
+                  label: '选择分类',
+                  type: 'select',
+                  required: true,
+                  optionsApi: '/product/category/list',
+                  optionsParams: { page: 1, size: 300 },
+                  optionLabel: 'categoryName',
+                  optionValue: 'categoryId',
+                },
+                { field: 'catColor', label: '分类颜色', type: 'input', placeholder: '#FF5000' },
+                { field: 'imgUrl', label: '分类banner', type: 'textarea', placeholder: '每行一个图片 URL，建议比例 2:1' },
+                { field: 'childCatIds', label: '推荐子分类', type: 'textarea', placeholder: '分类ID，逗号分隔' },
+                { field: 'brandIds', label: '推荐品牌', type: 'textarea', placeholder: '品牌ID，逗号分隔' },
+                { field: 'sortOrder', label: '排序', type: 'number' },
+                { field: 'isShow', label: '是否显示', type: 'switch', initValue: 1 },
               ],
             },
           ],
@@ -903,3 +954,4 @@ export function MobileCatNav() {
     </div>
   );
 }
+
