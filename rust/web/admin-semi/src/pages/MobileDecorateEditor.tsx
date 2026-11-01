@@ -46,12 +46,168 @@ const MOBILE_LIBRARY: Array<{ type: string; label: string; group: string }> = [
 ];
 
 const pickImages = (module: Record<string, any>): string[] => {
-  const list = module.picList || module.bannerContent?.picList || module.categoryList || [];
+  const list = module.picList || module.bannerContent?.picList || [];
   if (!Array.isArray(list)) return [];
   return list
     .map((item: any) => item?.picUrl || item?.picThumb || '')
     .filter(Boolean);
 };
+
+
+type FieldSpec = {
+  path: string;
+  label: string;
+  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image';
+  withTitle?: boolean;
+};
+
+const MODULE_FIELDS: Record<string, FieldSpec[]> = {
+  imageAd: [{ path: 'picList', label: '广告图', kind: 'images' }],
+  imageAd2: [{ path: 'picList', label: '广告图', kind: 'images' }],
+  imageSquareAd: [{ path: 'picList', label: '魔方图片', kind: 'images' }],
+  slidingImage: [{ path: 'picList', label: '滑动图片', kind: 'images' }],
+  banner: [{ path: 'bannerContent.picList', label: '轮播图', kind: 'images' }],
+  imageNav: [{ path: 'picList', label: '导航图标', kind: 'images', withTitle: true }],
+  categoryNav: [{ path: 'categoryList', label: '分类图标', kind: 'images', withTitle: true }],
+  catNav: [{ path: 'categoryList', label: '分类图标', kind: 'images', withTitle: true }],
+  imageTextComponent: [
+    { path: 'title', label: '标题', kind: 'text' },
+    { path: 'description', label: '描述', kind: 'textarea' },
+    { path: 'picUrl.picUrl', label: '主图', kind: 'image' },
+  ],
+  productA1: [
+    { path: 'title.titleText', label: '模块标题', kind: 'text' },
+    { path: 'showName', label: '显示名称', kind: 'switch' },
+    { path: 'showPrice', label: '显示价格', kind: 'switch' },
+  ],
+  productSlide: [
+    { path: 'title.titleText', label: '模块标题', kind: 'text' },
+    { path: 'showProductName', label: '显示名称', kind: 'switch' },
+    { path: 'showPrice', label: '显示价格', kind: 'switch' },
+  ],
+  seckill: [{ path: 'title.titleText', label: '活动标题', kind: 'text' }],
+  groupon: [{ path: 'title.titleText', label: '活动标题', kind: 'text' }],
+  videoNumber: [
+    { path: 'titleText', label: '标题', kind: 'text' },
+    { path: 'liveTitle', label: '直播文案', kind: 'text' },
+  ],
+  live: [{ path: 'titleText', label: '标题', kind: 'text' }],
+};
+
+const getPath = (source: any, path: string): any =>
+  path.split('.').reduce((value, key) => (value == null ? undefined : value[key]), source);
+
+const setPath = (source: any, path: string, value: any): any => {
+  const keys = path.split('.');
+  const root = Array.isArray(source) ? [...source] : { ...(source || {}) };
+  let cursor: any = root;
+  keys.forEach((key, index) => {
+    if (index === keys.length - 1) {
+      cursor[key] = value;
+      return;
+    }
+    cursor[key] = Array.isArray(cursor[key]) ? [...cursor[key]] : { ...(cursor[key] || {}) };
+    cursor = cursor[key];
+  });
+  return root;
+};
+
+function ImageListField({
+  value,
+  onChange,
+  withTitle,
+}: {
+  value: any;
+  onChange: (next: any[]) => void;
+  withTitle?: boolean;
+}) {
+  const list = Array.isArray(value) ? value : [];
+  const update = (index: number, patch: Record<string, any>) => {
+    onChange(list.map((item: any, i: number) => (i === index ? { ...item, ...patch } : item)));
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {list.map((item: any, index: number) => (
+        <div key={index} style={{ border: '1px solid #eef0f3', borderRadius: 6, padding: 8 }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {item?.picUrl || item?.picThumb ? (
+              <img src={item.picUrl || item.picThumb} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />
+            ) : (
+              <div style={{ width: 40, height: 40, background: '#f2f3f5', borderRadius: 4 }} />
+            )}
+            <Input
+              value={item?.picUrl || ''}
+              placeholder="图片 URL"
+              onChange={(next: string) => update(index, { picUrl: next, picThumb: next })}
+              style={{ width: 150 }}
+            />
+            <Button theme="borderless" type="danger" size="small" onClick={() => onChange(list.filter((_: any, i: number) => i !== index))}>删除</Button>
+          </div>
+          {withTitle ? (
+            <Input
+              value={item?.picTitle || ''}
+              placeholder="标题"
+              onChange={(next: string) => update(index, { picTitle: next })}
+              style={{ marginTop: 6 }}
+            />
+          ) : null}
+        </div>
+      ))}
+      <Button icon={<IconPlus />} size="small" onClick={() => onChange([...list, { picUrl: '', picThumb: '', picTitle: '' }])}>添加图片</Button>
+    </div>
+  );
+}
+
+function ModuleFields({
+  item,
+  onChange,
+}: {
+  item: MobileModule;
+  onChange: (module: Record<string, any>) => void;
+}) {
+  const specs = MODULE_FIELDS[item.type] || [];
+  return (
+    <>
+      {specs.map((spec) => {
+        const value = getPath(item.module, spec.path);
+        return (
+          <div key={spec.path} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 12 }}>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12, lineHeight: '30px', flexShrink: 0 }}>{spec.label}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {spec.kind === 'images' ? (
+                <ImageListField
+                  value={value}
+                  withTitle={spec.withTitle}
+                  onChange={(next) => onChange(setPath(item.module, spec.path, next))}
+                />
+              ) : spec.kind === 'image' ? (
+                <Input
+                  value={String(value || '')}
+                  placeholder="图片 URL"
+                  onChange={(next: string) => onChange(setPath(item.module, spec.path, next))}
+                />
+              ) : spec.kind === 'textarea' ? (
+                <TextArea
+                  value={String(value || '')}
+                  autosize={{ minRows: 3, maxRows: 6 }}
+                  onChange={(next: string) => onChange(setPath(item.module, spec.path, next))}
+                />
+              ) : spec.kind === 'switch' ? (
+                <Switch checked={Boolean(value)} onChange={(next) => onChange(setPath(item.module, spec.path, next))} />
+              ) : spec.kind === 'number' ? (
+                <InputNumber value={Number(value) || 0} onChange={(next) => onChange(setPath(item.module, spec.path, Number(next ?? 0)))} style={{ width: 150 }} />
+              ) : spec.kind === 'color' ? (
+                <input type="color" value={String(value || '#ffffff')} onChange={(e) => onChange(setPath(item.module, spec.path, e.target.value))} />
+              ) : (
+                <Input value={String(value || '')} onChange={(next: string) => onChange(setPath(item.module, spec.path, next))} />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+}
 
 function MobileModulePreview({ item }: { item: MobileModule }) {
   const m = item.module || {};
@@ -136,12 +292,29 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   };
 
   const addModule = (type: string, label: string) => {
+    const defaults: Record<string, Record<string, any>> = {
+      imageAd: { picList: [] },
+      imageAd2: { picList: [] },
+      imageSquareAd: { picList: [] },
+      slidingImage: { picList: [] },
+      banner: { bannerContent: { picList: [] } },
+      imageNav: { picList: [] },
+      categoryNav: { categoryList: [] },
+      catNav: { categoryList: [] },
+      imageTextComponent: { title: '', description: '', picUrl: { picUrl: '' } },
+      productA1: { title: { titleText: '' }, showName: 1, showPrice: 1 },
+      productSlide: { title: { titleText: '' }, showProductName: 1, showPrice: 1 },
+      seckill: { title: { titleText: '' } },
+      groupon: { title: { titleText: '' } },
+      videoNumber: { titleText: '', liveTitle: '' },
+      live: { titleText: '' },
+    };
     const item: MobileModule = {
       moduleIndex: Date.now(),
       type,
       label,
       isShow: true,
-      module: {},
+      module: defaults[type] || {},
     };
     setModuleList((prev) => [...prev, item]);
     setActiveIndex(moduleList.length);
@@ -230,23 +403,27 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                 <span style={{ width: 80, color: '#646a73' }}>模块名称</span>
                 <Input value={active.label} onChange={(value: string) => updateActive({ label: value })} />
               </div>
-              {Object.entries(active.module || {})
-                .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
-                .slice(0, 30)
-                .map(([key, value]) => (
-                  <div key={key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                    <span style={{ width: 96, color: '#646a73', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis' }} title={key}>{key}</span>
-                    {typeof value === 'boolean' ? (
-                      <Switch checked={value} onChange={(checked) => updateField(key, checked)} />
-                    ) : typeof value === 'number' ? (
-                      <InputNumber value={value} onChange={(next) => updateField(key, Number(next ?? 0))} style={{ width: 150 }} />
-                    ) : key.toLowerCase().includes('color') ? (
-                      <input type="color" value={String(value) || '#ffffff'} onChange={(e) => updateField(key, e.target.value)} />
-                    ) : (
-                      <Input value={String(value)} onChange={(next: string) => updateField(key, next)} style={{ width: 160 }} />
-                    )}
-                  </div>
-                ))}
+              <ModuleFields item={active} onChange={(module) => updateActive({ module })} />
+              <div style={{ borderTop: '1px solid #eef0f3', marginTop: 14, paddingTop: 10 }}>
+                <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>更多字段</div>
+                {Object.entries(active.module || {})
+                  .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
+                  .slice(0, 20)
+                  .map(([key, value]) => (
+                    <div key={key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+                      <span style={{ width: 90, color: '#646a73', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 0 }} title={key}>{key}</span>
+                      {typeof value === 'boolean' ? (
+                        <Switch checked={value} onChange={(checked) => updateField(key, checked)} />
+                      ) : typeof value === 'number' ? (
+                        <InputNumber value={value} onChange={(next) => updateField(key, Number(next ?? 0))} style={{ width: 150 }} />
+                      ) : key.toLowerCase().includes('color') ? (
+                        <input type="color" value={String(value) || '#ffffff'} onChange={(e) => updateField(key, e.target.value)} />
+                      ) : (
+                        <Input value={String(value)} onChange={(next: string) => updateField(key, next)} style={{ width: 160 }} />
+                      )}
+                    </div>
+                  ))}
+              </div>
             </>
           ) : (
             <>
