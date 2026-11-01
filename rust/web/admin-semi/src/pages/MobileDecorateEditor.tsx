@@ -204,6 +204,22 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
     { path: 'countdownData.specifyTime', label: '指定时间', kind: 'text' },
     { path: 'countdownData.marginTop', label: '顶部距离', kind: 'number' },
   ],
+  searchBar: [
+    { path: 'text', label: '搜索框文字', kind: 'text' },
+  ],
+  notice: [
+    { path: 'text', label: '公告内容', kind: 'text' },
+    { path: 'icoPic.picUrl', label: '公告图标', kind: 'image' },
+    { path: 'nociceEffect', label: '文字效果(滚动/静止)', kind: 'text' },
+  ],
+  article: [
+    { path: 'style', label: '展示风格', kind: 'number' },
+    { path: 'articleCategoryId', label: '文章分类', kind: 'number' },
+    { path: 'articleNum', label: '文章数量', kind: 'number' },
+    { path: 'showTime', label: '显示日期', kind: 'switch' },
+    { path: 'showPageView', label: '显示浏览量', kind: 'switch' },
+    { path: 'showLike', label: '显示点赞数', kind: 'switch' },
+  ],
   videoNumber: [
     { path: 'titleText', label: '标题', kind: 'text' },
     { path: 'liveTitle', label: '直播文案', kind: 'text' },
@@ -642,6 +658,9 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       productCarousel: { moduleTitle: '', showModuleTitle: 1, showName: 1, showPrice: 1, showMarketPrice: 1 },
       categoryNavA3: { categoryList: [], rowNum: 4 },
       imageShowcase: { picList: [], listStyle: 1, rowNum: 1, picRatio: '1:1', picFillType: 'cover', picRadius: 0, imgPadding: 0, boxShadow: 0 },
+      searchBar: { text: '搜索商品' },
+      notice: { text: '公告内容', icoPic: { picUrl: '', picThumb: '' }, nociceEffect: 'scroll' },
+      article: { style: 1, articleCategoryId: 0, articleNum: 6, showTime: 1, showPageView: 1, showLike: 1 },
       tagNav: { groupList: [], textWeight: 400, groupGap: 10 },
       countdown: { moduleTitle: { title: '', subTitle: '', moreText: '' }, countdownData: { showCountdown: 1, countdownType: 1, dailyTime: '', specifyTime: '', marginTop: 0 } },
       live: { titleText: '' },
