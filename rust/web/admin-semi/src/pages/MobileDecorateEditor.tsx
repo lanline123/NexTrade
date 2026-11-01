@@ -169,6 +169,30 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
     { path: 'rowNum', label: '每行数量', kind: 'number' },
     { path: 'listStyleType', label: '列表样式', kind: 'text' },
   ],
+  imageShowcase: [
+    { path: 'picList', label: '橱窗图片', kind: 'images' },
+    { path: 'listStyle', label: '列表样式', kind: 'number' },
+    { path: 'rowNum', label: '排列布局', kind: 'number' },
+    { path: 'picRatio', label: '图片比例', kind: 'text' },
+    { path: 'picFillType', label: '图片模式', kind: 'text' },
+    { path: 'picRadius', label: '图片圆角', kind: 'number' },
+    { path: 'imgPadding', label: '图片间距', kind: 'number' },
+    { path: 'boxShadow', label: '模块投影', kind: 'switch' },
+  ],
+  tagNav: [
+    { path: 'textWeight', label: '文本样式', kind: 'number' },
+    { path: 'groupGap', label: '分组间距', kind: 'number' },
+  ],
+  countdown: [
+    { path: 'moduleTitle.title', label: '模块大标题', kind: 'text' },
+    { path: 'moduleTitle.subTitle', label: '模块小标题', kind: 'text' },
+    { path: 'moduleTitle.moreText', label: '右侧提示信息', kind: 'text' },
+    { path: 'countdownData.showCountdown', label: '显示倒计时', kind: 'switch' },
+    { path: 'countdownData.countdownType', label: '倒计时类型', kind: 'number' },
+    { path: 'countdownData.dailyTime', label: '每日循环时间', kind: 'text' },
+    { path: 'countdownData.specifyTime', label: '指定时间', kind: 'text' },
+    { path: 'countdownData.marginTop', label: '顶部距离', kind: 'number' },
+  ],
   videoNumber: [
     { path: 'titleText', label: '标题', kind: 'text' },
     { path: 'liveTitle', label: '直播文案', kind: 'text' },
@@ -600,6 +624,9 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       newcomerCombo: { headerTitle: '新人专享二重礼', headerSubTitle: '限量供应 先到先得', section1Title: '新人尝鲜价', section2Title: '新人专享礼包', showHeader: 1, showSection1: 1, showSection2: 1, products: { productSelectType: 1, productIds: [], productNumber: 6 } },
       productCarousel: { moduleTitle: '', showModuleTitle: 1, showName: 1, showPrice: 1, showMarketPrice: 1 },
       categoryNavA3: { categoryList: [], rowNum: 4 },
+      imageShowcase: { picList: [], listStyle: 1, rowNum: 1, picRatio: '1:1', picFillType: 'cover', picRadius: 0, imgPadding: 0, boxShadow: 0 },
+      tagNav: { groupList: [], textWeight: 400, groupGap: 10 },
+      countdown: { moduleTitle: { title: '', subTitle: '', moreText: '' }, countdownData: { showCountdown: 1, countdownType: 1, dailyTime: '', specifyTime: '', marginTop: 0 } },
       live: { titleText: '' },
     };
     const item: MobileModule = {
