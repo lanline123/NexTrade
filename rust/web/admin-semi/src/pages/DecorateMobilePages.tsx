@@ -7,6 +7,8 @@ import {
   Tabs,
   TabPane,
   Input,
+  TextArea,
+  InputNumber,
   Select,
   Tag,
   Typography,
@@ -22,6 +24,7 @@ import {
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { THEME_PALETTES } from './themePalettes';
 
 const { Text, Title } = Typography;
 
@@ -38,42 +41,239 @@ function formatDecorateTime(value: any): string {
 
 /* =========================================================================
  * 1. ThemeStyle (decorate0 主题风格)
- * 契约对齐: java/view/admin/src/views/decorate/theme/Index.vue
- * labels: 主题风格, 主色调, 风格预设, 保存设置
+ * 契约对齐: java/view/admin/src/views/decorate/themeStyle/Info.vue
  * ========================================================================= */
-export function ThemeStyle() {
-  const [themeColor, setThemeColor] = useState('#165dff');
-  const [themePreset, setThemePreset] = useState('classic');
+type ThemeVars = Record<string, string>;
 
-  const onSave = () => {
-    Toast.success('主题风格保存成功');
+const paletteVars = (item: Record<string, any>): ThemeVars => {
+  const { themeId: _themeId, check: _check, ...vars } = item;
+  return vars as ThemeVars;
+};
+
+function buildCustomVars(main: string, vice: string): ThemeVars {
+  return {
+    '--general': main,
+    '--main-bg': main,
+    '--main-bg-gradient': main,
+    '--main-text': '#ffffff',
+    '--vice-bg': vice,
+    '--vice-text': main,
+    '--icon': main,
+    '--price': main,
+    '--tag-text': main,
+    '--tag-bg': vice,
+    '--primary-light-3': main,
+    '--primary-light-5': main,
+    '--primary-light-7': vice,
+    '--primary-light-8': vice,
+    '--primary-light-9': vice,
+    '--primary-dark-2': main,
+    '--ump-main-bg': main,
+    '--ump-main-text': '#ffffff',
+    '--ump-vice-bg': vice,
+    '--ump-vice-text': main,
+    '--ump-icon': main,
+    '--ump-price': main,
+    '--ump-tag-text': main,
+    '--ump-tag-bg': vice,
+    '--ump-coupon-bg': '#ffffff',
+    '--ump-border': vice,
+    '--ump-start-bg': main,
+    '--ump-end-bg': main,
   };
+}
+
+export function ThemeStyle() {
+  const [mode, setMode] = useState<1 | 2>(1);
+  const [themeId, setThemeId] = useState(0);
+  const [vars, setVars] = useState<ThemeVars>(paletteVars(THEME_PALETTES[0] as any));
+  const [customMain, setCustomMain] = useState('#4a90e2');
+  const [customVice, setCustomVice] = useState('#D6E9FC');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importCode, setImportCode] = useState('');
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/themeStyleSettings')
+      .then((result) => {
+        const raw = result?.themeStyle;
+        const parsed: ThemeVars = typeof raw === 'string' ? JSON.parse(raw) : raw || {};
+        if (!parsed || !parsed['--main-bg']) return;
+        const matched = THEME_PALETTES.find(
+          (item) => (item as any)['--main-bg'] === parsed['--main-bg'] && (item as any)['--vice-bg'] === parsed['--vice-bg'],
+        );
+        setVars(parsed);
+        setThemeId(matched ? Number((matched as any).themeId) : 0);
+        setMode(matched ? 1 : 2);
+        setCustomMain(parsed['--main-bg'] || '#4a90e2');
+        setCustomVice(parsed['--vice-bg'] || '#D6E9FC');
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const pickPalette = (item: Record<string, any>) => {
+    setMode(1);
+    setThemeId(Number(item.themeId));
+    setVars(paletteVars(item));
+  };
+
+  const changeCustom = (main: string, vice: string) => {
+    setMode(2);
+    setThemeId(0);
+    setCustomMain(main);
+    setCustomVice(vice);
+    setVars(buildCustomVars(main, vice));
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await apiPost('/setting/config/saveThemeStyle', { themeStyle: JSON.stringify({ ...vars, themeId }) });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const importCodeValue = () => {
+    try {
+      const parsed = JSON.parse(importCode);
+      const next = parsed?.themeStyle ? JSON.parse(parsed.themeStyle) : parsed;
+      if (!next || !next['--main-bg']) throw new Error('配色码格式不正确');
+      setVars(next as ThemeVars);
+      setThemeId(Number(next.themeId) || 0);
+      setMode(Number(next.themeId) ? 1 : 2);
+      setCustomMain(next['--main-bg']);
+      setCustomVice(next['--vice-bg'] || next['--main-bg']);
+      setImportOpen(false);
+      setImportCode('');
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '配色码格式不正确');
+    }
+  };
+
+  const mainStyle: React.CSSProperties = {
+    color: vars['--main-text'],
+    background: vars['--main-bg'],
+  };
+  const priceStyle: React.CSSProperties = { color: vars['--price'] };
+  const viceStyle: React.CSSProperties = { color: vars['--vice-text'], background: vars['--vice-bg'] };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="主题风格配置" style={{ maxWidth: 600 }}>
-        <div style={{ marginBottom: 24 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>主色调：</Text>
-          <Space>
-            <Input value={themeColor} onChange={(v: string) => setThemeColor(v)} style={{ width: 140 }} />
-            <div style={{ width: 36, height: 36, background: themeColor, borderRadius: 6, border: '1px solid #ccc' }} />
-          </Space>
-        </div>
+      <Card title="主题风格" loading={loading}>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ width: 520 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <b>配色方案</b>
+              <RadioGroup value={mode} onChange={(e) => setMode(Number(e.target.value) as 1 | 2)}>
+                <Radio value={1}>系统配色</Radio>
+                <Radio value={2}>自定义配色</Radio>
+              </RadioGroup>
+            </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>风格预设：</Text>
-          <RadioGroup value={themePreset} onChange={(e) => setThemePreset(e.target.value)}>
-            <Radio value="classic">经典商务蓝</Radio>
-            <Radio value="modern">活力活力橙</Radio>
-            <Radio value="elegant">优雅尊贵红</Radio>
-            <Radio value="fresh">清新自然绿</Radio>
-          </RadioGroup>
-        </div>
+            {mode === 1 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+                {THEME_PALETTES.map((item) => {
+                  const p = item as Record<string, any>;
+                  const active = themeId === p.themeId;
+                  return (
+                    <div
+                      key={p.themeId}
+                      onClick={() => pickPalette(p)}
+                      style={{
+                        cursor: 'pointer',
+                        border: `2px solid ${active ? '#1456f0' : 'transparent'}`,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        width: 72,
+                      }}
+                    >
+                      <div style={{ height: 24, background: p['--main-bg'] }} />
+                      <div style={{ height: 24, background: p['--vice-bg'] }} />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 20 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  主题颜色
+                  <input
+                    type="color"
+                    value={customMain}
+                    onChange={(e) => changeCustom(e.target.value, customVice)}
+                    style={{ width: 40, height: 32, border: 0, background: 'transparent' }}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  辅助颜色
+                  <input
+                    type="color"
+                    value={customVice}
+                    onChange={(e) => changeCustom(customMain, e.target.value)}
+                    style={{ width: 40, height: 32, border: 0, background: 'transparent' }}
+                  />
+                </label>
+              </div>
+            )}
 
-        <Button type="primary" size="large" onClick={onSave}>
-          保存设置
-        </Button>
+            <Space style={{ marginTop: 20 }}>
+              <Button onClick={() => setImportOpen(true)}>导入配色码</Button>
+              <Button theme="solid" type="primary" loading={saving} onClick={save}>保存</Button>
+            </Space>
+          </div>
+
+          <div style={{ flex: 1, minWidth: 360 }}>
+            <h3 style={{ margin: '0 0 12px' }}>预览效果</h3>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ width: 210, border: '1px solid #eee', borderRadius: 8, padding: 14, background: '#fff' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, ...priceStyle }}>¥395.00</div>
+                <div style={{ color: '#999', fontSize: 12, margin: '8px 0' }}>由本系统配送并提供售后服务</div>
+                <Space>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>9折</span>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>满100-10</span>
+                </Space>
+                <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>加入购物车</span>
+                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>立即购买</span>
+                </div>
+              </div>
+              <div style={{ width: 210, border: '1px solid #eee', borderRadius: 8, padding: 14, background: '#fff' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, ...priceStyle }}>¥231.10</div>
+                <div style={{ display: 'flex', gap: 8, margin: '10px 0' }}>
+                  <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>金色</span>
+                  <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>XS</span>
+                </div>
+                <div style={{ color: '#39bf3e', marginBottom: 10 }}>充足</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>加入购物车</span>
+                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>立即购买</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </Card>
+
+      <Modal title="导入配色码" visible={importOpen} onCancel={() => setImportOpen(false)} onOk={importCodeValue}>
+        <Text type="secondary">请把配色码粘贴在此处</Text>
+        <TextArea
+          value={importCode}
+          onChange={(v: string) => setImportCode(v)}
+          autosize={{ minRows: 6, maxRows: 12 }}
+          placeholder='{"--main-bg":"#4a90e2", ...}'
+          style={{ marginTop: 8 }}
+        />
+      </Modal>
     </div>
   );
 }
@@ -164,64 +364,143 @@ export function MobileDecoratePages({
  * props: state, autoReturnGoods, materialImg, materialVideo, maxWaitTime, redirectType, redirectUrl
  * ========================================================================= */
 export function MobileSplashAd() {
-  const [config, setConfig] = useState({
-    state: 1,
-    autoReturnGoods: 0,
-    materialImg: 'https://img.tigshop.com/ad/splash.jpg',
+  const [config, setConfig] = useState<any>({
+    state: 0,
+    materialType: 0,
+    materialImg: '',
     materialVideo: '',
     maxWaitTime: 5,
-    redirectType: 'url',
-    redirectUrl: 'https://',
+    redirectType: 0,
+    redirectUrl: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const onSave = () => {
-    Toast.success('开屏广告配置保存成功');
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/decorate/decorateDiscrete/detail', { decorateSn: 'openAdvertising' })
+      .then((result) => {
+        const data = result?.data || result;
+        if (data && typeof data === 'object') {
+          setConfig((prev: any) => ({ ...prev, ...data }));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await apiPost('/decorate/decorateDiscrete/update', {
+        decorateSn: 'openAdvertising',
+        decorateName: '开屏广告',
+        data: config,
+      });
+      Toast.success('提交成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '提交失败');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="开屏广告设置" style={{ maxWidth: 640 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-          <Text strong style={{ width: 120 }}>开屏广告开关：</Text>
-          <Switch checked={config.state === 1} onChange={(c) => setConfig({ ...config, state: c ? 1 : 0 })} />
-        </div>
+      <Card title="开屏广告" loading={loading}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 900 }}>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>开屏广告</Text>
+            <div>
+              <RadioGroup value={config.state} onChange={(e) => setConfig({ ...config, state: Number(e.target.value) })}>
+                <Radio value={1}>开启</Radio>
+                <Radio value={0}>关闭</Radio>
+              </RadioGroup>
+              <div style={{ color: '#999', marginTop: 6 }}>
+                该功能仅支持微信小程序和 APP，开启进入商城首页时出现一段品牌图片/视频，等待播放后进入。
+              </div>
+            </div>
+          </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>最大等待时长(秒)：</Text>
-          <Input
-            value={String(config.maxWaitTime)}
-            onChange={(v: string) => setConfig({ ...config, maxWaitTime: Number(v || 5) })}
-            style={{ width: 200 }}
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>添加素材</Text>
+            <div style={{ flex: 1 }}>
+              <RadioGroup
+                value={config.materialType}
+                disabled={config.state === 0}
+                onChange={(e) => setConfig({ ...config, materialType: Number(e.target.value) })}
+              >
+                <Radio value={0}>图片</Radio>
+                <Radio value={1}>视频</Radio>
+              </RadioGroup>
+              {config.materialType === 0 ? (
+                <Input
+                  value={config.materialImg}
+                  disabled={config.state === 0}
+                  onChange={(v: string) => setConfig({ ...config, materialImg: v })}
+                  placeholder="建议尺寸 1080*1920，请输入图片 URL"
+                  style={{ marginTop: 10 }}
+                />
+              ) : (
+                <Input
+                  value={config.materialVideo}
+                  disabled={config.state === 0}
+                  onChange={(v: string) => setConfig({ ...config, materialVideo: v })}
+                  placeholder="格式 mp4，请输入视频 URL"
+                  style={{ marginTop: 10 }}
+                />
+              )}
+              <div style={{ color: '#999', marginTop: 6 }}>
+                {config.materialType === 0
+                  ? '建议尺寸1080*1920，格式jpg/png/gif，单张图片文件大小限制以内'
+                  : '格式mp4，单个视频文件大小限制5M以内'}
+              </div>
+            </div>
+          </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>添加素材(图片/视频)：</Text>
-          <Input
-            value={config.materialImg}
-            placeholder="输入广告图片URL"
-            onChange={(v: string) => setConfig({ ...config, materialImg: v })}
-            style={{ marginBottom: 8 }}
-          />
-          <Input
-            value={config.materialVideo}
-            placeholder="可选：视频素材URL"
-            onChange={(v: string) => setConfig({ ...config, materialVideo: v })}
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>最大等待时长</Text>
+            <span>播放</span>
+            <InputNumber
+              value={config.maxWaitTime}
+              disabled={config.state === 0}
+              min={1}
+              onChange={(v) => setConfig({ ...config, maxWaitTime: Number(v ?? 5) })}
+              style={{ width: 100 }}
+            />
+            <span>秒后自动进入商城首页</span>
+          </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>跳转链接：</Text>
-          <Input
-            value={config.redirectUrl}
-            placeholder="https://..."
-            onChange={(v: string) => setConfig({ ...config, redirectUrl: v })}
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>跳转</Text>
+            <div style={{ flex: 1 }}>
+              <RadioGroup
+                value={config.redirectType}
+                disabled={config.state === 0}
+                onChange={(e) => setConfig({ ...config, redirectType: Number(e.target.value) })}
+              >
+                <Radio value={0}>不跳转</Radio>
+                <Radio value={1}>整体跳转</Radio>
+              </RadioGroup>
+              {config.redirectType === 1 ? (
+                <Input
+                  value={config.redirectUrl}
+                  disabled={config.state === 0}
+                  onChange={(v: string) => setConfig({ ...config, redirectUrl: v })}
+                  placeholder="请输入跳转链接"
+                  style={{ marginTop: 10 }}
+                />
+              ) : null}
+            </div>
+          </div>
 
-        <Button type="primary" size="large" onClick={onSave}>
-          保存设置
-        </Button>
+          <div>
+            <Button theme="solid" type="primary" loading={saving} onClick={save}>提 交</Button>
+          </div>
+        </div>
       </Card>
     </div>
   );
