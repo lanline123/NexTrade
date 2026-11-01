@@ -71,7 +71,7 @@ const pickImages = (module: Record<string, any>): string[] => {
 type FieldSpec = {
   path: string;
   label: string;
-  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image' | 'products' | 'productSource';
+  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image' | 'products' | 'productSource' | 'productObjects';
   withTitle?: boolean;
 };
 
@@ -212,6 +212,7 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
     { path: 'products', label: '商品来源', kind: 'productSource' },
   ],
   productCarousel: [
+    { path: 'productList', label: '指定商品', kind: 'productObjects' },
     { path: 'moduleTitle', label: '模块标题', kind: 'text' },
     { path: 'showModuleTitle', label: '显示模块标题', kind: 'switch' },
     { path: 'showName', label: '显示名称', kind: 'switch' },
@@ -382,6 +383,49 @@ function CategoryPickerField({
   );
 }
 
+function ProductObjectsField({
+  value,
+  onChange,
+}: {
+  value: any;
+  onChange: (next: any[]) => void;
+}) {
+  const list = Array.isArray(value) ? value : [];
+  const ids = list.map((item: any) => Number(item.productId)).filter(Boolean);
+  const [loading, setLoading] = useState(false);
+
+  const pick = async (nextIds: number[]) => {
+    const missing = nextIds.filter((id) => !list.some((item: any) => Number(item.productId) === id));
+    if (!missing.length) {
+      onChange(list.filter((item: any) => nextIds.includes(Number(item.productId))));
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await apiGet<any>('/product/product/list', { ids: missing.join(','), page: 1, pageSize: 100 });
+      const records = result?.records || result?.list || [];
+      const next = nextIds.map((id) => {
+        const existed = list.find((item: any) => Number(item.productId) === id);
+        if (existed) return existed;
+        return records.find((item: any) => Number(item.productId) === id) || { productId: id };
+      });
+      onChange(next);
+    } catch {
+      onChange(nextIds.map((id) => list.find((item: any) => Number(item.productId) === id) || { productId: id }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <ProductPicker value={ids} max={50} onChange={pick} />
+      {loading ? <span style={{ color: '#98a2b3', fontSize: 12 }}>加载商品信息...</span> : null}
+      <span style={{ color: '#98a2b3', fontSize: 12 }}>已选 {list.length} 个商品</span>
+    </div>
+  );
+}
+
 function ProductSourceField({
   value,
   categories,
@@ -489,6 +533,11 @@ function ModuleFields({
                 <ProductSourceField
                   value={value || {}}
                   categories={categories}
+                  onChange={(next) => onChange(setPath(item.module, spec.path, next))}
+                />
+              ) : spec.kind === 'productObjects' ? (
+                <ProductObjectsField
+                  value={value}
                   onChange={(next) => onChange(setPath(item.module, spec.path, next))}
                 />
               ) : spec.kind === 'textarea' ? (
