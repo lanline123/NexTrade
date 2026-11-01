@@ -370,6 +370,59 @@ function ModuleFields({
           </div>
         );
       })}
+      {item.module?.frame ? (
+        <div style={{ borderTop: '1px solid #eef0f3', marginTop: 12, paddingTop: 10 }}>
+          <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>通用容器</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>背景色</span>
+            <input
+              type="color"
+              value={item.module.frame.backgroundColor || '#ffffff'}
+              onChange={(e) => onChange(setPath(item.module, 'frame.backgroundColor', e.target.value))}
+            />
+          </div>
+          {[
+            { key: 'boxPadding', label: '内边距' },
+            { key: 'boxPaddingTop', label: '上边距' },
+            { key: 'boxPaddingBottom', label: '下边距' },
+            { key: 'boxRadius', label: '圆角' },
+          ].map((field) => (
+            <div key={field.key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>{field.label}</span>
+              <InputNumber
+                value={Number(getPath(item.module, `frame.${field.key}`)) || 0}
+                min={0}
+                max={50}
+                onChange={(next) => onChange(setPath(item.module, `frame.${field.key}`, Number(next ?? 0)))}
+                style={{ width: 120 }}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {item.module?.moduleStyle ? (
+        <div style={{ borderTop: '1px solid #eef0f3', marginTop: 12, paddingTop: 10 }}>
+          <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>模块样式</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>背景色</span>
+            <input
+              type="color"
+              value={item.module.moduleStyle.backgroundColor || '#ffffff'}
+              onChange={(e) => onChange(setPath(item.module, 'moduleStyle.backgroundColor', e.target.value))}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>上边距</span>
+            <InputNumber
+              value={Number(getPath(item.module, 'moduleStyle.bannerMarginTop')) || 0}
+              min={0}
+              max={50}
+              onChange={(next) => onChange(setPath(item.module, 'moduleStyle.bannerMarginTop', Number(next ?? 0)))}
+              style={{ width: 120 }}
+            />
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
