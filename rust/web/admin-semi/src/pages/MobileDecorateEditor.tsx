@@ -619,6 +619,16 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                     });
                     setActiveIndex(activeIndex + 1);
                   }}>下移</Button>
+                  <Button size="small" onClick={() => {
+                    if (!active) return;
+                    const copy = { ...active, moduleIndex: Date.now(), label: `${active.label}-副本`, module: JSON.parse(JSON.stringify(active.module || {})) };
+                    setModuleList((prev) => {
+                      const next = [...prev];
+                      next.splice(activeIndex + 1, 0, copy);
+                      return next;
+                    });
+                    setActiveIndex(activeIndex + 1);
+                  }}>复制</Button>
                   <Button icon={<IconDelete />} theme="borderless" type="danger" size="small" onClick={() => { setModuleList((prev) => prev.filter((_, i) => i !== activeIndex)); setActiveIndex(-1); }} />
                 </Space>
               </div>
