@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Avatar, Badge, Button, Input, Tooltip, Typography } from '@douyinfe/semi-ui';
+import { Avatar, Badge, Button, Input, Tooltip } from '@douyinfe/semi-ui';
 import { IconBell, IconExit, IconHelpCircle, IconMenu, IconSearch } from '@douyinfe/semi-icons';
 import { navGroups, pageTitles } from '../config/adminMenu';
-
-const { Text } = Typography;
 
 export type PageKey = string;
 
@@ -338,9 +336,6 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
             <div className="page-heading">
               <div>
                 <h1 className="page-title">{pageTitles[page] || page}</h1>
-                <Text type="tertiary" size="small">
-                  万物新生 · 运营管理后台
-                </Text>
               </div>
             </div>
             {children}
