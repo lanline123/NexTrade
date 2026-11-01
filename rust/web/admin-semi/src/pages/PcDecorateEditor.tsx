@@ -885,7 +885,6 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   const [pageType, setPageType] = useState(1);
   const [hasDraft, setHasDraft] = useState(false);
   const [canvasScale, setCanvasScale] = useState(1);
-  const [libVisible, setLibVisible] = useState(false);
   const canvasViewportRef = useRef<HTMLDivElement>(null);
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [moduleList, setModuleList] = useState<EditorModule[]>([]);
@@ -965,7 +964,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     if (!el) return;
     const update = () => {
       const width = el.clientWidth;
-      const next = Math.min(1, Math.max(0.35, (width - 150) / 1600));
+      const next = Math.min(1, Math.max(0.35, (width - 24) / 1600));
       setCanvasScale(next);
     };
     update();
@@ -1198,7 +1197,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* 左侧模块库（对齐原版 ModuleToolbar：单折叠分组 + 图标卡片网格 + 拖拽入画布） */}
-        <div className="pc-decorate-lib" style={{ display: libVisible ? undefined : 'none' }}>
+        <div className="pc-decorate-lib">
           <div className="pc-decorate-lib__inside">
             <div className="pc-decorate-lib__head" onClick={() => setLibOpen((v) => !v)}>
               <span>PC首页模块</span>
@@ -1236,7 +1235,6 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         {/* 中间画布：1600px 整页无缝渲染（对齐原版 CanvasViewport，与 C 端一致） */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#eef1f6' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fff', borderBottom: '1px solid var(--semi-color-border)' }}>
-            <Button size="small" onClick={() => setLibVisible((v) => !v)}>{libVisible ? '隐藏模块库' : '模块库'}</Button>
             <Button size="small" onClick={() => { setPanelTab('page'); setActiveIndex(-1); }}>页面设置</Button>
             <Button size="small" onClick={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}>PC头部装修</Button>
             <Text type="tertiary" size="small">画布按窗口宽度等比缩放，与前台首页渲染一致</Text>
