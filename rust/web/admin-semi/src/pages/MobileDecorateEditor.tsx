@@ -76,10 +76,36 @@ type FieldSpec = {
 };
 
 const MODULE_FIELDS: Record<string, FieldSpec[]> = {
-  imageAd: [{ path: 'picList', label: '广告图', kind: 'images' }],
-  imageAd2: [{ path: 'picList', label: '广告图', kind: 'images' }],
-  imageSquareAd: [{ path: 'picList', label: '魔方图片', kind: 'images' }, { path: 'title.showTitle', label: '显示标题', kind: 'switch' }, { path: 'title.titleText', label: '标题内容', kind: 'text' }, { path: 'title.titleColor', label: '标题颜色', kind: 'color' }, { path: 'title.showMore', label: '显示更多', kind: 'switch' }],
-  slidingImage: [{ path: 'picList', label: '滑动图片', kind: 'images' }],
+  imageAd: [
+    { path: 'picList', label: '广告图', kind: 'images' },
+    { path: 'picType', label: '展示模板(1-7)', kind: 'number' },
+    { path: 'picPageType', label: '指示器样式', kind: 'number' },
+    { path: 'swiperPreView', label: '轮播一行显示', kind: 'number' },
+    { path: 'swiperPageColor', label: '指示器颜色', kind: 'color' },
+  ],
+  imageAd2: [
+    { path: 'picList', label: '广告图', kind: 'images' },
+    { path: 'picType', label: '展示模板', kind: 'number' },
+    { path: 'swiperPreView', label: '轮播一行显示', kind: 'number' },
+    { path: 'swiperPageColor', label: '指示器颜色', kind: 'color' },
+  ],
+  imageSquareAd: [
+    { path: 'picList', label: '魔方图片', kind: 'images' },
+    { path: 'picPageType', label: '指示器样式', kind: 'number' },
+    { path: 'swiperPreView', label: '轮播一行显示', kind: 'number' },
+    { path: 'picRadioStyle', label: '图片圆角样式', kind: 'number' },
+    { path: 'title.showTitle', label: '显示标题', kind: 'switch' },
+    { path: 'title.titleText', label: '标题内容', kind: 'text' },
+    { path: 'title.titleColor', label: '标题颜色', kind: 'color' },
+    { path: 'title.showMore', label: '显示更多', kind: 'switch' },
+  ],
+  slidingImage: [
+    { path: 'picList', label: '滑动图片', kind: 'images' },
+    { path: 'picWidth', label: '图片宽度(%)', kind: 'number' },
+    { path: 'picPadding', label: '图片内边距', kind: 'number' },
+    { path: 'picRadius', label: '图片圆角', kind: 'number' },
+    { path: 'showDesc', label: '显示描述', kind: 'switch' },
+  ],
   banner: [
     { path: 'bannerContent.picList', label: '轮播图', kind: 'images' },
     { path: 'bannerContent.height', label: '轮播高度', kind: 'number' },
@@ -92,7 +118,14 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
     { path: 'searchContent.menuIcon', label: '显示菜单图标', kind: 'switch' },
     { path: 'searchContent.signIcon', label: '显示签到图标', kind: 'switch' },
   ],
-  imageNav: [{ path: 'picList', label: '导航图标', kind: 'images', withTitle: true }],
+  imageNav: [
+    { path: 'picList', label: '导航图片', kind: 'images', withTitle: true },
+    { path: 'navType', label: '显示模式', kind: 'number' },
+    { path: 'navStyle', label: '样式', kind: 'number' },
+    { path: 'rowNum', label: '一行显示', kind: 'number' },
+    { path: 'colNum', label: '显示行数', kind: 'number' },
+    { path: 'imgPadding', label: '元素边距', kind: 'number' },
+  ],
   categoryNav: [{ path: 'categoryList', label: '分类图标', kind: 'images', withTitle: true }],
   catNav: [{ path: 'categoryList', label: '分类图标', kind: 'images', withTitle: true }],
   imageTextComponent: [
@@ -644,10 +677,10 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
 
   const addModule = (type: string, label: string, index?: number) => {
     const defaults: Record<string, Record<string, any>> = {
-      imageAd: { picList: [] },
-      imageAd2: { picList: [] },
+      imageAd: { picList: [], picType: 1, picPageType: 1, swiperPreView: 1, swiperPageColor: '' },
+      imageAd2: { picList: [], picType: 1, swiperPreView: 1, swiperPageColor: '' },
       imageSquareAd: { picList: [] },
-      slidingImage: { picList: [] },
+      slidingImage: { picList: [], picWidth: 25, picPadding: 4, picRadius: 15, showDesc: 1 },
       banner: {
         bannerContent: { picList: [], height: 200, picRadius: 6 },
         logoPic: { picUrl: '', picThumb: '' },
@@ -655,7 +688,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
         navContent: { showNav: 1, navList: [] },
         searchContent: { showSearch: 1, searchText: '搜索商品', menuIcon: 1, signIcon: 1 },
       },
-      imageNav: { picList: [] },
+      imageNav: { picList: [], navType: 1, navStyle: 1, rowNum: 4, colNum: 1, imgPadding: 0 },
       categoryNav: { categoryList: [] },
       catNav: { categoryList: [] },
       imageTextComponent: { title: '', description: '', picUrl: { picUrl: '' } },
