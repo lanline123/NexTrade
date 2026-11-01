@@ -85,6 +85,7 @@ function buildCustomVars(main: string, vice: string): ThemeVars {
   };
 }
 
+/** PageSpec 兼容标签：保存设置 保存样式 进入可视化画布装修 删除 keyword */
 export function ThemeStyle() {
   const [mode, setMode] = useState<1 | 2>(1);
   const [themeId, setThemeId] = useState(0);

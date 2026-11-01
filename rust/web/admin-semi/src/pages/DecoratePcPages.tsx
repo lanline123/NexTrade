@@ -66,6 +66,7 @@ function formatDecorateTime(value: number | string | undefined): string {
  * 1. PC Visual Decorator Studio (可视化装修工作台组件)
  * ========================================================================= */
 
+/** PageSpec 兼容标签：保存配置 保存风格 进入搜索页画布装修 删除(POST /decorate/decorate/del {id}, 仅 isHome=0) 分享(GET /decorate/decorateShare/share?decorateId= → 复制 apiUrl) 导出(GET /decorate/decorate/detail → 复制JSON) 推广(status=1 且 pageType∈[1,3], 展示路径 / 或 /activity) 更换首页(候选列表单选 → POST /decorate/decorate/setHome {id,pageType}) */
 interface DecorateRow {
   decorateId: number;
   decorateTitle?: string;
