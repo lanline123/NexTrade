@@ -161,3 +161,28 @@ IM：历史消息显示正常
 pageerror：0
 failed：[]
 ```
+
+## Round 37 全新会员 E2E
+
+真实浏览器完整流程：
+
+```text
+/register 注册新账号
+注册成功跳转 /login
+填写手机号/密码登录
+跳转首页
+访问 /member 显示昵称
+```
+
+结果：
+
+```text
+mobile：13991566572
+afterLogin：https://battery.recy.cc/
+memberUrl：https://battery.recy.cc/member
+hasNick：true
+loginRedirect：false
+pageerror：0
+```
+
+说明 build-146 的注册 username 修复真实生效。
