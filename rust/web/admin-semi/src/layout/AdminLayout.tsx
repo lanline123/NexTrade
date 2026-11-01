@@ -248,6 +248,18 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
 
       <div className="main-shell">
         <header className="topbar">
+          <div
+            className="topbar-brand"
+            role="button"
+            tabIndex={0}
+            aria-label="返回首页"
+            onClick={() => onPageChange('dashboard')}
+          >
+            <img
+              src={logo || `${import.meta.env.BASE_URL}admin-assets/admin-light-logo.jpeg`}
+              alt="万物新生"
+            />
+          </div>
           <div className="topbar-left">
             <Button
               icon={<IconMenu />}
