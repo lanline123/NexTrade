@@ -563,6 +563,10 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   };
 
   const save = async (mode: 'draft' | 'publish') => {
+    if (!decorateId) {
+      Toast.warning('缺少装修页面 ID');
+      return;
+    }
     setSaving(mode);
     try {
       await apiPost(mode === 'draft' ? '/decorate/decorate/saveDraft' : '/decorate/decorate/publish', {
