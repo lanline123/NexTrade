@@ -3158,7 +3158,109 @@ function GrouponPreview({ data }: { data: Record<string, any> }) {
   );
 }
 
-/** 营销通栏画布预览（对齐原版 Preview.vue + preview.less：左类目 / 中轮播+促销+频道卡 / 右会员+店铺街） */
+/** 营销通栏画布预览（1:1 对齐原版 Preview.vue：API拉类目/分组商品 + 右面板逐像素还原） */
+
+
+
+function HeaderColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+      <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => onChange('')}>重置</a>
+      <input
+        type="color"
+        value={value || '#ffffff'}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ width: 34, height: 26, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
+      />
+    </span>
+  );
+}
+
+/** 左列类目：优先取 pcCatFloor/list（PC 分类抽屉）真实数据，回退到配置项 */
+function useHeroLeftCategories(configCategories: PicItem[], showCount: number) {
+  const [apiCategories, setApiCategories] = useState<PicItem[]>([]);
+  useEffect(() => {
+    let alive = true;
+    apiGet<{ records?: Array<Record<string, any>>; list?: Array<Record<string, any>> }>('/decorate/pcCatFloor/list', {
+      page: 1, size: 50, sortField: 'sortOrder', sortOrder: 'asc',
+    })
+      .then((res) => {
+        if (!alive) return;
+        const raw = res.records || res.list || [];
+        const mapped: PicItem[] = raw.map((item: any) => ({
+          picId: String(item.picId ?? item.id ?? ''),
+          picUrl: item.picUrl || item.imageUrl || '',
+          picThumb: item.picThumb || item.picUrl || item.imageUrl || '',
+          picName: item.picName || '',
+          picTitle: item.picTitle || item.title || '类目',
+          picDesc: '',
+          picLink: { link: item.picLink?.link || item.link || '', name: '' },
+        }));
+        setApiCategories(mapped);
+      })
+      .catch(() => {
+        if (alive) setApiCategories([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const categories = apiCategories.length ? apiCategories : configCategories;
+  return categories.slice(0, Math.max(0, Math.floor(showCount)));
+}
+
+/** 卡位商品来源为 productGroup 时：分组详情拿 productIds → 按 ids 查商品（取前 2） */
+function useHeroGroupProducts(cards: Array<Record<string, any>>) {
+  const [groupProductsMap, setGroupProductsMap] = useState<Record<number, PreviewProduct[]>>({});
+  const key = JSON.stringify(cards.map((c) => ({ src: c.productSource, gid: c.productGroupId })));
+  useEffect(() => {
+    const pending: Array<{ idx: number; gid: string }> = [];
+    cards.forEach((card, idx) => {
+      if (card.productSource === 'productGroup' && card.productGroupId) {
+        pending.push({ idx, gid: String(card.productGroupId) });
+      }
+    });
+    if (!pending.length) {
+      setGroupProductsMap({});
+      return;
+    }
+    let alive = true;
+    Promise.all(
+      pending.map(async ({ idx, gid }) => {
+        try {
+          const group = await apiGet<Record<string, any>>('/product/productGroup/detail', { id: gid });
+          const productIds = Array.isArray(group?.productIds) ? (group.productIds as Array<number | string>).slice(0, 2) : [];
+          if (!productIds.length) return [idx, []] as const;
+          const result = await apiGet<{ records?: PreviewProduct[] }>('/product/product/list', {
+            ids: productIds.join(','), size: 2, page: 1,
+          });
+          const records = (result.records || []).map((item) => ({
+            productId: item.productId,
+            productName: item.productName || '',
+            picUrl: item.picUrl || '',
+            picThumb: item.picThumb || '',
+            productPrice: item.productPrice ? `¥${item.productPrice}` : '¥0',
+          }));
+          return [idx, records] as const;
+        } catch {
+          return [idx, []] as const;
+        }
+      }),
+    ).then((entries) => {
+      if (!alive) return;
+      const map: Record<number, PreviewProduct[]> = {};
+      entries.forEach(([idx, rows]) => {
+        map[idx] = rows as PreviewProduct[];
+      });
+      setGroupProductsMap(map);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [key]);
+  return groupProductsMap;
+}
+
 function HeroPreview({ data }: { data: Record<string, any> }) {
   const m = data || {};
   const frame = m.frame || {};
@@ -3185,12 +3287,17 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
       ? `linear-gradient(${gradientDirMap[right.userCardGradientType || 'upDown'] || 'to bottom'}, ${right.userCardGradientColorA}, ${right.userCardGradientColorB})`
       : 'none';
 
+  const showCount = Number(left.showCount) || 10;
+  const configCategories = ((left.categories || []) as PicItem[]);
+  const categories = useHeroLeftCategories(configCategories, showCount);
+
   const allModules: Array<Record<string, any>> = (center.modules || []).length ? center.modules : [];
   const promoCards = allModules.slice(0, 2);
   const channelCards = allModules.slice(2, 6);
   const banners = (center.banners || []) as PicItem[];
-  const categories = ((left.categories || []) as PicItem[]).slice(0, Number(left.showCount) || 10);
   const shortcuts = (right.shortcuts || []) as PicItem[];
+
+  const groupProductsMap = useHeroGroupProducts(allModules);
 
   const panelStyle: Record<string, any> = { background: panelBg, borderRadius: panelRadius, boxShadow: panelShadow, overflow: 'hidden' };
   const cardStyle: Record<string, any> = { ...panelStyle, borderRadius: cardRadius };
@@ -3198,50 +3305,73 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
   const subtitleBg = (card: Record<string, any>) =>
     `linear-gradient(${gradientDirMap[card.moduleSubTitleBgType || 'leftRight'] || 'to right'}, ${card.moduleSubTitleBgColorA || '#FF4E4E'}, ${card.moduleSubTitleBgColorB || '#E1251B'})`;
 
-  const HeroCard = ({ card }: { card: Record<string, any> }) => (
-    <div style={{ ...cardStyle, width: '100%', height: '100%', padding: 8, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-        <span style={{ fontSize: titleSize, fontWeight: 700, color: titleColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {card.moduleTitle || '推荐'}
-        </span>
-        {card.moduleSubTitle ? (
-          <span style={{ fontSize: 10, color: '#fff', background: subtitleBg(card), borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>
-            {card.moduleSubTitle}
+  /** 卡位商品渲染：productGroup 来源走 groupProductsMap，products 来源走 card.products */
+  const getCardProducts = (card: Record<string, any>, idx: number): PreviewProduct[] => {
+    if (card.productSource === 'productGroup') return groupProductsMap[idx] || [];
+    return ((card.products || []) as Array<Record<string, any>>).map((p) => ({
+      productId: 0,
+      productName: '',
+      picUrl: p.pic?.picUrl || '',
+      picThumb: p.pic?.picThumb || p.pic?.picUrl || '',
+      productPrice: p.price || '¥0',
+    }));
+  };
+
+  const HeroCard = ({ card, cardIndex }: { card: Record<string, any>; cardIndex: number }) => {
+    const products = getCardProducts(card, cardIndex);
+    return (
+      <div style={{ ...cardStyle, width: '100%', height: '100%', padding: 8, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+          <span style={{ fontSize: titleSize, fontWeight: 700, color: titleColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {card.moduleTitle || '推荐'}
           </span>
-        ) : null}
+          {card.moduleSubTitle ? (
+            <span style={{ fontSize: 10, color: '#fff', background: subtitleBg(card), borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>
+              {card.moduleSubTitle}
+            </span>
+          ) : null}
+        </div>
+        <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 0 }}>
+          {products.length
+            ? products.slice(0, 2).map((p, pi) => {
+                const rawP = ((card.products || [])[pi] || {}) as Record<string, any>;
+                return (
+                  <div key={pi} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+                    <div style={{ flex: 1, borderRadius: 6, overflow: 'hidden', background: '#f7f8fa', position: 'relative', minHeight: 0 }}>
+                      {(p.picThumb || p.picUrl) ? <img src={p.picThumb || p.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
+                      {rawP.label ? (
+                        <span
+                          style={{
+                            position: 'absolute', left: 0, bottom: 0, fontSize: 9, color: '#fff', padding: '1px 4px',
+                            background: `linear-gradient(to right, ${rawP.labelBgColorA || '#FF4E4E'}, ${rawP.labelBgColorB || '#E1251B'})`,
+                          }}
+                        >
+                          {rawP.label}
+                        </span>
+                      ) : null}
+                    </div>
+                    {String(card.showPrice) !== '0' && (
+                      <div style={{ fontSize: 12, fontWeight: 700, color: priceColor, textAlign: 'center' }}>
+                        {typeof p.productPrice === 'string' && p.productPrice.startsWith('¥') ? p.productPrice : `¥${Number(p.productPrice ?? 0).toFixed(2)}`}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            : <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: mutedColor, fontSize: 12 }}>配置商品</div>}
+        </div>
       </div>
-      <div style={{ flex: 1, display: 'flex', gap: 6, minHeight: 0 }}>
-        {((card.products || []) as Array<Record<string, any>>).slice(0, 2).map((p, pi) => (
-          <div key={pi} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-            <div style={{ flex: 1, borderRadius: 6, overflow: 'hidden', background: '#f7f8fa', position: 'relative', minHeight: 0 }}>
-              {p.pic?.picUrl ? <img src={p.pic.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
-              {p.label ? (
-                <span
-                  style={{
-                    position: 'absolute', left: 0, bottom: 0, fontSize: 9, color: '#fff', padding: '1px 4px',
-                    background: `linear-gradient(to right, ${p.labelBgColorA || '#FF4E4E'}, ${p.labelBgColorB || '#E1251B'})`,
-                  }}
-                >
-                  {p.label}
-                </span>
-              ) : null}
-            </div>
-            {String(card.showPrice) !== '0' && (
-              <div style={{ fontSize: 12, fontWeight: 700, color: priceColor, textAlign: 'center' }}>{p.price || '¥0'}</div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const framePad = `${Number(frame.boxPaddingTop) || 0}px ${Number(frame.boxPadding) || 0}px ${Number(frame.boxPaddingBottom) || 0}px`;
 
   return (
     <div style={{ padding: framePad, background: frame.backgroundColor || 'transparent', borderRadius: Number(frame.boxRadius) || 0 }}>
       <div style={{ display: 'grid', gridTemplateColumns: `${style.leftWidth || 220}px minmax(0, 1fr) ${style.rightWidth || 260}px`, gap, height, overflow: 'hidden', alignItems: 'stretch' }}>
-        {/* 左：类目列表 */}
-        <section style={{ ...panelStyle, background: left.backgroundColor || '#ffffff', color: left.textColor || '#333333', paddingTop: 6 }}>
+
+        {/* 左：类目列表（API 优先） */}
+        <section style={{ ...panelStyle, background: left.backgroundColor || '#ffffff', color: left.textColor || '#333333', paddingTop: 6, overflowY: 'auto' }}>
           {categories.length ? (
             categories.map((c, i) => (
               <div key={c.picId ?? i} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 28, padding: '4px 8px 4px 16px', fontSize: 12 }}>
@@ -3267,7 +3397,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
             <div style={{ flex: 1, display: 'flex', gap, minWidth: 0 }}>
               {promoCards.map((card, i) => (
                 <div key={i} style={{ flex: 1, minWidth: 0 }}>
-                  <HeroCard card={card} />
+                  <HeroCard card={card} cardIndex={i} />
                 </div>
               ))}
             </div>
@@ -3275,66 +3405,77 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
           <div style={{ flex: 1, minHeight: 0 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap, height: '100%' }}>
               {channelCards.map((card, i) => (
-                <HeroCard key={i} card={card} />
+                <HeroCard key={i} card={card} cardIndex={i + 2} />
               ))}
             </div>
           </div>
         </section>
 
-        {/* 右：用户卡 + 店铺街 */}
+        {/* 右：用户卡 + 店铺街（1:1 还原） */}
         <section style={{ display: 'flex', flexDirection: 'column', gap, minWidth: 0, minHeight: 0 }}>
-          <div style={{ ...panelStyle, height: 220, flexShrink: 0, padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', background: userGradient !== 'none' ? userGradient : right.userCardBackground || panelBg }}>
+          {/* 用户卡 */}
+          <div style={{ ...panelStyle, height: 220, flexShrink: 0, padding: '16px 12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', background: userGradient !== 'none' ? userGradient : right.userCardBackground || panelBg, position: 'relative' }}>
+            {/* 付费会员入口：绝对定位右上角 */}
             {right.premiumMember?.show === true && (
-              <div style={{ alignSelf: 'stretch', marginBottom: 8, background: '#1a1a1a', color: '#ffd700', borderRadius: 6, padding: '4px 8px', fontSize: 12, fontWeight: 700 }}>
+              <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 2, width: 86, height: 41, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1a1a1a', color: '#ffd700', borderRadius: '0 0 0 12px', fontSize: 12, fontWeight: 700 }}>
                 {right.premiumMember.title || '会员'}
-                {right.premiumMember.description ? <span style={{ fontWeight: 400, marginLeft: 6 }}>{right.premiumMember.description}</span> : null}
+                {right.premiumMember.description ? <span style={{ fontWeight: 400, fontSize: 9 }}>{right.premiumMember.description}</span> : null}
               </div>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <img src={getPath(right, 'user.avatar.picUrl') || ''} alt="" style={{ width: 36, height: 36, borderRadius: '50%', background: '#ececec' }} />
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{getPath(right, 'user.nickname') || '欢迎来商城'}</div>
-                <div style={{ fontSize: 11, color: mutedColor }}>
+            {/* 用户信息行 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', marginBottom: 15 }}>
+              <img src={getPath(right, 'user.avatar.picUrl') || ''} alt="" style={{ width: 36, height: 36, borderRadius: '50%', background: '#ececec', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#333', paddingBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                  {getPath(right, 'user.nickname') || '欢迎来商城'}
+                </div>
+                <div style={{ fontSize: 12, color: '#666', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span>注册</span>
-                  <span style={{ margin: '0 4px' }}>|</span>
+                  <span style={{ width: 1, height: 10, background: '#ddd' }} />
                   <span>入驻</span>
                 </div>
               </div>
             </div>
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{getPath(right, 'user.welcomeText') || '登录后更多精彩'}</div>
-              <div style={{ fontSize: 11, color: mutedColor, marginTop: 2 }}>一键登录，福利好物全拥有</div>
+            {/* 欢迎语 */}
+            <div style={{ width: '100%', textAlign: 'center', marginBottom: 8 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#333', marginBottom: 4 }}>{getPath(right, 'user.welcomeText') || '登录后更多精彩'}</div>
+              <div style={{ fontSize: 12, color: '#999' }}>一键登录，福利好物全拥有</div>
             </div>
-            <div style={{ marginTop: 8, background: priceColor, color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 14, padding: '4px 18px' }}>立即登录</div>
-            <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, marginTop: 10 }}>
+            {/* 立即登录按钮 */}
+            <div style={{ display: 'block', width: '100%', height: 36, lineHeight: '36px', background: '#ff4141', color: '#fff', fontSize: 14, borderRadius: 4, textAlign: 'center', flexShrink: 0 }}>
+              立即登录
+            </div>
+            {/* 四宫格动作 */}
+            <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, marginTop: 10, flexShrink: 0 }}>
               {['我的订单', '浏览记录', '商品收藏', '关注店铺'].map((t) => (
                 <div key={t} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 11, color: '#333' }}>
-                  <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#f2f3f5', display: 'inline-block' }} />
+                  <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#f2f3f5', display: 'inline-block' }} />
                   <span>{t}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ ...panelStyle, flex: 1, padding: '10px 12px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontWeight: 700, fontSize: titleSize, color: titleColor }}>
+          {/* 店铺街 */}
+          <div style={{ ...panelStyle, flex: 1, padding: '0 12px 10px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '10px 0', flexShrink: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: titleSize, color: titleColor, display: 'flex', alignItems: 'center', gap: 4 }}>
                 {getPath(right, 'shopsTitle') || '店铺街'}
                 {getPath(right, 'shopsSubTitle') ? (
-                  <span style={{ fontSize: 10, color: '#fff', background: getPath(right, 'shopsSubTitleBg') || '#FF4E4E', borderRadius: 3, padding: '1px 4px', marginLeft: 6 }}>
+                  <span style={{ fontSize: 10, color: '#fff', background: getPath(right, 'shopsSubTitleBg') || '#FF4E4E', borderRadius: 3, padding: '1px 4px' }}>
                     {getPath(right, 'shopsSubTitle')}
                   </span>
                 ) : null}
               </div>
               <a style={{ fontSize: 11, color: mutedColor }}>
-                {getPath(right, 'shopsMoreText') || '查看全部'} ▾
+                {getPath(right, 'shopsMoreText') || '查看全部'} <span style={{ fontSize: 9 }}>▾</span>
               </a>
             </div>
             {shortcuts.length ? (
-              <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginTop: 8, alignContent: 'start' }}>
+              <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, alignContent: 'start' }}>
                 {shortcuts.map((sc, i) => (
                   <div key={sc.picId ?? i} style={{ textAlign: 'center' }}>
-                    <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: 8, overflow: 'hidden', background: '#f7f8fa' }}>
-                      {sc.picUrl ? <img src={sc.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
+                    <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: '#ffffff', border: '1px solid #f2f2f2', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {sc.picUrl ? <img src={sc.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : null}
                     </div>
                     <span style={{ fontSize: 11, color: getPath(right, 'shopsTextColor') || '#a06a38', display: 'block', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {sc.picTitle || '进入店铺'}
@@ -3352,7 +3493,174 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
   );
 }
 
-/* ===================== 页面设置（对齐原版 commonPage/Edit.vue） ===================== */
+
+const PC_HEADER_DEFAULTS: Record<string, any> = {
+  styleType: 1,
+  isWhite: 1,
+  bottomDividerType: 1,
+  showTopMenuBar: 1,
+  topMenuTextColor: '',
+  topMenuTextHoverColor: '',
+  showTopRegion: 1,
+  topRegionText: '中国江西',
+  showTopUserMenu: 1,
+  showTopMemberCenter: 1,
+  memberCenterItems: [
+    { picTitle: '我的足迹', picDesc: '', picLink: { link: '/member/browsingHistory/list', name: '我的足迹', label: '我的足迹' } },
+    { picTitle: '我的优惠券', picDesc: '', picLink: { link: '/member/coupon/list', name: '我的优惠券', label: '我的优惠券' } },
+  ],
+  showTopMemberName: 1,
+  showTopMessage: 1,
+  showTopOrders: 1,
+  showTopSiteNav: 1,
+  showTopAd: 1,
+  topAdPic: { picUrl: '', picThumb: '' },
+  logoPic: { picUrl: '', picThumb: '' },
+  logoAlign: 1,
+  logoWidth: 100,
+  logoHeight: 25,
+  rightCartShow: 1,
+  cartStyle: 1,
+  cartPic: { picUrl: '', picThumb: '' },
+  topMenuCartShow: 1,
+  searchStyle: 1,
+  searchColorType: 1,
+  searchColor: '',
+  showCategory: 1,
+  showHomeCategory: 1,
+  categoryMarginTop: 0,
+  showMainNav: 1,
+  mainNavPaddingTop: 0,
+  mainNavPaddingBottom: 0,
+  showBenefitBar: 1,
+  benefitBarBackgroundColor: '',
+  benefitTitleColor: '',
+  benefitDescColor: '',
+  benefitNoticeGroups: [],
+};
+
+function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>; onOpen: () => void }) {
+  const h = { ...PC_HEADER_DEFAULTS, ...header };
+  const styleType = Number(h.styleType ?? 1) === 2 ? 2 : 1;
+  const simple = styleType === 1;
+  const showBenefitBar = Number(h.showBenefitBar ?? 1) !== 0;
+  const showTopMenuBar = Number(h.showTopMenuBar ?? 1) !== 0;
+  const showTopRegion = Number(h.showTopRegion ?? 1) !== 0;
+  const showTopUserMenu = Number(h.showTopUserMenu ?? 1) !== 0;
+  const showTopMemberCenter = Number(h.showTopMemberCenter ?? 1) !== 0;
+  const showTopMemberName = Number(h.showTopMemberName ?? 1) !== 0;
+  const showTopMessage = Number(h.showTopMessage ?? 1) !== 0;
+  const showTopOrders = Number(h.showTopOrders ?? 1) !== 0;
+  const showTopSiteNav = Number(h.showTopSiteNav ?? 1) !== 0;
+  const showRightCart = Number(h.rightCartShow ?? 1) !== 0;
+  const cartStyle = Number(h.cartStyle ?? 1);
+  const showCategory = Number(h.showCategory ?? 1) !== 0 && Number(h.showHomeCategory ?? 1) !== 0;
+  const showMainNav = Number(h.showMainNav ?? 1) !== 0;
+  const showTopMenuCart = Number(h.topMenuCartShow ?? 1) !== 0;
+  const divider = [1, 2].includes(Number(h.bottomDividerType)) ? Number(h.bottomDividerType) : simple ? 2 : 1;
+  const navTitles = useHeaderNavTitles();
+  const navItems = navTitles.length ? navTitles : ['首页', '导航1', '导航2'];
+
+  const topMenuTextStyle: Record<string, any> = {};
+  if (h.topMenuTextColor) topMenuTextStyle.color = h.topMenuTextColor;
+  if (h.topMenuTextHoverColor) (topMenuTextStyle as any)['--hover-color'] = h.topMenuTextHoverColor;
+
+  const stripLeft = simple && (showTopRegion || showTopMemberName);
+  const stripRight = showTopSiteNav || showTopMenuCart || (simple && showTopMenuBar && showTopUserMenu);
+
+  const logoStyle: Record<string, any> = {
+    width: Math.min(Number(h.logoWidth) || 100, 160),
+    height: Math.min(Number(h.logoHeight) || 25, 60),
+    objectFit: 'contain',
+  };
+  const logoAlign = Number(h.logoAlign ?? 1);
+  const searchAccent = Number(h.searchColorType ?? 1) === 2 && h.searchColor ? h.searchColor : '#1a1a1a';
+
+  return (
+    <div className="dec-pc-header-preview" onClick={onOpen} title="点击配置 PC 头部装修">
+      {/* 顶部提示条（showBenefitBar 总开关，两种风格共用） */}
+      {showBenefitBar && (
+        <div className="dec-pc-header-preview__strip" style={h.benefitBarBackgroundColor ? { background: h.benefitBarBackgroundColor } : undefined}>
+          <div className="dec-pc-header-preview__strip-inner">
+            <div className="pchead-strip">
+              <div className="pchead-strip__left" style={topMenuTextStyle}>
+                {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || '北京市'}</span>}
+                {simple && showTopMemberName && <a className="pchead-strip__link">会员信息</a>}
+              </div>
+              <div className="pchead-strip__right" style={topMenuTextStyle}>
+                {showTopMenuCart && <a className="pchead-strip__link">🛒 购物车</a>}
+                {simple && showTopMenuBar && showTopUserMenu && (
+                  <span className="pchead-strip__menus">
+                    {showTopMemberCenter && <a className="pchead-strip__link">会员中心 ▾</a>}
+                    {showTopMessage && <a className="pchead-strip__link">站内消息</a>}
+                    {showTopOrders && <a className="pchead-strip__link">我的订单</a>}
+                  </span>
+                )}
+                {showTopSiteNav && <a className="pchead-strip__link">站点导航 ▾</a>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 头部主体（简约风） */}
+      {simple && (
+        <div className={`dec-pchead-body${Number(h.isWhite ?? 1) !== 0 ? ' dec-pchead-body--white' : ''} dec-pchead-body--divider-${divider}`}>
+          <div className="dec-pchead-body__grid">
+            <div className="dec-pchead-body__left">
+              <div className={`dec-pchead-logo dec-pchead-logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
+                {h.logoPic?.picUrl
+                  ? <img src={h.logoPic.picUrl} alt="logo" style={logoStyle} />
+                  : <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a' }}>LOGO</span>}
+              </div>
+              {showCategory && (
+                <div className="dec-pchead-cate" style={{ marginTop: Number(h.categoryMarginTop) || 0 }}>
+                  <span className="dec-pchead-cate__icon">☰</span>
+                  <span className="dec-pchead-cate__txt">分类</span>
+                  <span className="dec-pchead-cate__arrow">▾</span>
+                </div>
+              )}
+            </div>
+            <div className="dec-pchead-body__center">
+              <div className="dec-pchead-search">
+                <div className="dec-pchead-search__box" style={{ borderColor: searchAccent }}>
+                  <span className="dec-pchead-search__type">商品 <i>▾</i></span>
+                  <input className="dec-pchead-search__input" placeholder="请输入关键词" disabled />
+                  <span className="dec-pchead-search__submit" style={{ background: searchAccent }}>搜索</span>
+                </div>
+                {showMainNav && (
+                  <ul className="dec-pchead-nav" style={{ marginTop: Number(h.mainNavPaddingTop) || 0, marginBottom: Number(h.mainNavPaddingBottom) || 0 }}>
+                    {navItems.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                  </ul>
+                )}
+              </div>
+            </div>
+            <div className="dec-pchead-body__right">
+              {showRightCart && (
+                cartStyle === 2 ? (
+                  <div className={`dec-pchead-cartpic${h.cartPic?.picUrl ? '' : ' dec-pchead-cartpic--empty'}`}>
+                    {h.cartPic?.picUrl ? <img src={h.cartPic.picUrl} alt="" /> : <span>购物车图</span>}
+                  </div>
+                ) : (
+                  <div className="dec-pchead-cart">
+                    <span className="dec-pchead-cart__icon">🛒</span>
+                    <span className="dec-pchead-cart__count">18</span>
+                    <span className="dec-pchead-cart__text">购物车</span>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {!simple && (
+        <div className="dec-pchead-body dec-pchead-body--white dec-pchead-body--divider-0" style={{ padding: '20px 24px', fontSize: 13, color: '#999' }}>
+          跨境风头部（由跨境风专属字段驱动，画布预览以简约风结构为准）
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function PageSettingsPanel({
   pageModule,
@@ -3474,233 +3782,60 @@ function PageSettingsPanel({
   );
 }
 
-/* ===================== PC 头部装修（pageModule.pcHeader，对齐原版 PcHeaderSettingsPanel） ===================== */
 
 function HeaderSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div>
-      <div style={{ fontWeight: 700, fontSize: 14, color: '#333', padding: '8px 0', borderTop: '1px solid var(--semi-color-border)', marginTop: 4 }}>{title}</div>
+    <div style={{ marginTop: 14, borderTop: '1px solid #eef0f3', paddingTop: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2329', marginBottom: 8 }}>{title}</div>
       {children}
     </div>
   );
 }
 
-function HeaderField({ label, value, children, showIf = true }: { label: string; value?: string; children: ReactNode; showIf?: boolean }) {
+function HeaderField({
+  label,
+  value,
+  showIf = true,
+  children,
+}: {
+  label: string;
+  value?: ReactNode;
+  showIf?: boolean;
+  children?: ReactNode;
+}) {
   if (!showIf) return null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 32 }}>
-      <span style={{ fontSize: 13, color: '#333', flexShrink: 0 }}>{label}</span>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-        {value ? <Text type="tertiary" size="small">{value}</Text> : null}
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '7px 0' }}>
+      <div style={{ width: 98, flexShrink: 0, color: '#646a73', fontSize: 13, lineHeight: '28px' }}>{label}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         {children}
-      </span>
+        {value ? <div style={{ color: '#98a2b3', fontSize: 12, lineHeight: '20px', marginTop: 2 }}>{value}</div> : null}
+      </div>
     </div>
   );
 }
 
-function HeaderColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => onChange('')}>重置</a>
-      <input
-        type="color"
-        value={value || '#ffffff'}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: 34, height: 26, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-      />
-    </span>
-  );
-}
-
-const PC_HEADER_DEFAULTS: Record<string, any> = {
-  styleType: 1,
-  isWhite: 1,
-  bottomDividerType: 1,
-  showTopMenuBar: 1,
-  topMenuTextColor: '',
-  topMenuTextHoverColor: '',
-  showTopRegion: 1,
-  topRegionText: '中国江西',
-  showTopUserMenu: 1,
-  showTopMemberCenter: 1,
-  memberCenterItems: [
-    { picTitle: '我的足迹', picDesc: '', picLink: { link: '/member/browsingHistory/list', name: '我的足迹', label: '我的足迹' } },
-    { picTitle: '我的优惠券', picDesc: '', picLink: { link: '/member/coupon/list', name: '我的优惠券', label: '我的优惠券' } },
-  ],
-  showTopMemberName: 1,
-  showTopMessage: 1,
-  showTopOrders: 1,
-  showTopSiteNav: 1,
-  showTopAd: 1,
-  topAdPic: { picUrl: '', picThumb: '' },
-  logoPic: { picUrl: '', picThumb: '' },
-  logoAlign: 1,
-  logoWidth: 100,
-  logoHeight: 25,
-  rightCartShow: 1,
-  cartStyle: 1,
-  cartPic: { picUrl: '', picThumb: '' },
-  topMenuCartShow: 1,
-  searchStyle: 1,
-  searchColorType: 1,
-  searchColor: '',
-  showCategory: 1,
-  showHomeCategory: 1,
-  categoryMarginTop: 0,
-  showMainNav: 1,
-  mainNavPaddingTop: 0,
-  mainNavPaddingBottom: 0,
-  showBenefitBar: 1,
-  benefitBarBackgroundColor: '',
-  benefitTitleColor: '',
-  benefitDescColor: '',
-  benefitNoticeGroups: [],
-};
-
-/** 画布顶部：头部实时预览（对齐原版 PcHeaderPreview + SimplePreviewBody，点击进设置） */
-
 function useHeaderNavTitles() {
-  const [navItems, setNavItems] = useState<string[]>([]);
+  const [titles, setTitles] = useState<string[]>([]);
   useEffect(() => {
     let alive = true;
-    apiGet<{ records?: Array<Record<string, any>> }>('/decorate/pcNavigation/list', { page: 1, size: 10 })
-      .then((res) => {
+    apiGet<any>('/decorate/pcNavigation/list', { page: 1, size: 10 })
+      .then((result) => {
         if (!alive) return;
-        const titles = (res.records || [])
-          .filter((item: any) => item.isShow !== false && item.title)
-          .map((item: any) => String(item.title));
-        if (titles.length) setNavItems(titles.slice(0, 8));
+        const rows = result?.records || result?.list || [];
+        const next = rows
+          .filter((item: any) => item.isShow !== 0)
+          .map((item: any) => String(item.navName || item.name || item.title || ''))
+          .filter(Boolean);
+        if (next.length) setTitles(next);
       })
-      .catch(() => {});
+      .catch(() => undefined);
     return () => {
       alive = false;
     };
   }, []);
-  return navItems;
+  return titles;
 }
-
-function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>; onOpen: () => void }) {
-  const h = { ...PC_HEADER_DEFAULTS, ...header };
-  const styleType = Number(h.styleType ?? 1) === 2 ? 2 : 1;
-  const simple = styleType === 1;
-  const showBenefitBar = Number(h.showBenefitBar ?? 1) !== 0;
-  const showTopMenuBar = Number(h.showTopMenuBar ?? 1) !== 0;
-  const showTopRegion = Number(h.showTopRegion ?? 1) !== 0;
-  const showTopUserMenu = Number(h.showTopUserMenu ?? 1) !== 0;
-  const showTopMemberCenter = Number(h.showTopMemberCenter ?? 1) !== 0;
-  const showTopMemberName = Number(h.showTopMemberName ?? 1) !== 0;
-  const showTopMessage = Number(h.showTopMessage ?? 1) !== 0;
-  const showTopOrders = Number(h.showTopOrders ?? 1) !== 0;
-  const showTopSiteNav = Number(h.showTopSiteNav ?? 1) !== 0;
-  const showRightCart = Number(h.rightCartShow ?? 1) !== 0;
-  const cartStyle = Number(h.cartStyle ?? 1);
-  const showCategory = Number(h.showCategory ?? 1) !== 0 && Number(h.showHomeCategory ?? 1) !== 0;
-  const showMainNav = Number(h.showMainNav ?? 1) !== 0;
-  const showTopMenuCart = Number(h.topMenuCartShow ?? 1) !== 0;
-  const divider = [1, 2].includes(Number(h.bottomDividerType)) ? Number(h.bottomDividerType) : simple ? 2 : 1;
-  const navTitles = useHeaderNavTitles();
-  const navItems = navTitles.length ? navTitles : ['首页', '导航1', '导航2'];
-
-  const topMenuTextStyle: Record<string, any> = {};
-  if (h.topMenuTextColor) topMenuTextStyle.color = h.topMenuTextColor;
-  if (h.topMenuTextHoverColor) (topMenuTextStyle as any)['--hover-color'] = h.topMenuTextHoverColor;
-
-  const stripLeft = simple && (showTopRegion || showTopMemberName);
-  const stripRight = showTopSiteNav || showTopMenuCart || (simple && showTopMenuBar && showTopUserMenu);
-
-  const logoStyle: Record<string, any> = {
-    width: Math.min(Number(h.logoWidth) || 100, 160),
-    height: Math.min(Number(h.logoHeight) || 25, 60),
-    objectFit: 'contain',
-  };
-  const logoAlign = Number(h.logoAlign ?? 1);
-  const searchAccent = Number(h.searchColorType ?? 1) === 2 && h.searchColor ? h.searchColor : '#1a1a1a';
-
-  return (
-    <div className="dec-pc-header-preview" onClick={onOpen} title="点击配置 PC 头部装修">
-      {/* 顶部提示条（showBenefitBar 总开关，两种风格共用） */}
-      {showBenefitBar && (
-        <div className="dec-pc-header-preview__strip" style={h.benefitBarBackgroundColor ? { background: h.benefitBarBackgroundColor } : undefined}>
-          <div className="dec-pc-header-preview__strip-inner">
-            <div className="pchead-strip">
-              <div className="pchead-strip__left" style={topMenuTextStyle}>
-                {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || '北京市'}</span>}
-                {simple && showTopMemberName && <a className="pchead-strip__link">会员信息</a>}
-              </div>
-              <div className="pchead-strip__right" style={topMenuTextStyle}>
-                {showTopMenuCart && <a className="pchead-strip__link">🛒 购物车</a>}
-                {simple && showTopMenuBar && showTopUserMenu && (
-                  <span className="pchead-strip__menus">
-                    {showTopMemberCenter && <a className="pchead-strip__link">会员中心 ▾</a>}
-                    {showTopMessage && <a className="pchead-strip__link">站内消息</a>}
-                    {showTopOrders && <a className="pchead-strip__link">我的订单</a>}
-                  </span>
-                )}
-                {showTopSiteNav && <a className="pchead-strip__link">站点导航 ▾</a>}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* 头部主体（简约风） */}
-      {simple && (
-        <div className={`dec-pchead-body${Number(h.isWhite ?? 1) !== 0 ? ' dec-pchead-body--white' : ''} dec-pchead-body--divider-${divider}`}>
-          <div className="dec-pchead-body__grid">
-            <div className="dec-pchead-body__left">
-              <div className={`dec-pchead-logo dec-pchead-logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
-                {h.logoPic?.picUrl
-                  ? <img src={h.logoPic.picUrl} alt="logo" style={logoStyle} />
-                  : <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a' }}>LOGO</span>}
-              </div>
-              {showCategory && (
-                <div className="dec-pchead-cate" style={{ marginTop: Number(h.categoryMarginTop) || 0 }}>
-                  <span className="dec-pchead-cate__icon">☰</span>
-                  <span className="dec-pchead-cate__txt">分类</span>
-                  <span className="dec-pchead-cate__arrow">▾</span>
-                </div>
-              )}
-            </div>
-            <div className="dec-pchead-body__center">
-              <div className="dec-pchead-search">
-                <div className="dec-pchead-search__box" style={{ borderColor: searchAccent }}>
-                  <span className="dec-pchead-search__type">商品 <i>▾</i></span>
-                  <input className="dec-pchead-search__input" placeholder="请输入关键词" disabled />
-                  <span className="dec-pchead-search__submit" style={{ background: searchAccent }}>搜索</span>
-                </div>
-                {showMainNav && (
-                  <ul className="dec-pchead-nav" style={{ marginTop: Number(h.mainNavPaddingTop) || 0, marginBottom: Number(h.mainNavPaddingBottom) || 0 }}>
-                    {navItems.map((t, i) => <li key={i}>{t}</li>)}
-                  </ul>
-                )}
-              </div>
-            </div>
-            <div className="dec-pchead-body__right">
-              {showRightCart && (
-                cartStyle === 2 ? (
-                  <div className={`dec-pchead-cartpic${h.cartPic?.picUrl ? '' : ' dec-pchead-cartpic--empty'}`}>
-                    {h.cartPic?.picUrl ? <img src={h.cartPic.picUrl} alt="" /> : <span>购物车图</span>}
-                  </div>
-                ) : (
-                  <div className="dec-pchead-cart">
-                    <span className="dec-pchead-cart__icon">🛒</span>
-                    <span className="dec-pchead-cart__count">18</span>
-                    <span className="dec-pchead-cart__text">购物车</span>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {!simple && (
-        <div className="dec-pchead-body dec-pchead-body--white dec-pchead-body--divider-0" style={{ padding: '20px 24px', fontSize: 13, color: '#999' }}>
-          跨境风头部（由跨境风专属字段驱动，画布预览以简约风结构为准）
-        </div>
-      )}
-    </div>
-  );
-}
-
 
 function PcHeaderPanel({
   header,
