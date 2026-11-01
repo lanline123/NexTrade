@@ -691,12 +691,20 @@ export const navGroups: NavGroup[] = [
             "label": "商品页风格"
           },
           {
+            "key": "pcSearchStyleManage",
+            "label": "搜索页风格"
+          },
+          {
             "key": "pcSearchDecorateManage",
             "label": "搜索页装修"
           },
           {
             "key": "pcLoginDecorateManage",
             "label": "登录页装修"
+          },
+          {
+            "key": "pcDecorateOtherManage",
+            "label": "其它页面"
           }
         ]
       }
@@ -1560,6 +1568,8 @@ export const pageTitles: Record<string, string> = {
   "pcDecorateCustomManage": "自定义页装修",
   "pcProductStyleManage": "商品页风格",
   "pcSearchDecorateManage": "搜索页装修",
+  "pcSearchStyleManage": "搜索页风格",
+  "pcDecorateOtherManage": "其它页面",
   "pcLoginDecorateManage": "登录页装修",
   "salesman0": "分销概览",
   "promoteModeManage": "分销模式",

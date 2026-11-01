@@ -25,6 +25,17 @@ import type { ColumnConfig } from '../framework/types';
 
 const { Text, Title } = Typography;
 
+function formatDecorateTime(value: any): string {
+  if (value === undefined || value === null || value === '') return '--';
+  const raw = Number(value);
+  const date = Number.isFinite(raw)
+    ? new Date(raw > 1e12 ? raw : raw * 1000)
+    : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 /* =========================================================================
  * 1. ThemeStyle (decorate0 主题风格)
  * 契约对齐: java/view/admin/src/views/decorate/theme/Index.vue
@@ -73,14 +84,24 @@ export function ThemeStyle() {
  * labels: 页面名称, 发布状态, 更新时间, 操作
  * props: decorateId, status, updateTime, bingdingH5Name
  * ========================================================================= */
-export function MobileDecoratePages() {
+export function MobileDecoratePages({
+  decorateType = 1,
+  pageType,
+  defaultName = '首页微页面',
+  editPage = 'mobileDecorateManage',
+}: {
+  decorateType?: number;
+  pageType?: number;
+  defaultName?: string;
+  editPage?: string;
+} = {}) {
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'decorateId', width: 80 },
     {
       title: '页面名称',
       dataIndex: 'decorateName',
       width: 180,
-      render: (v: any, row: any) => v || row?.bingdingH5Name || '首页微页面',
+      render: (v: any, row: any) => v || row?.bingdingH5Name || defaultName,
     },
     {
       title: '发布状态',
@@ -88,27 +109,29 @@ export function MobileDecoratePages() {
       width: 110,
       render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '已发布' : '草稿'}</Tag>,
     },
-    { title: '更新时间', dataIndex: 'updateTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">装修</Button>
-          <Button theme="borderless" type="danger">删除</Button>
-        </Space>
-      ),
-    },
+    { title: '更新时间', dataIndex: 'updateTime', width: 170, render: (v: any) => formatDecorateTime(v) },
   ];
 
   return (
     <div>
       <ListPage
         api="/decorate/decorate/list"
-        query={{ decorateType: 1 }}
+        query={{ decorateType, ...(pageType ? { pageType } : {}) }}
         rowKey="decorateId"
         columns={columns}
+        showEdit={false}
+        rowActions={(row: any) => (
+          <Button
+            theme="borderless"
+            type="primary"
+            size="small"
+            onClick={() => {
+              window.location.href = `${window.location.origin}/?page=${editPage}&decorateId=${row.decorateId}`;
+            }}
+          >
+            装修
+          </Button>
+        )}
         filters={[
           { field: 'decorateName', label: '页面名称', type: 'input' },
         ]}

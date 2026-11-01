@@ -44,10 +44,23 @@ import {
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
 import ListPage from '../framework/ListPage';
+import { MobileDecoratePages } from './DecorateMobilePages';
 import type { ColumnConfig } from '../framework/types';
 import './decorate-editor.css';
 
 const { Text, Title } = Typography;
+
+function formatDecorateTime(value: number | string | undefined): string {
+  if (value === undefined || value === null || value === '') return '--';
+  const raw = Number(value);
+  const date = Number.isFinite(raw)
+    ? new Date(raw > 1e12 ? raw : raw * 1000)
+    : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 
 /* =========================================================================
  * 1. PC Visual Decorator Studio (可视化装修工作台组件)
@@ -2224,28 +2237,8 @@ export function PcCustomPage() {
       width: 110,
       render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '已发布' : '草稿'}</Tag>,
     },
-    { title: '更新时间', dataIndex: 'updateTime', width: 170 },
+    { title: '更新时间', dataIndex: 'updateTime', width: 170, render: (v: number) => <span>{formatDecorateTime(v)}</span> },
     { title: '排序', dataIndex: 'sortOrder', width: 90 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: (_: any, row: any) => (
-        <Space>
-          <Button
-            theme="borderless"
-            type="primary"
-            onClick={() => {
-              setStudioTitle(row?.decorateName || 'PC自定义微页面');
-              setStudioOpen(true);
-            }}
-          >
-            装修
-          </Button>
-          <Button theme="borderless" type="danger">删除</Button>
-        </Space>
-      ),
-    },
   ];
 
   return (
@@ -2254,6 +2247,20 @@ export function PcCustomPage() {
         api="/decorate/decorate/list"
         rowKey="decorateId"
         columns={columns}
+        showEdit={false}
+        rowActions={(row: any) => (
+          <Button
+            theme="borderless"
+            type="primary"
+            size="small"
+            onClick={() => {
+              setStudioTitle(row?.decorateName || 'PC自定义微页面');
+              setStudioOpen(true);
+            }}
+          >
+            装修
+          </Button>
+        )}
         filters={[
           { field: 'decorateName', label: '页面名称', type: 'input' },
         ]}
@@ -2287,22 +2294,135 @@ export function PcCustomPage() {
  * props: type
  * ========================================================================= */
 export function PcProductStyle() {
-  const [styleType, setStyleType] = useState('1');
+  const styles = [
+    { type: 1, title: '经典版', img: 'https://oss.tigshop.com/img/gallery/202606/1781513292MtmcDCoVzXOJw2sZOz.jpeg' },
+    { type: 2, title: '国内标准版', img: 'https://oss.tigshop.com/img/gallery/202606/1781513292tAqsibp0zeM6sYNmQK.jpeg' },
+    { type: 3, title: '跨境简约版', img: 'https://oss.tigshop.com/img/gallery/202607/1783574567CDREPpLfzfMd4RYqqx.jpeg' },
+  ];
+  const [styleType, setStyleType] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/productDetailStyleSettings')
+      .then((result) => setStyleType(Number(result?.productDetailStyleType) || 1))
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    try {
+      await apiPost('/setting/config/saveProductDetailStyle', { productDetailStyleType: styleType });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    }
+  };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="PC端商品详情页风格" style={{ maxWidth: 640 }}>
-        <div style={{ marginBottom: 20 }}>
-          <Text strong>商品页风格：</Text>
-          <RadioGroup value={styleType} onChange={(e) => setStyleType(e.target.value)} style={{ marginTop: 12 }}>
-            <Radio value="1">经典左图右文 + 下方详情 Tab 样式</Radio>
-            <Radio value="2">大图沉浸式长页样式</Radio>
-            <Radio value="3">多属性规格矩阵分列样式</Radio>
-          </RadioGroup>
+      <Card title="PC端商品详情页风格" loading={loading}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
+          {styles.map((item) => (
+            <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>
+              <div
+                style={{
+                  height: 180,
+                  border: `2px solid ${styleType === item.type ? '#1456f0' : '#eee'}`,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  background: '#fff',
+                }}
+              >
+                <img src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 8, color: styleType === item.type ? '#1456f0' : '#333' }}>{item.title}</div>
+            </div>
+          ))}
         </div>
-        <Button type="primary" onClick={() => Toast.success('商品页风格保存成功')}>
-          保存风格
-        </Button>
+        <Space style={{ marginTop: 20 }}>
+          <Button theme="solid" type="primary" onClick={save}>保 存</Button>
+          <Button onClick={() => { setStyleType(1); save(); }}>重 置</Button>
+        </Space>
+      </Card>
+    </div>
+  );
+}
+
+/* =========================================================================
+ * 7. PcSearchStyle (pcSearchStyleManage 搜索页风格)
+ * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/SearchStyle.vue
+ * ========================================================================= */
+export function PcSearchStyle() {
+  const styles = [
+    { type: 1, title: '样式一（经典版）', img: 'https://oss.tigshop.com/img/gallery/202606/1782373674JqSs1sxbDajftKgthu.jpeg' },
+    { type: 2, title: '样式二（新版）', img: 'https://oss.tigshop.com/img/gallery/202606/1782373674PUhO83DhgZKLxbXOuQ.jpeg' },
+  ];
+  const [styleType, setStyleType] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/searchStyleSettings')
+      .then((result) => setStyleType(Number(result?.searchStyleType) || 1))
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    try {
+      await apiPost('/setting/config/saveSearchStyle', { searchStyleType: styleType });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    }
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <Card title="PC端搜索页风格" loading={loading}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
+          {styles.map((item) => (
+            <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>
+              <div
+                style={{
+                  height: 180,
+                  border: `2px solid ${styleType === item.type ? '#1456f0' : '#eee'}`,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  background: '#fff',
+                }}
+              >
+                <img src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 8, color: styleType === item.type ? '#1456f0' : '#333' }}>{item.title}</div>
+            </div>
+          ))}
+        </div>
+        <Space style={{ marginTop: 20 }}>
+          <Button theme="solid" type="primary" onClick={save}>保 存</Button>
+          <Button onClick={() => { setStyleType(1); save(); }}>重 置</Button>
+        </Space>
+      </Card>
+    </div>
+  );
+}
+
+/* =========================================================================
+ * 8. PcDecorateOther (pcDecorateOtherManage 其它页面)
+ * 原版该页登录背景已迁移到登录页装修，页面仅保留兼容空壳。
+ * ========================================================================= */
+export function PcDecorateOther() {
+  return (
+    <div style={{ padding: 20 }}>
+      <Card title="其它页面">
+        <Text type="secondary">会员登录背景已迁移至「登录页装修」，此页暂无可配置项。</Text>
       </Card>
     </div>
   );
@@ -2313,28 +2433,13 @@ export function PcProductStyle() {
  * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/SearchDecorate.vue
  * ========================================================================= */
 export function PcSearchDecorate() {
-  const [studioOpen, setStudioOpen] = useState(false);
-
-  if (studioOpen) {
-    return (
-      <PcVisualStudio
-        pageTitle="PC搜索结果页装修设计器"
-        onBack={() => setStudioOpen(false)}
-      />
-    );
-  }
-
   return (
-    <div style={{ padding: 20 }}>
-      <Card title="PC搜索结果页装修" style={{ maxWidth: 640 }}>
-        <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
-          配置商品列表筛选区（品牌、价格带、属性分类折叠项）及推荐位广告 banner。
-        </Text>
-        <Button type="primary" onClick={() => setStudioOpen(true)}>
-          进入搜索页画布装修
-        </Button>
-      </Card>
-    </div>
+    <MobileDecoratePages
+      decorateType={2}
+      pageType={6}
+      defaultName="搜索页微页面"
+      editPage="pcDecorateEditor"
+    />
   );
 }
 
@@ -2343,19 +2448,12 @@ export function PcSearchDecorate() {
  * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/LoginDecorate.vue
  * ========================================================================= */
 export function PcLoginDecorate() {
-  const [bgUrl, setBgUrl] = useState('https://img.tigshop.com/login/pc_bg.jpg');
-
   return (
-    <div style={{ padding: 20 }}>
-      <Card title="PC商城登录页装修" style={{ maxWidth: 640 }}>
-        <div style={{ marginBottom: 20 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>背景海报大图：</Text>
-          <Input value={bgUrl} onChange={(v: string) => setBgUrl(v)} />
-        </div>
-        <Button type="primary" onClick={() => Toast.success('登录页背景保存成功')}>
-          保存配置
-        </Button>
-      </Card>
-    </div>
+    <MobileDecoratePages
+      decorateType={2}
+      pageType={5}
+      defaultName="登录页微页面"
+      editPage="pcDecorateEditor"
+    />
   );
 }
