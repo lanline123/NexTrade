@@ -14,6 +14,8 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconArrowLeft, IconDelete, IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import ImageUploader from '../components/ImageUploader';
+import ProductPicker from '../components/ProductPicker';
 
 const { Text } = Typography;
 
@@ -57,7 +59,7 @@ const pickImages = (module: Record<string, any>): string[] => {
 type FieldSpec = {
   path: string;
   label: string;
-  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image';
+  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image' | 'products';
   withTitle?: boolean;
 };
 
@@ -77,11 +79,13 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
   ],
   productA1: [
     { path: 'title.titleText', label: '模块标题', kind: 'text' },
+    { path: 'products.productIds', label: '指定商品', kind: 'products' },
     { path: 'showName', label: '显示名称', kind: 'switch' },
     { path: 'showPrice', label: '显示价格', kind: 'switch' },
   ],
   productSlide: [
     { path: 'title.titleText', label: '模块标题', kind: 'text' },
+    { path: 'products.productIds', label: '指定商品', kind: 'products' },
     { path: 'showProductName', label: '显示名称', kind: 'switch' },
     { path: 'showPrice', label: '显示价格', kind: 'switch' },
   ],
@@ -143,6 +147,13 @@ function ImageListField({
             />
             <Button theme="borderless" type="danger" size="small" onClick={() => onChange(list.filter((_: any, i: number) => i !== index))}>删除</Button>
           </div>
+          <div style={{ marginTop: 6 }}>
+            <ImageUploader
+              value={item?.picUrl ? [item.picUrl] : []}
+              single
+              onChange={(urls) => update(index, { picUrl: urls[0] || '', picThumb: urls[0] || '' })}
+            />
+          </div>
           {withTitle ? (
             <Input
               value={item?.picTitle || ''}
@@ -185,6 +196,12 @@ function ModuleFields({
                   value={String(value || '')}
                   placeholder="图片 URL"
                   onChange={(next: string) => onChange(setPath(item.module, spec.path, next))}
+                />
+              ) : spec.kind === 'products' ? (
+                <ProductPicker
+                  value={Array.isArray(value) ? value.map(Number) : []}
+                  max={50}
+                  onChange={(ids) => onChange(setPath(item.module, spec.path, ids))}
                 />
               ) : spec.kind === 'textarea' ? (
                 <TextArea
@@ -259,6 +276,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!decorateId) return;
@@ -373,6 +391,21 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                 <div
                   key={item.moduleIndex}
                   onClick={() => setActiveIndex(index)}
+                  draggable
+                  onDragStart={() => setDragIndex(index)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragIndex === null || dragIndex === index) return;
+                    setModuleList((prev) => {
+                      const next = [...prev];
+                      const [moved] = next.splice(dragIndex, 1);
+                      next.splice(index, 0, moved);
+                      return next;
+                    });
+                    setActiveIndex(index);
+                    setDragIndex(null);
+                  }}
                   style={{
                     position: 'relative',
                     opacity: item.isShow ? 1 : 0.45,
@@ -393,7 +426,25 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <b>{active.label}</b>
-                <Button icon={<IconDelete />} theme="borderless" type="danger" size="small" onClick={() => { setModuleList((prev) => prev.filter((_, i) => i !== activeIndex)); setActiveIndex(-1); }} />
+                <Space>
+                  <Button size="small" disabled={activeIndex <= 0} onClick={() => {
+                    setModuleList((prev) => {
+                      const next = [...prev];
+                      [next[activeIndex - 1], next[activeIndex]] = [next[activeIndex], next[activeIndex - 1]];
+                      return next;
+                    });
+                    setActiveIndex(activeIndex - 1);
+                  }}>上移</Button>
+                  <Button size="small" disabled={activeIndex >= moduleList.length - 1} onClick={() => {
+                    setModuleList((prev) => {
+                      const next = [...prev];
+                      [next[activeIndex + 1], next[activeIndex]] = [next[activeIndex], next[activeIndex + 1]];
+                      return next;
+                    });
+                    setActiveIndex(activeIndex + 1);
+                  }}>下移</Button>
+                  <Button icon={<IconDelete />} theme="borderless" type="danger" size="small" onClick={() => { setModuleList((prev) => prev.filter((_, i) => i !== activeIndex)); setActiveIndex(-1); }} />
+                </Space>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <span style={{ width: 80, color: '#646a73' }}>显示</span>
