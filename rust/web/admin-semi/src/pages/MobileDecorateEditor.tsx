@@ -171,6 +171,47 @@ function ImageListField({
   );
 }
 
+function CategoryPickerField({
+  value,
+  categories,
+  onChange,
+}: {
+  value: any;
+  categories: Array<{ label: string; value: number; picUrl?: string }>;
+  onChange: (next: any[]) => void;
+}) {
+  const list = Array.isArray(value) ? value : [];
+  const selected = list.map((item: any) => Number(item.categoryId)).filter(Boolean);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <Select
+        multiple
+        value={selected}
+        placeholder="从分类树选择"
+        filter
+        maxTagCount={5}
+        style={{ width: '100%' }}
+        optionList={categories}
+        onChange={(next) => {
+          const ids = (Array.isArray(next) ? next : [next]).map(Number).filter(Boolean);
+          onChange(ids.map((id) => {
+            const old = list.find((item: any) => Number(item.categoryId) === id);
+            if (old) return old;
+            const category = categories.find((item) => item.value === id);
+            return {
+              categoryId: id,
+              picTitle: category?.label?.split(' / ').pop() || '',
+              picUrl: category?.picUrl || '',
+              picThumb: category?.picUrl || '',
+            };
+          }));
+        }}
+      />
+      <div style={{ color: '#98a2b3', fontSize: 12 }}>已选 {selected.length} 个分类，可在下方继续调整图标和标题</div>
+    </div>
+  );
+}
+
 function ProductSourceField({
   value,
   categories,
@@ -237,8 +278,19 @@ function ModuleFields({
   onChange: (module: Record<string, any>) => void;
 }) {
   const specs = MODULE_FIELDS[item.type] || [];
+  const isCategoryModule = item.type === 'categoryNav' || item.type === 'catNav' || item.type === 'imageNav';
   return (
     <>
+      {isCategoryModule ? (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ color: '#646a73', fontSize: 12, marginBottom: 6 }}>选择分类</div>
+          <CategoryPickerField
+            value={getPath(item.module, 'categoryList')}
+            categories={categories}
+            onChange={(next) => onChange(setPath(item.module, 'categoryList', next))}
+          />
+        </div>
+      ) : null}
       {specs.map((spec) => {
         const value = getPath(item.module, spec.path);
         return (
@@ -339,7 +391,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   const [title, setTitle] = useState('');
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [pageType, setPageType] = useState(1);
-  const [categories, setCategories] = useState<Array<{ label: string; value: number }>>([]);
+  const [categories, setCategories] = useState<Array<{ label: string; value: number; picUrl?: string }>>([]);
   const [moduleList, setModuleList] = useState<MobileModule[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
@@ -349,10 +401,14 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   useEffect(() => {
     apiGet<any[]>('/product/category/getAllCategory')
       .then((tree) => {
-        const flat: Array<{ label: string; value: number }> = [];
+        const flat: Array<{ label: string; value: number; picUrl?: string }> = [];
         const walk = (nodes: any[], prefix = '') => {
           (Array.isArray(nodes) ? nodes : []).forEach((node) => {
-            flat.push({ label: prefix ? `${prefix} / ${node.categoryName}` : node.categoryName, value: node.categoryId });
+            flat.push({
+              label: prefix ? `${prefix} / ${node.categoryName}` : node.categoryName,
+              value: node.categoryId,
+              picUrl: node.picUrl || node.categoryImage || node.image || '',
+            });
             if (Array.isArray(node.children) && node.children.length) walk(node.children, node.categoryName);
           });
         };
