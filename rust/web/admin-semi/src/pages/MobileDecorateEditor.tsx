@@ -5,6 +5,8 @@ import {
   Input,
   InputNumber,
   Select,
+  Radio,
+  RadioGroup,
   Space,
   Switch,
   Tag,
@@ -59,7 +61,7 @@ const pickImages = (module: Record<string, any>): string[] => {
 type FieldSpec = {
   path: string;
   label: string;
-  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image' | 'products';
+  kind: 'images' | 'text' | 'textarea' | 'number' | 'switch' | 'color' | 'image' | 'products' | 'productSource';
   withTitle?: boolean;
 };
 
@@ -79,13 +81,13 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
   ],
   productA1: [
     { path: 'title.titleText', label: '模块标题', kind: 'text' },
-    { path: 'products.productIds', label: '指定商品', kind: 'products' },
+    { path: 'products', label: '商品来源', kind: 'productSource' },
     { path: 'showName', label: '显示名称', kind: 'switch' },
     { path: 'showPrice', label: '显示价格', kind: 'switch' },
   ],
   productSlide: [
     { path: 'title.titleText', label: '模块标题', kind: 'text' },
-    { path: 'products.productIds', label: '指定商品', kind: 'products' },
+    { path: 'products', label: '商品来源', kind: 'productSource' },
     { path: 'showProductName', label: '显示名称', kind: 'switch' },
     { path: 'showPrice', label: '显示价格', kind: 'switch' },
   ],
@@ -169,11 +171,69 @@ function ImageListField({
   );
 }
 
+function ProductSourceField({
+  value,
+  categories,
+  onChange,
+}: {
+  value: Record<string, any>;
+  categories: Array<{ label: string; value: number }>;
+  onChange: (next: Record<string, any>) => void;
+}) {
+  const products = value || {};
+  const type = Number(products.productSelectType || 1);
+  const set = (patch: Record<string, any>) => onChange({ ...products, ...patch });
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <RadioGroup value={type} onChange={(e: any) => set({ productSelectType: Number(e.target.value) })}>
+        <Radio value={1}>选商品</Radio>
+        <Radio value={2}>按分类</Radio>
+        <Radio value={3}>按标签</Radio>
+      </RadioGroup>
+      {type === 1 ? (
+        <ProductPicker
+          value={Array.isArray(products.productIds) ? products.productIds.map(Number) : []}
+          max={50}
+          onChange={(ids) => set({ productIds: ids })}
+        />
+      ) : null}
+      {type === 2 ? (
+        <>
+          <Select
+            value={products.productCategoryId ? Number(products.productCategoryId) : undefined}
+            placeholder="选择分类"
+            showClear
+            filter
+            style={{ width: '100%' }}
+            optionList={categories}
+            onChange={(next) => set({ productCategoryId: Number(next) || 0 })}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#646a73', fontSize: 12 }}>商品数量</span>
+            <InputNumber value={Number(products.productNumber) || 10} min={1} max={100} onChange={(next) => set({ productNumber: Number(next ?? 10) })} />
+          </div>
+        </>
+      ) : null}
+      {type === 3 ? (
+        <>
+          <Input value={String(products.productTag || '')} placeholder="商品标签" onChange={(next: string) => set({ productTag: next })} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#646a73', fontSize: 12 }}>商品数量</span>
+            <InputNumber value={Number(products.productNumber) || 10} min={1} max={100} onChange={(next) => set({ productNumber: Number(next ?? 10) })} />
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function ModuleFields({
   item,
+  categories,
   onChange,
 }: {
   item: MobileModule;
+  categories: Array<{ label: string; value: number }>;
   onChange: (module: Record<string, any>) => void;
 }) {
   const specs = MODULE_FIELDS[item.type] || [];
@@ -202,6 +262,12 @@ function ModuleFields({
                   value={Array.isArray(value) ? value.map(Number) : []}
                   max={50}
                   onChange={(ids) => onChange(setPath(item.module, spec.path, ids))}
+                />
+              ) : spec.kind === 'productSource' ? (
+                <ProductSourceField
+                  value={value || {}}
+                  categories={categories}
+                  onChange={(next) => onChange(setPath(item.module, spec.path, next))}
                 />
               ) : spec.kind === 'textarea' ? (
                 <TextArea
@@ -273,11 +339,28 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   const [title, setTitle] = useState('');
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [pageType, setPageType] = useState(1);
+  const [categories, setCategories] = useState<Array<{ label: string; value: number }>>([]);
   const [moduleList, setModuleList] = useState<MobileModule[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    apiGet<any[]>('/product/category/getAllCategory')
+      .then((tree) => {
+        const flat: Array<{ label: string; value: number }> = [];
+        const walk = (nodes: any[], prefix = '') => {
+          (Array.isArray(nodes) ? nodes : []).forEach((node) => {
+            flat.push({ label: prefix ? `${prefix} / ${node.categoryName}` : node.categoryName, value: node.categoryId });
+            if (Array.isArray(node.children) && node.children.length) walk(node.children, node.categoryName);
+          });
+        };
+        walk(Array.isArray(tree) ? tree : []);
+        setCategories(flat);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!decorateId) return;
@@ -461,7 +544,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                 <span style={{ width: 80, color: '#646a73' }}>模块名称</span>
                 <Input value={active.label} onChange={(value: string) => updateActive({ label: value })} />
               </div>
-              <ModuleFields item={active} onChange={(module) => updateActive({ module })} />
+              <ModuleFields item={active} categories={categories} onChange={(module) => updateActive({ module })} />
               <div style={{ borderTop: '1px solid #eef0f3', marginTop: 14, paddingTop: 10 }}>
                 <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>更多字段</div>
                 {Object.entries(active.module || {})
