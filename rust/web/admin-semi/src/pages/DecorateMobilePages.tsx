@@ -769,22 +769,65 @@ export function MobileNav() {
  * props: type
  * ========================================================================= */
 export function ClassifyDecorate() {
-  const [styleType, setStyleType] = useState('1');
+  const [type, setType] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const base = import.meta.env.BASE_URL;
+
+  const styles = [
+    { value: 1, title: '样式1', img: `${base}admin-assets/classify1.png` },
+    { value: 2, title: '样式2', img: `${base}admin-assets/classify2.png` },
+    { value: 3, title: '样式3', img: `${base}admin-assets/classify3.png` },
+  ];
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/categoryDecorateSettings')
+      .then((result) => setType(Number(result?.productCategoryDecorateType) || 1))
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async (nextType = type) => {
+    setSaving(true);
+    try {
+      await apiPost('/setting/config/saveCategoryDecorate', { productCategoryDecorateType: nextType });
+      Toast.success('操作成功');
+      setType(nextType);
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="移动端分类页样式">
-        <div style={{ marginBottom: 20 }}>
-          <Text strong>页面样式：</Text>
-          <RadioGroup value={styleType} onChange={(e) => setStyleType(e.target.value)} style={{ marginTop: 12 }}>
-            <Radio value="1">左侧一级分类 + 右侧两级商品图文</Radio>
-            <Radio value="2">大图网格样式</Radio>
-            <Radio value="3">多级抽屉联动样式</Radio>
-          </RadioGroup>
+      <Card title="移动端分类页样式" loading={loading}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32 }}>
+          {styles.map((item) => (
+            <div key={item.value} style={{ width: 260, textAlign: 'center', cursor: 'pointer' }} onClick={() => setType(item.value)}>
+              <img
+                src={item.img}
+                alt={item.title}
+                style={{
+                  width: '100%',
+                  borderRadius: 10,
+                  border: `2px solid ${type === item.value ? 'var(--semi-color-primary)' : '#eee'}`,
+                  marginBottom: 10,
+                }}
+              />
+              <div style={{ color: type === item.value ? 'var(--semi-color-primary)' : undefined }}>{item.title}</div>
+            </div>
+          ))}
         </div>
-        <Button type="primary" onClick={() => Toast.success('分类页样式保存成功')}>
-          保存样式
-        </Button>
+        <Space style={{ marginTop: 24 }}>
+          <Button theme="solid" type="primary" loading={saving} onClick={() => save()}>保 存</Button>
+          <Button loading={saving} onClick={() => save(1)}>重 置</Button>
+        </Space>
       </Card>
     </div>
   );
@@ -919,15 +962,9 @@ export function MobileUserDecorate() {
  * ========================================================================= */
 export function MobileUserOverseas() {
   return (
-    <div style={{ padding: 20 }}>
-      <Card title="海外版会员首页装修" style={{ maxWidth: 640 }}>
-        <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
-          适配国际化多语言与海外地址格式的会员个人中心配置。
-        </Text>
-        <Button type="primary" onClick={() => Toast.info('进入海外版画布装修')}>
-          进入可视化画布装修
-        </Button>
-      </Card>
+    <div>
+      <div style={{ padding: '16px 20px 0', color: '#646a73', fontSize: 13 }}>海外版会员首页装修，配置与会员首页共用同一套数据。</div>
+      <MobileUserDecorate />
     </div>
   );
 }
