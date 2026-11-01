@@ -44,415 +44,27 @@ import {
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
 import ListPage from '../framework/ListPage';
+import { MobileDecoratePages } from './DecorateMobilePages';
 import type { ColumnConfig } from '../framework/types';
 import './decorate-editor.css';
 
 const { Text, Title } = Typography;
 
+function formatDecorateTime(value: number | string | undefined): string {
+  if (value === undefined || value === null || value === '') return '--';
+  const raw = Number(value);
+  const date = Number.isFinite(raw)
+    ? new Date(raw > 1e12 ? raw : raw * 1000)
+    : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+
 /* =========================================================================
  * 1. PC Visual Decorator Studio (可视化装修工作台组件)
  * ========================================================================= */
-
-const defaultModules: CanvasModule[] = [
-  {
-    id: 'mod_banner',
-    type: 'banner',
-    title: 'PC商城首页巨幕轮播',
-    height: 400,
-    imgUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&q=80',
-    linkUrl: '/activity/autumn',
-  },
-  {
-    id: 'mod_cat_nav',
-    type: 'cat_nav',
-    title: '快捷分类导航',
-  },
-  {
-    id: 'mod_coupon',
-    type: 'coupon',
-    title: '新人专属狂欢礼券',
-    subtitle: '注册即领 满减直折',
-  },
-  {
-    id: 'mod_floor_1',
-    type: 'floor',
-    title: '🔥 热门爆款现货推荐',
-    subtitle: '精选爆款 极速发货 品质护航',
-    cols: 4,
-    items: [
-      { id: 101, name: '智能降噪旗舰无线耳机 Pro', price: '¥399.00', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80', tag: '热销榜首' },
-      { id: 102, name: '机械手感电竞机械键盘 108键', price: '¥269.00', img: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&q=80', tag: '限时立减' },
-      { id: 103, name: '超高清 4K 27寸电竞显示器', price: '¥1,299.00', img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300&q=80', tag: '特惠' },
-      { id: 104, name: '人体工学透气网布办公转椅', price: '¥599.00', img: 'https://images.unsplash.com/photo-1580481077195-c22ef8740c02?w=300&q=80', tag: '包邮' },
-    ],
-  },
-  {
-    id: 'mod_wide_ad',
-    type: 'wide_banner',
-    title: '品牌联合大促通栏',
-    imgUrl: 'https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1200&q=80',
-    linkUrl: '/brand/all',
-  },
-  {
-    id: 'mod_floor_2',
-    type: 'floor',
-    title: '💻 科技数码与办公精选',
-    subtitle: '前沿数码科技 品质办公好帮手',
-    cols: 4,
-    items: [
-      { id: 201, name: '轻薄高能笔记本电脑 16G+512G', price: '¥4,599.00', img: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&q=80', tag: '爆款' },
-      { id: 202, name: '便携快充三合一移动电源 20000mAh', price: '¥149.00', img: 'https://images.unsplash.com/photo-1609592426868-6d8db14a6015?w=300&q=80' },
-      { id: 203, name: '智能双频千兆无线路由器 Wi-Fi 6', price: '¥199.00', img: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&q=80' },
-      { id: 204, name: '无线静音蓝牙办公鼠标', price: '¥89.00', img: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=300&q=80' },
-    ],
-  },
-];
-
-import './decorate-editor.css';
-
-/* =========================================================================
- * 1. PC Visual Decorator Studio — 现代化可视化装修工作台
- * ========================================================================= */
-
-type ModuleType =
-  | 'banner' | 'wide_banner' | 'floor' | 'coupon' | 'cat_nav' | 'spacer'
-  | 'notice' | 'search_bar' | 'image_grid' | 'product_slide';
-
-interface CanvasModule {
-  id: string;
-  type: ModuleType;
-  title: string;
-  subtitle?: string;
-  height?: number;
-  imgUrl?: string;
-  linkUrl?: string;
-  cols?: number;
-  items?: Array<{ id: number; name: string; price: string; img: string; tag?: string }>;
-}
-
-const COMPONENT_LIBRARY: Array<{ group: string; items: Array<{ type: ModuleType; label: string }> }> = [
-  {
-    group: '焦点与通栏广告',
-    items: [
-      { type: 'banner', label: '轮播大图 Banner' },
-      { type: 'wide_banner', label: '品牌通栏横幅' },
-      { type: 'image_grid', label: '图片宫格广告' },
-    ],
-  },
-  {
-    group: '商品推荐楼层',
-    items: [
-      { type: 'floor', label: '热卖爆款商品楼层' },
-      { type: 'product_slide', label: '商品横滑推荐' },
-    ],
-  },
-  {
-    group: '营销活动与导航',
-    items: [
-      { type: 'coupon', label: '优惠券领取专区' },
-      { type: 'cat_nav', label: '快捷分类导航栏' },
-      { type: 'notice', label: '公告通知栏' },
-    ],
-  },
-  {
-    group: '搜索与辅助',
-    items: [
-      { type: 'search_bar', label: '搜索栏' },
-      { type: 'spacer', label: '留白间隔' },
-    ],
-  },
-];
-
-const MODULE_LABELS: Record<ModuleType, string> = {
-  banner: '轮播大图',
-  wide_banner: '通栏广告',
-  floor: '商品楼层',
-  coupon: '优惠券专区',
-  cat_nav: '分类导航',
-  spacer: '留白',
-  notice: '公告栏',
-  search_bar: '搜索栏',
-  image_grid: '图片宫格',
-  product_slide: '商品横滑',
-};
-
-
-function PcVisualStudio({
-  pageTitle,
-  onBack,
-}: {
-  pageTitle: string;
-  onBack: () => void;
-}) {
-  const [modules, setModules] = useState<CanvasModule[]>(defaultModules);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [deviceMode, setDeviceMode] = useState<'pc' | 'mobile'>('pc');
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-  const selectedModule = modules.find((m) => m.id === selectedId) || null;
-  const isMobile = deviceMode === 'mobile';
-
-  const updateSelectedModule = (updates: Partial<CanvasModule>) => {
-    if (!selectedId) return;
-    setModules((prev) => prev.map((m) => (m.id === selectedId ? { ...m, ...updates } : m)));
-  };
-
-  const addModule = (type: ModuleType) => {
-    const newId = `mod_${Date.now()}`;
-    const defaults: Record<ModuleType, Partial<CanvasModule>> = {
-      banner: { title: '新增轮播海报', height: 380, imgUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80', linkUrl: '/' },
-      wide_banner: { title: '新增通栏大图广告', imgUrl: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=1200&q=80', linkUrl: '/' },
-      coupon: { title: '热销优惠券领取区', subtitle: '抢券立享折上折' },
-      cat_nav: { title: '分类导航' },
-      floor: { title: '新增商品楼层', subtitle: '优质好物推荐', cols: 4, items: [{ id: 1, name: '精选商品', price: '¥99.00', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80' }] },
-      spacer: { title: '留白', height: 40 },
-      notice: { title: '公告: 全场包邮，偏远地区除外' },
-      search_bar: { title: '搜索栏' },
-      image_grid: { title: '图片宫格', items: [{ id: 1, name: '入口1', price: '', img: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200&q=80' }, { id: 2, name: '入口2', price: '', img: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=200&q=80' }, { id: 3, name: '入口3', price: '', img: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&q=80' }, { id: 4, name: '入口4', price: '', img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200&q=80' }] },
-      product_slide: { title: '商品横滑推荐', items: [{ id: 1, name: '精选好物', price: '¥199.00', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80' }, { id: 2, name: '限时特惠', price: '¥299.00', img: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&q=80' }] },
-    };
-    const newMod: CanvasModule = { id: newId, type, title: '', ...defaults[type] } as CanvasModule;
-    setModules((prev) => [...prev, newMod]);
-    setSelectedId(newId);
-    Toast.success(`已添加组件: ${MODULE_LABELS[type]}`);
-  };
-
-  const moveModule = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= modules.length) return;
-    const next = [...modules];
-    const [moved] = next.splice(index, 1);
-    next.splice(targetIndex, 0, moved);
-    setModules(next);
-  };
-
-  const deleteModule = (id: string) => {
-    setModules((prev) => prev.filter((m) => m.id !== id));
-    if (selectedId === id) setSelectedId(null);
-  };
-
-  const handleDragStart = (index: number) => setDragIndex(index);
-  const handleDragOver = (e: React.DragEvent, index: number) => { e.preventDefault(); setDragOverIndex(index); };
-  const handleDrop = (index: number) => {
-    if (dragIndex === null || dragIndex === index) return;
-    const next = [...modules];
-    const [moved] = next.splice(dragIndex, 1);
-    next.splice(index, 0, moved);
-    setModules(next);
-    setDragIndex(null);
-    setDragOverIndex(null);
-  };
-  const handleDragEnd = () => { setDragIndex(null); setDragOverIndex(null); };
-
-  const handleSave = (publish = false) => {
-    Toast.success(publish ? '发布成功' : '草稿已保存');
-  };
-
-  return (
-    <div>
-      <div className="deco-topbar">
-        <Space>
-          <Button icon={<IconArrowLeft />} onClick={onBack}>返回微页面列表</Button>
-          <Text strong style={{ fontSize: 15 }}>{pageTitle}</Text>
-        </Space>
-        <div className="deco-device-toggle">
-          <button className={`deco-device-btn ${deviceMode === 'pc' ? 'is-active' : ''}`} onClick={() => setDeviceMode('pc')}>PC端 1200px</button>
-          <button className={`deco-device-btn ${deviceMode === 'mobile' ? 'is-active' : ''}`} onClick={() => setDeviceMode('mobile')}>移动端 375px</button>
-        </div>
-        <Space>
-          <Button onClick={() => handleSave(false)}>保存草稿</Button>
-          <Button theme="solid" type="primary" onClick={() => handleSave(true)}>保存并发布</Button>
-        </Space>
-      </div>
-      <div className="deco-studio">
-        <div className="deco-library">
-          {COMPONENT_LIBRARY.map((group) => (
-            <div key={group.group}>
-              <div className="deco-library-group-title">{group.group}</div>
-              {group.items.map((item) => (
-                <div
-                  key={item.type}
-                  className="deco-lib-btn"
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('text/deco-type', item.type);
-                    e.dataTransfer.effectAllowed = 'copy';
-                  }}
-                  onClick={() => addModule(item.type)}
-                  title={`点击或拖入画布添加`}
-                >
-                  <Button theme="light" block icon={<IconPlus />} style={{ pointerEvents: 'none', width: '100%' }}>
-                    {item.label}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="deco-canvas-wrap">
-          <div
-            className={`deco-canvas ${isMobile ? 'mobile-mode' : 'pc-mode'}`}
-            onDragOver={(e) => {
-              if (e.dataTransfer.types.includes('text/deco-type')) e.preventDefault();
-            }}
-            onDrop={(e) => {
-              const decoType = e.dataTransfer.getData('text/deco-type');
-              if (decoType) addModule(decoType as ModuleType);
-            }}
-          >
-            {modules.length === 0 && (
-              <div className="deco-canvas-empty"><p style={{ fontSize: 32, marginBottom: 8 }}>🧩</p><p>画布为空</p></div>
-            )}
-            {modules.map((mod, index) => {
-              const isSelected = selectedId === mod.id;
-              return (
-                <div
-                  key={mod.id}
-                  className={`deco-module ${isSelected ? 'is-selected' : ''} ${dragOverIndex === index && dragIndex !== null && dragIndex !== index ? 'is-drag-over' : ''}`}
-                  draggable
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDrop={() => handleDrop(index)}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => setSelectedId(mod.id)}
-                >
-                  <div className="deco-module-drag-handle" />
-                  <div className="deco-module-label">{MODULE_LABELS[mod.type]}</div>
-                  <div className="deco-module-toolbar">
-                    <Button size="small" theme="borderless" icon={<IconArrowUp />} disabled={index === 0} onClick={(e) => { e.stopPropagation(); moveModule(index, 'up'); }} style={{ color: '#fff' }} />
-                    <Button size="small" theme="borderless" icon={<IconArrowDown />} disabled={index === modules.length - 1} onClick={(e) => { e.stopPropagation(); moveModule(index, 'down'); }} style={{ color: '#fff' }} />
-                    <Button size="small" theme="borderless" icon={<IconDelete />} onClick={(e) => { e.stopPropagation(); deleteModule(mod.id); }} style={{ color: '#ff4d4f' }} />
-                  </div>
-                  {mod.type === 'banner' && (
-                    <div className="deco-render-banner" style={{ height: mod.height || 380 }}>
-                      <img src={mod.imgUrl} alt="banner" />
-                      <div className="deco-render-banner-overlay">
-                        <div style={{ fontSize: 22, fontWeight: 'bold' }}>{mod.title}</div>
-                        <div style={{ fontSize: 13, opacity: 0.9 }}>{mod.linkUrl || '/'}</div>
-                      </div>
-                    </div>
-                  )}
-                  {mod.type === 'wide_banner' && (
-                    <div className="deco-render-banner" style={{ height: 160 }}>
-                      <img src={mod.imgUrl} alt="wide_banner" />
-                      <div className="deco-render-banner-overlay"><span style={{ fontSize: 16, fontWeight: 'bold' }}>{mod.title}</span></div>
-                    </div>
-                  )}
-                  {mod.type === 'cat_nav' && (
-                    <div style={{ padding: '16px 24px', background: '#f8fafc', display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 8 }}>
-                      {['手机数码', '电脑办公', '家用电器', '服装鞋帽', '美妆个护', '食品生鲜', '运动户外', '家居家装'].map((cat, i) => (
-                        <div key={i} style={{ textAlign: 'center', cursor: 'pointer' }}>
-                          <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#e8f3ff', color: '#165dff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', fontSize: 18 }}>★</div>
-                          <span style={{ fontSize: 13, color: '#333' }}>{cat}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {mod.type === 'coupon' && (
-                    <div className="deco-render-coupon">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                        <div><span style={{ fontSize: 18, fontWeight: 'bold', color: '#d9363e' }}>{mod.title}</span><span style={{ fontSize: 13, color: '#999', marginLeft: 12 }}>{mod.subtitle}</span></div>
-                        <span style={{ fontSize: 13, color: '#d9363e', cursor: 'pointer' }}>查看更多好券 &gt;</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 14 }}>
-                        {[{ amount: '50', cond: '满 499 可用' }, { amount: '100', cond: '满 899 可用' }, { amount: '200', cond: '满 1599 可用' }, { amount: '30', cond: '满 199 可用' }].map((c, i) => (
-                          <div key={i} className="dero-coupon-card" style={{ flex: 1, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div><div style={{ color: '#d9363e', fontSize: 24, fontWeight: 'bold' }}>¥{c.amount}</div><div style={{ fontSize: 12, color: '#666' }}>{c.cond}</div></div>
-                            <Button size="small" type="danger" theme="solid">立即领取</Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {mod.type === 'floor' && (
-                    <div style={{ padding: '16px 20px', background: '#f8fafc' }}>
-                      <div style={{ marginBottom: 12 }}>
-                        <span style={{ fontSize: 17, fontWeight: 'bold' }}>{mod.title}</span>
-                        {mod.subtitle && <span style={{ fontSize: 13, color: '#999', marginLeft: 10 }}>{mod.subtitle}</span>}
-                      </div>
-                      <div className="deco-render-floor-grid" style={{ gridTemplateColumns: `repeat(${mod.cols || 4}, 1fr)` }}>
-                        {(mod.items || []).map((item) => (
-                          <div key={item.id} className="deco-floor-item">
-                            <img src={item.img} alt={item.name} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
-                            <div style={{ padding: '8px 10px' }}>
-                              {item.tag && <span style={{ fontSize: 10, color: '#ff4d4f', fontWeight: 'bold' }}>{item.tag}</span>}
-                              <div style={{ fontSize: 13, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                              <div style={{ fontSize: 15, fontWeight: 'bold', color: '#ff4d4f' }}>{item.price}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {mod.type === 'notice' && (
-                    <div className="deco-render-notice"><span style={{ color: '#faad14' }}>📢</span><span>{mod.title}</span></div>
-                  )}
-                  {mod.type === 'search_bar' && (
-                    <div className="deco-render-search"><div className="deco-render-search-inner"><span style={{ color: '#999' }}>🔍</span><span style={{ color: '#bbb', fontSize: 14 }}>搜索商品 / 品牌</span></div></div>
-                  )}
-                  {mod.type === 'spacer' && <div style={{ height: mod.height || 40 }} />}
-                  {mod.type === 'image_grid' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4, padding: 4 }}>
-                      {(mod.items || []).map((item) => (
-                        <img key={item.id} src={item.img} alt={item.name} style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 4 }} />
-                      ))}
-                    </div>
-                  )}
-                  {mod.type === 'product_slide' && (
-                    <div className="deco-render-slide">
-                      {(mod.items || []).map((item) => (
-                        <div key={item.id} className="deco-render-slide-item">
-                          <img src={item.img} alt={item.name} style={{ width: '100%', height: 110, objectFit: 'cover' }} />
-                          <div style={{ padding: '6px 8px' }}>
-                            <div style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                            <div style={{ fontSize: 14, fontWeight: 'bold', color: '#ff4d4f' }}>{item.price}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div className="deco-props">
-          <div className="deco-props-title">⚙ 选中模块属性配置</div>
-          {selectedModule ? (
-            <div>
-              <div className="deco-prop-field"><label>模块类型</label><Text type="tertiary" size="small">{MODULE_LABELS[selectedModule.type]}</Text></div>
-              <div className="deco-prop-field"><label>模块标题</label><Input value={selectedModule.title} onChange={(next) => updateSelectedModule({ title: next })} /></div>
-              {selectedModule.subtitle !== undefined && (
-                <div className="deco-prop-field"><label>副标题</label><Input value={selectedModule.subtitle} onChange={(next) => updateSelectedModule({ subtitle: next })} /></div>
-              )}
-              {(selectedModule.type === 'banner' || selectedModule.type === 'wide_banner') && (
-                <>
-                  <div className="deco-prop-field"><label>图片链接 URL</label><Input value={selectedModule.imgUrl || ''} onChange={(next) => updateSelectedModule({ imgUrl: next })} /></div>
-                  {selectedModule.imgUrl && (
-                    <div className="deco-prop-field"><label>预览</label><img src={selectedModule.imgUrl} alt="preview" style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 4 }} /></div>
-                  )}
-                  <div className="deco-prop-field"><label>点击跳转链接</label><Input value={selectedModule.linkUrl || ''} onChange={(next) => updateSelectedModule({ linkUrl: next })} /></div>
-                </>
-              )}
-              {selectedModule.type === 'banner' && (
-                <div className="deco-prop-field"><label>高度 (px)</label><InputNumber style={{ width: '100%' }} min={100} max={800} value={selectedModule.height ?? 380} onChange={(next: number | string) => updateSelectedModule({ height: Number(next ?? 380) })} /></div>
-              )}
-              {selectedModule.type === 'floor' && (
-                <div className="deco-prop-field"><label>列数</label><InputNumber style={{ width: '100%' }} min={2} max={6} value={selectedModule.cols ?? 4} onChange={(next: number | string) => updateSelectedModule({ cols: Number(next ?? 4) })} /></div>
-              )}
-              <div className="deco-prop-field">
-                <Button type="danger" theme="light" block icon={<IconDelete />} onClick={() => selectedId && deleteModule(selectedId)}>删除此模块</Button>
-              </div>
-            </div>
-          ) : (
-            <Text type="tertiary" size="small">点击画布中的模块进行属性编辑</Text>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface DecorateRow {
   decorateId: number;
@@ -2198,18 +1810,6 @@ export function PcCatFloor() {
  * props: decorateId, status, updateTime, bingdingH5Name, sortOrder
  * ========================================================================= */
 export function PcCustomPage() {
-  const [studioOpen, setStudioOpen] = useState(false);
-  const [studioTitle, setStudioTitle] = useState('PC自定义专题页');
-
-  if (studioOpen) {
-    return (
-      <PcVisualStudio
-        pageTitle={studioTitle}
-        onBack={() => setStudioOpen(false)}
-      />
-    );
-  }
-
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'decorateId', width: 80 },
     {
@@ -2224,28 +1824,8 @@ export function PcCustomPage() {
       width: 110,
       render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '已发布' : '草稿'}</Tag>,
     },
-    { title: '更新时间', dataIndex: 'updateTime', width: 170 },
+    { title: '更新时间', dataIndex: 'updateTime', width: 170, render: (v: number) => <span>{formatDecorateTime(v)}</span> },
     { title: '排序', dataIndex: 'sortOrder', width: 90 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: (_: any, row: any) => (
-        <Space>
-          <Button
-            theme="borderless"
-            type="primary"
-            onClick={() => {
-              setStudioTitle(row?.decorateName || 'PC自定义微页面');
-              setStudioOpen(true);
-            }}
-          >
-            装修
-          </Button>
-          <Button theme="borderless" type="danger">删除</Button>
-        </Space>
-      ),
-    },
   ];
 
   return (
@@ -2254,9 +1834,20 @@ export function PcCustomPage() {
         api="/decorate/decorate/list"
         rowKey="decorateId"
         columns={columns}
-        filters={[
-          { field: 'decorateName', label: '页面名称', type: 'input' },
-        ]}
+        showEdit={false}
+        rowActions={(row: any) => (
+          <Button
+            theme="borderless"
+            type="primary"
+            size="small"
+            onClick={() => {
+              window.open(`${window.location.origin}/?page=pcDecorateEditor&id=${row.decorateId}`, '_blank');
+            }}
+          >
+            装修
+          </Button>
+        )}
+        filters={[{ field: 'decorateName', label: '页面名称', type: 'input' }]}
         drawer={{
           title: '新建PC微页面',
           addText: '新建页面',
@@ -2287,22 +1878,135 @@ export function PcCustomPage() {
  * props: type
  * ========================================================================= */
 export function PcProductStyle() {
-  const [styleType, setStyleType] = useState('1');
+  const styles = [
+    { type: 1, title: '经典版', img: 'https://oss.tigshop.com/img/gallery/202606/1781513292MtmcDCoVzXOJw2sZOz.jpeg' },
+    { type: 2, title: '国内标准版', img: 'https://oss.tigshop.com/img/gallery/202606/1781513292tAqsibp0zeM6sYNmQK.jpeg' },
+    { type: 3, title: '跨境简约版', img: 'https://oss.tigshop.com/img/gallery/202607/1783574567CDREPpLfzfMd4RYqqx.jpeg' },
+  ];
+  const [styleType, setStyleType] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/productDetailStyleSettings')
+      .then((result) => setStyleType(Number(result?.productDetailStyleType) || 1))
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    try {
+      await apiPost('/setting/config/saveProductDetailStyle', { productDetailStyleType: styleType });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    }
+  };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="PC端商品详情页风格" style={{ maxWidth: 640 }}>
-        <div style={{ marginBottom: 20 }}>
-          <Text strong>商品页风格：</Text>
-          <RadioGroup value={styleType} onChange={(e) => setStyleType(e.target.value)} style={{ marginTop: 12 }}>
-            <Radio value="1">经典左图右文 + 下方详情 Tab 样式</Radio>
-            <Radio value="2">大图沉浸式长页样式</Radio>
-            <Radio value="3">多属性规格矩阵分列样式</Radio>
-          </RadioGroup>
+      <Card title="PC端商品详情页风格" loading={loading}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
+          {styles.map((item) => (
+            <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>
+              <div
+                style={{
+                  height: 180,
+                  border: `2px solid ${styleType === item.type ? '#1456f0' : '#eee'}`,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  background: '#fff',
+                }}
+              >
+                <img src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 8, color: styleType === item.type ? '#1456f0' : '#333' }}>{item.title}</div>
+            </div>
+          ))}
         </div>
-        <Button type="primary" onClick={() => Toast.success('商品页风格保存成功')}>
-          保存风格
-        </Button>
+        <Space style={{ marginTop: 20 }}>
+          <Button theme="solid" type="primary" onClick={save}>保 存</Button>
+          <Button onClick={() => { setStyleType(1); save(); }}>重 置</Button>
+        </Space>
+      </Card>
+    </div>
+  );
+}
+
+/* =========================================================================
+ * 7. PcSearchStyle (pcSearchStyleManage 搜索页风格)
+ * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/SearchStyle.vue
+ * ========================================================================= */
+export function PcSearchStyle() {
+  const styles = [
+    { type: 1, title: '样式一（经典版）', img: 'https://oss.tigshop.com/img/gallery/202606/1782373674JqSs1sxbDajftKgthu.jpeg' },
+    { type: 2, title: '样式二（新版）', img: 'https://oss.tigshop.com/img/gallery/202606/1782373674PUhO83DhgZKLxbXOuQ.jpeg' },
+  ];
+  const [styleType, setStyleType] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/searchStyleSettings')
+      .then((result) => setStyleType(Number(result?.searchStyleType) || 1))
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    try {
+      await apiPost('/setting/config/saveSearchStyle', { searchStyleType: styleType });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    }
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <Card title="PC端搜索页风格" loading={loading}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
+          {styles.map((item) => (
+            <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>
+              <div
+                style={{
+                  height: 180,
+                  border: `2px solid ${styleType === item.type ? '#1456f0' : '#eee'}`,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  background: '#fff',
+                }}
+              >
+                <img src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 8, color: styleType === item.type ? '#1456f0' : '#333' }}>{item.title}</div>
+            </div>
+          ))}
+        </div>
+        <Space style={{ marginTop: 20 }}>
+          <Button theme="solid" type="primary" onClick={save}>保 存</Button>
+          <Button onClick={() => { setStyleType(1); save(); }}>重 置</Button>
+        </Space>
+      </Card>
+    </div>
+  );
+}
+
+/* =========================================================================
+ * 8. PcDecorateOther (pcDecorateOtherManage 其它页面)
+ * 原版该页登录背景已迁移到登录页装修，页面仅保留兼容空壳。
+ * ========================================================================= */
+export function PcDecorateOther() {
+  return (
+    <div style={{ padding: 20 }}>
+      <Card title="其它页面">
+        <Text type="secondary">会员登录背景已迁移至「登录页装修」，此页暂无可配置项。</Text>
       </Card>
     </div>
   );
@@ -2313,28 +2017,13 @@ export function PcProductStyle() {
  * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/SearchDecorate.vue
  * ========================================================================= */
 export function PcSearchDecorate() {
-  const [studioOpen, setStudioOpen] = useState(false);
-
-  if (studioOpen) {
-    return (
-      <PcVisualStudio
-        pageTitle="PC搜索结果页装修设计器"
-        onBack={() => setStudioOpen(false)}
-      />
-    );
-  }
-
   return (
-    <div style={{ padding: 20 }}>
-      <Card title="PC搜索结果页装修" style={{ maxWidth: 640 }}>
-        <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
-          配置商品列表筛选区（品牌、价格带、属性分类折叠项）及推荐位广告 banner。
-        </Text>
-        <Button type="primary" onClick={() => setStudioOpen(true)}>
-          进入搜索页画布装修
-        </Button>
-      </Card>
-    </div>
+    <MobileDecoratePages
+      decorateType={2}
+      pageType={6}
+      defaultName="搜索页微页面"
+      editPage="pcDecorateEditor"
+    />
   );
 }
 
@@ -2343,19 +2032,12 @@ export function PcSearchDecorate() {
  * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/LoginDecorate.vue
  * ========================================================================= */
 export function PcLoginDecorate() {
-  const [bgUrl, setBgUrl] = useState('https://img.tigshop.com/login/pc_bg.jpg');
-
   return (
-    <div style={{ padding: 20 }}>
-      <Card title="PC商城登录页装修" style={{ maxWidth: 640 }}>
-        <div style={{ marginBottom: 20 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>背景海报大图：</Text>
-          <Input value={bgUrl} onChange={(v: string) => setBgUrl(v)} />
-        </div>
-        <Button type="primary" onClick={() => Toast.success('登录页背景保存成功')}>
-          保存配置
-        </Button>
-      </Card>
-    </div>
+    <MobileDecoratePages
+      decorateType={2}
+      pageType={5}
+      defaultName="登录页微页面"
+      editPage="pcDecorateEditor"
+    />
   );
 }

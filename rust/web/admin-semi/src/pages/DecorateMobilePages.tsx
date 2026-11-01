@@ -7,10 +7,13 @@ import {
   Tabs,
   TabPane,
   Input,
+  TextArea,
+  InputNumber,
   Select,
   Tag,
   Typography,
   Modal,
+  Table,
   Spin,
   Space,
   Switch,
@@ -22,47 +25,256 @@ import {
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { THEME_PALETTES } from './themePalettes';
 
 const { Text, Title } = Typography;
 
+function formatDecorateTime(value: any): string {
+  if (value === undefined || value === null || value === '') return '--';
+  const raw = Number(value);
+  const date = Number.isFinite(raw)
+    ? new Date(raw > 1e12 ? raw : raw * 1000)
+    : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 /* =========================================================================
  * 1. ThemeStyle (decorate0 主题风格)
- * 契约对齐: java/view/admin/src/views/decorate/theme/Index.vue
- * labels: 主题风格, 主色调, 风格预设, 保存设置
+ * 契约对齐: java/view/admin/src/views/decorate/themeStyle/Info.vue
  * ========================================================================= */
-export function ThemeStyle() {
-  const [themeColor, setThemeColor] = useState('#165dff');
-  const [themePreset, setThemePreset] = useState('classic');
+type ThemeVars = Record<string, string>;
 
-  const onSave = () => {
-    Toast.success('主题风格保存成功');
+const paletteVars = (item: Record<string, any>): ThemeVars => {
+  const { themeId: _themeId, check: _check, ...vars } = item;
+  return vars as ThemeVars;
+};
+
+function buildCustomVars(main: string, vice: string): ThemeVars {
+  return {
+    '--general': main,
+    '--main-bg': main,
+    '--main-bg-gradient': main,
+    '--main-text': '#ffffff',
+    '--vice-bg': vice,
+    '--vice-text': main,
+    '--icon': main,
+    '--price': main,
+    '--tag-text': main,
+    '--tag-bg': vice,
+    '--primary-light-3': main,
+    '--primary-light-5': main,
+    '--primary-light-7': vice,
+    '--primary-light-8': vice,
+    '--primary-light-9': vice,
+    '--primary-dark-2': main,
+    '--ump-main-bg': main,
+    '--ump-main-text': '#ffffff',
+    '--ump-vice-bg': vice,
+    '--ump-vice-text': main,
+    '--ump-icon': main,
+    '--ump-price': main,
+    '--ump-tag-text': main,
+    '--ump-tag-bg': vice,
+    '--ump-coupon-bg': '#ffffff',
+    '--ump-border': vice,
+    '--ump-start-bg': main,
+    '--ump-end-bg': main,
   };
+}
+
+export function ThemeStyle() {
+  const [mode, setMode] = useState<1 | 2>(1);
+  const [themeId, setThemeId] = useState(0);
+  const [vars, setVars] = useState<ThemeVars>(paletteVars(THEME_PALETTES[0] as any));
+  const [customMain, setCustomMain] = useState('#4a90e2');
+  const [customVice, setCustomVice] = useState('#D6E9FC');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importCode, setImportCode] = useState('');
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/setting/config/themeStyleSettings')
+      .then((result) => {
+        const raw = result?.themeStyle;
+        const parsed: ThemeVars = typeof raw === 'string' ? JSON.parse(raw) : raw || {};
+        if (!parsed || !parsed['--main-bg']) return;
+        const matched = THEME_PALETTES.find(
+          (item) => (item as any)['--main-bg'] === parsed['--main-bg'] && (item as any)['--vice-bg'] === parsed['--vice-bg'],
+        );
+        setVars(parsed);
+        setThemeId(matched ? Number((matched as any).themeId) : 0);
+        setMode(matched ? 1 : 2);
+        setCustomMain(parsed['--main-bg'] || '#4a90e2');
+        setCustomVice(parsed['--vice-bg'] || '#D6E9FC');
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const pickPalette = (item: Record<string, any>) => {
+    setMode(1);
+    setThemeId(Number(item.themeId));
+    setVars(paletteVars(item));
+  };
+
+  const changeCustom = (main: string, vice: string) => {
+    setMode(2);
+    setThemeId(0);
+    setCustomMain(main);
+    setCustomVice(vice);
+    setVars(buildCustomVars(main, vice));
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await apiPost('/setting/config/saveThemeStyle', { themeStyle: JSON.stringify({ ...vars, themeId }) });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const importCodeValue = () => {
+    try {
+      const parsed = JSON.parse(importCode);
+      const next = parsed?.themeStyle ? JSON.parse(parsed.themeStyle) : parsed;
+      if (!next || !next['--main-bg']) throw new Error('配色码格式不正确');
+      setVars(next as ThemeVars);
+      setThemeId(Number(next.themeId) || 0);
+      setMode(Number(next.themeId) ? 1 : 2);
+      setCustomMain(next['--main-bg']);
+      setCustomVice(next['--vice-bg'] || next['--main-bg']);
+      setImportOpen(false);
+      setImportCode('');
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '配色码格式不正确');
+    }
+  };
+
+  const mainStyle: React.CSSProperties = {
+    color: vars['--main-text'],
+    background: vars['--main-bg'],
+  };
+  const priceStyle: React.CSSProperties = { color: vars['--price'] };
+  const viceStyle: React.CSSProperties = { color: vars['--vice-text'], background: vars['--vice-bg'] };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="主题风格配置" style={{ maxWidth: 600 }}>
-        <div style={{ marginBottom: 24 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>主色调：</Text>
-          <Space>
-            <Input value={themeColor} onChange={(v: string) => setThemeColor(v)} style={{ width: 140 }} />
-            <div style={{ width: 36, height: 36, background: themeColor, borderRadius: 6, border: '1px solid #ccc' }} />
-          </Space>
-        </div>
+      <Card title="主题风格" loading={loading}>
+        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          <div style={{ width: 520 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <b>配色方案</b>
+              <RadioGroup value={mode} onChange={(e) => setMode(Number(e.target.value) as 1 | 2)}>
+                <Radio value={1}>系统配色</Radio>
+                <Radio value={2}>自定义配色</Radio>
+              </RadioGroup>
+            </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>风格预设：</Text>
-          <RadioGroup value={themePreset} onChange={(e) => setThemePreset(e.target.value)}>
-            <Radio value="classic">经典商务蓝</Radio>
-            <Radio value="modern">活力活力橙</Radio>
-            <Radio value="elegant">优雅尊贵红</Radio>
-            <Radio value="fresh">清新自然绿</Radio>
-          </RadioGroup>
-        </div>
+            {mode === 1 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+                {THEME_PALETTES.map((item) => {
+                  const p = item as Record<string, any>;
+                  const active = themeId === p.themeId;
+                  return (
+                    <div
+                      key={p.themeId}
+                      onClick={() => pickPalette(p)}
+                      style={{
+                        cursor: 'pointer',
+                        border: `2px solid ${active ? '#1456f0' : 'transparent'}`,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        width: 72,
+                      }}
+                    >
+                      <div style={{ height: 24, background: p['--main-bg'] }} />
+                      <div style={{ height: 24, background: p['--vice-bg'] }} />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 20 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  主题颜色
+                  <input
+                    type="color"
+                    value={customMain}
+                    onChange={(e) => changeCustom(e.target.value, customVice)}
+                    style={{ width: 40, height: 32, border: 0, background: 'transparent' }}
+                  />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  辅助颜色
+                  <input
+                    type="color"
+                    value={customVice}
+                    onChange={(e) => changeCustom(customMain, e.target.value)}
+                    style={{ width: 40, height: 32, border: 0, background: 'transparent' }}
+                  />
+                </label>
+              </div>
+            )}
 
-        <Button type="primary" size="large" onClick={onSave}>
-          保存设置
-        </Button>
+            <Space style={{ marginTop: 20 }}>
+              <Button onClick={() => setImportOpen(true)}>导入配色码</Button>
+              <Button theme="solid" type="primary" loading={saving} onClick={save}>保存</Button>
+            </Space>
+          </div>
+
+          <div style={{ flex: 1, minWidth: 360 }}>
+            <h3 style={{ margin: '0 0 12px' }}>预览效果</h3>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ width: 210, border: '1px solid #eee', borderRadius: 8, padding: 14, background: '#fff' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, ...priceStyle }}>¥395.00</div>
+                <div style={{ color: '#999', fontSize: 12, margin: '8px 0' }}>由本系统配送并提供售后服务</div>
+                <Space>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>9折</span>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>满100-10</span>
+                </Space>
+                <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>加入购物车</span>
+                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>立即购买</span>
+                </div>
+              </div>
+              <div style={{ width: 210, border: '1px solid #eee', borderRadius: 8, padding: 14, background: '#fff' }}>
+                <div style={{ fontSize: 20, fontWeight: 700, ...priceStyle }}>¥231.10</div>
+                <div style={{ display: 'flex', gap: 8, margin: '10px 0' }}>
+                  <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>金色</span>
+                  <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>XS</span>
+                </div>
+                <div style={{ color: '#39bf3e', marginBottom: 10 }}>充足</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>加入购物车</span>
+                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>立即购买</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </Card>
+
+      <Modal title="导入配色码" visible={importOpen} onCancel={() => setImportOpen(false)} onOk={importCodeValue}>
+        <Text type="secondary">请把配色码粘贴在此处</Text>
+        <TextArea
+          value={importCode}
+          onChange={(v: string) => setImportCode(v)}
+          autosize={{ minRows: 6, maxRows: 12 }}
+          placeholder='{"--main-bg":"#4a90e2", ...}'
+          style={{ marginTop: 8 }}
+        />
+      </Modal>
     </div>
   );
 }
@@ -73,14 +285,24 @@ export function ThemeStyle() {
  * labels: 页面名称, 发布状态, 更新时间, 操作
  * props: decorateId, status, updateTime, bingdingH5Name
  * ========================================================================= */
-export function MobileDecoratePages() {
+export function MobileDecoratePages({
+  decorateType = 1,
+  pageType,
+  defaultName = '首页微页面',
+  editPage = 'mobileDecorateManage',
+}: {
+  decorateType?: number;
+  pageType?: number;
+  defaultName?: string;
+  editPage?: string;
+} = {}) {
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'decorateId', width: 80 },
     {
       title: '页面名称',
       dataIndex: 'decorateName',
       width: 180,
-      render: (v: any, row: any) => v || row?.bingdingH5Name || '首页微页面',
+      render: (v: any, row: any) => v || row?.bingdingH5Name || defaultName,
     },
     {
       title: '发布状态',
@@ -88,27 +310,29 @@ export function MobileDecoratePages() {
       width: 110,
       render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '已发布' : '草稿'}</Tag>,
     },
-    { title: '更新时间', dataIndex: 'updateTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">装修</Button>
-          <Button theme="borderless" type="danger">删除</Button>
-        </Space>
-      ),
-    },
+    { title: '更新时间', dataIndex: 'updateTime', width: 170, render: (v: any) => formatDecorateTime(v) },
   ];
 
   return (
     <div>
       <ListPage
         api="/decorate/decorate/list"
-        query={{ decorateType: 1 }}
+        query={{ decorateType, ...(pageType ? { pageType } : {}) }}
         rowKey="decorateId"
         columns={columns}
+        showEdit={false}
+        rowActions={(row: any) => (
+          <Button
+            theme="borderless"
+            type="primary"
+            size="small"
+            onClick={() => {
+              window.location.href = `${window.location.origin}/?page=${editPage}&decorateId=${row.decorateId}`;
+            }}
+          >
+            装修
+          </Button>
+        )}
         filters={[
           { field: 'decorateName', label: '页面名称', type: 'input' },
         ]}
@@ -141,64 +365,143 @@ export function MobileDecoratePages() {
  * props: state, autoReturnGoods, materialImg, materialVideo, maxWaitTime, redirectType, redirectUrl
  * ========================================================================= */
 export function MobileSplashAd() {
-  const [config, setConfig] = useState({
-    state: 1,
-    autoReturnGoods: 0,
-    materialImg: 'https://img.tigshop.com/ad/splash.jpg',
+  const [config, setConfig] = useState<any>({
+    state: 0,
+    materialType: 0,
+    materialImg: '',
     materialVideo: '',
     maxWaitTime: 5,
-    redirectType: 'url',
-    redirectUrl: 'https://',
+    redirectType: 0,
+    redirectUrl: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const onSave = () => {
-    Toast.success('开屏广告配置保存成功');
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/decorate/decorateDiscrete/detail', { decorateSn: 'openAdvertising' })
+      .then((result) => {
+        const data = result?.data || result;
+        if (data && typeof data === 'object') {
+          setConfig((prev: any) => ({ ...prev, ...data }));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await apiPost('/decorate/decorateDiscrete/update', {
+        decorateSn: 'openAdvertising',
+        decorateName: '开屏广告',
+        data: config,
+      });
+      Toast.success('提交成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '提交失败');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="开屏广告设置" style={{ maxWidth: 640 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-          <Text strong style={{ width: 120 }}>开屏广告开关：</Text>
-          <Switch checked={config.state === 1} onChange={(c) => setConfig({ ...config, state: c ? 1 : 0 })} />
-        </div>
+      <Card title="开屏广告" loading={loading}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 900 }}>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>开屏广告</Text>
+            <div>
+              <RadioGroup value={config.state} onChange={(e) => setConfig({ ...config, state: Number(e.target.value) })}>
+                <Radio value={1}>开启</Radio>
+                <Radio value={0}>关闭</Radio>
+              </RadioGroup>
+              <div style={{ color: '#999', marginTop: 6 }}>
+                该功能仅支持微信小程序和 APP，开启进入商城首页时出现一段品牌图片/视频，等待播放后进入。
+              </div>
+            </div>
+          </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>最大等待时长(秒)：</Text>
-          <Input
-            value={String(config.maxWaitTime)}
-            onChange={(v: string) => setConfig({ ...config, maxWaitTime: Number(v || 5) })}
-            style={{ width: 200 }}
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>添加素材</Text>
+            <div style={{ flex: 1 }}>
+              <RadioGroup
+                value={config.materialType}
+                disabled={config.state === 0}
+                onChange={(e) => setConfig({ ...config, materialType: Number(e.target.value) })}
+              >
+                <Radio value={0}>图片</Radio>
+                <Radio value={1}>视频</Radio>
+              </RadioGroup>
+              {config.materialType === 0 ? (
+                <Input
+                  value={config.materialImg}
+                  disabled={config.state === 0}
+                  onChange={(v: string) => setConfig({ ...config, materialImg: v })}
+                  placeholder="建议尺寸 1080*1920，请输入图片 URL"
+                  style={{ marginTop: 10 }}
+                />
+              ) : (
+                <Input
+                  value={config.materialVideo}
+                  disabled={config.state === 0}
+                  onChange={(v: string) => setConfig({ ...config, materialVideo: v })}
+                  placeholder="格式 mp4，请输入视频 URL"
+                  style={{ marginTop: 10 }}
+                />
+              )}
+              <div style={{ color: '#999', marginTop: 6 }}>
+                {config.materialType === 0
+                  ? '建议尺寸1080*1920，格式jpg/png/gif，单张图片文件大小限制以内'
+                  : '格式mp4，单个视频文件大小限制5M以内'}
+              </div>
+            </div>
+          </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>添加素材(图片/视频)：</Text>
-          <Input
-            value={config.materialImg}
-            placeholder="输入广告图片URL"
-            onChange={(v: string) => setConfig({ ...config, materialImg: v })}
-            style={{ marginBottom: 8 }}
-          />
-          <Input
-            value={config.materialVideo}
-            placeholder="可选：视频素材URL"
-            onChange={(v: string) => setConfig({ ...config, materialVideo: v })}
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>最大等待时长</Text>
+            <span>播放</span>
+            <InputNumber
+              value={config.maxWaitTime}
+              disabled={config.state === 0}
+              min={1}
+              onChange={(v) => setConfig({ ...config, maxWaitTime: Number(v ?? 5) })}
+              style={{ width: 100 }}
+            />
+            <span>秒后自动进入商城首页</span>
+          </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>跳转链接：</Text>
-          <Input
-            value={config.redirectUrl}
-            placeholder="https://..."
-            onChange={(v: string) => setConfig({ ...config, redirectUrl: v })}
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Text strong style={{ width: 140, flexShrink: 0 }}>跳转</Text>
+            <div style={{ flex: 1 }}>
+              <RadioGroup
+                value={config.redirectType}
+                disabled={config.state === 0}
+                onChange={(e) => setConfig({ ...config, redirectType: Number(e.target.value) })}
+              >
+                <Radio value={0}>不跳转</Radio>
+                <Radio value={1}>整体跳转</Radio>
+              </RadioGroup>
+              {config.redirectType === 1 ? (
+                <Input
+                  value={config.redirectUrl}
+                  disabled={config.state === 0}
+                  onChange={(v: string) => setConfig({ ...config, redirectUrl: v })}
+                  placeholder="请输入跳转链接"
+                  style={{ marginTop: 10 }}
+                />
+              ) : null}
+            </div>
+          </div>
 
-        <Button type="primary" size="large" onClick={onSave}>
-          保存设置
-        </Button>
+          <div>
+            <Button theme="solid" type="primary" loading={saving} onClick={save}>提 交</Button>
+          </div>
+        </div>
       </Card>
     </div>
   );
@@ -210,41 +513,233 @@ export function MobileSplashAd() {
  * labels: 导航名称, 发布状态, 更新时间, 操作
  * props: decorateId, status, updateTime
  * ========================================================================= */
+type NavItem = {
+  picTitle?: string;
+  picUrl?: string;
+  picThumb?: string;
+  picActiveUrl?: string;
+  picActiveThumb?: string;
+  picLink?: any;
+};
+
+type NavModule = {
+  navName: string;
+  backgroundColorType: number;
+  backgroundColor: string;
+  cornerStyle: number;
+  iconColorType: number;
+  selectedTextColor: string;
+  unselectedTextColor: string;
+  navList: NavItem[];
+};
+
+const defaultNavList: NavItem[] = [
+  { picTitle: '首页', picLink: { link: '/', title: '首页' }, picUrl: '', picThumb: '', picActiveUrl: '', picActiveThumb: '' },
+  { picTitle: '我的', picLink: { link: 'member', title: '会员中心' }, picUrl: '', picThumb: '', picActiveUrl: '', picActiveThumb: '' },
+];
+
+const newNavModule = (): NavModule => ({
+  navName: '',
+  backgroundColorType: 1,
+  backgroundColor: '#FFFFFF',
+  cornerStyle: 1,
+  iconColorType: 1,
+  selectedTextColor: '#FF1616',
+  unselectedTextColor: '#757575',
+  navList: defaultNavList.map((item) => ({ ...item })),
+});
+
+function MobileNavEditor({ id, onBack }: { id: number; onBack: () => void }) {
+  const [module, setModule] = useState<NavModule>(newNavModule);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    apiGet<any>('/decorate/decorate/detail', { id, decorateType: 1, parentId: 0, localeId: 0 })
+      .then((result) => {
+        const data = result?.data || {};
+        const navList = Array.isArray(data.navList) && data.navList.length ? data.navList : defaultNavList;
+        setModule({ ...newNavModule(), ...data, navName: data.navName || result?.decorateTitle || '', navList });
+      })
+      .catch((error) => Toast.error(error instanceof Error ? error.message : '加载失败'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const updateItem = (index: number, patch: Partial<NavItem>) => {
+    setModule((prev) => ({
+      ...prev,
+      navList: prev.navList.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+    }));
+  };
+
+  const save = async () => {
+    if (!module.navName.trim()) {
+      Toast.error('请填写导航名称');
+      return;
+    }
+    setSaving(true);
+    try {
+      let currentId = id;
+      if (!currentId) {
+        const created: any = await apiPost('/decorate/decorate/create', {
+          decorateType: 1,
+          pageType: 7,
+          decorateTitle: module.navName,
+        });
+        currentId = Number(created?.decorateId || created?.id || 0);
+        if (!currentId) throw new Error('创建失败');
+      }
+      await apiPost('/decorate/decorate/publish', {
+        id: currentId,
+        parentId: 0,
+        localeId: 0,
+        data: module,
+      });
+      await apiPost('/decorate/decorate/updateField', {
+        id: currentId,
+        field: 'decorateTitle',
+        val: module.navName,
+      }).catch(() => undefined);
+      Toast.success('保存并发布成功');
+      onBack();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const bg = module.backgroundColorType === 2 ? module.backgroundColor || '#FFFFFF' : '#FFFFFF';
+  const radius = module.cornerStyle === 2 ? '8px 8px 0 0' : module.cornerStyle === 3 ? '16px 16px 0 0' : '0';
+  const selectedColor = module.iconColorType === 2 ? module.selectedTextColor || '#FF1616' : '#FF1616';
+  const unselectedColor = module.iconColorType === 2 ? module.unselectedTextColor || '#757575' : '#757575';
+
+  return (
+    <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      <div style={{ width: 375, flexShrink: 0, border: '1px solid #e5e6eb', borderRadius: 8, overflow: 'hidden', background: '#f7f8fa' }}>
+        <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', borderBottom: '1px solid #eee' }}>页面标题</div>
+        <div style={{ height: 420 }} />
+        <div style={{ background: bg, borderRadius: radius, padding: '8px 4px', display: 'flex', justifyContent: 'space-around' }}>
+          {module.navList.map((item, index) => (
+            <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 52 }}>
+              {item.picUrl ? <img src={index === 0 ? item.picActiveUrl || item.picUrl : item.picUrl} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span style={{ width: 28, height: 28, borderRadius: 6, background: '#eef1f5' }} />}
+              <span style={{ fontSize: 12, color: index === 0 ? selectedColor : unselectedColor }}>{item.picTitle || '菜单'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0, background: '#fff', border: '1px solid #e5e6eb', borderRadius: 8, padding: 20 }}>
+        {loading ? <Spin /> : (
+          <>
+            <div style={{ fontWeight: 600, marginBottom: 14 }}>基础设置</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={{ width: 90, color: '#646a73' }}>导航名称</span>
+              <Input value={module.navName} maxLength={15} onChange={(v: string) => setModule({ ...module, navName: v })} style={{ width: 320 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={{ width: 90, color: '#646a73' }}>导航背景色</span>
+              <RadioGroup value={module.backgroundColorType} onChange={(e) => setModule({ ...module, backgroundColorType: Number(e.target.value) })}>
+                <Radio value={1}>系统色</Radio>
+                <Radio value={2}>自定义颜色</Radio>
+              </RadioGroup>
+              {module.backgroundColorType === 2 ? <input type="color" value={module.backgroundColor} onChange={(e) => setModule({ ...module, backgroundColor: e.target.value })} /> : null}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={{ width: 90, color: '#646a73' }}>背景圆角</span>
+              <RadioGroup value={module.cornerStyle} onChange={(e) => setModule({ ...module, cornerStyle: Number(e.target.value) })}>
+                <Radio value={1}>直角</Radio>
+                <Radio value={2}>圆角</Radio>
+                <Radio value={3}>大圆角</Radio>
+              </RadioGroup>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <span style={{ width: 90, color: '#646a73' }}>文字配色</span>
+              <RadioGroup value={module.iconColorType} onChange={(e) => setModule({ ...module, iconColorType: Number(e.target.value) })}>
+                <Radio value={1}>系统配色</Radio>
+                <Radio value={2}>自定义配置</Radio>
+              </RadioGroup>
+              {module.iconColorType === 2 ? (
+                <Space>
+                  <span>选中</span><input type="color" value={module.selectedTextColor} onChange={(e) => setModule({ ...module, selectedTextColor: e.target.value })} />
+                  <span>未选</span><input type="color" value={module.unselectedTextColor} onChange={(e) => setModule({ ...module, unselectedTextColor: e.target.value })} />
+                </Space>
+              ) : null}
+            </div>
+
+            <div style={{ fontWeight: 600, margin: '18px 0 10px' }}>菜单设置</div>
+            {module.navList.map((item, index) => (
+              <div key={index} style={{ border: '1px solid #eef0f3', borderRadius: 6, padding: 12, marginBottom: 10 }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <Input value={item.picTitle || ''} placeholder="菜单名称" onChange={(v: string) => updateItem(index, { picTitle: v })} style={{ width: 140 }} />
+                  <Input value={item.picUrl || ''} placeholder="未选中图标 URL" onChange={(v: string) => updateItem(index, { picUrl: v })} style={{ width: 220 }} />
+                  <Input value={item.picActiveUrl || ''} placeholder="选中图标 URL" onChange={(v: string) => updateItem(index, { picActiveUrl: v })} style={{ width: 220 }} />
+                  <Input value={typeof item.picLink === 'string' ? item.picLink : item.picLink?.link || ''} placeholder="跳转链接" onChange={(v: string) => updateItem(index, { picLink: { link: v, title: item.picTitle || '' } })} style={{ width: 200 }} />
+                </div>
+              </div>
+            ))}
+            <Space>
+              <Button disabled={module.navList.length >= 5} onClick={() => setModule({ ...module, navList: [...module.navList, { picTitle: '', picUrl: '', picActiveUrl: '', picLink: { link: '' } }] })}>添加菜单</Button>
+              <Button onClick={onBack}>返回列表</Button>
+              <Button theme="solid" type="primary" loading={saving} onClick={save}>保存并发布</Button>
+            </Space>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MobileNav() {
-  const columns: ColumnConfig<any>[] = [
-    { title: 'ID', dataIndex: 'decorateId', width: 80 },
-    { title: '导航名称', dataIndex: 'decorateName', width: 180, render: (v: any) => v || '主导航栏' },
-    {
-      title: '发布状态',
-      dataIndex: 'status',
-      width: 110,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '已发布' : '草稿'}</Tag>,
-    },
-    { title: '更新时间', dataIndex: 'updateTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
-        </Space>
-      ),
-    },
-  ];
+  const [editId, setEditId] = useState<number | null>(null);
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    apiGet<any>('/decorate/decorate/list', { decorateType: 1, pageType: 7, page: 1, size: 50 })
+      .then((result) => setRows(result?.records || result?.list || []))
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  if (editId !== null) {
+    return <MobileNavEditor id={editId} onBack={() => { setEditId(null); load(); }} />;
+  }
 
   return (
     <div>
-      <ListPage
-        api="/decorate/decorate/list"
-        query={{ decorateType: 2 }}
-        rowKey="decorateId"
-        columns={columns}
-        filters={[
-          { field: 'decorateName', label: '导航名称', type: 'input' },
-        ]}
-      />
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+          <Space>
+            <Button onClick={load} loading={loading}>刷新</Button>
+            <Button theme="solid" type="primary" onClick={() => setEditId(0)}>新增导航</Button>
+          </Space>
+        </div>
+        <Table
+          dataSource={rows}
+          rowKey="decorateId"
+          pagination={false}
+          columns={[
+            { title: '导航名称', dataIndex: 'decorateTitle', render: (v: any, row: any) => v || row.decorateName || '主导航栏' },
+            { title: '发布状态', dataIndex: 'status', render: (v: any) => <Tag color={v === 1 ? 'green' : 'grey'}>{v === 1 ? '已发布' : '未发布'}</Tag> },
+            { title: '更新时间', dataIndex: 'updateTime', render: (v: any) => formatDecorateTime(v) },
+            {
+              title: '操作',
+              render: (_: any, row: any) => (
+                <Space>
+                  <Button theme="borderless" size="small" onClick={() => setEditId(Number(row.decorateId))}>编辑</Button>
+                  <Button theme="borderless" size="small" onClick={async () => { await apiPost('/decorate/decorate/copy', { id: row.decorateId }); Toast.success('操作成功'); load(); }}>复制</Button>
+                </Space>
+              ),
+            },
+          ]}
+        />
+      </Card>
     </div>
   );
 }

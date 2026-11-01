@@ -628,76 +628,25 @@ export const navGroups: NavGroup[] = [
         "key": "decorate1",
         "label": "移动端装修",
         "children": [
-          {
-            "key": "mobileDecorateManage",
-            "label": "页面管理"
-          },
-          {
-            "key": "mobileSplashAdManage",
-            "label": "开屏广告"
-          },
-          {
-            "key": "mobileSplashAdManage2",
-            "label": "开屏广告"
-          },
-          {
-            "key": "mobileuserUserOverseasManage",
-            "label": "会员首页"
-          },
-          {
-            "key": "mobileSearchStyleManage",
-            "label": "搜索风格"
-          },
-          {
-            "key": "mobileNavManage",
-            "label": "主导航栏"
-          },
-          {
-            "key": "classifyManage",
-            "label": "分类页"
-          },
-          {
-            "key": "mobileUserManage",
-            "label": "会员首页"
-          },
-          {
-            "key": "mobileCatNavManage",
-            "label": "分类导航"
-          }
+          { "key": "mobileDecorateManage", "label": "页面管理" },
+          { "key": "mobileNavManage", "label": "主导航栏" },
+          { "key": "mobileSplashAdManage", "label": "开屏广告" },
+          { "key": "mobileCatNavManage", "label": "分类导航" }
         ]
       },
       {
         "key": "decorate2",
         "label": "PC端装修",
         "children": [
-          {
-            "key": "pcDecorateManage",
-            "label": "首页装修"
-          },
-          {
-            "key": "pcNavigationManage",
-            "label": "导航栏"
-          },
-          {
-            "key": "pcCatFloorManage",
-            "label": "分类抽屉"
-          },
-          {
-            "key": "pcDecorateCustomManage",
-            "label": "自定义页装修"
-          },
-          {
-            "key": "pcProductStyleManage",
-            "label": "商品页风格"
-          },
-          {
-            "key": "pcSearchDecorateManage",
-            "label": "搜索页装修"
-          },
-          {
-            "key": "pcLoginDecorateManage",
-            "label": "登录页装修"
-          }
+          { "key": "pcDecorateManage", "label": "首页装修" },
+          { "key": "pcDecorateCustomManage", "label": "自定义页装修" },
+          { "key": "pcProductStyleManage", "label": "商品页风格" },
+          { "key": "pcSearchStyleManage", "label": "搜索页风格" },
+          { "key": "pcSearchDecorateManage", "label": "搜索页装修" },
+          { "key": "pcLoginDecorateManage", "label": "登录页装修" },
+          { "key": "pcDecorateOtherManage", "label": "其它页面" },
+          { "key": "pcNavigationManage", "label": "导航栏" },
+          { "key": "pcCatFloorManage", "label": "分类抽屉" }
         ]
       }
     ]
@@ -1560,6 +1509,8 @@ export const pageTitles: Record<string, string> = {
   "pcDecorateCustomManage": "自定义页装修",
   "pcProductStyleManage": "商品页风格",
   "pcSearchDecorateManage": "搜索页装修",
+  "pcSearchStyleManage": "搜索页风格",
+  "pcDecorateOtherManage": "其它页面",
   "pcLoginDecorateManage": "登录页装修",
   "salesman0": "分销概览",
   "promoteModeManage": "分销模式",
