@@ -640,7 +640,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
     updateActive({ module: { ...active.module, [key]: value } });
   };
 
-  const addModule = (type: string, label: string) => {
+  const addModule = (type: string, label: string, index?: number) => {
     const defaults: Record<string, Record<string, any>> = {
       imageAd: { picList: [] },
       imageAd2: { picList: [] },
@@ -683,8 +683,13 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       isShow: true,
       module: defaults[type] || {},
     };
-    setModuleList((prev) => [...prev, item]);
-    setActiveIndex(moduleList.length);
+    if (typeof index === 'number') {
+      setModuleList((prev) => [...prev.slice(0, index), item, ...prev.slice(index)]);
+      setActiveIndex(index);
+    } else {
+      setModuleList((prev) => [...prev, item]);
+      setActiveIndex(moduleList.length);
+    }
   };
 
   const save = async (mode: 'draft' | 'publish') => {
@@ -733,7 +738,12 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
             <div
               key={item.type}
               onClick={() => addModule(item.type, item.label)}
-              style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', marginBottom: 6, borderRadius: 6, background: '#f7f8fa', cursor: 'pointer', fontSize: 13 }}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/mobile-lib', item.type);
+                e.dataTransfer.effectAllowed = 'copy';
+              }}
+              style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', marginBottom: 6, borderRadius: 6, background: '#f7f8fa', cursor: 'grab', fontSize: 13 }}
             >
               <span>{item.label}</span>
               <span style={{ color: '#98a2b3' }}>{item.group}</span>
@@ -754,6 +764,13 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
+                    const libType = e.dataTransfer.getData('text/mobile-lib');
+                    if (libType) {
+                      const lib = MOBILE_LIBRARY.find((entry) => entry.type === libType);
+                      if (lib) addModule(lib.type, lib.label, index);
+                      setDragIndex(null);
+                      return;
+                    }
                     if (dragIndex === null || dragIndex === index) return;
                     setModuleList((prev) => {
                       const next = [...prev];
