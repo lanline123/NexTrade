@@ -248,6 +248,13 @@ const MODULE_FIELDS: Record<string, FieldSpec[]> = {
     { path: 'countdownData.specifyTime', label: '指定时间', kind: 'text' },
     { path: 'countdownData.marginTop', label: '顶部距离', kind: 'number' },
   ],
+  imageHotarea: [
+    { path: 'picList', label: '热区图片', kind: 'images' },
+    { path: 'title.showTitle', label: '显示标题', kind: 'switch' },
+    { path: 'title.titleText', label: '标题内容', kind: 'text' },
+    { path: 'title.titleColor', label: '标题颜色', kind: 'color' },
+    { path: 'title.showMore', label: '显示更多', kind: 'switch' },
+  ],
   searchBar: [
     { path: 'text', label: '搜索框文字', kind: 'text' },
   ],
@@ -755,7 +762,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       searchBar: { text: '搜索商品' },
       notice: { text: '公告内容', icoPic: { picUrl: '', picThumb: '' }, nociceEffect: 'scroll' },
       article: { style: 1, articleCategoryId: 0, articleNum: 6, showTime: 1, showPageView: 1, showLike: 1 },
-      imageHotarea: { picList: [], hotareaList: [] },
+      imageHotarea: { picList: [], title: { showTitle: 0, titleText: '', titleColor: '#333333', showMore: 0 } },
       tagNav: { groupList: [], textWeight: 400, groupGap: 10 },
       countdown: { moduleTitle: { title: '', subTitle: '', moreText: '' }, countdownData: { showCountdown: 1, countdownType: 1, dailyTime: '', specifyTime: '', marginTop: 0 } },
       live: { titleText: '' },
