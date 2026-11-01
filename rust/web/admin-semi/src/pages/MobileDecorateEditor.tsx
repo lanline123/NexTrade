@@ -272,6 +272,7 @@ function MobileModulePreview({ item }: { item: MobileModule }) {
 export default function MobileDecorateEditor({ decorateId, onExit }: { decorateId: number; onExit: () => void }) {
   const [title, setTitle] = useState('');
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
+  const [pageType, setPageType] = useState(1);
   const [moduleList, setModuleList] = useState<MobileModule[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
@@ -284,6 +285,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
     apiGet<any>('/decorate/decorate/detail', { id: decorateId, decorateType: 1, parentId: 0, localeId: 0 })
       .then((result) => {
         setTitle(result?.decorateTitle || '');
+        setPageType(Number(result?.pageType) || 1);
         const data = result?.data || {};
         setPageModule(data.pageModule || {});
         setModuleList(Array.isArray(data.moduleList) ? data.moduleList.map((item: any, index: number) => ({
@@ -344,11 +346,16 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       await apiPost(mode === 'draft' ? '/decorate/decorate/saveDraft' : '/decorate/decorate/publish', {
         id: decorateId,
         decorateType: 1,
-        pageType: 1,
+        pageType,
         localeId: 0,
         parentId: 0,
         data: { pageModule, moduleList },
       });
+      await apiPost('/decorate/decorate/updateField', {
+        id: decorateId,
+        field: 'decorateTitle',
+        val: title,
+      }).catch(() => undefined);
       Toast.success(mode === 'draft' ? '草稿已保存' : '发布成功');
     } catch (error) {
       Toast.error(error instanceof Error ? error.message : '保存失败');
@@ -486,6 +493,16 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <span style={{ width: 80, color: '#646a73' }}>背景色</span>
                 <input type="color" value={pageModule.backgroundColor || '#ffffff'} onChange={(e) => setPageModule({ ...pageModule, backgroundColor: e.target.value })} />
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 12 }}>
+                <span style={{ width: 80, color: '#646a73', lineHeight: '30px' }}>背景图</span>
+                <div style={{ flex: 1 }}>
+                  <ImageUploader
+                    value={pageModule.backgroundImage?.picUrl ? [pageModule.backgroundImage.picUrl] : []}
+                    single
+                    onChange={(urls) => setPageModule({ ...pageModule, backgroundImage: { picUrl: urls[0] || '', picThumb: urls[0] || '' } })}
+                  />
+                </div>
               </div>
               <div style={{ color: '#98a2b3', fontSize: 12 }}>点击画布中的模块编辑属性</div>
             </>
