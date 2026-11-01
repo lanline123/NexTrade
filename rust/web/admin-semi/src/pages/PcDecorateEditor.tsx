@@ -1055,7 +1055,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
       module: def.defaults(),
     };
     setModuleList((prev) => [...prev, item]);
-    setActiveIndex(-1);
+    setActiveIndex(moduleList.length);
     setPanelTab('module');
     markDirty();
     Toast.success(`已添加「${def.label}」`);
