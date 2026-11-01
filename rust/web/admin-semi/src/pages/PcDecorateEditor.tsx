@@ -883,6 +883,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
   const [title, setTitle] = useState('');
   const [pageType, setPageType] = useState(1);
+  const [hasDraft, setHasDraft] = useState(false);
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [moduleList, setModuleList] = useState<EditorModule[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
@@ -912,6 +913,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         if (res?.decorateId) decorateIdRef.current = res.decorateId;
         setTitle(res?.decorateTitle || '');
         setPageType(Number(res?.pageType) || 1);
+        setHasDraft(Boolean(res?.draftData));
         const source = res?.draftData || res?.data || {};
         const pm: Record<string, any> = {
           type: 'page', module: {}, backgroundRepeat: '', backgroundSize: '',
@@ -1160,6 +1162,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
             onEnterPress={handleRename}
             style={{ width: 280 }}
           />
+          {hasDraft && <Tag color="blue">草稿</Tag>}
           {dirtyRef.current && <Tag color="orange">未保存</Tag>}
           {getSaveData().pageModule.homeStyleVersion === 'new' ? <Tag color="green">新版装修</Tag> : <Tag color="grey">旧版兼容</Tag>}
         </Space>

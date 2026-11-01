@@ -581,6 +581,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   const [title, setTitle] = useState('');
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [pageType, setPageType] = useState(1);
+  const [hasDraft, setHasDraft] = useState(false);
   const [categories, setCategories] = useState<Array<{ label: string; value: number; picUrl?: string }>>([]);
   const [moduleList, setModuleList] = useState<MobileModule[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -615,6 +616,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       .then((result) => {
         setTitle(result?.decorateTitle || '');
         setPageType(Number(result?.pageType) || 1);
+        setHasDraft(Boolean(result?.draftData));
         const data = result?.draftData || result?.data || {};
         setPageModule(data.pageModule || {});
         setModuleList(Array.isArray(data.moduleList) ? data.moduleList.map((item: any, index: number) => ({
@@ -726,6 +728,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
         <Button icon={<IconArrowLeft />} onClick={onExit}>返回列表</Button>
         <Input value={title} onChange={setTitle} style={{ width: 200 }} />
         <Tag color="blue">移动端装修</Tag>
+        {hasDraft && <Tag color="cyan">草稿</Tag>}
         <div style={{ flex: 1 }} />
         <Button loading={saving === 'draft'} onClick={() => save('draft')}>保存草稿</Button>
         <Button theme="solid" type="primary" loading={saving === 'publish'} onClick={() => save('publish')}>保存并发布</Button>
