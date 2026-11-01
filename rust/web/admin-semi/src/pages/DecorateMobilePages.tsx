@@ -24,6 +24,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
+import ImageUploader from '../components/ImageUploader';
 import type { ColumnConfig } from '../framework/types';
 import { THEME_PALETTES } from './themePalettes';
 
@@ -697,6 +698,24 @@ function MobileNavEditor({ id, onBack }: { id: number; onBack: () => void }) {
                   <Input value={item.picUrl || ''} placeholder="未选中图标 URL" onChange={(v: string) => updateItem(index, { picUrl: v })} style={{ width: 220 }} />
                   <Input value={item.picActiveUrl || ''} placeholder="选中图标 URL" onChange={(v: string) => updateItem(index, { picActiveUrl: v })} style={{ width: 220 }} />
                   <Input value={typeof item.picLink === 'string' ? item.picLink : item.picLink?.link || ''} placeholder="跳转链接" onChange={(v: string) => updateItem(index, { picLink: { link: v, title: item.picTitle || '' } })} style={{ width: 200 }} />
+                </div>
+                <div style={{ display: 'flex', gap: 24, marginTop: 8, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ color: '#646a73', fontSize: 12, marginBottom: 4 }}>未选中图标</div>
+                    <ImageUploader
+                      value={item.picUrl ? [item.picUrl] : []}
+                      single
+                      onChange={(urls) => updateItem(index, { picUrl: urls[0] || '', picThumb: urls[0] || '' })}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ color: '#646a73', fontSize: 12, marginBottom: 4 }}>选中图标</div>
+                    <ImageUploader
+                      value={item.picActiveUrl ? [item.picActiveUrl] : []}
+                      single
+                      onChange={(urls) => updateItem(index, { picActiveUrl: urls[0] || '', picActiveThumb: urls[0] || '' })}
+                    />
+                  </div>
                 </div>
               </div>
             ))}
