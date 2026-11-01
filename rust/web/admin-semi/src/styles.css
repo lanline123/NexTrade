@@ -34,140 +34,93 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ============ 登录页（对齐原版 Vue 后台） ============ */
+/* ============ 登录页 ============ */
 .login-page {
   min-height: 100vh;
   display: flex;
-  background: #fff;
-}
-
-.login-visual {
-  width: 50%;
-  min-height: 100vh;
-  position: relative;
-  display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background: linear-gradient(180deg, #f2f7ff 0%, #edf3ff 100%);
+  gap: 40px;
+  padding: 40px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(22, 93, 255, 0.16) 0, transparent 38%),
+    radial-gradient(circle at 88% 82%, rgba(0, 168, 112, 0.1) 0, transparent 40%),
+    #eef3fb;
 }
 
-.login-visual-logo {
-  position: absolute;
-  top: 24px;
-  left: 34px;
-  width: 122px;
-  height: auto;
-}
-
-.login-visual-illustration {
-  width: min(640px, 78%);
-  max-height: 72vh;
-  object-fit: contain;
-}
-
-.login-panel {
-  flex: 1;
-  min-width: 0;
+.login-brand {
+  width: 480px;
+  min-height: 540px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 9vw;
+  padding: 56px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.18) 0, transparent 36%),
+    linear-gradient(145deg, #0b4bd6 0%, #165dff 52%, #3b82f6 100%);
+  box-shadow: 0 24px 64px rgba(22, 93, 255, 0.28);
 }
 
-.login-title {
-  margin: 0 0 38px;
-  color: #1f2329;
-  font-size: 34px;
+.login-logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
   font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(8px);
 }
 
-.login-title span {
-  margin-left: 16px;
-  color: #646a73;
-  font-size: 22px;
-  font-weight: 400;
+.login-brand-line {
+  width: 64px;
+  height: 3px;
+  margin: 30px 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #fff, transparent);
+}
+
+.login-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.login-points span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .login-card {
-  width: 460px;
-  padding: 10px 14px 18px;
-  border: 1px solid #e5e6eb;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  width: 412px;
+  padding: 12px 8px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 48px rgba(16, 24, 40, 0.08) !important;
 }
 
-.login-tabs {
-  display: flex;
-  gap: 36px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #f2f3f5;
+.login-demo {
+  margin-top: 10px;
+  text-align: center;
 }
 
-.login-tabs span {
-  position: relative;
-  padding: 12px 0 16px;
-  color: #646a73;
-  font-size: 16px;
+.login-footer {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f2f5;
+  text-align: center;
 }
 
-.login-tabs .is-active {
-  color: #1456f0;
-  font-weight: 600;
-}
-
-.login-tabs .is-active::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: #1456f0;
-}
-
-.login-card .semi-form-field {
-  margin-bottom: 22px;
-}
-
-.login-card .semi-input-wrapper {
-  height: 48px;
-  border: 1px solid #f2f3f5;
-  border-radius: 4px;
-  background: #f7f8fa;
-}
-
-.login-submit {
-  height: 48px !important;
-  border-radius: 4px;
-  font-size: 17px;
-  background: #1456f0 !important;
-}
-
-.login-remember {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 20px;
-  color: #646a73;
-  font-size: 14px;
-}
-
-.login-agreement {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  margin-top: 14px;
-  color: #646a73;
-  font-size: 13px;
-}
-
-.login-agreement a {
-  color: #1456f0;
-}
 /* ============ 后台骨架 ============ */
 .app-shell {
   display: flex;
@@ -4077,160 +4030,3 @@ body[theme-mode='dark'] .order-detail-summary {
   box-shadow: var(--semi-color-shadow-elevated);
   transform: translateY(-1px);
 }
-
-/* ===== 对齐原版 Vue 后台：顶部栏 + 左侧双栏 ===== */
-:root {
-  --primary: #1456f0;
-  --primary-soft: #f4f7ff;
-  --bg: #f5f7fa;
-}
-
-.app-shell {
-  padding-top: 60px;
-  background: #f5f7fa;
-}
-
-.brand {
-  display: none !important;
-}
-
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  height: 60px;
-  padding: 0 20px 0 132px;
-  background: #eef2ff;
-  border-bottom: 0;
-}
-
-.topbar-brand {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 112px;
-  height: 60px;
-  background: #eef2ff;
-  cursor: pointer;
-}
-
-.topbar-brand img {
-  max-width: 80px;
-  max-height: 40px;
-  object-fit: contain;
-}
-
-.sidebar {
-  width: 280px;
-  height: calc(100vh - 60px);
-  border-right: 0;
-}
-
-.is-collapsed .sidebar {
-  width: 112px;
-}
-
-.sidebar-body {
-  height: 100%;
-}
-
-.rail {
-  width: 112px;
-  padding: 10px 8px;
-  background: #eef2ff;
-}
-
-.submenu {
-  width: 168px;
-  padding: 8px 6px;
-}
-
-.main-shell {
-  height: calc(100vh - 60px);
-}
-
-.page-content {
-  padding: 15px 20px 20px;
-}
-
-.topbar-search {
-  width: 260px;
-  border-radius: 4px;
-}
-.login-visual-illustration { mix-blend-mode: multiply; }
-.login-card .semi-form-field-label { display: none; }
-
-/* ===== Semi 组件向原版 Ant Design 紧凑风格靠拢 ===== */
-body {
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.85);
-}
-
-.semi-table {
-  color: rgba(0, 0, 0, 0.85);
-  font-size: 14px;
-}
-
-.semi-table-thead .semi-table-row-head {
-  background: #fafafa;
-  color: #333;
-  font-weight: 500;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.semi-table-tbody .semi-table-row > .semi-table-row-cell {
-  padding: 12px 8px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.semi-table-tbody .semi-table-row:hover > .semi-table-row-cell {
-  background: #fafafa;
-}
-
-.semi-button {
-  border-radius: 2px;
-  font-size: 14px;
-}
-
-.semi-button-size-large {
-  height: 40px;
-}
-
-.semi-button-primary {
-  background-color: #1456f0;
-}
-
-.semi-button-primary:hover {
-  background-color: #3d7dfc;
-}
-
-.semi-input-wrapper,
-.semi-select,
-.semi-input-number {
-  border-radius: 2px;
-}
-
-.semi-card {
-  border-radius: 2px;
-  box-shadow: none;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.page-heading {
-  margin-bottom: 12px;
-}
-
-.page-content {
-  background: #f5f7fa;
-}
-.login-card .semi-form-field-label { display: none !important; }
-.submenu-section-arrow { display: none !important; }

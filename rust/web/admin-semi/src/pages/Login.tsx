@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, Form, Toast, Typography } from '@douyinfe/semi-ui';
-import { IconHome, IconUser } from '@douyinfe/semi-icons';
-import { apiGet, login, setToken } from '../api';
+import { IconHome, IconLock, IconUser } from '@douyinfe/semi-icons';
+import { apiGet, enterDemo, login, setToken } from '../api';
 
 const { Title, Text } = Typography;
 
@@ -79,37 +79,48 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="login-page">
-      <div className="login-visual">
-        <img className="login-visual-logo" src={`${import.meta.env.BASE_URL}admin-assets/admin-light-logo.jpeg`} alt="万物新生" />
-        <img
-          className="login-visual-illustration"
-          src={`${import.meta.env.BASE_URL}admin-assets/login-page-bg.png`}
-          alt=""
-        />
+      <div className="login-brand">
+        <div className="login-logo">W</div>
+        <Title heading={1} style={{ color: '#fff', margin: '28px 0 14px', fontSize: 40 }}>
+          万物新生
+        </Title>
+        <Text style={{ color: 'rgba(255,255,255,.78)', fontSize: 17, lineHeight: '30px' }}>
+          退役动力电池循环利用
+          <br />
+          产业服务平台
+        </Text>
+        <div className="login-brand-line" />
+        <div className="login-points">
+          {['安全合规', '高效协同', '绿色循环', '数据可追溯'].map((item) => (
+            <span key={item}>{item}</span>
+          ))}
+        </div>
       </div>
 
-      <div className="login-panel">
-        <h1 className="login-title">
-          欢迎登录<span>商城后台管理系统</span>
-        </h1>
-        <Card className="login-card" shadows="always">
+      <Card className="login-card" shadows="always">
         {step === 'login' ? (
           <>
-            <div className="login-tabs">
-              <span className="is-active">密码登录</span>
-              <span>手机登录</span>
-            </div>
+            <Title heading={3} style={{ marginBottom: 4 }}>
+              运营管理后台
+            </Title>
+            <Text type="tertiary">请使用管理员账号登录</Text>
 
-            <Form onSubmit={handleSubmit} labelPosition="top" style={{ marginTop: 22 }}>
+            <Form onSubmit={handleSubmit} labelPosition="top" style={{ marginTop: 28 }}>
               <Form.Input
                 field="username"
-                placeholder="请输入用户名"
+                label="账号"
+                placeholder="请输入管理员账号"
+                prefix={<IconUser />}
+                rules={[{ required: true, message: '请输入账号' }]}
                 size="large"
               />
               <Form.Input
                 field="password"
+                label="密码"
                 mode="password"
                 placeholder="请输入密码"
+                prefix={<IconLock />}
+                rules={[{ required: true, message: '请输入密码' }]}
                 size="large"
               />
               <Button
@@ -119,19 +130,29 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
                 loading={loading}
                 block
                 size="large"
-                className="login-submit"
+                style={{ marginTop: 12, height: 44 }}
               >
-                登 录
+                登录
               </Button>
             </Form>
 
-            <label className="login-remember">
-              <input type="checkbox" /> 记住登录状态
-            </label>
-            <div className="login-agreement">
-              <input type="checkbox" defaultChecked /> 我已阅读并同意
-              <a href="javascript:;">《用户服务协议》</a>
-              <a href="javascript:;">《用户隐私协议》</a>
+            <div className="login-demo">
+              <Button
+                theme="borderless"
+                type="tertiary"
+                onClick={() => {
+                  enterDemo();
+                  onSuccess();
+                }}
+              >
+                进入演示模式
+              </Button>
+            </div>
+
+            <div className="login-footer">
+              <Text type="tertiary" size="small">
+                万物新生 · 运营管理后台
+              </Text>
             </div>
           </>
         ) : (
@@ -183,8 +204,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
         )}
-        </Card>
-      </div>
+      </Card>
     </div>
   );
 }
