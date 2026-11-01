@@ -778,17 +778,119 @@ export function ClassifyDecorate() {
  * labels: 会员首页, 资产模块, 订单模块, 工具栏配置
  * ========================================================================= */
 export function MobileUserDecorate() {
+  const [toolList, setToolList] = useState<any[]>([
+    { type: 'bannerList', label: '广告位', module: { bannerList: { picUrl: '' } } },
+    { type: 'menus', label: '用户服务', module: { menuType: 1, menuList: [] } },
+  ]);
+  const [menus, setMenus] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const bannerModule = toolList.find((item) => item.type === 'bannerList')?.module || { bannerList: { picUrl: '' } };
+  const menuModule = toolList.find((item) => item.type === 'menus')?.module || { menuType: 1, menuList: [] };
+
+  const setBanner = (picUrl: string) => {
+    setToolList((prev) => prev.map((item) => item.type === 'bannerList' ? { ...item, module: { ...item.module, bannerList: { ...item.module?.bannerList, picUrl } } } : item));
+  };
+  const setMenusModule = (patch: Record<string, any>) => {
+    setToolList((prev) => prev.map((item) => item.type === 'menus' ? { ...item, module: { ...item.module, ...patch } } : item));
+  };
+
+  const load = () => {
+    setLoading(true);
+    Promise.all([
+      apiGet<any>('/decorate/decorateDiscrete/detail', { decorateSn: 'memberDecorate' }),
+      apiGet<any>('/decorate/decorateDiscrete/memberDecorateData'),
+    ])
+      .then(([detail, data]) => {
+        const remote = detail?.data;
+        if (Array.isArray(remote) && remote.length) setToolList(remote);
+        const list = data?.menus || data?.data?.menus || [];
+        setMenus(Array.isArray(list) ? list : []);
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await apiPost('/decorate/decorateDiscrete/update', { decorateSn: 'memberDecorate', data: toolList });
+      await apiPost('/setting/config/saveMemberCenterDecorate', { useNewMemberCenter: 0 }).catch(() => undefined);
+      Toast.success('保存成功，已应用旧版个人中心');
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addMenu = (menu: any) => {
+    const current = menuModule.menuList || [];
+    if (current.some((item: any) => item.picTitle === menu.picTitle)) return;
+    setMenusModule({ menuList: [...current, { ...menu }] });
+  };
+  const removeMenu = (index: number) => {
+    const current = menuModule.menuList || [];
+    setMenusModule({ menuList: current.filter((_: any, i: number) => i !== index) });
+  };
+
   return (
     <div style={{ padding: 20 }}>
-      <Card title="会员中心首页装修" style={{ maxWidth: 640 }}>
-        <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
-          自由配置会员个人中心的背景图、会员卡信息展示、资产入口与常用工具菜单。
-        </Text>
-        <Space vertical align="start">
-          <Button type="primary" onClick={() => Toast.info('进入会员中心可视化画布')}>
-            进入可视化画布装修
-          </Button>
-        </Space>
+      <Card title="会员中心首页装修" loading={loading}>
+        <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start' }}>
+          <div style={{ width: 375, flexShrink: 0, border: '1px solid #e5e6eb', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(90deg,#fcf6fc,#f3f3fe)', padding: 8 }}>
+            <div style={{ height: 120, borderRadius: 8, overflow: 'hidden', background: '#dfe7f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#98a2b3' }}>
+              {bannerModule.bannerList?.picUrl ? <img src={bannerModule.bannerList.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '广告位'}
+            </div>
+            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: menuModule.menuType === 2 ? 'repeat(3,1fr)' : 'repeat(4,1fr)', gap: 8 }}>
+              {(menuModule.menuList || []).map((item: any, index: number) => (
+                <div key={index} style={{ background: '#fff', borderRadius: 8, padding: '10px 4px', textAlign: 'center', fontSize: 12 }}>
+                  {item.picUrl ? <img src={item.picUrl} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} /> : <div style={{ width: 22, height: 22, margin: '0 auto', background: '#eef1f5', borderRadius: 4 }} />}
+                  <div style={{ marginTop: 6 }}>{item.picTitle || '服务'}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 600, marginBottom: 10 }}>广告图设置</div>
+            <Input
+              value={bannerModule.bannerList?.picUrl || ''}
+              placeholder="广告图 URL"
+              onChange={setBanner}
+              style={{ marginBottom: 18 }}
+            />
+            {bannerModule.bannerList?.picUrl ? <img src={bannerModule.bannerList.picUrl} alt="" style={{ maxWidth: 260, maxHeight: 140, objectFit: 'contain', marginBottom: 18 }} /> : null}
+
+            <div style={{ fontWeight: 600, margin: '18px 0 10px' }}>我的服务设置</div>
+            <RadioGroup value={menuModule.menuType} onChange={(e) => setMenusModule({ menuType: Number(e.target.value) })}>
+              <Radio value={1}>列表版</Radio>
+              <Radio value={2}>九宫格版</Radio>
+            </RadioGroup>
+
+            <div style={{ fontWeight: 600, margin: '16px 0 8px' }}>默认模块</div>
+            <Space wrap>
+              {menus.map((menu: any, index: number) => (
+                <Tag key={index} style={{ cursor: 'pointer' }} onClick={() => addMenu(menu)}>{menu.picTitle}</Tag>
+              ))}
+            </Space>
+
+            <div style={{ fontWeight: 600, margin: '16px 0 8px' }}>已添加模块</div>
+            <Space wrap>
+              {(menuModule.menuList || []).map((item: any, index: number) => (
+                <Tag key={index} onClose={() => removeMenu(index)} closable>{item.picTitle || '模块'}</Tag>
+              ))}
+            </Space>
+
+            <div style={{ marginTop: 22, display: 'flex', gap: 10 }}>
+              <Button onClick={load}>刷新</Button>
+              <Button theme="solid" type="primary" loading={saving} onClick={save}>保存</Button>
+            </div>
+          </div>
+        </div>
       </Card>
     </div>
   );
@@ -816,20 +918,41 @@ export function MobileUserOverseas() {
  * 8. MobileSearchStyle (mobileSearchStyleManage 搜索风格)
  * ========================================================================= */
 export function MobileSearchStyle() {
-  const [style, setStyle] = useState('round');
+  const [styleType, setStyleType] = useState(1);
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
+    apiGet<any>('/setting/config/mobileSearchStyleSettings')
+      .then((result) => setStyleType(Number(result?.mobileSearchStyleType) || 1))
+      .catch(() => undefined);
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await apiPost('/setting/config/saveMobileSearchStyle', { mobileSearchStyleType: styleType });
+      Toast.success('操作成功');
+      load();
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <Card title="移动端搜索风格" style={{ maxWidth: 600 }}>
         <div style={{ marginBottom: 20 }}>
           <Text strong style={{ display: 'block', marginBottom: 8 }}>搜索框形状：</Text>
-          <RadioGroup value={style} onChange={(e) => setStyle(e.target.value)}>
-            <Radio value="round">圆角胶囊风格</Radio>
-            <Radio value="square">直角极简风格</Radio>
+          <RadioGroup value={styleType} onChange={(e) => setStyleType(Number(e.target.value))}>
+            <Radio value={1}>圆角胶囊风格</Radio>
+            <Radio value={2}>直角极简风格</Radio>
           </RadioGroup>
         </div>
-        <Button type="primary" onClick={() => Toast.success('搜索风格已更新')}>
-          保存配置
-        </Button>
+        <Button type="primary" loading={saving} onClick={save}>保存配置</Button>
       </Card>
     </div>
   );
