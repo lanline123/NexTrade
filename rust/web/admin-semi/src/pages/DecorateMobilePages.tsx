@@ -322,16 +322,34 @@ export function MobileDecoratePages({
         columns={columns}
         showEdit={false}
         rowActions={(row: any) => (
-          <Button
-            theme="borderless"
-            type="primary"
-            size="small"
-            onClick={() => {
-              window.location.href = `${window.location.origin}/?page=${editPage}&decorateId=${row.decorateId}`;
-            }}
-          >
-            装修
-          </Button>
+          <Space>
+            <Button
+              theme="borderless"
+              type="primary"
+              size="small"
+              onClick={() => {
+                const idKey = editPage === 'pcDecorateEditor' ? 'id' : 'decorateId';
+                window.location.href = `${window.location.origin}/?page=${editPage}&${idKey}=${row.decorateId}`;
+              }}
+            >
+              装修
+            </Button>
+            <Button
+              theme="borderless"
+              size="small"
+              onClick={async () => {
+                try {
+                  await apiPost('/decorate/decorate/copy', { id: row.decorateId });
+                  Toast.success('操作成功');
+                  window.location.reload();
+                } catch (error) {
+                  Toast.error(error instanceof Error ? error.message : '复制失败');
+                }
+              }}
+            >
+              复制
+            </Button>
+          </Space>
         )}
         filters={[
           { field: 'decorateName', label: '页面名称', type: 'input' },
