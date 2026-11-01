@@ -289,7 +289,7 @@ export function MobileDecoratePages({
   decorateType = 1,
   pageType,
   defaultName = '首页微页面',
-  editPage = 'mobileDecorateManage',
+  editPage = 'mobileDecorateEditor',
 }: {
   decorateType?: number;
   pageType?: number;
@@ -328,7 +328,7 @@ export function MobileDecoratePages({
               type="primary"
               size="small"
               onClick={() => {
-                const idKey = editPage === 'pcDecorateEditor' ? 'id' : 'decorateId';
+                const idKey = (editPage === 'pcDecorateEditor' || editPage === 'mobileDecorateEditor') ? 'id' : 'decorateId';
                 window.location.href = `${window.location.origin}/?page=${editPage}&${idKey}=${row.decorateId}`;
               }}
             >
