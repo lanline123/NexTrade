@@ -392,3 +392,15 @@
 - 访问趋势: `accessDays` state → 同一接口 → `accessTrend`
 - 两个图各自独立切换,互不影响
 - TrendChart 增加 `name` / `yAxisPrefix` 参数(访问趋势 tooltip 显示"访问量",y 轴纯数字)
+
+### 装修模块 1:1 对齐（2026-11-01）
+
+- 删除旧版 PcVisualStudio 画布编辑器，所有 PC 装修入口只保留新版 PcDecorateEditor
+- 主题风格：提取原版 13 套系统配色，接入 	hemeStyleSettings / saveThemeStyle，支持自定义配色与导入配色码
+- 移动端开屏广告：接入 decorateDiscrete 真实读写
+- 移动端主导航栏：列表 decorateType=1&pageType=7，新增 React 导航编辑器（背景/圆角/文字配色/菜单/预览/保存发布）
+- 移动端分类导航：mobileCatNavId 行键、catColor、内联显示/排序、分类/颜色/banner/子分类/品牌表单
+- 移动端会员首页：memberDecorate 广告位 + 我的服务菜单，保存并应用旧版个人中心
+- 移动端搜索风格：接入 mobileSearchStyleSettings / saveMobileSearchStyle
+- 搜索页风格/其它页面：补齐原版页面与保存接口
+- 验证：tsc -b 通过；移动端主导航/会员首页/分类导航/搜索风格浏览器 0 pageerror
