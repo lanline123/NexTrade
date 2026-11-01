@@ -912,7 +912,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         if (res?.decorateId) decorateIdRef.current = res.decorateId;
         setTitle(res?.decorateTitle || '');
         setPageType(Number(res?.pageType) || 1);
-        const source = res?.data || {};
+        const source = res?.draftData || res?.data || {};
         const pm: Record<string, any> = {
           type: 'page', module: {}, backgroundRepeat: '', backgroundSize: '',
           style: 0, headerStyle: 1,

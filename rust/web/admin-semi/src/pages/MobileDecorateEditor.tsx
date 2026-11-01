@@ -615,7 +615,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       .then((result) => {
         setTitle(result?.decorateTitle || '');
         setPageType(Number(result?.pageType) || 1);
-        const data = result?.data || {};
+        const data = result?.draftData || result?.data || {};
         setPageModule(data.pageModule || {});
         setModuleList(Array.isArray(data.moduleList) ? data.moduleList.map((item: any, index: number) => ({
           moduleIndex: item.moduleIndex ?? Date.now() + index,
