@@ -1,0 +1,10 @@
+{
+  "page": "decorate/pcDecorate/Other.vue",
+  "component": "rust/web/admin-semi/src/pages/DecoratePcPages.tsx",
+  "filters": [],
+  "columns": [],
+  "actions": [],
+  "notes": [
+    "其它页面：会员登录背景已迁移至登录页装修，当前为兼容空页。"
+  ]
+}

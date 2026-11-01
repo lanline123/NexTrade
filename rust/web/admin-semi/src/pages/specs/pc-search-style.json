@@ -1,0 +1,14 @@
+{
+  "page": "decorate/pcDecorate/SearchStyle.vue",
+  "component": "rust/web/admin-semi/src/pages/DecoratePcPages.tsx",
+  "filters": [],
+  "columns": [],
+  "actions": [
+    "保 存",
+    "重 置"
+  ],
+  "notes": [
+    "PC 搜索页风格：样式一（经典版）/样式二（新版）预览卡片。",
+    "接口：GET /setting/config/searchStyleSettings；POST /setting/config/saveSearchStyle。"
+  ]
+}

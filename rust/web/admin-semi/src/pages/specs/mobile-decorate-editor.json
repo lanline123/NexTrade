@@ -1,0 +1,15 @@
+{
+  "page": "decorate/decorate/editor/Index.vue",
+  "component": "rust/web/admin-semi/src/pages/MobileDecorateEditor.tsx",
+  "filters": [],
+  "columns": [],
+  "actions": [
+    "保存草稿",
+    "保存并发布"
+  ],
+  "notes": [
+    "新版 React 移动端装修编辑器，加载真实 detail 数据，优先 draftData。",
+    "保存：saveDraft / publish，body 携带真实 pageType。",
+    "模块库、画布预览、模块属性、拖拽排序、图片上传、商品选择均已接入。"
+  ]
+}
