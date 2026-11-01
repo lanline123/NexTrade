@@ -73,24 +73,14 @@ export function ThemeStyle() {
  * labels: 页面名称, 发布状态, 更新时间, 操作
  * props: decorateId, status, updateTime, bingdingH5Name
  * ========================================================================= */
-export function MobileDecoratePages({
-  decorateType = 1,
-  pageType,
-  defaultName = '首页微页面',
-  editPage = 'mobileDecorateManage',
-}: {
-  decorateType?: number;
-  pageType?: number;
-  defaultName?: string;
-  editPage?: string;
-} = {}) {
+export function MobileDecoratePages() {
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'decorateId', width: 80 },
     {
       title: '页面名称',
       dataIndex: 'decorateName',
       width: 180,
-      render: (v: any, row: any) => v || row?.bingdingH5Name || defaultName,
+      render: (v: any, row: any) => v || row?.bingdingH5Name || '首页微页面',
     },
     {
       title: '发布状态',
@@ -116,7 +106,7 @@ export function MobileDecoratePages({
     <div>
       <ListPage
         api="/decorate/decorate/list"
-        query={{ decorateType, ...(pageType ? { pageType } : {}) }}
+        query={{ decorateType: 1 }}
         rowKey="decorateId"
         columns={columns}
         filters={[
