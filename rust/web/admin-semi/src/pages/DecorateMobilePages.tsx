@@ -290,11 +290,13 @@ export function MobileDecoratePages({
   pageType,
   defaultName = '首页微页面',
   editPage = 'mobileDecorateEditor',
+  returnPage,
 }: {
   decorateType?: number;
   pageType?: number;
   defaultName?: string;
   editPage?: string;
+  returnPage?: string;
 } = {}) {
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'decorateId', width: 80 },
@@ -329,7 +331,7 @@ export function MobileDecoratePages({
               size="small"
               onClick={() => {
                 const idKey = (editPage === 'pcDecorateEditor' || editPage === 'mobileDecorateEditor') ? 'id' : 'decorateId';
-                window.location.href = `${window.location.origin}/?page=${editPage}&${idKey}=${row.decorateId}`;
+                window.location.href = `${window.location.origin}/?page=${editPage}&${idKey}=${row.decorateId}${returnPage ? `&from=${returnPage}` : ''}`;
               }}
             >
               装修

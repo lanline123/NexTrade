@@ -624,7 +624,8 @@ export default function App() {
       <PcDecorateEditor
         decorateId={editorId}
         onExit={() => {
-          window.location.href = `${window.location.origin}/?page=pcDecorateManage`;
+          const from = new URLSearchParams(window.location.search).get('from') || 'pcDecorateManage';
+          window.location.href = `${window.location.origin}/?page=${from}`;
         }}
       />
     );

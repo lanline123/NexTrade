@@ -882,6 +882,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
   const [title, setTitle] = useState('');
+  const [pageType, setPageType] = useState(1);
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [moduleList, setModuleList] = useState<EditorModule[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
@@ -902,6 +903,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     apiGet<{
       decorateId?: number;
       decorateTitle?: string;
+      pageType?: number;
       data?: { pageModule?: Record<string, any>; moduleList?: EditorModule[] } | null;
       draftData?: { pageModule?: Record<string, any>; moduleList?: EditorModule[] } | null;
     }>('/decorate/decorate/detail', { id: decorateId, decorateType: 2, localeId: 0, parentId: 0 })
@@ -909,6 +911,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         if (!alive) return;
         if (res?.decorateId) decorateIdRef.current = res.decorateId;
         setTitle(res?.decorateTitle || '');
+        setPageType(Number(res?.pageType) || 1);
         const source = res?.data || {};
         const pm: Record<string, any> = {
           type: 'page', module: {}, backgroundRepeat: '', backgroundSize: '',
@@ -966,7 +969,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   const buildPayload = (data: Record<string, any>) => ({
     id: decorateIdRef.current,
     decorateType: 2,
-    pageType: 1,
+    pageType,
     localeId: 0,
     parentId: 0,
     data,

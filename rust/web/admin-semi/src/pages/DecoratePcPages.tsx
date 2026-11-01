@@ -1841,7 +1841,7 @@ export function PcCustomPage() {
             type="primary"
             size="small"
             onClick={() => {
-              window.open(`${window.location.origin}/?page=pcDecorateEditor&id=${row.decorateId}`, '_blank');
+              window.open(`${window.location.origin}/?page=pcDecorateEditor&id=${row.decorateId}&from=pcDecorateCustomManage`, '_blank');
             }}
           >
             装修
