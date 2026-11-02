@@ -38,6 +38,16 @@ const en: Record<string, string> = {
   订单金额: 'Order amount',
   '开启后，新订单、售后等重要消息将自动语音提醒':
     'When enabled, new orders and after-sales messages are announced by voice.',
+  不再提醒: 'Do not remind again',
+  暂不: 'Not now',
+  弹窗显示: 'Popup notification',
+  '开启语音播报，新订单、售后等重要消息将自动语音提醒。':
+    'Enable voice alerts for new orders, after-sales and other important messages.',
+  '试听：{label}语音播报': 'Preview: {label} voice alert',
+  '当前浏览器不支持语音合成，开关可保存但不会发声。建议使用最新版 Chrome / Edge。':
+    'Speech synthesis is not supported in this browser. Settings can be saved but will not play. Use the latest Chrome or Edge.',
+  '尚未激活浏览器语音权限，播报暂不会发声；您可先在此调整各类消息的播报开关，点击顶部「立即开启」后将按设置生效。':
+    'Browser voice permission is not activated. Adjust the switches here, then click "Enable now" at the top.',
   全部消息: 'All messages',
   全部类型: 'All types',
   语音播报: 'Voice broadcast',

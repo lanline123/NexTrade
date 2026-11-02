@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Button,
   SideSheet,
@@ -12,20 +12,37 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconSetting, IconVolume2 } from '@douyinfe/semi-icons';
+import {
+  IconAlertCircle,
+  IconCrossCircleStroked,
+  IconComment,
+  IconPlayCircle,
+  IconSetting,
+  IconShoppingBag,
+  IconTickCircle,
+  IconVolume2,
+} from '@douyinfe/semi-icons';
 import { apiGet } from '../api';
 import { useI18n } from '../i18n';
 import {
   VOICE_TYPES,
-  activateVoice,
   isVoiceSupported,
   loadVoiceSettings,
   saveVoiceSettings,
+  speak,
   type VoiceMsgType,
   type VoiceSettings,
 } from '../voice';
 
 const { Text } = Typography;
+
+const VOICE_ROW_META: Record<VoiceMsgType, { icon: ReactNode; color: string }> = {
+  newOrder: { icon: <IconShoppingBag />, color: '#14b8a6' },
+  paidOrder: { icon: <IconTickCircle />, color: '#1456f0' },
+  aftersale: { icon: <IconAlertCircle />, color: '#f5222d' },
+  cancelOrder: { icon: <IconCrossCircleStroked />, color: '#fa8c16' },
+  customerMsg: { icon: <IconComment />, color: '#06b6d4' },
+};
 
 interface BroadcastRecord {
   msgId: number;
@@ -108,20 +125,14 @@ export default function VoiceBroadcast() {
   };
 
   useEffect(() => {
+    const handler = () => setSettingsOpen(true);
+    window.addEventListener('admin-voice-open-settings', handler);
+    return () => window.removeEventListener('admin-voice-open-settings', handler);
+  }, []);
+
+  useEffect(() => {
     if (drawerOpen) void loadRecords(1, true);
   }, [drawerOpen, activeType]);
-
-  const enableVoice = async () => {
-    if (!isVoiceSupported()) {
-      Toast.warning(t('当前浏览器不支持语音播报'));
-      return;
-    }
-    const ok = await activateVoice();
-    if (ok) {
-      updateSettings({ activated: true });
-      Toast.success(t('语音播报已开启'));
-    }
-  };
 
   return (
     <>
@@ -190,36 +201,55 @@ export default function VoiceBroadcast() {
         title={t('语音播报设置')}
         visible={settingsOpen}
         onCancel={() => setSettingsOpen(false)}
-        width={480}
+        width={440}
         placement="right"
         footer={null}
+        bodyStyle={{ padding: '8px 20px 20px' }}
       >
-        {!isVoiceSupported() && (
-          <div className="voice-tip">{t('当前浏览器不支持语音播报，请使用 Chrome / Edge 并允许声音播放')}</div>
-        )}
         {!settings.activated && (
-          <div className="voice-tip">
-            <span>{t('尚未激活浏览器语音权限，播报暂不会发声')}</span>
-            <Button size="small" theme="solid" type="primary" onClick={() => void enableVoice()}>
-              {t('立即开启')}
-            </Button>
+          <div className="voice-activate-tip">
+            {t('尚未激活浏览器语音权限，播报暂不会发声；您可先在此调整各类消息的播报开关，点击顶部「立即开启」后将按设置生效。')}
           </div>
         )}
         <div className="voice-setting-list">
           {VOICE_TYPES.map((item) => (
             <div className="voice-setting-row" key={item.type}>
-              <span>{t('{label}语音播报', { label: item.label })}</span>
+              <div className="voice-setting-left">
+                <span className="voice-setting-icon" style={{ background: VOICE_ROW_META[item.type].color }}>
+                  {VOICE_ROW_META[item.type].icon}
+                </span>
+                <span>{t('{label}语音播报', { label: item.label })}</span>
+                <button
+                  type="button"
+                  className="voice-preview-btn"
+                  title={t('试听：{label}语音播报', { label: item.label })}
+                  onClick={() => speak(item.text)}
+                >
+                  <IconPlayCircle />
+                </button>
+              </div>
               <Switch
                 checked={settings[item.type]}
                 onChange={(checked) => updateSettings({ [item.type]: checked } as Partial<VoiceSettings>)}
               />
             </div>
           ))}
-          <div className="voice-setting-row">
-            <span>{t('播报时弹出消息通知')}</span>
-            <Switch checked={settings.popupEnabled} onChange={(checked) => updateSettings({ popupEnabled: checked })} />
-          </div>
         </div>
+        <div className="voice-divider" />
+        <div className="voice-setting-row">
+          <div className="voice-setting-left">
+            <span>{t('弹窗显示')}</span>
+          </div>
+          <Switch checked={settings.popupEnabled} onChange={(checked) => updateSettings({ popupEnabled: checked })} />
+        </div>
+        <div className="voice-popup-note">
+          {t('开启后，语音播报同时在右上角弹出消息通知，点击可查看对应记录详情')}
+        </div>
+        {!isVoiceSupported() && (
+          <div className="voice-footer-note">
+            {t('当前浏览器不支持语音合成，开关可保存但不会发声。建议使用最新版 Chrome / Edge。')}
+          </div>
+        )}
       </SideSheet>
     </>
   );

@@ -4483,3 +4483,123 @@ body {
     max-width: 28vw;
   }
 }
+
+/* 语音播报设置抽屉：对齐跨境版 VoiceBroadcastPanel */
+.voice-activate-tip {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  background: #fff8e6;
+  color: #7a5b00;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 20px;
+}
+.voice-setting-list {
+  display: flex;
+  flex-direction: column;
+}
+.voice-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 13px;
+  color: #1f2329;
+}
+.voice-setting-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.voice-setting-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.voice-preview-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  background: transparent;
+  color: #98a2b3;
+  cursor: pointer;
+  padding: 0;
+}
+.voice-preview-btn:hover {
+  color: #1456f0;
+}
+.voice-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: #f0f0f0;
+}
+.voice-popup-note,
+.voice-footer-note {
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 20px;
+}
+.voice-footer-note {
+  margin-top: 16px;
+}
+
+/* 语音播报首次引导条（对齐跨境版 VoiceBroadcastTip） */
+.voice-broadcast-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  background: #fffbe6;
+  border-bottom: 1px solid #ffe7a3;
+  font-size: 13px;
+  line-height: 36px;
+  color: #ad7a00;
+}
+.voice-tip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #faad14;
+  flex-shrink: 0;
+}
+.voice-tip-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.voice-tip-btn {
+  height: 26px;
+  padding: 0 14px;
+  margin-left: 8px;
+  font-size: 12px;
+  line-height: 24px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+}
+.voice-tip-btn-primary {
+  background: #1456f0;
+  color: #fff;
+  border-color: #1456f0;
+}
+.voice-tip-btn-plain {
+  color: #ad7a00;
+  border-color: #ffd591;
+}

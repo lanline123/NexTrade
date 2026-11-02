@@ -6,6 +6,7 @@ import MenuSearch from '../components/MenuSearch';
 import AdminMessageCenter from '../components/AdminMessageCenter';
 import LicensedBadge from '../components/LicensedBadge';
 import VoiceBroadcast from '../components/VoiceBroadcast';
+import VoiceBroadcastTip from '../components/VoiceBroadcastTip';
 import { useI18n } from '../i18n';
 import { fetchUnreadSummary, startAdminMsgStream } from '../sse';
 import { dispatchVoiceDeltas, loadVoiceSettings } from '../voice';
@@ -397,6 +398,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
         </header>
 
         <main className="page-content">
+          <VoiceBroadcastTip />
           <div className="page-inner">
             <div className="page-heading">
               <div>
