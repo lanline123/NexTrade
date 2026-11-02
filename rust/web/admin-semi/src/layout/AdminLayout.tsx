@@ -5,8 +5,10 @@ import { navGroups, pageTitles } from '../config/adminMenu';
 import MenuSearch from '../components/MenuSearch';
 import AdminMessageCenter from '../components/AdminMessageCenter';
 import LicensedBadge from '../components/LicensedBadge';
+import VoiceBroadcast from '../components/VoiceBroadcast';
 import { useI18n } from '../i18n';
 import { fetchUnreadSummary, startAdminMsgStream } from '../sse';
+import { dispatchVoiceDeltas, loadVoiceSettings } from '../voice';
 
 export type PageKey = string;
 
@@ -58,6 +60,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
   const [collapsed, setCollapsed] = useState(false);
   const [msgCount, setMsgCount] = useState(0);
   const [messageVisible, setMessageVisible] = useState(false);
+  const prevVoiceCount = useRef<Record<string, number> | null>(null);
   const [orderedKeys, setOrderedKeys] = useState<string[]>(loadNavOrder);
   const orderedRef = useRef(orderedKeys);
   const pressTimer = useRef<number | null>(null);
@@ -75,7 +78,11 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
     refresh();
     const pollTimer = window.setInterval(refresh, 30000);
     const stop = startAdminMsgStream({
-      onCount: (count) => setMsgCount(Number(count.unreadMsgCount) || 0),
+      onCount: (count) => {
+        setMsgCount(Number(count.unreadMsgCount) || 0);
+        dispatchVoiceDeltas(prevVoiceCount.current, count as unknown as Record<string, number>, loadVoiceSettings());
+        prevVoiceCount.current = count as unknown as Record<string, number>;
+      },
     });
     return () => {
       alive = false;
@@ -327,6 +334,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                 onClick={() => setMessageVisible(true)}
               />
             </Badge>
+            <VoiceBroadcast />
             <Button
               theme="borderless"
               className="topbar-text-btn"
