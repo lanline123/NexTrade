@@ -4234,3 +4234,131 @@ body {
 }
 .login-card .semi-form-field-label { display: none !important; }
 .submenu-section-arrow { display: none !important; }
+
+/* 跨境版顶部栏：功能搜索 / 消息中心 / 授权信息 */
+.topbar-menu-search {
+  position: relative;
+  width: 360px;
+  max-width: 38vw;
+}
+.topbar-menu-search .semi-input-wrapper {
+  border-radius: 6px;
+  background: #fff;
+}
+.topbar-menu-search__panel {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  background: #fff;
+  border: 1px solid #e5e6eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+.topbar-menu-search__title {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #98a2b3;
+  background: #fafbfc;
+}
+.topbar-menu-search__state {
+  padding: 20px;
+  text-align: center;
+}
+.topbar-menu-search__item {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  color: #1f2329;
+  cursor: pointer;
+}
+.topbar-menu-search__item:hover {
+  background: #f2f5ff;
+  color: #1456f0;
+}
+.topbar-text-btn {
+  color: #4e5969 !important;
+  font-size: 13px !important;
+}
+.admin-msg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid #eef0f3;
+}
+.admin-msg-list {
+  max-height: 62vh;
+  overflow-y: auto;
+}
+.admin-msg-state {
+  padding: 60px;
+  text-align: center;
+}
+.admin-msg-item {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  border: 0;
+  border-bottom: 1px solid #f2f3f5;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.admin-msg-item:hover {
+  background: #f7f9ff;
+}
+.admin-msg-item.is-readed {
+  opacity: 0.68;
+}
+.admin-msg-item__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-msg-item__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2329;
+}
+.admin-msg-item__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #98a2b3;
+}
+.admin-msg-item__content {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #646a73;
+}
+.admin-msg-more {
+  padding: 12px;
+  text-align: center;
+}
+.licensed-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+}
+.licensed-info > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+.licensed-code {
+  word-break: break-all;
+  text-align: right;
+}

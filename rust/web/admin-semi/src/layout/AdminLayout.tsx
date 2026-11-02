@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Avatar, Badge, Button, Dropdown, Input, Tooltip } from '@douyinfe/semi-ui';
 import { IconBell, IconExit, IconHelpCircle, IconMenu, IconSearch } from '@douyinfe/semi-icons';
 import { navGroups, pageTitles } from '../config/adminMenu';
+import MenuSearch from '../components/MenuSearch';
+import AdminMessageCenter from '../components/AdminMessageCenter';
+import LicensedBadge from '../components/LicensedBadge';
 import { useI18n } from '../i18n';
 import { fetchUnreadSummary, startAdminMsgStream } from '../sse';
 
@@ -54,6 +57,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
   const { locale, setLocale, t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
   const [msgCount, setMsgCount] = useState(0);
+  const [messageVisible, setMessageVisible] = useState(false);
   const [orderedKeys, setOrderedKeys] = useState<string[]>(loadNavOrder);
   const orderedRef = useRef(orderedKeys);
   const pressTimer = useRef<number | null>(null);
@@ -100,6 +104,27 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
     (item) => item.key === page || item.children?.some((child) => child.key === page),
   );
   const hasThirdLevel = Boolean(activeParent?.children?.length);
+
+  const mallUrl = import.meta.env.VITE_MALL_URL || (import.meta.env.DEV ? 'http://127.0.0.1:3004/' : '/');
+  const adminType = (() => {
+    try {
+      return localStorage.getItem('adminType') || '';
+    } catch {
+      return '';
+    }
+  })();
+  const showSwitchOrg = Boolean(adminType && adminType !== 'admin');
+  const switchOrganization = () => {
+    localStorage.removeItem('adminType');
+    localStorage.removeItem('shopId');
+    localStorage.removeItem('shopTitle');
+    window.location.reload();
+  };
+  const clearCache = () => {
+    localStorage.removeItem('admin_nav_order_v1');
+    localStorage.removeItem('lastOpenTime');
+    window.location.reload();
+  };
 
   return (
     <div className={`app-shell layout-${layout} ${collapsed ? 'is-collapsed' : ''}`}>
@@ -288,59 +313,27 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
               className="collapse-btn"
               onClick={() => setCollapsed((value) => !value)}
             />
-            <div className="breadcrumb">
-              <button
-                type="button"
-                className="breadcrumb-link"
-                onClick={() => onPageChange('dashboard')}
-              >
-                {t('首页')}
-              </button>
-              <span className="breadcrumb-sep">/</span>
-              <button
-                type="button"
-                className={`breadcrumb-link ${!hasThirdLevel && !activeParent ? 'breadcrumb-current' : ''}`}
-                onClick={() => {
-                  const firstLeaf = activeGroup.items.find((item) => !item.children?.length) || activeGroup.items[0];
-                  if (firstLeaf) {
-                    onPageChange((firstLeaf.children?.[0]?.key || firstLeaf.key) as PageKey);
-                  }
-                }}
-              >
-                {t(activeGroup.label)}
-              </button>
-              {hasThirdLevel && activeParent && (
-                <>
-                  <span className="breadcrumb-sep">/</span>
-                  <button
-                    type="button"
-                    className="breadcrumb-link"
-                    onClick={() => {
-                      const target = activeParent.children?.[0]?.key || activeParent.key;
-                      onPageChange(target as PageKey);
-                    }}
-                  >
-                    {t(activeParent.label)}
-                  </button>
-                </>
-              )}
-              <span className="breadcrumb-sep">/</span>
-              <span className="breadcrumb-current">{t(pageTitles[page] || page)}</span>
-            </div>
+            <MenuSearch onNavigate={(next) => onPageChange(next as PageKey)} />
           </div>
 
           <div className="topbar-right">
-            <Input
-              className="topbar-search"
-              prefix={<IconSearch />}
-              placeholder={t('搜索商品、订单、会员')}
-              onEnterPress={(value) => {
-                if (String(value || '').trim()) onPageChange('products');
-              }}
-            />
+            <LicensedBadge />
             <Badge count={msgCount} overflowCount={99}>
-              <Button icon={<IconBell />} theme="borderless" className="icon-btn" title={t('消息')} />
+              <Button
+                icon={<IconBell />}
+                theme="borderless"
+                className="icon-btn"
+                title={t('消息')}
+                onClick={() => setMessageVisible(true)}
+              />
             </Badge>
+            <Button
+              theme="borderless"
+              className="topbar-text-btn"
+              onClick={() => window.open(mallUrl, '_blank', 'noopener')}
+            >
+              {t('查看商城')}
+            </Button>
             <Dropdown
               position="bottomRight"
               trigger="click"
@@ -355,16 +348,28 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                 {locale === 'en' ? 'EN' : '中'}
               </Button>
             </Dropdown>
-            <div className="account">
-              <Avatar color="blue" size="small">
-                管
-              </Avatar>
-              <div className="account-text">
-                <span className="account-name">admin</span>
-                <span className="account-role">{t('平台管理员')}</span>
+            <Dropdown
+              position="bottomRight"
+              trigger="click"
+              render={
+                <Dropdown.Menu>
+                  {showSwitchOrg && (
+                    <Dropdown.Item onClick={switchOrganization}>{t('切换组织')}</Dropdown.Item>
+                  )}
+                  <Dropdown.Item onClick={() => onPageChange('accountManage')}>{t('管理账号')}</Dropdown.Item>
+                  <Dropdown.Item onClick={clearCache}>{t('清除缓存')}</Dropdown.Item>
+                  <Dropdown.Item onClick={onLogout}>{t('退出登录')}</Dropdown.Item>
+                </Dropdown.Menu>
+              }
+            >
+              <div className="account">
+                <Avatar color="blue" size="small">管</Avatar>
+                <div className="account-text">
+                  <span className="account-name">admin</span>
+                  <span className="account-role">{t('平台管理员')}</span>
+                </div>
               </div>
-            </div>
-            <Button icon={<IconExit />} theme="borderless" className="icon-btn" onClick={onLogout} />
+            </Dropdown>
           </div>
         </header>
 
@@ -378,6 +383,15 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
             {children}
           </div>
         </main>
+        <AdminMessageCenter
+          visible={messageVisible}
+          onClose={() => setMessageVisible(false)}
+          onRead={() => {
+            void fetchUnreadSummary().then((count) => {
+              if (count !== null) setMsgCount(count);
+            });
+          }}
+        />
       </div>
     </div>
   );
