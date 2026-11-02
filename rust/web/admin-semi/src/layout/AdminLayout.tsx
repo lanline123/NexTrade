@@ -378,6 +378,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                   {showSwitchOrg && (
                     <Dropdown.Item onClick={switchOrganization}>{t('切换组织')}</Dropdown.Item>
                   )}
+                  <Dropdown.Item onClick={() => window.open(mallUrl, '_blank', 'noopener')}>{t('查看商城')}</Dropdown.Item>
                   <Dropdown.Item onClick={() => onPageChange('accountManage')}>{t('管理账号')}</Dropdown.Item>
                   <Dropdown.Item onClick={clearCache}>{t('清除缓存')}</Dropdown.Item>
                   <Dropdown.Item onClick={onLogout}>{t('退出登录')}</Dropdown.Item>

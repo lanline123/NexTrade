@@ -4461,3 +4461,25 @@ body {
   gap: 8px;
   padding: 4px 0 10px;
 }
+
+@media (max-width: 1280px) {
+  .topbar-text-btn {
+    display: none !important;
+  }
+  .topbar-menu-search {
+    width: 280px;
+    max-width: 32vw;
+  }
+  .admin-msg-order-count {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .account-text {
+    display: none;
+  }
+  .topbar-menu-search {
+    width: 220px;
+    max-width: 28vw;
+  }
+}

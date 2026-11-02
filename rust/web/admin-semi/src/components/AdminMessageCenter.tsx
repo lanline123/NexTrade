@@ -118,7 +118,8 @@ export default function AdminMessageCenter({ visible, onClose, onRead }: AdminMe
           onChange={(key) => {
             const nextCat = Number(key);
             setCatId(nextCat);
-            setMsgType(0);
+            const firstChild = types.find((cat) => cat.catId === nextCat)?.child?.[0]?.msgType;
+            setMsgType(nextCat > 0 && firstChild ? firstChild : 0);
           }}
         >
           <TabPane tab={t('全部消息')} itemKey="-1" />
