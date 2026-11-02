@@ -59,6 +59,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
   const { locale, setLocale, t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
   const [msgCount, setMsgCount] = useState(0);
+  const [newOrderCount, setNewOrderCount] = useState(0);
   const [messageVisible, setMessageVisible] = useState(false);
   const prevVoiceCount = useRef<Record<string, number> | null>(null);
   const [orderedKeys, setOrderedKeys] = useState<string[]>(loadNavOrder);
@@ -80,6 +81,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
     const stop = startAdminMsgStream({
       onCount: (count) => {
         setMsgCount(Number(count.unreadMsgCount) || 0);
+        setNewOrderCount(Number(count.newOrderMsgCount) || 0);
         dispatchVoiceDeltas(prevVoiceCount.current, count as unknown as Record<string, number>, loadVoiceSettings());
         prevVoiceCount.current = count as unknown as Record<string, number>;
       },
@@ -332,7 +334,14 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                 className="icon-btn"
                 title={t('消息')}
                 onClick={() => setMessageVisible(true)}
-              />
+              >
+                <span className="topbar-text-btn">{t('消息')}</span>
+                {newOrderCount > 0 && (
+                  <span className="admin-msg-order-count">
+                    {t('新订单')}{newOrderCount}
+                  </span>
+                )}
+              </Button>
             </Badge>
             <VoiceBroadcast />
             <Button

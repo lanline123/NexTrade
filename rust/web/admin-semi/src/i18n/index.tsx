@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import i18n from 'i18next';
 import { I18nextProvider, initReactI18next, useTranslation } from 'react-i18next';
 import zh from './locales/zh';
+import enExtra from './locales/en-extra';
 
 export type Locale = 'zh' | 'en';
 
@@ -21,7 +22,7 @@ async function loadEnglish(): Promise<void> {
   if (englishLoaded) return;
   if (!englishLoading) {
     englishLoading = import('./locales/en').then((module) => {
-      i18n.addResourceBundle('en', 'translation', module.default as Record<string, string>, true, true);
+      i18n.addResourceBundle('en', 'translation', { ...(module.default as Record<string, string>), ...enExtra }, true, true);
       englishLoaded = true;
     });
   }
