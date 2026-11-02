@@ -3,7 +3,6 @@ import {
   Button,
   SideSheet,
   Empty,
-  Modal,
   Notification,
   Spin,
   Switch,
@@ -187,12 +186,13 @@ export default function VoiceBroadcast() {
         )}
       </SideSheet>
 
-      <Modal
+      <SideSheet
         title={t('语音播报设置')}
         visible={settingsOpen}
         onCancel={() => setSettingsOpen(false)}
+        width={480}
+        placement="right"
         footer={null}
-        width={520}
       >
         {!isVoiceSupported() && (
           <div className="voice-tip">{t('当前浏览器不支持语音播报，请使用 Chrome / Edge 并允许声音播放')}</div>
@@ -220,7 +220,7 @@ export default function VoiceBroadcast() {
             <Switch checked={settings.popupEnabled} onChange={(checked) => updateSettings({ popupEnabled: checked })} />
           </div>
         </div>
-      </Modal>
+      </SideSheet>
     </>
   );
 }
