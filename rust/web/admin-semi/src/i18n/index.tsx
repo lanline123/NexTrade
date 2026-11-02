@@ -36,7 +36,7 @@ i18n.use(initReactI18next).init({
   initAsync: false,
   keySeparator: false,
   nsSeparator: false,
-  interpolation: { escapeValue: false },
+  interpolation: { escapeValue: false, prefix: '{', suffix: '}' },
   returnNull: false,
   react: { useSuspense: false },
 });

@@ -87,6 +87,7 @@ export function dispatchVoiceDeltas(
   prev: Record<string, number> | null,
   next: Record<string, number> | null,
   settings: VoiceSettings,
+  onNew?: (type: VoiceMsgType) => void,
 ): void {
   if (!prev || !next || !settings.activated) return;
   if (!isVoiceSupported()) return;
@@ -102,6 +103,9 @@ export function dispatchVoiceDeltas(
     const field = fieldOf[item.type];
     const nextVal = Number(next[field] ?? 0);
     const prevVal = Number(prev[field] ?? 0);
-    if (nextVal > prevVal) speak(item.text);
+    if (nextVal > prevVal) {
+      speak(item.text);
+      onNew?.(item.type);
+    }
   });
 }

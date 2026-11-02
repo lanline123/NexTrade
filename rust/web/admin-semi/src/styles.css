@@ -4450,3 +4450,14 @@ body {
   color: #ff7d00;
   white-space: nowrap;
 }
+
+.admin-msg-types {
+  padding: 0 20px;
+  border-bottom: 1px solid #eef0f3;
+}
+.admin-msg-subtypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 10px;
+}

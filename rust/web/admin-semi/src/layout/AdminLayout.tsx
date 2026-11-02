@@ -82,7 +82,12 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
       onCount: (count) => {
         setMsgCount(Number(count.unreadMsgCount) || 0);
         setNewOrderCount(Number(count.newOrderMsgCount) || 0);
-        dispatchVoiceDeltas(prevVoiceCount.current, count as unknown as Record<string, number>, loadVoiceSettings());
+        const voiceSettings = loadVoiceSettings();
+        dispatchVoiceDeltas(prevVoiceCount.current, count as unknown as Record<string, number>, voiceSettings, (type) => {
+          if (voiceSettings.popupEnabled) {
+            window.dispatchEvent(new CustomEvent('admin-voice-popup', { detail: type }));
+          }
+        });
         prevVoiceCount.current = count as unknown as Record<string, number>;
       },
     });

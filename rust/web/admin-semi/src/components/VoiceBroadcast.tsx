@@ -4,6 +4,7 @@ import {
   SideSheet,
   Empty,
   Modal,
+  Notification,
   Spin,
   Switch,
   Tabs,
@@ -52,6 +53,25 @@ export default function VoiceBroadcast() {
   const enabledTypes = VOICE_TYPES.filter((item) => settings[item.type]);
   const tabTypes = enabledTypes.length ? enabledTypes : VOICE_TYPES;
   const activeMeta = VOICE_TYPES.find((item) => item.type === activeType) || VOICE_TYPES[0];
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const type = (event as CustomEvent<VoiceMsgType>).detail;
+      const meta = VOICE_TYPES.find((item) => item.type === type);
+      if (!meta) return;
+      Notification.info({
+        title: t('语音播报'),
+        content: t('{label}有新消息', { label: meta.label }),
+        duration: 5,
+        onClick: () => {
+          setActiveType(type);
+          setDrawerOpen(true);
+        },
+      });
+    };
+    window.addEventListener('admin-voice-popup', handler as EventListener);
+    return () => window.removeEventListener('admin-voice-popup', handler as EventListener);
+  }, [t]);
 
   const updateSettings = (patch: Partial<VoiceSettings>) => {
     setSettings((current) => {

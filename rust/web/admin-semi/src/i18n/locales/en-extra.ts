@@ -38,6 +38,10 @@ const en: Record<string, string> = {
   订单金额: 'Order amount',
   '开启后，新订单、售后等重要消息将自动语音提醒':
     'When enabled, new orders and after-sales messages are announced by voice.',
+  全部消息: 'All messages',
+  全部类型: 'All types',
+  语音播报: 'Voice broadcast',
+  '{label}有新消息': 'New {label} message',
   新订单语音播报: 'New order voice alert',
   已付款订单语音播报: 'Paid order voice alert',
   售后申请语音播报: 'After-sales voice alert',
