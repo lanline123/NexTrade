@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Avatar, Badge, Button, Input, Tooltip } from '@douyinfe/semi-ui';
+import { Avatar, Badge, Button, Dropdown, Input, Tooltip } from '@douyinfe/semi-ui';
 import { IconBell, IconExit, IconHelpCircle, IconMenu, IconSearch } from '@douyinfe/semi-icons';
 import { navGroups, pageTitles } from '../config/adminMenu';
+import { useI18n } from '../i18n';
+import { fetchUnreadSummary, startAdminMsgStream } from '../sse';
 
 export type PageKey = string;
 
@@ -49,13 +51,34 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ page, layout = 'default', logo, onPageChange, onLogout, children }: AdminLayoutProps) {
+  const { locale, setLocale, t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
+  const [msgCount, setMsgCount] = useState(0);
   const [orderedKeys, setOrderedKeys] = useState<string[]>(loadNavOrder);
   const orderedRef = useRef(orderedKeys);
   const pressTimer = useRef<number | null>(null);
   const dragKeyRef = useRef<string | null>(null);
   const suppressClickRef = useRef(false);
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => {
+      void fetchUnreadSummary().then((count) => {
+        if (alive && count !== null) setMsgCount(count);
+      });
+    };
+    refresh();
+    const pollTimer = window.setInterval(refresh, 30000);
+    const stop = startAdminMsgStream({
+      onCount: (count) => setMsgCount(Number(count.unreadMsgCount) || 0),
+    });
+    return () => {
+      alive = false;
+      window.clearInterval(pollTimer);
+      stop();
+    };
+  }, []);
 
   useEffect(() => {
     orderedRef.current = orderedKeys;
@@ -99,7 +122,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
           {!collapsed && !logo && (
             <div className="brand-text">
               <div className="brand-name">万物新生</div>
-              <div className="brand-sub">运营管理后台</div>
+              <div className="brand-sub">{t('运营管理后台')}</div>
             </div>
           )}
         </div>
@@ -109,7 +132,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
             {groups.map((group) => {
               const active = activeGroup.key === group.key;
               return (
-                <Tooltip content={group.label} position="right" disabled={!collapsed} key={group.key}>
+                <Tooltip content={t(group.label)} position="right" disabled={!collapsed} key={group.key}>
                   <button
                     type="button"
                     className={`rail-item ${active ? 'is-active' : ''} ${
@@ -169,7 +192,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                     }}
                   >
                     <span className="rail-icon">{group.icon}</span>
-                    {!collapsed && <span className="rail-label">{group.label}</span>}
+                    {!collapsed && <span className="rail-label">{t(group.label)}</span>}
                   </button>
                 </Tooltip>
               );
@@ -178,20 +201,20 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
 
           {!collapsed && (
             <div className="submenu">
-              <div className="submenu-title">{activeGroup.label}</div>
+              <div className="submenu-title">{t(activeGroup.label)}</div>
               <div className="submenu-list">
                 {activeGroup.items.map((item) =>
                   item.children?.length ? (
                     <div className="submenu-section" key={item.key}>
                       <div
                         className="submenu-section-title is-clickable"
-                        title={`点击进入 ${item.label}`}
+                        title={`${t('点击进入')} ${t(item.label)}`}
                         onClick={() => {
                           const target = item.children?.[0]?.key || item.key;
                           onPageChange(target);
                         }}
                       >
-                        <span>{item.label}</span>
+                        <span>{t(item.label)}</span>
                         <span className="submenu-section-arrow">›</span>
                       </div>
                       {item.children.map((child) => (
@@ -216,7 +239,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                       key={item.key}
                     >
                       <span className="submenu-dot" />
-                      <span>{item.label}</span>
+                      <span>{t(item.label)}</span>
                     </button>
                   ),
                 )}
@@ -271,7 +294,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                 className="breadcrumb-link"
                 onClick={() => onPageChange('dashboard')}
               >
-                首页
+                {t('首页')}
               </button>
               <span className="breadcrumb-sep">/</span>
               <button
@@ -284,7 +307,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                   }
                 }}
               >
-                {activeGroup.label}
+                {t(activeGroup.label)}
               </button>
               {hasThirdLevel && activeParent && (
                 <>
@@ -297,12 +320,12 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                       onPageChange(target as PageKey);
                     }}
                   >
-                    {activeParent.label}
+                    {t(activeParent.label)}
                   </button>
                 </>
               )}
               <span className="breadcrumb-sep">/</span>
-              <span className="breadcrumb-current">{pageTitles[page] || page}</span>
+              <span className="breadcrumb-current">{t(pageTitles[page] || page)}</span>
             </div>
           </div>
 
@@ -310,21 +333,35 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
             <Input
               className="topbar-search"
               prefix={<IconSearch />}
-              placeholder="搜索商品、订单、会员"
+              placeholder={t('搜索商品、订单、会员')}
               onEnterPress={(value) => {
                 if (String(value || '').trim()) onPageChange('products');
               }}
             />
-            <Badge count={3} dot>
-              <Button icon={<IconBell />} theme="borderless" className="icon-btn" />
+            <Badge count={msgCount} overflowCount={99}>
+              <Button icon={<IconBell />} theme="borderless" className="icon-btn" title={t('消息')} />
             </Badge>
+            <Dropdown
+              position="bottomRight"
+              trigger="click"
+              render={
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => void setLocale('zh')}>中文</Dropdown.Item>
+                  <Dropdown.Item onClick={() => void setLocale('en')}>English</Dropdown.Item>
+                </Dropdown.Menu>
+              }
+            >
+              <Button theme="borderless" className="icon-btn" title={t('切换语言')}>
+                {locale === 'en' ? 'EN' : '中'}
+              </Button>
+            </Dropdown>
             <div className="account">
               <Avatar color="blue" size="small">
                 管
               </Avatar>
               <div className="account-text">
                 <span className="account-name">admin</span>
-                <span className="account-role">平台管理员</span>
+                <span className="account-role">{t('平台管理员')}</span>
               </div>
             </div>
             <Button icon={<IconExit />} theme="borderless" className="icon-btn" onClick={onLogout} />
@@ -335,7 +372,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
           <div className="page-inner">
             <div className="page-heading">
               <div>
-                <h1 className="page-title">{pageTitles[page] || page}</h1>
+                <h1 className="page-title">{t(pageTitles[page] || page)}</h1>
               </div>
             </div>
             {children}
