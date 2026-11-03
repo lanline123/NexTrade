@@ -14,6 +14,7 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
+import { IconFile, IconHome, IconIdCard, IconSetting } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import { configLabels } from '../config/configLabels';
 import { useI18n } from '../i18n';
@@ -684,44 +685,48 @@ export default function AutoConfigPage({
   };
 
   if (modern) {
+    const sectionIcons: Record<string, ReactNode> = {
+      商城信息: <IconHome />,
+      备案信息: <IconFile />,
+      经营许可证: <IconIdCard />,
+      商城状态: <IconSetting />,
+    };
+    const sectionDescriptions: Record<string, string> = {
+      商城信息: '商城 Logo、名称、版权与技术支持等基础展示信息。',
+      备案信息: 'ICP 备案号、公安备案号及对应跳转链接。',
+      经营许可证: '营业执照展示与经营许可证相关开关。',
+      商城状态: '注册、下单与营业执照状态控制。',
+    };
     return (
-      <div className="settings-redesign">
-        <aside className="settings-redesign__nav">
-          <div className="settings-redesign__nav-head">
-            <span className="settings-redesign__nav-icon">⚙</span>
-            <div>
-              <strong>{t(title)}</strong>
-              <small>{t('管理商城标识、备案信息与全局展示状态。')}</small>
-            </div>
+      <div className="base-settings">
+        <header className="base-settings__header">
+          <div className="base-settings__heading">
+            <span className="base-settings__eyebrow">{t('基础配置')}</span>
+            <p>{t('管理商城基础信息、备案信息与商城状态。')}</p>
           </div>
-          <div className="settings-redesign__nav-list">
-            {grouped.map((group, index) => (
-              <button
-                type="button"
-                key={group.title || index}
-                className={`settings-redesign__nav-item${activeSection === index ? ' is-active' : ''}`}
-                onClick={() => {
-                  setActiveSection(index);
-                  document.getElementById(`settings-section-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-              >
-                <span className="settings-redesign__nav-index">{String(index + 1).padStart(2, '0')}</span>
-                <span className="settings-redesign__nav-label">{t(group.title || '其他')}</span>
-                <span className="settings-redesign__nav-count">{group.items.length}</span>
-              </button>
-            ))}
-          </div>
-          <Button theme="solid" type="primary" loading={saving || loading} onClick={save} className="settings-redesign__save">
-            {t('保存')}
+          <Button theme="solid" type="primary" loading={saving || loading} onClick={save} className="base-settings__save">
+            {t('保存更改')}
           </Button>
-        </aside>
-        <main className="settings-redesign__main">
-          <div className="settings-redesign__summary">
-            <span>{t('共 {count} 项配置', { count: visibleEntries.length })}</span>
-            <span>{t('修改后点击保存生效')}</span>
-          </div>
-          {grouped.map((group, index) => renderSection(group, index))}
-        </main>
+        </header>
+        <div className="base-settings__sections">
+          {grouped.map((group, index) => (
+            <section className="settings-panel" key={group.title || index}>
+              <header className="settings-panel__head">
+                <span className="settings-panel__icon">{sectionIcons[group.title] || <IconSetting />}</span>
+                <div className="settings-panel__heading">
+                  <h2>{t(group.title || '其他')}</h2>
+                  {sectionDescriptions[group.title] && (
+                    <p>{t(sectionDescriptions[group.title])}</p>
+                  )}
+                </div>
+                <span className="settings-panel__count">{t('{count} 项', { count: group.items.length })}</span>
+              </header>
+              <div className="settings-panel__body">
+                {renderSection(group, index)}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     );
   }

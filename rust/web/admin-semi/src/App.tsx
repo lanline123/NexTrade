@@ -380,6 +380,7 @@ const configPages: Record<string, ConfigPageDef> = {
     title: '基础信息',
     getApi: '/setting/config/basicSettings',
     saveApi: '/setting/config/saveBasic',
+    modern: true,
     labels: { shopCompany: '版权信息', poweredBy: '技术支持标识' },
     hiddenFields: ['shopCompanyTxt', 'defaultCopyright', 'poweredByLogo', 'defaultTechSupport'],
     renderers: {

@@ -6192,3 +6192,177 @@ body {
   padding-right: 10px;
   text-align: right;
 }
+
+/* ===== 基础信息：现代设置页设计语言 ===== */
+.base-settings {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.base-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 2px 4px;
+}
+.base-settings__heading {
+  min-width: 0;
+}
+.base-settings__eyebrow {
+  display: block;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+.base-settings__heading p {
+  margin: 2px 0 0;
+  color: #7c8a88;
+  font-size: 12px;
+  line-height: 18px;
+}
+.base-settings__save {
+  min-width: 108px;
+  border-radius: 9px;
+}
+.base-settings__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.settings-panel {
+  border: 1px solid #e9edf2;
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.04);
+}
+.settings-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f1f4f7;
+  background: linear-gradient(180deg, #fbfcfd, #fff);
+}
+.settings-panel__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: #edf8f5;
+  color: #0f766e;
+  font-size: 16px;
+}
+.settings-panel__heading {
+  flex: 1;
+  min-width: 0;
+}
+.settings-panel__heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 14.5px;
+  font-weight: 650;
+  line-height: 20px;
+}
+.settings-panel__heading p {
+  margin: 2px 0 0;
+  color: #98a2b3;
+  font-size: 11.5px;
+  line-height: 17px;
+}
+.settings-panel__count {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #98a2b3;
+  font-size: 10px;
+  line-height: 16px;
+}
+.settings-panel__body {
+  padding: 18px 20px 20px;
+}
+.settings-panel .auto-config-section {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.settings-panel .auto-config-section > h4 {
+  display: none;
+}
+.settings-panel .auto-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 26px;
+}
+.settings-panel .auto-config-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.settings-panel .auto-config-field.is-wide {
+  grid-column: 1 / -1;
+}
+.settings-panel .auto-config-field > label {
+  width: auto;
+  padding: 0;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: left;
+  word-break: break-word;
+}
+.settings-panel .auto-config-control {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+.settings-panel .auto-config-field .semi-input-wrapper,
+.settings-panel .auto-config-field .semi-input-number,
+.settings-panel .auto-config-field .semi-select {
+  border-radius: 8px;
+  background: #fcfcfd;
+}
+.settings-panel .auto-config-field .semi-input-wrapper-focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.08);
+}
+.settings-panel .auto-config-field-help {
+  margin: 3px 0 0;
+  padding-left: 16px;
+  color: #98a2b3;
+  font-size: 11.5px;
+  line-height: 17px;
+}
+.settings-panel .auto-config-subgroup {
+  grid-column: 1 / -1;
+  margin: 4px 0;
+}
+.settings-panel .image-uploader-list {
+  align-items: flex-start;
+}
+@media (max-width: 980px) {
+  .base-settings__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .settings-panel .auto-config-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

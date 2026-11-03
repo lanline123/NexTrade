@@ -11910,5 +11910,12 @@
   "自定义版权文案": "Custom copyright text",
   "自定义技术支持图片": "Custom tech support image",
   "商城基础信息": "Store basics",
-  "配置商城资料、备案信息与底部展示内容。": "Configure store profile, filing information, and footer content."
+  "配置商城资料、备案信息与底部展示内容。": "Configure store profile, filing information, and footer content.",
+  "管理商城基础信息、备案信息与商城状态。": "Manage store profile, filing information, and store status.",
+  "商城 Logo、名称、版权与技术支持等基础展示信息。": "Store logo, name, copyright, and tech support information.",
+  "ICP 备案号、公安备案号及对应跳转链接。": "ICP and public security filing numbers with their links.",
+  "营业执照展示与经营许可证相关开关。": "Business license display and permit switches.",
+  "注册、下单与营业执照状态控制。": "Registration, ordering, and license status controls.",
+  "保存更改": "Save changes",
+  "{count} 项": "{count} items"
 }
