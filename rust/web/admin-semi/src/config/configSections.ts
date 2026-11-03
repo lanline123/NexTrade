@@ -31,7 +31,7 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
       "title": "商城状态",
       "fields": [
         "shopRegClosed",
-        "closeShop"
+        "closeOrder"
       ]
     }
   ],

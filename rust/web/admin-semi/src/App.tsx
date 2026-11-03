@@ -26,7 +26,7 @@ import AccountManage from './pages/AccountManage';
 import TaxRates from './pages/TaxRates';
 import ShippingTypes from './pages/ShippingTypes';
 import ShippingSettingsPage from './pages/ShippingSettings';
-import AutoConfigPage, { CopyrightConfigField, TechSupportConfigField, type ConfigRendererContext, type ConfigFieldGroup, type ConfigFieldRule } from './pages/AutoConfigPage';
+import AutoConfigPage, { BusinessLicenseConfigField, CopyrightConfigField, TechSupportConfigField, type ConfigRendererContext, type ConfigFieldGroup, type ConfigFieldRule } from './pages/AutoConfigPage';
 import LogisticsSettings from './pages/LogisticsSettings';
 import PayLogs from './pages/PayLogs';
 import RefundLogs from './pages/RefundLogs';
@@ -380,11 +380,31 @@ const configPages: Record<string, ConfigPageDef> = {
     title: '基础信息',
     getApi: '/setting/config/basicSettings',
     saveApi: '/setting/config/saveBasic',
-    labels: { shopCompany: '版权信息', poweredBy: '技术支持标识' },
-    hiddenFields: ['shopCompanyTxt', 'defaultCopyright', 'poweredByLogo', 'defaultTechSupport'],
+    labels: {
+      shopCompany: '版权信息',
+      poweredBy: '技术支持标识',
+      shopLogo: '商城LOGO-黑底',
+      lightShopLogo: '商城LOGO-白底',
+      closeOrder: '关闭下单',
+    },
+    hiddenFields: [
+      'shopCompanyTxt',
+      'defaultCopyright',
+      'poweredByLogo',
+      'defaultTechSupport',
+      'businessLicense',
+      'businessLicenseType',
+      'ediLicense',
+    ],
+    controls: {
+      poweredByStatus: 'radio',
+      shopRegClosed: 'radio',
+      closeOrder: 'radio',
+    },
     renderers: {
       shopCompany: (context) => <CopyrightConfigField {...context} />,
       poweredBy: (context) => <TechSupportConfigField {...context} />,
+      businessLicenseEnabled: (context) => <BusinessLicenseConfigField {...context} />,
     },
   },
   baseProductManage: { title: '商品设置', getApi: '/setting/config/productSettings', saveApi: '/setting/config/saveProduct' },

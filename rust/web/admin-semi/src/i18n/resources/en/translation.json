@@ -11932,5 +11932,7 @@
   "售后审核、退货、自动确认与财务复核规则。": "After-sales review, returns, auto-confirmation, and finance review.",
   "平台端可取消已支付或已发货订单的规则。": "Platform rules for cancelling paid or shipped orders.",
   "店铺端取消已发货订单的规则。": "Store rules for cancelling shipped orders.",
-  "平台代客下单时积分与余额的使用规则。": "Points and balance rules for platform-assisted orders."
+  "平台代客下单时积分与余额的使用规则。": "Points and balance rules for platform-assisted orders.",
+  "许可证号": "License number",
+  "经营性互联网信息服务需公示 ICP 增值电信业务经营许可证，该信息将展示在商城底部，证号为空则前台不显示。": "Commercial internet information services must display the ICP value-added telecom license. It appears in the storefront footer and is hidden when the license number is empty."
 }

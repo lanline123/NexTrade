@@ -6676,3 +6676,32 @@ body {
   background: var(--primary-soft);
   color: var(--primary);
 }
+
+/* 经营许可证组合控件 */
+.license-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.license-config-field__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #eef1f5;
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+.license-config-field__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.license-config-field__label {
+  width: 96px;
+  flex-shrink: 0;
+  color: #667085;
+  font-size: 12.5px;
+  text-align: right;
+}

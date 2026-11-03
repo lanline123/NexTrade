@@ -198,6 +198,65 @@ export function CopyrightConfigField({ value, values, update }: ConfigRendererCo
   );
 }
 
+export function BusinessLicenseConfigField({ value, values, update }: ConfigRendererContext) {
+  const { t } = useI18n();
+  const enabled = Number(value) === 1;
+  const types = Array.isArray(values.businessLicenseType) ? (values.businessLicenseType as string[]) : [];
+  const type = types.includes('icp') && types.includes('edi') ? 'icp_edi' : types.includes('edi') ? 'edi' : 'icp';
+  const licenseNo = String((type === 'edi' ? values.ediLicense : values.businessLicense) || values.ediLicense || values.businessLicense || '');
+  const applyType = (next: string) => {
+    const no = String(values.businessLicense || values.ediLicense || '');
+    update('businessLicenseType', next === 'icp_edi' ? ['icp', 'edi'] : [next]);
+    if (next === 'icp_edi') {
+      update('businessLicense', no);
+      update('ediLicense', no);
+    } else if (next === 'edi') {
+      update('businessLicense', '');
+      update('ediLicense', no);
+    } else {
+      update('businessLicense', no);
+      update('ediLicense', '');
+    }
+  };
+  const applyNo = (no: string) => {
+    if (type === 'icp_edi') {
+      update('businessLicense', no);
+      update('ediLicense', no);
+    } else if (type === 'edi') {
+      update('ediLicense', no);
+    } else {
+      update('businessLicense', no);
+    }
+  };
+  return (
+    <div className="license-config-field">
+      <RadioGroup value={enabled ? 1 : 0} onChange={(event) => update('businessLicenseEnabled', Number(event.target.value))}>
+        <Radio value={1}>{t('开启')}</Radio>
+        <Radio value={0}>{t('关闭')}</Radio>
+      </RadioGroup>
+      {enabled && (
+        <div className="license-config-field__body">
+          <div className="license-config-field__row">
+            <span className="license-config-field__label">{t('经营许可证类型')}</span>
+            <RadioGroup value={type} onChange={(event) => applyType(String(event.target.value))}>
+              <Radio value="icp">{t('ICP证')}</Radio>
+              <Radio value="edi">{t('EDI证')}</Radio>
+              <Radio value="icp_edi">{t('ICP+EDI 双证')}</Radio>
+            </RadioGroup>
+          </div>
+          <div className="license-config-field__row">
+            <span className="license-config-field__label">{t('许可证号')}</span>
+            <Input value={licenseNo} onChange={applyNo} placeholder={t('请输入许可证号')} style={{ maxWidth: 450 }} />
+          </div>
+          <div className="auto-config-field-help">
+            {t('经营性互联网信息服务需公示 ICP 增值电信业务经营许可证，该信息将展示在商城底部，证号为空则前台不显示。')}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TechSupportConfigField({ value, values, update }: ConfigRendererContext) {
   const { t } = useI18n();
   const custom = Number(value) === 0;
