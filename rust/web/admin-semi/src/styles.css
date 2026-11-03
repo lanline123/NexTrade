@@ -7005,12 +7005,20 @@ body {
 }
 
 .third-party-sheet__tip {
-  margin: -4px 0 14px 122px;
-  padding: 8px 10px;
-  border-left: 3px solid var(--primary);
-  border-radius: 6px;
-  background: var(--primary-soft);
-  color: #475467;
-  font-size: 12px;
-  line-height: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -2px 0 14px 122px;
+  padding: 9px 12px;
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #667085;
+  font-size: 12.5px;
+  line-height: 19px;
+}
+.third-party-sheet__tip .semi-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--primary);
 }

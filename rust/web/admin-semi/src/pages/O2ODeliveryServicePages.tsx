@@ -17,7 +17,7 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconMapPin, IconPlus, IconSend, IconSetting } from '@douyinfe/semi-icons';
+import { IconInfoCircle, IconMapPin, IconPlus, IconSend, IconSetting } from '@douyinfe/semi-icons';
 import SettingsCard from '../components/SettingsCard';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
@@ -594,7 +594,8 @@ export function IntraCityDelivery() {
                   />
                 </div>
                 <div className="third-party-sheet__tip">
-                  {t('请前往美团配送技术服务合作中心，商家端的开发管理模块直接获取')}
+                  <IconInfoCircle />
+                  <span>{t('请前往美团配送技术服务合作中心，商家端的开发管理模块直接获取')}</span>
                 </div>
                 <div className="pmo-form-row">
                   <span className="pmo-form-label">{t('接口地址')}</span>
