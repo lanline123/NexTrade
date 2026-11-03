@@ -3276,17 +3276,79 @@ function GrouponPreview({ data }: { data: Record<string, any> }) {
 
 
 
+function parseColorValue(value: string): { hex: string; alpha: number } {
+  const raw = String(value || '').trim();
+  if (/^transparent$/i.test(raw)) return { hex: '#ffffff', alpha: 0 };
+  const hexMatch = raw.match(/^#([0-9a-f]{3,8})$/i);
+  if (hexMatch) {
+    let hex = hexMatch[1];
+    if (hex.length === 3 || hex.length === 4) hex = hex.split('').map((c) => c + c).join('');
+    if (hex.length === 6) return { hex: `#${hex.slice(0, 6).toLowerCase()}`, alpha: 100 };
+    if (hex.length === 8) {
+      return {
+        hex: `#${hex.slice(0, 6).toLowerCase()}`,
+        alpha: Math.round((parseInt(hex.slice(6, 8), 16) / 255) * 100),
+      };
+    }
+  }
+  const rgbMatch = raw.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([\d.]+))?\s*\)$/i);
+  if (rgbMatch) {
+    const hex = `#${[1, 2, 3].map((i) => Math.min(255, Number(rgbMatch[i]) || 0).toString(16).padStart(2, '0')).join('')}`;
+    const alpha = rgbMatch[4] == null ? 100 : Math.round(Math.max(0, Math.min(1, Number(rgbMatch[4]))) * 100);
+    return { hex, alpha };
+  }
+  return { hex: '#ffffff', alpha: 100 };
+}
+
+function formatColorValue(hex: string, alpha: number): string {
+  if (alpha >= 100) return hex;
+  const rgb = hex.replace('#', '');
+  const r = parseInt(rgb.slice(0, 2), 16) || 0;
+  const g = parseInt(rgb.slice(2, 4), 16) || 0;
+  const b = parseInt(rgb.slice(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${(alpha / 100).toFixed(2)})`;
+}
+
+function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parsed = parseColorValue(value);
+  const emit = (hex: string, alpha: number) => onChange(formatColorValue(hex, alpha));
+  return (
+    <div className="pchead-alpha-color">
+      <label className="pchead-alpha-color__swatch" title={value || 'transparent'}>
+        <span style={{ background: formatColorValue(parsed.hex, parsed.alpha) }} />
+        <input
+          type="color"
+          value={parsed.hex}
+          onChange={(e) => emit(e.target.value, parsed.alpha)}
+        />
+      </label>
+      <Slider
+        value={parsed.alpha}
+        min={0}
+        max={100}
+        step={1}
+        style={{ flex: 1, minWidth: 60 }}
+        onChange={(v) => emit(parsed.hex, typeof v === 'number' ? v : (v as number[])[0])}
+      />
+      <InputNumber
+        value={parsed.alpha}
+        min={0}
+        max={100}
+        step={1}
+        style={{ width: 64 }}
+        onChange={(v) => emit(parsed.hex, Math.max(0, Math.min(100, Number(v) || 0)))}
+      />
+      <span className="pchead-alpha-color__unit">%</span>
+    </div>
+  );
+}
+
 function HeaderColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const { t } = useI18n();
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => onChange('')}>{t('重置')}</a>
-      <input
-        type="color"
-        value={value || '#ffffff'}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ width: 34, height: 26, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-      />
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
+      <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)', flexShrink: 0, whiteSpace: 'nowrap' }} onClick={() => onChange('')}>{t('重置')}</a>
+      <AlphaColorInput value={value} onChange={onChange} />
     </span>
   );
 }
@@ -3962,12 +4024,7 @@ function PageSettingsPanel({
       <div>
         <Text type="tertiary" size="small">{t('标题栏背景颜色')}</Text>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="color"
-            value={pageModule.titleBackgroundColor || '#ffffff'}
-            onChange={(e) => onChange({ ...pageModule, titleBackgroundColor: e.target.value })}
-            style={{ width: 46, height: 30, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-          />
+          <AlphaColorInput value={pageModule.titleBackgroundColor || ''} onChange={(v) => onChange({ ...pageModule, titleBackgroundColor: v })} />
           <Button size="small" onClick={() => onChange({ ...pageModule, titleBackgroundColor: '' })}>{t('重置')}</Button>
         </div>
       </div>
@@ -3975,12 +4032,7 @@ function PageSettingsPanel({
       <div>
         <Text type="tertiary" size="small">{t('页面背景颜色')}</Text>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="color"
-            value={pageModule.backgroundColor || '#ffffff'}
-            onChange={(e) => onChange({ ...pageModule, backgroundColor: e.target.value })}
-            style={{ width: 46, height: 30, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-          />
+          <AlphaColorInput value={pageModule.backgroundColor || ''} onChange={(v) => onChange({ ...pageModule, backgroundColor: v })} />
           <Button size="small" onClick={() => onChange({ ...pageModule, backgroundColor: '' })}>{t('重置')}</Button>
         </div>
       </div>
@@ -4929,15 +4981,9 @@ function FieldControl({
       );
     case 'color':
       return (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="color"
-            value={String(value || '#ffffff')}
-            onChange={(e) => set(e.target.value)}
-            style={{ width: 46, height: 30, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-          />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%' }}>
+          <AlphaColorInput value={String(value || '')} onChange={(v) => set(v)} />
           <Button size="small" onClick={() => set(field.resetValue ?? '')}>{t('重置')}</Button>
-          <Text type="tertiary" size="small">{value ? String(value) : t('未设置')}</Text>
         </div>
       );
     case 'picList':
@@ -5155,20 +5201,8 @@ function FieldControl({
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 <Input value={card.moduleSubTitle || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitle: v }))} placeholder={t('子标题')} size="small" />
-                <input
-                  type="color"
-                  value={card.moduleSubTitleBgColorA || '#ff4e4e'}
-                  onChange={(e) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorA: e.target.value }))}
-                  style={{ width: 34, height: 28, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-                  title={t('子标题背景色A')}
-                />
-                <input
-                  type="color"
-                  value={card.moduleSubTitleBgColorB || '#e1251b'}
-                  onChange={(e) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorB: e.target.value }))}
-                  style={{ width: 34, height: 28, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-                  title={t('子标题背景色B')}
-                />
+                <AlphaColorInput value={card.moduleSubTitleBgColorA || '#ff4e4e'} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorA: v }))} />
+                <AlphaColorInput value={card.moduleSubTitleBgColorB || '#e1251b'} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorB: v }))} />
                 <Select
                   value={card.moduleSubTitleBgType || 'leftRight'}
                   optionList={[{ label: t('左右渐变'), value: 'leftRight' }, { label: t('上下渐变'), value: 'upDown' }, { label: t('对角渐变'), value: 'diagonal' }]}
@@ -5206,16 +5240,13 @@ function FieldControl({
                   {p.label ? (
                     <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                       {labelColors('label', '角标').map((lc) => (
-                        <input
+                        <AlphaColorInput
                           key={lc.key}
-                          type="color"
-                          value={String((p as Record<string, any>)[lc.key.replace('label', 'label')] || '#ff9000')}
-                          onChange={(e) => updateCard(ci, (c) => ({
+                          value={String((p as Record<string, any>)[lc.key] || '#ff9000')}
+                          onChange={(v) => updateCard(ci, (c) => ({
                             ...c,
-                            products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, [lc.key]: e.target.value } : x)),
+                            products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, [lc.key]: v } : x)),
                           }))}
-                          style={{ width: 34, height: 26, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-                          title={lc.label}
                         />
                       ))}
                     </div>

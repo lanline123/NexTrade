@@ -1491,3 +1491,59 @@
 .pchead-benefit__measure-item {
   display: inline-flex;
 }
+
+/* 颜色选择器：色块 + 透明度滑块 + 百分比 */
+.pchead-alpha-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.pchead-alpha-color__swatch {
+  position: relative;
+  width: 36px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 1px solid var(--semi-color-border);
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+    linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+    linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+}
+.pchead-alpha-color__swatch > span {
+  position: absolute;
+  inset: 0;
+}
+.pchead-alpha-color__swatch > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+.pchead-alpha-color__unit {
+  flex-shrink: 0;
+  color: #98a2b3;
+  font-size: 12px;
+}
+
+/* Alpha 颜色控件在设置面板内自适应，不挤压重置按钮 */
+.pchead-alpha-color {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.pchead-alpha-color .semi-slider {
+  min-width: 50px;
+}
