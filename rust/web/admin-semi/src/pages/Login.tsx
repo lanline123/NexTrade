@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button, Card, Form, Toast, Typography } from '@douyinfe/semi-ui';
-import { IconHome, IconUser } from '@douyinfe/semi-icons';
+import { Button, Form, Toast, Typography } from '@douyinfe/semi-ui';
+import { IconArrowLeft, IconHome, IconLock, IconUser } from '@douyinfe/semi-icons';
 import { apiGet, login, setToken } from '../api';
 
 const { Title, Text } = Typography;
@@ -79,111 +79,180 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="login-page">
-      <div className="login-visual">
-        <img className="login-visual-logo" src={`${import.meta.env.BASE_URL}admin-assets/admin-light-logo.jpeg`} alt="万物新生" />
-        <img
-          className="login-visual-illustration"
-          src={`${import.meta.env.BASE_URL}admin-assets/login-page-bg.png`}
-          alt=""
-        />
-      </div>
+      <div className="login-aurora login-aurora--one" />
+      <div className="login-aurora login-aurora--two" />
 
-      <div className="login-panel">
-        <h1 className="login-title">
-          欢迎登录<span>商城后台管理系统</span>
-        </h1>
-        <Card className="login-card" shadows="always">
-        {step === 'login' ? (
-          <>
-            <div className="login-tabs">
-              <span className="is-active">密码登录</span>
-              <span>手机登录</span>
-            </div>
+      <div className="login-shell">
+        <aside className="login-hero">
+          <div className="login-hero-grid" />
+          <div className="login-hero-rings">
+            <span />
+            <span />
+            <span />
+          </div>
 
-            <Form onSubmit={handleSubmit} labelPosition="top" style={{ marginTop: 22 }}>
-              <Form.Input
-                field="username"
-                placeholder="请输入用户名"
-                size="large"
-              />
-              <Form.Input
-                field="password"
-                mode="password"
-                placeholder="请输入密码"
-                size="large"
-              />
-              <Button
-                theme="solid"
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                block
-                size="large"
-                className="login-submit"
-              >
-                登 录
-              </Button>
-            </Form>
-
-            <label className="login-remember">
-              <input type="checkbox" /> 记住登录状态
-            </label>
-            <div className="login-agreement">
-              <input type="checkbox" defaultChecked /> 我已阅读并同意
-              <a href="javascript:;">《用户服务协议》</a>
-              <a href="javascript:;">《用户隐私协议》</a>
-            </div>
-          </>
-        ) : (
-          <div className="login-org">
-            <Button theme="borderless" type="tertiary" className="login-org-back" onClick={() => setStep('login')}>
-              返回
-            </Button>
-            <Title heading={3} style={{ margin: '10px 0 6px' }}>
-              欢迎登录商城后台管理系统
-            </Title>
-            <Text type="tertiary">{account} 已绑定了以下组织，您可以进入以下任一组织</Text>
-
-            <div className="login-org-section">
-              <button type="button" className="login-org-card" onClick={chooseAdmin}>
-                <span className="login-org-avatar">
-                  <IconUser />
-                </span>
-                <span className="login-org-main">
-                  <span className="login-org-name">管理后台</span>
-                  <span className="login-org-meta">{adminType === 'admin' ? 'admin' : account}</span>
-                </span>
-              </button>
-            </div>
-
-            <div className="login-org-section">
-              <div className="login-org-label">店铺</div>
-              {shops.length ? (
-                shops.map((shop) => (
-                  <button
-                    key={shop.shopId}
-                    type="button"
-                    className="login-org-card"
-                    onClick={() => chooseShop(shop)}
-                  >
-                    <span className="login-org-avatar">
-                      {shop.shopLogo ? <img src={shop.shopLogo} alt="" /> : <IconHome />}
-                    </span>
-                    <span className="login-org-main">
-                      <span className="login-org-name">{shop.shopTitle || `店铺 ${shop.shopId}`}</span>
-                      <span className="login-org-meta">
-                        {shop.shopType === 1 ? '单机设备' : '店铺'} · {shop.shopId}
-                      </span>
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <div className="login-org-empty">暂无可用店铺</div>
-              )}
+          <div className="login-hero-brand">
+            <span className="login-hero-mark">W</span>
+            <div>
+              <strong>万物新生</strong>
+              <small>运营管理后台</small>
             </div>
           </div>
-        )}
-        </Card>
+
+          <div className="login-hero-copy">
+            <span className="login-hero-eyebrow">BATTERY CIRCULAR ECONOMY</span>
+            <h1>
+              让每一块电池
+              <br />
+              <em>重新流动</em>
+            </h1>
+            <p>退役动力电池循环利用产业服务平台，连接回收、检测、再生与再制造，让绿色价值持续循环。</p>
+          </div>
+
+          <div className="login-hero-points">
+            <div>
+              <strong>200+</strong>
+              <span>城市回收网络</span>
+            </div>
+            <div>
+              <strong>全链路</strong>
+              <span>碳足迹溯源</span>
+            </div>
+            <div>
+              <strong>7×24</strong>
+              <span>智能运营</span>
+            </div>
+          </div>
+
+          <div className="login-hero-footer">© 2026 万物新生 · 让资源循环无限可能</div>
+        </aside>
+
+        <main className="login-panel">
+          <div className="login-mobile-brand">
+            <span>W</span>
+            <strong>万物新生</strong>
+          </div>
+          <div className="login-card">
+            {step === 'login' ? (
+              <>
+                <div className="login-card-head">
+                  <span className="login-card-eyebrow">WELCOME BACK</span>
+                  <h2>欢迎回来</h2>
+                  <p>登录运营管理后台，继续你的工作</p>
+                </div>
+
+                <div className="login-tabs" role="tablist">
+                  <button type="button" className="is-active" role="tab" aria-selected="true">
+                    密码登录
+                  </button>
+                  <button type="button" role="tab" aria-selected="false" disabled>
+                    手机登录
+                  </button>
+                </div>
+
+                <Form onSubmit={handleSubmit} labelPosition="top" className="login-form">
+                  <Form.Input
+                    field="username"
+                    placeholder="请输入用户名"
+                    size="large"
+                    prefix={<IconUser />}
+                    autoComplete="username"
+                  />
+                  <Form.Input
+                    field="password"
+                    mode="password"
+                    placeholder="请输入密码"
+                    size="large"
+                    prefix={<IconLock />}
+                    autoComplete="current-password"
+                  />
+
+                  <div className="login-options">
+                    <label className="login-remember">
+                      <input type="checkbox" /> 记住登录状态
+                    </label>
+                    <a className="login-forgot" href="javascript:;">
+                      忘记密码？
+                    </a>
+                  </div>
+
+                  <Button
+                    theme="solid"
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    block
+                    size="large"
+                    className="login-submit"
+                  >
+                    登 录
+                  </Button>
+                </Form>
+
+                <div className="login-agreement">
+                  <input type="checkbox" defaultChecked />
+                  <span>我已阅读并同意</span>
+                  <a href="javascript:;">《用户服务协议》</a>
+                  <a href="javascript:;">《用户隐私协议》</a>
+                </div>
+
+                <div className="login-safe">
+                  <IconLock />
+                  <span>安全登录 · 数据全程加密传输</span>
+                </div>
+              </>
+            ) : (
+              <div className="login-org">
+                <button type="button" className="login-org-back" onClick={() => setStep('login')}>
+                  <IconArrowLeft /> 返回登录
+                </button>
+                <span className="login-card-eyebrow">SELECT ORGANIZATION</span>
+                <Title heading={3} style={{ margin: '8px 0 6px' }}>
+                  选择进入的组织
+                </Title>
+                <Text type="tertiary">{account} 已绑定以下组织，请选择要进入的后台</Text>
+
+                <div className="login-org-section">
+                  <button type="button" className="login-org-card" onClick={chooseAdmin}>
+                    <span className="login-org-avatar">
+                      <IconUser />
+                    </span>
+                    <span className="login-org-main">
+                      <span className="login-org-name">管理后台</span>
+                      <span className="login-org-meta">{adminType === 'admin' ? 'admin' : account}</span>
+                    </span>
+                  </button>
+                </div>
+
+                <div className="login-org-section">
+                  <div className="login-org-label">店铺</div>
+                  {shops.length ? (
+                    shops.map((shop) => (
+                      <button
+                        key={shop.shopId}
+                        type="button"
+                        className="login-org-card"
+                        onClick={() => chooseShop(shop)}
+                      >
+                        <span className="login-org-avatar">
+                          {shop.shopLogo ? <img src={shop.shopLogo} alt="" /> : <IconHome />}
+                        </span>
+                        <span className="login-org-main">
+                          <span className="login-org-name">{shop.shopTitle || `店铺 ${shop.shopId}`}</span>
+                          <span className="login-org-meta">
+                            {shop.shopType === 1 ? '单机设备' : '店铺'} · {shop.shopId}
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="login-org-empty">暂无可用店铺</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );
