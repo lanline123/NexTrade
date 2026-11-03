@@ -23,6 +23,7 @@ import SelectShopModal from '../components/SelectShopModal';
 import VoiceBroadcast from '../components/VoiceBroadcast';
 import VoiceBroadcastTip from '../components/VoiceBroadcastTip';
 import { useI18n } from '../i18n';
+import { translatedLocales } from '../i18n/config';
 import { fetchUnreadSummary, startAdminMsgStream } from '../sse';
 import { dispatchVoiceDeltas, loadVoiceSettings } from '../voice';
 
@@ -487,8 +488,11 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
               trigger="click"
               render={
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => void setLocale('zh')}>中文</Dropdown.Item>
-                  <Dropdown.Item onClick={() => void setLocale('en')}>English</Dropdown.Item>
+                  {translatedLocales().map((item) => (
+                    <Dropdown.Item key={item.code} onClick={() => void setLocale(item.code)}>
+                      {item.nativeLabel}
+                    </Dropdown.Item>
+                  ))}
                 </Dropdown.Menu>
               }
             >

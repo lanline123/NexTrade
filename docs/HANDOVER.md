@@ -249,26 +249,55 @@ src/components/SelectShopModal.tsx
 
 ### 3.2 i18n
 
+架构：
+
 ```text
 i18next + react-i18next
-src/i18n/index.tsx
-src/i18n/locales/zh.ts
-src/i18n/locales/en.ts
-src/i18n/locales/en-extra.ts
+语言注册表：src/i18n/config.ts
+资源加载器：src/i18n/loader.ts
+格式化工具：src/i18n/format.ts
+Provider：src/i18n/index.tsx
+翻译资源：src/i18n/resources/{locale}/translation.json
+存量页面回退层：src/i18n/legacyAutoTranslate.tsx
 ```
+
+当前语言：
+
+```text
+zh-CN  简体中文
+en     English
+```
+
+注册表中已经预留：
+
+```text
+zh-Hant / ja / ko / es / fr / ru / ar
+```
+
+新增语言：
+
+1. 新建 `src/i18n/resources/<code>/translation.json`
+2. 在 `src/i18n/config.ts` 的 LOCALES 中登记该语言，`translated: true`
+3. 不需要改 Provider、语言菜单或 Semi locale 逻辑
 
 行为：
 
 ```text
+JSON 资源按语言懒加载，不进入主包
 localStorage.app-locale
-html lang 同步
+html lang / dir 同步
 BroadcastChannel 跨标签页
-单大括号插值 {name}
-缺失回退中文
+Semi ConfigProvider locale 随语言切换
+Intl 金额 / 日期 / 数字格式化
+缺失 key 回退 en → zh-CN
 ```
 
-已翻译：顶部栏、左侧菜单、面包屑、页面标题。  
-未完成：页面内部表单 / 表格的逐页 i18n。
+说明：
+
+- 新页面必须用 `useI18n().t()`。
+- 存量页面在迁移完成前由 `legacyAutoTranslate` 做英文兜底；全部 t() 化后关闭 `ENABLE_LEGACY_AUTO_TRANSLATE` 并删除该文件。
+- 语言菜单只展示 `translated: true` 的语言，避免展示未翻译语言。
+- 资源自检：`npm run i18n:check`。
 
 ### 3.3 消息 SSE
 

@@ -1,38 +1,25 @@
-import React, { useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import i18n from 'i18next';
 import { I18nextProvider, initReactI18next, useTranslation } from 'react-i18next';
-import zh from './locales/zh';
-import enExtra from './locales/en-extra';
+import { ConfigProvider } from '@douyinfe/semi-ui';
+import {
+  DEFAULT_LOCALE,
+  ENABLE_LEGACY_AUTO_TRANSLATE,
+  FALLBACK_LOCALE,
+  getLocaleDefinition,
+  getSemiLocale,
+  normalizeLocale,
+  type LocaleCode,
+} from './config';
+import { ensureTranslation } from './loader';
+import LegacyAutoTranslate from './legacyAutoTranslate';
 
-export type Locale = 'zh' | 'en';
-
-const ZH_MESSAGES = zh as Record<string, string>;
-let englishLoaded = false;
-let englishLoading: Promise<void> | null = null;
-
-function readInitialLocale(): Locale {
-  try {
-    return localStorage.getItem('app-locale') === 'en' ? 'en' : 'zh';
-  } catch {
-    return 'zh';
-  }
-}
-
-async function loadEnglish(): Promise<void> {
-  if (englishLoaded) return;
-  if (!englishLoading) {
-    englishLoading = import('./locales/en').then((module) => {
-      i18n.addResourceBundle('en', 'translation', { ...(module.default as Record<string, string>), ...enExtra }, true, true);
-      englishLoaded = true;
-    });
-  }
-  return englishLoading;
-}
+export type Locale = LocaleCode;
 
 i18n.use(initReactI18next).init({
-  resources: { zh: { translation: ZH_MESSAGES } },
-  lng: 'zh',
-  fallbackLng: 'zh',
+  resources: {},
+  lng: DEFAULT_LOCALE,
+  fallbackLng: [FALLBACK_LOCALE, DEFAULT_LOCALE],
   initAsync: false,
   keySeparator: false,
   nsSeparator: false,
@@ -46,52 +33,114 @@ if (typeof BroadcastChannel !== 'undefined') {
   localeChannel = new BroadcastChannel('app-locale-sync');
 }
 
-export async function setLocale(next: Locale): Promise<void> {
-  if (next === 'en') {
-    await loadEnglish().catch(() => undefined);
-  }
-  await i18n.changeLanguage(next);
-  document.documentElement.setAttribute('lang', next);
+function resolveInitialLocale(): LocaleCode {
   try {
-    localStorage.setItem('app-locale', next);
+    const saved = localStorage.getItem('app-locale');
+    if (saved) return normalizeLocale(saved);
   } catch {
     // ignore storage failure
   }
-  localeChannel?.postMessage(next);
+  if (typeof navigator !== 'undefined') {
+    return normalizeLocale(navigator.languages?.[0] || navigator.language);
+  }
+  return DEFAULT_LOCALE;
 }
 
-export function getCurrentLocale(): Locale {
-  return i18n.language === 'en' ? 'en' : 'zh';
+function applyLocaleAttributes(code: LocaleCode): void {
+  const definition = getLocaleDefinition(code);
+  document.documentElement.setAttribute('lang', definition.intl);
+  document.documentElement.setAttribute('dir', definition.dir);
+}
+
+async function activateLocale(code: LocaleCode): Promise<LocaleCode> {
+  const normalized = normalizeLocale(code);
+  const loaded = await ensureTranslation(i18n, normalized);
+  const target = loaded ? normalized : DEFAULT_LOCALE;
+  await ensureTranslation(i18n, DEFAULT_LOCALE);
+  await i18n.changeLanguage(target);
+  applyLocaleAttributes(target);
+  return target;
+}
+
+export async function setLocale(next: LocaleCode): Promise<void> {
+  const target = await activateLocale(next);
+  try {
+    localStorage.setItem('app-locale', target);
+  } catch {
+    // ignore storage failure
+  }
+  localeChannel?.postMessage(target);
+}
+
+export function getCurrentLocale(): LocaleCode {
+  return normalizeLocale(i18n.language);
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
-    const saved = readInitialLocale();
-    document.documentElement.setAttribute('lang', saved);
-    if (saved === 'en') {
-      void loadEnglish().then(() => i18n.changeLanguage('en'));
-    }
+    let cancelled = false;
+    const bootstrap = async () => {
+      const initial = resolveInitialLocale();
+      const target = await activateLocale(initial);
+      if (cancelled) return;
+      try {
+        if (target !== initial) localStorage.setItem('app-locale', target);
+      } catch {
+        // ignore storage failure
+      }
+      setReady(true);
+    };
+    void bootstrap();
+
     if (localeChannel) {
-      localeChannel.onmessage = (event: MessageEvent<Locale>) => {
-        if (event.data !== 'zh' && event.data !== 'en') return;
-        if (event.data === 'en') {
-          void loadEnglish().then(() => i18n.changeLanguage('en'));
-        } else {
-          void i18n.changeLanguage('zh');
+      localeChannel.onmessage = async (event: MessageEvent<LocaleCode>) => {
+        if (typeof event.data !== 'string') return;
+        const target = await activateLocale(event.data);
+        try {
+          localStorage.setItem('app-locale', target);
+        } catch {
+          // ignore storage failure
         }
       };
     }
+
     return () => {
+      cancelled = true;
       if (localeChannel) localeChannel.onmessage = null;
     };
   }, []);
 
-  return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
+  if (!ready) {
+    return (
+      <div className="i18n-loading">
+        <span className="i18n-loading-mark">N</span>
+        <span className="i18n-loading-text">Loading…</span>
+      </div>
+    );
+  }
+
+  return (
+    <I18nextProvider i18n={i18n}>
+      <LocaleShell>{children}</LocaleShell>
+    </I18nextProvider>
+  );
+}
+
+function LocaleShell({ children }: { children: ReactNode }) {
+  const { locale } = useI18n();
+  const content = ENABLE_LEGACY_AUTO_TRANSLATE ? (
+    <LegacyAutoTranslate locale={locale}>{children}</LegacyAutoTranslate>
+  ) : (
+    children
+  );
+  return <ConfigProvider locale={getSemiLocale(locale) as never}>{content}</ConfigProvider>;
 }
 
 export function useI18n() {
   const { t, i18n: instance } = useTranslation();
-  const locale: Locale = instance.language === 'en' ? 'en' : 'zh';
+  const locale = normalizeLocale(instance.language);
   const translate = useCallback(
     (key: string, params?: Record<string, string | number>) => t(key, params) as string,
     [t],
@@ -99,6 +148,7 @@ export function useI18n() {
   return useMemo(
     () => ({
       locale,
+      dir: getLocaleDefinition(locale).dir,
       setLocale,
       t: translate,
     }),
