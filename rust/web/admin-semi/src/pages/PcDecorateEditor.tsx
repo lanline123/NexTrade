@@ -13,7 +13,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Button,
-  SideSheet,
   Input,
   InputNumber,
   Modal,
@@ -49,6 +48,7 @@ import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import DecorateLoading from './components/DecorateLoading';
 import ImageUploader from '../components/ImageUploader';
+import { LinkField } from '../components/LinkPicker';
 import type { Icon as IconParkIcon } from '@icon-park/react/es/runtime';
 import Carousel from '@icon-park/react/es/icons/Carousel';
 import MultiPictureCarousel from '@icon-park/react/es/icons/MultiPictureCarousel';
@@ -4244,11 +4244,9 @@ function BenefitGroupsEditor({
                 placeholder={t('副标题')}
                 size="small"
               />
-              <Input
-                value={notice.picLink?.link || ''}
-                onChange={(v) => updateNotice(groupIndex, noticeIndex, { picLink: { ...(notice.picLink || {}), link: v } })}
-                placeholder={t('链接(可选)')}
-                size="small"
+              <LinkField
+                value={notice.picLink}
+                onChange={(link) => updateNotice(groupIndex, noticeIndex, { picLink: link })}
               />
             </div>
           ))}
@@ -4293,229 +4291,6 @@ function useHeaderNavTitles() {
   return titles;
 }
 
-type LinkPickerValue = Record<string, any>;
-
-const MEMBER_LINK_PRESETS = [
-  { name: '会员中心', link: '/member' },
-  { name: '我的订单', link: '/member/order/list' },
-  { name: '我的钱包', link: '/member/wallet' },
-  { name: '我的优惠券', link: '/member/coupon/list' },
-  { name: '我的积分', link: '/member/point' },
-  { name: '我的收藏', link: '/member/collect' },
-  { name: '收货地址', link: '/member/address' },
-  { name: '我的足迹', link: '/member/browsingHistory/list' },
-];
-
-const OTHER_LINK_PRESETS = [
-  { name: '首页', link: '/' },
-  { name: '购物车', link: '/cart' },
-  { name: '店铺街', link: '/shop' },
-  { name: '客服中心', link: '/service' },
-];
-
-function linkDisplayText(link?: LinkPickerValue): string {
-  if (!link) return '';
-  const label = link.label || link.path || '';
-  const name = link.name || '';
-  if (label && name && name !== label) return `${label}|${name}`;
-  return label || name || link.link || '';
-}
-
-function LinkPickerDrawer({
-  visible,
-  value,
-  onCancel,
-  onOk,
-}: {
-  visible: boolean;
-  value?: LinkPickerValue;
-  onCancel: () => void;
-  onOk: (link: LinkPickerValue) => void;
-}) {
-  const { t } = useI18n();
-  const [active, setActive] = useState<'member' | 'other' | 'product' | 'category' | 'custom'>('member');
-  const [selected, setSelected] = useState<LinkPickerValue>({});
-  const [keyword, setKeyword] = useState('');
-  const [products, setProducts] = useState<any[]>([]);
-  const [productLoading, setProductLoading] = useState(false);
-  const [customName, setCustomName] = useState('');
-  const [customLink, setCustomLink] = useState('');
-  const categories = useCategoryOptions();
-
-  useEffect(() => {
-    if (!visible) return;
-    setSelected(value && Object.keys(value).length ? value : {});
-    setActive('member');
-    setKeyword('');
-    setCustomName(value?.name || '');
-    setCustomLink(value?.link || '');
-  }, [visible, value]);
-
-  const loadProducts = (search = '') => {
-    setProductLoading(true);
-    apiGet<{ records?: any[]; list?: any[] }>('/product/product/list', {
-      keyword: search || undefined,
-      page: 1,
-      size: 30,
-      productType: 1,
-    })
-      .then((res) => setProducts(res.records || res.list || []))
-      .catch(() => setProducts([]))
-      .finally(() => setProductLoading(false));
-  };
-
-  useEffect(() => {
-    if (!visible || active !== 'product') return;
-    loadProducts(keyword);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, active]);
-
-  const choosePreset = (name: string, link: string) => {
-    setSelected({ path: 'base', label: name, name, link });
-  };
-
-  const chooseProduct = (row: any) => {
-    setSelected({
-      path: 'product',
-      label: t('商品详情页'),
-      name: row.productName,
-      id: row.productId,
-      sn: row.productSn,
-      data: { id: row.productId, sn: row.productSn },
-    });
-  };
-
-  const chooseCategory = (item: { label: string; value: number }) => {
-    const name = item.label.replace(/^.*└─ /, '');
-    setSelected({ path: 'list', label: t('分类搜索'), name, id: item.value, data: { id: item.value } });
-  };
-
-  const chooseCustom = () => {
-    if (!customLink.trim()) return;
-    setSelected({ path: 'custom', label: t('自定义链接'), name: customName.trim() || customLink.trim(), link: customLink.trim() });
-  };
-
-  const categoriesMenu = [
-    { key: 'member', label: t('会员页面') },
-    { key: 'other', label: t('其它页面') },
-    { key: 'product', label: t('商品详情页') },
-    { key: 'category', label: t('分类搜索') },
-    { key: 'custom', label: t('自定义链接') },
-  ] as const;
-
-  return (
-    <SideSheet
-      title={t('选择链接')}
-      visible={visible}
-      onCancel={onCancel}
-      placement="right"
-      width={640}
-      className="pchead-link-picker-drawer"
-      footer={
-        <div className="pchead-link-picker__footer">
-          <span className="pchead-link-picker__current">
-            {selected && Object.keys(selected).length > 0 ? linkDisplayText(selected) : t('请选择链接地址')}
-          </span>
-          <Button onClick={onCancel}>{t('取消')}</Button>
-          <Button theme="solid" type="primary" disabled={!selected || Object.keys(selected).length === 0} onClick={() => onOk(selected)}>
-            {t('确定')}
-          </Button>
-        </div>
-      }
-    >
-      <div className="pchead-link-picker">
-        <aside className="pchead-link-picker__menu">
-          {categoriesMenu.map((item) => (
-            <button
-              type="button"
-              key={item.key}
-              className={`pchead-link-picker__menu-item${active === item.key ? ' is-active' : ''}`}
-              onClick={() => setActive(item.key)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </aside>
-        <main className="pchead-link-picker__content">
-          {active === 'member' && (
-            <div className="pchead-link-picker__presets">
-              {MEMBER_LINK_PRESETS.map((item) => (
-                <button
-                  type="button"
-                  key={item.name}
-                  className={`pchead-link-picker__preset${selected.link === item.link ? ' is-active' : ''}`}
-                  onClick={() => choosePreset(item.name, item.link)}
-                >
-                  {t(item.name)}
-                </button>
-              ))}
-            </div>
-          )}
-          {active === 'other' && (
-            <div className="pchead-link-picker__presets">
-              {OTHER_LINK_PRESETS.map((item) => (
-                <button
-                  type="button"
-                  key={item.name}
-                  className={`pchead-link-picker__preset${selected.link === item.link ? ' is-active' : ''}`}
-                  onClick={() => choosePreset(item.name, item.link)}
-                >
-                  {t(item.name)}
-                </button>
-              ))}
-            </div>
-          )}
-          {active === 'product' && (
-            <div className="pchead-link-picker__list">
-              <div className="pchead-link-picker__search">
-                <Input value={keyword} onChange={setKeyword} placeholder={t('商品名称/货号')} onEnterPress={() => loadProducts(keyword)} />
-                <Button onClick={() => loadProducts(keyword)}>{t('搜索')}</Button>
-              </div>
-              {productLoading ? <Spin /> : products.map((row) => (
-                <button
-                  type="button"
-                  key={row.productId}
-                  className={`pchead-link-picker__row${selected.id === row.productId ? ' is-active' : ''}`}
-                  onClick={() => chooseProduct(row)}
-                >
-                  {row.picThumb || row.picUrl ? <img src={row.picThumb || row.picUrl} alt="" /> : null}
-                  <span>
-                    <strong>{row.productName}</strong>
-                    <small>{row.productSn || ''}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-          {active === 'category' && (
-            <div className="pchead-link-picker__list">
-              {categories.map((item) => (
-                <button
-                  type="button"
-                  key={item.value}
-                  className={`pchead-link-picker__row${selected.id === item.value ? ' is-active' : ''}`}
-                  onClick={() => chooseCategory(item)}
-                >
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          {active === 'custom' && (
-            <div className="pchead-link-picker__custom">
-              <label>{t('链接名称')}</label>
-              <Input value={customName} onChange={setCustomName} placeholder={t('链接名称')} />
-              <label>{t('PC端链接')}</label>
-              <Input value={customLink} onChange={setCustomLink} placeholder={t('请输入以 / 开头的链接')} />
-              <Button onClick={chooseCustom} disabled={!customLink.trim()}>{t('使用此链接')}</Button>
-            </div>
-          )}
-        </main>
-      </div>
-    </SideSheet>
-  );
-}
-
 function PcHeaderPanel({
   header,
   onChange,
@@ -4526,7 +4301,6 @@ function PcHeaderPanel({
   const { t } = useI18n();
   const set = (key: string, value: unknown) => onChange({ ...header, [key]: value });
   const simple = Number(header.styleType ?? 1) === 1;
-  const [linkPickerIndex, setLinkPickerIndex] = useState<number | null>(null);
 
   const updateMemberItems = (next: Array<Record<string, any>>) => set('memberCenterItems', next);
   const updateBenefitGroups = (next: Array<Record<string, any>>) => set('benefitNoticeGroups', next);
@@ -4771,45 +4545,21 @@ function PcHeaderPanel({
                           </div>
                           <Input
                             value={it.picTitle || ''}
-                            onChange={(v) => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picTitle: v, picLink: { ...(x.picLink || {}), name: v, label: v } } : x)))}
+                            onChange={(v) => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picTitle: v } : x)))}
                             placeholder={t('菜单名')}
                             size="small"
                           />
                           <div className="pchead-member-menu__link">
-                            <Input
-                              value={linkDisplayText(it.picLink)}
-                              readOnly
-                              placeholder={t('请选择链接地址')}
-                              size="small"
+                            <LinkField
+                              value={it.picLink}
+                              onChange={(link) => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picLink: link } : x)))}
                             />
-                            <Button size="small" onClick={() => setLinkPickerIndex(index)}>{t('选择链接')}</Button>
-                            {it.picLink && Object.keys(it.picLink).length > 0 && (
-                              <Button
-                                size="small"
-                                theme="borderless"
-                                icon={<IconClose />}
-                                onClick={() => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picLink: {} } : x)))}
-                              />
-                            )}
                           </div>
                         </div>
                       ))}
                       <Button size="small" icon={<IconPlus />} style={{ marginTop: 6 }} onClick={() => updateMemberItems([...(header.memberCenterItems || []), { picTitle: '', picDesc: '', picLink: {} }])}>
                         {t('添加菜单')}
                       </Button>
-                      <LinkPickerDrawer
-                        visible={linkPickerIndex !== null}
-                        value={linkPickerIndex !== null ? (header.memberCenterItems || [])[linkPickerIndex]?.picLink : undefined}
-                        onCancel={() => setLinkPickerIndex(null)}
-                        onOk={(link) => {
-                          if (linkPickerIndex !== null) {
-                            updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (
-                              i === linkPickerIndex ? { ...x, picLink: link } : x
-                            )));
-                          }
-                          setLinkPickerIndex(null);
-                        }}
-                      />
                     </div>
                   )}
                 </>
@@ -5096,11 +4846,9 @@ function PicListEditor({ value, onChange, showDesc = false }: { value: PicItem[]
             {showDesc && (
               <Input value={item.picDesc || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picDesc: v } : it)))} placeholder={t('描述(可选)')} size="small" />
             )}
-            <Input
-              value={item.picLink?.link || ''}
-              onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picLink: { ...it.picLink, link: v, name: it.picLink?.name || '' } } : it)))}
-              placeholder={t('跳转链接(可选)')}
-              size="small"
+            <LinkField
+              value={item.picLink}
+              onChange={(link) => onChange(list.map((it, i) => (i === index ? { ...it, picLink: link } : it)))}
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -5250,11 +4998,13 @@ function FieldControl({
         </div>
       );
     case 'link': {
-      const link = (value && typeof value === 'object' ? value : { link: '', title: '' }) as Record<string, any>;
+      const link = (value && typeof value === 'object' ? value : {}) as Record<string, any>;
       return (
-        <div style={{ display: 'flex', gap: 6 }}>
-          <Input value={link.link || ''} onChange={(v) => set({ ...link, link: v })} placeholder={t('链接地址')} />
-          <Input value={link.name || ''} onChange={(v) => set({ ...link, name: v })} placeholder={t('名称')} style={{ width: 110 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <LinkField value={link} onChange={(next) => set(next)} />
+          {link.title !== undefined && (
+            <Input value={link.title || ''} onChange={(v) => set({ ...link, title: v })} placeholder={t('链接文字(可选)')} />
+          )}
         </div>
       );
     }
@@ -5264,7 +5014,7 @@ function FieldControl({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {list.map((item, index) => (
             <div key={index} style={{ display: 'flex', gap: 6 }}>
-              <Input value={item.link?.link || ''} onChange={(v) => set(list.map((it, i) => (i === index ? { ...it, link: { ...it.link, link: v } } : it)))} placeholder={t('链接地址')} />
+              <LinkField value={item.link} onChange={(link) => set(list.map((it, i) => (i === index ? { ...it, link } : it)))} />
               <Input value={item.linkTitle || ''} onChange={(v) => set(list.map((it, i) => (i === index ? { ...it, linkTitle: v } : it)))} placeholder={t('名称')} style={{ width: 110 }} />
               <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => set(list.filter((_, i) => i !== index))} />
             </div>

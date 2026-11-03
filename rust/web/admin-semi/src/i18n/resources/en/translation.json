@@ -11896,5 +11896,7 @@
   "第【{index}】项": "Item {index}",
   "我的积分": "My points",
   "我的收藏": "My favorites",
-  "客服中心": "Customer service"
+  "客服中心": "Customer service",
+  "搜索名称": "Search name",
+  "链接文字(可选)": "Link text (optional)"
 }
