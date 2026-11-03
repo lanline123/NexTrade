@@ -5586,3 +5586,34 @@ body {
   font-size: 13px;
   letter-spacing: 0.08em;
 }
+
+/* 侧边栏两级菜单：宽度随多语言文案自适应 */
+.sidebar {
+  width: max-content;
+  min-width: 280px;
+  max-width: 560px;
+}
+.rail {
+  width: max-content;
+  min-width: 112px;
+}
+.submenu {
+  width: max-content;
+  min-width: 168px;
+  max-width: 420px;
+}
+.rail-label,
+.submenu-title,
+.submenu-section-title,
+.submenu-item {
+  white-space: nowrap;
+}
+.submenu-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.is-collapsed .sidebar {
+  width: 112px;
+  min-width: 112px;
+  max-width: 112px;
+}
