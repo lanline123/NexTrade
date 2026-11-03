@@ -92,45 +92,48 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
           </div>
 
           <div className="login-hero-brand">
-            <span className="login-hero-mark">W</span>
+            <span className="login-hero-mark">T</span>
             <div>
-              <strong>万物新生</strong>
-              <small>运营管理后台</small>
+              <strong>TIGSHOP</strong>
+              <small>数字化交易底座</small>
             </div>
           </div>
 
           <div className="login-hero-copy">
-            <span className="login-hero-eyebrow">BATTERY CIRCULAR ECONOMY</span>
+            <div className="login-hero-meta">
+              <span className="login-hero-eyebrow">DIGITAL COMMERCE INFRASTRUCTURE</span>
+              <span className="login-ai-tag"><i />AI READY</span>
+            </div>
             <h1>
-              让每一块电池
+              构建下一代
               <br />
-              <em>重新流动</em>
+              <em>数字化交易底座</em>
             </h1>
-            <p>退役动力电池循环利用产业服务平台，连接回收、检测、再生与再制造，让绿色价值持续循环。</p>
+            <p>统一商品、交易、支付、履约与结算能力，连接业务系统与 AI 智能体，让每一次交易更高效、更智能。</p>
           </div>
 
           <div className="login-hero-points">
             <div>
-              <strong>200+</strong>
-              <span>城市回收网络</span>
-            </div>
-            <div>
               <strong>全链路</strong>
-              <span>碳足迹溯源</span>
+              <span>交易履约</span>
             </div>
             <div>
-              <strong>7×24</strong>
-              <span>智能运营</span>
+              <strong>AI Ready</strong>
+              <span>智能运营扩展</span>
+            </div>
+            <div>
+              <strong>多租户</strong>
+              <span>弹性扩展</span>
             </div>
           </div>
 
-          <div className="login-hero-footer">© 2026 万物新生 · 让资源循环无限可能</div>
+          <div className="login-hero-footer">© 2026 TIGSHOP · 数字化交易底座</div>
         </aside>
 
         <main className="login-panel">
           <div className="login-mobile-brand">
-            <span>W</span>
-            <strong>万物新生</strong>
+            <span>T</span>
+            <strong>TIGSHOP</strong>
           </div>
           <div className="login-card">
             {step === 'login' ? (
