@@ -3681,7 +3681,10 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
   const navItems = navTitles.length ? navTitles : [t('首页'), t('导航1'), t('导航2')];
 
   const topMenuTextStyle: Record<string, any> = {};
-  if (h.topMenuTextColor) topMenuTextStyle.color = h.topMenuTextColor;
+  if (h.topMenuTextColor) {
+    topMenuTextStyle.color = h.topMenuTextColor;
+    (topMenuTextStyle as any)['--pchead-strip-color'] = h.topMenuTextColor;
+  }
   if (h.topMenuTextHoverColor) (topMenuTextStyle as any)['--hover-color'] = h.topMenuTextHoverColor;
 
   const stripLeft = simple && (showTopRegion || showTopMemberName);

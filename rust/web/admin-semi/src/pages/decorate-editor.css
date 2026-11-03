@@ -1415,3 +1415,13 @@
   justify-content: space-between;
   gap: 8px;
 }
+
+/* 顶部提示条文字颜色继承可配置值，避免子元素写死白色 */
+.pchead-strip__left,
+.pchead-strip__right {
+  color: var(--pchead-strip-color, rgba(255, 255, 255, 0.84));
+}
+.pchead-strip__region,
+.pchead-strip__link {
+  color: var(--pchead-strip-color, rgba(255, 255, 255, 0.84));
+}
