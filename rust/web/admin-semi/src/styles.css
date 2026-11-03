@@ -6945,3 +6945,12 @@ body {
   font-size: 12px;
   line-height: 18px;
 }
+
+/* 配送设置：标签与开关同一水平线 */
+.base-settings-card .config-field:has(.semi-switch) > label {
+  padding-top: 2px;
+}
+.pmo-form-row .semi-input-wrapper {
+  flex: 1;
+  max-width: 360px;
+}

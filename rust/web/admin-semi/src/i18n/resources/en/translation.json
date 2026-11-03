@@ -11957,5 +11957,12 @@
   "发货方": "Sender",
   "商家自配送与第三方配送渠道。": "Self-delivery and third-party delivery channels.",
   "配送范围、费用与履约规则。": "Delivery range, fees, and fulfillment rules.",
-  "自营门店发货信息，地址请在门店设置中维护。": "Self-operated store shipping information. Edit the address in store settings."
+  "自营门店发货信息，地址请在门店设置中维护。": "Self-operated store shipping information. Edit the address in store settings.",
+  "启用美团配送": "Enable Meituan delivery",
+  "AppKey": "AppKey",
+  "AppSecret": "AppSecret",
+  "留空使用默认地址": "Leave blank to use the default endpoint",
+  "请输入 AppKey": "Enter AppKey",
+  "请输入 AppSecret": "Enter AppSecret",
+  "第三方配送配置接口暂未接入": "Third-party delivery configuration API is not available yet"
 }

@@ -3,9 +3,12 @@ import {
   Banner,
   Button,
   Card,
+  Input,
   InputNumber,
   Radio,
   RadioGroup,
+  SideSheet,
+  Spin,
   Switch,
   TabPane,
   Table,
@@ -74,6 +77,22 @@ interface LocalDeliveryConfig {
   distancePricingList?: LocalDeliveryRule[];
 }
 
+interface MeituanPlatformConfig {
+  meituanDeliveryEnabled?: number;
+  meituanDeliveryAppKey?: string;
+  meituanDeliveryAppSecret?: string;
+  meituanDeliveryApiUrl?: string;
+  meituanDeliveryRemark?: string;
+}
+
+const DEFAULT_MEITUAN: MeituanPlatformConfig = {
+  meituanDeliveryEnabled: 0,
+  meituanDeliveryAppKey: '',
+  meituanDeliveryAppSecret: '',
+  meituanDeliveryApiUrl: '',
+  meituanDeliveryRemark: '',
+};
+
 interface StoreSelfOperatedInfo {
   storeSelfOperatedName?: string;
   storeSelfOperatedRegion?: string;
@@ -107,6 +126,11 @@ export function IntraCityDelivery() {
   const [activeTab, setActiveTab] = useState('delivery');
   const [local, setLocal] = useState<LocalDeliveryConfig>(DEFAULT_LOCAL_DELIVERY);
   const [store, setStore] = useState<StoreSelfOperatedInfo>({});
+  const [thirdPartyVisible, setThirdPartyVisible] = useState(false);
+  const [thirdPartyLoading, setThirdPartyLoading] = useState(false);
+  const [thirdPartySaving, setThirdPartySaving] = useState(false);
+  const [thirdPartyError, setThirdPartyError] = useState('');
+  const [meituan, setMeituan] = useState<MeituanPlatformConfig>(DEFAULT_MEITUAN);
 
   const toNumber = (value: unknown, fallback = 0) => {
     const num = Number(value);
@@ -189,6 +213,34 @@ export function IntraCityDelivery() {
       }
       return { ...prev, distancePricingList: list.filter((_, i) => i !== index) };
     });
+  };
+
+  const openThirdPartyManage = async () => {
+    setThirdPartyVisible(true);
+    setThirdPartyLoading(true);
+    setThirdPartyError('');
+    try {
+      const res = await apiGet<MeituanPlatformConfig>('/o2o/meituanDelivery/platformConfig/getConfig');
+      setMeituan({ ...DEFAULT_MEITUAN, ...(res || {}) });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setThirdPartyError(`${t('第三方配送配置接口暂未接入')}${message ? `：${message}` : ''}`);
+    } finally {
+      setThirdPartyLoading(false);
+    }
+  };
+
+  const saveThirdPartyManage = async () => {
+    setThirdPartySaving(true);
+    try {
+      await apiPost('/o2o/meituanDelivery/platformConfig/saveConfig', meituan);
+      Toast.success({ content: t('保存成功') });
+      setThirdPartyVisible(false);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
+    } finally {
+      setThirdPartySaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -305,6 +357,9 @@ export function IntraCityDelivery() {
                 <span>
                   {Number(config.intraCityThirdPartyDeliveryEnabled) === 1 ? t('已开启') : t('已关闭')}
                 </span>
+                <Button theme="borderless" type="primary" size="small" onClick={openThirdPartyManage}>
+                  {t('第三方配送管理')}
+                </Button>
               </div>
               <p className="config-field__help">
                 {t('启用第三方配送：开启后，将由第三方物流进行配送，配送产生的费用，将在门店余额中进行扣除。')}
@@ -486,6 +541,74 @@ export function IntraCityDelivery() {
           {t('提交')}
         </Button>
       </div>
+
+      <SideSheet
+        title={t('第三方配送管理')}
+        visible={thirdPartyVisible}
+        width={640}
+        onCancel={() => setThirdPartyVisible(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <Button onClick={() => setThirdPartyVisible(false)}>{t('取消')}</Button>
+            <Button theme="solid" type="primary" loading={thirdPartySaving} onClick={saveThirdPartyManage}>
+              {t('保存')}
+            </Button>
+          </div>
+        }
+      >
+        {thirdPartyLoading ? (
+          <div style={{ padding: 40, textAlign: 'center' }}>
+            <Spin />
+          </div>
+        ) : (
+          <div className="pmo-form">
+            {thirdPartyError && <Banner type="danger" closeIcon={null} description={thirdPartyError} />}
+            <div className="pmo-section">
+              <div className="pmo-section-title">{t('美团配送')}</div>
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('启用美团配送')}</span>
+                <Switch
+                  checked={Number(meituan.meituanDeliveryEnabled) === 1}
+                  onChange={(checked) => setMeituan({ ...meituan, meituanDeliveryEnabled: checked ? 1 : 0 })}
+                />
+              </div>
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('AppKey')}</span>
+                <Input
+                  value={meituan.meituanDeliveryAppKey || ''}
+                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryAppKey: value })}
+                  placeholder={t('请输入 AppKey')}
+                />
+              </div>
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('AppSecret')}</span>
+                <Input
+                  mode="password"
+                  value={meituan.meituanDeliveryAppSecret || ''}
+                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryAppSecret: value })}
+                  placeholder={t('请输入 AppSecret')}
+                />
+              </div>
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('接口地址')}</span>
+                <Input
+                  value={meituan.meituanDeliveryApiUrl || ''}
+                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryApiUrl: value })}
+                  placeholder={t('留空使用默认地址')}
+                />
+              </div>
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('备注')}</span>
+                <Input
+                  value={meituan.meituanDeliveryRemark || ''}
+                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryRemark: value })}
+                  placeholder={t('选填')}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </SideSheet>
     </div>
   );
 }
