@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Input, Radio, RadioGroup, Toast, Typography } from '@douyinfe/semi-ui';
+import { IconMapPin, IconSend, IconServer } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 
@@ -82,7 +83,7 @@ export default function ShippingSettingsPage() {
     <div className="config-page">
       <Card className="config-card" shadows="hover">
         <div className="config-section">
-          <h3>{t('快递发货设置')}</h3>
+          <h3><span className="config-section__icon"><IconSend /></span>{t('快递发货设置')}</h3>
           <div className="config-field">
             <label>{t('自定义名称')}</label>
             <div>
@@ -99,7 +100,7 @@ export default function ShippingSettingsPage() {
         </div>
 
         <div className="config-section">
-          <h3>{t('快递接口设置')}</h3>
+          <h3><span className="config-section__icon"><IconServer /></span>{t('快递接口设置')}</h3>
           <div className="config-field">
             <label>{t('快递接口')}</label>
             <RadioGroup
@@ -125,7 +126,7 @@ export default function ShippingSettingsPage() {
         </div>
 
         <div className="config-section">
-          <h3>{t('发货信息设置')}</h3>
+          <h3><span className="config-section__icon"><IconMapPin /></span>{t('发货信息设置')}</h3>
           <div className="config-grid">
             {field(t('发货人'), 'sender')}
             {field(t('发货人联系方式'), 'mobile')}
@@ -137,7 +138,7 @@ export default function ShippingSettingsPage() {
         </div>
 
         <div className="config-section">
-          <h3>{t('退货信息设置')}</h3>
+          <h3><span className="config-section__icon"><IconMapPin /></span>{t('退货信息设置')}</h3>
           <div className="config-grid">
             {field(t('退货人'), 'receiveSender')}
             {field(t('退货人联系方式'), 'receiveMobile')}

@@ -6739,3 +6739,122 @@ body {
 .base-settings-card .auto-config-field:has(.semi-radioGroup) > label {
   padding-top: 13px;
 }
+
+/* 旧版设置页（config-page）应用新的卡片式设置风格 */
+.config-page {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.config-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.config-card > .semi-card-body {
+  padding: 0;
+}
+.config-section {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border: 1px solid #e9edf2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.04);
+}
+.config-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.config-section h3::before {
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--primary);
+}
+.config-field {
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.config-field > label {
+  padding-top: 8px;
+  padding-right: 6px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: right;
+}
+.config-field .semi-input-wrapper,
+.config-field .semi-input-number,
+.config-field .semi-select {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.config-field .semi-input-wrapper:hover,
+.config-field .semi-input-number:hover,
+.config-field .semi-select:hover {
+  border-color: #98a2b3;
+}
+.config-field .semi-input-wrapper-focus,
+.config-field .semi-input-number-focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+}
+.config-field .semi-typography {
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 18px;
+}
+.config-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 26px;
+}
+.config-actions {
+  padding: 6px 0 20px;
+  justify-content: flex-end;
+}
+.config-actions .semi-button {
+  min-width: 108px;
+  border-radius: 8px;
+}
+@media (max-width: 900px) {
+  .config-page {
+    padding: 0;
+  }
+  .config-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .config-field {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+
+.config-section h3::before {
+  display: none;
+}
+.config-section__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 14px;
+}
