@@ -6954,3 +6954,52 @@ body {
   flex: 1;
   max-width: 360px;
 }
+
+/* 第三方配送抽屉对齐 FormDrawer 规范 */
+.third-party-sheet__body {
+  padding: 20px 24px 8px;
+}
+.third-party-sheet .pmo-form {
+  max-width: none;
+  gap: 0;
+}
+.third-party-sheet .pmo-section {
+  gap: 0;
+}
+.third-party-sheet .pmo-section-title {
+  position: relative;
+  margin-bottom: 18px;
+  padding-left: 12px;
+  font-size: 16px;
+  font-weight: 650;
+}
+.third-party-sheet .pmo-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--primary);
+}
+.third-party-sheet .pmo-form-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.third-party-sheet .pmo-form-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: right;
+  white-space: normal;
+}
+.third-party-sheet .pmo-form-row > .semi-input-wrapper {
+  width: 100%;
+}
+
+.third-party-sheet__body > .semi-banner {
+  margin-bottom: 16px;
+}

@@ -546,9 +546,12 @@ export function IntraCityDelivery() {
         title={t('第三方配送管理')}
         visible={thirdPartyVisible}
         width={640}
+        placement="right"
+        className="third-party-sheet"
+        bodyStyle={{ padding: 0, overflowY: 'auto' }}
         onCancel={() => setThirdPartyVisible(false)}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <div className="modal-footer">
             <Button onClick={() => setThirdPartyVisible(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={thirdPartySaving} onClick={saveThirdPartyManage}>
               {t('保存')}
@@ -561,49 +564,51 @@ export function IntraCityDelivery() {
             <Spin />
           </div>
         ) : (
-          <div className="pmo-form">
+          <div className="third-party-sheet__body">
             {thirdPartyError && <Banner type="danger" closeIcon={null} description={thirdPartyError} />}
-            <div className="pmo-section">
-              <div className="pmo-section-title">{t('美团配送')}</div>
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('启用美团配送')}</span>
-                <Switch
-                  checked={Number(meituan.meituanDeliveryEnabled) === 1}
-                  onChange={(checked) => setMeituan({ ...meituan, meituanDeliveryEnabled: checked ? 1 : 0 })}
-                />
-              </div>
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('AppKey')}</span>
-                <Input
-                  value={meituan.meituanDeliveryAppKey || ''}
-                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryAppKey: value })}
-                  placeholder={t('请输入 AppKey')}
-                />
-              </div>
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('AppSecret')}</span>
-                <Input
-                  mode="password"
-                  value={meituan.meituanDeliveryAppSecret || ''}
-                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryAppSecret: value })}
-                  placeholder={t('请输入 AppSecret')}
-                />
-              </div>
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('接口地址')}</span>
-                <Input
-                  value={meituan.meituanDeliveryApiUrl || ''}
-                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryApiUrl: value })}
-                  placeholder={t('留空使用默认地址')}
-                />
-              </div>
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('备注')}</span>
-                <Input
-                  value={meituan.meituanDeliveryRemark || ''}
-                  onChange={(value) => setMeituan({ ...meituan, meituanDeliveryRemark: value })}
-                  placeholder={t('选填')}
-                />
+            <div className="pmo-form">
+              <div className="pmo-section">
+                <div className="pmo-section-title">{t('美团配送')}</div>
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('启用美团配送')}</span>
+                  <Switch
+                    checked={Number(meituan.meituanDeliveryEnabled) === 1}
+                    onChange={(checked) => setMeituan({ ...meituan, meituanDeliveryEnabled: checked ? 1 : 0 })}
+                  />
+                </div>
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('AppKey')}</span>
+                  <Input
+                    value={meituan.meituanDeliveryAppKey || ''}
+                    onChange={(value) => setMeituan({ ...meituan, meituanDeliveryAppKey: value })}
+                    placeholder={t('请输入 AppKey')}
+                  />
+                </div>
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('AppSecret')}</span>
+                  <Input
+                    mode="password"
+                    value={meituan.meituanDeliveryAppSecret || ''}
+                    onChange={(value) => setMeituan({ ...meituan, meituanDeliveryAppSecret: value })}
+                    placeholder={t('请输入 AppSecret')}
+                  />
+                </div>
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('接口地址')}</span>
+                  <Input
+                    value={meituan.meituanDeliveryApiUrl || ''}
+                    onChange={(value) => setMeituan({ ...meituan, meituanDeliveryApiUrl: value })}
+                    placeholder={t('留空使用默认地址')}
+                  />
+                </div>
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('备注')}</span>
+                  <Input
+                    value={meituan.meituanDeliveryRemark || ''}
+                    onChange={(value) => setMeituan({ ...meituan, meituanDeliveryRemark: value })}
+                    placeholder={t('选填')}
+                  />
+                </div>
               </div>
             </div>
           </div>
