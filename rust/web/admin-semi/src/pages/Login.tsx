@@ -92,9 +92,9 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
           </div>
 
           <div className="login-hero-brand">
-            <span className="login-hero-mark">T</span>
+            <span className="login-hero-mark"><img src={`${import.meta.env.BASE_URL}admin-assets/nextrade-mark.svg`} alt="NexTrade" /></span>
             <div>
-              <strong>TIGSHOP</strong>
+              <strong>NexTrade</strong>
               <small>数字化交易底座</small>
             </div>
           </div>
@@ -127,13 +127,13 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
 
-          <div className="login-hero-footer">© 2026 TIGSHOP · 数字化交易底座</div>
+          <div className="login-hero-footer">© 2026 NexTrade · 数字化交易底座</div>
         </aside>
 
         <main className="login-panel">
           <div className="login-mobile-brand">
-            <span>T</span>
-            <strong>TIGSHOP</strong>
+            <span><img src={`${import.meta.env.BASE_URL}admin-assets/nextrade-mark.svg`} alt="" /></span>
+            <strong>NexTrade</strong>
           </div>
           <div className="login-card">
             {step === 'login' ? (

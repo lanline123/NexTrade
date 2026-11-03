@@ -5417,3 +5417,28 @@ body {
   background: #5eead4;
   box-shadow: 0 0 8px #5eead4;
 }
+
+/* NexTrade 登录品牌标识 */
+.login-hero-mark {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+.login-hero-mark img {
+  display: block;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+.login-mobile-brand span {
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+.login-mobile-brand span img {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
