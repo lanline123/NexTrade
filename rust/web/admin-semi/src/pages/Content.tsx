@@ -120,7 +120,7 @@ export default function Content() {
       {
         title: '文章重要性',
         dataIndex: 'isTop',
-        width: 110,
+        width: 150,
         render: (value: number) =>
           value === 1 ? <Tag color="orange">{t('置顶')}</Tag> : <span>{t('普通')}</span>,
       },
@@ -133,7 +133,7 @@ export default function Content() {
       {
         title: '是否热门',
         dataIndex: 'isHot',
-        width: 100,
+        width: 130,
         render: (value: number, record) => (
           <ArticleSwitch record={record} field="isHot" value={value} />
         ),
@@ -141,7 +141,7 @@ export default function Content() {
       {
         title: '是否显示',
         dataIndex: 'isShow',
-        width: 100,
+        width: 140,
         render: (value: number, record) => (
           <ArticleSwitch record={record} field="isShow" value={value} />
         ),
@@ -303,7 +303,7 @@ export default function Content() {
               field: 'isShow',
               label: '是否显示',
               type: 'select',
-              width: 130,
+              width: 170,
               options: [
                 { label: '显示', value: 1 },
                 { label: '不显示', value: 0 },
