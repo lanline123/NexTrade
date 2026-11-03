@@ -1458,3 +1458,36 @@
 .pchead-benefit__text small {
   font-weight: 400;
 }
+
+/* 顶部提示内容轮播 */
+.pchead-benefit--carousel {
+  overflow: hidden;
+}
+.pchead-benefit__slide {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  animation: pchead-benefit-slide-in 0.35s ease;
+}
+@keyframes pchead-benefit-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 顶部提示内容：隐藏测量层，保证轮播宽度按最长文案固定 */
+.pchead-benefit {
+  position: relative;
+}
+.pchead-benefit__measure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  gap: 6px;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.pchead-benefit__measure-item {
+  display: inline-flex;
+}

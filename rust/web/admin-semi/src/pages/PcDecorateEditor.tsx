@@ -3657,6 +3657,69 @@ const PC_HEADER_DEFAULTS: Record<string, any> = {
   benefitNoticeGroups: [],
 };
 
+function BenefitNoticePreview({
+  notices,
+  titleColor,
+  descColor,
+}: {
+  notices: Array<Record<string, any>>;
+  titleColor?: string;
+  descColor?: string;
+}) {
+  const [index, setIndex] = useState(0);
+  const [textWidth, setTextWidth] = useState(0);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const signature = notices.map((notice) => `${notice.picUrl || ''}|${notice.picTitle || ''}|${notice.picDesc || ''}`).join('\u0001');
+
+  useEffect(() => {
+    setIndex(0);
+    if (notices.length <= 1) return undefined;
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % notices.length);
+    }, 3000);
+    return () => window.clearInterval(timer);
+    // 仅在提示内容变化时重启轮播，颜色变化不应重置
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+
+  useEffect(() => {
+    const root = measureRef.current;
+    if (!root) return;
+    const widths = Array.from(root.querySelectorAll<HTMLElement>('.pchead-benefit__measure-item'))
+      .map((el) => Math.ceil(el.getBoundingClientRect().width));
+    setTextWidth(widths.length ? Math.max(...widths) : 0);
+  }, [signature]);
+
+  const notice = notices[index] || notices[0];
+  if (!notice) return null;
+
+  return (
+    <div className={`pchead-benefit${notices.length > 1 ? ' pchead-benefit--carousel' : ''}`}>
+      <div className="pchead-benefit__measure" ref={measureRef} aria-hidden="true">
+        {notices.map((item, itemIndex) => (
+          <span className="pchead-benefit__text pchead-benefit__measure-item" key={itemIndex}>
+            {item.picTitle && <strong>{item.picTitle}</strong>}
+            {item.picDesc && <small>{item.picDesc}</small>}
+          </span>
+        ))}
+      </div>
+      {notice.picUrl && <img className="pchead-benefit__icon" src={notice.picUrl} alt="" />}
+      {(notice.picTitle || notice.picDesc) && (
+        <span className="pchead-benefit__text" style={textWidth > 0 ? { minWidth: textWidth } : undefined}>
+          <span className="pchead-benefit__slide" key={`${index}-${notice.picTitle || ''}-${notice.picDesc || ''}`}>
+            {notice.picTitle && (
+              <strong style={titleColor ? { color: titleColor } : undefined}>{notice.picTitle}</strong>
+            )}
+            {notice.picDesc && (
+              <small style={descColor ? { color: descColor } : undefined}>{notice.picDesc}</small>
+            )}
+          </span>
+        </span>
+      )}
+    </div>
+  );
+}
+
 function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>; onOpen: () => void }) {
   const { t } = useI18n();
   const h = { ...PC_HEADER_DEFAULTS, ...header };
@@ -3721,25 +3784,13 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
               {!simple && benefitGroups.length > 0 && (
                 <div className="pchead-strip__benefits">
                   {benefitGroups.map((group, groupIndex) => {
-                    const notice = group.notices[0];
                     return (
-                      <div className="pchead-benefit" key={groupIndex}>
-                        {notice.picUrl && <img className="pchead-benefit__icon" src={notice.picUrl} alt="" />}
-                        {(notice.picTitle || notice.picDesc) && (
-                          <span className="pchead-benefit__text">
-                            {notice.picTitle && (
-                              <strong style={h.benefitTitleColor ? { color: h.benefitTitleColor } : undefined}>
-                                {notice.picTitle}
-                              </strong>
-                            )}
-                            {notice.picDesc && (
-                              <small style={h.benefitDescColor ? { color: h.benefitDescColor } : undefined}>
-                                {notice.picDesc}
-                              </small>
-                            )}
-                          </span>
-                        )}
-                      </div>
+                      <BenefitNoticePreview
+                        key={groupIndex}
+                        notices={group.notices}
+                        titleColor={h.benefitTitleColor}
+                        descColor={h.benefitDescColor}
+                      />
                     );
                   })}
                 </div>
