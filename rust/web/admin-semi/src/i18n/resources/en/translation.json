@@ -11898,5 +11898,9 @@
   "我的收藏": "My favorites",
   "客服中心": "Customer service",
   "搜索名称": "Search name",
-  "链接文字(可选)": "Link text (optional)"
+  "链接文字(可选)": "Link text (optional)",
+  "请输入版权信息": "Enter copyright text",
+  "版权信息将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。": "The copyright notice is shown at the bottom of the storefront. Purchase the copyright-removal service to customize or hide it.",
+  "暂无默认技术支持标识": "No default tech support logo",
+  "技术标识将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。": "The tech support mark is shown at the bottom of the storefront. Purchase the copyright-removal service to customize or hide it."
 }

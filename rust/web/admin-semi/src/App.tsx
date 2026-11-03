@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { apiGet, clearToken, enterDemo, getToken, isDemo } from './api';
 import { applyAppearance, type AppearanceSettings } from './theme';
 import AdminLayout, { type PageKey } from './layout/AdminLayout';
@@ -26,7 +26,7 @@ import AccountManage from './pages/AccountManage';
 import TaxRates from './pages/TaxRates';
 import ShippingTypes from './pages/ShippingTypes';
 import ShippingSettingsPage from './pages/ShippingSettings';
-import AutoConfigPage, { type ConfigFieldGroup, type ConfigFieldRule } from './pages/AutoConfigPage';
+import AutoConfigPage, { CopyrightConfigField, TechSupportConfigField, type ConfigRendererContext, type ConfigFieldGroup, type ConfigFieldRule } from './pages/AutoConfigPage';
 import LogisticsSettings from './pages/LogisticsSettings';
 import PayLogs from './pages/PayLogs';
 import RefundLogs from './pages/RefundLogs';
@@ -234,6 +234,8 @@ type ConfigPageDef = {
   options?: Record<string, Array<{ label: string; value: string | number; color?: string }>>;
   hiddenFields?: string[];
   fieldHelp?: Record<string, string>;
+  labels?: Record<string, string>;
+  renderers?: Record<string, (context: ConfigRendererContext) => ReactNode>;
 };
 
 const configPages: Record<string, ConfigPageDef> = {
@@ -373,7 +375,17 @@ const configPages: Record<string, ConfigPageDef> = {
       shopCommonRemarks: '收银机常用备注，一行一条',
     },
   },
-  baseBasicManage: { title: '基础信息', getApi: '/setting/config/basicSettings', saveApi: '/setting/config/saveBasic' },
+  baseBasicManage: {
+    title: '基础信息',
+    getApi: '/setting/config/basicSettings',
+    saveApi: '/setting/config/saveBasic',
+    labels: { shopCompany: '版权信息', poweredBy: '技术支持标识' },
+    hiddenFields: ['shopCompanyTxt', 'defaultCopyright', 'poweredByLogo', 'defaultTechSupport'],
+    renderers: {
+      shopCompany: (context) => <CopyrightConfigField {...context} />,
+      poweredBy: (context) => <TechSupportConfigField {...context} />,
+    },
+  },
   baseProductManage: { title: '商品设置', getApi: '/setting/config/productSettings', saveApi: '/setting/config/saveProduct' },
   baseShoppingManage: { title: '交易设置', getApi: '/setting/config/shoppingSettings', saveApi: '/setting/config/saveShopping' },
   baseOrderManage: {

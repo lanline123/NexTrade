@@ -53,6 +53,84 @@ export interface ConfigRendererContext {
   update: (key: string, next: unknown) => void;
 }
 
+export function CopyrightConfigField({ value, values, update }: ConfigRendererContext) {
+  const { t } = useI18n();
+  const custom = Number(value) === 0;
+  const customText = String(values.shopCompanyTxt ?? '');
+  const defaultText = String(values.defaultCopyright ?? 'Copyright © 2024 NexTrade. All Rights Reserved').replace(/Tigshop/gi, 'NexTrade');
+  return (
+    <div className="copyright-config-field">
+      <RadioGroup
+        value={custom ? 0 : 1}
+        type="button"
+        onChange={(event) => update('shopCompany', Number(event.target.value))}
+      >
+        <Radio value={1}>{t('系统默认')}</Radio>
+        <Radio value={0}>{t('自定义')}</Radio>
+      </RadioGroup>
+      <div className="copyright-config-field__input">
+        {custom ? (
+          <Input
+            value={customText}
+            onChange={(next) => update('shopCompanyTxt', next)}
+            placeholder={t('请输入版权信息')}
+          />
+        ) : (
+          <Input value={defaultText} disabled />
+        )}
+        {custom && (
+          <Button size="small" onClick={() => update('defaultCopyright', customText)}>
+            {t('设为默认')}
+          </Button>
+        )}
+      </div>
+      <div className="copyright-config-field__hint">
+        {t('版权信息将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。')}
+      </div>
+    </div>
+  );
+}
+
+export function TechSupportConfigField({ value, values, update }: ConfigRendererContext) {
+  const { t } = useI18n();
+  const custom = Number(value) === 0;
+  const logo = String(values.poweredByLogo ?? '');
+  const defaultLogo = String(values.defaultTechSupport ?? '');
+  return (
+    <div className="tech-support-config-field">
+      <RadioGroup
+        value={custom ? 0 : 1}
+        type="button"
+        onChange={(event) => update('poweredBy', Number(event.target.value))}
+      >
+        <Radio value={1}>{t('系统默认')}</Radio>
+        <Radio value={0}>{t('自定义')}</Radio>
+      </RadioGroup>
+      <div className="tech-support-config-field__preview">
+        {custom ? (
+          <ImageUploader
+            single
+            value={logo ? [logo] : []}
+            onChange={(next) => update('poweredByLogo', next[0] || '')}
+          />
+        ) : defaultLogo ? (
+          <img src={defaultLogo} alt="" />
+        ) : (
+          <span className="tech-support-config-field__empty">{t('暂无默认技术支持标识')}</span>
+        )}
+        {custom && logo && (
+          <Button size="small" onClick={() => update('defaultTechSupport', logo)}>
+            {t('设为默认')}
+          </Button>
+        )}
+      </div>
+      <div className="tech-support-config-field__hint">
+        {t('技术标识将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。')}
+      </div>
+    </div>
+  );
+}
+
 export type ConfigControlType =
   | 'radio'
   | 'switch'
@@ -240,6 +318,10 @@ export default function AutoConfigPage({
     apiGet<Record<string, unknown>>(getApi)
       .then((result) => {
         const data = { ...defaults, ...(result || {}) };
+        // 品牌迁移：历史默认版权中的 Tigshop 统一显示/保存为 NexTrade
+        if (typeof data.defaultCopyright === 'string') {
+          data.defaultCopyright = data.defaultCopyright.replace(/Tigshop/gi, 'NexTrade');
+        }
         setValues(data);
         const drafts: Record<string, string> = {};
         Object.entries(data).forEach(([key, value]) => {
