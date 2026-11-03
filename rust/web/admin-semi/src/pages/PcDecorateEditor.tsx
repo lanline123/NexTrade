@@ -3704,14 +3704,14 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
       {showBenefitBar && (
         <div className="dec-pc-header-preview__strip" style={h.benefitBarBackgroundColor ? { background: h.benefitBarBackgroundColor } : undefined}>
           <div className="dec-pc-header-preview__strip-inner">
-            <div className="pchead-strip">
+            <div className={`pchead-strip${simple ? '' : ' pchead-strip--overseas'}`}>
               <div className="pchead-strip__left" style={topMenuTextStyle}>
                 {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || t('北京市')}</span>}
                 {simple && showTopMemberName && <a className="pchead-strip__link">{t('会员信息')}</a>}
               </div>
               {!simple && (h.benefitNoticeGroups || []).length > 0 && (
                 <div className="pchead-strip__benefits">
-                  {(h.benefitNoticeGroups || []).slice(0, 3).map((group: any, groupIndex: number) => {
+                  {(h.benefitNoticeGroups || []).map((group: any, groupIndex: number) => {
                     const notice = group?.notices?.[0] || {};
                     return (
                       <div className="pchead-benefit" key={groupIndex}>

@@ -1425,3 +1425,15 @@
 .pchead-strip__link {
   color: var(--pchead-strip-color, rgba(255, 255, 255, 0.84));
 }
+
+/* 跨境风顶部提示内容：与原版一致，从左侧开始排布 */
+.pchead-strip--overseas {
+  gap: clamp(12px, 3vw, 40px);
+}
+.pchead-strip__benefits {
+  justify-content: flex-start;
+  gap: clamp(12px, 3vw, 40px);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
