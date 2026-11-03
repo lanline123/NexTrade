@@ -11902,5 +11902,11 @@
   "请输入版权信息": "Enter copyright text",
   "版权信息将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。": "The copyright notice is shown at the bottom of the storefront. Purchase the copyright-removal service to customize or hide it.",
   "暂无默认技术支持标识": "No default tech support logo",
-  "技术标识将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。": "The tech support mark is shown at the bottom of the storefront. Purchase the copyright-removal service to customize or hide it."
+  "技术标识将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。": "The tech support mark is shown at the bottom of the storefront. Purchase the copyright-removal service to customize or hide it.",
+  "选择配置方式": "Choose a configuration mode",
+  "平台默认": "Platform default",
+  "当前使用平台默认版权": "Currently using the platform default copyright",
+  "当前使用平台默认技术支持标识": "Currently using the platform default tech support mark",
+  "自定义版权文案": "Custom copyright text",
+  "自定义技术支持图片": "Custom tech support image"
 }

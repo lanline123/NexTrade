@@ -55,6 +55,43 @@ export interface ConfigRendererContext {
   update: (key: string, next: unknown) => void;
 }
 
+function SettingsModeToggle({ custom, onChange }: { custom: boolean; onChange: (custom: boolean) => void }) {
+  const { t } = useI18n();
+  return (
+    <div className="settings-mode-toggle" role="tablist" aria-label={t('选择配置方式')}>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={!custom}
+        className={!custom ? 'is-active' : ''}
+        onClick={() => onChange(false)}
+      >
+        <span className="settings-mode-toggle__dot" />
+        {t('系统默认')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={custom}
+        className={custom ? 'is-active' : ''}
+        onClick={() => onChange(true)}
+      >
+        <span className="settings-mode-toggle__dot" />
+        {t('自定义')}
+      </button>
+    </div>
+  );
+}
+
+function SettingsFieldHint({ children }: { children: ReactNode }) {
+  return (
+    <div className="settings-field-hint">
+      <span className="settings-field-hint__icon">i</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
 export function CopyrightConfigField({ value, values, update }: ConfigRendererContext) {
   const { t } = useI18n();
   const custom = Number(value) === 0;
@@ -62,33 +99,33 @@ export function CopyrightConfigField({ value, values, update }: ConfigRendererCo
   const defaultText = String(values.defaultCopyright ?? 'Copyright © 2024 NexTrade. All Rights Reserved').replace(/Tigshop/gi, 'NexTrade');
   return (
     <div className="copyright-config-field">
-      <RadioGroup
-        value={custom ? 0 : 1}
-        type="button"
-        onChange={(event) => update('shopCompany', Number(event.target.value))}
-      >
-        <Radio value={1}>{t('系统默认')}</Radio>
-        <Radio value={0}>{t('自定义')}</Radio>
-      </RadioGroup>
-      <div className="copyright-config-field__input">
-        {custom ? (
-          <Input
-            value={customText}
-            onChange={(next) => update('shopCompanyTxt', next)}
-            placeholder={t('请输入版权信息')}
-          />
-        ) : (
-          <Input value={defaultText} disabled />
-        )}
-        {custom && (
-          <Button size="small" onClick={() => update('defaultCopyright', customText)}>
-            {t('设为默认')}
-          </Button>
-        )}
-      </div>
-      <div className="copyright-config-field__hint">
+      <SettingsModeToggle custom={custom} onChange={(next) => update('shopCompany', next ? 0 : 1)} />
+      {custom ? (
+        <div className="settings-editor-card">
+          <div className="settings-editor-card__label">{t('自定义版权文案')}</div>
+          <div className="settings-editor-card__row">
+            <Input
+              value={customText}
+              onChange={(next) => update('shopCompanyTxt', next)}
+              placeholder={t('请输入版权信息')}
+            />
+            <Button size="small" onClick={() => update('defaultCopyright', customText)}>
+              {t('设为默认')}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="settings-preview-card">
+          <div className="settings-preview-card__head">
+            <span>{t('当前使用平台默认版权')}</span>
+            <span className="settings-badge">{t('平台默认')}</span>
+          </div>
+          <div className="settings-preview-card__copyright">{defaultText}</div>
+        </div>
+      )}
+      <SettingsFieldHint>
         {t('版权信息将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。')}
-      </div>
+      </SettingsFieldHint>
     </div>
   );
 }
@@ -100,35 +137,39 @@ export function TechSupportConfigField({ value, values, update }: ConfigRenderer
   const defaultLogo = String(values.defaultTechSupport ?? '') || `${window.location.origin}${NEXTRADE_TECH_SUPPORT}`;
   return (
     <div className="tech-support-config-field">
-      <RadioGroup
-        value={custom ? 0 : 1}
-        type="button"
-        onChange={(event) => update('poweredBy', Number(event.target.value))}
-      >
-        <Radio value={1}>{t('系统默认')}</Radio>
-        <Radio value={0}>{t('自定义')}</Radio>
-      </RadioGroup>
-      <div className="tech-support-config-field__preview">
-        {custom ? (
-          <ImageUploader
-            single
-            value={logo ? [logo] : []}
-            onChange={(next) => update('poweredByLogo', next[0] || '')}
-          />
-        ) : defaultLogo ? (
-          <img src={defaultLogo} alt="" />
-        ) : (
-          <span className="tech-support-config-field__empty">{t('暂无默认技术支持标识')}</span>
-        )}
-        {custom && logo && (
-          <Button size="small" onClick={() => update('defaultTechSupport', logo)}>
-            {t('设为默认')}
-          </Button>
-        )}
-      </div>
-      <div className="tech-support-config-field__hint">
+      <SettingsModeToggle custom={custom} onChange={(next) => update('poweredBy', next ? 0 : 1)} />
+      {custom ? (
+        <div className="settings-editor-card">
+          <div className="settings-editor-card__label">{t('自定义技术支持图片')}</div>
+          <div className="settings-editor-card__row settings-editor-card__row--media">
+            <ImageUploader
+              single
+              value={logo ? [logo] : []}
+              onChange={(next) => update('poweredByLogo', next[0] || '')}
+            />
+            {logo && (
+              <Button size="small" onClick={() => update('defaultTechSupport', logo)}>
+                {t('设为默认')}
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="settings-preview-card settings-preview-card--media">
+          <div className="settings-preview-card__head">
+            <span>{t('当前使用平台默认技术支持标识')}</span>
+            <span className="settings-badge">{t('平台默认')}</span>
+          </div>
+          {defaultLogo ? (
+            <img src={defaultLogo} alt="" />
+          ) : (
+            <span className="tech-support-config-field__empty">{t('暂无默认技术支持标识')}</span>
+          )}
+        </div>
+      )}
+      <SettingsFieldHint>
         {t('技术标识将会显示在商城页面底部，如需自定义或隐藏，请购买去版权服务。')}
-      </div>
+      </SettingsFieldHint>
     </div>
   );
 }
