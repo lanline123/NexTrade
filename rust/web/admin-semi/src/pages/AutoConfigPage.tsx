@@ -14,7 +14,23 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconFile, IconHome, IconIdCard, IconSetting } from '@douyinfe/semi-icons';
+import {
+  IconBell,
+  IconBox,
+  IconClock,
+  IconComment,
+  IconCreditCard,
+  IconFile,
+  IconGift,
+  IconGlobe,
+  IconHome,
+  IconIdCard,
+  IconList,
+  IconServer,
+  IconSetting,
+  IconShoppingBag,
+  IconUser,
+} from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import { configLabels } from '../config/configLabels';
 import { useI18n } from '../i18n';
@@ -26,6 +42,57 @@ import SecretInput from '../components/SecretInput';
 const { Text } = Typography;
 
 const NEXTRADE_TECH_SUPPORT = '/admin-assets/nextrade-tech-support.svg';
+
+const CONFIG_SECTION_ICONS: Record<string, ReactNode> = {
+  商城信息: <IconHome />,
+  备案信息: <IconFile />,
+  经营许可证: <IconIdCard />,
+  商城状态: <IconSetting />,
+  商品货币设置: <IconCreditCard />,
+  商品录入设置: <IconBox />,
+  商品编辑设置: <IconSetting />,
+  商品信息显示设置: <IconShoppingBag />,
+  商品评价设置: <IconComment />,
+  购物全局设置: <IconShoppingBag />,
+  积分设置: <IconGift />,
+  发票设置: <IconCreditCard />,
+  退换货设置: <IconBox />,
+  基础设置: <IconList />,
+  售后设置: <IconClock />,
+  平台管理订单流转设置: <IconList />,
+  店铺后台订单流转设置: <IconList />,
+  平台代客下单设置: <IconUser />,
+  客服设置: <IconComment />,
+  客服信息: <IconBell />,
+  聊天工具: <IconComment />,
+  全局设置: <IconSetting />,
+  存储设置: <IconServer />,
+  多语言设置: <IconGlobe />,
+  货币设置: <IconCreditCard />,
+  地区设置: <IconGlobe />,
+  用户设置: <IconUser />,
+};
+
+const CONFIG_SECTION_DESCRIPTIONS: Record<string, string> = {
+  商城信息: '商城 Logo、名称、版权与技术支持等基础展示信息。',
+  备案信息: 'ICP 备案号、公安备案号及对应跳转链接。',
+  经营许可证: '营业执照展示与经营许可证相关开关。',
+  商城状态: '注册、下单与营业执照状态控制。',
+  商品货币设置: '商城货币符号及中文展示方式。',
+  商品录入设置: '商品名称长度、编码前缀与市场价格规则。',
+  商品编辑设置: '库存编辑权限与规格图片展示方式。',
+  商品信息显示设置: '商品列表与详情页的销量、市场价、询价等展示规则。',
+  商品评价设置: '商品评价入口与匿名评价规则。',
+  购物全局设置: '下单与地区校验相关规则。',
+  积分设置: '积分获取、抵扣、签到与评论奖励规则。',
+  发票设置: '发票入口与增值税专用发票规则。',
+  退换货设置: '退货收件人、联系电话与退货地址。',
+  基础设置: '订单自动流转、虚拟订单与取消规则。',
+  售后设置: '售后审核、退货、自动确认与财务复核规则。',
+  平台管理订单流转设置: '平台端可取消已支付或已发货订单的规则。',
+  店铺后台订单流转设置: '店铺端取消已发货订单的规则。',
+  平台代客下单设置: '平台代客下单时积分与余额的使用规则。',
+};
 
 export interface ConfigWhen {
   field?: string;
@@ -684,19 +751,7 @@ export default function AutoConfigPage({
     );
   };
 
-  if (modern) {
-    const sectionIcons: Record<string, ReactNode> = {
-      商城信息: <IconHome />,
-      备案信息: <IconFile />,
-      经营许可证: <IconIdCard />,
-      商城状态: <IconSetting />,
-    };
-    const sectionDescriptions: Record<string, string> = {
-      商城信息: '商城 Logo、名称、版权与技术支持等基础展示信息。',
-      备案信息: 'ICP 备案号、公安备案号及对应跳转链接。',
-      经营许可证: '营业执照展示与经营许可证相关开关。',
-      商城状态: '注册、下单与营业执照状态控制。',
-    };
+  if (modern !== false) {
     return (
       <div className="base-settings-list">
         {grouped.map((group, index) => (
@@ -705,12 +760,14 @@ export default function AutoConfigPage({
             className="base-settings-card"
             title={
               <div className="base-settings-card__title">
-                <span className="base-settings-card__icon">{sectionIcons[group.title] || <IconSetting />}</span>
+                <span className="base-settings-card__icon">{CONFIG_SECTION_ICONS[group.title] || <IconSetting />}</span>
                 <span className="base-settings-card__title-text">
                   <strong>{t(group.title || '其他')}</strong>
-                  {sectionDescriptions[group.title] && (
-                    <small>{t(sectionDescriptions[group.title])}</small>
-                  )}
+                  <small>
+                    {t(CONFIG_SECTION_DESCRIPTIONS[group.title] || '配置{title}相关参数。', {
+                      title: t(group.title || '其他'),
+                    })}
+                  </small>
                 </span>
               </div>
             }

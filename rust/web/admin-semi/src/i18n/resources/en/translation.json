@@ -11917,5 +11917,20 @@
   "营业执照展示与经营许可证相关开关。": "Business license display and permit switches.",
   "注册、下单与营业执照状态控制。": "Registration, ordering, and license status controls.",
   "保存更改": "Save changes",
-  "{count} 项": "{count} items"
+  "{count} 项": "{count} items",
+  "配置{title}相关参数。": "Configure {title} settings.",
+  "商城货币符号及中文展示方式。": "Currency symbol and Chinese display format.",
+  "商品名称长度、编码前缀与市场价格规则。": "Product name length, SKU prefix, and market price rules.",
+  "库存编辑权限与规格图片展示方式。": "Stock editing permissions and specification image display.",
+  "商品列表与详情页的销量、市场价、询价等展示规则。": "Display rules for sales, market price, and inquiries.",
+  "商品评价入口与匿名评价规则。": "Review entry and anonymous review rules.",
+  "下单与地区校验相关规则。": "Checkout and region validation rules.",
+  "积分获取、抵扣、签到与评论奖励规则。": "Points earning, deduction, sign-in, and review rewards.",
+  "发票入口与增值税专用发票规则。": "Invoice entry and VAT invoice rules.",
+  "退货收件人、联系电话与退货地址。": "Return recipient, phone, and address.",
+  "订单自动流转、虚拟订单与取消规则。": "Order flow, virtual orders, and cancellation rules.",
+  "售后审核、退货、自动确认与财务复核规则。": "After-sales review, returns, auto-confirmation, and finance review.",
+  "平台端可取消已支付或已发货订单的规则。": "Platform rules for cancelling paid or shipped orders.",
+  "店铺端取消已发货订单的规则。": "Store rules for cancelling shipped orders.",
+  "平台代客下单时积分与余额的使用规则。": "Points and balance rules for platform-assisted orders."
 }
