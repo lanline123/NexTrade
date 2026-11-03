@@ -12,6 +12,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import { mockOrderPage } from '../mock';
 import type { OrderRow, PageResult } from '../types';
 import OrderDetailModal from '../components/OrderDetailModal';
@@ -36,6 +37,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function Orders() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<OrderRow[]>(isDemo() ? mockOrderPage.records : []);
   const [total, setTotal] = useState(isDemo() ? mockOrderPage.total : 0);
   const [page, setPage] = useState(1);
@@ -83,28 +85,28 @@ export default function Orders() {
             setStatus(String(key));
             setPage(1);
           }}
-          tabList={statusTabs.map((item) => ({ tab: item.tab, itemKey: item.key }))}
+          tabList={statusTabs.map((item) => ({ tab: t(item.tab), itemKey: item.key }))}
         />
 
         <div className="table-toolbar" style={{ marginTop: 16 }}>
           <Space>
             <Input
               prefix={<IconSearch />}
-              placeholder="搜索订单号 / 收货人 / 手机号"
+              placeholder={t('搜索订单号 / 收货人 / 手机号')}
               value={keyword}
               onChange={setKeyword}
               onEnterPress={search}
               style={{ width: 300 }}
             />
             <Button theme="solid" type="primary" onClick={search}>
-              查询
+              {t('查询')}
             </Button>
           </Space>
           <Space>
             <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-              刷新
+              {t('刷新')}
             </Button>
-            <Button>导出订单</Button>
+            <Button>{t('导出订单')}</Button>
           </Space>
         </div>
 
@@ -120,12 +122,12 @@ export default function Orders() {
           }}
           columns={[
             {
-              title: '订单号',
+              title: t('订单号'),
               dataIndex: 'orderSn',
               render: (value: string) => <span className="mono">{value}</span>,
             },
             {
-              title: '收货人',
+              title: t('收货人'),
               dataIndex: 'consignee',
               render: (value: string, record: OrderRow) => (
                 <div>
@@ -137,26 +139,26 @@ export default function Orders() {
               ),
             },
             {
-              title: '订单金额',
+              title: t('订单金额'),
               dataIndex: 'totalAmount',
               width: 140,
               render: (value: string) => <span className="money">¥ {Number(value || 0).toLocaleString()}</span>,
             },
             {
-              title: '支付状态',
+              title: t('支付状态'),
               dataIndex: 'payStatusName',
               width: 110,
-              render: (value: string) => <Tag color={value === '已付款' ? 'green' : 'orange'}>{value || '-'}</Tag>,
+              render: (value: string) => <Tag color={value === '已付款' ? 'green' : 'orange'}>{value ? t(value) : '-'}</Tag>,
             },
             {
-              title: '订单状态',
+              title: t('订单状态'),
               dataIndex: 'orderStatusName',
               width: 110,
-              render: (value: string) => <Tag color={(statusColor[value] || 'blue') as any}>{value || '-'}</Tag>,
+              render: (value: string) => <Tag color={(statusColor[value] || 'blue') as any}>{value ? t(value) : '-'}</Tag>,
             },
-            { title: '下单时间', dataIndex: 'addTime', width: 180 },
+            { title: t('下单时间'), dataIndex: 'addTime', width: 180 },
             {
-              title: '操作',
+              title: t('操作'),
               width: 120,
               render: (_: unknown, record: OrderRow) => (
                 <Button
@@ -167,7 +169,7 @@ export default function Orders() {
                     setDetailOpen(true);
                   }}
                 >
-                  查看详情
+                  {t('查看详情')}
                 </Button>
               ),
             },

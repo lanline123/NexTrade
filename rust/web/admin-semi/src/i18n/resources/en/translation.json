@@ -1507,7 +1507,7 @@
   "当月": "current month",
   "导出": "Export",
   "导出报表": "Export report",
-  "导出订单": "Export order",
+  "导出订单": "Export orders",
   "导出链接": "Export Links",
   "导出数据": "Export data",
   "导出维度：": "Export dimensions:",
@@ -1785,7 +1785,7 @@
   "订单发货": "Order Shipment",
   "订单发货 ": "Order Shipment ",
   "订单管理": "Order management",
-  "订单号": "Order number",
+  "订单号": "Order no.",
   "订单号：": "Order number:",
   "订单号：20251224110753258295": "Order number: 20251224110753258295",
   "订单号/会员名称": "Order number/member name",
@@ -7965,7 +7965,7 @@
   "已发货/待核销": "Shipped / Pending redemption",
   "已发货订单可取消发货": "Shipment of orders that have been shipped can be canceled",
   "已服务": "Served",
-  "已付款": "paid",
+  "已付款": "Paid",
   "已付款订单": "Paid order",
   "已付款金额": "Amount paid",
   "已复制": "Copied",
@@ -10457,5 +10457,6 @@
   "其它": "Other",
   "JSON 格式不正确": "Invalid JSON",
   "共 {count} 项配置": "{count} settings",
-  "搜索商品名称 / 编号": "Search product name / SN"
+  "搜索商品名称 / 编号": "Search product name / SN",
+  "搜索订单号 / 收货人 / 手机号": "Search order no. / consignee / mobile"
 }
