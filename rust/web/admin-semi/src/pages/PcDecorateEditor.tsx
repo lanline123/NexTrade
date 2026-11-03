@@ -3680,6 +3680,15 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
   const navTitles = useHeaderNavTitles();
   const navItems = navTitles.length ? navTitles : [t('首页'), t('导航1'), t('导航2')];
 
+  const benefitGroups = ((h.benefitNoticeGroups || []) as Array<Record<string, any>>)
+    .map((group) => ({
+      ...group,
+      notices: ((group.notices || []) as Array<Record<string, any>>).filter((notice) => (
+        Boolean(notice?.picUrl || notice?.picTitle || notice?.picDesc || notice?.picLink?.link)
+      )),
+    }))
+    .filter((group) => group.notices.length > 0);
+
   const topMenuTextStyle: Record<string, any> = {};
   if (h.topMenuTextColor) {
     topMenuTextStyle.color = h.topMenuTextColor;
@@ -3709,21 +3718,27 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
                 {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || t('北京市')}</span>}
                 {simple && showTopMemberName && <a className="pchead-strip__link">{t('会员信息')}</a>}
               </div>
-              {!simple && (h.benefitNoticeGroups || []).length > 0 && (
+              {!simple && benefitGroups.length > 0 && (
                 <div className="pchead-strip__benefits">
-                  {(h.benefitNoticeGroups || []).map((group: any, groupIndex: number) => {
-                    const notice = group?.notices?.[0] || {};
+                  {benefitGroups.map((group, groupIndex) => {
+                    const notice = group.notices[0];
                     return (
                       <div className="pchead-benefit" key={groupIndex}>
                         {notice.picUrl && <img className="pchead-benefit__icon" src={notice.picUrl} alt="" />}
-                        <span className="pchead-benefit__text">
-                          <strong style={h.benefitTitleColor ? { color: h.benefitTitleColor } : undefined}>
-                            {notice.picTitle || t('主标题')}
-                          </strong>
-                          <small style={h.benefitDescColor ? { color: h.benefitDescColor } : undefined}>
-                            {notice.picDesc || t('副标题')}
-                          </small>
-                        </span>
+                        {(notice.picTitle || notice.picDesc) && (
+                          <span className="pchead-benefit__text">
+                            {notice.picTitle && (
+                              <strong style={h.benefitTitleColor ? { color: h.benefitTitleColor } : undefined}>
+                                {notice.picTitle}
+                              </strong>
+                            )}
+                            {notice.picDesc && (
+                              <small style={h.benefitDescColor ? { color: h.benefitDescColor } : undefined}>
+                                {notice.picDesc}
+                              </small>
+                            )}
+                          </span>
+                        )}
                       </div>
                     );
                   })}
