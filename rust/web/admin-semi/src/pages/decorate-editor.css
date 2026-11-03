@@ -333,17 +333,11 @@
 }
 
 /* ============ PC 装修编辑器（PcDecorateEditor） ============ */
-/* iconfont-admin：与原版 global.css 一致的 alicdn 远程图标字体 */
-@import url("https://at.alicdn.com/t/c/font_2712500_jd8i8ai7b8k.css");
-@import url("https://at.alicdn.com/t/c/font_400590_7he137t8862.css");
-
-.iconfont-admin {
-  font-family: "iconfont-admin" !important;
-  font-size: 16px;
-  font-style: normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* 模块库图标：改用本地 @icon-park/react SVG 组件（见 PcDecorateEditor 的 LIB_META）。
+   原版依赖 alicdn 远程 iconfont（font_4375017 的 .iconfont-admin 字体族）：
+   - 本文件此处的 @import 位置在其它规则之后，浏览器按 CSS 规范直接丢弃；
+   - 且 Vite 打包时也会移除远程 @import，产物 CSS 里不会有任何字体声明。
+   故图标字体从未生效（表现为“PC首页模块”列表只剩文字、图标空缺）。 */
 
 /* 左侧模块库：对齐原版 ModuleToolbar + decorate.css（295px 面板 / 单折叠分组 / 图标卡片网格） */
 .pc-decorate-lib {
@@ -410,17 +404,18 @@
   color: #fff;
 }
 .pc-decorate-lib__pic {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 40px;
   overflow: hidden;
 }
-.pc-decorate-lib__pic i {
-  font-size: 36px;
+.pc-decorate-lib__pic svg {
   color: #7d7e80;
-  line-height: 40px;
+  transition: color 0.2s;
 }
-.pc-decorate-lib__item:hover .pc-decorate-lib__pic i {
+.pc-decorate-lib__item:hover .pc-decorate-lib__pic svg {
   color: #fff;
 }
 .pc-decorate-lib__content {

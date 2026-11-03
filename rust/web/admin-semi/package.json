@@ -13,6 +13,7 @@
   "dependencies": {
     "@douyinfe/semi-icons": "^2.104.0",
     "@douyinfe/semi-ui": "^2.104.0",
+    "@icon-park/react": "^1.4.2",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-react": "^1.0.6",
     "echarts": "^6.1.0",

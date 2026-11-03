@@ -41,6 +41,28 @@ import {
   IconRefresh,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import type { Icon as IconParkIcon } from '@icon-park/react/es/runtime';
+import Carousel from '@icon-park/react/es/icons/Carousel';
+import MultiPictureCarousel from '@icon-park/react/es/icons/MultiPictureCarousel';
+import ApplicationOne from '@icon-park/react/es/icons/ApplicationOne';
+import ApplicationMenu from '@icon-park/react/es/icons/ApplicationMenu';
+import LayoutOne from '@icon-park/react/es/icons/LayoutOne';
+import ViewGridList from '@icon-park/react/es/icons/ViewGridList';
+import ViewGridCard from '@icon-park/react/es/icons/ViewGridCard';
+import Picture from '@icon-park/react/es/icons/Picture';
+import ImageFiles from '@icon-park/react/es/icons/ImageFiles';
+import GridFour from '@icon-park/react/es/icons/GridFour';
+import ClickTap from '@icon-park/react/es/icons/ClickTap';
+import Commodity from '@icon-park/react/es/icons/Commodity';
+import ShoppingBagOne from '@icon-park/react/es/icons/ShoppingBagOne';
+import Star from '@icon-park/react/es/icons/Star';
+import Coupon from '@icon-park/react/es/icons/Coupon';
+import Peoples from '@icon-park/react/es/icons/Peoples';
+import Lightning from '@icon-park/react/es/icons/Lightning';
+import DividingLine from '@icon-park/react/es/icons/DividingLine';
+import RowHeight from '@icon-park/react/es/icons/RowHeight';
+import Announcement from '@icon-park/react/es/icons/Announcement';
+import TextIcon from '@icon-park/react/es/icons/Text';
 import './decorate-editor.css';
 
 const { Text } = Typography;
@@ -838,27 +860,43 @@ const LEGACY_TYPES = new Set(LEGACY_MODULE_DEFS.map((d) => d.type));
 
 const LIB_GROUPS = ['轮播横幅', '导航分类', '图片展示', '商品', '营销活动', '辅助元素'];
 
-/** 模块库原版元数据：工具栏排序 order + iconfont 图标类（原版 index.ts 注册值） */
-const LIB_META: Record<string, { order: number; icon: string }> = {
-  'pc-banner2': { order: 1, icon: 'icon-banner' },
-  'pc-group-banner': { order: 2, icon: 'icon-banner' },
-  'pc-home-hero': { order: 4, icon: 'icon-category_nav' },
-  'pc-category-nav': { order: 4, icon: 'icon-category_nav' },
-  'pc-category-nav3': { order: 5, icon: 'icon-category_nav' },
-  'pc-home-quick-nav': { order: 6, icon: 'icon-category_nav' },
-  'pc-image-ad': { order: 10, icon: 'icon-image_nav' },
-  'pc-image-nav': { order: 11, icon: 'icon-image_nav' },
-  'pc-image-square-ad': { order: 12, icon: 'icon-image_square_ad' },
-  'pc-image-hotarea': { order: 13, icon: 'icon-image_hotarea' },
-  'pc-product': { order: 14, icon: 'icon-product' },
-  'pc-product-group': { order: 15, icon: 'icon-product_grouping' },
-  'pc-divider': { order: 60, icon: 'icon-white_line' },
-  'pc-spacer': { order: 70, icon: 'icon-white_blank' },
-  'pc-notice': { order: 72, icon: 'icon-notice' },
-  'pc-title-ad': { order: 75, icon: 'icon-title_ad' },
-  'pc-home-coupon': { order: 82, icon: 'icon-coupon' },
-  'pc-home-groupon': { order: 83, icon: 'icon-seckill' },
-  'pc-home-seckill': { order: 84, icon: 'icon-seckill' },
+/**
+ * 模块库原版元数据：工具栏排序 order + 图标。
+ *
+ * 原版 index.ts 用 alicdn 远程 iconfont 的类名（icon-banner / icon-category_nav / ...），
+ * 但该字体在 admin-semi 里从未真正加载（远程 @import 被 CSS 规范丢弃，打包后亦无 @font-face），
+ * 导致「PC首页模块」列表只显示文字、图标缺失。此处改为等效语义的 @icon-park/react 本地 SVG 组件：
+ *   icon-banner → Carousel / MultiPictureCarousel
+ *   icon-category_nav → ViewGridList（分类导航）/ ViewGridCard（分类导航3）/ ApplicationMenu（快捷导航）
+ *   icon-image_nav → Picture / ImageFiles   icon-image_square_ad → GridFour
+ *   icon-image_hotarea → ClickTap           icon-product → Commodity
+ *   icon-product_grouping → ShoppingBagOne  icon-white_line → DividingLine
+ *   icon-white_blank → RowHeight            icon-notice → Announcement
+ *   icon-title_ad → TextIcon                icon-coupon → Coupon
+ *   icon-seckill → Lightning（秒杀）/ Peoples（拼团）
+ *   营销通栏原版复用 icon-category_nav，语义宽条幅 → LayoutOne
+ */
+const LIB_META: Record<string, { order: number; Icon: IconParkIcon }> = {
+  'pc-banner2': { order: 1, Icon: Carousel },
+  'pc-group-banner': { order: 2, Icon: MultiPictureCarousel },
+  'pc-home-hero': { order: 4, Icon: LayoutOne },
+  'pc-category-nav': { order: 4, Icon: ViewGridList },
+  'pc-category-nav3': { order: 5, Icon: ViewGridCard },
+  'pc-home-quick-nav': { order: 6, Icon: ApplicationMenu },
+  'pc-image-ad': { order: 10, Icon: Picture },
+  'pc-image-nav': { order: 11, Icon: ImageFiles },
+  'pc-image-square-ad': { order: 12, Icon: GridFour },
+  'pc-image-hotarea': { order: 13, Icon: ClickTap },
+  'pc-product': { order: 14, Icon: Commodity },
+  'pc-product-group': { order: 15, Icon: ShoppingBagOne },
+  'pc-recommend-product': { order: 3, Icon: Star },
+  'pc-divider': { order: 60, Icon: DividingLine },
+  'pc-spacer': { order: 70, Icon: RowHeight },
+  'pc-notice': { order: 72, Icon: Announcement },
+  'pc-title-ad': { order: 75, Icon: TextIcon },
+  'pc-home-coupon': { order: 82, Icon: Coupon },
+  'pc-home-groupon': { order: 83, Icon: Peoples },
+  'pc-home-seckill': { order: 84, Icon: Lightning },
 };
 
 /* ===================== 编辑器组件 ===================== */
@@ -1208,7 +1246,9 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                 {NEW_MODULE_DEFS.filter((d) => !d.hiddenInLibrary)
                   .slice()
                   .sort((a, b) => (LIB_META[a.type]?.order ?? 999) - (LIB_META[b.type]?.order ?? 999))
-                  .map((def) => (
+                  .map((def) => {
+                    const LibIcon = LIB_META[def.type]?.Icon || ViewGridList;
+                    return (
                     <Tooltip key={def.type} content={def.note || `${def.label}（点击添加，可拖入画布指定位置）`} position="right">
                       <div
                         className="pc-decorate-lib__item"
@@ -1220,12 +1260,13 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                         }}
                       >
                         <span className="pc-decorate-lib__pic">
-                          <i className={`iconfont-admin ${LIB_META[def.type]?.icon || 'icon-category_nav'}`} />
+                          <LibIcon size={34} strokeWidth={3} />
                         </span>
                         <span className="pc-decorate-lib__content" title={def.label}>{def.label}</span>
                       </div>
                     </Tooltip>
-                  ))}
+                    );
+                  })}
               </div>
             )}
             <div style={{ height: 50 }} />

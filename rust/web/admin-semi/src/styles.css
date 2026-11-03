@@ -4603,3 +4603,302 @@ body {
   color: #ad7a00;
   border-color: #ffd591;
 }
+
+
+/* ============ 顶部栏 / 消息中心 / 语音播报 / 选择组织（合并 origin/main 后叠加） ============ */
+/* 说明：origin/main 已包含 topbar-menu-search / topbar-text-btn 等样式，
+   本段只补充本次分支独有的规则（未读数胶囊、选择组织弹窗、语音播报设置等）。 */
+/* ============ 顶部栏 / 消息中心 / 语音播报 / 选择组织（从构建产物恢复） ============ */
+/* 注：本段规则曾因误执行 git checkout 丢失，已根据 dist 构建产物中的同名规则逐条恢复，内容与实际生效样式一致。 */
+
+/* ---- 顶部栏：用户下拉菜单图标 ---- */
+.semi-dropdown-item .semi-icon-user_group,
+.semi-dropdown-item .semi-icon-user_setting,
+.semi-dropdown-item .semi-icon-refresh,
+.semi-dropdown-item .semi-icon-exit,
+.semi-dropdown-item .semi-icon-shopping_bag {
+  color: #788d9b!important;
+  margin-right: 8px!important;
+  font-size: 16px;
+}
+
+/* ---- 语言切换按钮（IconPark Translate） ---- */
+.topbar-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+.topbar-lang-btn .semi-button-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.topbar-lang-btn .semi-icon,
+.topbar-lang-btn svg {
+  display: block;
+}
+
+/* ---- 消息中心 ---- */
+.admin-msg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.admin-msg-item.is-readed .admin-msg-item__title {
+  color: #8f959e;
+  font-weight: 400;
+}
+
+.admin-msg-item.is-readed .admin-msg-item__content {
+  color: #a8adb5;
+}
+
+.admin-msg-item__dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.admin-msg-item.is-unread .admin-msg-item__dot {
+  background: #fa4350;
+  box-shadow: 0 0 0 2px #fa43501f;
+}
+
+.admin-msg-item.is-unread .admin-msg-item__title {
+  color: #1f2329;
+  font-weight: 700;
+}
+
+.admin-msg-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-msg-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: #fa4350;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1;
+  font-weight: 500;
+  box-sizing: border-box;
+}
+
+.semi-tabs-tab .admin-msg-num {
+  background: #fa4350;
+}
+
+.semi-tabs-tab-active .admin-msg-num {
+  background: #fa4350;
+  box-shadow: 0 0 0 1px #fff9 inset;
+}
+
+.admin-msg-subtypes .semi-tag .admin-msg-num {
+  background: #fa4350;
+}
+
+/* ---- 授权信息 ---- */
+.licensed-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.licensed-info>div {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* ---- 语音播报 ---- */
+.voice-record-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0 12px;
+}
+
+.voice-activate-tip {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  background: #fff8e6;
+  color: #7a5b00;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.voice-broadcast-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  background: #fffbe6;
+  border-bottom: 1px solid #ffe7a3;
+  font-size: 13px;
+  line-height: 36px;
+  color: #ad7a00;
+}
+
+/* ---- 选择组织弹窗 ---- */
+.select-shop-head {
+  display: flex;
+  align-items: center;
+  padding: 4px 0 16px;
+}
+
+.select-shop-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  max-height: 470px;
+  overflow-y: auto;
+  padding: 4px 2px 8px;
+  min-height: 200px;
+}
+
+.select-shop-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-shop-pos-btn {
+  width: 200px;
+  height: 30px;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.select-shop-pos-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: #fff;
+}
+
+.select-shop-pos-btn:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.select-shop-item {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg,#edf0f5,#fafbfc);
+  border: 2px solid #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 2px 16px #1d365314;
+  color: #1f2026;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.select-shop-item:hover:not(:disabled) {
+  box-shadow: 0 20px 40px #021f411a;
+  border-color: var(--primary);
+  background: #fff;
+  transform: translateY(-3px);
+}
+
+.select-shop-item:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.select-shop-logo {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.select-shop-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.select-shop-title {
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.select-shop-switching {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffffb3;
+  z-index: 2;
+}
+
+.select-shop-create-btns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.select-shop-create {
+  padding: 40px 0;
+}
+
+.select-shop-create-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.select-shop-create-label {
+  width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  color: #1f2329;
+  font-size: 14px;
+}
