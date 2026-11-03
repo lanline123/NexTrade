@@ -11888,5 +11888,13 @@
   "删除提示后该组内容将不再显示。": "This notice will be hidden after saving.",
   "提示 {index}": "Notice {index}",
   "图标设置": "Icon settings",
-  "布局设置": "Layout settings"
+  "布局设置": "Layout settings",
+  "会员页面": "Member pages",
+  "PC端链接": "PC link",
+  "请输入以 / 开头的链接": "Enter a link starting with /",
+  "使用此链接": "Use this link",
+  "第【{index}】项": "Item {index}",
+  "我的积分": "My points",
+  "我的收藏": "My favorites",
+  "客服中心": "Customer service"
 }
