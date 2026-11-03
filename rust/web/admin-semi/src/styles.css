@@ -6640,3 +6640,15 @@ body {
   border-radius: 8px;
   font-size: 13px;
 }
+
+/* 字段标签：提升字号与对比度 */
+.base-settings-card .auto-config-field > label {
+  color: #344054;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.base-settings-card .auto-config-field > label {
+  font-size: 14px;
+}
