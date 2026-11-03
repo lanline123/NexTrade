@@ -121,8 +121,8 @@ export default function ShippingSettingsPage() {
         </div>
         {isKdniao ? (
           <>
-            {field(t('快递鸟 API Key'), 'kdniaoApiKey')}
-            {field(t('快递鸟服务 ID'), 'kdniaoBusinessId')}
+            {field(t('快递鸟API Key'), 'kdniaoApiKey')}
+            {field(t('快递鸟服务ID'), 'kdniaoBusinessId')}
           </>
         ) : (
           <>
@@ -151,17 +151,17 @@ export default function ShippingSettingsPage() {
 
       <SettingsCard
         icon={<IconMapPin />}
-        title={t('退货信息设置')}
-        description={t('退货收件人信息与默认退货地址。')}
+        title={t('收货信息设置')}
+        description={t('收货人信息与默认收货地址。')}
         count={t('{count} 项', { count: 6 })}
       >
         <div className="config-grid">
-          {field(t('退货人'), 'receiveSender')}
-          {field(t('退货人联系方式'), 'receiveMobile')}
-          {field(t('退货省份'), 'receiveProvinceName')}
-          {field(t('退货城市'), 'receiveCityName')}
-          {field(t('退货地区'), 'receiveAreaName')}
-          {field(t('退货详细地址'), 'receiveAddress')}
+          {field(t('收货人'), 'receiveSender')}
+          {field(t('收货人联系方式'), 'receiveMobile')}
+          {field(t('收货地省份'), 'receiveProvinceName')}
+          {field(t('收货城市'), 'receiveCityName')}
+          {field(t('收货地区'), 'receiveAreaName')}
+          {field(t('收货详细地址'), 'receiveAddress')}
         </div>
       </SettingsCard>
 
@@ -173,3 +173,4 @@ export default function ShippingSettingsPage() {
     </div>
   );
 }
+

@@ -11947,5 +11947,6 @@
   "设置默认配送方式名称。": "Set the default delivery method name.",
   "配置快递鸟或快递100查询接口。": "Configure the Kdniao or Kuaidi100 tracking API.",
   "发货人信息与默认发货地址。": "Sender information and default shipping address.",
-  "退货收件人信息与默认退货地址。": "Return recipient information and default return address."
+  "退货收件人信息与默认退货地址。": "Return recipient information and default return address.",
+  "收货人信息与默认收货地址。": "Recipient information and default receiving address."
 }
