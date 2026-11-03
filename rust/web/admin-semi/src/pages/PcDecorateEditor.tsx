@@ -4000,7 +4000,7 @@ function HeaderField({
   if (!showIf) return null;
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '7px 0' }}>
-      <div style={{ width: 98, flexShrink: 0, color: '#646a73', fontSize: 13, lineHeight: '28px' }}>{t(label)}</div>
+      <div style={{ width: 118, flexShrink: 0, color: '#646a73', fontSize: 13, lineHeight: '28px' }}>{t(label)}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         {children}
         {value ? <div style={{ color: '#98a2b3', fontSize: 12, lineHeight: '20px', marginTop: 2 }}>{typeof value === 'string' ? t(value) : value}</div> : null}
@@ -4045,6 +4045,92 @@ function SliderWithInput({
         style={{ width: 72, flexShrink: 0 }}
         onChange={(v) => onChange(clamp(v))}
       />
+    </div>
+  );
+}
+
+function BenefitGroupsEditor({
+  groups,
+  onChange,
+}: {
+  groups: Array<Record<string, any>>;
+  onChange: (next: Array<Record<string, any>>) => void;
+}) {
+  const { t } = useI18n();
+  const newNotice = () => ({ picId: '0', picThumb: '', picUrl: '', picName: '', picTitle: '', picDesc: '', picLink: { link: '', name: '' } });
+  const updateNotice = (groupIndex: number, noticeIndex: number, patch: Record<string, any>) => {
+    onChange(groups.map((group, gi) => (
+      gi === groupIndex
+        ? { ...group, notices: (group.notices || []).map((notice: any, ni: number) => (ni === noticeIndex ? { ...notice, ...patch } : notice)) }
+        : group
+    )));
+  };
+  return (
+    <div className="pchead-benefit-groups">
+      {groups.map((group, groupIndex) => (
+        <div className="pchead-benefit-group" key={groupIndex}>
+          <div className="pchead-benefit-group__head">
+            <Text strong size="small">{t('第【{index}】组', { index: groupIndex + 1 })}</Text>
+            <Button
+              size="small"
+              theme="borderless"
+              type="danger"
+              icon={<IconClose />}
+              onClick={() => onChange(groups.filter((_, gi) => gi !== groupIndex))}
+            />
+          </div>
+          {((group.notices || []) as Array<Record<string, any>>).map((notice, noticeIndex) => (
+            <div className="pchead-benefit-notice" key={noticeIndex}>
+              <ImageUploader
+                single
+                value={notice.picUrl ? [notice.picUrl] : []}
+                onChange={(urls) => updateNotice(groupIndex, noticeIndex, { picUrl: urls[0] || '', picThumb: urls[0] || '' })}
+              />
+              <Input
+                value={notice.picTitle || ''}
+                onChange={(v) => updateNotice(groupIndex, noticeIndex, { picTitle: v })}
+                placeholder={t('主标题')}
+                size="small"
+              />
+              <Input
+                value={notice.picDesc || ''}
+                onChange={(v) => updateNotice(groupIndex, noticeIndex, { picDesc: v })}
+                placeholder={t('副标题')}
+                size="small"
+              />
+              <Input
+                value={notice.picLink?.link || ''}
+                onChange={(v) => updateNotice(groupIndex, noticeIndex, { picLink: { ...(notice.picLink || {}), link: v } })}
+                placeholder={t('链接(可选)')}
+                size="small"
+              />
+              <div style={{ display: 'flex', gap: 6 }}>
+                <Button
+                  size="small"
+                  theme="borderless"
+                  type="danger"
+                  icon={<IconClose />}
+                  onClick={() => onChange(groups.map((grp, gi) => (
+                    gi === groupIndex ? { ...grp, notices: (grp.notices || []).filter((_: any, ni: number) => ni !== noticeIndex) } : grp
+                  )))}
+                />
+                <Button
+                  size="small"
+                  icon={<IconPlus />}
+                  onClick={() => onChange(groups.map((grp, gi) => (
+                    gi === groupIndex ? { ...grp, notices: [...(grp.notices || []), newNotice()] } : grp
+                  )))}
+                >
+                  {t('添加提示')}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+      <Button size="small" icon={<IconPlus />} style={{ marginTop: 6 }} onClick={() => onChange([...groups, { notices: [newNotice()] }])}>
+        {t('添加提示组')}
+      </Button>
     </div>
   );
 }
@@ -4103,7 +4189,7 @@ function PcHeaderPanel({
         </RadioGroup>
       </HeaderField>
 
-      <HeaderSection title="LOGO">
+      <HeaderSection title="LOGO设置">
         <div style={{ width: '100%' }}>
           <HeaderField label="LOGO图片" value="建议 320*120 PNG 透明底">
             <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('logoPic', { picUrl: '', picThumb: '' })}>{t('默认logo')}</a>
@@ -4218,21 +4304,37 @@ function PcHeaderPanel({
         </HeaderField>
       </HeaderSection>
 
-      <HeaderSection title="Benefit Bar">
+      <HeaderSection title="顶部提示条">
         <HeaderField label="展示 benefit bar">
           <Switch checked={Number(header.showBenefitBar ?? 1) === 1} onChange={(v) => set('showBenefitBar', v ? 1 : 0)} />
         </HeaderField>
         {Number(header.showBenefitBar ?? 1) === 1 && (
           <>
-            <HeaderField label="背景色">
+            <HeaderField label="benefit bar 背景色">
               <HeaderColorInput value={header.benefitBarBackgroundColor || ''} onChange={(v) => set('benefitBarBackgroundColor', v)} />
             </HeaderField>
-            <HeaderField label="主标题颜色">
-              <HeaderColorInput value={header.benefitTitleColor || ''} onChange={(v) => set('benefitTitleColor', v)} />
-            </HeaderField>
-            <HeaderField label="副标题颜色">
-              <HeaderColorInput value={header.benefitDescColor || ''} onChange={(v) => set('benefitDescColor', v)} />
-            </HeaderField>
+            {!simple && (
+              <>
+                <HeaderField label="benefit 主标题颜色">
+                  <HeaderColorInput value={header.benefitTitleColor || ''} onChange={(v) => set('benefitTitleColor', v)} />
+                </HeaderField>
+                <HeaderField label="benefit 副标题颜色">
+                  <HeaderColorInput value={header.benefitDescColor || ''} onChange={(v) => set('benefitDescColor', v)} />
+                </HeaderField>
+                <HeaderField label="顶部菜单文字颜色">
+                  <HeaderColorInput value={header.topMenuTextColor || ''} onChange={(v) => set('topMenuTextColor', v)} />
+                </HeaderField>
+                <HeaderField label="顶部菜单文字悬浮颜色">
+                  <HeaderColorInput value={header.topMenuTextHoverColor || ''} onChange={(v) => set('topMenuTextHoverColor', v)} />
+                </HeaderField>
+                <HeaderField label="顶部提示内容">
+                  <BenefitGroupsEditor
+                    groups={(header.benefitNoticeGroups || []) as Array<Record<string, any>>}
+                    onChange={updateBenefitGroups}
+                  />
+                </HeaderField>
+              </>
+            )}
           </>
         )}
       </HeaderSection>
@@ -4325,35 +4427,6 @@ function PcHeaderPanel({
                 </>
               )}
             </>
-          )}
-          {Number(header.showBenefitBar ?? 1) === 1 && (
-            <div style={{ width: '100%' }}>
-              <Text type="tertiary" size="small">{t('顶部提示内容（分组）')}</Text>
-              {((header.benefitNoticeGroups || []) as Array<Record<string, any>>).map((g, gi) => (
-                <div key={gi} style={{ border: '1px dashed var(--semi-color-border)', borderRadius: 6, padding: 8, marginTop: 6 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text strong size="small">{t('提示组 {index}', { index: gi + 1 })}</Text>
-                    <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateBenefitGroups((header.benefitNoticeGroups || []).filter((_: any, i: number) => i !== gi))} />
-                  </div>
-                  {((g.notices || []) as Array<Record<string, any>>).map((n, ni) => (
-                    <div key={ni} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6, borderTop: '1px dashed var(--semi-color-border)', paddingTop: 6 }}>
-                      <Input value={n.picTitle || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picTitle: v } : x)) } : grp)))} placeholder={t('主标题')} size="small" />
-                      <Input value={n.picDesc || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picDesc: v } : x)) } : grp)))} placeholder={t('副标题')} size="small" />
-                      <Input value={n.picLink?.link || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picLink: { ...(x.picLink || {}), link: v } } : x)) } : grp)))} placeholder={t('链接(可选)')} size="small" />
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).filter((_: any, xi: number) => xi !== ni) } : grp)))} />
-                        <Button size="small" icon={<IconPlus />} onClick={() => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: [...(grp.notices || []), { picId: '0', picThumb: '', picUrl: '', picName: '', picTitle: '', picDesc: '', picLink: { link: '', name: '' } }] } : grp)))}>
-                          {t('添加提示')}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <Button size="small" icon={<IconPlus />} style={{ marginTop: 6 }} onClick={() => updateBenefitGroups([...(header.benefitNoticeGroups || []), { notices: [{ picId: '0', picThumb: '', picUrl: '', picName: '', picTitle: '', picDesc: '', picLink: { link: '', name: '' } }] }])}>
-                {t('添加提示组')}
-              </Button>
-            </div>
           )}
         </HeaderSection>
       )}

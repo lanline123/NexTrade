@@ -1354,3 +1354,39 @@
 .pchead-slider-with-input .semi-input-number {
   flex-shrink: 0;
 }
+
+/* 跨境风顶部提示内容分组 */
+.pchead-benefit-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.pchead-benefit-group {
+  border: 1px dashed #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fafbfc;
+}
+.pchead-benefit-group__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.pchead-benefit-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px dashed #e5e7eb;
+}
+.pchead-benefit-notice .image-uploader-item,
+.pchead-benefit-notice .image-uploader-add {
+  width: 76px;
+  height: 76px;
+}
+.pchead-benefit-notice .image-uploader-tip {
+  display: none;
+}
