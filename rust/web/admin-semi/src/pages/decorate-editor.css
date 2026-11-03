@@ -1407,3 +1407,11 @@
 .pchead-benefit-content .pchead-benefit-groups {
   width: 100%;
 }
+
+/* 提示卡片：标题 + 右上角删除 */
+.pchead-benefit-notice__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

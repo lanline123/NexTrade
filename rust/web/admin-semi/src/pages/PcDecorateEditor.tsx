@@ -4091,6 +4091,20 @@ function BenefitGroupsEditor({
           </div>
           {((group.notices || []) as Array<Record<string, any>>).map((notice, noticeIndex) => (
             <div className="pchead-benefit-notice" key={noticeIndex}>
+              <div className="pchead-benefit-notice__head">
+                <Text type="tertiary" size="small">{t('提示 {index}', { index: noticeIndex + 1 })}</Text>
+                <Tooltip content={t('删除提示')} position="left">
+                  <Button
+                    size="small"
+                    theme="borderless"
+                    type="danger"
+                    icon={<IconDelete />}
+                    onClick={() => onChange(groups.map((grp, gi) => (
+                      gi === groupIndex ? { ...grp, notices: (grp.notices || []).filter((_: any, ni: number) => ni !== noticeIndex) } : grp
+                    )))}
+                  />
+                </Tooltip>
+              </div>
               <ImageUploader
                 single
                 value={notice.picUrl ? [notice.picUrl] : []}
@@ -4114,30 +4128,18 @@ function BenefitGroupsEditor({
                 placeholder={t('链接(可选)')}
                 size="small"
               />
-              <div style={{ display: 'flex', gap: 6 }}>
-                <Tooltip content={t('删除提示')} position="left">
-                  <Button
-                    size="small"
-                    theme="borderless"
-                    type="danger"
-                    icon={<IconDelete />}
-                    onClick={() => onChange(groups.map((grp, gi) => (
-                      gi === groupIndex ? { ...grp, notices: (grp.notices || []).filter((_: any, ni: number) => ni !== noticeIndex) } : grp
-                    )))}
-                  />
-                </Tooltip>
-                <Button
-                  size="small"
-                  icon={<IconPlus />}
-                  onClick={() => onChange(groups.map((grp, gi) => (
-                    gi === groupIndex ? { ...grp, notices: [...(grp.notices || []), newNotice()] } : grp
-                  )))}
-                >
-                  {t('添加提示')}
-                </Button>
-              </div>
             </div>
           ))}
+          <Button
+            size="small"
+            icon={<IconPlus />}
+            style={{ marginTop: 8, width: '100%' }}
+            onClick={() => onChange(groups.map((grp, gi) => (
+              gi === groupIndex ? { ...grp, notices: [...(grp.notices || []), newNotice()] } : grp
+            )))}
+          >
+            {t('添加提示')}
+          </Button>
         </div>
       ))}
       <Button size="small" icon={<IconPlus />} style={{ marginTop: 6 }} onClick={() => onChange([...groups, { notices: [newNotice()] }])}>
