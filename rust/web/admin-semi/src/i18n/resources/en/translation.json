@@ -11908,5 +11908,7 @@
   "当前使用平台默认版权": "Currently using the platform default copyright",
   "当前使用平台默认技术支持标识": "Currently using the platform default tech support mark",
   "自定义版权文案": "Custom copyright text",
-  "自定义技术支持图片": "Custom tech support image"
+  "自定义技术支持图片": "Custom tech support image",
+  "商城基础信息": "Store basics",
+  "配置商城资料、备案信息与底部展示内容。": "Configure store profile, filing information, and footer content."
 }

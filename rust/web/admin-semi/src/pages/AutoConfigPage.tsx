@@ -203,6 +203,7 @@ interface AutoConfigPageProps {
   /** 特殊字段的自定义控件渲染器（拖拽排序、证书上传等）。 */
   renderers?: Record<string, (context: ConfigRendererContext) => ReactNode>;
   onSaved?: (values: Record<string, unknown>) => void;
+  modern?: boolean;
 }
 
 function matchesCondition(condition: ConfigWhen | undefined, values: Record<string, unknown>): boolean {
@@ -349,6 +350,7 @@ export default function AutoConfigPage({
   defaults,
   renderers,
   onSaved,
+  modern,
 }: AutoConfigPageProps) {
   const { t } = useI18n();
   const [values, setValues] = useState<Record<string, unknown>>({});
@@ -627,12 +629,25 @@ export default function AutoConfigPage({
   });
 
   return (
-    <Card className="auto-config-card" shadows="hover">
-      <div className="auto-config-head">
-        <Text type="tertiary" size="small">
-          {t('共 {count} 项配置', { count: visibleEntries.length })}
-        </Text>
-      </div>
+    <Card className={`auto-config-card${modern ? ' is-modern' : ''}`} shadows="hover">
+      {modern ? (
+        <div className="auto-config-modern-hero">
+          <span className="auto-config-modern-hero__icon">⚙</span>
+          <div className="auto-config-modern-hero__main">
+            <h3>{t('商城基础信息')}</h3>
+            <p>{t('配置商城资料、备案信息与底部展示内容。')}</p>
+          </div>
+          <span className="auto-config-modern-hero__count">
+            {t('共 {count} 项配置', { count: visibleEntries.length })}
+          </span>
+        </div>
+      ) : (
+        <div className="auto-config-head">
+          <Text type="tertiary" size="small">
+            {t('共 {count} 项配置', { count: visibleEntries.length })}
+          </Text>
+        </div>
+      )}
       {grouped.map((group) => {
         const renderedGroups = new Set<string>();
         return (

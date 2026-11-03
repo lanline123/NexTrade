@@ -5808,3 +5808,127 @@ body {
   text-align: center;
   font-style: normal;
 }
+
+/* 基础信息页现代布局 */
+.auto-config-card.is-modern {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.auto-config-card.is-modern .semi-card-body {
+  padding: 0;
+}
+.auto-config-modern-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border: 1px solid #dff3ec;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f0fbf7 0%, #ffffff 70%);
+  box-shadow: 0 10px 30px rgba(15, 118, 110, 0.06);
+}
+.auto-config-modern-hero__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.24);
+}
+.auto-config-modern-hero__main {
+  flex: 1;
+  min-width: 0;
+}
+.auto-config-modern-hero__main h3 {
+  margin: 0 0 3px;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 24px;
+}
+.auto-config-modern-hero__main p {
+  margin: 0;
+  color: #7c8a88;
+  font-size: 12px;
+  line-height: 18px;
+}
+.auto-config-modern-hero__count {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #dff3ec;
+  color: #0f766e;
+  font-size: 11px;
+  line-height: 16px;
+}
+.auto-config-card.is-modern .auto-config-section {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border: 1px solid #eef0f3;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+}
+.auto-config-card.is-modern .auto-config-section h4 {
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+.auto-config-card.is-modern .auto-config-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.auto-config-card.is-modern .auto-config-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+  min-height: 0;
+  padding: 12px 14px;
+  border: 1px solid #eef1f5;
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+.auto-config-card.is-modern .auto-config-field.is-wide {
+  grid-column: 1 / -1;
+}
+.auto-config-card.is-modern .auto-config-field label {
+  width: auto;
+  padding: 0;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: left;
+}
+.auto-config-card.is-modern .auto-config-control {
+  width: 100%;
+}
+.auto-config-card.is-modern .auto-config-field-help {
+  margin: 2px 0 0;
+}
+.auto-config-card.is-modern .auto-config-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 4px;
+  padding: 12px 4px 14px;
+  background: linear-gradient(180deg, rgba(247, 249, 252, 0) 0%, #f7f9fc 38%);
+}
+.auto-config-card.is-modern .auto-config-actions .semi-button {
+  min-width: 112px;
+  border-radius: 9px;
+}
+@media (max-width: 960px) {
+  .auto-config-card.is-modern .auto-config-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
