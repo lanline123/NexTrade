@@ -4552,7 +4552,6 @@ function PcHeaderPanel({
                           <div className="pchead-member-menu__link">
                             <LinkField
                               value={it.picLink}
-                              hideButton
                               onChange={(link) => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picLink: link } : x)))}
                             />
                           </div>
