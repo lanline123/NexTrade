@@ -3703,6 +3703,28 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
                 {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || t('北京市')}</span>}
                 {simple && showTopMemberName && <a className="pchead-strip__link">{t('会员信息')}</a>}
               </div>
+              {!simple && (h.benefitNoticeGroups || []).length > 0 && (
+                <div className="pchead-strip__benefits">
+                  {(h.benefitNoticeGroups || []).slice(0, 3).map((group: any, groupIndex: number) => {
+                    const notice = group?.notices?.[0] || {};
+                    return (
+                      <div className="pchead-benefit" key={groupIndex}>
+                        {notice.picUrl
+                          ? <img className="pchead-benefit__icon" src={notice.picUrl} alt="" />
+                          : <span className="pchead-benefit__check">✓</span>}
+                        <span className="pchead-benefit__text">
+                          <strong style={h.benefitTitleColor ? { color: h.benefitTitleColor } : undefined}>
+                            {notice.picTitle || t('主标题')}
+                          </strong>
+                          <small style={h.benefitDescColor ? { color: h.benefitDescColor } : undefined}>
+                            {notice.picDesc || t('副标题')}
+                          </small>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <div className="pchead-strip__right" style={topMenuTextStyle}>
                 {showTopMenuCart && <a className="pchead-strip__link">🛒 {t('购物车')}</a>}
                 {simple && showTopMenuBar && showTopUserMenu && (
@@ -4034,7 +4056,7 @@ function PcHeaderPanel({
           <Radio value={2}>{t('跨境风')}</Radio>
         </RadioGroup>
       </HeaderField>
-      <HeaderField label="底部样式">
+      <HeaderField label="底部分隔">
         <RadioGroup value={Number(header.bottomDividerType ?? 1)} onChange={(e: any) => set('bottomDividerType', Number(e.target.value))} type="button">
           <Radio value={1}>{t('阴影')}</Radio>
           <Radio value={2}>{t('边框')}</Radio>
@@ -4063,10 +4085,10 @@ function PcHeaderPanel({
           </RadioGroup>
         </HeaderField>
         <HeaderField label="LOGO宽度">
-          <Slider value={Number(header.logoWidth) || 100} min={40} max={300} step={1} style={{ width: 150 }} onChange={(v) => set('logoWidth', typeof v === 'number' ? v : (v as number[])[0])} />
+          <Slider value={Number(header.logoWidth) || 100} min={10} max={160} step={1} style={{ width: 150 }} onChange={(v) => set('logoWidth', typeof v === 'number' ? v : (v as number[])[0])} />
         </HeaderField>
         <HeaderField label="LOGO高度">
-          <Slider value={Number(header.logoHeight) || 25} min={10} max={100} step={1} style={{ width: 150 }} onChange={(v) => set('logoHeight', typeof v === 'number' ? v : (v as number[])[0])} />
+          <Slider value={Number(header.logoHeight) || 25} min={10} max={60} step={1} style={{ width: 150 }} onChange={(v) => set('logoHeight', typeof v === 'number' ? v : (v as number[])[0])} />
         </HeaderField>
       </HeaderSection>
 
