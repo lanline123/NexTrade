@@ -69,6 +69,14 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
       ]
     },
     {
+      "title": "商品图片下载",
+      "fields": [
+        "productRawImageDownloadEnabled",
+        "productRawImageDownloadChannels",
+        "productRawImageDownloadScopes"
+      ]
+    },
+    {
       "title": "商品评价设置",
       "fields": [
         "productCommentEnabled",
@@ -88,7 +96,10 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
       "fields": [
         "integralName",
         "integralScale",
+        "orderSendPointNode",
         "orderSendPoint",
+        "orderCompleteSendPointDays",
+        "integralPercentBaseAmount",
         "integralPercent",
         "commentSendPoint",
         "showSendPoint",
@@ -118,8 +129,7 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
       "fields": [
         "autoDeliveryDays",
         "virtualOrderAutoDeliver",
-        "autoCancelOrderMinute",
-        "isChangeOrderStatus"
+        "autoCancelOrderMinute"
       ]
     },
     {

@@ -231,7 +231,7 @@ type ConfigPageDef = {
   sections?: Array<{ title: string; fields: string[] }>;
   rules?: Record<string, ConfigFieldRule>;
   fieldGroups?: ConfigFieldGroup[];
-  controls?: Record<string, 'radio' | 'switch' | 'segmented' | 'color' | 'options'>;
+  controls?: Record<string, 'radio' | 'switch' | 'segmented' | 'color' | 'options' | 'multi' | 'select' | 'richtext' | 'textarea'>;
   options?: Record<string, Array<{ label: string; value: string | number; color?: string }>>;
   hiddenFields?: string[];
   fieldHelp?: Record<string, string>;
@@ -417,8 +417,93 @@ const configPages: Record<string, ConfigPageDef> = {
       ),
     },
   },
-  baseProductManage: { title: '商品设置', getApi: '/setting/config/productSettings', saveApi: '/setting/config/saveProduct' },
-  baseShoppingManage: { title: '交易设置', getApi: '/setting/config/shoppingSettings', saveApi: '/setting/config/saveShopping' },
+  baseProductManage: {
+    title: '商品设置',
+    getApi: '/setting/config/productSettings',
+    saveApi: '/setting/config/saveProduct',
+    labels: {
+      dollarSign: '商品货币符',
+      dollarSignCn: '商品货币中文',
+      snPrefix: '商品货号前缀',
+      customProductNameLength: '商品名称长度',
+      marketPriceRate: '市场价换算',
+      productEditStockModify: '商品编辑库存是否可修改',
+      specImageMode: '规格图片',
+      showSelledCount: '显示销量',
+      showMarketprice: '显示市场价',
+      isEnquiry: '是否开启询价功能',
+      bulkPurchase: '商品规格显示批量采购',
+      enableAttributeFilter: '显示筛选信息',
+      productCommentEnabled: '是否开启商品评价',
+      anonymousCommentEnabled: '是否开启匿名评价',
+    },
+    controls: {
+      productRawImageDownloadEnabled: 'options',
+      productRawImageDownloadChannels: 'multi',
+      productRawImageDownloadScopes: 'multi',
+    },
+    options: {
+      productRawImageDownloadEnabled: [
+        { label: '开启', value: 1 },
+        { label: '关闭', value: 0 },
+      ],
+      productRawImageDownloadChannels: [
+        { label: 'PC网页', value: 'pc' },
+        { label: '网页H5', value: 'h5' },
+        { label: '微信小程序', value: 'miniProgram' },
+        { label: 'APP', value: 'app' },
+      ],
+      productRawImageDownloadScopes: [
+        { label: '商品主图', value: 'main' },
+        { label: 'sku图', value: 'sku' },
+        { label: '商品详情图', value: 'detail' },
+      ],
+    },
+    fieldHelp: {
+      productRawImageDownloadEnabled: '开启后，用户可在商品详情页打包下载商品图片原图',
+      productRawImageDownloadChannels: '勾选后，对应渠道将显示商品原图下载入口',
+      productRawImageDownloadScopes: '勾选后，所有商品自动打包对应图片内容',
+    },
+  },
+  baseShoppingManage: {
+    title: '交易设置',
+    getApi: '/setting/config/shoppingSettings',
+    saveApi: '/setting/config/saveShopping',
+    labels: {
+      childAreaNeedRegion: '运费模板地区设置机制',
+      integralName: '积分自定义名称',
+      integralScale: '积分换算比例',
+      orderSendPointNode: '赠送积分节点',
+      orderSendPoint: '赠送积分',
+      orderCompleteSendPointDays: '订单完成赠送积分天数',
+      integralPercentBaseAmount: '积分抵扣基数金额',
+      integralPercent: '积分支付比例',
+      commentSendPoint: '评论商品赠送积分',
+      showSendPoint: '晒单赠送积分',
+      useQiandaoPoint: '签到赠送积分',
+      continuousSignIn: '连续签到',
+      canInvoice: '是否能开发票',
+      invoiceAdded: '是否支持增值税专用发票',
+      returnConsignee: '回寄联系人设置',
+      returnMobile: '回寄电话设置',
+      returnAddress: '回寄地址设置',
+    },
+    controls: {
+      orderSendPointNode: 'select',
+    },
+    options: {
+      orderSendPointNode: [
+        { label: '待发货', value: 1 },
+        { label: '已发货', value: 2 },
+        { label: '已完成', value: 3 },
+      ],
+    },
+    fieldHelp: {
+      orderSendPointNode: '选择下单赠送积分的节点',
+      orderCompleteSendPointDays: '选择已完成节点时，订单完成多少天后赠送积分',
+      integralPercentBaseAmount: '每消费该金额最多可使用下方比例的积分',
+    },
+  },
   baseOrderManage: {
     title: '订单设置',
     getApi: '/setting/config/orderSettings',
