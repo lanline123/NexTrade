@@ -4071,13 +4071,23 @@ function BenefitGroupsEditor({
         <div className="pchead-benefit-group" key={groupIndex}>
           <div className="pchead-benefit-group__head">
             <Text strong size="small">{t('第【{index}】组', { index: groupIndex + 1 })}</Text>
-            <Button
-              size="small"
-              theme="borderless"
-              type="danger"
-              icon={<IconClose />}
-              onClick={() => onChange(groups.filter((_, gi) => gi !== groupIndex))}
-            />
+            <Tooltip content={t('删除分组')} position="left">
+              <Button
+                size="small"
+                theme="borderless"
+                type="danger"
+                icon={<IconDelete />}
+                onClick={() => {
+                  Modal.confirm({
+                    title: t('删除分组'),
+                    content: t('确定删除第【{index}】组及组内所有提示吗？', { index: groupIndex + 1 }),
+                    okText: t('删除'),
+                    cancelText: t('取消'),
+                    onOk: () => onChange(groups.filter((_, gi) => gi !== groupIndex)),
+                  });
+                }}
+              />
+            </Tooltip>
           </div>
           {((group.notices || []) as Array<Record<string, any>>).map((notice, noticeIndex) => (
             <div className="pchead-benefit-notice" key={noticeIndex}>
@@ -4105,15 +4115,17 @@ function BenefitGroupsEditor({
                 size="small"
               />
               <div style={{ display: 'flex', gap: 6 }}>
-                <Button
-                  size="small"
-                  theme="borderless"
-                  type="danger"
-                  icon={<IconClose />}
-                  onClick={() => onChange(groups.map((grp, gi) => (
-                    gi === groupIndex ? { ...grp, notices: (grp.notices || []).filter((_: any, ni: number) => ni !== noticeIndex) } : grp
-                  )))}
-                />
+                <Tooltip content={t('删除提示')} position="left">
+                  <Button
+                    size="small"
+                    theme="borderless"
+                    type="danger"
+                    icon={<IconDelete />}
+                    onClick={() => onChange(groups.map((grp, gi) => (
+                      gi === groupIndex ? { ...grp, notices: (grp.notices || []).filter((_: any, ni: number) => ni !== noticeIndex) } : grp
+                    )))}
+                  />
+                </Tooltip>
                 <Button
                   size="small"
                   icon={<IconPlus />}

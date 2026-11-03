@@ -11882,5 +11882,8 @@
   "订单处理": "Order processing",
   "正在准备画布与模块...": "Preparing canvas and modules...",
   "未单独上传时使用商城默认 LOGO": "Uses the store default logo when no logo is uploaded.",
-  "未上传自定义 LOGO 时使用商城默认 LOGO": "Uses the store default logo when no custom logo is uploaded."
+  "未上传自定义 LOGO 时使用商城默认 LOGO": "Uses the store default logo when no custom logo is uploaded.",
+  "删除提示": "Delete notice",
+  "确定删除第【{index}】组及组内所有提示吗？": "Delete group {index} and all of its notices?",
+  "删除提示后该组内容将不再显示。": "This notice will be hidden after saving."
 }
