@@ -934,3 +934,229 @@
   width: 16px;
   height: 16px;
 }
+
+/* ============================================================
+   装修编辑器加载态：骨架屏 + 品牌加载动画
+   ============================================================ */
+.deco-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(153, 246, 228, 0.25), transparent 32%),
+    radial-gradient(circle at 88% 90%, rgba(191, 219, 254, 0.3), transparent 36%),
+    linear-gradient(150deg, #f7fbfa 0%, #f2f7ff 100%);
+  color: #0f172a;
+  overflow: hidden;
+}
+.deco-loading-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  flex-shrink: 0;
+}
+.deco-loading-logo {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+.deco-loading-top-space { flex: 1; }
+.deco-loading-bar,
+.deco-loading-chip,
+.deco-loading-dot,
+.deco-loading-card-icon,
+.deco-loading-card-label,
+.deco-loading-canvas-bar,
+.deco-loading-canvas-hero,
+.deco-loading-canvas-tile,
+.deco-loading-canvas-block,
+.deco-loading-spinner-core {
+  display: block;
+  background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 37%, #eef2f7 63%);
+  background-size: 400% 100%;
+  animation: deco-shimmer 1.5s ease infinite;
+}
+.deco-loading-bar { height: 10px; border-radius: 6px; }
+.deco-loading-bar--title { width: 190px; height: 16px; }
+.deco-loading-bar--button { width: 88px; height: 30px; border-radius: 8px; }
+.deco-loading-bar--primary {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  animation: none;
+  opacity: 0.85;
+}
+.deco-loading-chip { width: 42px; height: 18px; border-radius: 999px; }
+.deco-loading-chip--soft { width: 64px; }
+.deco-loading-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 295px minmax(0, 1fr) 380px;
+  min-height: 0;
+  opacity: 0.72;
+}
+.deco-loading-side,
+.deco-loading-props {
+  padding: 18px 16px;
+  overflow: hidden;
+}
+.deco-loading-side {
+  background: rgba(255, 255, 255, 0.9);
+  border-right: 1px solid rgba(15, 23, 42, 0.06);
+}
+.deco-loading-side-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.deco-loading-bar--side { width: 96px; height: 14px; }
+.deco-loading-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  animation:
+    deco-shimmer 1.5s ease infinite,
+    deco-pulse 1.8s ease-in-out infinite;
+}
+.deco-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.deco-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.04);
+}
+.deco-loading-card-icon { width: 32px; height: 32px; border-radius: 8px; }
+.deco-loading-card-label { width: 70%; height: 8px; border-radius: 4px; }
+.deco-loading-main {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+.deco-loading-canvas {
+  width: min(78%, 760px);
+  height: 100%;
+  padding: 24px 26px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 16px 50px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.deco-loading-canvas-bar { width: 100%; height: 60px; border-radius: 8px; }
+.deco-loading-canvas-hero { width: 100%; height: 160px; border-radius: 10px; }
+.deco-loading-canvas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.deco-loading-canvas-tile { height: 78px; border-radius: 8px; }
+.deco-loading-canvas-block { width: 100%; flex: 1; min-height: 80px; border-radius: 10px; }
+.deco-loading-props {
+  background: rgba(255, 255, 255, 0.9);
+  border-left: 1px solid rgba(15, 23, 42, 0.06);
+}
+.deco-loading-bar--prop-title { width: 110px; height: 16px; margin-bottom: 22px; }
+.deco-loading-prop-list { display: flex; flex-direction: column; gap: 18px; }
+.deco-loading-prop { display: flex; flex-direction: column; gap: 8px; }
+.deco-loading-bar--prop-label { width: 40%; height: 9px; }
+.deco-loading-bar--prop-control { width: 100%; height: 32px; border-radius: 7px; }
+.deco-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(247, 251, 250, 0.42);
+  backdrop-filter: blur(2px);
+}
+.deco-loading-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  padding: 28px 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+}
+.deco-loading-spinner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  border: 2px solid #ccfbf1;
+  border-top-color: #0f766e;
+  animation: deco-spin 0.9s linear infinite;
+}
+.deco-loading-spinner-core {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  animation: deco-pulse 1.8s ease-in-out infinite;
+}
+.deco-loading-dialog strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+.deco-loading-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
+@keyframes deco-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+@keyframes deco-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes deco-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(0.96); }
+}
+@media (max-width: 1100px) {
+  .deco-loading-body {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .deco-loading-props { display: none; }
+  .deco-loading-canvas { width: 100%; }
+}
+@media (max-width: 760px) {
+  .deco-loading-body { grid-template-columns: minmax(0, 1fr); }
+  .deco-loading-side { display: none; }
+  .deco-loading-main { padding: 16px; }
+  .deco-loading-dialog { min-width: 0; width: min(300px, 86vw); }
+}

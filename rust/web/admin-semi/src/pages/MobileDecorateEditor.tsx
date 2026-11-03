@@ -19,6 +19,7 @@ import { apiGet, apiPost } from '../api';
 import ImageUploader from '../components/ImageUploader';
 import ProductPicker from '../components/ProductPicker';
 import { useI18n } from '../i18n';
+import DecorateLoading from './components/DecorateLoading';
 
 const { Text } = Typography;
 
@@ -818,6 +819,10 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
       setSaving(null);
     }
   };
+
+  if (loading && moduleList.length === 0) {
+    return <DecorateLoading title={t('移动端装修')} />;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f5f7fa' }}>

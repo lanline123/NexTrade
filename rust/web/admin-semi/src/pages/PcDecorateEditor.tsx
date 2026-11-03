@@ -44,6 +44,7 @@ import {
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
+import DecorateLoading from './components/DecorateLoading';
 import type { Icon as IconParkIcon } from '@icon-park/react/es/runtime';
 import Carousel from '@icon-park/react/es/icons/Carousel';
 import MultiPictureCarousel from '@icon-park/react/es/icons/MultiPictureCarousel';
@@ -1193,11 +1194,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   const activeDef = activeModule ? MODULE_DEF_MAP.get(activeModule.type) : null;
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f2f3f5' }}>
-        <Spin size="large" tip={t('加载装修数据...')} />
-      </div>
-    );
+    return <DecorateLoading />;
   }
 
   return (
