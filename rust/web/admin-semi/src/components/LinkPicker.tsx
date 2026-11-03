@@ -265,11 +265,13 @@ export function LinkField({
   onChange,
   placeholder,
   disabled,
+  hideButton,
 }: {
   value?: LinkValue;
   onChange: (link: LinkValue) => void;
   placeholder?: string;
   disabled?: boolean;
+  hideButton?: boolean;
 }) {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
@@ -282,7 +284,7 @@ export function LinkField({
         onClick={() => !disabled && setVisible(true)}
         className="link-field-input"
       />
-      <Button size="small" disabled={disabled} onClick={() => setVisible(true)}>{t('选择链接')}</Button>
+      {!hideButton && <Button size="small" disabled={disabled} onClick={() => setVisible(true)}>{t('选择链接')}</Button>}
       {value && Object.keys(value).length > 0 && !disabled && (
         <Button size="small" theme="borderless" icon={<IconClose />} onClick={() => onChange({})} />
       )}
