@@ -4,11 +4,17 @@ import AutoConfigPage, {
   type ConfigRendererContext,
 } from './AutoConfigPage';
 import type { ReactNode } from 'react';
+import { useI18n } from '../i18n';
 
 // 旧版模板 prop="collectionMethod"/"collectionAccountType" 为只读展示项（非可编辑字段），
 // 此处以静态文本渲染；店铺/门店/供应商费率仅在商家角色显示，平台后台沿用旧版行为不渲染。
+function StaticText({ text }: { text: string }) {
+  const { t } = useI18n();
+  return <span className="profitsharing-static">{t(text)}</span>;
+}
+
 const staticTextRenderer = (text: string) =>
-  () => <span className="profitsharing-static">{text}</span>;
+  () => <StaticText text={text} />;
 
 const def: {
   title: string;
@@ -107,21 +113,49 @@ const def: {
   },
 };
 
+type Translate = (key: string) => string;
+
+type PaymentOption = { label: string; value: string | number; color?: string };
+
+function translateDef(source: typeof def, t: Translate): typeof def {
+  return {
+    ...source,
+    title: t(source.title),
+    sections: source.sections.map((section) => ({ ...section, title: t(section.title) })),
+    labels: Object.fromEntries(
+      Object.entries(source.labels).map(([key, value]): [string, string] => [key, t(value)]),
+    ),
+    options: Object.fromEntries(
+      Object.entries(source.options).map(
+        ([key, list]): [string, PaymentOption[]] => [
+          key,
+          list.map((item) => ({ ...item, label: t(item.label) })),
+        ],
+      ),
+    ),
+    fieldHelp: Object.fromEntries(
+      Object.entries(source.fieldHelp).map(([key, value]): [string, string] => [key, t(value)]),
+    ),
+  };
+}
+
 export default function ProfitSharingSettings() {
+  const { t } = useI18n();
+  const localized = translateDef(def, t);
   return (
     <AutoConfigPage
-      title={def.title}
-      getApi={def.getApi}
-      saveApi={def.saveApi}
-      sections={def.sections}
-      labels={def.labels}
-      controls={def.controls}
-      options={def.options}
-      rules={def.rules}
-      fieldHelp={def.fieldHelp}
-      hiddenFields={def.hiddenFields}
-      defaults={def.defaults}
-      renderers={def.renderers}
+      title={localized.title}
+      getApi={localized.getApi}
+      saveApi={localized.saveApi}
+      sections={localized.sections}
+      labels={localized.labels}
+      controls={localized.controls}
+      options={localized.options}
+      rules={localized.rules}
+      fieldHelp={localized.fieldHelp}
+      hiddenFields={localized.hiddenFields}
+      defaults={localized.defaults}
+      renderers={localized.renderers}
     />
   );
 }

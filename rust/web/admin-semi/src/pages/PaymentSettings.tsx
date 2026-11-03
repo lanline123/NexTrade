@@ -10,6 +10,7 @@ import CertFileUpload from '../components/CertFileUpload';
 import SecretInput from '../components/SecretInput';
 import { Select } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 interface ListOption {
   name?: string;
@@ -73,21 +74,46 @@ const supportRadio = (onLabel: string, offLabel: string) => [
   { label: offLabel, value: 0 },
 ];
 
-const paymentOrderRenderer = ({ value, update }: ConfigRendererContext) => (
-  <PaymentOrderList
-    value={String(value ?? '')}
-    options={paymentOrderOptions}
-    onChange={(next) => update('paymentOrder', next)}
-  />
-);
+function PaymentOrderField({ value, update }: ConfigRendererContext) {
+  const { t } = useI18n();
+  return (
+    <PaymentOrderList
+      value={String(value ?? '')}
+      options={paymentOrderOptions.map((item) => ({ ...item, label: t(item.label) }))}
+      onChange={(next) => update('paymentOrder', next)}
+    />
+  );
+}
 
-const certUploadRenderer = (field: string, uploadType: number, fileHint: string) =>
-  ({ value, update }: ConfigRendererContext) => (
+const paymentOrderRenderer = (context: ConfigRendererContext) => <PaymentOrderField {...context} />;
+
+interface CertUploadFieldProps extends ConfigRendererContext {
+  field: string;
+  uploadType: number;
+  fileHint: string;
+}
+
+function CertUploadField({ field, uploadType, fileHint, value, update }: CertUploadFieldProps) {
+  const { t } = useI18n();
+  return (
     <CertFileUpload
       value={value}
       uploadType={uploadType}
-      fileHint={fileHint}
+      fileHint={t(fileHint)}
       onChange={(next) => update(field, next)}
+    />
+  );
+}
+
+const certUploadRenderer = (field: string, uploadType: number, fileHint: string) =>
+  (context: ConfigRendererContext) => (
+    <CertUploadField
+      field={field}
+      uploadType={uploadType}
+      fileHint={fileHint}
+      value={context.value}
+      values={context.values}
+      update={context.update}
     />
   );
 
@@ -96,43 +122,70 @@ const secretRenderer = (field: string) =>
     <SecretInput value={String(value ?? '')} onChange={(next) => update(field, next)} />
   );
 
-const listSelectRenderer = (field: string, listKey: string, fallback: ListOption[]) =>
-  ({ value, values, update }: ConfigRendererContext) => {
-    const raw = values[listKey];
-    const list = Array.isArray(raw) && raw.length ? (raw as ListOption[]) : fallback;
-    const optionList = list
-      .map((item) => ({
-        label: String(item.name ?? item.label ?? ''),
-        value: item.value as string | number,
-      }))
-      .filter((item) => item.value !== undefined);
-    return (
-      <Select
-        style={{ width: 450 }}
-        value={(value as string | number) ?? ''}
-        optionList={optionList}
-        onChange={(next) => update(field, next)}
-      />
-    );
-  };
+interface ListSelectFieldProps extends ConfigRendererContext {
+  field: string;
+  listKey: string;
+  fallback: ListOption[];
+}
 
-const platformCertRenderer = ({ value, update }: ConfigRendererContext) => (
-  <Button
-    type="warning"
-    theme="solid"
-    onClick={async () => {
-      try {
-        await apiPost('/setting/config/createPlatformCertificate', {});
-        update('wechatPayPlatformCertificate', 1);
-        Toast.success({ content: '操作成功' });
-      } catch (error) {
-        Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
-      }
-    }}
-  >
-    {Number(value) === 1 ? '更新证书' : '生成证书'}
-  </Button>
-);
+function ListSelectField({ field, listKey, fallback, value, values, update }: ListSelectFieldProps) {
+  const { t } = useI18n();
+  const raw = values[listKey];
+  const useBackendList = Array.isArray(raw) && raw.length > 0;
+  const list = useBackendList ? (raw as ListOption[]) : fallback;
+  const optionList = list
+    .map((item) => {
+      const name = String(item.name ?? item.label ?? '');
+      return {
+        label: useBackendList ? name : t(name),
+        value: item.value as string | number,
+      };
+    })
+    .filter((item) => item.value !== undefined);
+  return (
+    <Select
+      style={{ width: 450 }}
+      value={(value as string | number) ?? ''}
+      optionList={optionList}
+      onChange={(next) => update(field, next)}
+    />
+  );
+}
+
+const listSelectRenderer = (field: string, listKey: string, fallback: ListOption[]) =>
+  (context: ConfigRendererContext) => (
+    <ListSelectField
+      field={field}
+      listKey={listKey}
+      fallback={fallback}
+      value={context.value}
+      values={context.values}
+      update={context.update}
+    />
+  );
+
+function PlatformCertificateButton({ value, update }: ConfigRendererContext) {
+  const { t } = useI18n();
+  return (
+    <Button
+      type="warning"
+      theme="solid"
+      onClick={async () => {
+        try {
+          await apiPost('/setting/config/createPlatformCertificate', {});
+          update('wechatPayPlatformCertificate', 1);
+          Toast.success({ content: t('操作成功') });
+        } catch (error) {
+          Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+        }
+      }}
+    >
+      {Number(value) === 1 ? t('更新证书') : t('生成证书')}
+    </Button>
+  );
+}
+
+const platformCertRenderer = (context: ConfigRendererContext) => <PlatformCertificateButton {...context} />;
 
 const baseTab: PaymentTabDef = {
   key: 'base',
@@ -829,29 +882,62 @@ const yeepayTab: PaymentTabDef = {
 
 const otherPayTabs = [payPalTab, huifuTab, lakalaTab, yeepayTab];
 
-function renderTab(def: PaymentTabDef) {
+type Translate = (key: string) => string;
+
+type PaymentOption = { label: string; value: string | number; color?: string };
+
+function translateTab(def: PaymentTabDef, t: Translate): PaymentTabDef {
+  return {
+    ...def,
+    title: t(def.title),
+    sections: def.sections.map((section) => ({ ...section, title: t(section.title) })),
+    labels: Object.fromEntries(
+      Object.entries(def.labels).map(([key, value]): [string, string] => [key, t(value)]),
+    ),
+    options: def.options
+      ? Object.fromEntries(
+          Object.entries(def.options).map(
+            ([key, list]): [string, PaymentOption[]] => [
+              key,
+              list.map((item) => ({ ...item, label: t(item.label) })),
+            ],
+          ),
+        )
+      : undefined,
+    fieldHelp: def.fieldHelp
+      ? Object.fromEntries(
+          Object.entries(def.fieldHelp).map(([key, value]): [string, string] => [key, t(value)]),
+        )
+      : undefined,
+    notice: def.notice ? t(def.notice) : undefined,
+  };
+}
+
+function renderTab(def: PaymentTabDef, t: Translate) {
+  const localized = translateTab(def, t);
   return (
     <div className="payment-settings-tab">
-      {def.notice && <p className="payment-settings-notice">{def.notice}</p>}
+      {localized.notice && <p className="payment-settings-notice">{localized.notice}</p>}
       <AutoConfigPage
-        title={def.title}
-        getApi={def.getApi}
-        saveApi={def.saveApi}
-        sections={def.sections}
-        labels={def.labels}
-        controls={def.controls}
-        options={def.options}
-        rules={def.rules}
-        fieldHelp={def.fieldHelp}
-        hiddenFields={def.hiddenFields}
-        defaults={def.defaults}
-        renderers={def.renderers}
+        title={localized.title}
+        getApi={localized.getApi}
+        saveApi={localized.saveApi}
+        sections={localized.sections}
+        labels={localized.labels}
+        controls={localized.controls}
+        options={localized.options}
+        rules={localized.rules}
+        fieldHelp={localized.fieldHelp}
+        hiddenFields={localized.hiddenFields}
+        defaults={localized.defaults}
+        renderers={localized.renderers}
       />
     </div>
   );
 }
 
 export default function PaymentSettings() {
+  const { t } = useI18n();
   const [activeKey, setActiveKey] = useState('base');
   const [otherKey, setOtherKey] = useState('payPal');
 
@@ -862,28 +948,28 @@ export default function PaymentSettings() {
         activeKey={activeKey}
         onChange={(next) => setActiveKey(String(next))}
         tabList={[
-          { tab: baseTab.label, itemKey: 'base' },
-          { tab: wechatTab.label, itemKey: 'wechat' },
-          { tab: alipayTab.label, itemKey: 'alipay' },
-          { tab: offlineTab.label, itemKey: 'offline' },
-          { tab: applePayTab.label, itemKey: 'applepay' },
-          { tab: '其他支付', itemKey: 'other' },
+          { tab: t(baseTab.label), itemKey: 'base' },
+          { tab: t(wechatTab.label), itemKey: 'wechat' },
+          { tab: t(alipayTab.label), itemKey: 'alipay' },
+          { tab: t(offlineTab.label), itemKey: 'offline' },
+          { tab: t(applePayTab.label), itemKey: 'applepay' },
+          { tab: t('其他支付'), itemKey: 'other' },
         ]}
       />
-      {activeKey === 'base' && renderTab(baseTab)}
-      {activeKey === 'wechat' && renderTab(wechatTab)}
-      {activeKey === 'alipay' && renderTab(alipayTab)}
-      {activeKey === 'offline' && renderTab(offlineTab)}
-      {activeKey === 'applepay' && renderTab(applePayTab)}
+      {activeKey === 'base' && renderTab(baseTab, t)}
+      {activeKey === 'wechat' && renderTab(wechatTab, t)}
+      {activeKey === 'alipay' && renderTab(alipayTab, t)}
+      {activeKey === 'offline' && renderTab(offlineTab, t)}
+      {activeKey === 'applepay' && renderTab(applePayTab, t)}
       {activeKey === 'other' && (
         <div className="payment-settings-other">
           <RadioGroup
             type="button"
             value={otherKey}
-            options={otherPayTabs.map((item) => ({ label: item.label, value: item.key }))}
+            options={otherPayTabs.map((item) => ({ label: t(item.label), value: item.key }))}
             onChange={(event) => setOtherKey(event.target.value)}
           />
-          {renderTab(otherPayTabs.find((item) => item.key === otherKey) || payPalTab)}
+          {renderTab(otherPayTabs.find((item) => item.key === otherKey) || payPalTab, t)}
         </div>
       )}
     </div>

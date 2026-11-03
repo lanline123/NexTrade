@@ -20,6 +20,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, getToken } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import './finance-statement.css';
@@ -101,6 +102,7 @@ const toOptionList = (config?: StatementConfigOption[]) =>
     .map((item) => ({ label: String(item.description ?? item.code), value: item.code as string | number }));
 
 export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendor' }) {
+  const { t } = useI18n();
   const isVendor = source === 'vendor';
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -132,7 +134,7 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
           setAccountType(first.code);
         }
       })
-      .catch((error) => alive && Toast.error({ content: error instanceof Error ? error.message : '加载查询配置失败' }));
+      .catch((error) => alive && Toast.error({ content: error instanceof Error ? error.message : t('加载查询配置失败') }));
     return () => {
       alive = false;
     };
@@ -163,7 +165,7 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
           setTotal(result?.total || 0);
         })
         .catch((error) =>
-          alive && Toast.error({ content: error instanceof Error ? error.message : '请求失败' }),
+          alive && Toast.error({ content: error instanceof Error ? error.message : t('请求失败') }),
         )
         .finally(() => {
           if (alive) setLoading(false);
@@ -237,16 +239,16 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
       const res = await fetch(`/adminapi/finance/statement/exportStatement?${buildExportParams().toString()}`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
-      if (!res.ok) throw new Error('导出失败');
+      if (!res.ok) throw new Error(t('导出失败'));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = isVendor ? '供应商对账单明细.xlsx' : '对账单明细.xlsx';
+      link.download = isVendor ? t('供应商对账单明细.xlsx') : t('对账单明细.xlsx');
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导出失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导出失败') });
     } finally {
       setExporting(false);
     }
@@ -254,44 +256,44 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
 
   const accountTypeOptions = useMemo(() => toOptionList(queryConfig.accountType), [queryConfig]);
   const statementTypeOptions = useMemo(
-    () => [{ label: '全部', value: 0 }, ...toOptionList(queryConfig.statementType)],
-    [queryConfig],
+    () => [{ label: t('全部'), value: 0 }, ...toOptionList(queryConfig.statementType)],
+    [queryConfig, t],
   );
   const payMethodOptions = useMemo(() => toOptionList(queryConfig.payMethodType), [queryConfig]);
 
   const columns: ColumnConfig<StatementRow>[] = [
     {
-      title: '类型',
+      title: t('类型'),
       dataIndex: 'typeName',
       width: 120,
       render: (val: string) => <Tag color="blue">{val || '--'}</Tag>,
     },
     {
-      title: '入账时间',
+      title: t('入账时间'),
       dataIndex: 'settlementTime',
       width: 170,
       render: (val: string) => val || '--',
     },
     {
-      title: isVendor ? '供应商名称' : '店铺名称',
+      title: t(isVendor ? '供应商名称' : '店铺名称'),
       dataIndex: isVendor ? 'vendorName' : 'shopName',
       width: 180,
       render: (val: string) => val || '--',
     },
     {
-      title: '业务单号',
+      title: t('业务单号'),
       dataIndex: 'recordSn',
       width: 200,
       render: (val: string) => <Text copyable={Boolean(val)}>{val || '--'}</Text>,
     },
     {
-      title: '入账类型',
+      title: t('入账类型'),
       dataIndex: 'accountTypeName',
       width: 130,
       render: (val: string) => val || '--',
     },
     {
-      title: '金额（元）',
+      title: t('金额（元）'),
       dataIndex: 'amount',
       width: 130,
       render: (val: unknown, record) => {
@@ -309,14 +311,14 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
       },
     },
     {
-      title: '余额（元）',
+      title: t('余额（元）'),
       dataIndex: 'accountBalance',
       width: 130,
       render: (val: unknown, record) =>
         record.accountBalance === null || record.accountBalance === undefined ? '--' : String(record.accountBalance),
     },
     {
-      title: '支付方式',
+      title: t('支付方式'),
       dataIndex: 'paymentType',
       width: 130,
       render: (val: string, record) => val || record.paymentTypeName || '--',
@@ -328,33 +330,33 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
       <Card shadows="hover" className="table-card">
         <div className="statement-filter-grid">
           <div className="statement-filter-item">
-            <label>账单时间：</label>
+            <label>{t('账单时间：')}</label>
             <Select
               style={{ width: 140 }}
-              placeholder="请选择状态"
+              placeholder={t('请选择状态')}
               value={timeType}
               optionList={[
-                { label: '入账时间', value: 1 },
-                { label: '下单时间', value: 2 },
+                { label: t('入账时间'), value: 1 },
+                { label: t('下单时间'), value: 2 },
               ]}
               onChange={(next) => setTimeType(Number(next))}
             />
           </div>
           <div className="statement-filter-item">
-            <label>{isVendor ? '供应商：' : '店铺：'}</label>
+            <label>{t(isVendor ? '供应商：' : '店铺：')}</label>
             <Input
               style={{ width: 150 }}
-              placeholder={isVendor ? '输入供应商ID' : '输入店铺ID'}
+              placeholder={isVendor ? t('输入供应商ID') : t('输入店铺ID')}
               value={orgId}
               onChange={(next) => setOrgId(next || '')}
             />
           </div>
           <div className="statement-filter-item">
-            <label>筛选时间：</label>
+            <label>{t('筛选时间：')}</label>
             <DatePicker
               type="dateRange"
               style={{ width: 260 }}
-              placeholder={['开始日期', '结束日期']}
+              placeholder={[t('开始日期'), t('结束日期')]}
               value={startDateTime && endDateTime ? [startDateTime, endDateTime] : undefined}
               onChange={(_, dateStr) => {
                 const range = (dateStr as string[]) || ['', ''];
@@ -370,16 +372,16 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
             <RadioGroup type="button" buttonSize="small" value={dateType} onChange={(e) => applyQuickDate(Number(e.target.value))}>
               {QUICK_DATE_OPTIONS.map((option, index) => (
                 <Radio key={option.label} value={index}>
-                  {option.label}
+                  {t(option.label)}
                 </Radio>
               ))}
             </RadioGroup>
           </div>
           <div className="statement-filter-item">
-            <label>入账类型：</label>
+            <label>{t('入账类型：')}</label>
             <Select
               style={{ width: 150 }}
-              placeholder="请选择入账类型"
+              placeholder={t('请选择入账类型')}
               value={accountType}
               optionList={accountTypeOptions}
               onChange={(next) => {
@@ -390,10 +392,10 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
             />
           </div>
           <div className="statement-filter-item">
-            <label>类型：</label>
+            <label>{t('类型：')}</label>
             <Select
               style={{ width: 140 }}
-              placeholder="请选择类型"
+              placeholder={t('请选择类型')}
               value={statementType}
               optionList={statementTypeOptions}
               onChange={(next) => {
@@ -404,10 +406,10 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
             />
           </div>
           <div className="statement-filter-item">
-            <label>支付方式：</label>
+            <label>{t('支付方式：')}</label>
             <Select
               style={{ width: 150 }}
-              placeholder="请选择支付方式："
+              placeholder={t('请选择支付方式：')}
               value={paymentType || undefined}
               optionList={payMethodOptions}
               onChange={(next) => {
@@ -418,10 +420,10 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
             />
           </div>
           <div className="statement-filter-item">
-            <label>单号：</label>
+            <label>{t('单号：')}</label>
             <Input
               style={{ width: 200 }}
-              placeholder="请输入单号"
+              placeholder={t('请输入单号')}
               value={recordSn}
               onChange={(next) => setRecordSn(next || '')}
               onEnterPress={search}
@@ -429,18 +431,18 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
           </div>
           <div className="statement-filter-actions">
             <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-              搜索
+              {t('搜索')}
             </Button>
-            <Button onClick={reset}>重置</Button>
+            <Button onClick={reset}>{t('重置')}</Button>
           </div>
         </div>
 
         <div className="statement-toolbar">
           <Button type="primary" theme="solid" loading={exporting} onClick={exportStatement}>
-            导出报表
+            {t('导出报表')}
           </Button>
           <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-            刷新
+            {t('刷新')}
           </Button>
         </div>
 
@@ -451,7 +453,7 @@ export function StatementDetails({ source = 'shop' }: { source?: 'shop' | 'vendo
           columns={columns as any}
           pagination={false}
           scroll={{ x: 1160 }}
-          empty={loading ? <Spin /> : '暂无数据'}
+          empty={loading ? <Spin /> : t('暂无数据')}
         />
         <div className="statement-pagination">
           <Pagination currentPage={page} pageSize={10} total={total} onPageChange={(next) => setPage(next)} />
@@ -502,6 +504,7 @@ const withdrawStatusMap: Record<number, { text: string; color: 'orange' | 'green
 };
 
 export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | 'vendor' }) {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [detailVisible, setDetailVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<WithdrawRow | null>(null);
@@ -514,22 +517,22 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
   const handleAudit = async (id: number, status: number) => {
     try {
       await apiPost(auditEndpoint, { id, status });
-      Toast.success({ content: status === 1 ? '审核通过' : '已拒绝' });
+      Toast.success({ content: status === 1 ? t('审核通过') : t('已拒绝') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   const columns: ColumnConfig<WithdrawRow>[] = [
     {
-      title: '申请时间',
+      title: t('申请时间'),
       dataIndex: 'addTime',
       width: 170,
       render: (val: string) => val || '--',
     },
     {
-      title: '金额',
+      title: t('金额'),
       dataIndex: 'amount',
       width: 130,
       render: (val: unknown) => (
@@ -539,48 +542,48 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
       ),
     },
     {
-      title: '手续费',
+      title: t('手续费'),
       dataIndex: 'handlingFee',
       width: 110,
       render: (val: unknown) => (val ? `¥${Number(val).toFixed(2)}` : '-'),
     },
     {
-      title: '手续费率',
+      title: t('手续费率'),
       dataIndex: 'handlingRate',
       width: 100,
       render: (val: unknown) => (val ? `${val}%` : '-'),
     },
     {
-      title: '提现类型',
+      title: t('提现类型'),
       dataIndex: 'withdrawType',
       width: 100,
       render: (val: number) => (
-        <Tag color={val === 2 ? 'blue' : 'amber'}>{val === 2 ? '线上' : '线下'}</Tag>
+        <Tag color={val === 2 ? 'blue' : 'amber'}>{val === 2 ? t('线上') : t('线下')}</Tag>
       ),
     },
     {
-      title: '状态',
+      title: t('状态'),
       dataIndex: 'status',
       width: 110,
       render: (val: number, r) => {
-        const s = withdrawStatusMap[val] || { text: r.statusText || '待审核', color: 'orange' };
-        return <Tag color={s.color}>{r.statusText || s.text}</Tag>;
+        const s = withdrawStatusMap[val] || { text: '待审核', color: 'orange' };
+        return <Tag color={s.color}>{r.statusText || t(s.text)}</Tag>;
       },
     },
     {
-      title: '收款人',
+      title: t('收款人'),
       dataIndex: 'accountData',
       width: 130,
       render: (_: unknown, r) => r.accountData?.accountName || '--',
     },
     {
-      title: '收款账号',
+      title: t('收款账号'),
       dataIndex: 'accountNo',
       width: 170,
       render: (_: unknown, r) => r.accountData?.accountNo || '--',
     },
     {
-      title: '到账方式',
+      title: t('到账方式'),
       dataIndex: 'accountTypeText',
       width: 160,
       render: (_: unknown, r) => {
@@ -590,7 +593,7 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
       },
     },
     {
-      title: '备注',
+      title: t('备注'),
       dataIndex: 'remark',
       width: 150,
       render: (val: string) => val || '--',
@@ -609,15 +612,15 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
         filters={[
           {
             field: 'status',
-            label: '提现状态：',
+            label: t('提现状态：'),
             type: 'select',
-            placeholder: '全部状态',
+            placeholder: t('全部状态'),
             width: 130,
             options: [
-              { label: '待审核', value: 0 },
-              { label: '审核通过', value: 1 },
-              { label: '已拒绝', value: 2 },
-              { label: '已打款', value: 3 },
+              { label: t('待审核'), value: 0 },
+              { label: t('审核通过'), value: 1 },
+              { label: t('已拒绝'), value: 2 },
+              { label: t('已打款'), value: 3 },
             ],
           },
         ]}
@@ -635,24 +638,24 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
                   setDetailVisible(true);
                 }}
               >
-                详情
+                {t('详情')}
               </Button>
               {record.status === 0 && (
                 <>
                   <Popconfirm
-                    title="确认审核通过该提现申请吗？"
+                    title={t('确认审核通过该提现申请吗？')}
                     onConfirm={() => handleAudit(rowId, 1)}
                   >
                     <Button theme="borderless" size="small" type="primary">
-                      审核通过
+                      {t('审核通过')}
                     </Button>
                   </Popconfirm>
                   <Popconfirm
-                    title="确认拒绝该提现申请吗？"
+                    title={t('确认拒绝该提现申请吗？')}
                     onConfirm={() => handleAudit(rowId, 2)}
                   >
                     <Button theme="borderless" size="small" type="danger">
-                      拒绝
+                      {t('拒绝')}
                     </Button>
                   </Popconfirm>
                 </>
@@ -662,9 +665,9 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
                   theme="borderless"
                   size="small"
                   type="secondary"
-                  onClick={() => Toast.success({ content: '打款凭证上传成功' })}
+                  onClick={() => Toast.success({ content: t('打款凭证上传成功') })}
                 >
-                  上传打款凭证
+                  {t('上传打款凭证')}
                 </Button>
               )}
             </Space>
@@ -674,12 +677,12 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
 
       {/* 提现详情弹窗 */}
       <Modal
-        title="提现详情"
+        title={t('提现详情')}
         visible={detailVisible}
         onCancel={() => setDetailVisible(false)}
         footer={
           <Button type="primary" onClick={() => setDetailVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={560}
@@ -687,27 +690,27 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
         {currentRecord && (
           <Descriptions
             data={[
-              { key: '申请时间', value: currentRecord.addTime || '--' },
+              { key: t('申请时间'), value: currentRecord.addTime || '--' },
               {
-                key: '提现金额',
+                key: t('提现金额'),
                 value: `¥${Number(currentRecord.amount || 0).toFixed(2)}`,
               },
               {
-                key: '手续费',
+                key: t('手续费'),
                 value: currentRecord.handlingFee ? `¥${currentRecord.handlingFee}` : '0.00',
               },
               {
-                key: '提现类型',
-                value: currentRecord.withdrawType === 2 ? '线上' : '线下',
+                key: t('提现类型'),
+                value: currentRecord.withdrawType === 2 ? t('线上') : t('线下'),
               },
-              { key: '收款人', value: currentRecord.accountData?.accountName || '--' },
-              { key: '收款账号', value: currentRecord.accountData?.accountNo || '--' },
+              { key: t('收款人'), value: currentRecord.accountData?.accountName || '--' },
+              { key: t('收款账号'), value: currentRecord.accountData?.accountNo || '--' },
               {
-                key: '到账方式',
+                key: t('到账方式'),
                 value: currentRecord.accountData?.accountTypeText || '--',
               },
-              { key: '备注', value: currentRecord.remark || '--' },
-              { key: '拒绝理由', value: currentRecord.refusalReason || '--' },
+              { key: t('备注'), value: currentRecord.remark || '--' },
+              { key: t('拒绝理由'), value: currentRecord.refusalReason || '--' },
             ]}
           />
         )}
@@ -733,11 +736,12 @@ export function VendorWithdrawApplies() {
 }
 
 export function VendorStatementDownload() {
+  const { t } = useI18n();
   const columns: ColumnConfig<Record<string, unknown>>[] = [
-    { title: '日期', dataIndex: 'statementDate', width: 160 },
-    { title: '账户', dataIndex: 'accountType', width: 140 },
-    { title: '收入', dataIndex: 'income', width: 150 },
-    { title: '支出', dataIndex: 'expenditure', width: 150 },
+    { title: t('日期'), dataIndex: 'statementDate', width: 160 },
+    { title: t('账户'), dataIndex: 'accountType', width: 140 },
+    { title: t('收入'), dataIndex: 'income', width: 150 },
+    { title: t('支出'), dataIndex: 'expenditure', width: 150 },
   ];
   return (
     <ListPage
@@ -745,7 +749,7 @@ export function VendorStatementDownload() {
       rowKey="statementDate"
       pageSize={10}
       filters={[
-        { field: 'keyword', label: '日期', type: 'input', placeholder: '输入日期查询', width: 220 },
+        { field: 'keyword', label: t('日期'), type: 'input', placeholder: t('输入日期查询'), width: 220 },
       ]}
       columns={columns}
       showEdit={false}
@@ -754,12 +758,13 @@ export function VendorStatementDownload() {
 }
 
 export function VendorWithdrawSummary() {
+  const { t } = useI18n();
   const columns: ColumnConfig<Record<string, unknown>>[] = [
-    { title: '供应商名称', dataIndex: 'vendorName', width: 180 },
-    { title: '提现总额', dataIndex: 'totalAmount', width: 140 },
-    { title: '已打款', dataIndex: 'paidAmount', width: 140 },
-    { title: '待审核', dataIndex: 'pendingAmount', width: 140 },
-    { title: '统计时间', dataIndex: 'updateTime', width: 170 },
+    { title: t('供应商名称'), dataIndex: 'vendorName', width: 180 },
+    { title: t('提现总额'), dataIndex: 'totalAmount', width: 140 },
+    { title: t('已打款'), dataIndex: 'paidAmount', width: 140 },
+    { title: t('待审核'), dataIndex: 'pendingAmount', width: 140 },
+    { title: t('统计时间'), dataIndex: 'updateTime', width: 170 },
   ];
   return (
     <ListPage
@@ -767,7 +772,7 @@ export function VendorWithdrawSummary() {
       rowKey="vendorId"
       pageSize={10}
       filters={[
-        { field: 'keyword', label: '供应商', type: 'input', placeholder: '输入供应商名称', width: 220 },
+        { field: 'keyword', label: t('供应商'), type: 'input', placeholder: t('输入供应商名称'), width: 220 },
       ]}
       columns={columns}
       showEdit={false}

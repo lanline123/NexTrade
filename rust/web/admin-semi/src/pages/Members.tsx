@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import TagFilter from '../framework/TagFilter';
 import type { ColumnConfig } from '../framework/types';
@@ -30,11 +31,12 @@ const { Text } = Typography;
 type MemberAction = 'detail' | 'tags' | 'orders' | 'account' | null;
 
 function MemberStatusSwitch({ record }: { record: MemberRow }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(record.status === 1);
 
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -44,16 +46,18 @@ function MemberStatusSwitch({ record }: { record: MemberRow }) {
         val: next ? 1 : 0,
       });
       setChecked(next);
-      Toast.success({ content: next ? '已启用' : '已禁用' });
+      Toast.success({ content: next ? t('已启用') : t('已禁用') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   return <Switch checked={checked} onChange={toggle} size="small" />;
 }
 
-const columns: ColumnConfig<MemberRow>[] = [
+const buildColumns = (
+  t: (key: string, params?: Record<string, string | number>) => string,
+): ColumnConfig<MemberRow>[] => [
   {
     title: '客户',
     dataIndex: 'username',
@@ -70,7 +74,7 @@ const columns: ColumnConfig<MemberRow>[] = [
         <div>
           <div className="member-name-line">
             <span>{record.nickname || value}</span>
-            {record.mark ? <Tag color="red" size="small">标记</Tag> : null}
+            {record.mark ? <Tag color="red" size="small">{t('标记')}</Tag> : null}
           </div>
           <Text type="tertiary" size="small">
             {record.mobile || `ID ${record.userId}`}
@@ -92,9 +96,9 @@ const columns: ColumnConfig<MemberRow>[] = [
     width: 150,
     render: (value: string, record) => (
       <div className="member-rank-cell">
-        <Tag color="blue">{value || '普通会员'}</Tag>
+        <Tag color="blue">{value || t('普通会员')}</Tag>
         <Text type={record.isCompanyAuth ? 'success' : 'tertiary'} size="small">
-          {record.isCompanyAuth ? '已认证' : '未认证'}
+          {record.isCompanyAuth ? t('已认证') : t('未认证')}
         </Text>
       </div>
     ),
@@ -108,11 +112,11 @@ const columns: ColumnConfig<MemberRow>[] = [
         <div className="money">¥ {Number(value || 0).toLocaleString()}</div>
         {Number(record.frozenBalance || 0) > 0 && (
           <Text type="tertiary" size="small">
-            冻结 ¥ {record.frozenBalance}
+            {t('冻结 ¥ {amount}', { amount: Number(record.frozenBalance) || 0 })}
           </Text>
         )}
         <Text type="tertiary" size="small">
-          消费积分 {record.points ?? 0}
+          {t('消费积分 {points}', { points: record.points ?? 0 })}
         </Text>
       </div>
     ),
@@ -125,7 +129,7 @@ const columns: ColumnConfig<MemberRow>[] = [
       <div className="member-asset-cell">
         <div className="money">¥ {Number(value || 0).toLocaleString()}</div>
         <Text type="tertiary" size="small">
-          {record.orderCount ?? 0} 笔
+          {t('{count} 笔', { count: record.orderCount ?? 0 })}
         </Text>
       </div>
     ),
@@ -156,6 +160,7 @@ function BatchMemberModal({
   const [rankId, setRankId] = useState<number | undefined>(undefined);
   const [ranks, setRanks] = useState<Array<{ rankId: number; rankName: string }>>([]);
   const [saving, setSaving] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!visible || type !== 'rank' || ranks.length) return;
@@ -165,15 +170,19 @@ function BatchMemberModal({
   }, [visible, type, ranks.length]);
 
   const title =
-    type === 'rank' ? '批量修改客户等级' : type === 'points' ? '批量增加客户积分' : '批量增加客户余额';
+    type === 'rank'
+      ? t('批量修改客户等级')
+      : type === 'points'
+        ? t('批量增加客户积分')
+        : t('批量增加客户余额');
 
   const submit = async () => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     if (type === 'rank' && !rankId) {
-      Toast.warning({ content: '请选择客户等级' });
+      Toast.warning({ content: t('请选择客户等级') });
       return;
     }
     setSaving(true);
@@ -186,10 +195,10 @@ function BatchMemberModal({
       if (type === 'points') body.value = Number(value);
       if (type === 'balance') body.balance = Number(value);
       await apiPost('/user/user/batch', body);
-      Toast.success({ content: '批量操作成功' });
+      Toast.success({ content: t('批量操作成功') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量操作失败') });
     } finally {
       setSaving(false);
     }
@@ -203,18 +212,18 @@ function BatchMemberModal({
       width={480}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            确认
+            {t('确认')}
           </Button>
         </Space>
       }
     >
       <div className="batch-member-form">
-        <div>已选择 {ids.length} 位客户</div>
+        <div>{t('已选择 {count} 位客户', { count: ids.length })}</div>
         {type === 'rank' && (
           <Select
-            placeholder="请选择客户等级"
+            placeholder={t('请选择客户等级')}
             value={rankId}
             onChange={(next) => setRankId(Number(next))}
             optionList={ranks.map((rank) => ({ label: rank.rankName, value: rank.rankId }))}
@@ -257,10 +266,11 @@ function BatchTagModal({
 }) {
   const [tagIds, setTagIds] = useState<Array<string | number>>([]);
   const [saving, setSaving] = useState(false);
+  const { t } = useI18n();
 
   const submit = async () => {
     if (!tagIds.length) {
-      Toast.warning({ content: '请选择标签' });
+      Toast.warning({ content: t('请选择标签') });
       return;
     }
     setSaving(true);
@@ -269,10 +279,10 @@ function BatchTagModal({
         userIds,
         tagIds: tagIds.map(Number),
       });
-      Toast.success({ content: '批量打标签成功' });
+      Toast.success({ content: t('批量打标签成功') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量打标签失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量打标签失败') });
     } finally {
       setSaving(false);
     }
@@ -280,26 +290,27 @@ function BatchTagModal({
 
   return (
     <Modal
-      title="批量打标签"
+      title={t('批量打标签')}
       visible={visible}
       onCancel={onCancel}
       width={520}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            确认
+            {t('确认')}
           </Button>
         </Space>
       }
     >
-      <div style={{ marginBottom: 8 }}>已选择 {userIds.length} 位客户</div>
+      <div style={{ marginBottom: 8 }}>{t('已选择 {count} 位客户', { count: userIds.length })}</div>
       <TagFilter value={tagIds} onChange={setTagIds} width={360} />
     </Modal>
   );
 }
 
 export default function Members() {
+  const { t } = useI18n();
   const [activeMember, setActiveMember] = useState<MemberRow | null>(null);
   const [action, setAction] = useState<MemberAction>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -337,15 +348,15 @@ export default function Members() {
     <>
       <div className="member-overview">
         <div className="member-overview-item">
-          <span>客户总数</span>
+          <span>{t('客户总数')}</span>
           <b>{summary.total}</b>
         </div>
         <div className="member-overview-item">
-          <span>当前页启用</span>
+          <span>{t('当前页启用')}</span>
           <b>{summary.enabled}</b>
         </div>
         <div className="member-overview-item">
-          <span>当前页企业认证</span>
+          <span>{t('当前页企业认证')}</span>
           <b>{summary.certified}</b>
         </div>
       </div>
@@ -377,16 +388,16 @@ export default function Members() {
                 setBatchTagVisible(true);
               }}
             >
-              批量打标签
+              {t('批量打标签')}
             </Button>
             <Button size="small" onClick={() => startBatch('rank', rows, clear)}>
-              批量改等级
+              {t('批量改等级')}
             </Button>
             <Button size="small" onClick={() => startBatch('points', rows, clear)}>
-              批量加积分
+              {t('批量加积分')}
             </Button>
             <Button size="small" onClick={() => startBatch('balance', rows, clear)}>
-              批量加余额
+              {t('批量加余额')}
             </Button>
           </Space>
         )}
@@ -436,23 +447,23 @@ export default function Members() {
             width: 240,
           },
         ]}
-        columns={columns}
+        columns={buildColumns(t)}
         rowActions={(record) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => open('detail', record)}>
-              查看
+              {t('查看')}
             </Button>
             <Dropdown
               trigger="click"
               position="bottomRight"
               menu={[
-                { node: 'item', name: '标签', onClick: () => open('tags', record) },
-                { node: 'item', name: '查看订单', onClick: () => open('orders', record) },
-                { node: 'item', name: '账目明细', onClick: () => open('account', record) },
+                { node: 'item', name: t('标签'), onClick: () => open('tags', record) },
+                { node: 'item', name: t('查看订单'), onClick: () => open('orders', record) },
+                { node: 'item', name: t('账目明细'), onClick: () => open('account', record) },
               ]}
             >
               <Button theme="borderless" size="small">
-                更多
+                {t('更多')}
               </Button>
             </Dropdown>
           </Space>
@@ -473,30 +484,30 @@ export default function Members() {
               fields: [
                 {
                   field: 'username',
-                  label: '客户名称',
+                  label: t('客户名称'),
                   required: true,
-                  placeholder: '请输入客户名称',
+                  placeholder: t('请输入客户名称'),
                   visibleWhen: (mode) => mode === 'create',
                 },
-                { field: 'mobile', label: '手机号码', placeholder: '请输入手机号码' },
-                { field: 'email', label: '邮箱地址', placeholder: '请输入邮箱地址' },
+                { field: 'mobile', label: t('手机号码'), placeholder: t('请输入手机号码') },
+                { field: 'email', label: t('邮箱地址'), placeholder: t('请输入邮箱地址') },
                 {
                   field: 'password',
-                  label: '新密码',
-                  placeholder: '新增时必填，编辑留空不修改',
+                  label: t('新密码'),
+                  placeholder: t('新增时必填，编辑留空不修改'),
                   requiredWhen: (mode) => mode === 'create',
                 },
                 {
                   field: 'pwdConfirm',
-                  label: '确认密码',
-                  placeholder: '请再次输入密码',
+                  label: t('确认密码'),
+                  placeholder: t('请再次输入密码'),
                   requiredWhen: (mode) => mode === 'create',
                 },
                 {
                   field: 'rankId',
-                  label: '客户等级',
+                  label: t('客户等级'),
                   type: 'select',
-                  placeholder: '请选择客户等级',
+                  placeholder: t('请选择客户等级'),
                   optionsApi: '/user/userRank/list',
                   optionsParams: { size: 200 },
                   optionLabel: 'rankName',

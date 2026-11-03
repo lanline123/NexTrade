@@ -27,6 +27,7 @@ import {
   IconRefresh,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, apiUpload, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
 import './member-level-pros.css';
 
@@ -208,14 +209,18 @@ const CardPreview = ({ row }: { row: RankRow }) =>
   );
 
 /** 升级条件文案（无门槛 / N成长值 / 消费满N元） */
-const growthText = (row: RankRow) => {
+const growthText = (
+  row: RankRow,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) => {
   const value = Number(row.minGrowthPoints);
-  if (row.minGrowthPoints === '' || Number.isNaN(value) || value === 0) return '无门槛';
-  if (Number(row.rankType) === 2) return `消费满${value}${AMOUNT_UNIT}`;
-  return `${value}成长值`;
+  if (row.minGrowthPoints === '' || Number.isNaN(value) || value === 0) return t('无门槛');
+  if (Number(row.rankType) === 2) return t('消费满 {value}{unit}', { value, unit: t('元') });
+  return t('{value}成长值', { value });
 };
 
 export default function MemberLevelPros() {
+  const { t } = useI18n();
   // ——— 列表（旧 ProList.vue） ———
   const [rows, setRows] = useState<RankRow[]>([]);
   const [rankConfig, setRankConfig] = useState<{ data?: RankConfigData }>({});
@@ -255,6 +260,7 @@ export default function MemberLevelPros() {
   const rankType = Number(form.rankType) || 1;
   const configType = Number(form.userRankConfig.type) || 1;
   const firstRights = form.data[0]?.rights || [];
+  const monthOptions = MONTH_OPTIONS.map((item) => ({ ...item, label: t(item.label) }));
 
   // ——— 数据加载 ———
   useEffect(() => {
@@ -267,7 +273,7 @@ export default function MemberLevelPros() {
         setRows(((result?.userRank?.records || []) as any[]).map(normalizeRow));
         setRankConfig(result?.rankConfig || {});
       })
-      .catch((error) => alive && Toast.error({ content: error instanceof Error ? error.message : '请求失败' }))
+      .catch((error) => alive && Toast.error({ content: error instanceof Error ? error.message : t('请求失败') }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -324,7 +330,7 @@ export default function MemberLevelPros() {
         data: ((result?.userRankList || []) as any[]).map(normalizeRow),
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '请求失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('请求失败') });
       setEditOpen(false);
     } finally {
       setEditLoading(false);
@@ -389,19 +395,19 @@ export default function MemberLevelPros() {
   /** 旧 addRights：新增时所有行 push，编辑时所有行按索引替换（isChecked 置 0） */
   const submitRights = () => {
     if (!rightsForm.name?.trim()) {
-      Toast.error({ content: '请输入权益名称' });
+      Toast.error({ content: t('请输入权益名称') });
       return;
     }
     if (!rightsForm.showName?.trim()) {
-      Toast.error({ content: '请输入权益显示' });
+      Toast.error({ content: t('请输入权益显示') });
       return;
     }
     if (!rightsForm.icon) {
-      Toast.error({ content: '请输入权益图标' });
+      Toast.error({ content: t('请输入权益图标') });
       return;
     }
     if (!String(rightsForm.describe || '').trim()) {
-      Toast.error({ content: '请输入权益简介' });
+      Toast.error({ content: t('请输入权益简介') });
       return;
     }
     setForm((prev) => {
@@ -451,14 +457,14 @@ export default function MemberLevelPros() {
   const uploadLogo = async (file: File | null) => {
     if (!file || logoIndex < 0) return;
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持上传图片' });
+      Toast.warning({ content: t('演示模式不支持上传图片') });
       return;
     }
     try {
       const result = await apiUpload<{ picUrl?: string }>('/setting/galleryPic/uploadImg?galleryId=0', file);
       if (result?.picUrl) updateRow(logoIndex, { rankLogo: result.picUrl });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '上传失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('上传失败') });
     }
   };
 
@@ -468,21 +474,25 @@ export default function MemberLevelPros() {
     for (let index = 0; index < form.data.length; index += 1) {
       const row = form.data[index];
       if (!String(row.rankName || '').trim()) {
-        return `第${index + 1}级会员名称不能为空`;
+        return t('第{level}级会员名称不能为空', { level: index + 1 });
       }
       if (row.minGrowthPoints === '' || row.minGrowthPoints === null || row.minGrowthPoints === undefined) {
-        return `第${index + 1}级请输入升级条件`;
+        return t('第{level}级请输入升级条件', { level: index + 1 });
       }
       const growth = Number(row.minGrowthPoints);
       if (Number.isNaN(growth) || growth < 0) {
-        return `第${index + 1}级请输入有效的数字`;
+        return t('第{level}级请输入有效的数字', { level: index + 1 });
       }
       if (index > 0) {
         if (growth <= 0) {
-          return `第${index + 1}级请输入有效的数字`;
+          return t('第{level}级请输入有效的数字', { level: index + 1 });
         }
         if (growth <= previousGrowth) {
-          return `第${index + 1}级需大于上一级的${rankType === 1 ? '成长值' : '消费金额'}(${previousGrowth})`;
+          return t('第{level}级需大于上一级的{field}({previous})', {
+            level: index + 1,
+            field: rankType === 1 ? t('成长值') : t('消费金额'),
+            previous: previousGrowth,
+          });
         }
       }
       previousGrowth = growth;
@@ -490,14 +500,14 @@ export default function MemberLevelPros() {
       if (discount !== '' && discount !== null && discount !== undefined) {
         const num = Number(discount);
         if (!Number.isNaN(num) && (num < 0 || num > 9.9)) {
-          return `第${index + 1}级折扣需大于0小于10`;
+          return t('第{level}级折扣需大于0小于10', { level: index + 1 });
         }
       }
       const point = row.rankPoint;
       if (point !== '' && point !== null && point !== undefined) {
         const num = Number(point);
         if (!Number.isNaN(num) && (num < 0 || num > 50)) {
-          return `第${index + 1}级多倍积分需大于0小于50`;
+          return t('第{level}级多倍积分需大于0小于50', { level: index + 1 });
         }
       }
     }
@@ -505,14 +515,14 @@ export default function MemberLevelPros() {
       const grow = form.growUpSetting;
       if (Number(grow.buyOrder) === 1) {
         if (!grow.buyOrderNumber || Number(grow.buyOrderNumber) < 1 || !grow.buyOrderGrowth || Number(grow.buyOrderGrowth) < 1) {
-          return '请填写完成下单的成长值设置';
+          return t('请填写完成下单的成长值设置');
         }
       }
       if (Number(grow.evpi) === 1 && (!grow.evpiGrowth || Number(grow.evpiGrowth) < 1)) {
-        return '请填写完善信息的成长值设置';
+        return t('请填写完善信息的成长值设置');
       }
       if (Number(grow.bindPhone) === 1 && (!grow.bindPhoneGrowth || Number(grow.bindPhoneGrowth) < 1)) {
-        return '请填写绑定手机号的成长值设置';
+        return t('请填写绑定手机号的成长值设置');
       }
     }
     return null;
@@ -574,11 +584,11 @@ export default function MemberLevelPros() {
           })),
         })),
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setEditOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -587,35 +597,39 @@ export default function MemberLevelPros() {
   // ——— 列表列（旧 ProList.vue） ———
   const listColumns = [
     {
-      title: '等级',
+      title: t('等级'),
       width: 100,
       render: (_: unknown, row: RankRow) => <span className="mlp-level">vip{row.rankLevel}</span>,
     },
     {
-      title: '会员图标',
+      title: t('会员图标'),
       width: 100,
       render: (_: unknown, row: RankRow) =>
         row.rankLogo ? <Image src={row.rankLogo} width={20} height={20} style={{ objectFit: 'contain' }} /> : <span>-</span>,
     },
-    { title: '会员名称', dataIndex: 'rankName', width: 120 },
+    { title: t('会员名称'), dataIndex: 'rankName', width: 120 },
     {
-      title: '会员卡面',
+      title: t('会员卡面'),
       width: 120,
       render: (_: unknown, row: RankRow) => <CardPreview row={row} />,
     },
     {
-      title: '升级条件',
+      title: t('升级条件'),
       width: 140,
-      render: (_: unknown, row: RankRow) => <span>{growthText(row)}</span>,
+      render: (_: unknown, row: RankRow) => <span>{growthText(row, t)}</span>,
     },
     {
-      title: '会员权益',
+      title: t('会员权益'),
       width: 240,
       render: (_: unknown, row: RankRow) => (
         <div className="mlp-rights-cell">
-          {Number(row.discount) > 0 && row.discount !== '' ? <div>会员折扣{row.discount}折</div> : null}
-          {Number(row.rankPoint) > 0 && row.rankPoint !== '' ? <div>{row.rankPoint}倍会员积分</div> : null}
-          {Number(row.freeShipping) === 1 ? <div>享受会员包邮</div> : null}
+          {Number(row.discount) > 0 && row.discount !== '' ? (
+            <div>{t('会员折扣{discount}折', { discount: Number(row.discount) })}</div>
+          ) : null}
+          {Number(row.rankPoint) > 0 && row.rankPoint !== '' ? (
+            <div>{t('{point}倍会员积分', { point: Number(row.rankPoint) })}</div>
+          ) : null}
+          {Number(row.freeShipping) === 1 ? <div>{t('享受会员包邮')}</div> : null}
           {(row.rights || []).map(
             (right, index) => (Number(right.isChecked) === 1 ? <div key={index}>{right.name}</div> : null),
           )}
@@ -623,22 +637,34 @@ export default function MemberLevelPros() {
       ),
     },
     {
-      title: '保级规则',
+      title: t('保级规则'),
       width: 320,
       render: (_: unknown, row: RankRow, index: number) => {
-        if (index === 0) return <span>不降级</span>;
+        if (index === 0) return <span>{t('不降级')}</span>;
         const config = rankConfig?.data || {};
-        if (Number(config.type) === 1) return <span>永久有效</span>;
+        if (Number(config.type) === 1) return <span>{t('永久有效')}</span>;
         const month = Number(config.rankAfterMonth) || 0;
         const growth = Number(row.minGrowthPoints);
         if (Number(row.rankType) === 2) {
-          return <span>获得等级的{month}个月内，消费满{growth}{AMOUNT_UNIT}可保级</span>;
+          return (
+            <span>
+              {t('获得等级的{month}个月内，消费满{growth}{unit}可保级', {
+                month,
+                growth,
+                unit: t('元'),
+              })}
+            </span>
+          );
         }
-        return <span>获得等级的{month}个月内，成长值达到{growth}可保级</span>;
+        return (
+          <span>
+            {t('获得等级的{month}个月内，成长值达到{growth}可保级', { month, growth })}
+          </span>
+        );
       },
     },
     {
-      title: '会员数',
+      title: t('会员数'),
       dataIndex: 'userCount',
       width: 90,
       render: (value: number) => <span>{Number(value) || 0}</span>,
@@ -648,16 +674,16 @@ export default function MemberLevelPros() {
   // ——— 编辑表格列（旧 Info.vue 等级方案表） ———
   const editColumns = [
     {
-      title: '等级',
+      title: t('等级'),
       width: 70,
       render: (_: unknown, row: RankRow) => <span className="mlp-level-sm">vip{row.rankLevel}</span>,
     },
     {
-      title: '会员图标',
+      title: t('会员图标'),
       width: 90,
       align: 'center',
       render: (_: unknown, row: RankRow, index: number) => (
-        <Tooltip content="点击修改">
+        <Tooltip content={t('点击修改')}>
           <span
             className="mlp-logo-cell"
             onClick={() => {
@@ -665,13 +691,17 @@ export default function MemberLevelPros() {
               logoInputRef.current?.click();
             }}
           >
-            {row.rankLogo ? <img src={row.rankLogo} alt="会员图标" /> : <IconPlus size="small" />}
+            {row.rankLogo ? (
+              <img src={row.rankLogo} alt={t('会员图标')} />
+            ) : (
+              <IconPlus size="small" />
+            )}
           </span>
         </Tooltip>
       ),
     },
     {
-      title: '会员卡面',
+      title: t('会员卡面'),
       width: 100,
       align: 'center',
       render: (_: unknown, row: RankRow, index: number) => (
@@ -681,12 +711,12 @@ export default function MemberLevelPros() {
       ),
     },
     {
-      title: '会员名称*',
+      title: `${t('会员名称')}*`,
       width: 160,
       render: (_: unknown, row: RankRow, index: number) => (
         <Input
           value={row.rankName || ''}
-          placeholder="请输入"
+          placeholder={t('请输入')}
           onChange={(next) => updateRow(index, { rankName: next })}
         />
       ),
@@ -695,7 +725,8 @@ export default function MemberLevelPros() {
       // 旧 Info.vue 列头 $t('升级条件{rankType1}*') 按模式动态渲染（audit 记录键：升级条件rankType1*）。
       title: (
         <span>
-          升级条件{rankType === 1 ? '(成长值)' : ''}*
+          {t('升级条件')}
+          {rankType === 1 ? t('(成长值)') : ''}*
         </span>
       ),
       width: 200,
@@ -704,20 +735,20 @@ export default function MemberLevelPros() {
         return (
           <div className="mlp-cell">
             {index === 0 && isEmpty ? (
-              <span>无门槛</span>
+              <span>{t('无门槛')}</span>
             ) : (
               <>
-                {rankType === 2 ? <span className="mlp-unit">消费满</span> : null}
+                {rankType === 2 ? <span className="mlp-unit">{t('消费满')}</span> : null}
                 <InputNumber
                   size="small"
                   min={0}
                   precision={rankType === 1 ? 0 : 2}
                   style={{ width: 110 }}
-                  placeholder="请输入"
+                  placeholder={t('请输入')}
                   value={row.minGrowthPoints === '' ? undefined : Number(row.minGrowthPoints)}
                   onChange={(next) => updateRow(index, { minGrowthPoints: next === null || next === undefined ? '' : Number(next) })}
                 />
-                <span className="mlp-unit">{rankType === 1 ? '成长值' : AMOUNT_UNIT}</span>
+                <span className="mlp-unit">{rankType === 1 ? t('成长值') : t(AMOUNT_UNIT)}</span>
               </>
             )}
             {index === 0 ? (
@@ -725,10 +756,10 @@ export default function MemberLevelPros() {
                 trigger="click"
                 position="bottomRight"
                 menu={[
-                  { node: 'item', name: '无门槛', onClick: () => updateRow(index, { minGrowthPoints: 0 }) },
+                  { node: 'item', name: t('无门槛'), onClick: () => updateRow(index, { minGrowthPoints: 0 }) },
                   {
                     node: 'item',
-                    name: rankType === 1 ? '达到x成长值' : '消费x元',
+                    name: rankType === 1 ? t('达到x成长值') : t('消费x元'),
                     onClick: () => updateRow(index, { minGrowthPoints: '' }),
                   },
                 ]}
@@ -745,15 +776,15 @@ export default function MemberLevelPros() {
     {
       title: (
         <div className="mlp-rights-head">
-          <span>会员权益</span>
-          <Tooltip content="添加权益">
+          <span>{t('会员权益')}</span>
+          <Tooltip content={t('添加权益')}>
             <Button theme="borderless" size="small" icon={<IconPlus />} onClick={() => openRights('add')} />
           </Tooltip>
         </div>
       ),
       children: [
         {
-          title: '折扣',
+          title: t('折扣'),
           width: 130,
           render: (_: unknown, row: RankRow, index: number) => (
             <div className="mlp-cell">
@@ -767,12 +798,12 @@ export default function MemberLevelPros() {
                 value={row.discount === '' || row.discount === null || row.discount === undefined ? undefined : Number(row.discount)}
                 onChange={(next) => updateRow(index, { discount: next === null || next === undefined ? '' : Number(next) })}
               />
-              <span className="mlp-unit">折</span>
+              <span className="mlp-unit">{t('折')}</span>
             </div>
           ),
         },
         {
-          title: '多倍积分',
+          title: t('多倍积分'),
           width: 130,
           render: (_: unknown, row: RankRow, index: number) => (
             <div className="mlp-cell">
@@ -786,12 +817,12 @@ export default function MemberLevelPros() {
                 value={row.rankPoint === '' || row.rankPoint === null || row.rankPoint === undefined ? undefined : Number(row.rankPoint)}
                 onChange={(next) => updateRow(index, { rankPoint: next === null || next === undefined ? '' : Number(next) })}
               />
-              <span className="mlp-unit">倍</span>
+              <span className="mlp-unit">{t('倍')}</span>
             </div>
           ),
         },
         {
-          title: '包邮',
+          title: t('包邮'),
           width: 70,
           align: 'center' as const,
           render: (_: unknown, row: RankRow, index: number) => (
@@ -805,10 +836,10 @@ export default function MemberLevelPros() {
           title: (
             <div className="mlp-col-head">
               <span className="mlp-col-head-name">{right.name}</span>
-              <Tooltip content="编辑权益">
+              <Tooltip content={t('编辑权益')}>
                 <Button theme="borderless" size="small" icon={<IconEdit />} onClick={() => openRights('edit', rightIndex)} />
               </Tooltip>
-              <Tooltip content="移除后需点击底部保存按钮生效">
+              <Tooltip content={t('移除后需点击底部保存按钮生效')}>
                 <Button theme="borderless" size="small" icon={<IconDelete />} onClick={() => removeRight(rightIndex)} />
               </Tooltip>
             </div>
@@ -828,13 +859,13 @@ export default function MemberLevelPros() {
       ],
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 80,
       align: 'center' as const,
       render: (_: unknown, row: RankRow, index: number) =>
         index === form.data.length - 1 && form.data.length > 1 ? (
           <Button theme="borderless" type="danger" size="small" onClick={() => removeLevel(index)}>
-            删除
+            {t('删除')}
           </Button>
         ) : null,
     },
@@ -848,12 +879,12 @@ export default function MemberLevelPros() {
         <div className="mlp-toolbar">
           <Space>
             <Button theme="solid" type="primary" onClick={openEdit}>
-              编辑会员方案
+              {t('编辑会员方案')}
             </Button>
           </Space>
           <Space>
             <Button icon={<IconRefresh />} onClick={reload}>
-              刷新
+              {t('刷新')}
             </Button>
           </Space>
         </div>
@@ -864,13 +895,13 @@ export default function MemberLevelPros() {
           columns={listColumns}
           pagination={false}
           scroll={{ x: 1230 }}
-          empty={loading ? undefined : '暂无数据'}
+          empty={loading ? undefined : t('暂无数据')}
         />
       </Card>
 
       {/* 编辑会员方案抽屉（旧 Info.vue，1100px 抽屉表单） */}
       <SideSheet
-        title="编辑会员方案"
+        title={t('编辑会员方案')}
         visible={editOpen}
         onCancel={() => setEditOpen(false)}
         width={1100}
@@ -878,15 +909,15 @@ export default function MemberLevelPros() {
         bodyStyle={{ overflowY: 'auto' }}
         footer={
           <div className="mlp-drawer-footer">
-            <Button onClick={() => setEditOpen(false)}>取消</Button>
+            <Button onClick={() => setEditOpen(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={saving} onClick={submitForm}>
-              保存
+              {t('保存')}
             </Button>
           </div>
         }
       >
         <div className="mlp-drawer-body">
-          <div className="mlp-section-title">模式切换</div>
+          <div className="mlp-section-title">{t('模式切换')}</div>
           <div className="mlp-mode-options">
             {MODE_OPTIONS.map((option) => (
               <div
@@ -894,13 +925,13 @@ export default function MemberLevelPros() {
                 className={`mlp-mode-option ${rankType === option.key ? 'is-active' : ''}`}
                 onClick={() => setForm((prev) => ({ ...prev, rankType: option.key }))}
               >
-                <div className="mlp-mode-title">{option.title}</div>
-                <div className="mlp-mode-desc">{option.desc}</div>
+                <div className="mlp-mode-title">{t(option.title)}</div>
+                <div className="mlp-mode-desc">{t(option.desc)}</div>
               </div>
             ))}
           </div>
 
-          <div className="mlp-section-title mlp-mt24">等级方案</div>
+          <div className="mlp-section-title mlp-mt24">{t('等级方案')}</div>
           <div className="mlp-mb10">
             <Button
               type="primary"
@@ -909,7 +940,9 @@ export default function MemberLevelPros() {
               disabled={form.data.length >= 10}
               onClick={addLevel}
             >
-              {form.data.length >= 10 ? '最多添加10级' : `添加等级(${form.data.length}/10)`}
+              {form.data.length >= 10
+                ? t('最多添加10级')
+                : t('添加等级({count}/10)', { count: form.data.length })}
             </Button>
           </div>
           <Table
@@ -919,24 +952,24 @@ export default function MemberLevelPros() {
             columns={editColumns}
             pagination={false}
             scroll={{ x: editScrollX }}
-            empty={editLoading ? undefined : '暂无数据'}
+            empty={editLoading ? undefined : t('暂无数据')}
           />
 
           {rankType === 1 ? (
             <>
-              <div className="mlp-section-title mlp-mt24">成长值设置</div>
+              <div className="mlp-section-title mlp-mt24">{t('成长值设置')}</div>
               <div className="mlp-form-row">
-                <div className="mlp-form-label">完成下单</div>
+                <div className="mlp-form-label">{t('完成下单')}</div>
                 <div>
                   <RadioGroup
                     value={Number(form.growUpSetting.buyOrder)}
                     onChange={(e: any) => updateGrow({ buyOrder: Number(e.target.value) })}
                   >
-                    <Radio value={1}>是</Radio>
-                    <Radio value={0}>否</Radio>
+                    <Radio value={1}>{t('是')}</Radio>
+                    <Radio value={0}>{t('否')}</Radio>
                   </RadioGroup>
                   <div className="mlp-grow-row">
-                    <span>每完成</span>
+                    <span>{t('每完成')}</span>
                     <InputNumber
                       size="small"
                       min={1}
@@ -946,7 +979,7 @@ export default function MemberLevelPros() {
                       value={Number(form.growUpSetting.buyOrderNumber)}
                       onChange={(next) => updateGrow({ buyOrderNumber: Number(next ?? 0) })}
                     />
-                    <span>笔订单，获得</span>
+                    <span>{t('笔订单，获得')}</span>
                     <InputNumber
                       size="small"
                       min={1}
@@ -956,22 +989,22 @@ export default function MemberLevelPros() {
                       value={Number(form.growUpSetting.buyOrderGrowth)}
                       onChange={(next) => updateGrow({ buyOrderGrowth: Number(next ?? 0) })}
                     />
-                    <span>成长值</span>
+                    <span>{t('成长值')}</span>
                   </div>
                 </div>
               </div>
               <div className="mlp-form-row">
-                <div className="mlp-form-label">完善信息</div>
+                <div className="mlp-form-label">{t('完善信息')}</div>
                 <div>
                   <RadioGroup
                     value={Number(form.growUpSetting.evpi)}
                     onChange={(e: any) => updateGrow({ evpi: Number(e.target.value) })}
                   >
-                    <Radio value={1}>是</Radio>
-                    <Radio value={0}>否</Radio>
+                    <Radio value={1}>{t('是')}</Radio>
+                    <Radio value={0}>{t('否')}</Radio>
                   </RadioGroup>
                   <div className="mlp-grow-row">
-                    <span>完成后赠送：</span>
+                    <span>{t('完成后赠送：')}</span>
                     <InputNumber
                       size="small"
                       min={1}
@@ -981,22 +1014,22 @@ export default function MemberLevelPros() {
                       value={Number(form.growUpSetting.evpiGrowth)}
                       onChange={(next) => updateGrow({ evpiGrowth: Number(next ?? 0) })}
                     />
-                    <span>成长值</span>
+                    <span>{t('成长值')}</span>
                   </div>
                 </div>
               </div>
               <div className="mlp-form-row">
-                <div className="mlp-form-label">绑定手机号</div>
+                <div className="mlp-form-label">{t('绑定手机号')}</div>
                 <div>
                   <RadioGroup
                     value={Number(form.growUpSetting.bindPhone)}
                     onChange={(e: any) => updateGrow({ bindPhone: Number(e.target.value) })}
                   >
-                    <Radio value={1}>是</Radio>
-                    <Radio value={0}>否</Radio>
+                    <Radio value={1}>{t('是')}</Radio>
+                    <Radio value={0}>{t('否')}</Radio>
                   </RadioGroup>
                   <div className="mlp-grow-row">
-                    <span>完成后赠送：</span>
+                    <span>{t('完成后赠送：')}</span>
                     <InputNumber
                       size="small"
                       min={1}
@@ -1006,21 +1039,21 @@ export default function MemberLevelPros() {
                       value={Number(form.growUpSetting.bindPhoneGrowth)}
                       onChange={(next) => updateGrow({ bindPhoneGrowth: Number(next ?? 0) })}
                     />
-                    <span>成长值</span>
+                    <span>{t('成长值')}</span>
                   </div>
                 </div>
               </div>
             </>
           ) : null}
 
-          <div className="mlp-section-title mlp-mt24">等级规则（保级规则）</div>
+          <div className="mlp-section-title mlp-mt24">{t('等级规则（保级规则）')}</div>
           <div className="mlp-form-row">
-            <div className="mlp-form-label">等级有效期：</div>
+            <div className="mlp-form-label">{t('等级有效期：')}</div>
             <div>
               <RadioGroup value={configType} onChange={(e: any) => updateConfig({ type: Number(e.target.value) })}>
-                <Radio value={1}>永久有效</Radio>
+                <Radio value={1}>{t('永久有效')}</Radio>
               </RadioGroup>
-              <div className="mlp-extra">获得等级后永久有效，不会降级</div>
+              <div className="mlp-extra">{t('获得等级后永久有效，不会降级')}</div>
             </div>
           </div>
           <div className="mlp-form-row">
@@ -1028,36 +1061,38 @@ export default function MemberLevelPros() {
             <div>
               <div className="mlp-grow-row">
                 <Radio checked={configType === 2} onChange={() => updateConfig({ type: 2 })}>
-                  获得等级
+                  {t('获得等级')}
                 </Radio>
                 <Select
                   size="small"
                   style={{ width: 100 }}
-                  optionList={MONTH_OPTIONS}
+                  optionList={monthOptions}
                   value={Number(form.userRankConfig.rankAfterMonth) || 12}
                   onChange={(next) => updateConfig({ rankAfterMonth: Number(next), useMonth: Number(next) })}
                 />
-                <span>后，按照近</span>
+                <span>{t('后，按照近')}</span>
                 <Select
                   size="small"
                   style={{ width: 100 }}
                   disabled
-                  optionList={MONTH_OPTIONS}
+                  optionList={monthOptions}
                   value={Number(form.userRankConfig.rankAfterMonth) || 12}
                 />
-                <span>{rankType === 1 ? '的成长值重新计算等级' : '的累计消费重新计算等级'}</span>
+                <span>{rankType === 1 ? t('的成长值重新计算等级') : t('的累计消费重新计算等级')}</span>
               </div>
               <div className="mlp-extra">
-                举例: 设置12个月，用户在2023.1.1成为/设置VIP2，那么在2024.1.1将重新根据用户在2023.1.1-2024.1.1之间的累计
-                {rankType === 1 ? '成长值' : '消费金额'}计算等级。
+                {t(
+                  '举例: 设置12个月，用户在2023.1.1成为/设置VIP2，那么在2024.1.1将重新根据用户在2023.1.1-2024.1.1之间的累计{field}计算等级。',
+                  { field: rankType === 1 ? t('成长值') : t('消费金额') },
+                )}
               </div>
             </div>
           </div>
           <div className="mlp-form-row">
-            <div className="mlp-form-label">累计时机：</div>
+            <div className="mlp-form-label">{t('累计时机：')}</div>
             <div>
               <RadioGroup disabled value={1}>
-                <Radio value={1}>确认收货</Radio>
+                <Radio value={1}>{t('确认收货')}</Radio>
               </RadioGroup>
               <Table
                 className="mlp-keep-table"
@@ -1066,20 +1101,20 @@ export default function MemberLevelPros() {
                 pagination={false}
                 columns={[
                   {
-                    title: '会员等级',
+                    title: t('会员等级'),
                     width: 100,
                     render: (_: unknown, row: RankRow) => <span className="mlp-level-sm">vip{row.rankLevel}</span>,
                   },
                   {
                     title: (
                       <span className="mlp-keep-head">
-                        保级条件
-                        <Tooltip content="保级条件同升级条件一致，暂不支持自定义">
+                        {t('保级条件')}
+                        <Tooltip content={t('保级条件同升级条件一致，暂不支持自定义')}>
                           <span className="mlp-help">?</span>
                         </Tooltip>
                       </span>
                     ),
-                    render: (_: unknown, row: RankRow) => <span>{growthText(row)}</span>,
+                    render: (_: unknown, row: RankRow) => <span>{growthText(row, t)}</span>,
                   },
                 ] as any}
               />
@@ -1090,39 +1125,39 @@ export default function MemberLevelPros() {
 
       {/* 自定义权益弹窗（旧 AddRights.vue） */}
       <Modal
-        title="自定义权益"
+        title={t('自定义权益')}
         visible={rightsOpen}
         width={520}
         onCancel={() => setRightsOpen(false)}
         footer={
           <div className="mlp-drawer-footer">
-            <Button onClick={() => setRightsOpen(false)}>取消</Button>
+            <Button onClick={() => setRightsOpen(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" onClick={submitRights}>
-              确定
+              {t('确定')}
             </Button>
           </div>
         }
       >
         <div className="mlp-form-row">
-          <div className="mlp-form-label">权益名称</div>
+          <div className="mlp-form-label">{t('权益名称')}</div>
           <Input
             style={{ width: '100%' }}
             value={rightsForm.name || ''}
-            placeholder="请输入权益名称"
+            placeholder={t('请输入权益名称')}
             onChange={(next) => setRightsForm((prev) => ({ ...prev, name: next }))}
           />
         </div>
         <div className="mlp-form-row">
-          <div className="mlp-form-label">展示名称</div>
+          <div className="mlp-form-label">{t('展示名称')}</div>
           <Input
             style={{ width: '100%' }}
             value={rightsForm.showName || ''}
-            placeholder="请输入权益显示"
+            placeholder={t('请输入权益显示')}
             onChange={(next) => setRightsForm((prev) => ({ ...prev, showName: next }))}
           />
         </div>
         <div className="mlp-form-row">
-          <div className="mlp-form-label">权益图标</div>
+          <div className="mlp-form-label">{t('权益图标')}</div>
           <ImageUploader
             single
             max={1}
@@ -1131,47 +1166,47 @@ export default function MemberLevelPros() {
           />
         </div>
         <div className="mlp-form-row">
-          <div className="mlp-form-label">权益简介</div>
+          <div className="mlp-form-label">{t('权益简介')}</div>
           <TextArea
             style={{ width: '100%' }}
             rows={4}
             value={rightsForm.describe || ''}
-            placeholder="请输入权益简介"
+            placeholder={t('请输入权益简介')}
             onChange={(next) => setRightsForm((prev) => ({ ...prev, describe: next }))}
           />
         </div>
         <div className="mlp-form-row">
-          <div className="mlp-form-label">权益价值</div>
+          <div className="mlp-form-label">{t('权益价值')}</div>
           <div className="mlp-cell">
-            <span>该权益价值</span>
+            <span>{t('该权益价值')}</span>
             <InputNumber
               size="small"
               min={0}
               style={{ width: 120 }}
-              placeholder="请输入"
+              placeholder={t('请输入')}
               value={Number(rightsForm.value ?? 0)}
               onChange={(next) => setRightsForm((prev) => ({ ...prev, value: Number(next ?? 0) }))}
             />
-            <span>{AMOUNT_UNIT}</span>
+            <span>{t(AMOUNT_UNIT)}</span>
           </div>
         </div>
         <div className="mlp-form-row">
-          <div className="mlp-form-label">服务方式</div>
-          <div>商家线下核销</div>
+          <div className="mlp-form-label">{t('服务方式')}</div>
+          <div>{t('商家线下核销')}</div>
         </div>
       </Modal>
 
       {/* 会员卡面弹窗（旧 SetCardType.vue） */}
       <Modal
-        title="会员卡面"
+        title={t('会员卡面')}
         visible={cardOpen}
         width={850}
         onCancel={() => setCardOpen(false)}
         footer={
           <div className="mlp-drawer-footer">
-            <Button onClick={() => setCardOpen(false)}>取消</Button>
+            <Button onClick={() => setCardOpen(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" onClick={saveCard}>
-              确定
+              {t('确定')}
             </Button>
           </div>
         }
@@ -1179,11 +1214,11 @@ export default function MemberLevelPros() {
         <div className="mlp-card-dialog">
           <div>
             <div className="mlp-form-row">
-              <div className="mlp-form-label">背景设置：</div>
+              <div className="mlp-form-label">{t('背景设置：')}</div>
               <div>
                 <div className="mlp-grow-row">
                   <Radio checked={Number(cardForm.rankCardType) === 1} onChange={() => setCardForm((prev) => ({ ...prev, rankCardType: 1 }))}>
-                    背景色
+                    {t('背景色')}
                   </Radio>
                   <Popover
                     trigger="click"
@@ -1210,7 +1245,7 @@ export default function MemberLevelPros() {
             <div className="mlp-form-row">
               <div className="mlp-form-label"> </div>
               <Radio checked={Number(cardForm.rankCardType) === 2} onChange={() => setCardForm((prev) => ({ ...prev, rankCardType: 2 }))}>
-                自定义图片
+                {t('自定义图片')}
               </Radio>
             </div>
             <div className="mlp-form-row">
@@ -1222,7 +1257,9 @@ export default function MemberLevelPros() {
                   value={cardForm.rankBg ? [cardForm.rankBg] : []}
                   onChange={(next) => setCardForm((prev) => ({ ...prev, rankBg: next[0] || '' }))}
                 />
-                <div className="mlp-extra">尺寸：1000*525像素，小于2M，支持jpg、png、jpeg格式</div>
+                <div className="mlp-extra">
+                  {t('尺寸：1000*525像素，小于2M，支持jpg、png、jpeg格式')}
+                </div>
               </div>
             </div>
           </div>

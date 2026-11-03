@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig } from '../framework/types';
@@ -37,11 +38,12 @@ function ArticleSwitch({
   field: 'isShow' | 'isHot';
   value: number;
 }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
 
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -57,9 +59,9 @@ function ArticleSwitch({
         });
       }
       setChecked(next);
-      Toast.success({ content: '已更新' });
+      Toast.success({ content: t('已更新') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
 
@@ -67,6 +69,7 @@ function ArticleSwitch({
 }
 
 export default function Content() {
+  const { t } = useI18n();
   const [tab, setTab] = useState('articles');
   const [categories, setCategories] = useState<ArticleCategoryRow[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
@@ -91,7 +94,8 @@ export default function Content() {
   }, []);
 
   const categoryName = (id: number) =>
-    categories.find((item) => item.articleCategoryId === id)?.articleCategoryName || `分类 ${id}`;
+    categories.find((item) => item.articleCategoryId === id)?.articleCategoryName ||
+    t('分类 {id}', { id });
 
   const columns = useMemo<ColumnConfig<ArticleRow>[]>(
     () => [
@@ -117,7 +121,8 @@ export default function Content() {
         title: '文章重要性',
         dataIndex: 'isTop',
         width: 110,
-        render: (value: number) => (value === 1 ? <Tag color="orange">置顶</Tag> : <span>普通</span>),
+        render: (value: number) =>
+          value === 1 ? <Tag color="orange">{t('置顶')}</Tag> : <span>{t('普通')}</span>,
       },
       {
         title: '发布时间',
@@ -142,7 +147,7 @@ export default function Content() {
         ),
       },
     ],
-    [categories],
+    [categories, t],
   );
 
   const openCreateCategory = () => {
@@ -174,11 +179,11 @@ export default function Content() {
           sortOrder: Number(payload.sortOrder || 50),
         },
       );
-      Toast.success({ content: catMode === 'create' ? '分类已创建' : '分类已更新' });
+      Toast.success({ content: catMode === 'create' ? t('分类已创建') : t('分类已更新') });
       setCatDrawerVisible(false);
       loadCategories();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存分类失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存分类失败') });
     } finally {
       setCatSaving(false);
     }
@@ -187,10 +192,10 @@ export default function Content() {
   const removeCategory = async (record: ArticleCategoryRow) => {
     try {
       await apiPost('/content/articleCategory/del', { id: record.articleCategoryId });
-      Toast.success({ content: '分类已删除' });
+      Toast.success({ content: t('分类已删除') });
       loadCategories();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除分类失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除分类失败') });
     }
   };
 
@@ -206,11 +211,11 @@ export default function Content() {
         type: action,
         targetCat: action === 'moveCat' ? [targetCat] : undefined,
       });
-      Toast.success({ content: '批量操作成功' });
+      Toast.success({ content: t('批量操作成功') });
       clear();
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量操作失败') });
     }
   };
 
@@ -222,7 +227,7 @@ export default function Content() {
   ) => {
     Modal.confirm({
       title,
-      content: `将对 ${ids.length} 篇文章执行操作`,
+      content: t('将对 {count} 篇文章执行操作', { count: ids.length }),
       onOk: () => batchArticle(action, ids, clear),
     });
   };
@@ -235,8 +240,8 @@ export default function Content() {
           activeKey={tab}
           onChange={setTab}
           tabList={[
-            { tab: '文章管理', itemKey: 'articles' },
-            { tab: '文章分类', itemKey: 'categories' },
+            { tab: t('文章管理'), itemKey: 'articles' },
+            { tab: t('文章分类'), itemKey: 'categories' },
           ]}
         />
       </div>
@@ -253,14 +258,14 @@ export default function Content() {
             const ids = rows.map((row) => row.articleId);
             return (
               <Space>
-                <Button size="small" onClick={() => confirmBatch('批量删除文章', 'del', ids, clear)}>
-                  批量删除
+                <Button size="small" onClick={() => confirmBatch(t('批量删除文章'), 'del', ids, clear)}>
+                  {t('批量删除')}
                 </Button>
-                <Button size="small" onClick={() => confirmBatch('批量显示文章', 'show', ids, clear)}>
-                  批量显示
+                <Button size="small" onClick={() => confirmBatch(t('批量显示文章'), 'show', ids, clear)}>
+                  {t('批量显示')}
                 </Button>
-                <Button size="small" onClick={() => confirmBatch('批量隐藏文章', 'hide', ids, clear)}>
-                  批量隐藏
+                <Button size="small" onClick={() => confirmBatch(t('批量隐藏文章'), 'hide', ids, clear)}>
+                  {t('批量隐藏')}
                 </Button>
                 <Button
                   size="small"
@@ -271,7 +276,7 @@ export default function Content() {
                     setMoveVisible(true);
                   }}
                 >
-                  批量转移分类
+                  {t('批量转移分类')}
                 </Button>
               </Space>
             );
@@ -334,18 +339,18 @@ export default function Content() {
                 fields: [
                   {
                     field: 'articleTitle',
-                    label: '文章标题',
+                    label: t('文章标题'),
                     required: true,
-                    placeholder: '请输入文章标题',
+                    placeholder: t('请输入文章标题'),
                   },
                   {
                     field: 'articleSn',
-                    label: '文章编号',
-                    placeholder: '编号用于前台调用某些指定文章',
+                    label: t('文章编号'),
+                    placeholder: t('编号用于前台调用某些指定文章'),
                   },
                   {
                     field: 'articleCategoryId',
-                    label: '文章分类',
+                    label: t('文章分类'),
                     type: 'select',
                     required: true,
                     options: categories.map((item) => ({
@@ -355,7 +360,7 @@ export default function Content() {
                   },
                   {
                     field: 'articleThumb',
-                    label: '缩略图',
+                    label: t('缩略图'),
                     type: 'custom',
                     render: ({ formApi, values }) => (
                       <ImageUploader
@@ -365,49 +370,49 @@ export default function Content() {
                       />
                     ),
                   },
-                  { field: 'articleAuthor', label: '文章作者', placeholder: '请输入文章作者' },
-                  { field: 'keywords', label: '关键字', placeholder: '请输入关键字' },
-                  { field: 'articleTag', label: '标签', placeholder: '请输入标签' },
+                  { field: 'articleAuthor', label: t('文章作者'), placeholder: t('请输入文章作者') },
+                  { field: 'keywords', label: t('关键字'), placeholder: t('请输入关键字') },
+                  { field: 'articleTag', label: t('标签'), placeholder: t('请输入标签') },
                   {
                     field: 'description',
-                    label: '描述',
+                    label: t('描述'),
                     type: 'textarea',
                   },
-                  { field: 'link', label: '相关链接', placeholder: 'https://...' },
+                  { field: 'link', label: t('相关链接'), placeholder: 'https://...' },
                   {
                     field: 'articleType',
-                    label: '文章类型',
+                    label: t('文章类型'),
                     type: 'radio',
                     options: [
-                      { label: '普通文章', value: 1 },
-                      { label: '帮助文章', value: 2 },
+                      { label: t('普通文章'), value: 1 },
+                      { label: t('帮助文章'), value: 2 },
                     ],
                   },
                   {
                     field: 'isTop',
-                    label: '是否置顶',
+                    label: t('是否置顶'),
                     type: 'radio',
                     options: [
-                      { label: '是', value: 1 },
-                      { label: '否', value: 0 },
+                      { label: t('是'), value: 1 },
+                      { label: t('否'), value: 0 },
                     ],
                   },
                   {
                     field: 'isHot',
-                    label: '是否热门',
+                    label: t('是否热门'),
                     type: 'radio',
                     options: [
-                      { label: '是', value: 1 },
-                      { label: '否', value: 0 },
+                      { label: t('是'), value: 1 },
+                      { label: t('否'), value: 0 },
                     ],
                   },
                   {
                     field: 'isShow',
-                    label: '是否显示',
+                    label: t('是否显示'),
                     type: 'radio',
                     options: [
-                      { label: '是', value: 1 },
-                      { label: '否', value: 0 },
+                      { label: t('是'), value: 1 },
+                      { label: t('否'), value: 0 },
                     ],
                   },
                 ],
@@ -418,7 +423,7 @@ export default function Content() {
                 fields: [
                   {
                     field: 'content',
-                    label: '正文',
+                    label: t('正文'),
                     type: 'custom',
                     render: ({ formApi, values }) => (
                       <RichTextEditor
@@ -443,9 +448,9 @@ export default function Content() {
         <>
           <Card className="table-card" shadows="hover">
             <div className="table-toolbar">
-              <Text type="tertiary">共 {categories.length} 个文章分类</Text>
+              <Text type="tertiary">{t('共 {count} 个文章分类', { count: categories.length })}</Text>
               <Button theme="solid" type="primary" onClick={openCreateCategory}>
-                新增分类
+                {t('新增分类')}
               </Button>
             </div>
             <Table
@@ -454,21 +459,26 @@ export default function Content() {
               pagination={false}
               columns={[
                 { title: 'ID', dataIndex: 'articleCategoryId', width: 80 },
-                { title: '分类名称', dataIndex: 'articleCategoryName' },
+                { title: t('分类名称'), dataIndex: 'articleCategoryName' },
                 {
-                  title: '上级分类',
+                  title: t('上级分类'),
                   dataIndex: 'parentId',
                   width: 160,
                   render: (value: number) =>
                     value
                       ? categories.find((item) => item.articleCategoryId === value)
-                          ?.articleCategoryName || `分类 ${value}`
-                      : '顶级分类',
+                          ?.articleCategoryName || t('分类 {id}', { id: value })
+                      : t('顶级分类'),
                 },
-                { title: '标识', dataIndex: 'categorySn', width: 130, render: (value: string) => value || '-' },
-                { title: '排序', dataIndex: 'sortOrder', width: 90 },
                 {
-                  title: '操作',
+                  title: t('标识'),
+                  dataIndex: 'categorySn',
+                  width: 130,
+                  render: (value: string) => value || '-',
+                },
+                { title: t('排序'), dataIndex: 'sortOrder', width: 90 },
+                {
+                  title: t('操作'),
                   width: 150,
                   render: (_: unknown, record: ArticleCategoryRow) => (
                     <Space>
@@ -477,14 +487,14 @@ export default function Content() {
                         size="small"
                         onClick={() => openEditCategory(record)}
                       >
-                        编辑
+                        {t('编辑')}
                       </Button>
                       <Popconfirm
-                        title="确定删除该分类？分类下有文章或子分类时不能删除。"
+                        title={t('确定删除该分类？分类下有文章或子分类时不能删除。')}
                         onConfirm={() => removeCategory(record)}
                       >
                         <Button theme="borderless" type="danger" size="small">
-                          删除
+                          {t('删除')}
                         </Button>
                       </Popconfirm>
                     </Space>
@@ -516,16 +526,16 @@ export default function Content() {
                   fields: [
                     {
                       field: 'articleCategoryName',
-                      label: '分类名称',
+                      label: t('分类名称'),
                       required: true,
-                      placeholder: '请输入分类名称',
+                      placeholder: t('请输入分类名称'),
                     },
                     {
                       field: 'parentId',
-                      label: '上级分类',
+                      label: t('上级分类'),
                       type: 'select',
                       options: [
-                        { label: '顶级分类', value: 0 },
+                        { label: t('顶级分类'), value: 0 },
                         ...categories
                           .filter((item) => item.articleCategoryId !== catInitial.articleCategoryId)
                           .map((item) => ({
@@ -536,7 +546,7 @@ export default function Content() {
                     },
                     {
                       field: 'sortOrder',
-                      label: '排序',
+                      label: t('排序'),
                       type: 'number',
                     },
                   ],
@@ -553,33 +563,35 @@ export default function Content() {
       )}
 
       <Modal
-        title="批量转移分类"
+        title={t('批量转移分类')}
         visible={moveVisible}
         onCancel={() => setMoveVisible(false)}
         width={480}
         footer={
           <Space>
-            <Button onClick={() => setMoveVisible(false)}>取消</Button>
+            <Button onClick={() => setMoveVisible(false)}>{t('取消')}</Button>
             <Button
               theme="solid"
               type="primary"
               onClick={async () => {
                 if (!moveCategoryId) {
-                  Toast.warning({ content: '请选择目标分类' });
+                  Toast.warning({ content: t('请选择目标分类') });
                   return;
                 }
                 await batchArticle('moveCat', moveIds, moveClear || (() => undefined), moveCategoryId);
                 setMoveVisible(false);
               }}
             >
-              确认转移
+              {t('确认转移')}
             </Button>
           </Space>
         }
       >
-        <div style={{ marginBottom: 10 }}>已选择 {moveIds.length} 篇文章</div>
+        <div style={{ marginBottom: 10 }}>
+          {t('已选择 {count} 篇文章', { count: moveIds.length })}
+        </div>
         <Select
-          placeholder="请选择目标分类"
+          placeholder={t('请选择目标分类')}
           value={moveCategoryId}
           onChange={(value) => setMoveCategoryId(Number(value))}
           optionList={categories.map((item) => ({

@@ -22,16 +22,34 @@ function renderFilter(
   filter: FilterConfig,
   value: any,
   onChange: (value: any) => void,
-  t: (key: string) => string,
+  t: (key: string, params?: Record<string, string | number>) => string,
 ) {
   const style = { width: filter.width || 180 };
+  const rawPlaceholder = filter.placeholder || filter.label;
+  const translatePlaceholder = (): string => {
+    const direct = t(rawPlaceholder);
+    if (direct !== rawPlaceholder) return direct;
+    const patterns: Array<[string, string]> = [
+      ['请输入', '请输入{label}'],
+      ['输入', '输入{label}'],
+      ['请选择', '请选择{label}'],
+      ['搜索', '搜索{label}'],
+    ];
+    for (const [prefix, key] of patterns) {
+      if (rawPlaceholder.startsWith(prefix)) {
+        return t(key, { label: t(rawPlaceholder.slice(prefix.length)) });
+      }
+    }
+    return rawPlaceholder;
+  };
+  const placeholder = translatePlaceholder();
   if (filter.type === 'tags') {
     return <TagFilter value={value} onChange={onChange} width={Number(filter.width) || 220} />;
   }
   if (filter.type === 'select') {
     return (
       <Select
-        placeholder={t(filter.placeholder || filter.label)}
+        placeholder={placeholder}
         value={value}
         optionList={(filter.options || []).map((option) => ({ ...option, label: t(String(option.label)) }))}
         onChange={onChange}
@@ -40,12 +58,12 @@ function renderFilter(
     );
   }
   if (filter.type === 'date') {
-    return <DatePicker placeholder={t(filter.placeholder || filter.label)} value={value} onChange={onChange} style={style} />;
+    return <DatePicker placeholder={placeholder} value={value} onChange={onChange} style={style} />;
   }
   if (filter.type === 'number') {
     return (
       <Input
-        placeholder={t(filter.placeholder || filter.label)}
+        placeholder={placeholder}
         value={value ?? ''}
         onChange={(next) => onChange(next)}
         style={style}
@@ -55,7 +73,7 @@ function renderFilter(
   return (
     <Input
       prefix={<IconSearch />}
-      placeholder={t(filter.placeholder || filter.label)}
+      placeholder={placeholder}
       value={value ?? ''}
       onChange={(next) => onChange(next)}
       onEnterPress={() => onChange(value)}
