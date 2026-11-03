@@ -1,5 +1,6 @@
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 interface BalanceLogRow {
   logId: number;
@@ -22,6 +23,7 @@ function Amount({
   type?: number;
   after?: number | string;
 }) {
+  const { t } = useI18n();
   const color = type === 1 ? '#1677ff' : type === 2 ? '#f5222d' : undefined;
   const prefix = type === 1 ? '+' : type === 2 ? '-' : '';
   return (
@@ -29,7 +31,7 @@ function Amount({
       <span style={{ color }}>{prefix}{value ?? 0}</span>
       {after !== undefined && (
         <div className="text-muted" style={{ fontSize: 12 }}>
-          变更后：{after}
+          {t('变更后：')}{after}
         </div>
       )}
     </div>

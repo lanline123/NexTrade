@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import type { MemberRow } from '../types';
 
 const { Text } = Typography;
@@ -33,6 +34,7 @@ export function MemberDetailDrawer({
   onEdit,
   onFund,
 }: DrawerProps & { onEdit?: () => void; onFund?: () => void }) {
+  const { t } = useI18n();
   const [detail, setDetail] = useState<Record<string, any> | null>(null);
   const [tags, setTags] = useState<Array<Record<string, any>>>([]);
 
@@ -55,7 +57,7 @@ export function MemberDetailDrawer({
 
   return (
     <SideSheet
-      title="客户详情"
+      title={t('客户详情')}
       visible={visible}
       onCancel={onCancel}
       width={800}
@@ -63,11 +65,11 @@ export function MemberDetailDrawer({
       bodyStyle={{ padding: '16px 24px', overflowY: 'auto' }}
       footer={
         <Space>
-          <Button onClick={onCancel}>关闭</Button>
-          {onEdit && <Button onClick={onEdit}>编辑客户</Button>}
+          <Button onClick={onCancel}>{t('关闭')}</Button>
+          {onEdit && <Button onClick={onEdit}>{t('编辑客户')}</Button>}
           {onFund && (
             <Button theme="solid" type="primary" onClick={onFund}>
-              资金管理
+              {t('资金管理')}
             </Button>
           )}
         </Space>
@@ -79,7 +81,7 @@ export function MemberDetailDrawer({
         </Avatar>
         <div>
           <div className="member-detail-name">{data.nickname || data.username || '-'}</div>
-          <Text type="tertiary">{data.rankName || '普通会员'}</Text>
+          <Text type="tertiary">{data.rankName || t('普通会员')}</Text>
         </div>
         <div className="member-detail-tags">
           {tags.length ? (
@@ -90,7 +92,7 @@ export function MemberDetailDrawer({
             ))
           ) : (
             <Text type="tertiary" size="small">
-              暂无标签
+              {t('暂无标签')}
             </Text>
           )}
         </div>
@@ -98,66 +100,66 @@ export function MemberDetailDrawer({
 
       <div className="member-detail-metrics">
         <div>
-          <span>可用余额</span>
+          <span>{t('可用余额')}</span>
           <b>¥ {data.balance ?? '0.00'}</b>
         </div>
         <div>
-          <span>冻结资金</span>
+          <span>{t('冻结资金')}</span>
           <b>¥ {data.frozenBalance ?? '0.00'}</b>
         </div>
         <div>
-          <span>消费积分</span>
+          <span>{t('消费积分')}</span>
           <b>{data.points ?? 0}</b>
         </div>
         <div>
-          <span>累计消费</span>
+          <span>{t('累计消费')}</span>
           <b>¥ {data.orderAmount ?? '0.00'}</b>
         </div>
       </div>
 
-      <div className="detail-section-title">基本信息</div>
+      <div className="detail-section-title">{t('基本信息')}</div>
       <Descriptions
         column={3}
         layout="horizontal"
         align="plain"
         data={[
-          { key: '客户名称', value: data.username || '-' },
-          { key: '昵称', value: data.nickname || '-' },
-          { key: '手机号', value: data.mobile || '-' },
-          { key: '邮箱', value: data.email || '-' },
-          { key: '客户等级', value: data.rankName || '-' },
-          { key: '注册时间', value: data.regTime || '-' },
-          { key: '生日', value: data.birthday || '-' },
-          { key: '是否认证', value: data.isCompanyAuth ? '已认证' : '未认证' },
-          { key: '状态', value: data.status === 1 ? '启用' : '禁用' },
+          { key: t('客户名称'), value: data.username || '-' },
+          { key: t('昵称'), value: data.nickname || '-' },
+          { key: t('手机号'), value: data.mobile || '-' },
+          { key: t('邮箱'), value: data.email || '-' },
+          { key: t('客户等级'), value: data.rankName || '-' },
+          { key: t('注册时间'), value: data.regTime || '-' },
+          { key: t('生日'), value: data.birthday || '-' },
+          { key: t('是否认证'), value: data.isCompanyAuth ? t('已认证') : t('未认证') },
+          { key: t('状态'), value: data.status === 1 ? t('启用') : t('禁用') },
         ]}
       />
 
-      <div className="detail-section-title">资金信息</div>
+      <div className="detail-section-title">{t('资金信息')}</div>
       <Descriptions
         column={3}
         layout="horizontal"
         align="plain"
         data={[
-          { key: '可用资金', value: `¥ ${data.balance ?? '0.00'}` },
-          { key: '冻结资金', value: `¥ ${data.frozenBalance ?? '0.00'}` },
-          { key: '消费积分', value: data.points ?? 0 },
-          { key: '成长积分', value: data.growthPoints ?? 0 },
-          { key: '累计消费', value: `¥ ${data.orderAmount ?? '0.00'}` },
-          { key: '订单数', value: data.orderCount ?? 0 },
+          { key: t('可用资金'), value: `¥ ${data.balance ?? '0.00'}` },
+          { key: t('冻结资金'), value: `¥ ${data.frozenBalance ?? '0.00'}` },
+          { key: t('消费积分'), value: data.points ?? 0 },
+          { key: t('成长积分'), value: data.growthPoints ?? 0 },
+          { key: t('累计消费'), value: `¥ ${data.orderAmount ?? '0.00'}` },
+          { key: t('订单数'), value: data.orderCount ?? 0 },
         ]}
       />
 
-      <div className="detail-section-title">收货信息</div>
+      <div className="detail-section-title">{t('收货信息')}</div>
       <Descriptions
         column={2}
         layout="horizontal"
         align="plain"
         data={[
-          { key: '收货人', value: address.consignee || '-' },
-          { key: '联系电话', value: address.mobile || '-' },
-          { key: '所在地区', value: (address.regionNames || []).join(' ') || '-' },
-          { key: '详细地址', value: address.address || '-' },
+          { key: t('收货人'), value: address.consignee || '-' },
+          { key: t('联系电话'), value: address.mobile || '-' },
+          { key: t('所在地区'), value: (address.regionNames || []).join(' ') || '-' },
+          { key: t('详细地址'), value: address.address || '-' },
         ]}
       />
     </SideSheet>
@@ -170,6 +172,7 @@ export function MemberAccountDrawer({
   onCancel,
   onFund,
 }: DrawerProps & { onFund?: () => void }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<Array<Record<string, any>>>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -197,7 +200,7 @@ export function MemberAccountDrawer({
 
   return (
     <SideSheet
-      title={`${member?.username || ''} 的账目明细`}
+      title={t('{name} 的账目明细', { name: member?.username || '' })}
       visible={visible}
       onCancel={onCancel}
       width={800}
@@ -212,16 +215,16 @@ export function MemberAccountDrawer({
             setPage(1);
           }}
           optionList={[
-            { label: '可用资金账户', value: '1' },
-            { label: '冻结资金账户', value: '2' },
-            { label: '成长积分账户', value: '3' },
-            { label: '消费积分账户', value: '4' },
+            { label: t('可用资金账户'), value: '1' },
+            { label: t('冻结资金账户'), value: '2' },
+            { label: t('成长积分账户'), value: '3' },
+            { label: t('消费积分账户'), value: '4' },
           ]}
           style={{ width: 160 }}
         />
         {onFund && (
           <Button theme="solid" type="primary" onClick={onFund}>
-            调节客户账户
+            {t('调节客户账户')}
           </Button>
         )}
       </Space>
@@ -230,11 +233,11 @@ export function MemberAccountDrawer({
         rowKey={(record: any) => String(record.logId ?? record.id ?? record.changeTime)}
         pagination={{ currentPage: page, pageSize: 10, total, onChange: setPage }}
         columns={[
-          { title: '变动时间', dataIndex: 'changeTime', width: 170 },
-          { title: '变动原因', dataIndex: 'changeDesc' },
-          { title: '可用资金', dataIndex: 'balance', width: 110 },
-          { title: '冻结资金', dataIndex: 'frozenBalance', width: 110 },
-          { title: '积分', dataIndex: 'points', width: 90 },
+          { title: t('变动时间'), dataIndex: 'changeTime', width: 170 },
+          { title: t('变动原因'), dataIndex: 'changeDesc' },
+          { title: t('可用资金'), dataIndex: 'balance', width: 110 },
+          { title: t('冻结资金'), dataIndex: 'frozenBalance', width: 110 },
+          { title: t('积分'), dataIndex: 'points', width: 90 },
         ]}
       />
     </SideSheet>
@@ -242,6 +245,7 @@ export function MemberAccountDrawer({
 }
 
 export function MemberOrdersDrawer({ visible, member, onCancel }: DrawerProps) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<Array<Record<string, any>>>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -267,7 +271,7 @@ export function MemberOrdersDrawer({ visible, member, onCancel }: DrawerProps) {
 
   return (
     <SideSheet
-      title={`${member?.username || ''} 的订单`}
+      title={t('{name} 的订单', { name: member?.username || '' })}
       visible={visible}
       onCancel={onCancel}
       width={1200}
@@ -279,12 +283,12 @@ export function MemberOrdersDrawer({ visible, member, onCancel }: DrawerProps) {
         rowKey={(record: any) => String(record.orderId)}
         pagination={{ currentPage: page, pageSize: 10, total, onChange: setPage }}
         columns={[
-          { title: '订单号', dataIndex: 'orderSn' },
-          { title: '收货人', dataIndex: 'consignee' },
-          { title: '订单金额', dataIndex: 'totalAmount', width: 130 },
-          { title: '支付状态', dataIndex: 'payStatusName', width: 110 },
-          { title: '订单状态', dataIndex: 'orderStatusName', width: 120 },
-          { title: '下单时间', dataIndex: 'addTime', width: 170 },
+          { title: t('订单号'), dataIndex: 'orderSn' },
+          { title: t('收货人'), dataIndex: 'consignee' },
+          { title: t('订单金额'), dataIndex: 'totalAmount', width: 130 },
+          { title: t('支付状态'), dataIndex: 'payStatusName', width: 110, render: (value: string) => (value ? t(value) : '-') },
+          { title: t('订单状态'), dataIndex: 'orderStatusName', width: 120, render: (value: string) => (value ? t(value) : '-') },
+          { title: t('下单时间'), dataIndex: 'addTime', width: 170 },
         ]}
       />
     </SideSheet>
@@ -297,6 +301,7 @@ export function MemberTagsDrawer({
   onCancel,
   onSaved,
 }: DrawerProps & { onSaved: () => void }) {
+  const { t } = useI18n();
   const [allTags, setAllTags] = useState<Array<Record<string, any>>>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
@@ -350,11 +355,11 @@ export function MemberTagsDrawer({
       if (removed.length) {
         await apiPost('/user/userMemberTag/unbindTags', { userId: member.userId, tagIds: removed });
       }
-      Toast.success({ content: '标签已更新' });
+      Toast.success({ content: t('标签已更新') });
       onSaved();
       onCancel();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存标签失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存标签失败') });
     } finally {
       setSaving(false);
     }
@@ -362,7 +367,7 @@ export function MemberTagsDrawer({
 
   return (
     <SideSheet
-      title={`${member?.username || ''} 的标签`}
+      title={t('{name} 的标签', { name: member?.username || '' })}
       visible={visible}
       onCancel={onCancel}
       width={560}
@@ -370,9 +375,9 @@ export function MemberTagsDrawer({
       bodyStyle={{ padding: '16px 24px', overflowY: 'auto' }}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={save}>
-            保存
+            {t('保存')}
           </Button>
         </Space>
       }
@@ -389,7 +394,7 @@ export function MemberTagsDrawer({
         />
       ) : (
         <Typography.Text type="tertiary">
-          暂无可用标签，请先在「客户标签」中创建标签组和标签。
+          {t('暂无可用标签，请先在「客户标签」中创建标签组和标签。')}
         </Typography.Text>
       )}
     </SideSheet>
@@ -402,6 +407,7 @@ export function MemberFundModal({
   onCancel,
   onSuccess,
 }: DrawerProps & { onSuccess: () => void }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState('');
   const [form, setForm] = useState({
     typeBalance: 1,
@@ -434,7 +440,7 @@ export function MemberFundModal({
   const submit = async () => {
     if (!member) return;
     if (!reason.trim()) {
-      Toast.warning({ content: '请填写资金变动说明' });
+      Toast.warning({ content: t('请填写资金变动说明') });
       return;
     }
     setSaving(true);
@@ -457,10 +463,10 @@ export function MemberFundModal({
         payload.growthPoints = form.growthPoints;
       }
       await apiPost('/user/user/fundManagement', payload);
-      Toast.success({ content: '账户已调整' });
+      Toast.success({ content: t('账户已调整') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '账户调整失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('账户调整失败') });
     } finally {
       setSaving(false);
     }
@@ -475,31 +481,31 @@ export function MemberFundModal({
 
   return (
     <Modal
-      title="资金管理"
+      title={t('资金管理')}
       visible={visible}
       onCancel={onCancel}
       width={560}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            确认调整
+            {t('确认调整')}
           </Button>
         </Space>
       }
     >
       <div className="member-fund-form">
-        <label>变动说明</label>
-        <Input value={reason} onChange={setReason} placeholder="请输入资金变动说明" />
+        <label>{t('变动说明')}</label>
+        <Input value={reason} onChange={setReason} placeholder={t('请输入资金变动说明')} />
         {rows.map((row) => (
           <div className="member-fund-row" key={row.label}>
-            <span>{row.label}</span>
+            <span>{t(row.label)}</span>
             <Select
               value={form[row.typeKey]}
               onChange={(value) => setForm({ ...form, [row.typeKey]: Number(value) })}
               optionList={[
-                { label: '增加', value: 1 },
-                { label: '减少', value: 2 },
+                { label: t('增加'), value: 1 },
+                { label: t('减少'), value: 2 },
               ]}
               style={{ width: 100 }}
             />

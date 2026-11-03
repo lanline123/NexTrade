@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import ProductPicker from '../components/ProductPicker';
 import type { ColumnConfig } from '../framework/types';
@@ -14,6 +15,7 @@ interface ProductGiftRow {
 
 /** 活动赠品：对应旧版 promotion/productGift/List.vue + Info.vue。 */
 export default function ProductGifts() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = () => setReloadKey((key) => key + 1);
@@ -51,30 +53,30 @@ export default function ProductGifts() {
           size="small"
           onClick={() => {
             Modal.confirm({
-              title: '您确认要批量删除所选数据吗？',
+              title: t('您确认要批量删除所选数据吗？'),
               onOk: async () => {
                 try {
                   await apiPost('/promotion/productGift/batch', {
                     ids: rows.map((row) => row.giftId),
                     type: 'del',
                   });
-                  Toast.success({ content: '批量删除成功' });
+                  Toast.success({ content: t('批量删除成功') });
                   clear();
                   reload();
                 } catch (error) {
-                  Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                  Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                 }
               },
             });
           }}
         >
-          批量删除
+          {t('批量删除')}
         </Button>
       )}
       rowActions={(row) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small">
-            编辑
+            {t('编辑')}
           </Button>
           <Button
             theme="borderless"
@@ -82,20 +84,20 @@ export default function ProductGifts() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '确认删除该赠品吗？',
+                title: t('确认删除该赠品吗？'),
                 onOk: async () => {
                   try {
                     await apiPost('/promotion/productGift/del', { id: row.giftId });
-                    Toast.success({ content: '删除成功' });
+                    Toast.success({ content: t('删除成功') });
                     reload();
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
                   }
                 },
               });
             }}
           >
-            删除
+            {t('删除')}
           </Button>
         </Space>
       )}
@@ -114,10 +116,10 @@ export default function ProductGifts() {
             key: 'basic',
             title: '赠品信息',
             fields: [
-              { field: 'giftName', label: '赠品名称', type: 'input', required: true },
+              { field: 'giftName', label: t('赠品名称'), type: 'input', required: true },
               {
                 field: 'productId',
-                label: '选择商品',
+                label: t('选择商品'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <div>
@@ -134,7 +136,7 @@ export default function ProductGifts() {
                   </div>
                 ),
               },
-              { field: 'giftStock', label: '赠品库存', type: 'number', initValue: 0 },
+              { field: 'giftStock', label: t('赠品库存'), type: 'number', initValue: 0 },
             ],
           },
         ],
@@ -145,7 +147,7 @@ export default function ProductGifts() {
               ? [Number(values.productId)]
               : [];
           if (!values.giftName || !String(values.giftName).trim()) {
-            throw new Error('赠品名称不能为空!');
+            throw new Error(t('赠品名称不能为空!'));
           }
           return {
             ...values,

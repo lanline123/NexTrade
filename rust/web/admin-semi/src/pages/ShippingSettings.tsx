@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Input, Radio, RadioGroup, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -32,6 +33,7 @@ const initial: ShippingSettings = {
 };
 
 export default function ShippingSettingsPage() {
+  const { t } = useI18n();
   const [form, setForm] = useState<ShippingSettings>(initial);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,7 +41,7 @@ export default function ShippingSettingsPage() {
   useEffect(() => {
     apiGet<ShippingSettings>('/setting/config/shippingSettings')
       .then((result) => setForm({ ...initial, ...(result || {}) }))
-      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '加载失败' }))
+      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : t('加载失败') }))
       .finally(() => setLoading(false));
   }, []);
 
@@ -49,15 +51,15 @@ export default function ShippingSettingsPage() {
 
   const save = async () => {
     if (!form.defaultLogisticsName?.trim()) {
-      Toast.warning({ content: '自定义名称不能为空' });
+      Toast.warning({ content: t('自定义名称不能为空') });
       return;
     }
     setSaving(true);
     try {
       await apiPost('/setting/config/saveShipping', form);
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -80,9 +82,9 @@ export default function ShippingSettingsPage() {
     <div className="config-page">
       <Card className="config-card" shadows="hover">
         <div className="config-section">
-          <h3>快递发货设置</h3>
+          <h3>{t('快递发货设置')}</h3>
           <div className="config-field">
-            <label>自定义名称</label>
+            <label>{t('自定义名称')}</label>
             <div>
               <Input
                 value={form.defaultLogisticsName || ''}
@@ -90,28 +92,28 @@ export default function ShippingSettingsPage() {
                 onChange={(value) => update('defaultLogisticsName', value)}
               />
               <Text type="tertiary" size="small">
-                该名称会显示在买家可选择的配送方式中，默认名称“商家配送”
+                {t('该名称会显示在买家可选择的配送方式中，默认名称“商家配送”')}
               </Text>
             </div>
           </div>
         </div>
 
         <div className="config-section">
-          <h3>快递接口设置</h3>
+          <h3>{t('快递接口设置')}</h3>
           <div className="config-field">
-            <label>快递接口</label>
+            <label>{t('快递接口')}</label>
             <RadioGroup
               value={form.logisticsProvider || 1}
               onChange={(event) => update('logisticsProvider', Number(event.target.value))}
             >
-              <Radio value={1}>快递鸟</Radio>
-              <Radio value={2}>快递100</Radio>
+              <Radio value={1}>{t('快递鸟')}</Radio>
+              <Radio value={2}>{t('快递100')}</Radio>
             </RadioGroup>
           </div>
           {isKdniao ? (
             <>
-              {field('快递鸟 API Key', 'kdniaoApiKey')}
-              {field('快递鸟服务 ID', 'kdniaoBusinessId')}
+              {field(t('快递鸟 API Key'), 'kdniaoApiKey')}
+              {field(t('快递鸟服务 ID'), 'kdniaoBusinessId')}
             </>
           ) : (
             <>
@@ -123,32 +125,32 @@ export default function ShippingSettingsPage() {
         </div>
 
         <div className="config-section">
-          <h3>发货信息设置</h3>
+          <h3>{t('发货信息设置')}</h3>
           <div className="config-grid">
-            {field('发货人', 'sender')}
-            {field('发货人联系方式', 'mobile')}
-            {field('发货地省份', 'provinceName')}
-            {field('发货城市', 'cityName')}
-            {field('发货地区', 'areaName')}
-            {field('发货详细地址', 'address')}
+            {field(t('发货人'), 'sender')}
+            {field(t('发货人联系方式'), 'mobile')}
+            {field(t('发货地省份'), 'provinceName')}
+            {field(t('发货城市'), 'cityName')}
+            {field(t('发货地区'), 'areaName')}
+            {field(t('发货详细地址'), 'address')}
           </div>
         </div>
 
         <div className="config-section">
-          <h3>退货信息设置</h3>
+          <h3>{t('退货信息设置')}</h3>
           <div className="config-grid">
-            {field('退货人', 'receiveSender')}
-            {field('退货人联系方式', 'receiveMobile')}
-            {field('退货省份', 'receiveProvinceName')}
-            {field('退货城市', 'receiveCityName')}
-            {field('退货地区', 'receiveAreaName')}
-            {field('退货详细地址', 'receiveAddress')}
+            {field(t('退货人'), 'receiveSender')}
+            {field(t('退货人联系方式'), 'receiveMobile')}
+            {field(t('退货省份'), 'receiveProvinceName')}
+            {field(t('退货城市'), 'receiveCityName')}
+            {field(t('退货地区'), 'receiveAreaName')}
+            {field(t('退货详细地址'), 'receiveAddress')}
           </div>
         </div>
 
         <div className="config-actions">
           <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       </Card>

@@ -18,6 +18,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
 
 const { Title, Text } = Typography;
@@ -99,6 +100,7 @@ const defaultModules: Record<string, InvestmentModuleItem[]> = {
 };
 
 export default function InvestmentContent() {
+  const { t } = useI18n();
   const [currentTab, setCurrentTab] = useState<string>('investmentPromotionHomepage');
   const [loading, setLoading] = useState(false);
   const [modules, setModules] = useState<Record<string, InvestmentModuleItem[]>>(defaultModules);
@@ -141,7 +143,7 @@ export default function InvestmentContent() {
 
   const handleSaveItem = async () => {
     if (!editForm.title?.trim()) {
-      Toast.warning({ content: '请输入模块标题' });
+      Toast.warning({ content: t('请输入模块标题') });
       return;
     }
     setSaving(true);
@@ -159,10 +161,10 @@ export default function InvestmentContent() {
         [currentTab]: currentList,
       }));
 
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
       setEditModalVisible(false);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -180,16 +182,16 @@ export default function InvestmentContent() {
             onChange={(key) => setCurrentTab(key)}
             style={{ marginBottom: 0 }}
           >
-            <TabPane tab="招商首页" itemKey="investmentPromotionHomepage" />
-            <TabPane tab="招商计划" itemKey="investmentPlan" />
-            <TabPane tab="招商标准" itemKey="investmentCriteria" />
-            <TabPane tab="入驻流程" itemKey="settlingProcess" />
+            <TabPane tab={t('招商首页')} itemKey="investmentPromotionHomepage" />
+            <TabPane tab={t('招商计划')} itemKey="investmentPlan" />
+            <TabPane tab={t('招商标准')} itemKey="investmentCriteria" />
+            <TabPane tab={t('入驻流程')} itemKey="settlingProcess" />
           </Tabs>
         }
       >
         <Spin spinning={loading}>
           {items.length === 0 ? (
-            <Empty description="暂无配置项" />
+            <Empty description={t('暂无配置项')} />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {items.map((item, idx) => (
@@ -206,13 +208,13 @@ export default function InvestmentContent() {
                       size="small"
                       onClick={() => openEdit(item, idx)}
                     >
-                      编辑描述
+                      {t('编辑描述')}
                     </Button>
                   }
                   title={
                     <Space>
                       <Tag color="blue">{idx + 1}</Tag>
-                      <Text strong>{item.title || `未命名模块 ${idx + 1}`}</Text>
+                      <Text strong>{item.title || t('未命名模块 {index}', { index: idx + 1 })}</Text>
                     </Space>
                   }
                 >
@@ -220,13 +222,13 @@ export default function InvestmentContent() {
                     row
                     data={[
                       {
-                        key: '流程描述',
-                        value: item.content || <Text type="tertiary">未填写描述内容</Text>,
+                        key: t('流程描述'),
+                        value: item.content || <Text type="tertiary">{t('未填写描述内容')}</Text>,
                       },
                       ...(item.image
                         ? [
                             {
-                              key: '流程图',
+                              key: t('流程图'),
                               value: (
                                 <Image
                                   src={item.image}
@@ -241,7 +243,7 @@ export default function InvestmentContent() {
                       ...(item.images && item.images.length > 0
                         ? [
                             {
-                              key: '轮播图',
+                              key: t('轮播图'),
                               value: (
                                 <Space>
                                   {item.images.map((img, i) => (
@@ -269,7 +271,7 @@ export default function InvestmentContent() {
 
       {/* 编辑弹窗 */}
       <Modal
-        title="编辑招商模块描述"
+        title={t('编辑招商模块描述')}
         visible={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
         confirmLoading={saving}
@@ -279,11 +281,11 @@ export default function InvestmentContent() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <Text strong style={{ display: 'block', marginBottom: 6 }}>
-              流程标题 <span style={{ color: 'var(--semi-color-danger)' }}>*</span>
+              {t('流程标题')} <span style={{ color: 'var(--semi-color-danger)' }}>*</span>
             </Text>
             <Input
               value={editForm.title || ''}
-              placeholder="请输入流程标题"
+              placeholder={t('请输入流程标题')}
               onChange={(val) => setEditForm((prev) => ({ ...prev, title: val }))}
             />
           </div>
@@ -291,7 +293,7 @@ export default function InvestmentContent() {
           {currentTab === 'investmentPromotionHomepage' && editIndex === 0 && (
             <div>
               <Text strong style={{ display: 'block', marginBottom: 6 }}>
-                轮播图
+                {t('轮播图')}
               </Text>
               <ImageUploader
                 value={editForm.images || []}
@@ -299,7 +301,7 @@ export default function InvestmentContent() {
                 onChange={(urls) => setEditForm((prev) => ({ ...prev, images: urls }))}
               />
               <Text type="tertiary" size="small" style={{ marginTop: 4, display: 'block' }}>
-                提示：请根据具体需求设置对应大小的图片，高清需要上传双倍大小
+                {t('提示：请根据具体需求设置对应大小的图片，高清需要上传双倍大小')}
               </Text>
             </div>
           )}
@@ -307,7 +309,7 @@ export default function InvestmentContent() {
           {currentTab === 'investmentPromotionHomepage' && editIndex > 0 && (
             <div>
               <Text strong style={{ display: 'block', marginBottom: 6 }}>
-                流程图
+                {t('流程图')}
               </Text>
               <ImageUploader
                 single
@@ -316,19 +318,19 @@ export default function InvestmentContent() {
                 onChange={(urls) => setEditForm((prev) => ({ ...prev, image: urls[0] || '' }))}
               />
               <Text type="tertiary" size="small" style={{ marginTop: 4, display: 'block' }}>
-                提示：请根据具体需求设置对应大小的图片，高清需要上传双倍大小
+                {t('提示：请根据具体需求设置对应大小的图片，高清需要上传双倍大小')}
               </Text>
             </div>
           )}
 
           <div>
             <Text strong style={{ display: 'block', marginBottom: 6 }}>
-              流程描述
+              {t('流程描述')}
             </Text>
             <TextArea
               rows={5}
               value={editForm.content || ''}
-              placeholder="请输入流程描述内容"
+              placeholder={t('请输入流程描述内容')}
               onChange={(val) => setEditForm((prev) => ({ ...prev, content: val }))}
             />
           </div>

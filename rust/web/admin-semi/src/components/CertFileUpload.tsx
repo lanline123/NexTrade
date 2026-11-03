@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Button, Toast } from '@douyinfe/semi-ui';
 import { apiUpload } from '../api';
+import { useI18n } from '../i18n';
 
 interface CertFileUploadProps {
   /** 0/1 标记：证书是否已上传（文件本身保存在服务端）。 */
@@ -13,6 +14,7 @@ interface CertFileUploadProps {
 
 /** 支付证书文件上传控件（.pem/.cer/.key），上传成功后置 1。 */
 export default function CertFileUpload({ value, uploadType, fileHint, onChange }: CertFileUploadProps) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const uploaded = Number(value) === 1;
@@ -23,9 +25,9 @@ export default function CertFileUpload({ value, uploadType, fileHint, onChange }
     try {
       await apiUpload(`/setting/config/uploadFile?type=${uploadType}`, file);
       onChange(1);
-      Toast.success({ content: '上传成功' });
+      Toast.success({ content: t('上传成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '证书文件格式不正确' });
+      Toast.error({ content: error instanceof Error ? error.message : t('证书文件格式不正确') });
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -35,7 +37,7 @@ export default function CertFileUpload({ value, uploadType, fileHint, onChange }
   return (
     <div className="cert-file-upload" data-widget="cert-file-upload">
       <Button loading={uploading} onClick={() => inputRef.current?.click()}>
-        {uploaded ? '重新上传' : '点击上传'}
+        {uploaded ? t('重新上传') : t('点击上传')}
       </Button>
       <input
         ref={inputRef}

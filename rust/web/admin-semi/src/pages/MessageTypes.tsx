@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -36,6 +37,7 @@ interface MessageTypeRow {
 }
 
 export function MessageTypes() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [sendType, setSendType] = useState<number>(1);
   const [editVisible, setEditVisible] = useState(false);
@@ -47,28 +49,28 @@ export function MessageTypes() {
   const handleUpdateField = async (id: number, field: string, val: unknown) => {
     try {
       await apiPost('/setting/config/messageType/updateField', { id, field, val });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     }
   };
 
   const handleGenerateMiniProgram = async () => {
     try {
       await apiPost('/setting/messageType/miniProgramMessageTemplate', {});
-      Toast.success({ content: '生成小程序消息模板成功' });
+      Toast.success({ content: t('生成小程序消息模板成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   const handleGenerateWechat = async () => {
     try {
       await apiPost('/setting/messageType/wechatMessageTemplate', {});
-      Toast.success({ content: '生成公众号模板消息成功' });
+      Toast.success({ content: t('生成公众号模板消息成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
@@ -88,11 +90,11 @@ export function MessageTypes() {
         field: 'name',
         val: editName,
       });
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
       setEditVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setEditLoading(false);
     }
@@ -265,7 +267,7 @@ export function MessageTypes() {
             size="small"
             onClick={() => openEdit(record)}
           >
-            编辑
+            {t('编辑')}
           </Button>
         );
       },
@@ -276,11 +278,11 @@ export function MessageTypes() {
     <div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
-          <Text strong>模板行业选择</Text>
-          <Text type="tertiary">主营行业：根据您的主营行业选择适合的服务类目</Text>
-          <Text type="tertiary">副营行业：商业服务 -&gt; 软件/建站/技术开发</Text>
-          <Text strong style={{ marginTop: 6 }}>生成小程序消息模板 / 生成公众号模板消息</Text>
-          <Text type="tertiary">请先添加服务类目《商业服务-&gt;软件/建站/技术开发》，否则模板导入不成功！</Text>
+          <Text strong>{t('模板行业选择')}</Text>
+          <Text type="tertiary">{t('主营行业：根据您的主营行业选择适合的服务类目')}</Text>
+          <Text type="tertiary">{t('副营行业：商业服务 -> 软件/建站/技术开发')}</Text>
+          <Text strong style={{ marginTop: 6 }}>{t('生成小程序消息模板 / 生成公众号模板消息')}</Text>
+          <Text type="tertiary">{t('请先添加服务类目《商业服务->软件/建站/技术开发》，否则模板导入不成功！')}</Text>
         </div>
       </Card>
 
@@ -289,8 +291,8 @@ export function MessageTypes() {
         onChange={(k) => setSendType(Number(k))}
         style={{ marginBottom: 16 }}
       >
-        <Tabs.TabPane tab="发送给用户" itemKey="1" />
-        <Tabs.TabPane tab="发送给商家" itemKey="2" />
+        <Tabs.TabPane tab={t('发送给用户')} itemKey="1" />
+        <Tabs.TabPane tab={t('发送给商家')} itemKey="2" />
       </Tabs>
 
       <ListPage
@@ -300,8 +302,8 @@ export function MessageTypes() {
         columns={columns}
         toolbarExtra={
           <Space>
-            <Button onClick={handleGenerateMiniProgram}>生成小程序消息模板</Button>
-            <Button onClick={handleGenerateWechat}>生成公众号模板消息</Button>
+            <Button onClick={handleGenerateMiniProgram}>{t('生成小程序消息模板')}</Button>
+            <Button onClick={handleGenerateWechat}>{t('生成公众号模板消息')}</Button>
           </Space>
         }
         filters={[
@@ -326,25 +328,25 @@ export function MessageTypes() {
       </div>
 
       <Modal
-        title={editingRow ? `${editingRow.name} 消息编辑` : '消息编辑'}
+        title={editingRow ? t('{name} 消息编辑', { name: editingRow.name }) : t('消息编辑')}
         visible={editVisible}
         onCancel={() => setEditVisible(false)}
         onOk={handleEditSubmit}
         confirmLoading={editLoading}
         width={500}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>消息类型</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('消息类型')}</div>
             <Input
               value={editName}
               onChange={(val) => setEditName(val)}
             />
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>消息描述</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('消息描述')}</div>
             <Input
               value={editDescribe}
               disabled

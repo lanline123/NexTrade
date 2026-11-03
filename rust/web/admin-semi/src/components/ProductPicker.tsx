@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Image, Input, SideSheet, Space, Table, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '../api';
+import { useI18n } from '../i18n';
 
 interface ProductItem {
   productId: number;
@@ -25,6 +26,7 @@ export default function ProductPicker({
   max = 10,
   disabled,
 }: ProductPickerProps) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
@@ -67,7 +69,7 @@ export default function ProductPicker({
       setTotal(result.total || 0);
       setPage(nextPage);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '商品加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('商品加载失败') });
     } finally {
       setLoading(false);
     }
@@ -102,11 +104,13 @@ export default function ProductPicker({
           disabled={disabled || (max > 0 && value.length >= max)}
           onClick={open}
         >
-          选择商品
+          {t('选择商品')}
         </Button>
         {value.length > 0 && (
           <>
-            <span className="product-picker-count">已选择 {value.length} 个商品</span>
+            <span className="product-picker-count">
+              {t('已选择 {count} 个商品', { count: value.length })}
+            </span>
             <Button
               theme="borderless"
               onClick={() => {
@@ -114,7 +118,7 @@ export default function ProductPicker({
                 setSelectedRows([]);
               }}
             >
-              清空
+              {t('清空')}
             </Button>
           </>
         )}
@@ -127,7 +131,7 @@ export default function ProductPicker({
           pagination={false}
           columns={[
             {
-              title: '商品信息',
+              title: t('商品信息'),
               dataIndex: 'productName',
               render: (_: unknown, record: ProductItem) => (
                 <div className="product-picker-info">
@@ -144,27 +148,29 @@ export default function ProductPicker({
                   <div>
                     <div>{record.productName}</div>
                     {record.productSn && (
-                      <div className="product-picker-sn">货号：{record.productSn}</div>
+                      <div className="product-picker-sn">
+                        {t('货号：{sn}', { sn: record.productSn })}
+                      </div>
                     )}
                   </div>
                 </div>
               ),
             },
             {
-              title: '商品价格',
+              title: t('商品价格'),
               dataIndex: 'productPrice',
               width: '20%',
               render: (item: any) => (
                 <span className="product-picker-price">¥ {item ?? 0}</span>
               ),
             },
-            { title: '商品库存', dataIndex: 'productStock', width: '16%' },
+            { title: t('商品库存'), dataIndex: 'productStock', width: '16%' },
             {
-              title: '操作',
+              title: t('操作'),
               width: 80,
               render: (_: unknown, record: ProductItem) => (
                 <Button theme="borderless" type="danger" size="small" onClick={() => remove(record.productId)}>
-                  删除
+                  {t('删除')}
                 </Button>
               ),
             },
@@ -173,7 +179,7 @@ export default function ProductPicker({
       )}
 
       <SideSheet
-        title="选择商品"
+        title={t('选择商品')}
         visible={visible}
         onCancel={() => setVisible(false)}
         width={900}
@@ -182,11 +188,11 @@ export default function ProductPicker({
         footer={
           <Space>
             <span className="product-picker-count">
-              已选择 {selectedKeys.length} / {max} 个商品
+              {t('已选择 {count} / {max} 个商品', { count: selectedKeys.length, max })}
             </span>
-            <Button onClick={() => setVisible(false)}>取消</Button>
+            <Button onClick={() => setVisible(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" onClick={confirm}>
-              确定
+              {t('确定')}
             </Button>
           </Space>
         }
@@ -194,12 +200,12 @@ export default function ProductPicker({
         <Space style={{ marginBottom: 12 }}>
           <Input
             value={keyword}
-            placeholder="搜索商品名称 / 编号"
+            placeholder={t('搜索商品名称 / 编号')}
             onChange={setKeyword}
             onEnterPress={() => loadProducts(1)}
             style={{ width: 300 }}
           />
-          <Button onClick={() => loadProducts(1)}>搜索</Button>
+          <Button onClick={() => loadProducts(1)}>{t('搜索')}</Button>
         </Space>
         <Table
           loading={loading}
@@ -210,7 +216,7 @@ export default function ProductPicker({
             onChange: (keys) => {
               const next = (keys || []).map(Number);
               if (max > 0 && next.length > max) {
-                Toast.warning({ content: `最多选择 ${max} 个商品` });
+                Toast.warning({ content: t('最多选择 {count} 个商品', { count: max }) });
                 return;
               }
               setSelectedKeys(next);
@@ -224,7 +230,7 @@ export default function ProductPicker({
           }}
           columns={[
             {
-              title: '商品信息',
+              title: t('商品信息'),
               dataIndex: 'productName',
               render: (_: unknown, record: ProductItem) => (
                 <div className="product-picker-info">
@@ -241,21 +247,23 @@ export default function ProductPicker({
                   <div>
                     <div>{record.productName}</div>
                     {record.productSn && (
-                      <div className="product-picker-sn">货号：{record.productSn}</div>
+                      <div className="product-picker-sn">
+                        {t('货号：{sn}', { sn: record.productSn })}
+                      </div>
                     )}
                   </div>
                 </div>
               ),
             },
             {
-              title: '商品价格',
+              title: t('商品价格'),
               dataIndex: 'productPrice',
               width: '20%',
               render: (item: any) => (
                 <span className="product-picker-price">¥ {item ?? 0}</span>
               ),
             },
-            { title: '商品库存', dataIndex: 'productStock', width: '16%' },
+            { title: t('商品库存'), dataIndex: 'productStock', width: '16%' },
           ]}
         />
       </SideSheet>

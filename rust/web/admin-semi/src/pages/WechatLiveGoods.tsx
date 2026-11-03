@@ -3,6 +3,7 @@ import { Button, Modal, Space, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -18,6 +19,7 @@ interface LiveGoodRow {
 
 /** 直播商品：对应旧版 content/wechat-live/manageProduct.vue，接口 /content/wechatLiveGoods/*。 */
 export default function WechatLiveGoods() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [importing, setImporting] = useState(false);
 
@@ -25,16 +27,16 @@ export default function WechatLiveGoods() {
 
   const importGoods = async () => {
     Modal.confirm({
-      title: '从微信导入直播商品',
-      content: '将拉取微信小程序直播商品库并同步到本系统，确认导入？',
+      title: t('从微信导入直播商品'),
+      content: t('将拉取微信小程序直播商品库并同步到本系统，确认导入？'),
       onOk: async () => {
         setImporting(true);
         try {
           await apiPost('/content/wechatLiveGoods/import', {});
-          Toast.success({ content: '导入成功' });
+          Toast.success({ content: t('导入成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '导入失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
         } finally {
           setImporting(false);
         }
@@ -45,10 +47,10 @@ export default function WechatLiveGoods() {
   const removeFromRoom = async (row: LiveGoodRow) => {
     try {
       await apiPost('/content/wechatLiveGoods/removeFromRoom', { goodsId: row.goodsId });
-      Toast.success({ content: '移除成功' });
+      Toast.success({ content: t('移除成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '移除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('移除失败') });
     }
   };
 
@@ -80,7 +82,7 @@ export default function WechatLiveGoods() {
       title: '是否在直播间',
       dataIndex: 'inRoom',
       width: 110,
-      render: (value: unknown) => <span>{value ? '已加入' : '未加入'}</span>,
+      render: (value: unknown) => <span>{value ? t('已加入') : t('未加入')}</span>,
     },
   ];
 
@@ -95,13 +97,13 @@ export default function WechatLiveGoods() {
       rowActions={(row) => (
         <Space spacing={2}>
           <Button theme="borderless" type="danger" size="small" onClick={() => removeFromRoom(row)}>
-            移除
+            {t('移除')}
           </Button>
         </Space>
       )}
       toolbarExtra={
         <Button theme="solid" type="primary" loading={importing} onClick={importGoods}>
-          从微信导入
+          {t('从微信导入')}
         </Button>
       }
     />

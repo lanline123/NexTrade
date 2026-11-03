@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Image, Modal, Space, Switch, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import type { ProductServiceRow } from '../types';
@@ -17,10 +18,11 @@ function DefaultSwitch({
   value?: number;
   onChange: () => void;
 }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -32,7 +34,7 @@ function DefaultSwitch({
       setChecked(next);
       onChange();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
   return <Switch checked={checked} onChange={toggle} size="small" />;
@@ -68,20 +70,21 @@ const columns: ColumnConfig<ProductServiceRow>[] = [
 ];
 
 export default function ProductServices() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除商品服务',
-      content: `确定删除选中的 ${ids.length} 项服务？`,
+      title: t('批量删除商品服务'),
+      content: t('确定删除选中的 {count} 项服务？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/product/productServices/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -108,7 +111,7 @@ export default function ProductServices() {
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.productServiceId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -130,18 +133,18 @@ export default function ProductServices() {
             fields: [
               {
                 field: 'productServiceName',
-                label: '名称',
+                label: t('名称'),
                 required: true,
-                placeholder: '请输入服务名称',
+                placeholder: t('请输入服务名称'),
               },
               {
                 field: 'productServiceDesc',
-                label: '简介',
+                label: t('简介'),
                 type: 'textarea',
               },
               {
                 field: 'icoImg',
-                label: '图标',
+                label: t('图标'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <div>
@@ -151,19 +154,19 @@ export default function ProductServices() {
                       max={1}
                     />
                     <Text type="tertiary" size="small" style={{ display: 'block', marginTop: 6 }}>
-                      建议上传 2:1 图片，宽 200px，高 100px
+                      {t('建议上传 2:1 图片，宽 200px，高 100px')}
                     </Text>
                   </div>
                 ),
               },
-              { field: 'sortOrder', label: '排序', type: 'number', initValue: 50 },
+              { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 50 },
               {
                 field: 'defaultOn',
-                label: '是否默认',
+                label: t('是否默认'),
                 type: 'switch',
                 initValue: 0,
-                checkedText: '默认',
-                uncheckedText: '不默认',
+                checkedText: t('默认'),
+                uncheckedText: t('不默认'),
               },
             ],
           },

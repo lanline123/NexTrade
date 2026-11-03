@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -76,6 +77,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function OrderDetailModal({ visible, orderId, onCancel, onChanged }: OrderDetailModalProps) {
+  const { t } = useI18n();
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [logistics, setLogistics] = useState<LogisticsOption[]>([]);
   const [deliverOpen, setDeliverOpen] = useState(false);
@@ -118,7 +120,7 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
   return (
     <>
       <SideSheet
-        title="订单详情"
+        title={t('订单详情')}
         visible={visible}
         onCancel={onCancel}
         width={900}
@@ -126,19 +128,19 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
         bodyStyle={{ padding: '8px 24px 20px', overflowY: 'auto' }}
         footer={
           <Space>
-            <Button onClick={() => setNoteOpen(true)}>备注</Button>
-            {canModifyMoney && <Button onClick={() => setMoneyOpen(true)}>改价</Button>}
+            <Button onClick={() => setNoteOpen(true)}>{t('备注')}</Button>
+            {canModifyMoney && <Button onClick={() => setMoneyOpen(true)}>{t('改价')}</Button>}
             {canCancel && (
               <Button type="danger" theme="borderless" onClick={() => setCancelOpen(true)}>
-                取消订单
+                {t('取消订单')}
               </Button>
             )}
             {canDeliver && (
               <Button theme="solid" type="primary" onClick={() => setDeliverOpen(true)}>
-                发货
+                {t('发货')}
               </Button>
             )}
-            <Button onClick={onCancel}>关闭</Button>
+            <Button onClick={onCancel}>{t('关闭')}</Button>
           </Space>
         }
       >
@@ -146,70 +148,72 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
           <div className="order-detail">
             <div className="order-detail-hero">
               <div>
-                <div className="order-detail-label">订单号</div>
+                <div className="order-detail-label">{t('订单号')}</div>
                 <div className="order-detail-number mono">{detail.orderSn}</div>
-                <div className="order-detail-time">下单时间 {detail.addTime || '-'}</div>
+                <div className="order-detail-time">
+                  {t('下单时间')} {detail.addTime || '-'}
+                </div>
               </div>
               <Space wrap>
                 <Tag color={(statusColor[detail.orderStatusName] || 'blue') as any}>
-                  {detail.orderStatusName}
+                  {t(detail.orderStatusName || '-')}
                 </Tag>
-                <Tag color="green">{detail.payStatusName}</Tag>
-                {detail.shippingStatusName && <Tag color="cyan">{detail.shippingStatusName}</Tag>}
+                <Tag color="green">{t(detail.payStatusName || '-')}</Tag>
+                {detail.shippingStatusName && <Tag color="cyan">{t(detail.shippingStatusName)}</Tag>}
               </Space>
             </div>
 
             <div className="order-detail-grid">
               <div className="order-detail-card">
-                <div className="order-detail-card-title">收货信息</div>
+                <div className="order-detail-card-title">{t('收货信息')}</div>
                 <div className="order-info-row">
-                  <span>收货人</span>
+                  <span>{t('收货人')}</span>
                   <b>{detail.consignee || '-'}</b>
                 </div>
                 <div className="order-info-row">
-                  <span>联系电话</span>
+                  <span>{t('联系电话')}</span>
                   <b>{detail.mobile || '-'}</b>
                 </div>
                 <div className="order-info-row is-block">
-                  <span>收货地址</span>
+                  <span>{t('收货地址')}</span>
                   <b>{detail.address || '-'}</b>
                 </div>
               </div>
 
               <div className="order-detail-card">
-                <div className="order-detail-card-title">订单信息</div>
+                <div className="order-detail-card-title">{t('订单信息')}</div>
                 <div className="order-info-row">
-                  <span>支付方式</span>
+                  <span>{t('支付方式')}</span>
                   <b>{detail.payName || detail.payStatusName || '-'}</b>
                 </div>
                 <div className="order-info-row">
-                  <span>支付时间</span>
+                  <span>{t('支付时间')}</span>
                   <b>{detail.payTime || '-'}</b>
                 </div>
                 <div className="order-info-row">
-                  <span>发货时间</span>
+                  <span>{t('发货时间')}</span>
                   <b>{detail.shippingTime || '-'}</b>
                 </div>
                 <div className="order-info-row">
-                  <span>物流公司</span>
+                  <span>{t('物流公司')}</span>
                   <b>{detail.logisticsName || '-'}</b>
                 </div>
                 <div className="order-info-row">
-                  <span>物流单号</span>
+                  <span>{t('物流单号')}</span>
                   <b className="mono">{detail.trackingNo || '-'}</b>
                 </div>
               </div>
             </div>
 
             <div className="order-detail-card order-detail-goods">
-              <div className="order-detail-card-title">商品明细</div>
+              <div className="order-detail-card-title">{t('商品明细')}</div>
               <Table
                 dataSource={detail.items || []}
                 pagination={false}
                 rowKey="itemId"
                 columns={[
                   {
-                    title: '商品',
+                    title: t('商品'),
                     dataIndex: 'productName',
                     render: (value: string, record: OrderItem) => (
                       <div className="product-cell">
@@ -227,40 +231,40 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
                       </div>
                     ),
                   },
-                  { title: '单价', dataIndex: 'price', width: 110, render: (value: string) => `¥ ${value}` },
-                  { title: '数量', dataIndex: 'quantity', width: 70 },
-                  { title: '已发货', dataIndex: 'deliveryQuantity', width: 80 },
+                  { title: t('单价'), dataIndex: 'price', width: 110, render: (value: string) => `¥ ${value}` },
+                  { title: t('数量'), dataIndex: 'quantity', width: 70 },
+                  { title: t('已发货'), dataIndex: 'deliveryQuantity', width: 80 },
                 ]}
               />
 
               <div className="order-detail-summary">
                 <div>
-                  <span>商品金额</span>
+                  <span>{t('商品金额')}</span>
                   <b>¥ {detail.productAmount}</b>
                 </div>
                 <div>
-                  <span>运费</span>
+                  <span>{t('运费')}</span>
                   <b>¥ {detail.shippingFee}</b>
                 </div>
                 <div>
-                  <span>优惠</span>
+                  <span>{t('优惠')}</span>
                   <b>- ¥ {detail.discountAmount || detail.couponAmount}</b>
                 </div>
                 <div className="order-detail-total">
-                  <span>实付金额</span>
+                  <span>{t('实付金额')}</span>
                   <b>¥ {detail.totalAmount}</b>
                 </div>
               </div>
             </div>
 
             <div className="order-detail-card">
-              <div className="order-detail-card-title">备注信息</div>
+              <div className="order-detail-card-title">{t('备注信息')}</div>
               <div className="order-info-row is-block">
-                <span>买家备注</span>
+                <span>{t('买家备注')}</span>
                 <b>{detail.buyerNote || '-'}</b>
               </div>
               <div className="order-info-row is-block">
-                <span>商家备注</span>
+                <span>{t('商家备注')}</span>
                 <b>{detail.adminNote || '-'}</b>
               </div>
             </div>
@@ -327,6 +331,7 @@ function DeliverModal({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useI18n();
   const [formApi, setFormApi] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
@@ -336,7 +341,7 @@ function DeliverModal({
 
   const submit = async () => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持发货' });
+      Toast.warning({ content: t('演示模式不支持发货') });
       return;
     }
     if (!detail || !formApi) return;
@@ -361,10 +366,10 @@ function DeliverModal({
         trackingNo: values.trackingNo,
         deliverData,
       });
-      Toast.success({ content: '发货成功' });
+      Toast.success({ content: t('发货成功') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '发货失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('发货失败') });
     } finally {
       setSaving(false);
     }
@@ -372,15 +377,15 @@ function DeliverModal({
 
   return (
     <Modal
-      title="订单发货"
+      title={t('订单发货')}
       visible={visible}
       onCancel={onCancel}
       width={520}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            确认发货
+            {t('确认发货')}
           </Button>
         </Space>
       }
@@ -388,21 +393,21 @@ function DeliverModal({
       <Form getFormApi={setFormApi} labelPosition="top">
         <Form.Select
           field="logisticsId"
-          label="物流公司"
-          placeholder="请选择物流公司"
+          label={t('物流公司')}
+          placeholder={t('请选择物流公司')}
           filter
           optionList={logistics.map((item) => ({ label: item.name, value: item.id }))}
-          rules={[{ required: true, message: '请选择物流公司' }]}
+          rules={[{ required: true, message: t('请选择物流公司') }]}
         />
         <Form.Input
           field="trackingNo"
-          label="快递单号"
-          placeholder="请输入快递单号"
-          rules={[{ required: true, message: '请输入快递单号' }]}
+          label={t('快递单号')}
+          placeholder={t('请输入快递单号')}
+          rules={[{ required: true, message: t('请输入快递单号') }]}
         />
       </Form>
       <Text type="tertiary" size="small">
-        发货数量按未发货数量自动填充。
+        {t('发货数量按未发货数量自动填充。')}
       </Text>
     </Modal>
   );
@@ -419,6 +424,7 @@ function OrderNoteModal({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useI18n();
   const [formApi, setFormApi] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
@@ -443,10 +449,10 @@ function OrderNoteModal({
         adminNote: values.adminNote,
         mark: values.mark,
       });
-      Toast.success({ content: '备注已保存' });
+      Toast.success({ content: t('备注已保存') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -454,15 +460,15 @@ function OrderNoteModal({
 
   return (
     <Modal
-      title="订单备注"
+      title={t('订单备注')}
       visible={visible}
       onCancel={onCancel}
       width={520}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            保存
+            {t('保存')}
           </Button>
         </Space>
       }
@@ -470,20 +476,20 @@ function OrderNoteModal({
       <Form getFormApi={setFormApi} labelPosition="top">
         <Form.Select
           field="mark"
-          label="订单标记"
+          label={t('订单标记')}
           optionList={[
-            { label: '无标记', value: 0 },
-            { label: '红色', value: 1 },
-            { label: '黄色', value: 2 },
-            { label: '绿色', value: 3 },
-            { label: '蓝色', value: 4 },
-            { label: '紫色', value: 5 },
+            { label: t('无标记'), value: 0 },
+            { label: t('红色'), value: 1 },
+            { label: t('黄色'), value: 2 },
+            { label: t('绿色'), value: 3 },
+            { label: t('蓝色'), value: 4 },
+            { label: t('紫色'), value: 5 },
           ]}
         />
         <Form.TextArea
           field="adminNote"
-          label="商家备注"
-          placeholder="仅后台可见"
+          label={t('商家备注')}
+          placeholder={t('仅后台可见')}
           autosize={{ minRows: 4, maxRows: 8 }}
         />
       </Form>
@@ -502,6 +508,7 @@ function OrderMoneyModal({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useI18n();
   const [formApi, setFormApi] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
@@ -536,10 +543,10 @@ function OrderMoneyModal({
         serviceFee: values.serviceFee,
         discountAmount: values.discountAmount,
       });
-      Toast.success({ content: '订单金额已更新' });
+      Toast.success({ content: t('订单金额已更新') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '改价失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('改价失败') });
     } finally {
       setSaving(false);
     }
@@ -547,27 +554,27 @@ function OrderMoneyModal({
 
   return (
     <Modal
-      title="订单改价"
+      title={t('订单改价')}
       visible={visible}
       onCancel={onCancel}
       width={520}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            保存
+            {t('保存')}
           </Button>
         </Space>
       }
     >
       <Form getFormApi={setFormApi} labelPosition="top">
-        <Form.InputNumber field="shippingFee" label="运费" min={0} precision={2} style={{ width: '100%' }} />
-        <Form.InputNumber field="invoiceFee" label="发票费" min={0} precision={2} style={{ width: '100%' }} />
-        <Form.InputNumber field="serviceFee" label="服务费" min={0} precision={2} style={{ width: '100%' }} />
-        <Form.InputNumber field="discountAmount" label="优惠金额" min={0} precision={2} style={{ width: '100%' }} />
+        <Form.InputNumber field="shippingFee" label={t('运费')} min={0} precision={2} style={{ width: '100%' }} />
+        <Form.InputNumber field="invoiceFee" label={t('发票费')} min={0} precision={2} style={{ width: '100%' }} />
+        <Form.InputNumber field="serviceFee" label={t('服务费')} min={0} precision={2} style={{ width: '100%' }} />
+        <Form.InputNumber field="discountAmount" label={t('优惠金额')} min={0} precision={2} style={{ width: '100%' }} />
       </Form>
       <Text type="tertiary" size="small">
-        修改后将重新计算订单应付金额。
+        {t('修改后将重新计算订单应付金额。')}
       </Text>
     </Modal>
   );
@@ -584,6 +591,7 @@ function OrderCancelModal({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -594,16 +602,16 @@ function OrderCancelModal({
   const submit = async () => {
     if (!detail) return;
     if (!reason.trim()) {
-      Toast.warning({ content: '请填写取消原因' });
+      Toast.warning({ content: t('请填写取消原因') });
       return;
     }
     setSaving(true);
     try {
       await apiPost('/order/order/cancelOrder', { id: detail.orderId, description: reason.trim() });
-      Toast.success({ content: '订单已取消' });
+      Toast.success({ content: t('订单已取消') });
       onSuccess();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '取消失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('取消失败') });
     } finally {
       setSaving(false);
     }
@@ -611,24 +619,24 @@ function OrderCancelModal({
 
   return (
     <Modal
-      title="取消订单"
+      title={t('取消订单')}
       visible={visible}
       onCancel={onCancel}
       width={480}
       footer={
         <Space>
-          <Button onClick={onCancel}>返回</Button>
+          <Button onClick={onCancel}>{t('返回')}</Button>
           <Button theme="solid" type="danger" loading={saving} onClick={submit}>
-            确认取消
+            {t('确认取消')}
           </Button>
         </Space>
       }
     >
-      <Text type="warning">取消后订单将不再继续履约，请确认。</Text>
+      <Text type="warning">{t('取消后订单将不再继续履约，请确认。')}</Text>
       <TextArea
         value={reason}
         onChange={setReason}
-        placeholder="请填写取消原因"
+        placeholder={t('请填写取消原因')}
         autosize={{ minRows: 3, maxRows: 6 }}
         style={{ marginTop: 12 }}
       />

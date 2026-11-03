@@ -1,5 +1,6 @@
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 interface StaffWalletLogRow {
   logId: number;
@@ -20,6 +21,16 @@ const typeText: Record<number, string> = {
   4: '提现申请',
   5: '提现驳回',
 };
+
+function BusinessTypeText({ value }: { value: number }) {
+  const { t } = useI18n();
+  return <>{value === 2 ? t('服务员') : t('配送员')}</>;
+}
+
+function WalletTypeText({ value }: { value: number }) {
+  const { t } = useI18n();
+  return <>{typeText[value] ? t(typeText[value]) : String(value)}</>;
+}
 
 const columns: ColumnConfig<StaffWalletLogRow>[] = [
   { title: '流水ID', dataIndex: 'logId', width: 100 },
@@ -42,13 +53,13 @@ const columns: ColumnConfig<StaffWalletLogRow>[] = [
     title: '业务类型',
     dataIndex: 'businessType',
     width: 130,
-    render: (value: number) => (value === 2 ? '服务员' : '配送员'),
+    render: (value: number) => <BusinessTypeText value={value} />,
   },
   {
     title: '类型',
     dataIndex: 'type',
     width: 140,
-    render: (value: number) => typeText[value] || String(value),
+    render: (value: number) => <WalletTypeText value={value} />,
   },
   { title: '备注', dataIndex: 'remark', render: (value: string) => value || '-' },
   { title: '时间', dataIndex: 'createTime', width: 180, render: (value: string) => value || '-' },

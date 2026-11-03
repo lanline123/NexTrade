@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Checkbox } from '@douyinfe/semi-ui';
+import { useI18n } from '../i18n';
 import AutoConfigPage, {
   type ConfigControlType,
   type ConfigFieldRule,
@@ -7,12 +8,22 @@ import AutoConfigPage, {
 } from './AutoConfigPage';
 
 // 旧版为反向勾选：勾选"商品默认审核通过"时 shopProductNeedCheck=0（免审核），不勾选=1（需审核）。
-const invertedCheckRenderer = (field: string, label: string) =>
-  ({ value, update }: ConfigRendererContext) => (
+function InvertedCheckbox({
+  field,
+  label,
+  value,
+  update,
+}: ConfigRendererContext & { field: string; label: string }) {
+  const { t } = useI18n();
+  return (
     <Checkbox checked={Number(value) === 0} onChange={(next) => update(field, next ? 0 : 1)}>
-      {label}
+      {t(label)}
     </Checkbox>
   );
+}
+
+const invertedCheckRenderer = (field: string, label: string) =>
+  (context: ConfigRendererContext) => <InvertedCheckbox {...context} field={field} label={label} />;
 
 const def: {
   title: string;
@@ -62,7 +73,15 @@ const def: {
   },
 };
 
+/** AutoConfigPage 只对 labels/sections 做 t()，fieldHelp 需在页面侧翻译。 */
+const translateMap = (
+  source: Record<string, string>,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) =>
+  Object.fromEntries(Object.entries(source).map(([key, value]): [string, string] => [key, t(value)]));
+
 export default function ShopSettings() {
+  const { t } = useI18n();
   return (
     <AutoConfigPage
       title={def.title}
@@ -73,7 +92,7 @@ export default function ShopSettings() {
       controls={def.controls}
       options={def.options}
       rules={def.rules}
-      fieldHelp={def.fieldHelp}
+      fieldHelp={translateMap(def.fieldHelp, t)}
       hiddenFields={def.hiddenFields}
       defaults={def.defaults}
       renderers={def.renderers}

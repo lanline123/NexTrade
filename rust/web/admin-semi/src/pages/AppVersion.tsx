@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Card, Form, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, apiUpload } from '../api';
+import { useI18n } from '../i18n';
 
 function UploadButton({
   accept,
@@ -9,6 +10,7 @@ function UploadButton({
   accept: string;
   onUploaded: (url: string) => void;
 }) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -17,9 +19,9 @@ function UploadButton({
     try {
       const url = await apiUpload<string>('/setting/appVersion/uploadFile', file);
       if (url) onUploaded(url);
-      Toast.success({ content: '上传成功' });
+      Toast.success({ content: t('上传成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '上传失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('上传失败') });
     } finally {
       setUploading(false);
     }
@@ -39,13 +41,14 @@ function UploadButton({
         }}
       />
       <Button size="small" loading={uploading} onClick={() => inputRef.current?.click()}>
-        {uploading ? '上传中' : '上传'}
+        {uploading ? t('上传中') : t('上传')}
       </Button>
     </>
   );
 }
 
 export default function AppVersion() {
+  const { t } = useI18n();
   const [formApi, setFormApi] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -63,9 +66,9 @@ export default function AppVersion() {
       const values = await formApi.validate();
       setSaving(true);
       await apiPost('/setting/appVersion/update', values);
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -74,8 +77,8 @@ export default function AppVersion() {
   return (
     <Card className="table-card" shadows="hover">
       <div className="app-version-header">
-        <h3>APP版本</h3>
-        <p>配置 Android / iOS 版本号与热更新包下载地址。</p>
+        <h3>{t('APP版本')}</h3>
+        <p>{t('配置 Android / iOS 版本号与热更新包下载地址。')}</p>
       </div>
       <Form
         getFormApi={setFormApi}
@@ -85,11 +88,11 @@ export default function AppVersion() {
         className="product-form app-version-form"
         initValues={{}}
       >
-        <Form.Input field="androidVersion" label="Android版本号" placeholder="如 1.0.0" />
+        <Form.Input field="androidVersion" label={t('Android版本号')} placeholder={t('如 1.0.0')} />
         <Form.Input
           field="androidLink"
-          label="Android下载链接"
-          placeholder="上传 APK / WGT 或填写下载地址"
+          label={t('Android下载链接')}
+          placeholder={t('上传 APK / WGT 或填写下载地址')}
           suffix={
             formApi ? (
               <UploadButton
@@ -99,11 +102,11 @@ export default function AppVersion() {
             ) : null
           }
         />
-        <Form.Input field="iosVersion" label="iOS版本号" placeholder="如 1.0.0" />
+        <Form.Input field="iosVersion" label={t('iOS版本号')} placeholder={t('如 1.0.0')} />
         <Form.Input
           field="iosLink"
-          label="iOS下载链接"
-          placeholder="上传 WGT 或填写下载地址"
+          label={t('iOS下载链接')}
+          placeholder={t('上传 WGT 或填写下载地址')}
           suffix={
             formApi ? (
               <UploadButton
@@ -115,7 +118,7 @@ export default function AppVersion() {
         />
         <div className="app-version-actions">
           <Button theme="solid" type="primary" loading={saving || loading} onClick={submit}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       </Form>

@@ -12,6 +12,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, getToken } from '../api';
 import ProductPicker from '../components/ProductPicker';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -23,6 +24,7 @@ interface ProductBatchPageProps {
 
 
 export default function ProductBatch({ mode }: ProductBatchPageProps) {
+  const { t } = useI18n();
   const [dealRange, setDealRange] = useState(0);
   const [rangeIds, setRangeIds] = useState<number[]>([]);
   const [exporting, setExporting] = useState(false);
@@ -50,11 +52,11 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = '商品批量导出.csv';
+      link.download = t('商品批量导出.csv');
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导出失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导出失败') });
     } finally {
       setExporting(false);
     }
@@ -69,17 +71,17 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = '商品批量导入模板.xlsx';
+      link.download = t('商品批量导入模板.xlsx');
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      Toast.error({ content: '模板下载失败' });
+      Toast.error({ content: t('模板下载失败') });
     }
   };
 
   const submitUpload = async () => {
     if (!file) {
-      Toast.error({ content: '请选择文件!' });
+      Toast.error({ content: t('请选择文件!') });
       return;
     }
     setSubmitting(true);
@@ -97,12 +99,12 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
         form as unknown as Record<string, unknown>,
       );
       Modal.info({
-        title: '导入结果',
-        content: result?.msg || '导入完成',
+        title: t('导入结果'),
+        content: result?.msg || t('导入完成'),
         maskClosable: true,
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导入失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
     } finally {
       setSubmitting(false);
     }
@@ -125,17 +127,17 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
       <div className="batch-notice">
         {mode === 'export' ? (
           <>
-            <p>提示：</p>
-            <p>1、导出的文件可编辑后进行修改后再通过“商品批量上传”或“商品批量修改修改”功能完成批量导入或修改</p>
-            <p>2、本系统解决了CSV导入导出时的','号和'"'号的问题，所以商品描述和商品介绍处可以不用再对这些符合进行额外处理！</p>
+            <p>{t('提示：')}</p>
+            <p>{t('1、导出的文件可编辑后进行修改后再通过“商品批量上传”或“商品批量修改修改”功能完成批量导入或修改')}</p>
+            <p>{t(`2、本系统解决了CSV导入导出时的','号和'"'号的问题，所以商品描述和商品介绍处可以不用再对这些符合进行额外处理！`)}</p>
           </>
         ) : (
           <>
-            <p>上传说明</p>
-            <p>1、请先下载模板文件，按模板填写后上传导入；仅支持 .xls / .xlsx / .csv 格式，一次最多导入 2000 条数据。</p>
-            <p>2、商品分类：请按分类级别依次填写名称，使用 | 分隔，比如：家用电器 | 电视 | 平板电视；商品品牌：填写品牌名称。</p>
-            <p>3、是否上架：填1代表上架，0代表下架；关键词：请用空格分隔。</p>
-            <p>4、商品图片请填写完整 http 链接（多张图片用 | 分隔，第一张作为主图），单次最多上传 3000 张。</p>
+            <p>{t('上传说明')}</p>
+            <p>{t('1、请先下载模板文件，按模板填写后上传导入；仅支持 .xls / .xlsx / .csv 格式，一次最多导入 2000 条数据。')}</p>
+            <p>{t('2、商品分类：请按分类级别依次填写名称，使用 | 分隔，比如：家用电器 | 电视 | 平板电视；商品品牌：填写品牌名称。')}</p>
+            <p>{t('3、是否上架：填1代表上架，0代表下架；关键词：请用空格分隔。')}</p>
+            <p>{t('4、商品图片请填写完整 http 链接（多张图片用 | 分隔，第一张作为主图），单次最多上传 3000 张。')}</p>
           </>
         )}
       </div>
@@ -143,16 +145,16 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
       {mode === 'export' ? (
         <>
           <div className="batch-form-row">
-            <Text strong>处理范围</Text>
+            <Text strong>{t('处理范围')}</Text>
           </div>
           <div className="batch-form-row">
             <RadioGroup
               value={dealRange}
               onChange={(event) => setDealRange(Number(event.target.value))}
             >
-              <Radio value={0}>全部商品</Radio>
-              <Radio value={3}>指定商品</Radio>
-              <Radio value={4}>不包含以下商品</Radio>
+              <Radio value={0}>{t('全部商品')}</Radio>
+              <Radio value={3}>{t('指定商品')}</Radio>
+              <Radio value={4}>{t('不包含以下商品')}</Radio>
             </RadioGroup>
           </div>
           {dealRange === 3 || dealRange === 4 ? (
@@ -161,7 +163,7 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
             </div>
           ) : null}
           <Button theme="solid" type="primary" loading={exporting} onClick={submitExport}>
-            提交
+            {t('提交')}
           </Button>
         </>
       ) : (
@@ -175,51 +177,51 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
                 onChange={(event) => setFile(event.target.files?.[0] ?? null)}
               />
               <Button theme="solid" type="primary">
-                {file ? `已选择：${file.name}` : '添加文件'}
+                {file ? t('已选择：{name}', { name: file.name }) : t('添加文件')}
               </Button>
             </label>
-            <Button onClick={downloadTemplate}>下载导入模板</Button>
+            <Button onClick={downloadTemplate}>{t('下载导入模板')}</Button>
           </div>
           {mode === 'add' ? (
             <>
               <div className="batch-form-row">
-                <Text strong>是否自动添加分类</Text>
+                <Text strong>{t('是否自动添加分类')}</Text>
                 <RadioGroup value={isAutoCat} onChange={(event) => setIsAutoCat(Number(event.target.value))}>
-                  <Radio value={1}>是</Radio>
-                  <Radio value={0}>否</Radio>
+                  <Radio value={1}>{t('是')}</Radio>
+                  <Radio value={0}>{t('否')}</Radio>
                 </RadioGroup>
                 <Text type="tertiary" size="small">
-                  如果选指否，则分类不存在时会输出错误；如果选指是，则会自动新建分类！
+                  {t('如果选指否，则分类不存在时会输出错误；如果选指是，则会自动新建分类！')}
                 </Text>
               </div>
               <div className="batch-form-row">
-                <Text strong>是否自动添加品牌</Text>
+                <Text strong>{t('是否自动添加品牌')}</Text>
                 <RadioGroup value={isAutoBrand} onChange={(event) => setIsAutoBrand(Number(event.target.value))}>
-                  <Radio value={1}>是</Radio>
-                  <Radio value={0}>否</Radio>
+                  <Radio value={1}>{t('是')}</Radio>
+                  <Radio value={0}>{t('否')}</Radio>
                 </RadioGroup>
               </div>
             </>
           ) : null}
           <Button theme="solid" type="primary" loading={submitting} onClick={submitUpload}>
-            提 交
+            {t('提 交')}
           </Button>
         </>
       )}
       {mode === 'edit' ? (
         <>
           <div className="batch-form-row">
-            <Text strong>选择修改：</Text>
+            <Text strong>{t('选择修改：')}</Text>
             <RadioGroup type="button" value={modifyTypes[0] || ''} onChange={(event) => setModifyTypes([event.target.value])}>
               {MODIFY_OPTIONS.map((item) => (
                 <Radio key={item.key} value={item.key}>
-                  {item.lable}
+                  {t(item.lable)}
                 </Radio>
               ))}
             </RadioGroup>
           </div>
           <div className="batch-form-row" style={{ alignItems: 'flex-start', flexDirection: 'column' }}>
-            <Text strong>商品信息：</Text>
+            <Text strong>{t('商品信息：')}</Text>
             <ProductPicker
               value={selectedProducts.map((item) => item.productId)}
               onChange={(ids) => {
@@ -248,7 +250,7 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
               dataSource={selectedProducts}
               columns={[
                 {
-                  title: '商品信息',
+                  title: t('商品信息'),
                   dataIndex: 'productName',
                   render: (value: string, row: { picThumb?: string }) => (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -260,7 +262,9 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
               ]}
             />
             <Text type="tertiary" size="small">
-              已选 {selectedProducts.length} 件商品；修改项以上传的模板文件内容为准，提交后按 productBatchModify 处理。
+              {t('已选 {count} 件商品；修改项以上传的模板文件内容为准，提交后按 productBatchModify 处理。', {
+                count: selectedProducts.length,
+              })}
             </Text>
           </div>
         </>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Switch, Tag, Toast } from '@douyinfe/semi-ui';
 import { apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -15,10 +16,11 @@ interface TaxRateRow {
 }
 
 function ActiveSwitch({ row, value }: { row: TaxRateRow; value?: number }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -30,9 +32,9 @@ function ActiveSwitch({ row, value }: { row: TaxRateRow; value?: number }) {
         remark: row.remark,
       });
       setChecked(next);
-      Toast.success({ content: '已更新' });
+      Toast.success({ content: t('已更新') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
   return <Switch checked={checked} onChange={toggle} size="small" />;
@@ -57,20 +59,21 @@ const columns: ColumnConfig<TaxRateRow>[] = [
 ];
 
 export default function TaxRates() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除税率规则',
-      content: `确定删除选中的 ${ids.length} 条规则？`,
+      title: t('批量删除税率规则'),
+      content: t('确定删除选中的 {count} 条规则？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/setting/taxRate/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -107,7 +110,7 @@ export default function TaxRates() {
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.taxRateId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -129,10 +132,10 @@ export default function TaxRates() {
             fields: [
               {
                 field: 'regionId',
-                label: '国家/地区',
+                label: t('国家/地区'),
                 type: 'select',
                 required: true,
-                placeholder: '请选择国家/地区',
+                placeholder: t('请选择国家/地区'),
                 optionsApi: '/setting/region/list',
                 optionsParams: { parentId: 0, page: 1, size: 100 },
                 optionLabel: 'regionName',
@@ -140,21 +143,21 @@ export default function TaxRates() {
               },
               {
                 field: 'rate',
-                label: '税率(%)',
+                label: t('税率(%)'),
                 type: 'number',
                 required: true,
                 placeholder: '0-100',
-                extraText: '用户支付税费 = 订单支付金额 × 税率',
+                extraText: t('用户支付税费 = 订单支付金额 × 税率'),
               },
               {
                 field: 'isActive',
-                label: '是否生效',
+                label: t('是否生效'),
                 type: 'switch',
                 initValue: 1,
-                checkedText: '启用',
-                uncheckedText: '停用',
+                checkedText: t('启用'),
+                uncheckedText: t('停用'),
               },
-              { field: 'remark', label: '备注', type: 'textarea' },
+              { field: 'remark', label: t('备注'), type: 'textarea' },
             ],
           },
         ],

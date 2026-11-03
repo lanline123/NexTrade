@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -46,6 +47,7 @@ interface VendorProductRow {
 }
 
 export default function VendorProducts() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<VendorProductRow | null>(null);
@@ -55,10 +57,10 @@ export default function VendorProducts() {
       await apiPost('/product/product/vendorProductImport', {
         vendorProductIds: ids,
       });
-      Toast.success({ content: '导入商品成功' });
+      Toast.success({ content: t('导入商品成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导入失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
     }
   };
 
@@ -69,10 +71,10 @@ export default function VendorProducts() {
         field: 'productStatus',
         val,
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
@@ -104,7 +106,7 @@ export default function VendorProducts() {
                 color: 'var(--semi-color-text-2)',
               }}
             >
-              无图
+              {t('无图')}
             </div>
           )}
           <div style={{ maxWidth: 190 }}>
@@ -151,7 +153,7 @@ export default function VendorProducts() {
         return (
           <Space>
             <Badge dot type={isUp ? 'success' : 'danger'} style={{ marginRight: 4 }} />
-            <span>{isUp ? '上架' : '下架'}</span>
+            <span>{isUp ? t('上架') : t('下架')}</span>
           </Space>
         );
       },
@@ -200,7 +202,7 @@ export default function VendorProducts() {
                 clear();
               }}
             >
-              批量导入
+              {t('批量导入')}
             </Button>
           </Space>
         )}
@@ -215,36 +217,36 @@ export default function VendorProducts() {
                 setDetailModalVisible(true);
               }}
             >
-              查看
+              {t('查看')}
             </Button>
             {record.isImported !== 1 && (
               <Popconfirm
-                title="确定导入该商品吗？"
-                content="导入后商品将进入商品库待发布。"
+                title={t('确定导入该商品吗？')}
+                content={t('导入后商品将进入商品库待发布。')}
                 onConfirm={() => importProduct([record.id])}
               >
                 <Button theme="borderless" size="small" type="secondary">
-                  导入
+                  {t('导入')}
                 </Button>
               </Popconfirm>
             )}
             {record.productId && record.productStatus === 0 && (
               <Popconfirm
-                title="确定上架该商品吗？"
+                title={t('确定上架该商品吗？')}
                 onConfirm={() => updateProductStatus(record.productId!, 1)}
               >
                 <Button theme="borderless" size="small" type="primary">
-                  上架
+                  {t('上架')}
                 </Button>
               </Popconfirm>
             )}
             {record.productId && record.productStatus === 1 && (
               <Popconfirm
-                title="确定下架该商品吗？"
+                title={t('确定下架该商品吗？')}
                 onConfirm={() => updateProductStatus(record.productId!, 0)}
               >
                 <Button theme="borderless" size="small" type="danger">
-                  下架
+                  {t('下架')}
                 </Button>
               </Popconfirm>
             )}
@@ -254,12 +256,12 @@ export default function VendorProducts() {
 
       {/* 商品详情弹窗 */}
       <Modal
-        title="供应商商品详情"
+        title={t('供应商商品详情')}
         visible={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setDetailModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={600}
@@ -267,19 +269,19 @@ export default function VendorProducts() {
         {selectedProduct && (
           <Descriptions
             data={[
-              { key: '商品ID', value: selectedProduct.id },
-              { key: '商品名称', value: selectedProduct.productName || '--' },
-              { key: '商品分类', value: selectedProduct.productCategoryName || '--' },
-              { key: '供应商', value: selectedProduct.vendorName || '--' },
+              { key: t('商品ID'), value: selectedProduct.id },
+              { key: t('商品名称'), value: selectedProduct.productName || '--' },
+              { key: t('商品分类'), value: selectedProduct.productCategoryName || '--' },
+              { key: t('供应商'), value: selectedProduct.vendorName || '--' },
               {
-                key: '供货价',
+                key: t('供货价'),
                 value: `¥${Number(selectedProduct.supplyPrice || 0).toFixed(2)}`,
               },
               {
-                key: '商品状态',
-                value: selectedProduct.productStatus === 1 ? '上架' : '下架',
+                key: t('商品状态'),
+                value: selectedProduct.productStatus === 1 ? t('上架') : t('下架'),
               },
-              { key: '商品简介', value: selectedProduct.productBrief || '--' },
+              { key: t('商品简介'), value: selectedProduct.productBrief || '--' },
             ]}
           />
         )}

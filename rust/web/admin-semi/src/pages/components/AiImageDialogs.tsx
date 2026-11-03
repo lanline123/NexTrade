@@ -11,6 +11,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconTick } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../../api';
+import i18n, { useI18n } from '../../i18n';
 
 /**
  * AI 图片处理弹窗集合（对应原版 v5.8.61 views/file/aiImage/*）：
@@ -73,18 +74,21 @@ const ensureMinLoading = async (startAt: number) => {
   }
 };
 
-/** 读取 AI 图片处理开关（兼容 Rust 返回 {enabled:boolean} 与原版 {aiImageEnabled:0|1} 两种形态） */
+/**
+ * 读取 AI 图片处理开关（兼容 Rust 返回 {enabled:boolean} 与原版 {aiImageEnabled:0|1} 两种形态）。
+ * 该函数不是 React 组件、无法使用 useI18n Hook，因此直接读取全局 i18n 实例。
+ */
 export async function ensureAiImageEnabled(): Promise<boolean> {
   try {
     const settings = await apiGet<any>('/setting/config/aiImageSettings');
     const enabled = settings?.enabled === true || Number(settings?.aiImageEnabled) === 1;
     if (!enabled) {
-      Toast.warning({ content: '请先在「AI设置」中启用图片智能处理并配置密钥' });
+      Toast.warning({ content: i18n.t('请先在「AI设置」中启用图片智能处理并配置密钥') });
       return false;
     }
     return true;
   } catch (error) {
-    Toast.error({ content: error instanceof Error ? error.message : '读取AI图片处理设置失败' });
+    Toast.error({ content: error instanceof Error ? error.message : i18n.t('读取AI图片处理设置失败') });
     return false;
   }
 }
@@ -93,6 +97,7 @@ export async function ensureAiImageEnabled(): Promise<boolean> {
    AI 图片翻译弹窗
 ================================================================== */
 export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImageDialogBaseProps) {
+  const { t } = useI18n();
   const [configLoading, setConfigLoading] = useState(false);
   const [sourceLanguageList, setSourceLanguageList] = useState<SourceLanguageItem[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState('');
@@ -131,7 +136,7 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
       if (requestId !== requestIdRef.current) return;
       setTargetLocales([]);
       setTargetCodes([]);
-      Toast.error({ content: error instanceof Error ? error.message : '加载目标语言失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载目标语言失败') });
     } finally {
       if (requestId === requestIdRef.current) setLocalesLoading(false);
     }
@@ -155,7 +160,7 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
         await loadLocales(nextSource);
       } catch (error) {
         if (alive) {
-          Toast.error({ content: error instanceof Error ? error.message : '加载翻译配置失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('加载翻译配置失败') });
         }
       } finally {
         if (alive) setConfigLoading(false);
@@ -175,7 +180,7 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
 
   const handleClose = () => {
     if (translating) {
-      Toast.warning({ content: '图片正在翻译中，关闭后当前进度将不会保留' });
+      Toast.warning({ content: t('图片正在翻译中，关闭后当前进度将不会保留') });
       return;
     }
     onCancel();
@@ -183,14 +188,14 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
 
   const handleTranslate = async () => {
     if (!sourceLanguage) {
-      Toast.warning({ content: '请选择原语言' });
+      Toast.warning({ content: t('请选择原语言') });
       return;
     }
     const codes = targetLocales
       .filter((item) => targetCodes.includes(item.localeCode) && item.supportedAsTarget !== false)
       .map((item) => item.localeCode);
     if (!codes.length) {
-      Toast.warning({ content: '请选择目标语言' });
+      Toast.warning({ content: t('请选择目标语言') });
       return;
     }
     setTranslating(true);
@@ -216,14 +221,14 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
       setResults(collected);
       const successCount = collected.filter((entry) => entry.item.success && entry.item.translatedUrl).length;
       if (successCount === codes.length) {
-        Toast.success({ content: '翻译完成' });
+        Toast.success({ content: t('翻译完成') });
       } else if (successCount > 0) {
-        Toast.warning({ content: '部分语言翻译失败' });
+        Toast.warning({ content: t('部分语言翻译失败') });
       } else {
-        Toast.error({ content: '翻译失败，请重新尝试翻译' });
+        Toast.error({ content: t('翻译失败，请重新尝试翻译') });
       }
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '翻译失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('翻译失败') });
     } finally {
       setTranslating(false);
     }
@@ -234,7 +239,7 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
 
   return (
     <Modal
-      title="AI图片翻译"
+      title={t('AI图片翻译')}
       visible={visible}
       onCancel={handleClose}
       maskClosable={false}
@@ -243,18 +248,18 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           {results.length > 0 ? (
             <>
-              <Button onClick={handleClose}>关闭</Button>
+              <Button onClick={handleClose}>{t('关闭')}</Button>
               <Button theme="solid" type="primary" disabled={!successUrl} onClick={() => successUrl && onOk(successUrl)}>
-                应用翻译结果
+                {t('应用翻译结果')}
               </Button>
             </>
           ) : (
             <>
               <Button onClick={handleClose} disabled={translating}>
-                取消
+                {t('取消')}
               </Button>
               <Button theme="solid" type="primary" loading={translating} onClick={handleTranslate}>
-                开始翻译
+                {t('开始翻译')}
               </Button>
             </>
           )}
@@ -275,10 +280,10 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
                 marginBottom: 12,
               }}
             >
-              翻译中请勿刷新或关闭页面，否则可能导致翻译失败！
+              {t('翻译中请勿刷新或关闭页面，否则可能导致翻译失败！')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160 }}>
-              <Spin size="large" tip="翻译中" />
+              <Spin size="large" tip={t('翻译中')} />
             </div>
           </div>
         ) : results.length > 0 ? (
@@ -301,12 +306,12 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
                 {entry.item.success && entry.item.translatedUrl ? (
                   <img
                     src={entry.item.translatedUrl}
-                    alt="翻译结果"
+                    alt={t('翻译结果')}
                     style={{ maxHeight: 120, maxWidth: 320, objectFit: 'contain', borderRadius: 6 }}
                   />
                 ) : (
                   <span style={{ color: 'var(--semi-color-danger)', fontSize: 13 }}>
-                    {entry.item.errorMsg || '翻译失败'}
+                    {entry.item.errorMsg || t('翻译失败')}
                   </span>
                 )}
               </div>
@@ -316,7 +321,7 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
               <div style={{ marginBottom: 10, fontWeight: 500 }}>
-                <span style={{ color: 'var(--semi-color-danger)' }}>*</span> 原语言选择
+                <span style={{ color: 'var(--semi-color-danger)' }}>*</span> {t('原语言选择')}
               </div>
               <RadioGroup value={sourceLanguage} onChange={(event) => handleSourceChange(event.target.value)}>
                 {sourceLanguageList.map((lang) => (
@@ -328,10 +333,10 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
             </div>
             <div>
               <div style={{ marginBottom: 4, fontWeight: 500 }}>
-                <span style={{ color: 'var(--semi-color-danger)' }}>*</span> 目标语言选择
+                <span style={{ color: 'var(--semi-color-danger)' }}>*</span> {t('目标语言选择')}
               </div>
               <div style={{ marginBottom: 8, color: 'var(--semi-color-text-2)', fontSize: 12 }}>
-                多选，根据后台已设置的语言进行显示
+                {t('多选，根据后台已设置的语言进行显示')}
               </div>
               <Spin spinning={localesLoading}>
                 {targetLocales.length ? (
@@ -339,11 +344,11 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
                     multiple
                     showClear
                     filter
-                    placeholder="请选择目标语言"
+                    placeholder={t('请选择目标语言')}
                     optionList={targetLocales.map((item) => ({
                       label:
                         item.supportedAsTarget === false
-                          ? `${item.language}（暂不支持）`
+                          ? `${item.language}${t('（暂不支持）')}`
                           : item.language,
                       value: item.localeCode,
                       disabled: item.supportedAsTarget === false,
@@ -354,15 +359,15 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
                   />
                 ) : (
                   <div style={{ color: 'var(--semi-color-text-2)', fontSize: 12 }}>
-                    暂无可用目标语言，请先在「语言管理」中启用至少一种语言
+                    {t('暂无可用目标语言，请先在「语言管理」中启用至少一种语言')}
                   </div>
                 )}
               </Spin>
             </div>
             <div>
-              <div style={{ marginBottom: 10, fontWeight: 500 }}>更多设置</div>
+              <div style={{ marginBottom: 10, fontWeight: 500 }}>{t('更多设置')}</div>
               <Checkbox checked={translateText} onChange={(event) => setTranslateText(Boolean(event.target.checked))}>
-                翻译商品主体文字
+                {t('翻译商品主体文字')}
               </Checkbox>
             </div>
           </div>
@@ -375,9 +380,11 @@ export function AiTranslateDialog({ visible, imageUrl, onCancel, onOk }: AiImage
 /* ==================================================================
    AI 擦除（智能消除）弹窗
 ================================================================== */
+/** label 为 i18n key，渲染时通过 t() 转换 */
 const INPAINT_MODES = [{ value: 'text', label: '消除文字' }];
 
 export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDialogBaseProps) {
+  const { t } = useI18n();
   const [step, setStep] = useState<'options' | 'preview'>('options');
   const [selectedOptions, setSelectedOptions] = useState<string[]>(['text']);
   const [erasing, setErasing] = useState(false);
@@ -402,7 +409,7 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
 
   const handleClose = () => {
     if (erasing) {
-      Toast.warning({ content: '图片正在消除中，关闭后当前进度将不会保留' });
+      Toast.warning({ content: t('图片正在消除中，关闭后当前进度将不会保留') });
       return;
     }
     onCancel();
@@ -443,15 +450,15 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
       setErasing(false);
     }
     if (succeed) {
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
     } else {
-      Toast.error({ content: '消除失败，请重新尝试消除' });
+      Toast.error({ content: t('消除失败，请重新尝试消除') });
     }
   };
 
   return (
     <Modal
-      title="AI智能消除"
+      title={t('AI智能消除')}
       visible={visible}
       onCancel={handleClose}
       maskClosable={false}
@@ -459,18 +466,18 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
       footer={
         step === 'options' ? (
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={handleClose}>取消</Button>
+            <Button onClick={handleClose}>{t('取消')}</Button>
             <Button theme="solid" type="primary" disabled={!selectedOptions.length} onClick={handleStartErase}>
-              立即消除
+              {t('立即消除')}
             </Button>
           </div>
         ) : (
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <Button onClick={() => setStep('options')} disabled={erasing}>
-              上一步
+              {t('上一步')}
             </Button>
             <Button loading={erasing} disabled={!selectedOptions.length} onClick={eraseCurrent}>
-              重新消除
+              {t('重新消除')}
             </Button>
             <Button
               theme="solid"
@@ -478,7 +485,7 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
               disabled={erasing || !resultUrl}
               onClick={() => resultUrl && onOk(resultUrl)}
             >
-              应用消除结果
+              {t('应用消除结果')}
             </Button>
           </div>
         )
@@ -486,15 +493,15 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
     >
       {step === 'options' ? (
         <div style={{ padding: '8px 4px 4px' }}>
-          <div style={{ marginBottom: 12, fontWeight: 500 }}>文字消除图片</div>
+          <div style={{ marginBottom: 12, fontWeight: 500 }}>{t('文字消除图片')}</div>
           {imageUrl ? (
             <img
               src={imageUrl}
-              alt="待消除图片"
+              alt={t('待消除图片')}
               style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 8, marginBottom: 20, display: 'block' }}
             />
           ) : null}
-          <div style={{ marginBottom: 12, fontWeight: 500 }}>智能消图</div>
+          <div style={{ marginBottom: 12, fontWeight: 500 }}>{t('智能消图')}</div>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {INPAINT_MODES.map((mode) => {
               const selected = selectedOptions.includes(mode.value);
@@ -519,7 +526,7 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
                   }}
                 >
                   {selected ? <IconTick /> : null}
-                  {mode.label}
+                  {t(mode.label)}
                 </button>
               );
             })}
@@ -538,11 +545,11 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
               fontSize: 12,
             }}
           >
-            消除中请勿刷新或关闭页面，否则可能导致消除失败！
+            {t('消除中请勿刷新或关闭页面，否则可能导致消除失败！')}
           </div>
           {erasing ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 260 }}>
-              <Spin size="large" tip="消除中" />
+              <Spin size="large" tip={t('消除中')} />
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 12 }}>
@@ -559,7 +566,7 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
                     lineHeight: '22px',
                   }}
                 >
-                  原图
+                  {t('原图')}
                 </div>
                 <div
                   style={{
@@ -574,7 +581,7 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
                   }}
                 >
                   {imageUrl ? (
-                    <img src={imageUrl} alt="原图" style={{ maxWidth: '100%', maxHeight: 300, objectFit: 'contain' }} />
+                    <img src={imageUrl} alt={t('原图')} style={{ maxWidth: '100%', maxHeight: 300, objectFit: 'contain' }} />
                   ) : null}
                 </div>
               </div>
@@ -590,7 +597,7 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
                     lineHeight: '22px',
                   }}
                 >
-                  消除图
+                  {t('消除图')}
                 </div>
                 <div
                   style={{
@@ -605,10 +612,10 @@ export function AiEraseDialog({ visible, imageUrl, onCancel, onOk }: AiImageDial
                   }}
                 >
                   {resultUrl ? (
-                    <img src={resultUrl} alt="消除结果" style={{ maxWidth: '100%', maxHeight: 300, objectFit: 'contain' }} />
+                    <img src={resultUrl} alt={t('消除结果')} style={{ maxWidth: '100%', maxHeight: 300, objectFit: 'contain' }} />
                   ) : failed ? (
                     <span style={{ color: 'var(--semi-color-danger)', fontSize: 13 }}>
-                      {errorMsg || '消除失败，请重新尝试消除'}
+                      {errorMsg || t('消除失败，请重新尝试消除')}
                     </span>
                   ) : null}
                 </div>

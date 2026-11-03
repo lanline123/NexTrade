@@ -14,6 +14,7 @@ import {
 import { apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -58,6 +59,7 @@ function StaffWithdrawTable({
 }: {
   type: 'delivery' | 'server';
 }) {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [auditVisible, setAuditVisible] = useState(false);
   const [auditLoading, setAuditLoading] = useState(false);
@@ -93,11 +95,11 @@ function StaffWithdrawTable({
         rejectReason: auditForm.rejectReason,
         adminRemark: auditForm.adminRemark,
       });
-      Toast.success({ content: '审核成功' });
+      Toast.success({ content: t('审核成功') });
       setAuditVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '审核失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('审核失败') });
     } finally {
       setAuditLoading(false);
     }
@@ -130,11 +132,11 @@ function StaffWithdrawTable({
       dataIndex: 'status',
       width: 110,
       render: (v: unknown) => {
-        const item = statusMap[Number(v)] || { text: String(v ?? '-'), type: 'warning' as const };
+        const item = statusMap[Number(v)];
         return (
           <Space>
-            <Badge dot type={item.type} />
-            <span>{item.text}</span>
+            <Badge dot type={item?.type ?? 'warning'} />
+            <span>{item ? t(item.text) : String(v ?? '-')}</span>
           </Space>
         );
       },
@@ -171,7 +173,7 @@ function StaffWithdrawTable({
               size="small"
               onClick={() => openAudit(record)}
             >
-              审核
+              {t('审核')}
             </Button>
           );
         }
@@ -209,38 +211,38 @@ function StaffWithdrawTable({
       />
 
       <Modal
-        title="提现审核"
+        title={t('提现审核')}
         visible={auditVisible}
         onCancel={() => setAuditVisible(false)}
         onOk={handleAuditSubmit}
         confirmLoading={auditLoading}
         width={480}
-        okText="确认"
-        cancelText="取消"
+        okText={t('确认')}
+        cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>结果</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('结果')}</div>
             <RadioGroup
               value={auditForm.status}
               onChange={(e) => setAuditForm({ ...auditForm, status: e.target.value })}
             >
-              <Radio value={1}>已打款</Radio>
-              <Radio value={2}>已驳回</Radio>
+              <Radio value={1}>{t('已打款')}</Radio>
+              <Radio value={2}>{t('已驳回')}</Radio>
             </RadioGroup>
           </div>
           {auditForm.status === 1 ? (
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 500 }}>打款凭证</div>
+              <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('打款凭证')}</div>
               <Input
-                placeholder="凭证图片 URL"
+                placeholder={t('凭证图片 URL')}
                 value={auditForm.paymentVoucher}
                 onChange={(val) => setAuditForm({ ...auditForm, paymentVoucher: val })}
               />
             </div>
           ) : (
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 500 }}>驳回原因</div>
+              <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('驳回原因')}</div>
               <TextArea
                 rows={3}
                 value={auditForm.rejectReason}
@@ -249,7 +251,7 @@ function StaffWithdrawTable({
             </div>
           )}
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>备注</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('备注')}</div>
             <TextArea
               rows={3}
               value={auditForm.adminRemark}

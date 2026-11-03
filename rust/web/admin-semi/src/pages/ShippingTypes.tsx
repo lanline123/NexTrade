@@ -1,6 +1,7 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Button, Modal, Space, Switch, Toast } from '@douyinfe/semi-ui';
 import { apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -14,10 +15,11 @@ interface ShippingTypeRow {
 }
 
 function CodSwitch({ row, value }: { row: ShippingTypeRow; value?: number }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -28,7 +30,7 @@ function CodSwitch({ row, value }: { row: ShippingTypeRow; value?: number }) {
       });
       setChecked(next);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
   return <Switch checked={checked} onChange={toggle} size="small" />;
@@ -48,20 +50,21 @@ const columns: ColumnConfig<ShippingTypeRow>[] = [
 ];
 
 export default function ShippingTypes() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除配送类型',
-      content: `确定删除选中的 ${ids.length} 个配送类型？`,
+      title: t('批量删除配送类型'),
+      content: t('确定删除选中的 {count} 个配送类型？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/setting/shippingType/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -88,7 +91,7 @@ export default function ShippingTypes() {
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.shippingTypeId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -110,20 +113,20 @@ export default function ShippingTypes() {
             fields: [
               {
                 field: 'shippingTypeName',
-                label: '分类名称',
+                label: t('分类名称'),
                 required: true,
-                placeholder: '请输入分类名称',
+                placeholder: t('请输入分类名称'),
               },
               {
                 field: 'shippingTypeDesc',
-                label: '分类描述',
+                label: t('分类描述'),
                 type: 'textarea',
               },
               {
                 field: 'shippingDefaultId',
-                label: '默认物流',
+                label: t('默认物流'),
                 type: 'select',
-                placeholder: '请选择物流公司',
+                placeholder: t('请选择物流公司'),
                 optionsApi: '/setting/logisticsCompany/list',
                 optionsParams: { page: 1, pageSize: 100 },
                 optionLabel: 'logisticsName',
@@ -131,17 +134,17 @@ export default function ShippingTypes() {
               },
               {
                 field: 'shippingTimeDesc',
-                label: '配送时间描述',
+                label: t('配送时间描述'),
                 type: 'textarea',
               },
-              { field: 'sortOrder', label: '排序', type: 'number', initValue: 50 },
+              { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 50 },
               {
                 field: 'isSupportCod',
-                label: '货到付款',
+                label: t('货到付款'),
                 type: 'switch',
                 initValue: 0,
-                checkedText: '支持',
-                uncheckedText: '不支持',
+                checkedText: t('支持'),
+                uncheckedText: t('不支持'),
               },
             ],
           },

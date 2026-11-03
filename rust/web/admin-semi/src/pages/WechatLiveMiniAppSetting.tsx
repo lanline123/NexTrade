@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -22,6 +23,7 @@ interface MiniAppForm {
 }
 
 export function WechatLiveMiniAppSetting() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [secretEditVisible, setSecretEditVisible] = useState(false);
@@ -46,7 +48,7 @@ export function WechatLiveMiniAppSetting() {
         miniImgSecCheck: Number(riskRes.miniImgSecCheck ?? 0),
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载配置失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载配置失败') });
     } finally {
       setLoading(false);
     }
@@ -74,10 +76,10 @@ export function WechatLiveMiniAppSetting() {
           miniImgSecCheck: formState.miniImgSecCheck,
         }),
       ]);
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       await loadData();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -93,31 +95,31 @@ export function WechatLiveMiniAppSetting() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Card title="小程序直播/视频号配置">
+      <Card title={t('小程序直播/视频号配置')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Text strong style={{ width: 160 }}>小程序AppID</Text>
+              <Text strong style={{ width: 160 }}>{t('小程序AppID')}</Text>
               <Input
                 style={{ width: 380 }}
-                placeholder="请输入小程序AppID"
+                placeholder={t('请输入小程序AppID')}
                 value={formState.wechatLiveMiniAppId}
                 onChange={(val) => setFormState({ ...formState, wechatLiveMiniAppId: val })}
               />
             </div>
             <div style={{ marginLeft: 176, marginTop: 6 }}>
               <Text type="tertiary" size="small">
-                小程序直播/视频号使用的独立小程序AppID，微信小程序公众平台-&gt;设置-&gt;开发设置中获取
+                {t('小程序直播/视频号使用的独立小程序AppID，微信小程序公众平台->设置->开发设置中获取')}
               </Text>
             </div>
           </div>
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Text strong style={{ width: 160 }}>小程序AppSecret</Text>
+              <Text strong style={{ width: 160 }}>{t('小程序AppSecret')}</Text>
               <Space align="center">
                 <Text style={{ width: 280, fontFamily: 'monospace' }}>
-                  {formState.wechatLiveMiniAppSecret ? maskSecret(formState.wechatLiveMiniAppSecret) : '未配置'}
+                  {formState.wechatLiveMiniAppSecret ? maskSecret(formState.wechatLiveMiniAppSecret) : t('未配置')}
                 </Text>
                 <Button
                   theme="borderless"
@@ -127,47 +129,47 @@ export function WechatLiveMiniAppSetting() {
                     setSecretEditVisible(true);
                   }}
                 >
-                  编辑
+                  {t('编辑')}
                 </Button>
               </Space>
             </div>
             <div style={{ marginLeft: 176, marginTop: 6 }}>
               <Text type="tertiary" size="small">
-                小程序直播/视频号使用的独立小程序AppSecret，微信小程序公众平台-&gt;设置-&gt;开发设置中获取
+                {t('小程序直播/视频号使用的独立小程序AppSecret，微信小程序公众平台->设置->开发设置中获取')}
               </Text>
             </div>
             <div style={{ marginLeft: 176, marginTop: 2 }}>
               <Text type="tertiary" size="small">
-                编辑完成后，点击下方提交按钮确认修改，请确保填写正确的小程序AppSecret
+                {t('编辑完成后，点击下方提交按钮确认修改，请确保填写正确的小程序AppSecret')}
               </Text>
             </div>
           </div>
         </div>
       </Card>
 
-      <Card title="风控配置">
+      <Card title={t('风控配置')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Text strong style={{ width: 160 }}>图片鉴黄</Text>
+              <Text strong style={{ width: 160 }}>{t('图片鉴黄')}</Text>
               <RadioGroup
                 value={formState.miniImgSecCheck}
                 onChange={(e) =>
                   setFormState({ ...formState, miniImgSecCheck: Number(e.target.value) })
                 }
               >
-                <Radio value={1}>开启</Radio>
-                <Radio value={0}>关闭</Radio>
+                <Radio value={1}>{t('开启')}</Radio>
+                <Radio value={0}>{t('关闭')}</Radio>
               </RadioGroup>
             </div>
             <div style={{ marginLeft: 176, marginTop: 6 }}>
               <Text type="tertiary" size="small">
-                开启后，小程序端上传头像时将调用微信内容安全接口检测，违规图片将被拦截
+                {t('开启后，小程序端上传头像时将调用微信内容安全接口检测，违规图片将被拦截')}
               </Text>
             </div>
             <div style={{ marginLeft: 176, marginTop: 2 }}>
               <Text type="tertiary" size="small">
-                微信限制单个小程序每分钟最多调用 2000 次、每天最多 200000 次，超出限制后本次检测将自动放行
+                {t('微信限制单个小程序每分钟最多调用 2000 次、每天最多 200000 次，超出限制后本次检测将自动放行')}
               </Text>
             </div>
           </div>
@@ -183,12 +185,12 @@ export function WechatLiveMiniAppSetting() {
           onClick={handleSubmit}
           style={{ width: 140 }}
         >
-          提 交
+          {t('提 交')}
         </Button>
       </div>
 
       <Modal
-        title="小程序AppSecret"
+        title={t('小程序AppSecret')}
         visible={secretEditVisible}
         onCancel={() => setSecretEditVisible(false)}
         onOk={() => {
@@ -196,13 +198,13 @@ export function WechatLiveMiniAppSetting() {
           setSecretEditVisible(false);
         }}
         width={480}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>小程序AppSecret</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('小程序AppSecret')}</div>
           <Input
-            placeholder="请输入小程序AppSecret"
+            placeholder={t('请输入小程序AppSecret')}
             value={secretDraft}
             onChange={(val) => setSecretDraft(val)}
           />

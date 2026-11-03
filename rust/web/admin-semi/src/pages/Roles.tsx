@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Tag, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import AuthorityTree from '../components/AuthorityTree';
@@ -15,44 +16,45 @@ interface RoleRow {
   authorityList?: string[];
 }
 
-const columns: ColumnConfig<RoleRow>[] = [
-  {
-    title: '角色名称',
-    dataIndex: 'roleName',
-    width: 240,
-    render: (value: string, record) => (
-      <Space>
-        <span>{value}</span>
-        {record.isSystem === 1 && (
-          <Tag color="grey" size="small">
-            系统内置
-          </Tag>
-        )}
-      </Space>
-    ),
-  },
-  {
-    title: '描述',
-    dataIndex: 'roleDesc',
-    render: (value: string) => value || '-',
-  },
-];
-
 export default function Roles() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [editRequest, setEditRequest] = useState<RoleRow | null>(null);
 
+  const columns: ColumnConfig<RoleRow>[] = [
+    {
+      title: '角色名称',
+      dataIndex: 'roleName',
+      width: 240,
+      render: (value: string, record) => (
+        <Space>
+          <span>{value}</span>
+          {record.isSystem === 1 && (
+            <Tag color="grey" size="small">
+              {t('系统内置')}
+            </Tag>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: '描述',
+      dataIndex: 'roleDesc',
+      render: (value: string) => value || '-',
+    },
+  ];
+
   const removeRole = (record: RoleRow) => {
     Modal.confirm({
-      title: '删除角色',
-      content: `确定删除角色「${record.roleName}」？`,
+      title: t('删除角色'),
+      content: t('确定删除角色「{name}」？', { name: record.roleName }),
       onOk: async () => {
         try {
           await apiPost('/authority/adminRole/del', { id: record.roleId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -60,16 +62,16 @@ export default function Roles() {
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除角色',
-      content: `确定删除选中的 ${ids.length} 个角色？`,
+      title: t('批量删除角色'),
+      content: t('确定删除选中的 {count} 个角色？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/authority/adminRole/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -98,14 +100,14 @@ export default function Roles() {
       columns={columns}
       rowActions={(record) =>
         record.isSystem === 1 ? (
-          <span className="text-muted">系统内置不可修改</span>
+          <span className="text-muted">{t('系统内置不可修改')}</span>
         ) : (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => setEditRequest(record)}>
-              编辑
+              {t('编辑')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => removeRole(record)}>
-              删除
+              {t('删除')}
             </Button>
           </Space>
         )
@@ -113,7 +115,7 @@ export default function Roles() {
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.roleId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -134,19 +136,19 @@ export default function Roles() {
             fields: [
               {
                 field: 'roleName',
-                label: '角色名称',
+                label: t('角色名称'),
                 required: true,
-                placeholder: '请输入角色名称',
+                placeholder: t('请输入角色名称'),
               },
               {
                 field: 'roleDesc',
-                label: '角色描述',
+                label: t('角色描述'),
                 type: 'textarea',
-                placeholder: '请输入角色描述',
+                placeholder: t('请输入角色描述'),
               },
               {
                 field: 'authorityList',
-                label: '权限列表',
+                label: t('权限列表'),
                 hideLabel: true,
                 type: 'custom',
                 render: ({ formApi, values }) => (

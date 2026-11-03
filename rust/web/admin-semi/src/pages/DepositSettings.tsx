@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
 import { InputNumber, Select } from '@douyinfe/semi-ui';
+import { useI18n } from '../i18n';
 import AutoConfigPage, {
   type ConfigControlType,
   type ConfigFieldRule,
   type ConfigRendererContext,
 } from './AutoConfigPage';
+
+type ConfigOption = { label: string; value: string | number; color?: string };
 
 const bufferActionOptions = [
   { label: '限制上架新品', value: 1 },
@@ -12,10 +15,17 @@ const bufferActionOptions = [
 ];
 
 /** 缓冲复合行：引导语 + 天数输入 + 固定文案 + 处理方式下拉（action 字段由该行代管）。 */
-const bufferRenderer = (daysKey: string, actionKey: string, lead: string) =>
-  ({ values, update }: ConfigRendererContext) => (
+function DepositBufferLine({
+  daysKey,
+  actionKey,
+  lead,
+  values,
+  update,
+}: ConfigRendererContext & { daysKey: string; actionKey: string; lead: string }) {
+  const { t } = useI18n();
+  return (
     <div className="deposit-buffer-line">
-      <span className="deposit-buffer-text">{lead}</span>
+      <span className="deposit-buffer-text">{t(lead)}</span>
       <InputNumber
         style={{ width: 110 }}
         min={0}
@@ -23,14 +33,20 @@ const bufferRenderer = (daysKey: string, actionKey: string, lead: string) =>
         value={Number(values[daysKey] ?? 0) || 0}
         onChange={(next) => update(daysKey, Number(next ?? 0))}
       />
-      <span className="deposit-buffer-text">天内，未足额缴纳保证金，店铺/供应商</span>
+      <span className="deposit-buffer-text">{t('天内，未足额缴纳保证金，店铺/供应商')}</span>
       <Select
         style={{ width: 180 }}
         value={Number(values[actionKey] ?? 1)}
-        optionList={bufferActionOptions}
+        optionList={bufferActionOptions.map((item) => ({ ...item, label: t(item.label) }))}
         onChange={(next) => update(actionKey, Number(next))}
       />
     </div>
+  );
+}
+
+const bufferRenderer = (daysKey: string, actionKey: string, lead: string) =>
+  (context: ConfigRendererContext) => (
+    <DepositBufferLine {...context} daysKey={daysKey} actionKey={actionKey} lead={lead} />
   );
 
 const def: {
@@ -40,7 +56,7 @@ const def: {
   sections: Array<{ title: string; fields: string[] }>;
   labels: Record<string, string>;
   controls: Record<string, ConfigControlType>;
-  options: Record<string, Array<{ label: string; value: string | number; color?: string }>>;
+  options: Record<string, ConfigOption[]>;
   rules: Record<string, ConfigFieldRule>;
   fieldHelp: Record<string, string>;
   hiddenFields: string[];
@@ -121,7 +137,26 @@ const def: {
   },
 };
 
+/** AutoConfigPage 只对 labels/sections 做 t()，options/fieldHelp 需在页面侧翻译。 */
+const translateOptions = (
+  source: Record<string, ConfigOption[]>,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) =>
+  Object.fromEntries(
+    Object.entries(source).map(([key, list]): [string, ConfigOption[]] => [
+      key,
+      list.map((item) => ({ ...item, label: t(item.label) })),
+    ]),
+  );
+
+const translateMap = (
+  source: Record<string, string>,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) =>
+  Object.fromEntries(Object.entries(source).map(([key, value]): [string, string] => [key, t(value)]));
+
 export default function DepositSettings() {
+  const { t } = useI18n();
   return (
     <AutoConfigPage
       title={def.title}
@@ -130,9 +165,9 @@ export default function DepositSettings() {
       sections={def.sections}
       labels={def.labels}
       controls={def.controls}
-      options={def.options}
+      options={translateOptions(def.options, t)}
       rules={def.rules}
-      fieldHelp={def.fieldHelp}
+      fieldHelp={translateMap(def.fieldHelp, t)}
       hiddenFields={def.hiddenFields}
       defaults={def.defaults}
       renderers={def.renderers}

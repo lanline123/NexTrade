@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, TextArea, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import OrderDetailModal from '../components/OrderDetailModal';
 import type { ColumnConfig } from '../framework/types';
@@ -22,6 +23,7 @@ interface FeedbackRow {
 
 /** 会员留言：对应旧版 user/feedback/List.vue + Info.vue。 */
 export default function Feedbacks() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [replyTarget, setReplyTarget] = useState<FeedbackRow | null>(null);
   const [replyContent, setReplyContent] = useState('');
@@ -45,7 +47,7 @@ export default function Feedbacks() {
   const submitReply = async () => {
     if (!replyTarget) return;
     if (!replyContent.trim()) {
-      Toast.error({ content: '回复内容不能为空' });
+      Toast.error({ content: t('回复内容不能为空') });
       return;
     }
     setReplySaving(true);
@@ -55,11 +57,11 @@ export default function Feedbacks() {
         parentId: 0,
         content: replyContent,
       });
-      Toast.success({ content: '回复成功' });
+      Toast.success({ content: t('回复成功') });
       setReplyTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '回复失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('回复失败') });
     } finally {
       setReplySaving(false);
     }
@@ -67,14 +69,14 @@ export default function Feedbacks() {
 
   const deleteFeedback = (row: FeedbackRow) => {
     Modal.confirm({
-      title: '确认删除该留言吗？',
+      title: t('确认删除该留言吗？'),
       onOk: async () => {
         try {
           await apiPost('/user/feedback/del', { id: row.id });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -140,17 +142,17 @@ export default function Feedbacks() {
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openReply(row)}>
-              回复
+              {t('回复')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => deleteFeedback(row)}>
-              删除
+              {t('删除')}
             </Button>
           </Space>
         )}
       />
 
       <Modal
-        title="回复留言"
+        title={t('回复留言')}
         visible={Boolean(replyTarget)}
         confirmLoading={replySaving}
         onOk={submitReply}
@@ -160,14 +162,14 @@ export default function Feedbacks() {
           <div className="feedback-form">
             <Text strong>{replyTarget.typeName || '-'}</Text>
             <div>
-              <Text type="tertiary">留言内容：</Text>
+              <Text type="tertiary">{t('留言内容：')}</Text>
               <span>{replyTarget.content || '-'}</span>
             </div>
-            <Text strong>回复内容</Text>
+            <Text strong>{t('回复内容')}</Text>
             <TextArea
               value={replyContent}
               onChange={setReplyContent}
-              placeholder="请输入回复内容"
+              placeholder={t('请输入回复内容')}
               autosize={{ minRows: 4, maxRows: 8 }}
             />
           </div>

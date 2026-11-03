@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Checkbox, Input, InputNumber, RadioGroup, Select, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import ImageUploader from './ImageUploader';
 import RichTextEditor from './RichTextEditor';
@@ -63,6 +64,7 @@ const emptyValues: Record<string, any> = {
 };
 
 function SkuEditor({ formApi, values }: { formApi: any; values: Record<string, any> }) {
+  const { t } = useI18n();
   const skuType = Number(values.skuType || 1);
   const rows: Array<Record<string, any>> = values.skuRows || [];
 
@@ -90,31 +92,31 @@ function SkuEditor({ formApi, values }: { formApi: any; values: Record<string, a
           if (next === 2 && !rows.length) addRow();
         }}
         options={[
-          { label: '单规格', value: 1 },
-          { label: '多规格', value: 2 },
+          { label: t('单规格'), value: 1 },
+          { label: t('多规格'), value: 2 },
         ]}
       />
       {skuType === 2 && (
         <div className="product-sku-table">
           <div className="product-sku-row product-sku-head">
-            <span>规格值</span>
-            <span>SKU编码</span>
-            <span>售价</span>
-            <span>市场价</span>
-            <span>成本价</span>
-            <span>库存</span>
+            <span>{t('规格值')}</span>
+            <span>{t('SKU编码')}</span>
+            <span>{t('售价')}</span>
+            <span>{t('市场价')}</span>
+            <span>{t('成本价')}</span>
+            <span>{t('库存')}</span>
             <span />
           </div>
           {rows.map((row, index) => (
             <div className="product-sku-row" key={index}>
               <Input
                 value={row.skuValue || ''}
-                placeholder="如 红色 / 大号"
+                placeholder={t('如 红色 / 大号')}
                 onChange={(value) => updateRow(index, 'skuValue', value)}
               />
               <Input
                 value={row.skuSn || ''}
-                placeholder="SKU编码"
+                placeholder={t('SKU编码')}
                 onChange={(value) => updateRow(index, 'skuSn', value)}
               />
               <InputNumber
@@ -147,12 +149,12 @@ function SkuEditor({ formApi, values }: { formApi: any; values: Record<string, a
                 size="small"
                 onClick={() => setRows(rows.filter((_, i) => i !== index))}
               >
-                删除
+                {t('删除')}
               </Button>
             </div>
           ))}
           <Button theme="light" onClick={addRow}>
-            + 添加规格
+            {t('+ 添加规格')}
           </Button>
         </div>
       )}
@@ -161,6 +163,7 @@ function SkuEditor({ formApi, values }: { formApi: any; values: Record<string, a
 }
 
 function RecommendField({ formApi, values }: { formApi: any; values: Record<string, any> }) {
+  const { t } = useI18n();
   const fields = ['isBest', 'isNew', 'isHot'];
   const [checked, setChecked] = useState<Record<string, boolean>>(() => ({
     isBest: Boolean(values.isBest),
@@ -194,7 +197,7 @@ function RecommendField({ formApi, values }: { formApi: any; values: Record<stri
             formApi?.setValue(field, next);
           }}
         >
-          {labels[field]}
+          {t(labels[field])}
         </Checkbox>
       ))}
     </div>
@@ -209,6 +212,7 @@ export default function ProductFormDrawer({
   onCancel,
   onSaved,
 }: ProductFormDrawerProps) {
+  const { t } = useI18n();
   const [initialValues, setInitialValues] = useState<Record<string, any>>(emptyValues);
   const [shippingTpls, setShippingTpls] = useState<ShippingTpl[]>([]);
   const [services, setServices] = useState<Array<{ productServiceId: number; productServiceName: string }>>([]);
@@ -305,17 +309,17 @@ export default function ProductFormDrawer({
 
   const submit = async (payload: Record<string, any>) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持保存，请登录后操作' });
+      Toast.warning({ content: t('演示模式不支持保存，请登录后操作') });
       return;
     }
     if (payload.skuType === 2) {
-      if (!payload.productList.length) throw new Error('请至少添加一个规格');
+      if (!payload.productList.length) throw new Error(t('请至少添加一个规格'));
       if (payload.productList.some((row: any) => !String(row.skuValue || '').trim())) {
-        throw new Error('请填写完整的规格值');
+        throw new Error(t('请填写完整的规格值'));
       }
     }
     await apiPost(productId ? '/product/product/update' : '/product/product/create', payload);
-    Toast.success({ content: productId ? '商品已更新' : '商品已创建' });
+    Toast.success({ content: productId ? t('商品已更新') : t('商品已创建') });
     onSaved();
     onCancel();
   };
@@ -344,54 +348,54 @@ export default function ProductFormDrawer({
             fields: [
               {
                 field: 'productType',
-                label: '商品类型',
+                label: t('商品类型'),
                 type: 'select',
                 disabled: Boolean(productId),
                 options: [
-                  { label: '普通商品', value: 1 },
-                  { label: '虚拟商品', value: 2 },
-                  { label: '电子卡券', value: 3 },
-                  { label: '预约到店', value: 5 },
-                  { label: '上门服务', value: 6 },
+                  { label: t('普通商品'), value: 1 },
+                  { label: t('虚拟商品'), value: 2 },
+                  { label: t('电子卡券'), value: 3 },
+                  { label: t('预约到店'), value: 5 },
+                  { label: t('上门服务'), value: 6 },
                 ],
-                extraText: '商品类型发布后不可修改。',
+                extraText: t('商品类型发布后不可修改。'),
               },
               {
                 field: 'productName',
-                label: '商品名称',
+                label: t('商品名称'),
                 required: true,
-                placeholder: '请输入商品名称',
+                placeholder: t('请输入商品名称'),
               },
               {
                 field: 'categoryId',
-                label: '商品类目',
+                label: t('商品类目'),
                 type: 'select',
                 required: true,
-                placeholder: '请选择商品类目',
+                placeholder: t('请选择商品类目'),
                 options: categories.map((item) => ({ label: item.name, value: item.id })),
               },
               {
                 field: 'brandId',
-                label: '商品品牌',
+                label: t('商品品牌'),
                 type: 'select',
-                placeholder: '请选择商品品牌',
+                placeholder: t('请选择商品品牌'),
                 options: brands.map((item) => ({ label: item.name, value: item.id })),
               },
-              { field: 'productSn', label: '商品编码', placeholder: '不填自动生成' },
-              { field: 'productTsn', label: '商品条码', placeholder: '如 69 开头的 13 位标准码' },
-              { field: 'productWeight', label: '商品重量', type: 'number' },
+              { field: 'productSn', label: t('商品编码'), placeholder: t('不填自动生成') },
+              { field: 'productTsn', label: t('商品条码'), placeholder: t('如 69 开头的 13 位标准码') },
+              { field: 'productWeight', label: t('商品重量'), type: 'number' },
               {
                 field: 'productStatus',
-                label: '是否上架',
+                label: t('是否上架'),
                 type: 'radio',
                 options: [
-                  { label: '上架', value: 1 },
-                  { label: '下架', value: 0 },
+                  { label: t('上架'), value: 1 },
+                  { label: t('下架'), value: 0 },
                 ],
               },
               {
                 field: 'gallery',
-                label: '商品图片',
+                label: t('商品图片'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <ImageUploader
@@ -400,9 +404,9 @@ export default function ProductFormDrawer({
                   />
                 ),
               },
-              { field: 'productVideo', label: '商品视频', placeholder: '视频地址，可留空' },
-              { field: 'keywords', label: '搜索关键词', placeholder: '多个关键词用空格分隔' },
-              { field: 'productBrief', label: '商品描述', type: 'textarea' },
+              { field: 'productVideo', label: t('商品视频'), placeholder: t('视频地址，可留空') },
+              { field: 'keywords', label: t('搜索关键词'), placeholder: t('多个关键词用空格分隔') },
+              { field: 'productBrief', label: t('商品描述'), type: 'textarea' },
             ],
           },
           {
@@ -411,21 +415,21 @@ export default function ProductFormDrawer({
             fields: [
               {
                 field: 'saleMode',
-                label: '销售模式',
+                label: t('销售模式'),
                 type: 'radio',
                 options: [
-                  { label: '现货销售', value: 0 },
-                  { label: '预售模式', value: 1 },
+                  { label: t('现货销售'), value: 0 },
+                  { label: t('预售模式'), value: 1 },
                 ],
               },
-              { field: 'productPrice', label: '销售价', type: 'number' },
-              { field: 'marketPrice', label: '市场价', type: 'number' },
-              { field: 'costPrice', label: '成本价', type: 'number' },
-              { field: 'productStock', label: '库存', type: 'number' },
-              { field: 'limitNumber', label: '限购数量', type: 'number' },
+              { field: 'productPrice', label: t('销售价'), type: 'number' },
+              { field: 'marketPrice', label: t('市场价'), type: 'number' },
+              { field: 'costPrice', label: t('成本价'), type: 'number' },
+              { field: 'productStock', label: t('库存'), type: 'number' },
+              { field: 'limitNumber', label: t('限购数量'), type: 'number' },
               {
                 field: 'skuType',
-                label: '规格类型',
+                label: t('规格类型'),
                 type: 'custom',
                 render: ({ formApi, values }) => <SkuEditor formApi={formApi} values={values} />,
               },
@@ -437,7 +441,7 @@ export default function ProductFormDrawer({
             fields: [
               {
                 field: 'shippingTplId',
-                label: '运费模板',
+                label: t('运费模板'),
                 type: 'select',
                 options: shippingTpls.map((item) => ({
                   label: item.shippingTplName,
@@ -446,45 +450,45 @@ export default function ProductFormDrawer({
               },
               {
                 field: 'freeShipping',
-                label: '是否包邮',
+                label: t('是否包邮'),
                 type: 'switch',
-                checkedText: '包邮',
-                uncheckedText: '自定义运费',
+                checkedText: t('包邮'),
+                uncheckedText: t('自定义运费'),
               },
               {
                 field: 'isLogistics',
-                label: '支持物流',
+                label: t('支持物流'),
                 type: 'switch',
-                checkedText: '支持',
-                uncheckedText: '不支持',
+                checkedText: t('支持'),
+                uncheckedText: t('不支持'),
               },
               {
                 field: 'isShopPickup',
-                label: '支持自提',
+                label: t('支持自提'),
                 type: 'switch',
-                checkedText: '支持',
-                uncheckedText: '不支持',
+                checkedText: t('支持'),
+                uncheckedText: t('不支持'),
               },
               {
                 field: 'noShipping',
-                label: '无需配送',
+                label: t('无需配送'),
                 type: 'switch',
-                checkedText: '无需',
-                uncheckedText: '需要',
+                checkedText: t('无需'),
+                uncheckedText: t('需要'),
               },
               {
                 field: 'isSupportReturn',
-                label: '支持退货',
+                label: t('支持退货'),
                 type: 'switch',
-                checkedText: '支持',
-                uncheckedText: '不支持',
+                checkedText: t('支持'),
+                uncheckedText: t('不支持'),
               },
               {
                 field: 'isSupportCod',
-                label: '支持货到付款',
+                label: t('支持货到付款'),
                 type: 'switch',
-                checkedText: '支持',
-                uncheckedText: '不支持',
+                checkedText: t('支持'),
+                uncheckedText: t('不支持'),
               },
             ],
           },
@@ -494,7 +498,7 @@ export default function ProductFormDrawer({
             fields: [
               {
                 field: 'productDesc',
-                label: '商品详情',
+                label: t('商品详情'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <RichTextEditor
@@ -512,7 +516,7 @@ export default function ProductFormDrawer({
             fields: [
               {
                 field: 'isBest',
-                label: '加入推荐',
+                label: t('加入推荐'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <RecommendField formApi={formApi} values={values} />
@@ -520,7 +524,7 @@ export default function ProductFormDrawer({
               },
               {
                 field: 'productServiceIds',
-                label: '服务说明',
+                label: t('服务说明'),
                 type: 'checkbox',
                 options: services.map((item) => ({
                   label: item.productServiceName,
@@ -529,13 +533,13 @@ export default function ProductFormDrawer({
               },
               {
                 field: 'virtualSales',
-                label: '显示销量',
+                label: t('显示销量'),
                 type: 'number',
-                extraText: '显示销量会随下单而增加，但不是真实销售数据',
+                extraText: t('显示销量会随下单而增加，但不是真实销售数据'),
               },
               {
                 field: 'productRelated',
-                label: '相关商品',
+                label: t('相关商品'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <ProductPicker
@@ -547,14 +551,14 @@ export default function ProductFormDrawer({
               },
               {
                 field: 'productArticleList',
-                label: '关联文章',
+                label: t('关联文章'),
                 type: 'select',
                 multiple: true,
                 optionsApi: '/content/article/list',
                 optionsParams: { page: 1, pageSize: 100 },
                 optionLabel: 'articleTitle',
                 optionValue: 'articleId',
-                placeholder: '最多添加 10 篇文章',
+                placeholder: t('最多添加 10 篇文章'),
               },
             ],
           },

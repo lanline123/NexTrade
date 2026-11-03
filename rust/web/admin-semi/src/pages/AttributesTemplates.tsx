@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Modal, Space, Tag, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import TplDataEditor from '../components/TplDataEditor';
@@ -23,6 +24,7 @@ interface CategoryOption {
 }
 
 export default function AttributesTemplates() {
+  const { t } = useI18n();
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -50,7 +52,7 @@ export default function AttributesTemplates() {
   }, []);
 
   const categoryName = (id: number) =>
-    categories.find((item) => item.categoryId === id)?.categoryName || `分类 ${id}`;
+    categories.find((item) => item.categoryId === id)?.categoryName || t('分类 {id}', { id });
 
   const columns: ColumnConfig<TplRow>[] = [
     { title: '属性模板名称', dataIndex: 'tplName', width: 220 },
@@ -86,16 +88,16 @@ export default function AttributesTemplates() {
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除属性模板',
-      content: `确定删除选中的 ${ids.length} 个模板？`,
+      title: t('批量删除属性模板'),
+      content: t('确定删除选中的 {count} 个模板？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/product/productAttributesTpl/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -122,7 +124,7 @@ export default function AttributesTemplates() {
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.tplId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -144,10 +146,10 @@ export default function AttributesTemplates() {
             fields: [
               {
                 field: 'categoryId',
-                label: '商品类目',
+                label: t('商品类目'),
                 type: 'select',
                 required: true,
-                placeholder: '请选择商品类目',
+                placeholder: t('请选择商品类目'),
                 options: categories.map((item) => ({
                   label: item.categoryName,
                   value: item.categoryId,
@@ -155,13 +157,13 @@ export default function AttributesTemplates() {
               },
               {
                 field: 'tplName',
-                label: '属性模板名称',
+                label: t('属性模板名称'),
                 required: true,
-                placeholder: '请输入属性模板名称',
+                placeholder: t('请输入属性模板名称'),
               },
               {
                 field: 'tplData',
-                label: '属性配置',
+                label: t('属性配置'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <TplDataEditor

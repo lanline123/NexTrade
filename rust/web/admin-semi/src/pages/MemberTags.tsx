@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Input, Modal, Space, Toast, Typography } from '@douyinfe/semi-ui';
 import { IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
@@ -23,6 +24,7 @@ interface TagItem {
 
 /** 会员标签：对应旧版 user/userTags/List.vue + Info.vue（标签组 + 动态标签值）。 */
 export default function MemberTags() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
@@ -62,11 +64,11 @@ export default function MemberTags() {
   const saveTagGroup = async (payload: Record<string, any>) => {
     const tags: TagItem[] = (payload.tags || []).filter((item: TagItem) => String(item.tagName || '').trim());
     if (!String(payload.groupName || '').trim()) {
-      Toast.error({ content: '请输入标签组名称' });
+      Toast.error({ content: t('请输入标签组名称') });
       return;
     }
     if (tags.length < 2) {
-      Toast.error({ content: '请至少填写两个标签值' });
+      Toast.error({ content: t('请至少填写两个标签值') });
       return;
     }
     setSaving(true);
@@ -77,11 +79,11 @@ export default function MemberTags() {
       } else {
         await apiPost('/user/memberTagGroup/create', body);
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -91,23 +93,23 @@ export default function MemberTags() {
     const isTop = Number(row.isTop ?? 0) > 0;
     try {
       await apiPost(isTop ? '/user/memberTagGroup/cancelTop' : '/user/memberTagGroup/setTop', { id: row.id });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   const deleteGroup = (row: TagGroupRow) => {
     Modal.confirm({
-      title: '确认删除该标签组吗？',
+      title: t('确认删除该标签组吗？'),
       onOk: async () => {
         try {
           await apiPost('/user/memberTagGroup/del', { id: row.id });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -121,7 +123,7 @@ export default function MemberTags() {
       render: (value: string, row: TagGroupRow) => (
         <span>
           {value || '-'}
-          {Number(row.isTop ?? 0) > 0 ? <Text type="warning">（置顶）</Text> : null}
+          {Number(row.isTop ?? 0) > 0 ? <Text type="warning">{t('（置顶）')}</Text> : null}
         </span>
       ),
     },
@@ -150,10 +152,10 @@ export default function MemberTags() {
         key: 'basic',
         title: '标签组信息',
         fields: [
-          { field: 'groupName', label: '标签组名称', type: 'input', required: true, placeholder: '请输入标签组名称' },
+          { field: 'groupName', label: t('标签组名称'), type: 'input', required: true, placeholder: t('请输入标签组名称') },
           {
             field: 'tags',
-            label: '标签值',
+            label: t('标签值'),
             type: 'custom',
             render: ({ formApi, values }) => {
               const tags: TagItem[] = values.tags || [];
@@ -161,10 +163,10 @@ export default function MemberTags() {
                 <div className="member-tag-values">
                   {tags.map((item, index) => (
                     <div className="member-tag-value-item" key={index}>
-                      <span className="member-tag-value-label">选项{index + 1}</span>
+                      <span className="member-tag-value-label">{t('选项{index}', { index: index + 1 })}</span>
                       <Input
                         style={{ flex: 1 }}
-                        placeholder="请输入"
+                        placeholder={t('请输入')}
                         value={item.tagName}
                         onChange={(next) => {
                           const nextTags = [...tags];
@@ -179,7 +181,7 @@ export default function MemberTags() {
                           size="small"
                           onClick={() => formApi?.setValue('tags', tags.filter((_, i) => i !== index))}
                         >
-                          移除
+                          {t('移除')}
                         </Button>
                       ) : null}
                     </div>
@@ -190,7 +192,7 @@ export default function MemberTags() {
                     icon={<IconPlus />}
                     onClick={() => formApi?.setValue('tags', [...tags, { tagName: '' }])}
                   >
-                    新增选项
+                    {t('新增选项')}
                   </Button>
                 </div>
               );
@@ -201,8 +203,8 @@ export default function MemberTags() {
     ],
     toPayload: (values) => {
       const tags = (values.tags || []).filter((item: TagItem) => String(item.tagName || '').trim());
-      if (!String(values.groupName || '').trim()) throw new Error('请输入标签组名称');
-      if (tags.length < 2) throw new Error('请至少填写两个标签值');
+      if (!String(values.groupName || '').trim()) throw new Error(t('请输入标签组名称'));
+      if (tags.length < 2) throw new Error(t('请至少填写两个标签值'));
       return { groupName: values.groupName, tags };
     },
   };
@@ -219,19 +221,19 @@ export default function MemberTags() {
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-              编辑
+              {t('编辑')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => deleteGroup(row)}>
-              删除
+              {t('删除')}
             </Button>
             <Button theme="borderless" size="small" onClick={() => toggleTop(row)}>
-              {Number(row.isTop ?? 0) > 0 ? '取消置顶' : '置顶'}
+              {Number(row.isTop ?? 0) > 0 ? t('取消置顶') : t('置顶')}
             </Button>
           </Space>
         )}
         toolbarExtra={
           <Button theme="solid" type="primary" onClick={openCreate}>
-            新增标签
+            {t('新增标签')}
           </Button>
         }
       />

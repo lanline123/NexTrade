@@ -37,6 +37,8 @@ import {
   IconClose,
   IconCopy,
   IconDelete,
+  IconEyeClosed,
+  IconEyeOpened,
   IconPlus,
   IconRefresh,
 } from '@douyinfe/semi-icons';
@@ -935,6 +937,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   const decorateIdRef = useRef(decorateId);
   const moduleElRefs = useRef(new Map<number, HTMLElement>());
   const [railTops, setRailTops] = useState<Record<number, number>>({});
+  const [railHeights, setRailHeights] = useState<Record<number, number>>({});
 
   const markDirty = () => {
     dirtyRef.current = true;
@@ -1004,7 +1007,8 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     if (!el) return;
     const update = () => {
       const width = el.clientWidth;
-      const next = Math.min(1, Math.max(0.35, (width - 24) / 1600));
+      // 为右侧悬浮操作条（56）和左右留白（48）预留空间，避免被设置栏遮住
+      const next = Math.min(1, Math.max(0.35, (width - 104) / 1600));
       setCanvasScale(next);
     };
     update();
@@ -1017,10 +1021,13 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   useEffect(() => {
     const timer = setTimeout(() => {
       const tops: Record<number, number> = {};
+      const heights: Record<number, number> = {};
       moduleElRefs.current.forEach((el, key) => {
         tops[key] = el.offsetTop;
+        heights[key] = el.offsetHeight;
       });
       setRailTops(tops);
+      setRailHeights(heights);
     }, 80);
     return () => clearTimeout(timer);
   }, [moduleList, activeIndex, loading]);
@@ -1283,7 +1290,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
             <Text type="tertiary" size="small">{t('画布按窗口宽度等比缩放，与前台首页渲染一致')}</Text>
           </div>
           <div ref={canvasViewportRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '24px 0 60px 12px', position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '24px 0 60px', position: 'relative' }}>
               {/* 1600px 整页窗口（等比缩放到容器宽度，背景取页面设置）。
                   外层宽 = 1600 * scale：flex 用缩放后的实际宽度居中，
                   避免宽屏时 zoom 后的画布向左溢出到模块库下方。 */}
@@ -1358,15 +1365,45 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                 })}
               </div>
               </div>
-              {/* 右轨道：选中模块操作条 */}
-              <div style={{ width: 120, position: 'relative', flexShrink: 0, minHeight: 300 }}>
+              {/* 右侧悬浮操作条：图标按钮，垂直居中，与设置栏保留间距 */}
+              <div
+                style={{
+                  width: 56,
+                  flexShrink: 0,
+                  position: 'relative',
+                  alignSelf: 'stretch',
+                }}
+              >
                 {activeIndex >= 0 && activeIndex < moduleList.length && (
-                  <div className="pc-decorate-rail-operate" style={{ top: (railTops[moduleList[activeIndex]?.moduleIndex] ?? 0) * canvasScale }} onClick={(e) => e.stopPropagation()}>
-                    <Button size="small" theme="borderless" icon={<IconChevronUp />} disabled={activeIndex === 0} onClick={() => moveModule(activeIndex, -1)} />
-                    <Button size="small" theme="borderless" icon={<IconChevronDown />} disabled={activeIndex === moduleList.length - 1} onClick={() => moveModule(activeIndex, 1)} />
-                    <Button size="small" theme="borderless" onClick={() => toggleShow(activeIndex)}>{moduleList[activeIndex]?.isShow ? t('隐藏') : t('显示')}</Button>
-                    <Button size="small" theme="borderless" icon={<IconCopy />} onClick={() => copyModule(activeIndex)} />
-                    <Button size="small" theme="borderless" type="danger" icon={<IconDelete />} onClick={() => removeModule(activeIndex)} />
+                  <div
+                    className="pc-decorate-rail-operate"
+                    style={{
+                      top: ((railTops[moduleList[activeIndex]?.moduleIndex] ?? 0)
+                        + (railHeights[moduleList[activeIndex]?.moduleIndex] ?? 0) / 2) * canvasScale,
+                      transform: 'translateY(-50%)',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Tooltip content={t('上移')} position="left">
+                      <Button size="small" theme="borderless" icon={<IconChevronUp />} disabled={activeIndex === 0} onClick={() => moveModule(activeIndex, -1)} />
+                    </Tooltip>
+                    <Tooltip content={t('下移')} position="left">
+                      <Button size="small" theme="borderless" icon={<IconChevronDown />} disabled={activeIndex === moduleList.length - 1} onClick={() => moveModule(activeIndex, 1)} />
+                    </Tooltip>
+                    <Tooltip content={moduleList[activeIndex]?.isShow ? t('隐藏') : t('显示')} position="left">
+                      <Button
+                        size="small"
+                        theme="borderless"
+                        icon={moduleList[activeIndex]?.isShow ? <IconEyeOpened /> : <IconEyeClosed />}
+                        onClick={() => toggleShow(activeIndex)}
+                      />
+                    </Tooltip>
+                    <Tooltip content={t('复制')} position="left">
+                      <Button size="small" theme="borderless" icon={<IconCopy />} onClick={() => copyModule(activeIndex)} />
+                    </Tooltip>
+                    <Tooltip content={t('删除')} position="left">
+                      <Button size="small" theme="borderless" type="danger" icon={<IconDelete />} onClick={() => removeModule(activeIndex)} />
+                    </Tooltip>
                   </div>
                 )}
               </div>

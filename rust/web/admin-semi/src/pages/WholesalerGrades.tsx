@@ -13,6 +13,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus } from '@douyinfe/semi-icons';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -29,6 +30,7 @@ interface GradeRow {
 }
 
 export function WholesalerGrades() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [editVisible, setEditVisible] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -56,43 +58,43 @@ export function WholesalerGrades() {
       if (res && res.warning) {
         Toast.warning({ content: res.warning });
       } else {
-        Toast.success({ content: '状态修改成功' });
+        Toast.success({ content: t('状态修改成功') });
       }
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '状态修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('状态修改失败') });
     }
   };
 
   const handleDelete = async (record: GradeRow) => {
     if (record.isDefault) {
       Modal.warning({
-        title: '提示',
-        content: '默认等级不能删除，如需删除请前往批发商设置修改默认批发商',
-        okText: '确定',
+        title: t('提示'),
+        content: t('默认等级不能删除，如需删除请前往批发商设置修改默认批发商'),
+        okText: t('确定'),
       });
       return;
     }
     if ((record.userCount ?? 0) > 0) {
       Modal.warning({
-        title: '删除失败',
-        content: '该类型下已有批发商用户。在删除该类型之前，必须先删除该类型下的所有批发商用户。',
-        okText: '确定',
+        title: t('删除失败'),
+        content: t('该类型下已有批发商用户。在删除该类型之前，必须先删除该类型下的所有批发商用户。'),
+        okText: t('确定'),
       });
       return;
     }
     try {
       await apiPost('/wholesale/grade/delete', { gradeId: record.gradeId });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
   const handleEditSubmit = async () => {
     if (!gradeName.trim()) {
-      Toast.warning({ content: '请输入批发商等级' });
+      Toast.warning({ content: t('请输入批发商等级') });
       return;
     }
     setEditLoading(true);
@@ -101,11 +103,11 @@ export function WholesalerGrades() {
         gradeId: editingRow ? editingRow.gradeId : undefined,
         gradeName: gradeName.trim(),
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setEditVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setEditLoading(false);
     }
@@ -123,7 +125,7 @@ export function WholesalerGrades() {
             <Text strong>{String(v || '--')}</Text>
             {Boolean(record.isDefault) && (
               <Tag size="small" color="blue">
-                默认等级
+                {t('默认等级')}
               </Tag>
             )}
           </Space>
@@ -173,7 +175,7 @@ export function WholesalerGrades() {
               size="small"
               onClick={() => openEdit(record)}
             >
-              编辑
+              {t('编辑')}
             </Button>
             <Button
               theme="borderless"
@@ -181,7 +183,7 @@ export function WholesalerGrades() {
               size="small"
               onClick={() => handleDelete(record)}
             >
-              删除
+              {t('删除')}
             </Button>
           </Space>
         );
@@ -198,25 +200,25 @@ export function WholesalerGrades() {
         columns={columns}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => openEdit()}>
-            新增批发商等级
+            {t('新增批发商等级')}
           </Button>
         }
       />
 
       <Modal
-        title={editingRow ? '编辑批发商等级' : '新增批发商等级'}
+        title={editingRow ? t('编辑批发商等级') : t('新增批发商等级')}
         visible={editVisible}
         onCancel={() => setEditVisible(false)}
         onOk={handleEditSubmit}
         confirmLoading={editLoading}
         width={480}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>批发商等级</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('批发商等级')}</div>
           <Input
-            placeholder="请输入批发商等级"
+            placeholder={t('请输入批发商等级')}
             maxLength={50}
             value={gradeName}
             onChange={(val) => setGradeName(val)}

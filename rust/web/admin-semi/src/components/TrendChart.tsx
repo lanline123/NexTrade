@@ -3,6 +3,7 @@ import * as echarts from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import { useI18n } from '../i18n';
 
 echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
@@ -22,19 +23,30 @@ interface TrendChartProps {
 
 export default function TrendChart({
   data = [18.2, 22.6, 20.4, 28.8, 25.2, 34.6, 31.8],
-  labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+  labels,
   height = 268,
-  name = '成交额',
+  name,
   yAxisPrefix = '¥',
   color = '#165dff',
   unit,
   legend = false,
 }: TrendChartProps) {
+  const { t } = useI18n();
+  const resolvedLabels = labels ?? [
+    t('周一'),
+    t('周二'),
+    t('周三'),
+    t('周四'),
+    t('周五'),
+    t('周六'),
+    t('周日'),
+  ];
+  const resolvedName = name ?? t('成交额');
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const resolvedUnit = unit !== undefined ? unit : yAxisPrefix === '¥' ? '万' : '';
+    const resolvedUnit = unit !== undefined ? unit : yAxisPrefix === '¥' ? t('万') : '';
     const chart = echarts.init(containerRef.current);
     chart.setOption({
       grid: { left: 8, right: 16, top: 24, bottom: legend ? 30 : 8, containLabel: true },
@@ -46,16 +58,16 @@ export default function TrendChart({
         formatter: (params: any) => {
           const item = Array.isArray(params) ? params[0] : params;
           const valueText = `${yAxisPrefix === '¥' ? '¥ ' : ''}${item.value}${resolvedUnit ? ' ' + resolvedUnit : ''}`;
-          return `${item.axisValue}<br/>${name}：${valueText}`;
+          return `${item.axisValue}<br/>${resolvedName}：${valueText}`;
         },
       },
       legend: legend
-        ? { data: [name], left: 'center', bottom: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { color: '#8a94a6' } }
+        ? { data: [resolvedName], left: 'center', bottom: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { color: '#8a94a6' } }
         : undefined,
       xAxis: {
         type: 'category',
         boundaryGap: false,
-        data: labels,
+        data: resolvedLabels,
         axisLine: { lineStyle: { color: '#e5e9f0' } },
         axisTick: { show: false },
         axisLabel: { color: '#8a94a6', fontSize: 12, margin: 14 },
@@ -66,12 +78,17 @@ export default function TrendChart({
         axisLabel: {
           color: '#8a94a6',
           fontSize: 12,
-          formatter: unit !== undefined ? `${yAxisPrefix}{value}${unit}` : yAxisPrefix === '¥' ? '¥{value}万' : '{value}',
+          formatter:
+            unit !== undefined
+              ? `${yAxisPrefix}{value}${unit}`
+              : yAxisPrefix === '¥'
+                ? `${yAxisPrefix}{value}${t('万')}`
+                : '{value}',
         },
       },
       series: [
         {
-          name,
+          name: resolvedName,
           type: 'line',
           smooth: true,
           symbol: 'circle',
@@ -96,7 +113,7 @@ export default function TrendChart({
       observer.disconnect();
       chart.dispose();
     };
-  }, [data, labels, name, yAxisPrefix, color, unit, legend]);
+  }, [data, labels, name, yAxisPrefix, color, unit, legend, t]);
 
   return <div ref={containerRef} style={{ width: '100%', height }} />;
 }

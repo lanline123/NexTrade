@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Input, InputNumber, Modal, Space, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import ProductPicker from '../components/ProductPicker';
@@ -33,6 +34,7 @@ const datetimeToStamp = (value: string) => Math.floor(new Date(value.replace(/-/
 
 /** 限时秒杀：对应旧版 promotion/seckill/List.vue + Info.vue + SelectSeckillProduct.vue。 */
 export default function Seckills() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
@@ -103,12 +105,12 @@ export default function Seckills() {
 
   const saveSeckill = async (payload: Record<string, any>) => {
     if (!String(payload.seckillName || '').trim()) {
-      Toast.error({ content: '活动名称不能为空!' });
+      Toast.error({ content: t('活动名称不能为空!') });
       return;
     }
     const items: SeckillSkuRow[] = payload.seckillItem || [];
     if (!items.length) {
-      Toast.error({ content: '活动商品不能为空!' });
+      Toast.error({ content: t('活动商品不能为空!') });
       return;
     }
     setSaving(true);
@@ -132,11 +134,11 @@ export default function Seckills() {
       } else {
         await apiPost('/promotion/seckill/create', body);
       }
-      Toast.success({ content: drawerMode === 'edit' ? '更新成功' : '创建成功' });
+      Toast.success({ content: drawerMode === 'edit' ? t('更新成功') : t('创建成功') });
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -144,14 +146,14 @@ export default function Seckills() {
 
   const deleteSeckill = (row: SeckillRow) => {
     Modal.confirm({
-      title: '确认删除该秒杀活动吗？',
+      title: t('确认删除该秒杀活动吗？'),
       onOk: async () => {
         try {
           await apiPost('/promotion/seckill/del', { id: row.seckillId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -178,7 +180,7 @@ export default function Seckills() {
       width: 110,
       render: (value: string) => (
         <span style={{ color: value === '已结束' ? 'red' : value === '进行中' ? 'green' : 'black' }}>
-          {value || '-'}
+          {value ? t(value) : '-'}
         </span>
       ),
     },
@@ -196,7 +198,7 @@ export default function Seckills() {
         fields: [
           {
             field: 'seckillItem',
-            label: '秒杀商品',
+            label: t('秒杀商品'),
             type: 'custom',
             render: ({ formApi, values, mode }) => {
               const items: SeckillSkuRow[] = values.seckillItem || [];
@@ -246,7 +248,7 @@ export default function Seckills() {
                         max={1}
                       />
                       {items.length > 0 && (
-                        <Button onClick={() => formApi?.setValue('seckillItem', [])}>清空</Button>
+                        <Button onClick={() => formApi?.setValue('seckillItem', [])}>{t('清空')}</Button>
                       )}
                     </Space>
                   ) : null}
@@ -277,7 +279,7 @@ export default function Seckills() {
                           }}
                         />
                         <Text type="tertiary" size="small">
-                          价格(元)：{item.basePrice || '-'}
+                          {t('价格(元)：{price}', { price: item.basePrice || '-' })}
                         </Text>
                       </div>
                       <div className="seckill-item-field">
@@ -295,21 +297,21 @@ export default function Seckills() {
                           }}
                         />
                         <Text type="tertiary" size="small">
-                          现有库存：{item.baseStock || 0}
+                          {t('现有库存：{stock}', { stock: item.baseStock || 0 })}
                         </Text>
                       </div>
                     </div>
                   ))}
                   {items.length > 0 && mode === 'create' ? (
                     <Space>
-                      <Text>批量设置：</Text>
+                      <Text>{t('批量设置：')}</Text>
                       {batchField === null ? (
                         <>
                           <Button theme="borderless" type="primary" size="small" onClick={() => setBatchField('price')}>
-                            秒杀价格
+                            {t('秒杀价格')}
                           </Button>
                           <Button theme="borderless" type="primary" size="small" onClick={() => setBatchField('stock')}>
-                            秒杀库存
+                            {t('秒杀库存')}
                           </Button>
                         </>
                       ) : (
@@ -318,43 +320,43 @@ export default function Seckills() {
                             size="small"
                             min={0}
                             style={{ width: 140 }}
-                            placeholder={batchField === 'price' ? '请输入秒杀价格' : '请输入秒杀库存'}
+                            placeholder={batchField === 'price' ? t('请输入秒杀价格') : t('请输入秒杀库存')}
                             value={batchValue ?? undefined}
                             onChange={(next) => setBatchValue(next == null ? null : Number(next))}
                           />
                           <Button theme="borderless" type="primary" size="small" onClick={() => applyBatch(values, formApi)}>
-                            保存
+                            {t('保存')}
                           </Button>
                           <Button theme="borderless" size="small" onClick={() => setBatchField(null)}>
-                            取消
+                            {t('取消')}
                           </Button>
                         </>
                       )}
                     </Space>
                   ) : null}
                   <Text type="tertiary" size="small">
-                    只能添加一件商品参与秒杀活动（支持对不同规格进行单独设置）
+                    {t('只能添加一件商品参与秒杀活动（支持对不同规格进行单独设置）')}
                   </Text>
                 </div>
               );
             },
           },
-          { field: 'seckillName', label: '活动名称', type: 'input', required: true },
+          { field: 'seckillName', label: t('活动名称'), type: 'input', required: true },
           {
             field: 'seckillTime',
-            label: '活动日期',
+            label: t('活动日期'),
             type: 'custom',
             render: ({ formApi, values }) => (
               <Space>
                 <Input
                   style={{ width: 200 }}
-                  placeholder="开始时间 YYYY-MM-DD HH:mm:ss"
+                  placeholder={t('开始时间 YYYY-MM-DD HH:mm:ss')}
                   value={values.seckillStartTime || ''}
                   onChange={(next) => formApi?.setValue('seckillStartTime', next)}
                 />
                 <Input
                   style={{ width: 200 }}
-                  placeholder="结束时间 YYYY-MM-DD HH:mm:ss"
+                  placeholder={t('结束时间 YYYY-MM-DD HH:mm:ss')}
                   value={values.seckillEndTime || ''}
                   onChange={(next) => formApi?.setValue('seckillEndTime', next)}
                 />
@@ -365,9 +367,9 @@ export default function Seckills() {
       },
     ],
     toPayload: (values) => {
-      if (!String(values.seckillName || '').trim()) throw new Error('活动名称不能为空!');
+      if (!String(values.seckillName || '').trim()) throw new Error(t('活动名称不能为空!'));
       const items: SeckillSkuRow[] = values.seckillItem || [];
-      if (!items.length) throw new Error('活动商品不能为空!');
+      if (!items.length) throw new Error(t('活动商品不能为空!'));
       return {
         seckillId: values.seckillId,
         seckillName: values.seckillName,
@@ -406,39 +408,39 @@ export default function Seckills() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '您确认要批量删除所选数据吗？',
+                title: t('您确认要批量删除所选数据吗？'),
                 onOk: async () => {
                   try {
                     await apiPost('/promotion/seckill/batch', {
                       ids: rows.map((row) => row.seckillId),
                       type: 'del',
                     });
-                    Toast.success({ content: '批量删除成功' });
+                    Toast.success({ content: t('批量删除成功') });
                     clear();
                     reload();
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                   }
                 },
               });
             }}
           >
-            批量删除
+            {t('批量删除')}
           </Button>
         )}
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-              编辑
+              {t('编辑')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => deleteSeckill(row)}>
-              删除
+              {t('删除')}
             </Button>
           </Space>
         )}
         toolbarExtra={
           <Button theme="solid" type="primary" onClick={openCreate}>
-            添加限时秒杀
+            {t('添加限时秒杀')}
           </Button>
         }
       />

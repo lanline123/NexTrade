@@ -20,6 +20,7 @@ import { IconHelpCircle } from '@douyinfe/semi-icons';
 import { apiGet } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text, Title } = Typography;
 
@@ -35,6 +36,7 @@ interface ConsumerRankingRow {
 }
 
 export function ConsumerRanking() {
+  const { t } = useI18n();
   const columns: ColumnConfig[] = [
     {
       title: '会员名称',
@@ -70,7 +72,7 @@ export function ConsumerRanking() {
     <div>
       <Banner
         type="info"
-        description="提示：查询的时间间隔上限默认为一月，如果数据量过大导至查询时间过久或者超时报错，请尝试缩小查询的时间间隔！"
+        description={t('提示：查询的时间间隔上限默认为一月，如果数据量过大导至查询时间过久或者超时报错，请尝试缩小查询的时间间隔！')}
         style={{ marginBottom: 16 }}
       />
       <ListPage
@@ -108,6 +110,7 @@ interface SaleTargetsData {
 }
 
 export function SaleTargets() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<SaleTargetsData>({});
 
@@ -117,7 +120,7 @@ export function SaleTargets() {
       const res = await apiGet<SaleTargetsData>('/panel/salesStatistics/salesIndicators');
       setData(res || {});
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载销售指标失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载销售指标失败') });
     } finally {
       setLoading(false);
     }
@@ -161,7 +164,7 @@ export function SaleTargets() {
         {items.map((item) => (
           <Card key={item.title} shadows="hover" bodyStyle={{ padding: 20 }}>
             <Text type="tertiary" style={{ fontSize: 14 }}>
-              {item.title}
+              {t(item.title)}
             </Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-text-0)' }}>
               {item.value}
@@ -186,6 +189,7 @@ interface GoodsStatisticsRow {
 }
 
 export function StatisticsGoods() {
+  const { t } = useI18n();
   const columns: ColumnConfig[] = [
     {
       title: '商品名称',
@@ -242,7 +246,7 @@ export function StatisticsGoods() {
     <div>
       <Banner
         type="info"
-        description="提示：查询的时间间隔上限默认为一月，如果数据量过大导至查询时间过久或者超时报错，请尝试缩小查询的时间间隔！"
+        description={t('提示：查询的时间间隔上限默认为一月，如果数据量过大导至查询时间过久或者超时报错，请尝试缩小查询的时间间隔！')}
         style={{ marginBottom: 16 }}
       />
       <ListPage
@@ -281,6 +285,7 @@ interface UserStatisticsPanelVO {
 }
 
 export function StatisticsUser() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<UserStatisticsPanelVO>({});
 
@@ -290,7 +295,7 @@ export function StatisticsUser() {
       const res = await apiGet<UserStatisticsPanelVO>('/panel/statisticsUser/userStatisticsPanel');
       setData(res || {});
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载用户统计失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载用户统计失败') });
     } finally {
       setLoading(false);
     }
@@ -351,7 +356,7 @@ export function StatisticsUser() {
     <div>
       <Banner
         type="info"
-        description="提示：查询的时间间隔上限默认为一年，如果数据量过大导至查询时间过久或者超时报错，请尝试缩小查询的时间间隔！"
+        description={t('提示：查询的时间间隔上限默认为一年，如果数据量过大导至查询时间过久或者超时报错，请尝试缩小查询的时间间隔！')}
         style={{ marginBottom: 16 }}
       />
       <div
@@ -368,9 +373,9 @@ export function StatisticsUser() {
             <Card key={c.title} shadows="hover" bodyStyle={{ padding: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Text type="tertiary" style={{ fontSize: 14 }}>
-                  {c.title}
+                  {t(c.title)}
                 </Text>
-                <Tooltip content={c.tip}>
+                <Tooltip content={t(c.tip)}>
                   <IconHelpCircle style={{ color: 'var(--semi-color-text-2)', cursor: 'pointer' }} />
                 </Tooltip>
               </div>
@@ -378,7 +383,7 @@ export function StatisticsUser() {
                 {c.value}
               </div>
               <div style={{ fontSize: 13, color: 'var(--semi-color-text-2)' }}>
-                环比：
+                {t('环比：')}
                 <span
                   style={{
                     color: isPositive ? 'var(--semi-color-danger)' : 'var(--semi-color-success)',

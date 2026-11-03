@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Modal, Space, Tag, Typography } from '@douyinfe/semi-ui';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -15,6 +16,7 @@ interface AdminLogRow {
 }
 
 export default function AdminLogs() {
+  const { t } = useI18n();
   const [detail, setDetail] = useState<AdminLogRow | null>(null);
   const initialKeyword = useMemo(
     () => new URLSearchParams(window.location.search).get('keyword') || '',
@@ -66,19 +68,19 @@ export default function AdminLogs() {
             disabled={!record.requestLog}
             onClick={() => setDetail(record)}
           >
-            查看
+            {t('查看')}
           </Button>
         )}
       />
 
       <Modal
-        title="操作详情"
+        title={t('操作详情')}
         visible={Boolean(detail)}
         onCancel={() => setDetail(null)}
         width={640}
         footer={
           <Space>
-            <Button onClick={() => setDetail(null)}>关闭</Button>
+            <Button onClick={() => setDetail(null)}>{t('关闭')}</Button>
           </Space>
         }
       >

@@ -3,6 +3,7 @@ import { Avatar, Button, Card, Pagination, Space, Switch, Table, Tag, Toast, Typ
 import { apiGet, apiPost, getToken } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -13,6 +14,7 @@ interface PosStats {
 }
 
 export function PosWorkbench() {
+  const { t } = useI18n();
   const [stats, setStats] = useState<PosStats>({});
 
   const openPos = async () => {
@@ -27,7 +29,7 @@ export function PosWorkbench() {
     const adminType = String(payload.typ || 'admin');
     const shopId = payload.shop_id ?? null;
     if (!token) {
-      Toast.warning({ content: '请先登录后台' });
+      Toast.warning({ content: t('请先登录后台') });
       return;
     }
     localStorage.setItem('accessToken', token);
@@ -45,7 +47,7 @@ export function PosWorkbench() {
       }
     }
     if (adminType !== 'admin' && !resolvedShopId) {
-      Toast.warning({ content: '请先选择门店后再进入收银台' });
+      Toast.warning({ content: t('请先选择门店后再进入收银台') });
       return;
     }
     if (resolvedShopId) localStorage.setItem('shopId', String(resolvedShopId));
@@ -62,31 +64,31 @@ export function PosWorkbench() {
     <div className="pos-workbench">
       <div className="pos-workbench-hero">
         <div>
-          <div className="pos-workbench-eyebrow">POS · 门店收银</div>
-          <h2>收银工作台</h2>
-          <Text type="tertiary">进入 POS 完成开单、收款、挂单与交接班。</Text>
+          <div className="pos-workbench-eyebrow">{t('POS · 门店收银')}</div>
+          <h2>{t('收银工作台')}</h2>
+          <Text type="tertiary">{t('进入 POS 完成开单、收款、挂单与交接班。')}</Text>
         </div>
         <Button theme="solid" type="primary" size="large" onClick={openPos}>
-          进入收银台
+          {t('进入收银台')}
         </Button>
       </div>
       <div className="pos-stat-grid">
         <Card className="pos-stat-card">
-          <span>今日订单</span>
+          <span>{t('今日订单')}</span>
           <b>{stats.orderCount ?? 0}</b>
         </Card>
         <Card className="pos-stat-card">
-          <span>今日金额</span>
+          <span>{t('今日金额')}</span>
           <b>¥ {stats.totalAmount ?? '0.00'}</b>
         </Card>
         <Card className="pos-stat-card">
-          <span>收银状态</span>
-          <b>{stats.today ? '营业中' : '未开始'}</b>
+          <span>{t('收银状态')}</span>
+          <b>{stats.today ? t('营业中') : t('未开始')}</b>
         </Card>
       </div>
       <Card className="pos-workbench-tip">
-        <b>收银工作台由 POS 应用承载</b>
-        <p>商品、购物车、桌台、挂单、结算等高频操作请进入 POS 应用完成；后台仅保留收银配置和基础资料。</p>
+        <b>{t('收银工作台由 POS 应用承载')}</b>
+        <p>{t('商品、购物车、桌台、挂单、结算等高频操作请进入 POS 应用完成；后台仅保留收银配置和基础资料。')}</p>
       </Card>
     </div>
   );
@@ -102,6 +104,7 @@ interface DeviceRow {
 }
 
 export function CashierDevices() {
+  const { t } = useI18n();
   const columns: ColumnConfig<DeviceRow>[] = [
     { title: '设备名称', dataIndex: 'deviceName' },
     { title: '设备码', dataIndex: 'deviceCode' },
@@ -112,7 +115,7 @@ export function CashierDevices() {
       dataIndex: 'status',
       width: 110,
       render: (value: number) => (
-        <Tag color={value === 1 ? 'green' : 'grey'}>{value === 1 ? '启用' : '停用'}</Tag>
+        <Tag color={value === 1 ? 'green' : 'grey'}>{value === 1 ? t('启用') : t('停用')}</Tag>
       ),
     },
   ];
@@ -153,15 +156,15 @@ export function CashierDevices() {
             key: 'basic',
             title: '设备信息',
             fields: [
-              { field: 'deviceName', label: '设备名称', required: true, placeholder: '请输入设备名称' },
-              { field: 'deviceCode', label: '设备码', required: true, placeholder: '请输入设备码' },
+              { field: 'deviceName', label: t('设备名称'), required: true, placeholder: t('请输入设备名称') },
+              { field: 'deviceCode', label: t('设备码'), required: true, placeholder: t('请输入设备码') },
               {
                 field: 'status',
-                label: '设备状态',
+                label: t('设备状态'),
                 type: 'switch',
                 initValue: 1,
-                checkedText: '启用',
-                uncheckedText: '停用',
+                checkedText: t('启用'),
+                uncheckedText: t('停用'),
               },
             ],
           },
@@ -222,6 +225,7 @@ interface CashierRow {
 }
 
 export function CashierList() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<CashierRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -239,7 +243,7 @@ export function CashierList() {
         setRows(result?.records || []);
         setTotal(Number(result?.total || 0));
       })
-      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '加载失败' }))
+      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : t('加载失败') }))
       .finally(() => setLoading(false));
   };
 
@@ -252,7 +256,7 @@ export function CashierList() {
       <div className="cashier-list-toolbar">
         <input
           className="cashier-list-search"
-          placeholder="姓名/手机号"
+          placeholder={t('姓名/手机号')}
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           onKeyDown={(event) => {
@@ -270,7 +274,7 @@ export function CashierList() {
             load();
           }}
         >
-          搜索
+          {t('搜索')}
         </Button>
       </div>
       <Table<CashierRow>
@@ -280,7 +284,7 @@ export function CashierList() {
         rowKey="id"
         columns={[
           {
-            title: '头像/姓名',
+            title: t('头像/姓名'),
             dataIndex: 'username',
             render: (value: string, record) => (
               <Space>
@@ -291,17 +295,17 @@ export function CashierList() {
               </Space>
             ),
           },
-          { title: '手机号', dataIndex: 'email', render: (value: string) => value || '-' },
+          { title: t('手机号'), dataIndex: 'email', render: (value: string) => value || '-' },
           {
-            title: '账号状态',
+            title: t('账号状态'),
             dataIndex: 'isUsing',
             width: 120,
             render: (value: number) => (
-              <Tag color={value === 1 ? 'green' : 'grey'}>{value === 1 ? '启用' : '禁用'}</Tag>
+              <Tag color={value === 1 ? 'green' : 'grey'}>{value === 1 ? t('启用') : t('禁用')}</Tag>
             ),
           },
           {
-            title: '添加时间',
+            title: t('添加时间'),
             dataIndex: 'addTime',
             width: 180,
             render: (value: number) =>

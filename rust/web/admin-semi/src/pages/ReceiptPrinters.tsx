@@ -1,5 +1,6 @@
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 interface ReceiptPrinterRow {
   printId: number;
@@ -23,6 +24,7 @@ const columns: ColumnConfig<ReceiptPrinterRow>[] = [
 ];
 
 export default function ReceiptPrintersPage() {
+  const { t } = useI18n();
   return (
     <ListPage<ReceiptPrinterRow>
       api="/print/print/list"
@@ -59,21 +61,21 @@ export default function ReceiptPrintersPage() {
             key: 'basic',
             title: '打印机信息',
             fields: [
-              { field: 'printName', label: '打印机名称', required: true },
+              { field: 'printName', label: t('打印机名称'), required: true },
               {
                 field: 'platform',
-                label: '打印机类型',
+                label: t('打印机类型'),
                 type: 'select',
                 initValue: 1,
                 options: [
-                  { label: '飞鹅云', value: 1 },
-                  { label: '商米云', value: 2 },
+                  { label: t('飞鹅云'), value: 1 },
+                  { label: t('商米云'), value: 2 },
                 ],
               },
-              { field: 'printSn', label: '打印机编码', required: true },
-              { field: 'printKey', label: '打印机 Key', type: 'input' },
-              { field: 'thirdAccount', label: '第三方账号', required: true },
-              { field: 'thirdKey', label: '第三方 Key', type: 'input' },
+              { field: 'printSn', label: t('打印机编码'), required: true },
+              { field: 'printKey', label: t('打印机 Key'), type: 'input' },
+              { field: 'thirdAccount', label: t('第三方账号'), required: true },
+              { field: 'thirdKey', label: t('第三方 Key'), type: 'input' },
             ],
           },
           {
@@ -82,7 +84,7 @@ export default function ReceiptPrintersPage() {
             fields: [
               {
                 field: 'paperSize',
-                label: '纸张尺寸',
+                label: t('纸张尺寸'),
                 type: 'select',
                 initValue: 58,
                 options: [
@@ -92,29 +94,29 @@ export default function ReceiptPrintersPage() {
               },
               {
                 field: 'autoPrint',
-                label: '自动打印',
+                label: t('自动打印'),
                 type: 'select',
                 initValue: 1,
                 options: [
-                  { label: '开启', value: 1 },
-                  { label: '关闭', value: 2 },
+                  { label: t('开启'), value: 1 },
+                  { label: t('关闭'), value: 2 },
                 ],
               },
               {
                 field: 'status',
-                label: '启用状态',
+                label: t('启用状态'),
                 type: 'select',
                 initValue: 1,
                 options: [
-                  { label: '启用', value: 1 },
-                  { label: '停用', value: 2 },
+                  { label: t('启用'), value: 1 },
+                  { label: t('停用'), value: 2 },
                 ],
               },
               {
                 field: 'deviceCode',
-                label: '绑定设备',
+                label: t('绑定设备'),
                 type: 'select',
-                placeholder: '可选，绑定收银设备',
+                placeholder: t('可选，绑定收银设备'),
                 optionsApi: '/pos/device/all',
                 optionsParams: { page: 1, size: 200 },
                 optionLabel: 'deviceName',
@@ -122,12 +124,12 @@ export default function ReceiptPrintersPage() {
               },
               {
                 field: 'isDefault',
-                label: '默认打印机',
+                label: t('默认打印机'),
                 type: 'select',
                 initValue: 0,
                 options: [
-                  { label: '是', value: 1 },
-                  { label: '否', value: 0 },
+                  { label: t('是'), value: 1 },
+                  { label: t('否'), value: 0 },
                 ],
               },
             ],

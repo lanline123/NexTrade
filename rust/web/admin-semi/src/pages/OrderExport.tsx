@@ -12,6 +12,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, getToken } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -59,6 +60,7 @@ const toExportItems = (source: Record<string, unknown>) =>
 
 /** 订单导出：对应旧版 order/orderExport/List.vue，可自定义导出字段并保存常用配置。 */
 export default function OrderExport() {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<ExportItem[]>([]);
   const [available, setAvailable] = useState<ExportItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,9 +120,9 @@ export default function OrderExport() {
       await apiPost('/order/order/saveExportItem', {
         exportItem: selected.map((item) => item.key).join(','),
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     }
   };
 
@@ -139,59 +141,62 @@ export default function OrderExport() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = '导出订单.xlsx';
+      link.download = t('导出订单.xlsx');
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导出失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导出失败') });
     } finally {
       setExporting(false);
     }
   };
 
+  const localizeOptions = (options: typeof ORDER_STATUS_OPTIONS) =>
+    options.map((option) => ({ ...option, label: t(option.label) }));
+
   return (
     <div className="order-export-page">
       <Card shadows="hover" loading={loading}>
         <div className="order-export-notice">
-          <p>提示：</p>
-          <p>1、如果数据量过大导至查询时间过久或者直接显示超时报错，请尝试缩小查询的时间间隔！</p>
-          <p>2、可通过单击可增加项和导出项目来选择需要导出的参数，也可通过拖拽项目来调整参数排序（商品信息栏目默认在单行最后）</p>
+          <p>{t('提示：')}</p>
+          <p>{t('1、如果数据量过大导至查询时间过久或者直接显示超时报错，请尝试缩小查询的时间间隔！')}</p>
+          <p>{t('2、可通过单击可增加项和导出项目来选择需要导出的参数，也可通过拖拽项目来调整参数排序（商品信息栏目默认在单行最后）')}</p>
         </div>
 
         <Space wrap>
           <Input
             prefix={<IconSearch />}
-            placeholder="订单号/收货人姓名/商品名称"
+            placeholder={t('订单号/收货人姓名/商品名称')}
             value={filters.keyword}
             onChange={(next) => setFilters((c) => ({ ...c, keyword: next }))}
             style={{ width: 240 }}
           />
           <Select
-            placeholder="请选择支付状态"
+            placeholder={t('请选择支付状态')}
             value={filters.orderStatus}
-            optionList={ORDER_STATUS_OPTIONS}
+            optionList={localizeOptions(ORDER_STATUS_OPTIONS)}
             onChange={(next) => setFilters((c) => ({ ...c, orderStatus: next }))}
             style={{ width: 150 }}
             showClear
           />
           <Select
-            placeholder="支付状态"
+            placeholder={t('支付状态')}
             value={filters.payStatus}
-            optionList={PAY_STATUS_OPTIONS}
+            optionList={localizeOptions(PAY_STATUS_OPTIONS)}
             onChange={(next) => setFilters((c) => ({ ...c, payStatus: next }))}
             style={{ width: 140 }}
             showClear
           />
           <Select
-            placeholder="发货状态"
+            placeholder={t('发货状态')}
             value={filters.shippingStatus}
-            optionList={SHIPPING_STATUS_OPTIONS}
+            optionList={localizeOptions(SHIPPING_STATUS_OPTIONS)}
             onChange={(next) => setFilters((c) => ({ ...c, shippingStatus: next }))}
             style={{ width: 140 }}
             showClear
           />
           <Input
-            placeholder="详细地址"
+            placeholder={t('详细地址')}
             value={filters.address}
             onChange={(next) => setFilters((c) => ({ ...c, address: next }))}
             style={{ width: 160 }}
@@ -203,7 +208,7 @@ export default function OrderExport() {
             style={{ width: 150 }}
           />
           <Input
-            placeholder="手机号"
+            placeholder={t('手机号')}
             value={filters.mobile}
             onChange={(next) => setFilters((c) => ({ ...c, mobile: next }))}
             style={{ width: 150 }}
@@ -221,13 +226,13 @@ export default function OrderExport() {
 
         <div className="order-export-section">
           <div className="order-export-section-head">
-            <Text strong>导出项目</Text>
+            <Text strong>{t('导出项目')}</Text>
             <Space>
               <Button size="small" onClick={saveTag}>
-                保存
+                {t('保存')}
               </Button>
               <Button size="small" onClick={emptyTag}>
-                清空
+                {t('清空')}
               </Button>
             </Space>
           </div>
@@ -245,13 +250,13 @@ export default function OrderExport() {
                 </Tag>
               ))
             ) : (
-              <Text type="tertiary">尚未选择导出字段，请从下方可增加项中选取</Text>
+              <Text type="tertiary">{t('尚未选择导出字段，请从下方可增加项中选取')}</Text>
             )}
           </div>
         </div>
 
         <div className="order-export-section">
-          <Text strong>可增加项</Text>
+          <Text strong>{t('可增加项')}</Text>
           <div className="order-export-tags">
             {available.map((item) => (
               <Tag key={item.key} size="large" color="grey" onClick={() => addTag(item)}>
@@ -268,7 +273,7 @@ export default function OrderExport() {
           disabled={!selected.length}
           onClick={orderExport}
         >
-          导出EXCEL
+          {t('导出EXCEL')}
         </Button>
       </Card>
     </div>

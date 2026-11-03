@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Avatar, Button, Input, Modal, Space, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -19,6 +20,7 @@ interface AccountRow {
 }
 
 export default function AccountManage() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [editing, setEditing] = useState<AccountRow | null>(null);
   const [editValues, setEditValues] = useState({ username: '', mobile: '', email: '' });
@@ -56,11 +58,11 @@ export default function AccountManage() {
         adminId: editing.adminId,
         ...editValues,
       });
-      Toast.success({ content: '账号已更新' });
+      Toast.success({ content: t('账号已更新') });
       setEditing(null);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     } finally {
       setSaving(false);
     }
@@ -69,11 +71,11 @@ export default function AccountManage() {
   const savePassword = async () => {
     if (!passwordRow) return;
     if (!password) {
-      Toast.warning({ content: '请输入新密码' });
+      Toast.warning({ content: t('请输入新密码') });
       return;
     }
     if (password !== pwdConfirm) {
-      Toast.warning({ content: '两次密码输入不一致' });
+      Toast.warning({ content: t('两次密码输入不一致') });
       return;
     }
     setSaving(true);
@@ -83,12 +85,12 @@ export default function AccountManage() {
         password,
         pwdConfirm,
       });
-      Toast.success({ content: '密码已修改' });
+      Toast.success({ content: t('密码已修改') });
       setPasswordRow(null);
       setPassword('');
       setPwdConfirm('');
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改密码失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改密码失败') });
     } finally {
       setSaving(false);
     }
@@ -96,15 +98,15 @@ export default function AccountManage() {
 
   const removeAccount = (record: AccountRow) => {
     Modal.confirm({
-      title: '删除账号',
-      content: `确定删除账号「${record.username}」？`,
+      title: t('删除账号'),
+      content: t('确定删除账号「{name}」？', { name: record.username }),
       onOk: async () => {
         try {
           await apiPost(`/admin/adminAccount/deleteAdminUser?adminId=${record.adminId}`, {});
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -142,7 +144,7 @@ export default function AccountManage() {
                 });
               }}
             >
-              修改账号
+              {t('修改账号')}
             </Button>
             <Button
               theme="borderless"
@@ -153,11 +155,11 @@ export default function AccountManage() {
                 setPwdConfirm('');
               }}
             >
-              修改密码
+              {t('修改密码')}
             </Button>
             {record.isAdmin !== 1 && (
               <Button theme="borderless" type="danger" size="small" onClick={() => removeAccount(record)}>
-                删除
+                {t('删除')}
               </Button>
             )}
           </Space>
@@ -165,50 +167,50 @@ export default function AccountManage() {
       />
 
       <Modal
-        title="修改账号信息"
+        title={t('修改账号信息')}
         visible={Boolean(editing)}
         onCancel={() => setEditing(null)}
         width={520}
         footer={
           <Space>
-            <Button onClick={() => setEditing(null)}>取消</Button>
+            <Button onClick={() => setEditing(null)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={saving} onClick={saveAccount}>
-              保存
+              {t('保存')}
             </Button>
           </Space>
         }
       >
         <div className="account-form">
-          <label>账号名称</label>
+          <label>{t('账号名称')}</label>
           <Input value={editValues.username} onChange={(value) => setEditValues({ ...editValues, username: value })} />
-          <label>手机号</label>
+          <label>{t('手机号')}</label>
           <Input value={editValues.mobile} onChange={(value) => setEditValues({ ...editValues, mobile: value })} />
-          <label>邮箱</label>
+          <label>{t('邮箱')}</label>
           <Input value={editValues.email} onChange={(value) => setEditValues({ ...editValues, email: value })} />
         </div>
       </Modal>
 
       <Modal
-        title={`修改密码：${passwordRow?.username || ''}`}
+        title={t('修改密码：{name}', { name: passwordRow?.username || '' })}
         visible={Boolean(passwordRow)}
         onCancel={() => setPasswordRow(null)}
         width={520}
         footer={
           <Space>
-            <Button onClick={() => setPasswordRow(null)}>取消</Button>
+            <Button onClick={() => setPasswordRow(null)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={saving} onClick={savePassword}>
-              确认修改
+              {t('确认修改')}
             </Button>
           </Space>
         }
       >
         <div className="account-form">
-          <label>新密码</label>
+          <label>{t('新密码')}</label>
           <Input mode="password" value={password} onChange={setPassword} />
-          <label>确认密码</label>
+          <label>{t('确认密码')}</label>
           <Input mode="password" value={pwdConfirm} onChange={setPwdConfirm} />
           <Text type="tertiary" size="small">
-            修改密码会影响该账号登录后台的所有角色账号。
+            {t('修改密码会影响该账号登录后台的所有角色账号。')}
           </Text>
         </div>
       </Modal>

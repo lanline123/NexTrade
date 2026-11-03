@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -26,6 +27,7 @@ interface EnquiryRow {
 
 /** 商品询价：对应旧版 product/enquiry/List.vue + Info.vue，端点 /product/priceInquiry/*。 */
 export default function Enquiries() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [replyTarget, setReplyTarget] = useState<EnquiryRow | null>(null);
   const [replyContent, setReplyContent] = useState('');
@@ -47,17 +49,17 @@ export default function Enquiries() {
   const submitReply = async () => {
     if (!replyTarget) return;
     if (!replyContent.trim()) {
-      Toast.error({ content: '回复内容不能为空' });
+      Toast.error({ content: t('回复内容不能为空') });
       return;
     }
     setReplySaving(true);
     try {
       await apiPost('/product/priceInquiry/reply', { id: replyTarget.id, replyContent });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setReplyTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '回复失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('回复失败') });
     } finally {
       setReplySaving(false);
     }
@@ -65,14 +67,14 @@ export default function Enquiries() {
 
   const deleteEnquiry = (row: EnquiryRow) => {
     Modal.confirm({
-      title: '确认删除该询价吗？',
+      title: t('确认删除该询价吗？'),
       onOk: async () => {
         try {
           await apiPost('/product/priceInquiry/del', { id: row.id });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -89,9 +91,9 @@ export default function Enquiries() {
             <img src={row.product.picThumb} alt="" width={40} height={40} style={{ borderRadius: 4, objectFit: 'cover' }} />
           ) : null}
           <div>
-            <div>商品名称：{row.product?.productName || '-'}</div>
+            <div>{t('商品名称：')}{row.product?.productName || '-'}</div>
             <Text type="tertiary" size="small">
-              商品SN：{row.product?.productSn || '-'}
+              {t('商品SN：')}{row.product?.productSn || '-'}
             </Text>
           </div>
         </div>
@@ -109,9 +111,9 @@ export default function Enquiries() {
       width: 100,
       render: (value: number) =>
         Number(value) === 1 ? (
-          <span style={{ color: 'var(--semi-color-success)' }}>已回复</span>
+          <span style={{ color: 'var(--semi-color-success)' }}>{t('已回复')}</span>
         ) : (
-          <span style={{ color: 'var(--semi-color-text-2)' }}>未回复</span>
+          <span style={{ color: 'var(--semi-color-text-2)' }}>{t('未回复')}</span>
         ),
     },
     {
@@ -135,10 +137,10 @@ export default function Enquiries() {
       rowActions={(row) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small" onClick={() => openReply(row)}>
-            {Number(row.status) === 1 ? '详情' : '回复'}
+            {Number(row.status) === 1 ? t('详情') : t('回复')}
           </Button>
           <Button theme="borderless" type="danger" size="small" onClick={() => deleteEnquiry(row)}>
-            删除
+            {t('删除')}
           </Button>
         </Space>
       )}
@@ -146,48 +148,48 @@ export default function Enquiries() {
       <Modal
         title={
           replyTarget && Number(replyTarget.status) === 1
-            ? '查看询价'
-            : '回复询价'
+            ? t('查看询价')
+            : t('回复询价')
         }
         visible={Boolean(replyTarget)}
         confirmLoading={replySaving}
         onOk={submitReply}
         onCancel={() => setReplyTarget(null)}
-        okText={replyTarget && Number(replyTarget.status) === 1 ? '关闭' : '提交回复'}
+        okText={replyTarget && Number(replyTarget.status) === 1 ? t('关闭') : t('提交回复')}
       >
         {replyTarget ? (
           <div className="enquiry-form">
             <Text strong>
-              类型：商品【{replyTarget.product?.productName || '-'}】
+              {t('类型：商品【{name}】', { name: replyTarget.product?.productName || '-' })}
             </Text>
             <div>
-              <Text type="tertiary">联系电话：</Text>
+              <Text type="tertiary">{t('联系电话：')}</Text>
               <span>{replyTarget.mobile || '-'}</span>
             </div>
             <div>
-              <Text type="tertiary">邮箱：</Text>
+              <Text type="tertiary">{t('邮箱：')}</Text>
               <span>{(replyTarget as any).email || '-'}</span>
             </div>
             <div>
-              <Text type="tertiary">询价内容：</Text>
+              <Text type="tertiary">{t('询价内容：')}</Text>
               <span>{replyTarget.content || '-'}</span>
             </div>
             <div>
-              <Text type="tertiary">创建时间：</Text>
+              <Text type="tertiary">{t('创建时间：')}</Text>
               <span>{replyTarget.createTime || '-'}</span>
             </div>
             {Number(replyTarget.status) === 1 ? (
               <div>
-                <Text type="tertiary">回复内容：</Text>
+                <Text type="tertiary">{t('回复内容：')}</Text>
                 <span>{replyTarget.replyContent || '-'}</span>
               </div>
             ) : (
               <>
-                <Text strong>回复内容</Text>
+                <Text strong>{t('回复内容')}</Text>
                 <TextArea
                   value={replyContent}
                   onChange={setReplyContent}
-                  placeholder="请输入回复内容"
+                  placeholder={t('请输入回复内容')}
                   autosize={{ minRows: 4, maxRows: 8 }}
                 />
               </>

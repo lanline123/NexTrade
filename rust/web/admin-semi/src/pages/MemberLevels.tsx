@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Image, InputNumber, Table, Toast, Typography } from '@douyinfe/semi-ui';
 import { IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import type { FormDrawerConfig } from '../framework/types';
 import ImageUploader from '../components/ImageUploader';
@@ -19,6 +20,7 @@ const LEVEL_NAMES = ['Vip1', 'Vip2', 'Vip3', 'Vip4', 'Vip5', 'Vip6', 'Vip7', 'Vi
 
 /** 会员等级：对应旧版 user/levelManage/List.vue + Info.vue（批量编辑等级表）。 */
 export default function MemberLevels() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<RankRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -52,7 +54,7 @@ export default function MemberLevels() {
       setDrawerInitial({ data: data.map((row) => ({ ...row })) });
       setDrawerOpen(true);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     }
   };
 
@@ -68,7 +70,7 @@ export default function MemberLevels() {
         fields: [
           {
             field: 'data',
-            label: '等级列表',
+            label: t('等级列表'),
             type: 'custom',
             render: ({ formApi, values }) => {
               const data: RankRow[] = values.data || [];
@@ -103,7 +105,7 @@ export default function MemberLevels() {
                           size="small"
                           onClick={() => formApi?.setValue('data', data.filter((_, i) => i !== index))}
                         >
-                          删除
+                          {t('删除')}
                         </Button>
                       ) : null}
                     </div>
@@ -123,7 +125,7 @@ export default function MemberLevels() {
                         formApi?.setValue('data', next);
                       }}
                     >
-                      添加等级
+                      {t('添加等级')}
                     </Button>
                   ) : null}
                 </div>
@@ -139,7 +141,7 @@ export default function MemberLevels() {
         rankLevel: row.rankLevel ?? index + 1,
       }));
       if (data.some((row: RankRow) => !String(row.rankName || '').trim())) {
-        throw new Error('请填写所有等级名称');
+        throw new Error(t('请填写所有等级名称'));
       }
       return { data };
     },
@@ -147,20 +149,20 @@ export default function MemberLevels() {
 
   const columns = [
     {
-      title: '等级',
+      title: t('等级'),
       dataIndex: 'rankLevel',
       width: 120,
       render: (value: number) => <span className="member-level-badge">vip{value}</span>,
     },
     {
-      title: '会员图标',
+      title: t('会员图标'),
       dataIndex: 'rankLogo',
       width: 140,
       render: (value: string) =>
         value ? <Image src={value} height={20} /> : <span>-</span>,
     },
     {
-      title: '会员名称',
+      title: t('会员名称'),
       dataIndex: 'rankName',
       render: (value: string) => <span>{value || '-'}</span>,
     },
@@ -170,9 +172,9 @@ export default function MemberLevels() {
     <div className="member-levels-page">
       <Card shadows="hover">
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-          <Text strong>会员等级</Text>
+          <Text strong>{t('会员等级')}</Text>
           <Button theme="solid" type="primary" onClick={openEdit}>
-            编辑等级
+            {t('编辑等级')}
           </Button>
         </div>
         <Table
@@ -181,7 +183,7 @@ export default function MemberLevels() {
           dataSource={rows}
           columns={columns as never}
           pagination={false}
-          empty={loading ? null : <Text type="tertiary">暂无数据</Text>}
+          empty={loading ? null : <Text type="tertiary">{t('暂无数据')}</Text>}
         />
       </Card>
 
@@ -196,11 +198,11 @@ export default function MemberLevels() {
           setSaving(true);
           try {
             await apiPost(drawerMode === 'edit' ? '/user/userRank/update' : '/user/userRank/create', payload);
-            Toast.success({ content: '操作成功' });
+            Toast.success({ content: t('操作成功') });
             setDrawerOpen(false);
             reload();
           } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+            Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
           } finally {
             setSaving(false);
           }

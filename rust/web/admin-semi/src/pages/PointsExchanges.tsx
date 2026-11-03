@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Switch, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import ProductPicker from '../components/ProductPicker';
 import type { ColumnConfig } from '../framework/types';
@@ -17,6 +18,7 @@ interface PointsExchangeRow {
 
 /** 积分商品：对应旧版 promotion/pointsExchange/List.vue + Info.vue。 */
 export default function PointsExchanges() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = () => setReloadKey((key) => key + 1);
@@ -24,10 +26,10 @@ export default function PointsExchanges() {
   const updateField = async (row: PointsExchangeRow, field: string, value: unknown) => {
     try {
       await apiPost('/promotion/pointsExchange/updateField', { id: row.pointsExchangeId, field, value });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     }
   };
 
@@ -42,20 +44,20 @@ export default function PointsExchanges() {
       title: '使用积分值',
       dataIndex: 'exchangeIntegral',
       width: 130,
-      render: (value: unknown) => <span title="使用积分值">{value != null ? String(value) : '-'}</span>,
+      render: (value: unknown) => <span title={t('使用积分值')}>{value != null ? String(value) : '-'}</span>,
     },
     {
       title: '减免金额',
       dataIndex: 'pointsDeductedAmount',
       width: 120,
-      render: (value: unknown) => <span title="减免金额">{value != null ? String(value) : '-'}</span>,
+      render: (value: unknown) => <span title={t('减免金额')}>{value != null ? String(value) : '-'}</span>,
     },
     {
       title: '是否可兑换',
       dataIndex: 'isEnabled',
       width: 120,
       render: (value: number, row: PointsExchangeRow) => (
-        <span title={Number(value) === 1 ? '可兑换' : '不可兑换'}><Switch checked={Number(value) === 1} onChange={(next) => updateField(row, 'isEnabled', next ? 1 : 0)} /></span>
+        <span title={Number(value) === 1 ? t('可兑换') : t('不可兑换')}><Switch checked={Number(value) === 1} onChange={(next) => updateField(row, 'isEnabled', next ? 1 : 0)} /></span>
       ),
     },
     {
@@ -63,7 +65,7 @@ export default function PointsExchanges() {
       dataIndex: 'isHot',
       width: 110,
       render: (value: number, row: PointsExchangeRow) => (
-        <span title={Number(value) === 1 ? '热销' : '不热销'}><Switch checked={Number(value) === 1} onChange={(next) => updateField(row, 'isHot', next ? 1 : 0)} /></span>
+        <span title={Number(value) === 1 ? t('热销') : t('不热销')}><Switch checked={Number(value) === 1} onChange={(next) => updateField(row, 'isHot', next ? 1 : 0)} /></span>
       ),
     },
   ];
@@ -85,30 +87,30 @@ export default function PointsExchanges() {
           size="small"
           onClick={() => {
             Modal.confirm({
-              title: '您确认要批量删除所选数据吗？',
+              title: t('您确认要批量删除所选数据吗？'),
               onOk: async () => {
                 try {
                   await apiPost('/promotion/pointsExchange/batch', {
                     ids: rows.map((row) => row.pointsExchangeId),
                     type: 'del',
                   });
-                  Toast.success({ content: '批量删除成功' });
+                  Toast.success({ content: t('批量删除成功') });
                   clear();
                   reload();
                 } catch (error) {
-                  Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                  Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                 }
               },
             });
           }}
         >
-          批量删除
+          {t('批量删除')}
         </Button>
       )}
       rowActions={(row) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small">
-            编辑
+            {t('编辑')}
           </Button>
           <Button
             theme="borderless"
@@ -116,20 +118,20 @@ export default function PointsExchanges() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '确认删除该积分商品吗？',
+                title: t('确认删除该积分商品吗？'),
                 onOk: async () => {
                   try {
                     await apiPost('/promotion/pointsExchange/del', { id: row.pointsExchangeId });
-                    Toast.success({ content: '删除成功' });
+                    Toast.success({ content: t('删除成功') });
                     reload();
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
                   }
                 },
               });
             }}
           >
-            删除
+            {t('删除')}
           </Button>
         </Space>
       )}
@@ -148,31 +150,31 @@ export default function PointsExchanges() {
             key: 'basic',
             title: '兑换设置',
             fields: [
-              { field: 'exchangeIntegral', label: '兑换积分', type: 'number', required: true, extraText: '兑换该商品所需积分' },
-              { field: 'pointsDeductedAmount', label: '减免金额', type: 'number', required: true },
+              { field: 'exchangeIntegral', label: t('兑换积分'), type: 'number', required: true, extraText: t('兑换该商品所需积分') },
+              { field: 'pointsDeductedAmount', label: t('减免金额'), type: 'number', required: true },
               {
                 field: 'isEnabled',
-                label: '兑换',
+                label: t('兑换'),
                 type: 'radio',
                 initValue: 1,
                 options: [
-                  { label: '是', value: 1 },
-                  { label: '否', value: 0 },
+                  { label: t('是'), value: 1 },
+                  { label: t('否'), value: 0 },
                 ],
               },
               {
                 field: 'isHot',
-                label: '是否热销',
+                label: t('是否热销'),
                 type: 'radio',
                 initValue: 0,
                 options: [
-                  { label: '是', value: 1 },
-                  { label: '否', value: 0 },
+                  { label: t('是'), value: 1 },
+                  { label: t('否'), value: 0 },
                 ],
               },
               {
                 field: 'productId',
-                label: '选择商品',
+                label: t('选择商品'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <div>
@@ -198,7 +200,7 @@ export default function PointsExchanges() {
               ? [Number(values.productId)]
               : [];
           if (!productIds.length) {
-            throw new Error('请选择商品!');
+            throw new Error(t('请选择商品!'));
           }
           return {
             ...values,

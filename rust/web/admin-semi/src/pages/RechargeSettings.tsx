@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Switch, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -14,6 +15,7 @@ interface RechargeRow {
 
 /** 充值设置：对应旧版 promotion/rechargeSetting/List.vue + Info.vue。 */
 export default function RechargeSettings() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = () => setReloadKey((key) => key + 1);
@@ -21,10 +23,10 @@ export default function RechargeSettings() {
   const updateField = async (row: RechargeRow, field: string, value: unknown) => {
     try {
       await apiPost('/promotion/rechargeSetting/updateField', { id: row.rechargeId, field, value });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     }
   };
 
@@ -33,13 +35,13 @@ export default function RechargeSettings() {
       title: '充值金额',
       dataIndex: 'money',
       width: 160,
-      render: (value: unknown) => <span title="充值金额">{value != null ? String(value) : '-'}</span>,
+      render: (value: unknown) => <span title={t('充值金额')}>{value != null ? String(value) : '-'}</span>,
     },
     {
       title: '赠送金额',
       dataIndex: 'discountMoney',
       width: 160,
-      render: (value: unknown) => <span title="赠送金额">{value != null ? String(value) : '-'}</span>,
+      render: (value: unknown) => <span title={t('赠送金额')}>{value != null ? String(value) : '-'}</span>,
     },
     {
       title: '是否显示',
@@ -69,24 +71,24 @@ export default function RechargeSettings() {
           size="small"
           onClick={() => {
             Modal.confirm({
-              title: '您确认要批量删除所选数据吗？',
+              title: t('您确认要批量删除所选数据吗？'),
               onOk: async () => {
                 try {
                   await apiPost('/promotion/rechargeSetting/batch', {
                     ids: rows.map((row) => row.rechargeId),
                     type: 'del',
                   });
-                  Toast.success({ content: '批量删除成功' });
+                  Toast.success({ content: t('批量删除成功') });
                   clear();
                   reload();
                 } catch (error) {
-                  Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                  Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                 }
               },
             });
           }}
         >
-          批量删除
+          {t('批量删除')}
         </Button>
       )}
       drawer={{
@@ -106,17 +108,17 @@ export default function RechargeSettings() {
             description:
               '提示：充值附赠赠送余额时，强烈建议关闭会员余额提现功能，避免产生资金套利风险。（去关闭：财务-提现管理-提现设置）',
             fields: [
-              { field: 'money', label: '充值金额', type: 'number', required: true },
-              { field: 'discountMoney', label: '赠送金额', type: 'number', required: true },
-              { field: 'sortOrder', label: '排序', type: 'number', initValue: 1 },
+              { field: 'money', label: t('充值金额'), type: 'number', required: true },
+              { field: 'discountMoney', label: t('赠送金额'), type: 'number', required: true },
+              { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 1 },
               {
                 field: 'isShow',
-                label: '是否显示',
+                label: t('是否显示'),
                 type: 'radio',
                 initValue: 1,
                 options: [
-                  { label: '是', value: 1 },
-                  { label: '否', value: 0 },
+                  { label: t('是'), value: 1 },
+                  { label: t('否'), value: 0 },
                 ],
               },
             ],

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Input, Modal, Space, TextArea, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -18,20 +19,21 @@ interface MessageLogRow {
 
 /** 站内信：对应旧版 user/messageLog/List.vue + Info.vue。 */
 export default function MessageLogs() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = () => setReloadKey((key) => key + 1);
 
   const recallMessage = (row: MessageLogRow) => {
     Modal.confirm({
-      title: '确认要撤回该条消息吗？',
+      title: t('确认要撤回该条消息吗？'),
       onOk: async () => {
         try {
           await apiPost('/user/userMessageLog/recall', { id: row.messageLogId });
-          Toast.success({ content: '撤回成功' });
+          Toast.success({ content: t('撤回成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '撤回失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('撤回失败') });
         }
       },
     });
@@ -39,14 +41,14 @@ export default function MessageLogs() {
 
   const deleteMessage = (row: MessageLogRow) => {
     Modal.confirm({
-      title: '确认删除该条消息吗？',
+      title: t('确认删除该条消息吗？'),
       onOk: async () => {
         try {
           await apiPost('/user/userMessageLog/del', { id: row.messageLogId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -120,35 +122,35 @@ export default function MessageLogs() {
           size="small"
           onClick={() => {
             Modal.confirm({
-              title: '您确认要批量撤回所选数据吗？',
+              title: t('您确认要批量撤回所选数据吗？'),
               onOk: async () => {
                 try {
                   await apiPost('/user/userMessageLog/batch', {
                     ids: rows.map((row) => row.messageLogId),
                     type: 'recall',
                   });
-                  Toast.success({ content: '批量撤回成功' });
+                  Toast.success({ content: t('批量撤回成功') });
                   clear();
                   reload();
                 } catch (error) {
-                  Toast.error({ content: error instanceof Error ? error.message : '批量撤回失败' });
+                  Toast.error({ content: error instanceof Error ? error.message : t('批量撤回失败') });
                 }
               },
             });
           }}
         >
-          批量撤回
+          {t('批量撤回')}
         </Button>
       )}
       rowActions={(row) => (
         <Space spacing={2}>
           {Number(row.isRecall ?? 0) === 0 ? (
             <Button theme="borderless" type="danger" size="small" onClick={() => recallMessage(row)}>
-              撤回
+              {t('撤回')}
             </Button>
           ) : null}
           <Button theme="borderless" type="danger" size="small" onClick={() => deleteMessage(row)}>
-            删除
+            {t('删除')}
           </Button>
         </Space>
       )}
@@ -163,21 +165,21 @@ export default function MessageLogs() {
             key: 'basic',
             title: '消息信息',
             fields: [
-              { field: 'messageTitle', label: '标题', type: 'input', required: true },
-              { field: 'messageContent', label: '内容', type: 'textarea', required: true },
+              { field: 'messageTitle', label: t('标题'), type: 'input', required: true },
+              { field: 'messageContent', label: t('内容'), type: 'textarea', required: true },
               {
                 field: 'messageLink',
-                label: '链接',
+                label: t('链接'),
                 type: 'input',
-                placeholder: '请输入跳转链接（可选）',
-                extraText: '发送会员：默认发送给全部会员（人群圈选组件待迁移）',
+                placeholder: t('请输入跳转链接（可选）'),
+                extraText: t('发送会员：默认发送给全部会员（人群圈选组件待迁移）'),
               },
             ],
           },
         ],
         toPayload: (values) => {
-          if (!String(values.messageTitle || '').trim()) throw new Error('标题不能为空!');
-          if (!String(values.messageContent || '').trim()) throw new Error('内容不能为空!');
+          if (!String(values.messageTitle || '').trim()) throw new Error(t('标题不能为空!'));
+          if (!String(values.messageContent || '').trim()) throw new Error(t('内容不能为空!'));
           return { ...values, sendUserTarget: { rangeType: 0 } };
         },
       }}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Input, Modal, Space, Switch, Table, Toast, Typography } from '@douyinfe/semi-ui';
 import { IconPlus, IconRefresh } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import type { RegionRow } from '../types';
 
@@ -16,10 +17,11 @@ function HotSwitch({
   value?: number;
   onChange: () => void;
 }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -31,13 +33,14 @@ function HotSwitch({
       setChecked(next);
       onChange();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
   return <Switch checked={checked} onChange={toggle} size="small" />;
 }
 
 export default function Regions() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<RegionRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -66,7 +69,7 @@ export default function Regions() {
         setTotal(result.total || 0);
       })
       .catch((error) => {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '地区加载失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('地区加载失败') });
       })
       .finally(() => alive && setLoading(false));
     return () => {
@@ -80,7 +83,7 @@ export default function Regions() {
     setDrawerMode('create');
     setDrawerValues({
       parentId,
-      parentName,
+      parentName: parentId ? parentName : t('顶级地区'),
       isHot: 0,
       sortOrder: 50,
     });
@@ -91,7 +94,7 @@ export default function Regions() {
     setDrawerMode('edit');
     setDrawerValues({
       ...record,
-      parentName: record.parentId ? parentName : '顶级地区',
+      parentName: record.parentId ? parentName : t('顶级地区'),
     });
     setDrawerVisible(true);
   };
@@ -106,11 +109,11 @@ export default function Regions() {
         isHot: payload.isHot ? 1 : 0,
         sortOrder: Number(payload.sortOrder ?? 50),
       });
-      Toast.success({ content: drawerMode === 'create' ? '地区已创建' : '地区已更新' });
+      Toast.success({ content: drawerMode === 'create' ? t('地区已创建') : t('地区已更新') });
       setDrawerVisible(false);
       refresh();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存地区失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存地区失败') });
       throw error;
     } finally {
       setSaving(false);
@@ -119,15 +122,15 @@ export default function Regions() {
 
   const removeRegion = (record: RegionRow) => {
     Modal.confirm({
-      title: '删除地区',
-      content: `确定删除「${record.regionName}」？`,
+      title: t('删除地区'),
+      content: t('确定删除「{name}」？', { name: record.regionName }),
       onOk: async () => {
         try {
           await apiPost('/setting/region/del', { id: record.regionId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           refresh();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -136,16 +139,16 @@ export default function Regions() {
   const batchDelete = () => {
     if (!selectedKeys.length) return;
     Modal.confirm({
-      title: '批量删除地区',
-      content: `确定删除选中的 ${selectedKeys.length} 个地区？`,
+      title: t('批量删除地区'),
+      content: t('确定删除选中的 {count} 个地区？', { count: selectedKeys.length }),
       onOk: async () => {
         try {
           await apiPost('/setting/region/batch', { ids: selectedKeys.map(Number), type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           setSelectedKeys([]);
           refresh();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -166,15 +169,15 @@ export default function Regions() {
   };
 
   const columns = [
-    { title: '地区名称', dataIndex: 'regionName', width: 260 },
+    { title: t('地区名称'), dataIndex: 'regionName', width: 260 },
     {
-      title: '首字母',
+      title: t('首字母'),
       dataIndex: 'firstWord',
       width: 100,
       render: (value: string) => value || '-',
     },
     {
-      title: '是否热门',
+      title: t('是否热门'),
       dataIndex: 'isHot',
       width: 100,
       render: (value: number, record: RegionRow) => (
@@ -182,16 +185,16 @@ export default function Regions() {
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 300,
       fixed: 'right' as const,
       render: (_: unknown, record: RegionRow) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small" onClick={() => openEdit(record)}>
-            编辑
+            {t('编辑')}
           </Button>
           <Button theme="borderless" size="small" onClick={() => drillDown(record)}>
-            子地区
+            {t('子地区')}
           </Button>
           <Button
             theme="borderless"
@@ -207,10 +210,10 @@ export default function Regions() {
               setDrawerVisible(true);
             }}
           >
-            添加子地区
+            {t('添加子地区')}
           </Button>
           <Button theme="borderless" type="danger" size="small" onClick={() => removeRegion(record)}>
-            删除
+            {t('删除')}
           </Button>
         </Space>
       ),
@@ -223,20 +226,25 @@ export default function Regions() {
         <div className="table-toolbar">
           <Space>
             <Text type="tertiary">
-              当前：{parentId ? parentName : '顶级地区'}，共 {total} 个
+              {t('当前：{name}，共 {count} 个', {
+                name: parentId ? parentName : t('顶级地区'),
+                count: total,
+              })}
             </Text>
-            {selectedKeys.length > 0 && <Text type="tertiary">已选 {selectedKeys.length} 项</Text>}
+            {selectedKeys.length > 0 && (
+              <Text type="tertiary">{t('已选 {count} 项', { count: selectedKeys.length })}</Text>
+            )}
           </Space>
           <Space>
-            {parentId > 0 && <Button onClick={back}>返回上一级</Button>}
+            {parentId > 0 && <Button onClick={back}>{t('返回上一级')}</Button>}
             <Button icon={<IconRefresh />} onClick={refresh} loading={loading}>
-              刷新
+              {t('刷新')}
             </Button>
             <Button onClick={batchDelete} disabled={!selectedKeys.length}>
-              批量删除
+              {t('批量删除')}
             </Button>
             <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-              添加地区
+              {t('添加地区')}
             </Button>
           </Space>
         </div>
@@ -282,25 +290,25 @@ export default function Regions() {
               fields: [
                 {
                   field: 'regionName',
-                  label: '地区名称',
+                  label: t('地区名称'),
                   required: true,
-                  placeholder: '请输入地区名称',
+                  placeholder: t('请输入地区名称'),
                 },
                 {
                   field: 'parentName',
-                  label: '上级地区',
+                  label: t('上级地区'),
                   disabled: true,
-                  placeholder: '顶级地区',
+                  placeholder: t('顶级地区'),
                 },
                 {
                   field: 'isHot',
-                  label: '是否热门',
+                  label: t('是否热门'),
                   type: 'switch',
                   initValue: 0,
-                  checkedText: '热门',
-                  uncheckedText: '不热门',
+                  checkedText: t('热门'),
+                  uncheckedText: t('不热门'),
                 },
-                { field: 'sortOrder', label: '排序', type: 'number', initValue: 50 },
+                { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 50 },
               ],
             },
           ],

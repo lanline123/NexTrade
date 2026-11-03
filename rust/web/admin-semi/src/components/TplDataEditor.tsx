@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Input, Space, Typography } from '@douyinfe/semi-ui';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -40,6 +41,7 @@ export default function TplDataEditor({
   value?: TplData;
   onChange: (value: TplData) => void;
 }) {
+  const { t } = useI18n();
   const [data, setData] = useState<TplData>(() => normalize(value));
 
   useEffect(() => {
@@ -71,13 +73,13 @@ export default function TplDataEditor({
 
   const renderGroup = (group: keyof TplData, title: string, valueLabel: string) => (
     <div className="tpl-data-group">
-      <div className="tpl-data-title">{title}</div>
+      <div className="tpl-data-title">{t(title)}</div>
       {data[group].map((attr, attrIndex) => (
         <div className="tpl-data-attr" key={`${group}-${attrIndex}`}>
           <div className="tpl-data-row">
             <Input
               value={attr.attrName}
-              placeholder="属性名，如颜色"
+              placeholder={t('属性名，如颜色')}
               onChange={(next) => updateAttr(group, attrIndex, { ...attr, attrName: next })}
               style={{ width: 260 }}
             />
@@ -85,7 +87,7 @@ export default function TplDataEditor({
               <Space key={valueIndex}>
                 <Input
                   value={val}
-                  placeholder={valueLabel}
+                  placeholder={t(valueLabel)}
                   onChange={(next) =>
                     updateAttr(group, attrIndex, {
                       ...attr,
@@ -105,7 +107,7 @@ export default function TplDataEditor({
                     })
                   }
                 >
-                  删除
+                  {t('删除')}
                 </Button>
               </Space>
             ))}
@@ -119,16 +121,16 @@ export default function TplDataEditor({
                 })
               }
             >
-              + 增加{valueLabel}
+              {t('+ 增加{valueLabel}', { valueLabel: t(valueLabel) })}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => removeAttr(group, attrIndex)}>
-              删除属性
+              {t('删除属性')}
             </Button>
           </div>
         </div>
       ))}
       <Button theme="light" onClick={() => addAttr(group)}>
-        + 添加{title}
+        {t('+ 添加{title}', { title: t(title) })}
       </Button>
     </div>
   );
@@ -139,7 +141,7 @@ export default function TplDataEditor({
       {renderGroup('spe', '规格项', '规格值')}
       {renderGroup('extra', '附加服务', '附加服务值')}
       <Text type="tertiary" size="small">
-        属性用于商品展示，规格会影响 SKU 和价格。
+        {t('属性用于商品展示，规格会影响 SKU 和价格。')}
       </Text>
     </div>
   );

@@ -3,6 +3,7 @@ import { Button, Image, Modal, Space, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 interface LiveRow {
   wechatLiveId?: number;
@@ -17,6 +18,7 @@ interface LiveRow {
 
 /** 微信直播间：对应旧版 promotion/live/List.vue（列表 + 刷新 + 编辑名称），接口 /promotion/wechatLive/*。 */
 export default function WechatLives() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -26,10 +28,10 @@ export default function WechatLives() {
     setRefreshing(true);
     try {
       await apiPost('/promotion/wechatLive/refresh', {});
-      Toast.success({ content: '同步成功' });
+      Toast.success({ content: t('同步成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '同步失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('同步失败') });
     } finally {
       setRefreshing(false);
     }
@@ -41,10 +43,10 @@ export default function WechatLives() {
         wechatLiveId: row.wechatLiveId,
         [field]: value,
       });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     }
   };
 
@@ -61,10 +63,10 @@ export default function WechatLives() {
       width: 220,
       render: (value: string, row: LiveRow) => (
         <span
-          title="编辑：直播名称（点击可改）"
+          title={t('编辑：直播名称（点击可改）')}
           style={{ cursor: 'pointer' }}
           onClick={() => {
-            const next = window.prompt('修改直播名称', value || '');
+            const next = window.prompt(t('修改直播名称'), value || '');
             if (next && next !== value) updateLive(row, 'wechatLiveTitle', next);
           }}
         >
@@ -106,7 +108,7 @@ export default function WechatLives() {
       columns={columns}
       toolbarExtra={
         <Button theme="solid" type="primary" loading={refreshing} onClick={refreshLives}>
-          从微信同步
+          {t('从微信同步')}
         </Button>
       }
     />

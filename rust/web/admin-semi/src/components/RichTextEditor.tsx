@@ -4,6 +4,7 @@ import '@wangeditor/editor/dist/css/style.css';
 import { Editor, Toolbar } from '@wangeditor/editor-for-react';
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor';
 import { apiUpload } from '../api';
+import { useI18n } from '../i18n';
 
 interface UploadResult {
   picUrl: string;
@@ -20,8 +21,10 @@ export default function RichTextEditor({
   value,
   onChange,
   height = 360,
-  placeholder = '请输入商品详情...',
+  placeholder,
 }: RichTextEditorProps) {
+  const { t } = useI18n();
+  const resolvedPlaceholder = placeholder ?? t('请输入商品详情...');
   const [editor, setEditor] = useState<IDomEditor | null>(null);
   // 记录最近一次内部 onChange 吐出的 HTML,用于区分"外部灌入"与"内部回流"
   const lastEmittedRef = useRef<string>('');
@@ -30,7 +33,7 @@ export default function RichTextEditor({
     excludeKeys: ['fullScreen', 'group-video'],
   };
   const editorConfig: Partial<IEditorConfig> = {
-    placeholder,
+    placeholder: resolvedPlaceholder,
     MENU_CONF: {
       uploadImage: {
         async customUpload(file: File, insertFn: (url: string, alt: string, href: string) => void) {
@@ -41,7 +44,7 @@ export default function RichTextEditor({
             );
             insertFn(result.picUrl, file.name, result.picUrl);
           } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '图片上传失败' });
+            Toast.error({ content: error instanceof Error ? error.message : t('图片上传失败') });
           }
         },
       },

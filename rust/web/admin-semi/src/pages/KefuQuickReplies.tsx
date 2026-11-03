@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Checkbox, Radio, RadioGroup, Tabs, TextArea, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -18,6 +19,7 @@ const GREETING_TABS = [
 
 /** 客服快捷回复（欢迎语）：对应旧版 im/AutoReply.vue + src/FirstGreeting|QueueGreeting|EndGreeting.vue，接口 /im/config/config/*。 */
 export default function KefuQuickReplies() {
+  const { t } = useI18n();
   const [activeCode, setActiveCode] = useState('welcome');
   const [states, setStates] = useState<Record<string, GreetingState>>({});
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function KefuQuickReplies() {
         },
       }));
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setLoading(false);
     }
@@ -59,9 +61,9 @@ export default function KefuQuickReplies() {
           replyContent: current.replyContent,
         },
       });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -77,38 +79,38 @@ export default function KefuQuickReplies() {
         type="line"
         activeKey={activeCode}
         onChange={(key) => setActiveCode(String(key))}
-        tabList={GREETING_TABS.map((tab) => ({ tab: tab.label, itemKey: tab.code }))}
+        tabList={GREETING_TABS.map((tab) => ({ tab: t(tab.label), itemKey: tab.code }))}
       />
       <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Text strong>启用</Text>
+          <Text strong>{t('启用')}</Text>
           <Checkbox
             checked={current.activate}
             onChange={(event) => update({ activate: event.target.checked })}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Text strong>文字开关</Text>
+          <Text strong>{t('文字开关')}</Text>
           <Checkbox
             checked={current.sendText}
             onChange={(event) => update({ sendText: event.target.checked })}
           />
           <Text type="tertiary" size="small">
-            开启后消息以文字形式发送
+            {t('开启后消息以文字形式发送')}
           </Text>
         </div>
         <RadioGroup value={1}>
-          <Radio value={1}>快捷回复内容</Radio>
+          <Radio value={1}>{t('快捷回复内容')}</Radio>
         </RadioGroup>
         <TextArea
           value={current.replyContent}
           onChange={(next) => update({ replyContent: next })}
           autosize={{ minRows: 5, maxRows: 10 }}
-          placeholder="请输入回复内容"
+          placeholder={t('请输入回复内容')}
         />
         <div>
           <Button theme="solid" type="primary" loading={saving} onClick={save}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       </div>

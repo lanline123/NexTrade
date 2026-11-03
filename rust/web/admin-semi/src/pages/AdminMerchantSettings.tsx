@@ -4,6 +4,9 @@ import AutoConfigPage, {
   type ConfigRendererContext,
 } from './AutoConfigPage';
 import type { ReactNode } from 'react';
+import { useI18n } from '../i18n';
+
+type ConfigOption = { label: string; value: string | number; color?: string };
 
 const def: {
   title: string;
@@ -62,7 +65,20 @@ const def: {
   renderers: {},
 };
 
+/** AutoConfigPage 只对 labels/sections 做 t()，options/fieldHelp 需在页面侧翻译。 */
+const translateOptions = (
+  source: Record<string, ConfigOption[]>,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) =>
+  Object.fromEntries(
+    Object.entries(source).map(([key, list]): [string, ConfigOption[]] => [
+      key,
+      list.map((item) => ({ ...item, label: t(item.label) })),
+    ]),
+  );
+
 export default function AdminMerchantSettings() {
+  const { t } = useI18n();
   return (
     <AutoConfigPage
       title={def.title}
@@ -71,7 +87,7 @@ export default function AdminMerchantSettings() {
       sections={def.sections}
       labels={def.labels}
       controls={def.controls}
-      options={def.options}
+      options={translateOptions(def.options, t)}
       rules={def.rules}
       fieldHelp={def.fieldHelp}
       hiddenFields={def.hiddenFields}

@@ -12,6 +12,7 @@ import {
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -111,6 +112,7 @@ export function CreditOrders() {
 
 /** 授信客户：对应旧版 order/termPay/termMember/List.vue，接口 /credit/user/*。 */
 export function CreditUsers() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = () => setReloadKey((key) => key + 1);
@@ -118,23 +120,23 @@ export function CreditUsers() {
   const toggleStatus = async (row: CreditUserRow, next: number) => {
     try {
       await apiPost('/credit/user/updateField', { id: row.id, field: 'status', value: next });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     }
   };
 
   const deleteCreditUser = (row: CreditUserRow) => {
     Modal.confirm({
-      title: '确认删除该授信客户吗？',
+      title: t('确认删除该授信客户吗？'),
       onOk: async () => {
         try {
           await apiPost('/credit/user/delete', { id: row.id });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -184,7 +186,7 @@ export function CreditUsers() {
       width: 120,
       render: (_: unknown, row: CreditUserRow) => (
         <Button theme="borderless" type="danger" size="small" onClick={() => deleteCreditUser(row)}>
-          删除
+          {t('删除')}
         </Button>
       ),
     },
@@ -216,6 +218,7 @@ function SwitchLike({
 
 /** 账期结算：对应旧版 order/termPay/termPay/List.vue + WaitPay.vue，接口 /credit/settlement/*。 */
 export function CreditSettlements() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [settleTarget, setSettleTarget] = useState<CreditUserRow | null>(null);
   const [pendingRows, setPendingRows] = useState<PendingOrderRow[]>([]);
@@ -237,7 +240,7 @@ export function CreditSettlements() {
       });
       setPendingRows(result?.records || result?.list || []);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setPendingLoading(false);
     }
@@ -246,7 +249,7 @@ export function CreditSettlements() {
   const submitSettlement = async () => {
     if (!settleTarget) return;
     if (!selectedOrderIds.length) {
-      Toast.error({ content: '请选择待结算订单' });
+      Toast.error({ content: t('请选择待结算订单') });
       return;
     }
     setSubmitting(true);
@@ -255,11 +258,11 @@ export function CreditSettlements() {
         userId: settleTarget.userId ?? settleTarget.id,
         orderIds: selectedOrderIds,
       });
-      Toast.success({ content: '结算提交成功' });
+      Toast.success({ content: t('结算提交成功') });
       setSettleTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '结算失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('结算失败') });
     } finally {
       setSubmitting(false);
     }
@@ -324,13 +327,17 @@ export function CreditSettlements() {
         columns={columns}
         rowActions={(row) => (
           <Button theme="borderless" type="danger" size="small" onClick={() => openSettle(row)}>
-            去结算
+            {t('去结算')}
           </Button>
         )}
       />
 
       <Modal
-        title={settleTarget ? `账期结算：${settleTarget.username || ''}` : '账期结算'}
+        title={
+          settleTarget
+            ? t('账期结算：{name}', { name: settleTarget.username || '' })
+            : t('账期结算')
+        }
         visible={Boolean(settleTarget)}
         width={820}
         footer={null}
@@ -338,7 +345,7 @@ export function CreditSettlements() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Text type="tertiary" size="small">
-            勾选待结算订单后提交；接口 /credit/settlement/pendingOrders + submit。
+            {t('勾选待结算订单后提交；接口 /credit/settlement/pendingOrders + submit。')}
           </Text>
           <SpinLike loading={pendingLoading}>
             <Table
@@ -351,9 +358,9 @@ export function CreditSettlements() {
                 onChange: (keys: any) => setSelectedOrderIds((keys as number[]).map(Number)),
               }}
               columns={[
-                { title: '订单编号', dataIndex: 'orderSn' },
+                { title: t('订单编号'), dataIndex: 'orderSn' },
                 {
-                  title: '订单金额',
+                  title: t('订单金额'),
                   dataIndex: 'totalAmount',
                   render: (value: unknown) => <span>{money(value)}</span>,
                 },
@@ -368,7 +375,7 @@ export function CreditSettlements() {
               disabled={!selectedOrderIds.length}
               onClick={submitSettlement}
             >
-              提交结算（已选 {selectedOrderIds.length} 单）
+              {t('提交结算（已选 {count} 单）', { count: selectedOrderIds.length })}
             </Button>
           </Space>
         </div>

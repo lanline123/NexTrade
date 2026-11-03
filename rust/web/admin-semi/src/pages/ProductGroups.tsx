@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Toast } from '@douyinfe/semi-ui';
 import { apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -36,24 +37,25 @@ const columns: ColumnConfig<ProductGroupRow>[] = [
 ];
 
 export default function ProductGroups() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除商品分组',
-      content: `确定删除选中的 ${ids.length} 个分组？`,
+      title: t('批量删除商品分组'),
+      content: t('确定删除选中的 {count} 个分组？', { count: ids.length }),
       onOk: async () => {
         if (isDemo()) {
-          Toast.warning({ content: '演示模式不支持操作' });
+          Toast.warning({ content: t('演示模式不支持操作') });
           return;
         }
         try {
           await apiPost('/product/productGroup/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -80,7 +82,7 @@ export default function ProductGroups() {
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.productGroupId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -102,30 +104,30 @@ export default function ProductGroups() {
             fields: [
               {
                 field: 'productGroupName',
-                label: '分组名称',
+                label: t('分组名称'),
                 required: true,
-                placeholder: '请输入分组名称',
+                placeholder: t('请输入分组名称'),
               },
               {
                 field: 'productGroupSn',
-                label: '分组别名',
-                placeholder: '请输入分组别名',
+                label: t('分组别名'),
+                placeholder: t('请输入分组别名'),
               },
               {
                 field: 'productGroupDescription',
-                label: '分组描述',
+                label: t('分组描述'),
                 type: 'textarea',
               },
               {
                 field: 'productIds',
-                label: '分组商品',
+                label: t('分组商品'),
                 type: 'select',
                 multiple: true,
                 optionsApi: '/product/product/list',
                 optionsParams: { page: 1, pageSize: 100 },
                 optionLabel: 'productName',
                 optionValue: 'productId',
-                placeholder: '请选择分组商品',
+                placeholder: t('请选择分组商品'),
               },
             ],
           },

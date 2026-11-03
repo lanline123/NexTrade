@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Radio, RadioGroup, Switch, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 /** 客服接入规则：对应旧版 im/accessSetting/Index.vue，接口 /im/shopKefuConfig/accessConfig/*。 */
 const { Text } = Typography;
 export default function KefuAccessSettings() {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<Record<string, number>>({
     autoAccessMode: 0,
     returnCustomerAccess: 0,
@@ -24,9 +26,9 @@ export default function KefuAccessSettings() {
     setSaving(true);
     try {
       await apiPost('/im/shopKefuConfig/accessConfig/save', formState);
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -35,24 +37,24 @@ export default function KefuAccessSettings() {
   return (
     <Card shadows="hover" loading={loading}>
       <div className="kefu-access-form">
-        <Text strong>接入规则</Text>
+        <Text strong>{t('接入规则')}</Text>
         <div className="kefu-access-field">
-          <label>选择接入方式</label>
+          <label>{t('选择接入方式')}</label>
           <RadioGroup
             value={formState.autoAccessMode}
             onChange={(event) => setFormState((c) => ({ ...c, autoAccessMode: Number(event.target.value) }))}
           >
-            <Radio value={0}>全部自动接入</Radio>
-            <Radio value={1}>全部手动接入</Radio>
+            <Radio value={0}>{t('全部自动接入')}</Radio>
+            <Radio value={1}>{t('全部手动接入')}</Radio>
           </RadioGroup>
           <p className="kefu-access-extra">
             {Number(formState.autoAccessMode) === 0
-              ? '客户发起会话时，自动分配给在线客服中接待数最少的客服'
-              : '客户发起会话进入待接入列表，由客服在工作台手动接入'}
+              ? t('客户发起会话时，自动分配给在线客服中接待数最少的客服')
+              : t('客户发起会话进入待接入列表，由客服在工作台手动接入')}
           </p>
         </div>
         <div className="kefu-access-field">
-          <label>回头客接入</label>
+          <label>{t('回头客接入')}</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Switch
               checked={Number(formState.returnCustomerAccess) === 1}
@@ -60,13 +62,13 @@ export default function KefuAccessSettings() {
             />
             <span className="kefu-access-extra">
               {Number(formState.returnCustomerAccess) === 1
-                ? '已开启，上次接待客服在线时优先接入给上次接待客服'
-                : '已关闭'}
+                ? t('已开启，上次接待客服在线时优先接入给上次接待客服')
+                : t('已关闭')}
             </span>
           </div>
         </div>
         <Button theme="solid" type="primary" loading={saving} onClick={save}>
-          提 交
+          {t('提 交')}
         </Button>
       </div>
     </Card>
