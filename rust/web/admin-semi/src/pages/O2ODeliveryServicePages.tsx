@@ -430,7 +430,7 @@ export function IntraCityDelivery() {
                 <span className="pmo-unit">{t('米')}</span>
               </div>
             </div>
-            <div className="config-field">
+            <div className="config-field config-field--dispatch">
               <label>{t('发单模式')}</label>
               <div>
                 <RadioGroup

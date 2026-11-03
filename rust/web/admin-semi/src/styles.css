@@ -7061,3 +7061,9 @@ body {
   color: var(--primary);
   font-size: 18px;
 }
+
+
+.base-settings-card .config-field--dispatch:has(.semi-radioGroup) > label {
+  padding-top: 7px;
+}
+
