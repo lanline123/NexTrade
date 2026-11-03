@@ -1283,8 +1283,11 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
             <Text type="tertiary" size="small">{t('画布按窗口宽度等比缩放，与前台首页渲染一致')}</Text>
           </div>
           <div ref={canvasViewportRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '24px 0 60px', position: 'relative' }}>
-              {/* 1600px 整页窗口（等比缩放到容器宽度，背景取页面设置） */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '24px 0 60px 12px', position: 'relative' }}>
+              {/* 1600px 整页窗口（等比缩放到容器宽度，背景取页面设置）。
+                  外层宽 = 1600 * scale：flex 用缩放后的实际宽度居中，
+                  避免宽屏时 zoom 后的画布向左溢出到模块库下方。 */}
+              <div style={{ width: 1600 * canvasScale, flexShrink: 0, position: 'relative' }}>
               <div
                 className="pc-decorate-window"
                 style={{
@@ -1353,6 +1356,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                     </div>
                   );
                 })}
+              </div>
               </div>
               {/* 右轨道：选中模块操作条 */}
               <div style={{ width: 120, position: 'relative', flexShrink: 0, minHeight: 300 }}>
