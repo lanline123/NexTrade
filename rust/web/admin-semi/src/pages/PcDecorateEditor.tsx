@@ -47,6 +47,7 @@ import {
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import DecorateLoading from './components/DecorateLoading';
+import ImageUploader from '../components/ImageUploader';
 import type { Icon as IconParkIcon } from '@icon-park/react/es/runtime';
 import Carousel from '@icon-park/react/es/icons/Carousel';
 import MultiPictureCarousel from '@icon-park/react/es/icons/MultiPictureCarousel';
@@ -4067,17 +4068,16 @@ function PcHeaderPanel({
           <HeaderField label="LOGO图片" value="建议 320*120 PNG 透明底">
             <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('logoPic', { picUrl: '', picThumb: '' })}>{t('默认logo')}</a>
           </HeaderField>
-          <div className="pchead-logo-setting">
-            <img src={header.logoPic?.picUrl || DEFAULT_PC_HEADER_LOGO} alt="logo" />
-            <div className="pchead-logo-setting__main">
-              <Input
-                value={header.logoPic?.picUrl || ''}
-                onChange={(v) => set('logoPic', { picUrl: v, picThumb: v })}
-                placeholder={t('LOGO 图片 URL')}
-                size="small"
-              />
-              <span className="pchead-logo-setting__hint">{t('未单独上传时使用商城默认 LOGO')}</span>
-            </div>
+          <div className="pchead-logo-uploader">
+            <ImageUploader
+              single
+              value={header.logoPic?.picUrl ? [header.logoPic.picUrl] : []}
+              onChange={(urls) => set('logoPic', { picUrl: urls[0] || '', picThumb: urls[0] || '' })}
+            />
+          </div>
+          <div className="pchead-logo-default-hint">
+            <img src={DEFAULT_PC_HEADER_LOGO} alt="default logo" />
+            <span>{t('未上传自定义 LOGO 时使用商城默认 LOGO')}</span>
           </div>
         </div>
         <HeaderField label="logo位置">

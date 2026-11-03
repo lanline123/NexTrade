@@ -11881,5 +11881,6 @@
   "消除结果": "Erasure result",
   "订单处理": "Order processing",
   "正在准备画布与模块...": "Preparing canvas and modules...",
-  "未单独上传时使用商城默认 LOGO": "Uses the store default logo when no logo is uploaded."
+  "未单独上传时使用商城默认 LOGO": "Uses the store default logo when no logo is uploaded.",
+  "未上传自定义 LOGO 时使用商城默认 LOGO": "Uses the store default logo when no custom logo is uploaded."
 }

@@ -1308,3 +1308,34 @@
 .pchead-size-control .semi-input-number {
   flex-shrink: 0;
 }
+
+/* PC 头部 LOGO 上传区 */
+.pchead-logo-uploader .image-uploader-list {
+  gap: 8px;
+}
+.pchead-logo-uploader .image-uploader-tip {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #98a2b3;
+}
+.pchead-logo-default-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: #f7f8fa;
+  color: #98a2b3;
+  font-size: 11px;
+  line-height: 16px;
+}
+.pchead-logo-default-hint img {
+  width: 56px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  flex-shrink: 0;
+}
