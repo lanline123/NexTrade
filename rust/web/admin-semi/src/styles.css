@@ -6652,3 +6652,27 @@ body {
 .base-settings-card .auto-config-field > label {
   font-size: 14px;
 }
+
+/* 版权信息 / 技术支持现代控件跟随 admin 主题色 */
+.settings-mode-toggle button:hover {
+  color: var(--primary);
+}
+.settings-mode-toggle button.is-active {
+  color: var(--primary);
+}
+.settings-mode-toggle button.is-active .settings-mode-toggle__dot {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.settings-preview-card {
+  background: linear-gradient(180deg, #fbfcff 0%, #f4f7ff 100%);
+  border-color: var(--primary-soft);
+}
+.settings-badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.settings-field-hint__icon {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
