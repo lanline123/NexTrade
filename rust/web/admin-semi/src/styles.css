@@ -6410,3 +6410,13 @@ body {
     gap: 10px;
   }
 }
+
+/* 基础信息：恢复原版一行一个字段 */
+.settings-panel .auto-config-grid {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 2px;
+}
+.settings-panel .auto-config-field,
+.settings-panel .auto-config-field.is-wide {
+  grid-column: 1 / -1;
+}
