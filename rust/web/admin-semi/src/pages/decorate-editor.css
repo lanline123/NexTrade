@@ -1339,3 +1339,18 @@
   border: 1px solid #eef0f3;
   flex-shrink: 0;
 }
+
+/* PC 头部 / 模块设置：滑块统一右侧数值输入 */
+.pchead-slider-with-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.pchead-slider-with-input .semi-slider {
+  flex: 1;
+  min-width: 90px;
+}
+.pchead-slider-with-input .semi-input-number {
+  flex-shrink: 0;
+}

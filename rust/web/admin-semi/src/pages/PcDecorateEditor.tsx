@@ -4009,6 +4009,46 @@ function HeaderField({
   );
 }
 
+function SliderWithInput({
+  value,
+  min = 0,
+  max = 100,
+  step = 1,
+  onChange,
+}: {
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onChange: (value: number) => void;
+}) {
+  const clamp = (next: number | string | null | undefined) => {
+    const numeric = Number(next);
+    if (!Number.isFinite(numeric)) return value;
+    return Math.min(max, Math.max(min, numeric));
+  };
+  return (
+    <div className="pchead-slider-with-input">
+      <Slider
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        style={{ flex: 1, minWidth: 90 }}
+        onChange={(v) => onChange(typeof v === 'number' ? v : (v as number[])[0])}
+      />
+      <InputNumber
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        style={{ width: 72, flexShrink: 0 }}
+        onChange={(v) => onChange(clamp(v))}
+      />
+    </div>
+  );
+}
+
 function useHeaderNavTitles() {
   const [titles, setTitles] = useState<string[]>([]);
   useEffect(() => {
@@ -4088,44 +4128,20 @@ function PcHeaderPanel({
           </RadioGroup>
         </HeaderField>
         <HeaderField label="LOGO宽度">
-          <div className="pchead-size-control">
-            <InputNumber
-              value={Number(header.logoWidth) || 100}
-              min={10}
-              max={160}
-              step={1}
-              onChange={(v) => set('logoWidth', Number(v) || 100)}
-              style={{ width: 72 }}
-            />
-            <Slider
-              value={Number(header.logoWidth) || 100}
-              min={10}
-              max={160}
-              step={1}
-              style={{ width: 130 }}
-              onChange={(v) => set('logoWidth', typeof v === 'number' ? v : (v as number[])[0])}
-            />
-          </div>
+          <SliderWithInput
+            value={Number(header.logoWidth) || 100}
+            min={10}
+            max={160}
+            onChange={(v) => set('logoWidth', v)}
+          />
         </HeaderField>
         <HeaderField label="LOGO高度">
-          <div className="pchead-size-control">
-            <InputNumber
-              value={Number(header.logoHeight) || 25}
-              min={10}
-              max={60}
-              step={1}
-              onChange={(v) => set('logoHeight', Number(v) || 25)}
-              style={{ width: 72 }}
-            />
-            <Slider
-              value={Number(header.logoHeight) || 25}
-              min={10}
-              max={60}
-              step={1}
-              style={{ width: 130 }}
-              onChange={(v) => set('logoHeight', typeof v === 'number' ? v : (v as number[])[0])}
-            />
-          </div>
+          <SliderWithInput
+            value={Number(header.logoHeight) || 25}
+            min={10}
+            max={60}
+            onChange={(v) => set('logoHeight', v)}
+          />
         </HeaderField>
       </HeaderSection>
 
@@ -4183,7 +4199,7 @@ function PcHeaderPanel({
           </RadioGroup>
         </HeaderField>
         <HeaderField label="分类上间距">
-          <Slider value={Number(header.categoryMarginTop) || 0} min={0} max={60} step={1} style={{ width: 150 }} onChange={(v) => set('categoryMarginTop', typeof v === 'number' ? v : (v as number[])[0])} />
+          <SliderWithInput value={Number(header.categoryMarginTop) || 0} min={0} max={60} onChange={(v) => set('categoryMarginTop', v)} />
         </HeaderField>
       </HeaderSection>
 
@@ -4195,10 +4211,10 @@ function PcHeaderPanel({
           </RadioGroup>
         </HeaderField>
         <HeaderField label="导航栏上间距">
-          <Slider value={Number(header.mainNavPaddingTop) || 0} min={0} max={60} step={1} style={{ width: 150 }} onChange={(v) => set('mainNavPaddingTop', typeof v === 'number' ? v : (v as number[])[0])} />
+          <SliderWithInput value={Number(header.mainNavPaddingTop) || 0} min={0} max={60} onChange={(v) => set('mainNavPaddingTop', v)} />
         </HeaderField>
         <HeaderField label="导航栏下间距">
-          <Slider value={Number(header.mainNavPaddingBottom) || 0} min={0} max={60} step={1} style={{ width: 150 }} onChange={(v) => set('mainNavPaddingBottom', typeof v === 'number' ? v : (v as number[])[0])} />
+          <SliderWithInput value={Number(header.mainNavPaddingBottom) || 0} min={0} max={60} onChange={(v) => set('mainNavPaddingBottom', v)} />
         </HeaderField>
       </HeaderSection>
 
@@ -4706,12 +4722,12 @@ function FieldControl({
       );
     case 'slider':
       return (
-        <Slider
+        <SliderWithInput
           value={typeof value === 'number' ? value : 0}
           min={field.min ?? 0}
           max={field.max ?? 30}
           step={1}
-          onChange={(v) => set(typeof v === 'number' ? v : (v as number[])[0])}
+          onChange={(v) => set(v)}
         />
       );
     case 'color':
