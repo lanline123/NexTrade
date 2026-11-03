@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, TextArea, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, TextArea, Toast } from '@douyinfe/semi-ui';
+import { IconSetting } from '@douyinfe/semi-icons';
+import SettingsCard from '../components/SettingsCard';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
-
-const { Text } = Typography;
 
 const TITLES: Record<string, string> = {
   deliveryFundManagement: '配送设置',
@@ -53,23 +53,34 @@ export default function StaffFundSettings({ apiPath }: StaffFundSettingsProps) {
   };
 
   return (
-    <Card className="staff-fund-settings" title={title} shadows="hover" loading={loading}>
-      <div className="staff-fund-settings-body">
-        <label className="staff-fund-settings-label">{t('配置 JSON')}</label>
-        <TextArea
-          value={json}
-          rows={18}
-          spellCheck={false}
-          onChange={(next) => setJson(next)}
-        />
-        <p className="staff-fund-settings-tip">{t('保存前请确认 JSON 格式合法。')}</p>
+    <div className="config-page">
+      <SettingsCard
+        icon={<IconSetting />}
+        title={title}
+        description={t('配送员/服务员资金接口配置。')}
+        count={t('{count} 项', { count: 1 })}
+      >
+        <div className="config-field">
+          <label>{t('配置 JSON')}</label>
+          <div>
+            <TextArea
+              value={json}
+              rows={18}
+              spellCheck={false}
+              onChange={(next) => setJson(next)}
+            />
+            <p className="config-field__help">
+              {t('保存前请确认 JSON 格式合法。接口：')}/finance/{apiPath}/settings/detail
+            </p>
+          </div>
+        </div>
+      </SettingsCard>
+
+      <div className="config-actions">
         <Button theme="solid" type="primary" loading={saving} onClick={save}>
           {t('保存')}
         </Button>
       </div>
-      <Text type="tertiary" size="small">
-        {t('接口：')}/finance/{apiPath}/settings/detail
-      </Text>
-    </Card>
+    </div>
   );
 }

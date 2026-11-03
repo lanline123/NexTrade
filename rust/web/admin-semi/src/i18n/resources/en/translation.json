@@ -11943,5 +11943,9 @@
   "保存翻译": "Save translations",
   "翻译已保存": "Translations saved",
   "保存翻译失败": "Failed to save translations",
-  "读取多语言配置失败": "Failed to load multilingual settings"
+  "读取多语言配置失败": "Failed to load multilingual settings",
+  "设置默认配送方式名称。": "Set the default delivery method name.",
+  "配置快递鸟或快递100查询接口。": "Configure the Kdniao or Kuaidi100 tracking API.",
+  "发货人信息与默认发货地址。": "Sender information and default shipping address.",
+  "退货收件人信息与默认退货地址。": "Return recipient information and default return address."
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { IconMapPin, IconSetting, IconUser } from '@douyinfe/semi-icons';
+import SettingsCard from '../components/SettingsCard';
 import {
   Button,
-  Card,
   Radio,
   RadioGroup,
   Space,
@@ -72,8 +73,8 @@ export function StoreEntryRuleSetting() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Card title={t('进店模式')}>
+    <div className="config-page">
+      <SettingsCard icon={<IconMapPin />} title={t('进店模式')} description={t('配置买家进入门店的方式。')} count={t('{count} 项', { count: 4 })}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <RadioGroup
             value={formState.entryMode}
@@ -114,9 +115,9 @@ export function StoreEntryRuleSetting() {
             </Radio>
           </RadioGroup>
         </div>
-      </Card>
+      </SettingsCard>
 
-      <Card title={t('首次进店')}>
+      <SettingsCard icon={<IconUser />} title={t('首次进店')} description={t('首次进入时的门店匹配规则。')} count={t('{count} 项', { count: 3 })}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <RadioGroup
             value={formState.firstEntry}
@@ -149,9 +150,9 @@ export function StoreEntryRuleSetting() {
             </Radio>
           </RadioGroup>
         </div>
-      </Card>
+      </SettingsCard>
 
-      <Card title={t('规则')}>
+      <SettingsCard icon={<IconSetting />} title={t('规则')} description={t('总部进店的门店推荐规则。')} count={t('{count} 项', { count: 1 })}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
@@ -170,18 +171,11 @@ export function StoreEntryRuleSetting() {
             />
           </div>
         </div>
-      </Card>
+      </SettingsCard>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-        <Button
-          theme="solid"
-          type="primary"
-          size="large"
-          loading={saving}
-          onClick={handleSubmit}
-          style={{ width: 140 }}
-        >
-          {t('提 交')}
+      <div className="config-actions">
+        <Button theme="solid" type="primary" loading={saving} onClick={handleSubmit}>
+          {t('提交')}
         </Button>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { IconClock, IconMapPin } from '@douyinfe/semi-icons';
+import SettingsCard from '../components/SettingsCard';
 import {
   Button,
-  Card,
   Form,
   Input,
   InputNumber,
@@ -83,8 +84,8 @@ export function StorePickupSetting() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Card title={t('基础设置')}>
+    <div className="config-page">
+      <SettingsCard icon={<IconMapPin />} title={t('基础设置')} description={t('到店自提与自动备货规则。')} count={t('{count} 项', { count: 2 })}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Text strong style={{ width: 140 }}>{t('到店自提')}</Text>
@@ -122,9 +123,9 @@ export function StorePickupSetting() {
             </Text>
           </div>
         </div>
-      </Card>
+      </SettingsCard>
 
-      <Card title={t('自提时间')}>
+      <SettingsCard icon={<IconClock />} title={t('自提时间')} description={t('买家自提时间段与提货有效期。')} count={t('{count} 项', { count: 3 })}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -189,18 +190,11 @@ export function StorePickupSetting() {
             </div>
           </div>
         </div>
-      </Card>
+      </SettingsCard>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-start', paddingLeft: 156 }}>
-        <Button
-          theme="solid"
-          type="primary"
-          size="large"
-          loading={saving}
-          onClick={handleSubmit}
-          style={{ width: 140 }}
-        >
-          {t('提 交')}
+      <div className="config-actions">
+        <Button theme="solid" type="primary" loading={saving} onClick={handleSubmit}>
+          {t('提交')}
         </Button>
       </div>
     </div>

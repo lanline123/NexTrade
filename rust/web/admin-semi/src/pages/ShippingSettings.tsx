@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Input, Radio, RadioGroup, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, Input, Radio, RadioGroup, Toast, Typography } from '@douyinfe/semi-ui';
 import { IconMapPin, IconSend, IconServer } from '@douyinfe/semi-icons';
+import SettingsCard from '../components/SettingsCard';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 
@@ -81,80 +82,94 @@ export default function ShippingSettingsPage() {
 
   return (
     <div className="config-page">
-      <Card className="config-card" shadows="hover">
-        <div className="config-section">
-          <h3><span className="config-section__icon"><IconSend /></span>{t('快递发货设置')}</h3>
-          <div className="config-field">
-            <label>{t('自定义名称')}</label>
-            <div>
-              <Input
-                value={form.defaultLogisticsName || ''}
-                maxLength={10}
-                onChange={(value) => update('defaultLogisticsName', value)}
-              />
-              <Text type="tertiary" size="small">
-                {t('该名称会显示在买家可选择的配送方式中，默认名称“商家配送”')}
-              </Text>
-            </div>
+      <SettingsCard
+        icon={<IconSend />}
+        title={t('快递发货设置')}
+        description={t('设置默认配送方式名称。')}
+        count={t('{count} 项', { count: 1 })}
+      >
+        <div className="config-field">
+          <label>{t('自定义名称')}</label>
+          <div>
+            <Input
+              value={form.defaultLogisticsName || ''}
+              maxLength={10}
+              onChange={(value) => update('defaultLogisticsName', value)}
+            />
+            <Text type="tertiary" size="small">
+              {t('该名称会显示在买家可选择的配送方式中，默认名称“商家配送”')}
+            </Text>
           </div>
         </div>
+      </SettingsCard>
 
-        <div className="config-section">
-          <h3><span className="config-section__icon"><IconServer /></span>{t('快递接口设置')}</h3>
-          <div className="config-field">
-            <label>{t('快递接口')}</label>
-            <RadioGroup
-              value={form.logisticsProvider || 1}
-              onChange={(event) => update('logisticsProvider', Number(event.target.value))}
-            >
-              <Radio value={1}>{t('快递鸟')}</Radio>
-              <Radio value={2}>{t('快递100')}</Radio>
-            </RadioGroup>
-          </div>
-          {isKdniao ? (
-            <>
-              {field(t('快递鸟 API Key'), 'kdniaoApiKey')}
-              {field(t('快递鸟服务 ID'), 'kdniaoBusinessId')}
-            </>
-          ) : (
-            <>
-              {field('Key', 'kuaidi100Key')}
-              {field('Secret', 'kuaidi100Secret')}
-              {field('Customer', 'kuaidi100Customer')}
-            </>
-          )}
+      <SettingsCard
+        icon={<IconServer />}
+        title={t('快递接口设置')}
+        description={t('配置快递鸟或快递100查询接口。')}
+        count={t('{count} 项', { count: isKdniao ? 3 : 4 })}
+      >
+        <div className="config-field">
+          <label>{t('快递接口')}</label>
+          <RadioGroup
+            value={form.logisticsProvider || 1}
+            onChange={(event) => update('logisticsProvider', Number(event.target.value))}
+          >
+            <Radio value={1}>{t('快递鸟')}</Radio>
+            <Radio value={2}>{t('快递100')}</Radio>
+          </RadioGroup>
         </div>
+        {isKdniao ? (
+          <>
+            {field(t('快递鸟 API Key'), 'kdniaoApiKey')}
+            {field(t('快递鸟服务 ID'), 'kdniaoBusinessId')}
+          </>
+        ) : (
+          <>
+            {field('Key', 'kuaidi100Key')}
+            {field('Secret', 'kuaidi100Secret')}
+            {field('Customer', 'kuaidi100Customer')}
+          </>
+        )}
+      </SettingsCard>
 
-        <div className="config-section">
-          <h3><span className="config-section__icon"><IconMapPin /></span>{t('发货信息设置')}</h3>
-          <div className="config-grid">
-            {field(t('发货人'), 'sender')}
-            {field(t('发货人联系方式'), 'mobile')}
-            {field(t('发货地省份'), 'provinceName')}
-            {field(t('发货城市'), 'cityName')}
-            {field(t('发货地区'), 'areaName')}
-            {field(t('发货详细地址'), 'address')}
-          </div>
+      <SettingsCard
+        icon={<IconMapPin />}
+        title={t('发货信息设置')}
+        description={t('发货人信息与默认发货地址。')}
+        count={t('{count} 项', { count: 6 })}
+      >
+        <div className="config-grid">
+          {field(t('发货人'), 'sender')}
+          {field(t('发货人联系方式'), 'mobile')}
+          {field(t('发货地省份'), 'provinceName')}
+          {field(t('发货城市'), 'cityName')}
+          {field(t('发货地区'), 'areaName')}
+          {field(t('发货详细地址'), 'address')}
         </div>
+      </SettingsCard>
 
-        <div className="config-section">
-          <h3><span className="config-section__icon"><IconMapPin /></span>{t('退货信息设置')}</h3>
-          <div className="config-grid">
-            {field(t('退货人'), 'receiveSender')}
-            {field(t('退货人联系方式'), 'receiveMobile')}
-            {field(t('退货省份'), 'receiveProvinceName')}
-            {field(t('退货城市'), 'receiveCityName')}
-            {field(t('退货地区'), 'receiveAreaName')}
-            {field(t('退货详细地址'), 'receiveAddress')}
-          </div>
+      <SettingsCard
+        icon={<IconMapPin />}
+        title={t('退货信息设置')}
+        description={t('退货收件人信息与默认退货地址。')}
+        count={t('{count} 项', { count: 6 })}
+      >
+        <div className="config-grid">
+          {field(t('退货人'), 'receiveSender')}
+          {field(t('退货人联系方式'), 'receiveMobile')}
+          {field(t('退货省份'), 'receiveProvinceName')}
+          {field(t('退货城市'), 'receiveCityName')}
+          {field(t('退货地区'), 'receiveAreaName')}
+          {field(t('退货详细地址'), 'receiveAddress')}
         </div>
+      </SettingsCard>
 
-        <div className="config-actions">
-          <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
-            {t('保存')}
-          </Button>
-        </div>
-      </Card>
+      <div className="config-actions">
+        <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
+          {t('保存')}
+        </Button>
+      </div>
     </div>
   );
 }
