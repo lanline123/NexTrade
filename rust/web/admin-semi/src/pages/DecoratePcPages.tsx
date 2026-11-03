@@ -320,12 +320,16 @@ export function PcDecorateHome() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 20,
+                  width: 'auto',
+                  minWidth: 20,
+                  boxSizing: 'border-box',
+                  padding: '0 6px',
                   height: 20,
                   borderRadius: 4,
                   background: 'var(--semi-color-primary-light-default)',
                   color: 'var(--semi-color-primary)',
                   fontSize: 12,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {t('首')}
