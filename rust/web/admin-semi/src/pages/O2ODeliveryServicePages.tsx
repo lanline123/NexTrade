@@ -17,7 +17,7 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconInfoCircle, IconMapPin, IconPlus, IconSend, IconSetting } from '@douyinfe/semi-icons';
+import { IconCamera, IconCreditCard, IconInfoCircle, IconMapPin, IconPlus, IconSend, IconSetting } from '@douyinfe/semi-icons';
 import SettingsCard from '../components/SettingsCard';
 import DeliveryRadiusMap from '../components/DeliveryRadiusMap';
 import { apiGet, apiPost } from '../api';
@@ -850,37 +850,40 @@ export function HomeService() {
   ] as any;
 
   return (
-    <div className="pmo-page">
-      <Banner
-        fullMode={false}
-        type="warning"
-        bordered
-        icon={null}
-        closeIcon={null}
-        title={t('读写存储说明（backendReady）')}
-        description={t('GET /o2o/homeService/getConfig 读取门店配置表（shop_home_service_config），POST /o2o/homeService/saveConfig 暂写平台配置记录（o2oHomeServiceConfig），后端读写目标尚未统一；保存后再次拉取可能不回显，待后端补齐写表逻辑。')}
-      />
-      <Card shadows="hover" className="table-card" loading={loading} title={t('上门服务')}>
-        <div className="pmo-form">
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('上门服务功能')}</div>
-            <div className="pmo-switch-row">
-              <Switch
-                aria-label={t('上门服务功能')}
-                checked={Number(config.enabled) === 1}
-                onChange={(checked) => setConfig({ ...config, enabled: checked ? 1 : 0 })}
-              />
-              <Tag color={Number(config.enabled) === 1 ? 'green' : 'grey'}>
-                {Number(config.enabled) === 1 ? t('已开启') : t('已关闭')}
-              </Tag>
+    <Spin spinning={loading}>
+      <div className="base-settings-list">
+        <SettingsCard
+          icon={<IconSend />}
+          title={t('上门服务功能')}
+          description={t('买家下单支持上门服务，门店服务人员可上门服务')}
+          count={t('{count} 项', { count: 1 })}
+        >
+          <div className="config-field">
+            <label>{t('上门服务功能')}</label>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Switch
+                  aria-label={t('上门服务功能')}
+                  checked={Number(config.enabled) === 1}
+                  onChange={(checked) => setConfig({ ...config, enabled: checked ? 1 : 0 })}
+                />
+                <Tag color={Number(config.enabled) === 1 ? 'green' : 'grey'}>
+                  {Number(config.enabled) === 1 ? t('已开启') : t('已关闭')}
+                </Tag>
+              </div>
             </div>
-            <div className="pmo-help">{t('买家下单支持上门服务，门店服务人员可上门服务')}</div>
           </div>
+        </SettingsCard>
 
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('发单模式设置')}</div>
-            <div className="pmo-form-row">
-              <span className="pmo-form-label">{t('发单模式：')}</span>
+        <SettingsCard
+          icon={<IconSetting />}
+          title={t('发单模式设置')}
+          description={t('上门服务订单的派单方式。')}
+          count={t('{count} 项', { count: 1 })}
+        >
+          <div className="config-field config-field--dispatch">
+            <label>{t('发单模式')}</label>
+            <div>
               <RadioGroup
                 value={Number(config.orderDispatchMode) === 2 ? 2 : 1}
                 onChange={(e) => setConfig({ ...config, orderDispatchMode: Number(e.target.value) })}
@@ -888,108 +891,141 @@ export function HomeService() {
                 <Radio value={1}>{t('抢单模式')}</Radio>
                 <Radio value={2}>{t('手动派单')}</Radio>
               </RadioGroup>
-            </div>
-            <div className="pmo-help">{t('抢单模式：客户预约的订单，将在抢单大厅保留，由服务人员手动抢单进行服务')}</div>
-          </div>
-
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('服务信息设置')}</div>
-            <div className="pmo-form-row">
-              <span className="pmo-form-label">{t('服务方：')}</span>
-              <span>{t('门店服务人员（门店地址以门店信息为准）')}</span>
-            </div>
-            <div className="pmo-form-row">
-              <span className="pmo-form-label">{t('服务半径：')}</span>
-              <InputNumber
-                style={{ width: 140 }}
-                min={1}
-                max={100}
-                value={toRuleNumber(config.serviceRadius)}
-                onChange={(next) => setConfig({ ...config, serviceRadius: Number(next ?? 0) })}
-              />
-              <span className="pmo-unit">{t('公里')}</span>
-            </div>
-            <div className="pmo-help">
-              {t('服务区域以门店为中心设置服务半径，若要修改地址，请前往门店设置--门店信息进行编辑修改；收货地址在服务范围之外的买家将不可下单。')}
+              <p className="config-field__help">
+                {t('抢单模式：客户预约的订单，将在抢单大厅保留，由服务人员手动抢单进行服务')}
+              </p>
             </div>
           </div>
+        </SettingsCard>
 
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('上门价格')}</div>
-            <div className="pmo-form-row">
-              <span className="pmo-form-label">{t('上门服务费：')}</span>
-              <InputNumber
-                style={{ width: 140 }}
-                min={0}
-                placeholder={t('请输入上门费')}
-                value={toRuleNumber(config.homeFee)}
-                onChange={(next) => setConfig({ ...config, homeFee: Number(next ?? 0) })}
-              />
-              <span className="pmo-unit">{t('元')}</span>
-            </div>
-            <div className="pmo-help">{t('商家未设置叠加溢价规则时，则所有订单统一上门服务费标准')}</div>
-            <div className="pmo-switch-row" style={{ marginTop: 12 }}>
-              <Switch
-                aria-label={t('开启叠加溢价')}
-                checked={Number(config.distancePricingEnabled) === 1}
-                onChange={(checked) => setConfig({ ...config, distancePricingEnabled: checked ? 1 : 0 })}
-              />
-              <span className="pmo-option-name">{t('开启叠加溢价')}</span>
-            </div>
-            <div className="pmo-help">{t('商家可按服务半径设置叠加溢价规则，最终费用 = 上门费 + 溢价规则附加费')}</div>
-            {Number(config.distancePricingEnabled) === 1 ? (
-              <div className="pmo-pricing-block">
-                <div className="pmo-section-title">{t('溢价规则')}</div>
-                <Table
-                  dataSource={config.distancePricingList || []}
-                  rowKey={(row?: DistancePricingRule) =>
-                    `${row?.distanceThreshold ?? 'x'}-${row?.distanceUnit ?? 'x'}`}
-                  columns={pricingColumns}
-                  pagination={false}
-                  empty={t('暂无数据')}
+        <SettingsCard
+          icon={<IconMapPin />}
+          title={t('服务信息设置')}
+          description={t('服务方与上门服务范围。')}
+          count={t('{count} 项', { count: 2 })}
+        >
+          <div className="config-field">
+            <label>{t('服务方')}</label>
+            <div>{t('门店服务人员（门店地址以门店信息为准）')}</div>
+          </div>
+          <div className="config-field">
+            <label>{t('服务半径')}</label>
+            <div>
+              <div className="pmo-form-row">
+                <InputNumber
+                  style={{ width: 160 }}
+                  min={1}
+                  max={100}
+                  value={toRuleNumber(config.serviceRadius)}
+                  onChange={(next) => setConfig({ ...config, serviceRadius: Number(next ?? 0) })}
                 />
-                <div style={{ marginTop: 8 }}>
-                  <Button icon={<IconPlus />} onClick={addRule}>
-                    {t('添加收费规则')}
-                  </Button>
+                <span className="pmo-unit">{t('公里')}</span>
+              </div>
+              <p className="config-field__help">
+                {t('服务区域以门店为中心设置服务半径，若要修改地址，请前往门店设置--门店信息进行编辑修改；收货地址在服务范围之外的买家将不可下单。')}
+              </p>
+            </div>
+          </div>
+        </SettingsCard>
+
+        <SettingsCard
+          icon={<IconCreditCard />}
+          title={t('上门价格')}
+          description={t('上门服务费与距离溢价规则。')}
+          count={t('{count} 项', { count: 2 })}
+        >
+          <div className="config-field">
+            <label>{t('上门服务费')}</label>
+            <div>
+              <div className="pmo-form-row">
+                <InputNumber
+                  style={{ width: 160 }}
+                  min={0}
+                  placeholder={t('请输入上门费')}
+                  value={toRuleNumber(config.homeFee)}
+                  onChange={(next) => setConfig({ ...config, homeFee: Number(next ?? 0) })}
+                />
+                <span className="pmo-unit">{t('元')}</span>
+              </div>
+              <p className="config-field__help">
+                {t('商家未设置叠加溢价规则时，则所有订单统一上门服务费标准')}
+              </p>
+            </div>
+          </div>
+          <div className="config-field">
+            <label>{t('叠加溢价')}</label>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Switch
+                  aria-label={t('开启叠加溢价')}
+                  checked={Number(config.distancePricingEnabled) === 1}
+                  onChange={(checked) => setConfig({ ...config, distancePricingEnabled: checked ? 1 : 0 })}
+                />
+                <span className="pmo-help">
+                  {t('商家可按服务半径设置叠加溢价规则，最终费用 = 上门费 + 溢价规则附加费')}
+                </span>
+              </div>
+              {Number(config.distancePricingEnabled) === 1 && (
+                <div className="pmo-pricing-block">
+                  <Table
+                    dataSource={config.distancePricingList || []}
+                    rowKey={(row?: DistancePricingRule) =>
+                      `${row?.distanceThreshold ?? 'x'}-${row?.distanceUnit ?? 'x'}`}
+                    columns={pricingColumns}
+                    pagination={false}
+                    empty={t('暂无数据')}
+                  />
+                  <div style={{ marginTop: 8 }}>
+                    <Button icon={<IconPlus />} theme="borderless" type="primary" onClick={addRule}>
+                      {t('添加收费规则')}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('拍照要求')}</div>
-            <div className="pmo-option-block">
-              <div className="pmo-switch-row">
-                <Switch
-                  aria-label={t('服务开始拍照')}
-                  checked={Number(config.beforeServicePhotoEnabled) === 1}
-                  onChange={(checked) => setConfig({ ...config, beforeServicePhotoEnabled: checked ? 1 : 0 })}
-                />
-                <span className="pmo-option-name">{t('服务开始拍照')}</span>
-              </div>
-              <div className="pmo-help">{t('开启后服务人员开始服务时需要拍照上传服务前照片')}</div>
-            </div>
-            <div className="pmo-option-block">
-              <div className="pmo-switch-row">
-                <Switch
-                  aria-label={t('服务完成拍照')}
-                  checked={Number(config.afterServicePhotoEnabled) === 1}
-                  onChange={(checked) => setConfig({ ...config, afterServicePhotoEnabled: checked ? 1 : 0 })}
-                />
-                <span className="pmo-option-name">{t('服务完成拍照')}</span>
-              </div>
-              <div className="pmo-help">{t('开启后服务人员完成订单需拍照上传服务完成后照片')}</div>
+              )}
             </div>
           </div>
+        </SettingsCard>
 
-          <div>
-            <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
-              {t('提交')}
-            </Button>
+        <SettingsCard
+          icon={<IconCamera />}
+          title={t('拍照要求')}
+          description={t('服务开始与完成时的拍照要求。')}
+          count={t('{count} 项', { count: 2 })}
+        >
+          <div className="config-field">
+            <label>{t('服务开始拍照')}</label>
+            <div>
+              <Switch
+                aria-label={t('服务开始拍照')}
+                checked={Number(config.beforeServicePhotoEnabled) === 1}
+                onChange={(checked) => setConfig({ ...config, beforeServicePhotoEnabled: checked ? 1 : 0 })}
+              />
+              <p className="config-field__help">
+                {t('开启后服务人员开始服务时需要拍照上传服务前照片')}
+              </p>
+            </div>
           </div>
+          <div className="config-field">
+            <label>{t('服务完成拍照')}</label>
+            <div>
+              <Switch
+                aria-label={t('服务完成拍照')}
+                checked={Number(config.afterServicePhotoEnabled) === 1}
+                onChange={(checked) => setConfig({ ...config, afterServicePhotoEnabled: checked ? 1 : 0 })}
+              />
+              <p className="config-field__help">
+                {t('开启后服务人员完成订单需拍照上传服务完成后照片')}
+              </p>
+            </div>
+          </div>
+        </SettingsCard>
+
+        <div className="config-actions">
+          <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
+            {t('提交')}
+          </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Spin>
   );
 }

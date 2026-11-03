@@ -11970,5 +11970,9 @@
   "拖动地图上的圆点可调整配送半径，收货地址在配送范围之外的买家将不可下单": "Drag the handle on the map to adjust the delivery radius. Buyers outside the area cannot place orders.",
   "未配置高德地图 JS Key，请先在「地图设置」中配置": "AMap JS Key is not configured. Configure it in Map settings first.",
   "门店未设置经纬度，请先在门店信息中完善地址": "The store has no coordinates. Complete the store address first.",
-  "地图加载失败": "Failed to load the map"
+  "地图加载失败": "Failed to load the map",
+  "上门服务订单的派单方式。": "Dispatch method for home service orders.",
+  "服务方与上门服务范围。": "Service provider and home service range.",
+  "上门服务费与距离溢价规则。": "Home service fee and distance surcharge rules.",
+  "服务开始与完成时的拍照要求。": "Photo requirements before and after service."
 }
