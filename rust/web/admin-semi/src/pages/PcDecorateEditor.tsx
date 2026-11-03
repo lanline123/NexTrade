@@ -4518,6 +4518,16 @@ function PcHeaderPanel({
 
 /* ===================== 模块设置面板（字段驱动） ===================== */
 
+function quickNavSection(field: SettingFieldDef): string | null {
+  if (field.key === 'items') return null;
+  if (['style.fontSize', 'style.fontWeight', 'style.lineHeight', 'style.textColor', 'style.hoverColor'].includes(field.key)) {
+    return '样式设置';
+  }
+  if (['style.iconSize', 'style.iconGap'].includes(field.key)) return '图标设置';
+  if (['style.containerAlign', 'style.itemGap', 'style.singleLine'].includes(field.key)) return '布局设置';
+  return null;
+}
+
 function ModuleSettingsPanel({
   def,
   moduleData,
@@ -4528,25 +4538,57 @@ function ModuleSettingsPanel({
   onChange: (next: Record<string, any>) => void;
 }) {
   const { t } = useI18n();
+  const tabbed = def.type === 'pc-home-quick-nav';
+  const [activeTab, setActiveTab] = useState<'content' | 'extend'>('content');
+  useEffect(() => {
+    setActiveTab('content');
+  }, [def.type]);
+  const visibleSettings = tabbed
+    ? def.settings.filter((field) => (
+        activeTab === 'extend' ? field.key.startsWith('frame.') : !field.key.startsWith('frame.')
+      ))
+    : def.settings;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <Text strong>{t(def.label)}{t('设置')}</Text>
       {def.note && <Text type="tertiary" size="small">{t(def.note)}</Text>}
-      {def.settings.length === 0 && <Text type="tertiary">{t('该模块无可配置项')}</Text>}
-      {def.settings.map((field) => {
-        if (field.showIf && !field.showIf(moduleData)) return null;
-        return (
-          <div key={field.key}>
-            {field.kind !== 'title' && field.kind !== 'container' && (
-              <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>
-                {t(field.label)}
-                {field.hint ? `（${t(field.hint)}）` : ''}
-              </Text>
-            )}
-            <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
-          </div>
-        );
-      })}
+      {tabbed && (
+        <RadioGroup
+          value={activeTab}
+          onChange={(e: any) => setActiveTab(e.target.value === 'extend' ? 'extend' : 'content')}
+          type="button"
+        >
+          <Radio value="content">{t('内容设置')}</Radio>
+          <Radio value="extend">{t('扩展设置')}</Radio>
+        </RadioGroup>
+      )}
+      {tabbed && (
+        <Text strong size="small">{activeTab === 'content' ? t('内容设置') : t('容器设置')}</Text>
+      )}
+      {visibleSettings.length === 0 && <Text type="tertiary">{t('该模块无可配置项')}</Text>}
+      {(() => {
+        let lastSection: string | null = null;
+        return visibleSettings.map((field) => {
+          if (field.showIf && !field.showIf(moduleData)) return null;
+          const section = tabbed && activeTab === 'content' ? quickNavSection(field) : null;
+          const showSection = Boolean(section && section !== lastSection);
+          if (section) lastSection = section;
+          return (
+            <div key={field.key}>
+              {showSection && (
+                <Text strong size="small" style={{ display: 'block', margin: '4px 0 6px' }}>{t(section!)}</Text>
+              )}
+              {field.kind !== 'title' && field.kind !== 'container' && (
+                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>
+                  {t(field.label)}
+                  {field.hint ? `（${t(field.hint)}）` : ''}
+                </Text>
+              )}
+              <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
+            </div>
+          );
+        });
+      })()}
     </div>
   );
 }
