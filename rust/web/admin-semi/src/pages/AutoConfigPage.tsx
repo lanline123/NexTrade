@@ -24,6 +24,8 @@ import SecretInput from '../components/SecretInput';
 
 const { Text } = Typography;
 
+const NEXTRADE_TECH_SUPPORT = '/admin-assets/nextrade-tech-support.svg';
+
 export interface ConfigWhen {
   field?: string;
   equals?: unknown;
@@ -95,7 +97,7 @@ export function TechSupportConfigField({ value, values, update }: ConfigRenderer
   const { t } = useI18n();
   const custom = Number(value) === 0;
   const logo = String(values.poweredByLogo ?? '');
-  const defaultLogo = String(values.defaultTechSupport ?? '');
+  const defaultLogo = String(values.defaultTechSupport ?? '') || `${window.location.origin}${NEXTRADE_TECH_SUPPORT}`;
   return (
     <div className="tech-support-config-field">
       <RadioGroup
@@ -321,6 +323,14 @@ export default function AutoConfigPage({
         // 品牌迁移：历史默认版权中的 Tigshop 统一显示/保存为 NexTrade
         if (typeof data.defaultCopyright === 'string') {
           data.defaultCopyright = data.defaultCopyright.replace(/Tigshop/gi, 'NexTrade');
+        }
+        // 历史默认技术支持图来自第三方 OSS / 旧品牌，统一替换为平台自有标识
+        if (
+          typeof data.defaultTechSupport !== 'string' ||
+          !data.defaultTechSupport ||
+          /tigshop|nlatstore|default_tech_support/i.test(data.defaultTechSupport)
+        ) {
+          data.defaultTechSupport = `${window.location.origin}${NEXTRADE_TECH_SUPPORT}`;
         }
         setValues(data);
         const drafts: Record<string, string> = {};
