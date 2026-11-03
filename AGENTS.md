@@ -3,8 +3,7 @@
 本项目包含 Admin Semi 迁移引擎。开始任何后台页面迁移前，先读：
 
 ```text
-docs/admin-semi-migration-handover.md   ← 交接文档(入口,含进度/坑/工作流/剩余清单)
-docs/admin-semi-migration-engine.md
+docs/HANDOVER.md   ← 唯一交接文档(项目基线/迁移/运行/构建/部署/已知问题)
 ```
 
 快速启动：

@@ -146,7 +146,7 @@ PageSpec 审计会检查抽屉宽度、筛选、行操作、批量操作、列�
 ## 旧系统迁移资料
 
 ```text
-docs/admin-semi-migration-strategy.md   迁移策略
+docs/HANDOVER.md                        唯一交接文档（迁移/运行/构建/部署）
 docs/admin-migration-inventory.json     1170 个旧页面/API/字段清单
 tools/extract-admin-inventory.mjs       旧源码扫描脚本
 ```
