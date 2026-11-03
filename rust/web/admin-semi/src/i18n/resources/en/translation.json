@@ -11880,5 +11880,6 @@
   "待消除图片": "Image to erase",
   "消除结果": "Erasure result",
   "订单处理": "Order processing",
-  "正在准备画布与模块...": "Preparing canvas and modules..."
+  "正在准备画布与模块...": "Preparing canvas and modules...",
+  "未单独上传时使用商城默认 LOGO": "Uses the store default logo when no logo is uploaded."
 }

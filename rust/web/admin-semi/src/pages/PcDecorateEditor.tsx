@@ -3609,6 +3609,8 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
 }
 
 
+const DEFAULT_PC_HEADER_LOGO = `${import.meta.env.BASE_URL}admin-assets/admin-light-logo.jpeg`;
+
 const PC_HEADER_DEFAULTS: Record<string, any> = {
   styleType: 1,
   isWhite: 1,
@@ -3746,9 +3748,7 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
           <div className="dec-pchead-body__grid">
             <div className="dec-pchead-body__left">
               <div className={`dec-pchead-logo dec-pchead-logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
-                {h.logoPic?.picUrl
-                  ? <img src={h.logoPic.picUrl} alt="logo" style={logoStyle} />
-                  : <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a' }}>LOGO</span>}
+                <img src={h.logoPic?.picUrl || DEFAULT_PC_HEADER_LOGO} alt="logo" style={logoStyle} />
               </div>
               {showCategory && (
                 <div className="dec-pchead-cate" style={{ marginTop: Number(h.categoryMarginTop) || 0 }}>
@@ -3795,9 +3795,7 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
           <div className="dec-pchead-overseas__grid">
             <div className="dec-pchead-body__left">
               <div className={`dec-pchead-logo dec-pchead-logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
-                {h.logoPic?.picUrl
-                  ? <img src={h.logoPic.picUrl} alt="logo" style={logoStyle} />
-                  : <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a' }}>LOGO</span>}
+                <img src={h.logoPic?.picUrl || DEFAULT_PC_HEADER_LOGO} alt="logo" style={logoStyle} />
               </div>
               {showCategory && (
                 <div className="dec-pchead-cate" style={{ marginTop: Number(h.categoryMarginTop) || 0 }}>
@@ -4069,13 +4067,18 @@ function PcHeaderPanel({
           <HeaderField label="LOGO图片" value="建议 320*120 PNG 透明底">
             <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('logoPic', { picUrl: '', picThumb: '' })}>{t('默认logo')}</a>
           </HeaderField>
-          <Input
-            value={header.logoPic?.picUrl || ''}
-            onChange={(v) => set('logoPic', { picUrl: v, picThumb: v })}
-            placeholder={t('LOGO 图片 URL')}
-            size="small"
-            style={{ marginTop: 4 }}
-          />
+          <div className="pchead-logo-setting">
+            <img src={header.logoPic?.picUrl || DEFAULT_PC_HEADER_LOGO} alt="logo" />
+            <div className="pchead-logo-setting__main">
+              <Input
+                value={header.logoPic?.picUrl || ''}
+                onChange={(v) => set('logoPic', { picUrl: v, picThumb: v })}
+                placeholder={t('LOGO 图片 URL')}
+                size="small"
+              />
+              <span className="pchead-logo-setting__hint">{t('未单独上传时使用商城默认 LOGO')}</span>
+            </div>
+          </div>
         </div>
         <HeaderField label="logo位置">
           <RadioGroup value={Number(header.logoAlign ?? 1)} onChange={(e: any) => set('logoAlign', Number(e.target.value))} type="button">
@@ -4085,10 +4088,44 @@ function PcHeaderPanel({
           </RadioGroup>
         </HeaderField>
         <HeaderField label="LOGO宽度">
-          <Slider value={Number(header.logoWidth) || 100} min={10} max={160} step={1} style={{ width: 150 }} onChange={(v) => set('logoWidth', typeof v === 'number' ? v : (v as number[])[0])} />
+          <div className="pchead-size-control">
+            <InputNumber
+              value={Number(header.logoWidth) || 100}
+              min={10}
+              max={160}
+              step={1}
+              onChange={(v) => set('logoWidth', Number(v) || 100)}
+              style={{ width: 72 }}
+            />
+            <Slider
+              value={Number(header.logoWidth) || 100}
+              min={10}
+              max={160}
+              step={1}
+              style={{ width: 130 }}
+              onChange={(v) => set('logoWidth', typeof v === 'number' ? v : (v as number[])[0])}
+            />
+          </div>
         </HeaderField>
         <HeaderField label="LOGO高度">
-          <Slider value={Number(header.logoHeight) || 25} min={10} max={60} step={1} style={{ width: 150 }} onChange={(v) => set('logoHeight', typeof v === 'number' ? v : (v as number[])[0])} />
+          <div className="pchead-size-control">
+            <InputNumber
+              value={Number(header.logoHeight) || 25}
+              min={10}
+              max={60}
+              step={1}
+              onChange={(v) => set('logoHeight', Number(v) || 25)}
+              style={{ width: 72 }}
+            />
+            <Slider
+              value={Number(header.logoHeight) || 25}
+              min={10}
+              max={60}
+              step={1}
+              style={{ width: 130 }}
+              onChange={(v) => set('logoHeight', typeof v === 'number' ? v : (v as number[])[0])}
+            />
+          </div>
         </HeaderField>
       </HeaderSection>
 
