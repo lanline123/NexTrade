@@ -1547,3 +1547,28 @@
 .pchead-alpha-color .semi-slider {
   min-width: 50px;
 }
+
+.pchead-alpha-color__number {
+  width: 58px;
+  height: 28px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border: 1px solid var(--semi-color-border);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--semi-color-text-0);
+  font-size: 12px;
+  line-height: 26px;
+  text-align: right;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.pchead-alpha-color__number::-webkit-outer-spin-button,
+.pchead-alpha-color__number::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pchead-alpha-color__number:focus {
+  border-color: var(--semi-color-primary);
+}

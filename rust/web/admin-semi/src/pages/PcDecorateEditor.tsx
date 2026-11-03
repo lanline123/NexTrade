@@ -3330,13 +3330,15 @@ function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: str
         style={{ flex: 1, minWidth: 60 }}
         onChange={(v) => emit(parsed.hex, typeof v === 'number' ? v : (v as number[])[0])}
       />
-      <InputNumber
-        value={parsed.alpha}
+      <input
+        className="pchead-alpha-color__number"
+        type="number"
         min={0}
         max={100}
         step={1}
-        style={{ width: 64 }}
-        onChange={(v) => emit(parsed.hex, Math.max(0, Math.min(100, Number(v) || 0)))}
+        value={parsed.alpha}
+        onChange={(e) => emit(parsed.hex, Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+        aria-label="Alpha"
       />
       <span className="pchead-alpha-color__unit">%</span>
     </div>
