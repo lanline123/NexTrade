@@ -593,6 +593,9 @@ export function IntraCityDelivery() {
                     placeholder={t('请输入 AppSecret')}
                   />
                 </div>
+                <div className="third-party-sheet__tip">
+                  {t('请前往美团配送技术服务合作中心，商家端的开发管理模块直接获取')}
+                </div>
                 <div className="pmo-form-row">
                   <span className="pmo-form-label">{t('接口地址')}</span>
                   <Input

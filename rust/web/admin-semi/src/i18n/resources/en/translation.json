@@ -11964,5 +11964,6 @@
   "留空使用默认地址": "Leave blank to use the default endpoint",
   "请输入 AppKey": "Enter AppKey",
   "请输入 AppSecret": "Enter AppSecret",
-  "第三方配送配置接口暂未接入": "Third-party delivery configuration API is not available yet"
+  "第三方配送配置接口暂未接入": "Third-party delivery configuration API is not available yet",
+  "请前往美团配送技术服务合作中心，商家端的开发管理模块直接获取": "Obtain these credentials from the Meituan Delivery technical service partner center, under the merchant developer management module."
 }

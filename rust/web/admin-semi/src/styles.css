@@ -7003,3 +7003,14 @@ body {
 .third-party-sheet__body > .semi-banner {
   margin-bottom: 16px;
 }
+
+.third-party-sheet__tip {
+  margin: -4px 0 14px 122px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--primary);
+  border-radius: 6px;
+  background: var(--primary-soft);
+  color: #475467;
+  font-size: 12px;
+  line-height: 18px;
+}
