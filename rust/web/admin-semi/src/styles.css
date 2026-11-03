@@ -6734,3 +6734,8 @@ body {
   line-height: 34px;
   color: #1f2329;
 }
+
+/* 单选类字段：标签与“是/否”文字基线对齐 */
+.base-settings-card .auto-config-field:has(.semi-radioGroup) > label {
+  padding-top: 13px;
+}
