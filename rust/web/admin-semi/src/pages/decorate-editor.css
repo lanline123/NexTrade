@@ -1572,3 +1572,32 @@
 .pchead-alpha-color__number:focus {
   border-color: var(--semi-color-primary);
 }
+
+/* 简约风 / 跨境风共用头部主体栅格：统一 padding、间距、右侧列宽 */
+.dec-pchead-body__grid,
+.dec-pchead-overseas__grid {
+  grid-template-columns: max-content minmax(0, 1fr) 252px;
+  column-gap: 20px;
+  align-items: center;
+  min-height: 64px;
+}
+.dec-pchead-body__grid {
+  padding: 14px 24px 0;
+}
+.dec-pchead-overseas {
+  padding: 0;
+}
+.dec-pchead-overseas__grid {
+  padding: 14px 24px 0;
+}
+.dec-pchead-body__right,
+.dec-pchead-overseas__right {
+  width: 252px;
+  min-width: 252px;
+}
+.dec-pchead-body__right {
+  justify-content: flex-end;
+}
+.dec-pchead-nav {
+  margin-top: 8px;
+}
