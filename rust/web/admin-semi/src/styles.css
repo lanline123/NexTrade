@@ -6604,3 +6604,39 @@ body {
 .base-settings-card .semi-card-header-bordered {
   border-bottom: 1px solid #e6ebf0 !important;
 }
+
+/* 分区图标跟随 admin 主题色 */
+.base-settings-card__icon {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* 与图像搜索页保持同宽、同头部高度 */
+.base-settings-list {
+  padding: 0 20px;
+}
+.base-settings-card .semi-card-header {
+  padding: 20px;
+}
+.base-settings-card .semi-card-header-wrapper {
+  padding: 0 !important;
+}
+.base-settings-card__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 分区标题字号/字重与图像搜索一致，头部高度对齐 69px */
+.base-settings-card__title-text strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.base-settings-card__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 13px;
+}
