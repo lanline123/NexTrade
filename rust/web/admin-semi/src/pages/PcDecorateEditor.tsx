@@ -1248,7 +1248,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
           <div className="pc-decorate-lib__inside">
             <div className="pc-decorate-lib__head" onClick={() => setLibOpen((v) => !v)}>
               <span>{t('PC首页模块')}</span>
-              <span className={`pc-decorate-lib__arrow${libOpen ? ' pc-decorate-lib__arrow--open' : ''}`}>▾</span>
+              <span className={`pc-decorate-lib__arrow${libOpen ? ' pc-decorate-lib__arrow--open' : ''}`}><IconChevronDown /></span>
             </div>
             {libOpen && (
               <div className="pc-decorate-lib__list">

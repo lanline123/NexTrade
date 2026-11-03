@@ -917,3 +917,20 @@
 /* 分类导航3 横向列表隐藏滚动条（原版 scrollbar-width: none） */
 .pc-decorate-hide-scrollbar::-webkit-scrollbar { display: none; }
 
+
+/* 模块库折叠箭头：使用标准 Chevron 图标 */
+.pc-decorate-lib__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  color: #6b7280;
+  transform-origin: center;
+}
+.pc-decorate-lib__arrow svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
