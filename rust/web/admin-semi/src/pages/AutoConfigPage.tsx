@@ -698,34 +698,35 @@ export default function AutoConfigPage({
       商城状态: '注册、下单与营业执照状态控制。',
     };
     return (
-      <div className="base-settings">
-        <header className="base-settings__header">
-          <div className="base-settings__heading">
-            <span className="base-settings__eyebrow">{t('基础配置')}</span>
-            <p>{t('管理商城基础信息、备案信息与商城状态。')}</p>
-          </div>
-          <Button theme="solid" type="primary" loading={saving || loading} onClick={save} className="base-settings__save">
-            {t('保存更改')}
-          </Button>
-        </header>
-        <div className="base-settings__sections">
-          {grouped.map((group, index) => (
-            <section className="settings-panel" key={group.title || index}>
-              <header className="settings-panel__head">
-                <span className="settings-panel__icon">{sectionIcons[group.title] || <IconSetting />}</span>
-                <div className="settings-panel__heading">
-                  <h2>{t(group.title || '其他')}</h2>
+      <div className="base-settings-list">
+        {grouped.map((group, index) => (
+          <Card
+            key={group.title || index}
+            className="base-settings-card"
+            title={
+              <div className="base-settings-card__title">
+                <span className="base-settings-card__icon">{sectionIcons[group.title] || <IconSetting />}</span>
+                <span className="base-settings-card__title-text">
+                  <strong>{t(group.title || '其他')}</strong>
                   {sectionDescriptions[group.title] && (
-                    <p>{t(sectionDescriptions[group.title])}</p>
+                    <small>{t(sectionDescriptions[group.title])}</small>
                   )}
-                </div>
-                <span className="settings-panel__count">{t('{count} 项', { count: group.items.length })}</span>
-              </header>
-              <div className="settings-panel__body">
-                {renderSection(group, index)}
+                </span>
               </div>
-            </section>
-          ))}
+            }
+            headerExtraContent={
+              <span className="base-settings-card__count">
+                {t('{count} 项', { count: group.items.length })}
+              </span>
+            }
+          >
+            {renderSection(group, index)}
+          </Card>
+        ))}
+        <div className="base-settings-list__actions">
+          <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
+            {t('保存')}
+          </Button>
         </div>
       </div>
     );
