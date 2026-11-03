@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import ImageUploader from '../components/ImageUploader';
@@ -56,6 +57,7 @@ interface ShopRow {
 }
 
 export default function ShopList() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [merchantModalVisible, setMerchantModalVisible] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<ShopMerchant | null>(null);
@@ -109,11 +111,11 @@ export default function ShopList() {
             >
               {isCertified ? (
                 <Tag color="green" size="small">
-                  (已认证)
+                  {t('(已认证)')}
                 </Tag>
               ) : (
                 <Tag color="grey" size="small">
-                  (未认证)
+                  {t('(未认证)')}
                 </Tag>
               )}
             </span>
@@ -130,13 +132,13 @@ export default function ShopList() {
         let text = record.statusText;
         if (value === 1) {
           badgeType = 'success';
-          text = text || '开业';
+          text = text || t('开业');
         } else if (value === 4) {
           badgeType = 'danger';
-          text = text || '停业';
+          text = text || t('停业');
         } else if (value === 10) {
           badgeType = 'danger';
-          text = text || '打烊';
+          text = text || t('打烊');
         } else {
           text = text || '-';
         }
@@ -175,16 +177,16 @@ export default function ShopList() {
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除店铺',
-      content: `确定删除选中的 ${ids.length} 个店铺？删除后店铺信息将无法恢复。`,
+      title: t('批量删除店铺'),
+      content: t('确定删除选中的 {count} 个店铺？删除后店铺信息将无法恢复。', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/merchant/shop/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((k) => k + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -242,7 +244,7 @@ export default function ShopList() {
               type="danger"
               onClick={() => batchDelete(rows.map((r) => r.shopId), clear)}
             >
-              批量删除
+              {t('批量删除')}
             </Button>
           </Space>
         )}
@@ -253,7 +255,7 @@ export default function ShopList() {
               size="small"
               onClick={() => window.open(`/#/shop?id=${record.shopId}`, '_blank')}
             >
-              店铺首页
+              {t('店铺首页')}
             </Button>
             <Button
               theme="borderless"
@@ -263,7 +265,7 @@ export default function ShopList() {
                 setAdminModalVisible(true);
               }}
             >
-              主账号管理
+              {t('主账号管理')}
             </Button>
           </Space>
         )}
@@ -284,17 +286,17 @@ export default function ShopList() {
               fields: [
                 {
                   field: 'shopTitle',
-                  label: '店铺名称',
+                  label: t('店铺名称'),
                   type: 'input',
                   required: true,
-                  placeholder: '请输入店铺名称',
+                  placeholder: t('请输入店铺名称'),
                 },
                 {
                   field: 'shopLogo',
-                  label: '店铺LOGO',
+                  label: t('店铺LOGO'),
                   type: 'custom',
                   required: true,
-                  extraText: '请统一上传比例为2:1的图片，宽200px，高100px（高清）',
+                  extraText: t('请统一上传比例为2:1的图片，宽200px，高100px（高清）'),
                   render: ({ formApi, values }) => (
                     <div>
                       <ImageUploader
@@ -304,32 +306,32 @@ export default function ShopList() {
                         onChange={(urls) => formApi?.setValue('shopLogo', urls[0] || '')}
                       />
                       <Text type="tertiary" size="small" style={{ marginTop: 4, display: 'block' }}>
-                        请统一上传比例为2:1的图片，宽200px，高100px（高清）
+                        {t('请统一上传比例为2:1的图片，宽200px，高100px（高清）')}
                       </Text>
                     </div>
                   ),
                 },
                 {
                   field: 'status',
-                  label: '店铺状态',
+                  label: t('店铺状态'),
                   type: 'radio',
                   initValue: 1,
                   options: [
-                    { label: '开业', value: 1 },
-                    { label: '停业', value: 4 },
+                    { label: t('开业'), value: 1 },
+                    { label: t('停业'), value: 4 },
                   ],
                 },
                 {
                   field: 'contactMobile',
-                  label: '商家电话',
+                  label: t('商家电话'),
                   type: 'input',
-                  placeholder: '请输入商家电话',
+                  placeholder: t('请输入商家电话'),
                 },
                 {
                   field: 'description',
-                  label: '店铺描述',
+                  label: t('店铺描述'),
                   type: 'textarea',
-                  placeholder: '请输入店铺描述',
+                  placeholder: t('请输入店铺描述'),
                 },
               ],
             },
@@ -339,12 +341,12 @@ export default function ShopList() {
 
       {/* 商户详情弹窗 */}
       <Modal
-        title="商户详情"
+        title={t('商户详情')}
         visible={merchantModalVisible}
         onCancel={() => setMerchantModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setMerchantModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={600}
@@ -352,24 +354,24 @@ export default function ShopList() {
         {selectedMerchant && (
           <Descriptions
             data={[
-              { key: '商户ID', value: selectedMerchant.merchantId },
+              { key: t('商户ID'), value: selectedMerchant.merchantId },
               {
-                key: '商户所属单位',
+                key: t('商户所属单位'),
                 value:
                   selectedMerchant.type === 2
                     ? selectedMerchant.merchantData?.merchantName || selectedMerchant.companyName || '--'
                     : selectedMerchant.corporateName || '--',
               },
               {
-                key: '商户类型',
-                value: selectedMerchant.type === 1 ? '个人' : '企业',
+                key: t('商户类型'),
+                value: selectedMerchant.type === 1 ? t('个人') : t('企业'),
               },
               {
-                key: '认证状态',
-                value: selectedMerchant.status === 1 ? '已认证' : '未认证',
+                key: t('认证状态'),
+                value: selectedMerchant.status === 1 ? t('已认证') : t('未认证'),
               },
               {
-                key: '管理员',
+                key: t('管理员'),
                 value: selectedMerchant.admin?.username || '--',
               },
             ]}
@@ -379,12 +381,12 @@ export default function ShopList() {
 
       {/* 主账号管理弹窗 */}
       <Modal
-        title="主账号管理"
+        title={t('主账号管理')}
         visible={adminModalVisible}
         onCancel={() => setAdminModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setAdminModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={500}
@@ -392,14 +394,14 @@ export default function ShopList() {
         {selectedShop && (
           <Descriptions
             data={[
-              { key: '店铺ID', value: selectedShop.shopId },
-              { key: '店铺名称', value: selectedShop.shopTitle || selectedShop.shopName || '--' },
+              { key: t('店铺ID'), value: selectedShop.shopId },
+              { key: t('店铺名称'), value: selectedShop.shopTitle || selectedShop.shopName || '--' },
               {
-                key: '主账号管理员',
-                value: selectedShop.merchant?.admin?.username || '未绑定主账号',
+                key: t('主账号管理员'),
+                value: selectedShop.merchant?.admin?.username || t('未绑定主账号'),
               },
               {
-                key: '管理员ID',
+                key: t('管理员ID'),
                 value: selectedShop.merchant?.admin?.adminId || '--',
               },
             ]}

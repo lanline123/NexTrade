@@ -14,6 +14,7 @@ import { IconExport } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiGet } from '../api';
+import { useI18n } from '../i18n';
 import {
   salesmanDownloadExport,
   salesmanFormatPrice,
@@ -51,6 +52,7 @@ interface SalesmanDetailRow {
 }
 
 export function SalesmanDetailed() {
+  const { t } = useI18n();
   const [groupOptions, setGroupOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [levelOptions, setLevelOptions] = useState<Array<{ label: string; value: number }>>([]);
 
@@ -72,7 +74,7 @@ export function SalesmanDetailed() {
       const res = await apiGet<any>('/salesman/salesman/commissionDetails', { salesmanId: row.salesmanId });
       setCommission(res || {});
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载佣金详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载佣金详情失败') });
       setCommissionVisible(false);
     } finally {
       setCommissionLoading(false);
@@ -82,7 +84,12 @@ export function SalesmanDetailed() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await salesmanDownloadExport('/salesman/salesman/statisticalDetails', {}, '分销员明细导出.xlsx');
+      await salesmanDownloadExport(
+        '/salesman/salesman/statisticalDetails',
+        {},
+        t('分销员明细导出.xlsx'),
+        t,
+      );
     } finally {
       setExporting(false);
     }
@@ -123,8 +130,8 @@ export function SalesmanDetailed() {
     {
       title: (
         <span>
-          累计销售金额（元）
-          <Tooltip content="累计业绩为实际有效业绩，剔除了退款金额。">
+          {t('累计销售金额（元）')}
+          <Tooltip content={t('累计业绩为实际有效业绩，剔除了退款金额。')}>
             <span className="salesman-tooltip-icon">?</span>
           </Tooltip>
         </span>
@@ -136,8 +143,8 @@ export function SalesmanDetailed() {
     {
       title: (
         <span>
-          支付金额（元）
-          <Tooltip content="所选时间内，分销员客户的支付成功金额（含退款）。目前仅支持展示2023.11后的数据。">
+          {t('支付金额（元）')}
+          <Tooltip content={t('所选时间内，分销员客户的支付成功金额（含退款）。目前仅支持展示2023.11后的数据。')}>
             <span className="salesman-tooltip-icon">?</span>
           </Tooltip>
         </span>
@@ -149,8 +156,8 @@ export function SalesmanDetailed() {
     {
       title: (
         <span>
-          退款金额（元）
-          <Tooltip content="所选时间内，分销员客户的全额退款和部分退款的退款成功金额。目前仅支持展示2023.11后的数据。">
+          {t('退款金额（元）')}
+          <Tooltip content={t('所选时间内，分销员客户的全额退款和部分退款的退款成功金额。目前仅支持展示2023.11后的数据。')}>
             <span className="salesman-tooltip-icon">?</span>
           </Tooltip>
         </span>
@@ -162,8 +169,8 @@ export function SalesmanDetailed() {
     {
       title: (
         <span>
-          支付订单数
-          <Tooltip content="所选时间内，分销员客户的所有已支付的订单。目前仅支持展示2023.11后的数据。">
+          {t('支付订单数')}
+          <Tooltip content={t('所选时间内，分销员客户的所有已支付的订单。目前仅支持展示2023.11后的数据。')}>
             <span className="salesman-tooltip-icon">?</span>
           </Tooltip>
         </span>
@@ -175,8 +182,8 @@ export function SalesmanDetailed() {
     {
       title: (
         <span>
-          退款订单数
-          <Tooltip content="所选时间内，分销员客户的全额退款和部分退款的订单总数。目前仅支持展示2023.11后的数据。">
+          {t('退款订单数')}
+          <Tooltip content={t('所选时间内，分销员客户的全额退款和部分退款的订单总数。目前仅支持展示2023.11后的数据。')}>
             <span className="salesman-tooltip-icon">?</span>
           </Tooltip>
         </span>
@@ -223,14 +230,14 @@ export function SalesmanDetailed() {
         ]}
         toolbarExtra={
           <Button icon={<IconExport />} theme="light" loading={exporting} onClick={handleExport}>
-            导出EXCEL
+            {t('导出EXCEL')}
           </Button>
         }
       />
 
       {/* 佣金详情(旧 cumulativeGain.vue) */}
       <Modal
-        title="佣金详情"
+        title={t('佣金详情')}
         visible={commissionVisible}
         onCancel={() => setCommissionVisible(false)}
         footer={null}
@@ -241,27 +248,27 @@ export function SalesmanDetailed() {
             {(item.baseUserInfo?.nickname || '?').slice(0, 1)}
           </Avatar>
           <span className="name">{item.baseUserInfo?.nickname || '--'}</span>
-          <span className="salesman-muted">手机号：{item.baseUserInfo?.mobile || '--'}</span>
-          <span className="salesman-muted">等级：{item.levelText || '--'}</span>
-          <span className="salesman-muted">所属分组：{item.groupInfo?.groupName || '--'}</span>
+          <span className="salesman-muted">{t('手机号：')}{item.baseUserInfo?.mobile || '--'}</span>
+          <span className="salesman-muted">{t('等级：')}{item.levelText || '--'}</span>
+          <span className="salesman-muted">{t('所属分组：')}{item.groupInfo?.groupName || '--'}</span>
         </div>
         <div className="salesman-detail-band">
-          <div className="txt">商品佣金</div>
+          <div className="txt">{t('商品佣金')}</div>
         </div>
         <div className="salesman-stat-list">
           <div className="item">
-            <div className="txt">商品佣金（¥）</div>
+            <div className="txt">{t('商品佣金（¥）')}</div>
             <div className="num">{salesmanFormatPrice(summary.productTransactionAmount)}</div>
           </div>
           <div className="item">
-            <div className="txt">自动结算佣金（¥）</div>
+            <div className="txt">{t('自动结算佣金（¥）')}</div>
             <div className="num">{salesmanFormatPrice(summary.autoSettlementAmount)}</div>
-            <div className="tips">含待结算{salesmanFormatPrice(summary.autoWaitSettlementAmount)}</div>
+            <div className="tips">{t('含待结算')}{salesmanFormatPrice(summary.autoWaitSettlementAmount)}</div>
           </div>
           <div className="item">
-            <div className="txt">人工结算佣金（¥）</div>
+            <div className="txt">{t('人工结算佣金（¥）')}</div>
             <div className="num">{salesmanFormatPrice(summary.artificialSettlementAmount)}</div>
-            <div className="tips">含待结算{salesmanFormatPrice(summary.artificialWaitSettlementAmount)}</div>
+            <div className="tips">{t('含待结算')}{salesmanFormatPrice(summary.artificialWaitSettlementAmount)}</div>
           </div>
         </div>
       </Modal>
@@ -306,6 +313,7 @@ const ORDER_STATUS_COLOR: Record<number, string> = {
 };
 
 export function CustomerTransactions() {
+  const { t } = useI18n();
   const [exporting, setExporting] = useState(false);
   const [time, setTime] = useState<SalesmanTimeValue>({ dateType: 3, startEndTime: '' });
   // 分销员远程搜索(旧 selectsalesmanList → /salesman/salesman/salesmanList?nickname=)
@@ -330,7 +338,7 @@ export function CustomerTransactions() {
             row.user?.username ||
             row.baseUserInfo?.nickname ||
             row.baseUserInfo?.username ||
-            `分销员${row.salesmanId}`,
+            `${t('分销员')}${row.salesmanId}`,
           value: Number(row.salesmanId),
         })),
       );
@@ -342,7 +350,12 @@ export function CustomerTransactions() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      await salesmanDownloadExport('/salesman/customerTransaction/list', {}, '客户成交订单导出.xlsx');
+      await salesmanDownloadExport(
+        '/salesman/customerTransaction/list',
+        {},
+        t('客户成交订单导出.xlsx'),
+        t,
+      );
     } finally {
       setExporting(false);
     }
@@ -354,8 +367,8 @@ export function CustomerTransactions() {
       dataIndex: 'orderSn',
       render: (_: unknown, row: CustomerTransactionRow) => (
         <div>
-          <div style={{ fontWeight: 600 }}>订单编号：{row.orderSn || '--'}</div>
-          <Text type="tertiary" size="small">下单时间：{row.addTime || '--'}</Text>
+          <div style={{ fontWeight: 600 }}>{t('订单编号：')}{row.orderSn || '--'}</div>
+          <Text type="tertiary" size="small">{t('下单时间：')}{row.addTime || '--'}</Text>
         </div>
       ),
     },
@@ -385,7 +398,7 @@ export function CustomerTransactions() {
         const status = Number(val);
         const text = ORDER_STATUS_TEXT[status] || '--';
         const color = ORDER_STATUS_COLOR[status] || 'black';
-        return color === 'black' ? <span>{text}</span> : <Tag color={color as never}>{text}</Tag>;
+        return color === 'black' ? <span>{t(text)}</span> : <Tag color={color as never}>{t(text)}</Tag>;
       },
     },
   ];
@@ -408,7 +421,7 @@ export function CustomerTransactions() {
           filter
           remote
           style={{ width: 220 }}
-          placeholder="输入分销员昵称查询订单"
+          placeholder={t('输入分销员昵称查询订单')}
           onSearch={searchSalesmen}
           optionList={salesmanOptions}
           value={salesmanId ? Number(salesmanId) : undefined}
@@ -424,7 +437,7 @@ export function CustomerTransactions() {
         filters={[{ field: 'keyword', label: '订单信息', placeholder: '订单号/会员名称', type: 'input' }]}
         toolbarExtra={
           <Button icon={<IconExport />} theme="light" loading={exporting} onClick={handleExport}>
-            导出
+            {t('导出')}
           </Button>
         }
       />

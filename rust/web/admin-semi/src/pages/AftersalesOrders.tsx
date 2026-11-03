@@ -17,6 +17,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import OrderDetailModal from '../components/OrderDetailModal';
 
 const { Text } = Typography;
@@ -71,6 +72,7 @@ const toOptions = (source: Record<string, string> | undefined) =>
 
 /** 售后申请：对应旧版 order/aftersales/List.vue。 */
 export default function AftersalesOrders() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<AftersalesRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -149,11 +151,11 @@ export default function AftersalesOrders() {
     setSaving(true);
     try {
       await apiPost('/order/order/setAdminNote', { id: markTarget, ...markForm });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setMarkTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setSaving(false);
     }
@@ -177,11 +179,11 @@ export default function AftersalesOrders() {
     if (!handleTarget) return;
     const { row, status } = handleTarget;
     if (status === 2 && row.aftersaleType === 1 && !handleForm.returnAddress.trim()) {
-      Toast.error({ content: '退货地址不能为空' });
+      Toast.error({ content: t('退货地址不能为空') });
       return;
     }
     if (status === 3 && !handleForm.reply.trim()) {
-      Toast.error({ content: '拒绝说明不能为空' });
+      Toast.error({ content: t('拒绝说明不能为空') });
       return;
     }
     setSaving(true);
@@ -193,11 +195,11 @@ export default function AftersalesOrders() {
         returnAddress: handleForm.returnAddress,
         reply: handleForm.reply,
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setHandleTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setSaving(false);
     }
@@ -209,10 +211,10 @@ export default function AftersalesOrders() {
       onOk: async () => {
         try {
           await apiPost(`/order/aftersales/${action}`, { id: row.aftersaleId });
-          Toast.success({ content: '操作成功' });
+          Toast.success({ content: t('操作成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
         }
       },
     });
@@ -224,12 +226,12 @@ export default function AftersalesOrders() {
     return (
       <Card className="aftersales-card" key={row.aftersaleId} shadows="hover">
         <div className="aftersales-head">
-          <span className="aftersales-sn">订单编号：{row.orderSn}</span>
-          {row.outTradeNo ? <span className="aftersales-sn">交易单号：{row.outTradeNo}</span> : null}
-          <span className="aftersales-sn">售后编号：{row.aftersalesSn}</span>
-          <span className="aftersales-sn">申请时间：{row.addTime}</span>
-          {row.shippingTime ? <span className="aftersales-sn">发货时间：{row.shippingTime}</span> : null}
-          {row.userName ? <span className="aftersales-sn">申请人：{row.userName}</span> : null}
+          <span className="aftersales-sn">{t('订单编号：')}{row.orderSn}</span>
+          {row.outTradeNo ? <span className="aftersales-sn">{t('交易单号：')}{row.outTradeNo}</span> : null}
+          <span className="aftersales-sn">{t('售后编号：')}{row.aftersalesSn}</span>
+          <span className="aftersales-sn">{t('申请时间：')}{row.addTime}</span>
+          {row.shippingTime ? <span className="aftersales-sn">{t('发货时间：')}{row.shippingTime}</span> : null}
+          {row.userName ? <span className="aftersales-sn">{t('申请人：')}{row.userName}</span> : null}
           <div className="aftersales-head-actions">
             <Button
               theme="borderless"
@@ -242,11 +244,11 @@ export default function AftersalesOrders() {
                   setAftersaleDetail(detail || row);
                   setAftersaleDetailOpen(true);
                 } catch (error) {
-                  Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+                  Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
                 }
               }}
             >
-              售后详情
+              {t('售后详情')}
             </Button>
             {row.orderId ? (
               <Button
@@ -257,7 +259,7 @@ export default function AftersalesOrders() {
                   setDetailOpen(true);
                 }}
               >
-                订单详情
+                {t('订单详情')}
               </Button>
             ) : null}
             {row.orderId ? (
@@ -269,7 +271,7 @@ export default function AftersalesOrders() {
                   setMarkTarget(row.orderId!);
                 }}
               >
-                标记
+                {t('标记')}
               </Button>
             ) : null}
           </div>
@@ -282,7 +284,7 @@ export default function AftersalesOrders() {
             dataSource={row.aftersalesItems || []}
             columns={[
               {
-                title: '退换货商品',
+                title: t('退换货商品'),
                 dataIndex: 'productName',
                 render: (_: unknown, item: AftersalesItem) => (
                   <div className="aftersales-product">
@@ -292,7 +294,7 @@ export default function AftersalesOrders() {
                 ),
               },
               {
-                title: '价格/数量',
+                title: t('价格/数量'),
                 dataIndex: 'price',
                 width: 220,
                 render: (_: unknown, item: AftersalesItem) => (
@@ -300,7 +302,7 @@ export default function AftersalesOrders() {
                     <div>{money(item.price)}</div>
                     <Text type="tertiary" size="small">
                       × {item.quantity}
-                      <span className="aftersales-return-count">(退货数量：{item.number ?? item.quantity})</span>
+                      <span className="aftersales-return-count">({t('退货数量：')}{item.number ?? item.quantity})</span>
                     </Text>
                   </div>
                 ),
@@ -320,22 +322,22 @@ export default function AftersalesOrders() {
             <div className="aftersales-cell aftersales-actions">
               {row.aftersaleType === 1 && canHandle ? (
                 <Button type="danger" theme="borderless" size="small" onClick={() => openHandle(row, 2)}>
-                  同意退货退款
+                  {t('同意退货退款')}
                 </Button>
               ) : null}
               {row.aftersaleType === 1 && canHandle ? (
                 <Button theme="borderless" size="small" onClick={() => openHandle(row, 3)}>
-                  拒绝退货退款
+                  {t('拒绝退货退款')}
                 </Button>
               ) : null}
               {row.aftersaleType === 2 && canHandle ? (
                 <Button type="danger" theme="borderless" size="small" onClick={() => openHandle(row, 2)}>
-                  同意仅退款
+                  {t('同意仅退款')}
                 </Button>
               ) : null}
               {row.aftersaleType === 2 && canHandle ? (
                 <Button theme="borderless" size="small" onClick={() => openHandle(row, 3)}>
-                  拒绝仅退款
+                  {t('拒绝仅退款')}
                 </Button>
               ) : null}
               {canConfirmReceipt ? (
@@ -343,14 +345,14 @@ export default function AftersalesOrders() {
                   type="danger"
                   theme="borderless"
                   size="small"
-                  onClick={() => receiveAction(row, 'receive', '确认收货')}
+                  onClick={() => receiveAction(row, 'receive', t('确认收货'))}
                 >
-                  确认收货
+                  {t('确认收货')}
                 </Button>
               ) : null}
               {canConfirmReceipt ? (
-                <Button theme="borderless" size="small" onClick={() => receiveAction(row, 'rejectReceive', '拒收商品')}>
-                  拒收
+                <Button theme="borderless" size="small" onClick={() => receiveAction(row, 'rejectReceive', t('拒收商品'))}>
+                  {t('拒收')}
                 </Button>
               ) : null}
             </div>
@@ -366,26 +368,26 @@ export default function AftersalesOrders() {
         <Space wrap>
           <Input
             prefix={<IconSearch />}
-            placeholder="订单号"
+            placeholder={t('订单号')}
             value={filters.keyword}
             onChange={(next) => setFilters((c) => ({ ...c, keyword: next }))}
             onEnterPress={search}
             style={{ width: 200 }}
           />
           <Input
-            placeholder="交易单号"
+            placeholder={t('交易单号')}
             value={filters.outTradeNo}
             onChange={(next) => setFilters((c) => ({ ...c, outTradeNo: next }))}
             style={{ width: 180 }}
           />
           <Input
-            placeholder="售后编号"
+            placeholder={t('售后编号')}
             value={filters.aftersalesSn}
             onChange={(next) => setFilters((c) => ({ ...c, aftersalesSn: next }))}
             style={{ width: 180 }}
           />
           <Select
-            placeholder="申请类型"
+            placeholder={t('申请类型')}
             value={filters.aftersaleType === '' ? undefined : filters.aftersaleType}
             optionList={typeOptions}
             onChange={(next) => setFilters((c) => ({ ...c, aftersaleType: next ?? '' }))}
@@ -393,7 +395,7 @@ export default function AftersalesOrders() {
             showClear
           />
           <Select
-            placeholder="退换状态"
+            placeholder={t('退换状态')}
             value={filters.status === '' ? undefined : filters.status}
             optionList={statusOptions}
             onChange={(next) => setFilters((c) => ({ ...c, status: next ?? '' }))}
@@ -401,29 +403,33 @@ export default function AftersalesOrders() {
             showClear
           />
           <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-            搜索
+            {t('搜索')}
           </Button>
-          <Button onClick={reset}>重置</Button>
+          <Button onClick={reset}>{t('重置')}</Button>
           <Button icon={<IconRefresh />} onClick={reload}>
-            刷新
+            {t('刷新')}
           </Button>
         </Space>
 
         <Spin spinning={loading}>
           {rows.map((row) => renderRow(row))}
-          {rows.length === 0 && !loading ? <div className="aftersales-empty">暂无数据</div> : null}
+          {rows.length === 0 && !loading ? <div className="aftersales-empty">{t('暂无数据')}</div> : null}
         </Spin>
 
         <div className="aftersales-pagination">
           <Space>
             <Button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              上一页
+              {t('上一页')}
             </Button>
             <span>
-              第 {page} / {Math.max(1, Math.ceil(total / 10))} 页，共 {total} 条
+              {t('第 {page} / {pages} 页，共 {total} 条', {
+                page,
+                pages: Math.max(1, Math.ceil(total / 10)),
+                total,
+              })}
             </span>
             <Button disabled={page >= Math.ceil(total / 10)} onClick={() => setPage((p) => p + 1)}>
-              下一页
+              {t('下一页')}
             </Button>
           </Space>
         </div>
@@ -437,7 +443,7 @@ export default function AftersalesOrders() {
       />
 
       <Modal
-        title={aftersaleDetail ? `售后详情 ${aftersaleDetail.aftersalesSn}` : '售后详情'}
+        title={aftersaleDetail ? `${t('售后详情')} ${aftersaleDetail.aftersalesSn}` : t('售后详情')}
         visible={aftersaleDetailOpen}
         footer={null}
         onCancel={() => setAftersaleDetailOpen(false)}
@@ -446,30 +452,30 @@ export default function AftersalesOrders() {
         {aftersaleDetail ? (
           <div className="aftersales-detail">
             <div className="aftersales-detail-row">
-              <label>订单编号</label>
+              <label>{t('订单编号')}</label>
               <span>{aftersaleDetail.orderSn}</span>
             </div>
             <div className="aftersales-detail-row">
-              <label>售后编号</label>
+              <label>{t('售后编号')}</label>
               <span>{aftersaleDetail.aftersalesSn}</span>
             </div>
             <div className="aftersales-detail-row">
-              <label>服务类型</label>
+              <label>{t('服务类型')}</label>
               <span>{aftersaleDetail.aftersalesTypeName || '-'}</span>
             </div>
             <div className="aftersales-detail-row">
-              <label>售后状态</label>
+              <label>{t('售后状态')}</label>
               <span>{aftersaleDetail.statusName || '-'}</span>
             </div>
             <div className="aftersales-detail-row">
-              <label>售后原因</label>
+              <label>{t('售后原因')}</label>
               <span>{aftersaleDetail.aftersaleReason || '-'}</span>
             </div>
             {(aftersaleDetail.aftersalesItems || []).map((item) => (
               <div className="aftersales-detail-row" key={item.itemId || item.productId}>
-                <label>退换商品</label>
+                <label>{t('退换商品')}</label>
                 <span>
-                  {item.productName} × {item.quantity}（退货数量：{item.number ?? item.quantity}）
+                  {item.productName} × {item.quantity}（{t('退货数量：')}{item.number ?? item.quantity}）
                 </span>
               </div>
             ))}
@@ -478,17 +484,17 @@ export default function AftersalesOrders() {
       </Modal>
 
       <Modal
-        title="添加标记"
+        title={t('添加标记')}
         visible={Boolean(markTarget)}
         confirmLoading={saving}
         onOk={submitMark}
         onCancel={() => setMarkTarget(null)}
       >
         <div className="aftersales-form">
-          <label>标记</label>
+          <label>{t('标记')}</label>
           <Space wrap>
             <Checkbox checked={markForm.mark === 0} onChange={(e) => setMarkForm((c) => ({ ...c, mark: 0 }))}>
-              无标记
+              {t('无标记')}
             </Checkbox>
             {[1, 2, 3, 4, 5].map((value) => (
               <Checkbox
@@ -496,15 +502,15 @@ export default function AftersalesOrders() {
                 checked={markForm.mark === value}
                 onChange={(e) => setMarkForm((c) => ({ ...c, mark: e.target.checked ? value : 0 }))}
               >
-                标记{value}
+                {t('标记{n}', { n: value })}
               </Checkbox>
             ))}
           </Space>
-          <label>备注</label>
+          <label>{t('备注')}</label>
           <TextArea
             value={markForm.adminNote}
             onChange={(next) => setMarkForm((c) => ({ ...c, adminNote: next }))}
-            placeholder="商家备注"
+            placeholder={t('商家备注')}
           />
         </div>
       </Modal>
@@ -514,10 +520,10 @@ export default function AftersalesOrders() {
           handleTarget
             ? handleTarget.status === 2
               ? handleTarget.row.aftersaleType === 1
-                ? '同意退货退款'
-                : '同意仅退款'
-              : '拒绝退款'
-            : '处理售后'
+                ? t('同意退货退款')
+                : t('同意仅退款')
+              : t('拒绝退款')
+            : t('处理售后')
         }
         visible={Boolean(handleTarget)}
         confirmLoading={saving}
@@ -526,7 +532,7 @@ export default function AftersalesOrders() {
       >
         {handleTarget?.status === 2 ? (
           <div className="aftersales-form">
-            <label>退款金额</label>
+            <label>{t('退款金额')}</label>
             <InputNumber
               style={{ width: 200 }}
               min={0}
@@ -535,23 +541,25 @@ export default function AftersalesOrders() {
             />
             {handleTarget.row.aftersaleType === 1 ? (
               <>
-                <label>退货地址</label>
+                <label>{t('退货地址')}</label>
                 <TextArea
                   value={handleForm.returnAddress}
                   onChange={(next) => setHandleForm((c) => ({ ...c, returnAddress: next }))}
-                  placeholder="请输入退货地址"
+                  placeholder={t('请输入退货地址')}
                 />
               </>
             ) : null}
-            <p className="aftersales-muted">提交后按"同意并发送退货地址"处理，用户将收到退货地址与退款金额。</p>
+            <p className="aftersales-muted">
+              {t('提交后按"同意并发送退货地址"处理，用户将收到退货地址与退款金额。')}
+            </p>
           </div>
         ) : (
           <div className="aftersales-form">
-            <label>拒绝说明</label>
+            <label>{t('拒绝说明')}</label>
             <TextArea
               value={handleForm.reply}
               onChange={(next) => setHandleForm((c) => ({ ...c, reply: next }))}
-              placeholder="请输入拒绝说明"
+              placeholder={t('请输入拒绝说明')}
             />
           </div>
         )}

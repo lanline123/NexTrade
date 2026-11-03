@@ -21,6 +21,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, getToken, apiUpload } from '../api';
+import { useI18n } from '../i18n';
 import OrderDetailModal from '../components/OrderDetailModal';
 
 const { Text } = Typography;
@@ -121,6 +122,7 @@ export default function DeliverOrders({
 }: {
   variant?: DeliverOrdersVariant;
 }) {
+  const { t } = useI18n();
   const tabs = variant === 'deliver' ? TABS : FULL_TABS;
   const variantQuery =
     variant === 'exchange' ? { isExchangeOrder: 1 } : variant === 'cycle' ? { isCycleOrder: 1 } : {};
@@ -249,11 +251,11 @@ export default function DeliverOrders({
       if (markTarget.ids.length === 1) payload.id = markTarget.ids[0];
       else payload.ids = markTarget.ids.join(',');
       await apiPost('/order/order/setAdminNote', payload);
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setMarkTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setSaving(false);
     }
@@ -279,11 +281,11 @@ export default function DeliverOrders({
         trackingNo: deliverForm.trackingNo,
         billRemark: deliverForm.billRemark,
       });
-      Toast.success({ content: '发货成功' });
+      Toast.success({ content: t('发货成功') });
       setDeliverTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '发货失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('发货失败') });
     } finally {
       setSaving(false);
     }
@@ -304,11 +306,11 @@ export default function DeliverOrders({
           trackingNo: batchShipForm.trackingNo,
         });
       }
-      Toast.success({ content: '批量发货成功' });
+      Toast.success({ content: t('批量发货成功') });
       setBatchShipOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量发货失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量发货失败') });
     } finally {
       setSaving(false);
     }
@@ -319,12 +321,12 @@ export default function DeliverOrders({
     try {
       const result = await apiUpload<{ failCount?: number }>('/order/order/batchDeliverImport', file);
       Toast.success({
-        content: result?.failCount ? `导入完成，失败 ${result.failCount} 条` : '导入成功',
+        content: result?.failCount ? t('导入完成，失败 {count} 条', { count: result.failCount }) : t('导入成功'),
       });
       setExcelOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导入失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
     }
   };
 
@@ -341,7 +343,7 @@ export default function DeliverOrders({
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      Toast.error({ content: '模板下载失败' });
+      Toast.error({ content: t('模板下载失败') });
     }
   };
 
@@ -357,10 +359,10 @@ export default function DeliverOrders({
       onOk: async () => {
         try {
           await apiPost(`/order/order/${action}`, { id: row.orderId });
-          Toast.success({ content: '操作成功' });
+          Toast.success({ content: t('操作成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
         }
       },
     });
@@ -370,17 +372,17 @@ export default function DeliverOrders({
     const canShip =
       !row.isPickup && row.availableActions?.deliver && row.shippingTypeId !== 3;
     const consigneeBlock = row.isPickup ? (
-      <div className="order-card-muted">自提订单</div>
+      <div className="order-card-muted">{t('自提订单')}</div>
     ) : (
       <>
         <div className="order-card-muted">
-          收货人：<span className="order-card-strong">{maskName(String(row.consignee || ''))}</span>
+          {t('收货人：')}<span className="order-card-strong">{maskName(String(row.consignee || ''))}</span>
         </div>
         <div className="order-card-muted">
-          手机号：<span className="order-card-strong">{maskMobile(row.mobile)}</span>
+          {t('手机号：')}<span className="order-card-strong">{maskMobile(row.mobile)}</span>
         </div>
         <div className="order-card-muted">
-          收货地址：<span className="order-card-strong">{maskAddress(String(row.userAddress || ''))}</span>
+          {t('收货地址：')}<span className="order-card-strong">{maskAddress(String(row.userAddress || ''))}</span>
         </div>
       </>
     );
@@ -392,18 +394,18 @@ export default function DeliverOrders({
             onChange={(event) => toggleSelect(row.orderId, Boolean(event.target.checked))}
           />
           {row.mark ? (
-            <Tag color={MARK_COLORS[row.mark] || 'blue'}>标记{row.mark}</Tag>
+            <Tag color={MARK_COLORS[row.mark] || 'blue'}>{t('标记{mark}', { mark: row.mark })}</Tag>
           ) : null}
-          <span className="deliver-order-sn">订单编号：{row.orderSn}</span>
+          <span className="deliver-order-sn">{t('订单编号：')}{row.orderSn}</span>
           {row.outTradeNo ? (
             <>
               <span className="deliver-order-divider" />
-              <span className="deliver-order-sn">交易单号：{row.outTradeNo}</span>
+              <span className="deliver-order-sn">{t('交易单号：')}{row.outTradeNo}</span>
             </>
           ) : null}
           <span className="deliver-order-divider" />
-          <span className="deliver-order-sn">下单时间：{row.addTime}</span>
-          {row.isExchangeOrder ? <Tag color="red">积分兑换</Tag> : null}
+          <span className="deliver-order-sn">{t('下单时间：')}{row.addTime}</span>
+          {row.isExchangeOrder ? <Tag color="red">{t('积分兑换')}</Tag> : null}
           {row.orderSource ? <Tag color="cyan">{row.orderSource}</Tag> : null}
           <div className="deliver-order-head-actions">
             <Button
@@ -414,7 +416,7 @@ export default function DeliverOrders({
                 setDetailOpen(true);
               }}
             >
-              查看详情
+              {t('查看详情')}
             </Button>
             <Button
               theme="borderless"
@@ -424,7 +426,7 @@ export default function DeliverOrders({
                 setMarkTarget({ ids: [row.orderId] });
               }}
             >
-              标记
+              {t('标记')}
             </Button>
           </div>
         </div>
@@ -436,7 +438,7 @@ export default function DeliverOrders({
             dataSource={row.items || []}
             columns={[
               {
-                title: '商品信息',
+                title: t('商品信息'),
                 dataIndex: 'productName',
                 render: (_: unknown, item: DeliverOrderItem) => (
                   <div className="deliver-order-product">
@@ -448,7 +450,7 @@ export default function DeliverOrders({
                 ),
               },
               {
-                title: '单价/数量',
+                title: t('单价/数量'),
                 dataIndex: 'price',
                 width: 140,
                 render: (_: unknown, item: DeliverOrderItem) => (
@@ -467,10 +469,10 @@ export default function DeliverOrders({
               <div className="deliver-order-right">
                 <div className="order-card-strong">{money(row.totalAmount)}</div>
                 <Text type="tertiary" size="small">
-                  含运费：{money(row.shippingFee)}
+                  {t('含运费：')}{money(row.shippingFee)}
                 </Text>
                 <Text type="tertiary" size="small">
-                  税费：{money(row.taxRateAmount)}
+                  {t('税费：')}{money(row.taxRateAmount)}
                 </Text>
               </div>
             </div>
@@ -479,7 +481,7 @@ export default function DeliverOrders({
             </div>
             <div className="deliver-order-cell">{consigneeBlock}</div>
             <div className="deliver-order-cell">
-              <div>{row.payTypeId === 1 ? '在线支付' : row.payTypeId === 2 ? '货到付款' : '线下支付'}</div>
+              <div>{row.payTypeId === 1 ? t('在线支付') : row.payTypeId === 2 ? t('货到付款') : t('线下支付')}</div>
               {row.logisticsName ? (
                 <Text type="tertiary" size="small">
                   {row.shippingTypeName || ''} {row.logisticsName}
@@ -488,7 +490,7 @@ export default function DeliverOrders({
             </div>
             <div className="deliver-order-cell">
               <span>{row.orderStatusName || '-'}</span>
-              {row.afterSalesIng ? <Tag color="orange">售后中</Tag> : null}
+              {row.afterSalesIng ? <Tag color="orange">{t('售后中')}</Tag> : null}
             </div>
             <div className="deliver-order-cell deliver-order-actions">
               {row.availableActions?.cancelOrder ? (
@@ -496,10 +498,10 @@ export default function DeliverOrders({
                   theme="borderless"
                   size="small"
                   onClick={() =>
-                    operate(row, 'cancelOrder', '取消订单', '取消后订单将不可恢复，确认取消该订单？')
+                    operate(row, 'cancelOrder', t('取消订单'), t('取消后订单将不可恢复，确认取消该订单？'))
                   }
                 >
-                  取消订单
+                  {t('取消订单')}
                 </Button>
               ) : null}
               {row.availableActions?.delOrder ? (
@@ -507,24 +509,24 @@ export default function DeliverOrders({
                   theme="borderless"
                   size="small"
                   onClick={() =>
-                    operate(row, 'delOrder', '确认删除订单吗？', '被删除的订单可以通过筛选查找并恢复')
+                    operate(row, 'delOrder', t('确认删除订单吗？'), t('被删除的订单可以通过筛选查找并恢复'))
                   }
                 >
-                  删除订单
+                  {t('删除订单')}
                 </Button>
               ) : null}
               {canShip ? (
                 <Button type="danger" theme="borderless" size="small" onClick={() => openDeliver(row)}>
-                  去发货
+                  {t('去发货')}
                 </Button>
               ) : null}
               {!row.isPickup && row.availableActions?.confirmReceipt ? (
                 <Button
                   theme="borderless"
                   size="small"
-                  onClick={() => operate(row, 'confirmReceipt', '确认订单已收货吗？')}
+                  onClick={() => operate(row, 'confirmReceipt', t('确认订单已收货吗？'))}
                 >
-                  确认收货
+                  {t('确认收货')}
                 </Button>
               ) : null}
             </div>
@@ -540,20 +542,20 @@ export default function DeliverOrders({
         <Space wrap>
           <Input
             prefix={<IconSearch />}
-            placeholder="订单号/收货人姓名/商品名称"
+            placeholder={t('订单号/收货人姓名/商品名称')}
             value={filters.keyword}
             onChange={(next) => setFilters((c) => ({ ...c, keyword: next }))}
             onEnterPress={search}
             style={{ width: 240 }}
           />
           <Input
-            placeholder="请输入交易单号"
+            placeholder={t('请输入交易单号')}
             value={filters.outTradeNo}
             onChange={(next) => setFilters((c) => ({ ...c, outTradeNo: next }))}
             style={{ width: 180 }}
           />
           <Input
-            placeholder="详细地址"
+            placeholder={t('详细地址')}
             value={filters.address}
             onChange={(next) => setFilters((c) => ({ ...c, address: next }))}
             style={{ width: 160 }}
@@ -565,7 +567,7 @@ export default function DeliverOrders({
             style={{ width: 160 }}
           />
           <Input
-            placeholder="手机号"
+            placeholder={t('手机号')}
             value={filters.mobile}
             onChange={(next) => setFilters((c) => ({ ...c, mobile: next }))}
             style={{ width: 150 }}
@@ -573,12 +575,12 @@ export default function DeliverOrders({
           <Select
             value={filters.mark}
             optionList={[
-              { label: '全部标记', value: -1 },
-              { label: '标记1', value: 1 },
-              { label: '标记2', value: 2 },
-              { label: '标记3', value: 3 },
-              { label: '标记4', value: 4 },
-              { label: '标记5', value: 5 },
+              { label: t('全部标记'), value: -1 },
+              { label: t('标记1'), value: 1 },
+              { label: t('标记2'), value: 2 },
+              { label: t('标记3'), value: 3 },
+              { label: t('标记4'), value: 4 },
+              { label: t('标记5'), value: 5 },
             ]}
             onChange={(next) => setFilters((c) => ({ ...c, mark: next }))}
             style={{ width: 130 }}
@@ -590,11 +592,11 @@ export default function DeliverOrders({
             style={{ width: 260 }}
           />
           <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-            搜索
+            {t('搜索')}
           </Button>
-          <Button onClick={reset}>重置</Button>
+          <Button onClick={reset}>{t('重置')}</Button>
           <Button icon={<IconRefresh />} onClick={reload}>
-            刷新
+            {t('刷新')}
           </Button>
         </Space>
 
@@ -609,7 +611,7 @@ export default function DeliverOrders({
             tabList={tabs.map((tab) => ({
               tab: (
                 <Badge count={counts[tab.value]} type="danger" overflowCount={999}>
-                  {tab.label}
+                  {t(tab.label)}
                 </Badge>
               ),
               itemKey: String(tab.value),
@@ -620,20 +622,20 @@ export default function DeliverOrders({
               setMarkForm({ mark: 0, adminNote: '' });
               setMarkTarget({ ids: selectedIds });
             }}>
-              批量标记
+              {t('批量标记')}
             </Button>
             <Button disabled={!selectedIds.length || activeTab !== 1} onClick={() => setBatchShipOpen(true)}>
-              批量发货
+              {t('批量发货')}
             </Button>
             <Button disabled={!selectedIds.length || activeTab !== 1} onClick={() => setExcelOpen(true)}>
-              Excel批量发货
+              {t('Excel批量发货')}
             </Button>
             <Button disabled={!selectedIds.length} onClick={() => setExcelOpen(false)}>
-              批量打印
+              {t('批量打印')}
             </Button>
             {selectedIds.length > 0 && (
               <span>
-                已选择：<b>{selectedIds.length}</b> 项
+                {t('已选择：')}<b>{selectedIds.length}</b> {t('项')}
               </span>
             )}
           </Space>
@@ -641,19 +643,19 @@ export default function DeliverOrders({
 
         <Spin spinning={loading}>
           {rows.map((row) => renderOrderCard(row))}
-          {rows.length === 0 && !loading ? <div className="deliver-orders-empty">暂无数据</div> : null}
+          {rows.length === 0 && !loading ? <div className="deliver-orders-empty">{t('暂无数据')}</div> : null}
         </Spin>
 
         <div className="deliver-orders-pagination">
           <Space>
             <Button disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              上一页
+              {t('上一页')}
             </Button>
             <span>
-              第 {page} / {Math.max(1, Math.ceil(total / 10))} 页，共 {total} 条
+              {t('第 {page} / {pages} 页，共 {total} 条', { page, pages: Math.max(1, Math.ceil(total / 10)), total })}
             </span>
             <Button disabled={page >= Math.ceil(total / 10)} onClick={() => setPage((p) => p + 1)}>
-              下一页
+              {t('下一页')}
             </Button>
           </Space>
         </div>
@@ -667,36 +669,36 @@ export default function DeliverOrders({
       />
 
       <Modal
-        title="添加标记"
+        title={t('添加标记')}
         visible={Boolean(markTarget)}
         confirmLoading={saving}
         onOk={submitMark}
         onCancel={() => setMarkTarget(null)}
       >
         <div className="deliver-order-form">
-          <label>标记</label>
+          <label>{t('标记')}</label>
           <RadioGroup
             value={markForm.mark}
             onChange={(event) => setMarkForm((c) => ({ ...c, mark: Number(event.target.value) }))}
           >
-            <Radio value={0}>无标记</Radio>
+            <Radio value={0}>{t('无标记')}</Radio>
             {[1, 2, 3, 4, 5].map((value) => (
               <Radio key={value} value={value}>
-                标记{value}
+                {t('标记{mark}', { mark: value })}
               </Radio>
             ))}
           </RadioGroup>
-          <label>备注</label>
+          <label>{t('备注')}</label>
           <TextArea
             value={markForm.adminNote}
             onChange={(next) => setMarkForm((c) => ({ ...c, adminNote: next }))}
-            placeholder="商家备注"
+            placeholder={t('商家备注')}
           />
         </div>
       </Modal>
 
       <Modal
-        title={deliverTarget ? `订单发货 ${deliverTarget.orderSn}` : '订单发货'}
+        title={deliverTarget ? `${t('订单发货')} ${deliverTarget.orderSn}` : t('订单发货')}
         visible={Boolean(deliverTarget)}
         confirmLoading={saving}
         onOk={submitDeliver}
@@ -704,17 +706,17 @@ export default function DeliverOrders({
         width={620}
       >
         <div className="deliver-order-form">
-          <label>配送方式</label>
+          <label>{t('配送方式')}</label>
           <RadioGroup
             value={deliverForm.shippingMethod}
             onChange={(event) =>
               setDeliverForm((c) => ({ ...c, shippingMethod: Number(event.target.value) }))
             }
           >
-            <Radio value={1}>快递物流</Radio>
-            <Radio value={3}>无需物流</Radio>
+            <Radio value={1}>{t('快递物流')}</Radio>
+            <Radio value={3}>{t('无需物流')}</Radio>
           </RadioGroup>
-          <label>物流公司</label>
+          <label>{t('物流公司')}</label>
           <Select
             style={{ width: 300 }}
             disabled={deliverForm.shippingMethod === 3}
@@ -724,15 +726,15 @@ export default function DeliverOrders({
               value: item.logisticsId,
             }))}
             onChange={(next) => setDeliverForm((c) => ({ ...c, logisticsId: Number(next) }))}
-            placeholder="请选择物流公司"
+            placeholder={t('请选择物流公司')}
           />
-          <label>运单号</label>
+          <label>{t('运单号')}</label>
           <Input
             value={deliverForm.trackingNo}
             onChange={(next) => setDeliverForm((c) => ({ ...c, trackingNo: next }))}
-            placeholder="请输入运单号"
+            placeholder={t('请输入运单号')}
           />
-          <label>发货备注</label>
+          <label>{t('发货备注')}</label>
           <TextArea
             value={deliverForm.billRemark}
             onChange={(next) => setDeliverForm((c) => ({ ...c, billRemark: next }))}
@@ -741,15 +743,15 @@ export default function DeliverOrders({
       </Modal>
 
       <Modal
-        title="订单批量发货"
+        title={t('订单批量发货')}
         visible={batchShipOpen}
         confirmLoading={saving}
         onOk={submitBatchShip}
         onCancel={() => setBatchShipOpen(false)}
       >
         <div className="deliver-order-form">
-          <p className="deliver-order-muted">所选 {selectedIds.length} 个订单将统一使用以下物流信息发货。</p>
-          <label>物流公司</label>
+          <p className="deliver-order-muted">{t('所选 {count} 个订单将统一使用以下物流信息发货。', { count: selectedIds.length })}</p>
+          <label>{t('物流公司')}</label>
           <Select
             style={{ width: 300 }}
             value={batchShipForm.logisticsId}
@@ -758,18 +760,18 @@ export default function DeliverOrders({
               value: item.logisticsId,
             }))}
             onChange={(next) => setBatchShipForm((c) => ({ ...c, logisticsId: Number(next) }))}
-            placeholder="请选择物流公司"
+            placeholder={t('请选择物流公司')}
           />
-          <label>运单号</label>
+          <label>{t('运单号')}</label>
           <Input
             value={batchShipForm.trackingNo}
             onChange={(next) => setBatchShipForm((c) => ({ ...c, trackingNo: next }))}
-            placeholder="请输入运单号"
+            placeholder={t('请输入运单号')}
           />
         </div>
       </Modal>
 
-      <Modal title="Excel批量发货" visible={excelOpen} onCancel={() => setExcelOpen(false)} footer={null}>
+      <Modal title={t('Excel批量发货')} visible={excelOpen} onCancel={() => setExcelOpen(false)} footer={null}>
         <div className="deliver-order-form">
           <Space>
             <label className="semi-upload-file" style={{ cursor: 'pointer' }}>
@@ -783,12 +785,12 @@ export default function DeliverOrders({
                 }}
               />
               <Button theme="solid" type="primary">
-                选择 Excel 文件
+                {t('选择 Excel 文件')}
               </Button>
             </label>
-            <Button onClick={downloadTemplate}>下载导入模板</Button>
+            <Button onClick={downloadTemplate}>{t('下载导入模板')}</Button>
           </Space>
-          <p className="deliver-order-muted">按模板填写订单号与物流信息后导入，导入结果以提示为准。</p>
+          <p className="deliver-order-muted">{t('按模板填写订单号与物流信息后导入，导入结果以提示为准。')}</p>
         </div>
       </Modal>
     </div>

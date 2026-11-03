@@ -43,11 +43,14 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig, OptionItem } from '../framework/types';
 
 const { Text } = Typography;
+
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 /* ============================== 通用工具 ============================== */
 
@@ -82,10 +85,10 @@ const toastError = (error: unknown, fallback: string) => {
 const formatDate = (date?: Date) => (date ? date.toISOString().split('T')[0] : '');
 
 /** 供应商状态（1 在供 / 2 断供）。 */
-const renderVendorStatus = (value: unknown) => {
+const renderVendorStatus = (value: unknown, t: Translate) => {
   const status = Number(value);
-  if (status === 1) return <Tag color="green">在供</Tag>;
-  if (status === 2) return <Tag color="red">断供</Tag>;
+  if (status === 1) return <Tag color="green">{t('在供')}</Tag>;
+  if (status === 2) return <Tag color="red">{t('断供')}</Tag>;
   return <span>--</span>;
 };
 
@@ -126,6 +129,7 @@ interface TipRow {
  * - 状态开关 POST shop/tip/updateField {id, field: 'status', val}
  */
 export function ShopTipManage() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [statusOptions, setStatusOptions] = useState<OptionItem[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -187,11 +191,11 @@ export function ShopTipManage() {
           status: Number(payload.status ?? 1),
         },
       );
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      toastError(error, '保存失败');
+      toastError(error, t('保存失败'));
     } finally {
       setSaving(false);
     }
@@ -200,31 +204,31 @@ export function ShopTipManage() {
   const toggleStatus = async (row: TipRow, next: number) => {
     try {
       await apiPost('/shop/tip/updateField', { id: row.tipId, field: 'status', val: next });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       reload();
     } catch (error) {
-      toastError(error, '更新状态失败');
+      toastError(error, t('更新状态失败'));
     }
   };
 
   const deleteTip = async (row: TipRow) => {
     try {
       await apiPost('/shop/tip/del', { id: row.tipId });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       reload();
     } catch (error) {
-      toastError(error, '删除失败');
+      toastError(error, t('删除失败'));
     }
   };
 
   const batchDelete = async (rows: TipRow[], clear: () => void) => {
     try {
       await apiPost('/shop/tip/batch', { type: 'del', ids: rows.map((row) => row.tipId) });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       clear();
       reload();
     } catch (error) {
-      toastError(error, '批量删除失败');
+      toastError(error, t('批量删除失败'));
     }
   };
 
@@ -241,21 +245,21 @@ export function ShopTipManage() {
         fields: [
           {
             field: 'tipName',
-            label: '标签名称',
+            label: t('标签名称'),
             type: 'input',
             required: true,
-            placeholder: '输入标签名称（最多 8 字）',
+            placeholder: t('输入标签名称（最多 8 字）'),
             width: 320,
           },
           {
             field: 'status',
-            label: '状态',
+            label: t('状态'),
             type: 'radio',
             required: true,
             initValue: 1,
             options: [
-              { label: '启用', value: 1 },
-              { label: '禁用', value: 0 },
+              { label: t('启用'), value: 1 },
+              { label: t('禁用'), value: 0 },
             ],
           },
         ],
@@ -308,7 +312,7 @@ export function ShopTipManage() {
           { field: 'keyword', label: '标签名称', type: 'input', placeholder: '输入标签名称', width: 220 },
           {
             field: 'status',
-            label: '状态',
+            label: t('状态'),
             type: 'select',
             options: statusOptions,
             placeholder: '状态',
@@ -319,23 +323,23 @@ export function ShopTipManage() {
         rowActions={(row) => (
           <>
             <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-              编辑
+              {t('编辑')}
             </Button>
-            <Popconfirm title="确定删除该标签吗？" onConfirm={() => deleteTip(row)}>
+            <Popconfirm title={t('确定删除该标签吗？')} onConfirm={() => deleteTip(row)}>
               <Button theme="borderless" type="danger" size="small">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </>
         )}
         batchActions={(rows, clear) => (
-          <Popconfirm title="您确认要批量删除所选标签吗？" onConfirm={() => batchDelete(rows, clear)}>
-            <Button type="danger">批量删除</Button>
+          <Popconfirm title={t('您确认要批量删除所选标签吗？')} onConfirm={() => batchDelete(rows, clear)}>
+            <Button type="danger">{t('批量删除')}</Button>
           </Popconfirm>
         )}
         toolbarExtra={
           <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-            新增标签
+            {t('新增标签')}
           </Button>
         }
       />
@@ -391,6 +395,7 @@ function ShopGroupFormModal({
   onSaved: () => void;
 }) {
   const readonly = mode === 'detail';
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [groupName, setGroupName] = useState('');
@@ -428,9 +433,9 @@ function ShopGroupFormModal({
         );
         if (!records.length) break;
       }
-      setPicked(ids.map((id) => members.get(id) || { shopId: id, shopTitle: `店铺#${id}` }));
+      setPicked(ids.map((id) => members.get(id) || { shopId: id, shopTitle: t('店铺#{id}', { id }) }));
     } catch (error) {
-      toastError(error, '加载分组详情失败');
+      toastError(error, t('加载分组详情失败'));
     } finally {
       setLoading(false);
     }
@@ -451,7 +456,7 @@ function ShopGroupFormModal({
       setPickRows(records.map((row) => ({ shopId: Number(row.shopId), shopTitle: row.shopTitle })));
       setPickTotal(Number(result?.total || 0));
     } catch (error) {
-      toastError(error, '加载店铺列表失败');
+      toastError(error, t('加载店铺列表失败'));
     } finally {
       setPickLoading(false);
     }
@@ -490,15 +495,15 @@ function ShopGroupFormModal({
 
   const save = async () => {
     if (!groupName.trim()) {
-      Toast.error({ content: '请输入分组名称' });
+      Toast.error({ content: t('请输入分组名称') });
       return;
     }
     if (Array.from(groupName.trim()).length > 20) {
-      Toast.error({ content: '分组名称最多20个字符' });
+      Toast.error({ content: t('分组名称最多20个字符') });
       return;
     }
     if (!picked.length) {
-      Toast.error({ content: '请选择店铺' });
+      Toast.error({ content: t('请选择店铺') });
       return;
     }
     setSaving(true);
@@ -513,10 +518,10 @@ function ShopGroupFormModal({
           shopIds: picked.map((item) => Number(item.shopId)),
         },
       );
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       onSaved();
     } catch (error) {
-      toastError(error, '保存失败');
+      toastError(error, t('保存失败'));
     } finally {
       setSaving(false);
     }
@@ -535,9 +540,9 @@ function ShopGroupFormModal({
         />
       ),
     },
-    { title: '店铺ID', dataIndex: 'shopId', width: 110 },
+    { title: t('店铺ID'), dataIndex: 'shopId', width: 110 },
     {
-      title: '店铺名称',
+      title: t('店铺名称'),
       dataIndex: 'shopTitle',
       render: (value: string) => <span>{value || '--'}</span>,
     },
@@ -545,18 +550,18 @@ function ShopGroupFormModal({
 
   return (
     <Modal
-      title={mode === 'create' ? '新增店铺分组' : mode === 'edit' ? '编辑分组' : '分组详情'}
+      title={mode === 'create' ? t('新增店铺分组') : mode === 'edit' ? t('编辑分组') : t('分组详情')}
       visible={visible}
       width={800}
       onCancel={onCancel}
       footer={
         readonly ? (
-          <Button onClick={onCancel}>关闭</Button>
+          <Button onClick={onCancel}>{t('关闭')}</Button>
         ) : (
           <Space>
-            <Button onClick={onCancel}>取消</Button>
+            <Button onClick={onCancel}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={saving} onClick={save}>
-              保存
+              {t('保存')}
             </Button>
           </Space>
         )
@@ -566,30 +571,30 @@ function ShopGroupFormModal({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex' }}>
             <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>
-              <span style={{ color: 'var(--semi-color-danger)' }}>{readonly ? '' : '* '}</span>分组名称
+              <span style={{ color: 'var(--semi-color-danger)' }}>{readonly ? '' : '* '}</span>{t('分组名称')}
             </span>
             <Input
               style={{ width: 360 }}
               value={groupName}
               disabled={readonly}
-              placeholder="请输入分组名称"
+              placeholder={t('请输入分组名称')}
               onChange={(value) => setGroupName(value)}
             />
           </div>
           <div style={{ display: 'flex' }}>
-            <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>备注</span>
+            <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>{t('备注')}</span>
             <TextArea
               style={{ width: 560 }}
               rows={4}
               value={remark}
               disabled={readonly}
-              placeholder="请输入分组备注"
+              placeholder={t('请输入分组备注')}
               onChange={(value) => setRemark(value)}
             />
           </div>
           <div style={{ display: 'flex' }}>
             <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>
-              <span style={{ color: 'var(--semi-color-danger)' }}>{readonly ? '' : '* '}</span>分组店铺
+              <span style={{ color: 'var(--semi-color-danger)' }}>{readonly ? '' : '* '}</span>{t('分组店铺')}
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
               {!readonly && (
@@ -597,7 +602,7 @@ function ShopGroupFormModal({
                   <Input
                     prefix={<IconSearch />}
                     style={{ width: 220 }}
-                    placeholder="请输入店铺名称"
+                    placeholder={t('请输入店铺名称')}
                     value={pickKeyword}
                     showClear
                     onChange={(value) => setPickKeyword(value)}
@@ -612,15 +617,15 @@ function ShopGroupFormModal({
                       setPickApplied(pickKeyword);
                     }}
                   >
-                    搜索
+                    {t('搜索')}
                   </Button>
                   <Button disabled={!picked.length} onClick={() => setPicked([])}>
-                    清空
+                    {t('清空')}
                   </Button>
                 </Space>
               )}
               <div style={{ marginBottom: 8 }}>
-                已选择 <b>{picked.length}</b> 家店铺
+                {t('已选择')} <b>{picked.length}</b> {t('家店铺')}
               </div>
               <Table<ShopLite>
                 size="small"
@@ -651,6 +656,7 @@ function ShopGroupFormModal({
  * 店铺分组：对应原版 views/shop/shopGroup/List.vue（shopType=1，接口前缀 merchant/shopGroup）。
  */
 export function ShopGroupManage() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<GroupModalMode>('create');
@@ -666,15 +672,15 @@ export function ShopGroupManage() {
 
   const removeGroup = (row: GroupRow) => {
     Modal.confirm({
-      title: '确认删除该分组？',
-      content: '删除后仅解除分组关联，不会删除店铺或门店。',
+      title: t('确认删除该分组？'),
+      content: t('删除后仅解除分组关联，不会删除店铺或门店。'),
       onOk: async () => {
         try {
           await apiPost('/merchant/shopGroup/del', { groupId: row.groupId, shopType: 1 });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          toastError(error, '删除失败');
+          toastError(error, t('删除失败'));
         }
       },
     });
@@ -724,19 +730,19 @@ export function ShopGroupManage() {
         rowActions={(row) => (
           <>
             <Button theme="borderless" size="small" onClick={() => openModal('edit', row)}>
-              编辑
+              {t('编辑')}
             </Button>
             <Button theme="borderless" size="small" onClick={() => openModal('detail', row)}>
-              详情
+              {t('详情')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => removeGroup(row)}>
-              删除
+              {t('删除')}
             </Button>
           </>
         )}
         toolbarExtra={
           <Button theme="solid" type="primary" icon={<IconPlus />} onClick={() => openModal('create')}>
-            新增分组
+            {t('新增分组')}
           </Button>
         }
       />
@@ -810,12 +816,12 @@ const latestClaim = (row: ClaimOrderRow): ClaimInfo | null => {
 const claimIdOf = (row: ClaimOrderRow) =>
   Number(latestClaim(row)?.claimId || (row as any)?.offlinePaymentClaimId || 0);
 
-const renderClaimStatus = (row: ClaimOrderRow) => {
+const renderClaimStatus = (row: ClaimOrderRow, t: Translate) => {
   const status = Number(row.offlinePaymentClaimStatus);
   const label = row.offlinePaymentClaimStatusName || CLAIM_STATUS_OPTIONS.find((item) => item.value === status)?.label;
-  if (status === 0) return <Tag color="orange">{label || '待审核'}</Tag>;
-  if (status === 1) return <Tag color="green">{label || '审核通过'}</Tag>;
-  if (status === 2) return <Tag color="red">{label || '审核驳回'}</Tag>;
+  if (status === 0) return <Tag color="orange">{t(label || '待审核')}</Tag>;
+  if (status === 1) return <Tag color="green">{t(label || '审核通过')}</Tag>;
+  if (status === 2) return <Tag color="red">{t(label || '审核驳回')}</Tag>;
   return <span>--</span>;
 };
 
@@ -835,6 +841,7 @@ function OfflineClaimAuditModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [claim, setClaim] = useState<ClaimInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<1 | 2>(1);
@@ -849,7 +856,7 @@ function OfflineClaimAuditModal({
       .then((data) => {
         if (alive) setClaim(data || null);
       })
-      .catch((error) => toastError(error, '获取认款信息失败'))
+      .catch((error) => toastError(error, t('获取认款信息失败')))
       .finally(() => {
         if (alive) setLoading(false);
       });
@@ -861,7 +868,7 @@ function OfflineClaimAuditModal({
   const submit = async () => {
     const pass = result === 1;
     if (!pass && !rejectReason.trim()) {
-      Toast.error({ content: '请填写驳回原因' });
+      Toast.error({ content: t('请填写驳回原因') });
       return;
     }
     setSubmitting(true);
@@ -873,10 +880,10 @@ function OfflineClaimAuditModal({
           ? { auditRemark: auditRemark.trim() || undefined }
           : { rejectReason: rejectReason.trim() }),
       });
-      Toast.success({ content: pass ? '审核通过' : '已驳回' });
+      Toast.success({ content: pass ? t('审核通过') : t('已驳回') });
       onSaved();
     } catch (error) {
-      toastError(error, '操作失败');
+      toastError(error, t('操作失败'));
     } finally {
       setSubmitting(false);
     }
@@ -884,17 +891,17 @@ function OfflineClaimAuditModal({
 
   const infoRows: Array<{ label: string; value: ReactNode }> = claim
     ? [
-        { label: '订单号', value: claim.orderSn || '--' },
-        { label: '认款状态', value: claim.statusName || '待确认收款' },
-        { label: '付款金额', value: money(claim.claimedAmount) },
-        { label: '转账时间', value: formatTimeValue(claim.transferTime) },
+        { label: t('订单号'), value: claim.orderSn || '--' },
+        { label: t('认款状态'), value: claim.statusName || t('待确认收款') },
+        { label: t('付款金额'), value: money(claim.claimedAmount) },
+        { label: t('转账时间'), value: formatTimeValue(claim.transferTime) },
         {
-          label: '付款人姓名/账号',
+          label: t('付款人姓名/账号'),
           value: `${claim.payerName || '--'}${claim.payerAccount ? ` / ${claim.payerAccount}` : ''}`,
         },
-        { label: '转账流水号', value: claim.bankSerialNo || '--' },
+        { label: t('转账流水号'), value: claim.bankSerialNo || '--' },
         {
-          label: '付款凭证',
+          label: t('付款凭证'),
           value: (claim.voucherUrls || []).length ? (
             <Space spacing={8} wrap>
               {(claim.voucherUrls || []).map((url) => (
@@ -912,25 +919,25 @@ function OfflineClaimAuditModal({
           ),
         },
         ...(claim.rejectReason
-          ? [{ label: '驳回原因', value: <span style={{ color: 'var(--semi-color-danger)' }}>{claim.rejectReason}</span> }]
+          ? [{ label: t('驳回原因'), value: <span style={{ color: 'var(--semi-color-danger)' }}>{claim.rejectReason}</span> }]
           : []),
       ]
     : [];
 
   return (
     <Modal
-      title={readonly ? '付款申报详情' : '审核线下收款'}
+      title={readonly ? t('付款申报详情') : t('审核线下收款')}
       visible
       width={620}
       onCancel={onClose}
       footer={
         readonly ? (
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>{t('关闭')}</Button>
         ) : (
           <Space>
-            <Button onClick={onClose}>取消</Button>
+            <Button onClick={onClose}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={submitting} onClick={submit}>
-              提交
+              {t('提交')}
             </Button>
           </Space>
         )
@@ -957,30 +964,30 @@ function OfflineClaimAuditModal({
             ))}
           </div>
         ) : (
-          !loading && <Text type="tertiary">未获取到认款信息</Text>
+          !loading && <Text type="tertiary">{t('未获取到认款信息')}</Text>
         )}
 
         {!readonly && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex' }}>
               <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>
-                <span style={{ color: 'var(--semi-color-danger)' }}>* </span>审核结果
+                <span style={{ color: 'var(--semi-color-danger)' }}>* </span>{t('审核结果')}
               </span>
               <RadioGroup
                 value={result}
                 onChange={(event: any) => setResult(Number(event.target.value) === 2 ? 2 : 1)}
               >
-                <Radio value={1}>通过</Radio>
-                <Radio value={2}>驳回</Radio>
+                <Radio value={1}>{t('通过')}</Radio>
+                <Radio value={2}>{t('驳回')}</Radio>
               </RadioGroup>
             </div>
             {result === 1 ? (
               <div style={{ display: 'flex' }}>
-                <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>备注</span>
+                <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>{t('备注')}</span>
                 <TextArea
                   rows={4}
                   maxCount={200}
-                  placeholder="请输入备注（选填）"
+                  placeholder={t('请输入备注（选填）')}
                   value={auditRemark}
                   onChange={(value) => setAuditRemark(value)}
                 />
@@ -988,12 +995,12 @@ function OfflineClaimAuditModal({
             ) : (
               <div style={{ display: 'flex' }}>
                 <span style={{ width: 90, textAlign: 'right', paddingRight: 12, paddingTop: 6, flexShrink: 0 }}>
-                  <span style={{ color: 'var(--semi-color-danger)' }}>* </span>驳回原因
+                  <span style={{ color: 'var(--semi-color-danger)' }}>* </span>{t('驳回原因')}
                 </span>
                 <TextArea
                   rows={4}
                   maxCount={200}
-                  placeholder="请输入驳回原因"
+                  placeholder={t('请输入驳回原因')}
                   value={rejectReason}
                   onChange={(value) => setRejectReason(value)}
                 />
@@ -1011,6 +1018,7 @@ function OfflineClaimAuditModal({
  * 列表展示含线下认款申报的订单，行操作「审核」调 detail + audit。
  */
 export function OfflinePaymentClaimManage() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [auditTarget, setAuditTarget] = useState<{ claimId: number; readonly: boolean } | null>(null);
 
@@ -1058,7 +1066,7 @@ export function OfflinePaymentClaimManage() {
       title: '审核状态',
       dataIndex: 'offlinePaymentClaimStatus',
       width: 110,
-      render: (_value: unknown, row: ClaimOrderRow) => renderClaimStatus(row),
+      render: (_value: unknown, row: ClaimOrderRow) => renderClaimStatus(row, t),
     },
   ];
 
@@ -1095,7 +1103,7 @@ export function OfflinePaymentClaimManage() {
                   size="small"
                   onClick={() => setAuditTarget({ claimId, readonly: false })}
                 >
-                  审核
+                  {t('审核')}
                 </Button>
               )}
               <Button
@@ -1103,7 +1111,7 @@ export function OfflinePaymentClaimManage() {
                 size="small"
                 onClick={() => setAuditTarget({ claimId, readonly: true })}
               >
-                详情
+                {t('详情')}
               </Button>
             </>
           );
@@ -1221,6 +1229,7 @@ const FieldRow = ({ label, required, children }: { label: string; required?: boo
  * 上半配置表单（detail 回显 / regions / save / check），下半图库构建（build / task 轮询 / retry）。
  */
 export function ImageSearchManage() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -1297,7 +1306,7 @@ export function ImageSearchManage() {
     } catch (error) {
       if (!disposedRef.current) {
         setLoadFailed(true);
-        toastError(error, '读取图像搜索配置失败');
+        toastError(error, t('读取图像搜索配置失败'));
       }
     } finally {
       if (!disposedRef.current) setLoading(false);
@@ -1361,13 +1370,13 @@ export function ImageSearchManage() {
 
   const validateForm = () => {
     if (!form.enabled) return '';
-    if (!String(form.aliyun.accessKeyId || '').trim()) return '请输入AccessKey ID';
-    if (!String(form.aliyun.accessKeySecret || '').trim()) return '请输入AccessKey Secret';
-    if (!form.indexName?.trim()) return '请输入实例名称';
+    if (!String(form.aliyun.accessKeyId || '').trim()) return t('请输入AccessKey ID');
+    if (!String(form.aliyun.accessKeySecret || '').trim()) return t('请输入AccessKey Secret');
+    if (!form.indexName?.trim()) return t('请输入实例名称');
     if (!INDEX_NAME_PATTERN.test(form.indexName.trim())) {
-      return '实例名称只能是 1～20 位字母、数字、下划线或短横线';
+      return t('实例名称只能是 1～20 位字母、数字、下划线或短横线');
     }
-    if (!form.aliyun.regionId) return '请选择实例地域';
+    if (!form.aliyun.regionId) return t('请选择实例地域');
     return '';
   };
 
@@ -1390,14 +1399,14 @@ export function ImageSearchManage() {
         disabledOld = true;
       }
       await saveSettings(form, version);
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
       // 保存不返回新版本号，重新读取后才能继续编辑
       await loadSettings();
     } catch (error) {
-      toastError(error, '保存失败');
+      toastError(error, t('保存失败'));
       if (disabledOld) {
         Toast.warning({
-          content: '原配置已关闭，新配置保存失败，图像搜索当前处于关闭状态。请检查新配置后重新提交',
+          content: t('原配置已关闭，新配置保存失败，图像搜索当前处于关闭状态。请检查新配置后重新提交'),
           duration: 5,
         });
       }
@@ -1408,7 +1417,7 @@ export function ImageSearchManage() {
 
   const ensureSavedEnabled = () => {
     if (savedEnabledRef.current) return true;
-    Toast.warning({ content: '请先开启图像搜索并点击提交保存' });
+    Toast.warning({ content: t('请先开启图像搜索并点击提交保存') });
     return false;
   };
 
@@ -1417,10 +1426,10 @@ export function ImageSearchManage() {
     setChecking(true);
     try {
       const result = await apiPost<{ reachable: boolean }>('/setting/imageSearch/check');
-      if (result?.reachable) Toast.success({ content: '连接正常' });
-      else Toast.error({ content: '连接失败' });
+      if (result?.reachable) Toast.success({ content: t('连接正常') });
+      else Toast.error({ content: t('连接失败') });
     } catch (error) {
-      toastError(error, '连接失败');
+      toastError(error, t('连接失败'));
     } finally {
       setChecking(false);
     }
@@ -1429,15 +1438,15 @@ export function ImageSearchManage() {
   const onBuild = () => {
     if (!ensureSavedEnabled()) return;
     Modal.confirm({
-      title: '构建图库',
-      content: '构建会按当前商品重新对账图库，可能新增、更新并删除图库中的图片，确定开始吗？',
+      title: t('构建图库'),
+      content: t('构建会按当前商品重新对账图库，可能新增、更新并删除图库中的图片，确定开始吗？'),
       onOk: async () => {
         setBuilding(true);
         try {
           const next = await apiPost<ImageSearchJob>('/setting/imageSearch/build');
           watchJob(next ?? null);
         } catch (error) {
-          toastError(error, '构建任务发起失败');
+          toastError(error, t('构建任务发起失败'));
         } finally {
           setBuilding(false);
         }
@@ -1450,10 +1459,10 @@ export function ImageSearchManage() {
     try {
       // 原版 retry 以 query 参数传 taskId
       await apiPost(`/setting/imageSearch/retry?taskId=${job.id}`);
-      Toast.success({ content: '已重新发起构建' });
+      Toast.success({ content: t('已重新发起构建') });
       void refreshJob(job.id);
     } catch (error) {
-      toastError(error, '重试失败');
+      toastError(error, t('重试失败'));
     }
   };
 
@@ -1476,7 +1485,7 @@ export function ImageSearchManage() {
           type="warning"
           closeIcon={null}
           style={{ marginBottom: 16 }}
-          description="保存配置不会自动构建图库。首次启用或更换实例后，请按顺序操作：保存并开启图像搜索 → 连接检测 → 构建图库至完成 → 勾选终端并保存"
+          description={t('保存配置不会自动构建图库。首次启用或更换实例后，请按顺序操作：保存并开启图像搜索 → 连接检测 → 构建图库至完成 → 勾选终端并保存')}
         />
       )}
       {loadFailed && (
@@ -1484,39 +1493,39 @@ export function ImageSearchManage() {
           type="danger"
           closeIcon={null}
           style={{ marginBottom: 16 }}
-          description="读取图像搜索配置失败，请刷新页面重试"
+          description={t('读取图像搜索配置失败，请刷新页面重试')}
         />
       )}
 
       <Spin spinning={loading}>
         <Card
-          title="图像搜索"
+          title={t('图像搜索')}
           style={{ marginBottom: 16 }}
           headerExtraContent={
             <Space>
               <Switch checked={form.enabled} onChange={(checked: boolean) => update({ enabled: checked })} />
-              <Text type="tertiary">{form.enabled ? '已开启' : '已关闭'}</Text>
+              <Text type="tertiary">{form.enabled ? t('已开启') : t('已关闭')}</Text>
             </Space>
           }
         >
           <Text type="tertiary" size="small">
-            开启后，用户可通过拍照或上传图片搜索相似商品。关闭不会清空已保存的配置
+            {t('开启后，用户可通过拍照或上传图片搜索相似商品。关闭不会清空已保存的配置')}
           </Text>
         </Card>
 
         {form.enabled && (
           <>
-            <Card title="连接配置" style={{ marginBottom: 16 }}>
-              <FieldRow label="接口服务">
+            <Card title={t('连接配置')} style={{ marginBottom: 16 }}>
+              <FieldRow label={t('接口服务')}>
                 <RadioGroup
                   value={form.provider}
                   onChange={(event: any) => update({ provider: String(event.target.value) })}
                 >
-                  <Radio value="aliyun">阿里云</Radio>
+                  <Radio value="aliyun">{t('阿里云')}</Radio>
                 </RadioGroup>
               </FieldRow>
 
-              <FieldRow label="开启终端">
+              <FieldRow label={t('开启终端')}>
                 <div>
                   <Space>
                     <Checkbox
@@ -1525,7 +1534,7 @@ export function ImageSearchManage() {
                         update({ h5Enabled: Boolean((event.target as HTMLInputElement).checked) })
                       }
                     >
-                      H5 / 小程序
+                      {t('H5 / 小程序')}
                     </Checkbox>
                     <Checkbox
                       checked={form.appEnabled}
@@ -1546,7 +1555,7 @@ export function ImageSearchManage() {
                   </Space>
                   <div style={{ marginTop: 6 }}>
                     <Text type="tertiary" size="small">
-                      首次启用时可先不勾选终端，待连接检测通过并完成图库构建后再勾选
+                      {t('首次启用时可先不勾选终端，待连接检测通过并完成图库构建后再勾选')}
                     </Text>
                   </div>
                 </div>
@@ -1564,12 +1573,12 @@ export function ImageSearchManage() {
                       setSecretValue('');
                     }}
                   >
-                    编辑
+                    {t('编辑')}
                   </Button>
                 </div>
                 <div style={{ marginTop: 4 }}>
                   <Text type="tertiary" size="small">
-                    编辑完成后，点击下方提交按钮确认修改，请确保填写正确的AccessKeyId
+                    {t('编辑完成后，点击下方提交按钮确认修改，请确保填写正确的AccessKeyId')}
                   </Text>
                 </div>
               </FieldRow>
@@ -1586,37 +1595,37 @@ export function ImageSearchManage() {
                       setSecretValue('');
                     }}
                   >
-                    编辑
+                    {t('编辑')}
                   </Button>
                 </div>
                 <div style={{ marginTop: 4 }}>
                   <Text type="tertiary" size="small">
-                    编辑完成后，点击下方提交按钮确认修改，请确保填写正确的AccessKeySecret
+                    {t('编辑完成后，点击下方提交按钮确认修改，请确保填写正确的AccessKeySecret')}
                   </Text>
                 </div>
               </FieldRow>
 
-              <FieldRow label="实例名称" required>
+              <FieldRow label={t('实例名称')} required>
                 <div>
                   <Input
                     style={{ width: 400 }}
                     value={form.indexName}
-                    placeholder="请输入实例名称"
+                    placeholder={t('请输入实例名称')}
                     onChange={(value) => update({ indexName: value })}
                   />
                   <div style={{ marginTop: 4 }}>
                     <Text type="tertiary" size="small">
-                      请填写阿里云后台图片搜索的实例名称（1～20 位字母、数字、下划线或短横线）
+                      {t('请填写阿里云后台图片搜索的实例名称（1～20 位字母、数字、下划线或短横线）')}
                     </Text>
                   </div>
                 </div>
               </FieldRow>
 
-              <FieldRow label="实例地域" required>
+              <FieldRow label={t('实例地域')} required>
                 <div>
                   <Select
                     style={{ width: 400 }}
-                    placeholder="请选择实例地域"
+                    placeholder={t('请选择实例地域')}
                     filter
                     showClear
                     optionList={regions.map((item) => ({ label: item.label, value: item.value }))}
@@ -1625,13 +1634,13 @@ export function ImageSearchManage() {
                   />
                   <div style={{ marginTop: 4 }}>
                     <Text type="tertiary" size="small">
-                      选择阿里云商品图片搜索实例所在地域，实例地域不可变更，地域不一致将调用失败。
+                      {t('选择阿里云商品图片搜索实例所在地域，实例地域不可变更，地域不一致将调用失败。')}
                     </Text>
                   </div>
                 </div>
               </FieldRow>
 
-              <FieldRow label="相似度阈值">
+              <FieldRow label={t('相似度阈值')}>
                 <div>
                   <InputNumber
                     style={{ width: 160 }}
@@ -1644,13 +1653,13 @@ export function ImageSearchManage() {
                   />
                   <div style={{ marginTop: 4 }}>
                     <Text type="tertiary" size="small">
-                      填写相似度分数阈值后，只返回图片相似度分数大于等于阈值的图片信息，不填默认为0%。
+                      {t('填写相似度分数阈值后，只返回图片相似度分数大于等于阈值的图片信息，不填默认为0%。')}
                     </Text>
                   </div>
                 </div>
               </FieldRow>
 
-              <FieldRow label="查询结果">
+              <FieldRow label={t('查询结果')}>
                 <div>
                   <InputNumber
                     style={{ width: 160 }}
@@ -1661,36 +1670,36 @@ export function ImageSearchManage() {
                     onChange={(value: number | string) =>
                       update({ maxResults: Number(value) || MAX_RESULTS_LIMIT })
                     }
-                    addonAfter="条"
+                    addonAfter={t('条')}
                   />
                   <div style={{ marginTop: 4 }}>
                     <Text type="tertiary" size="small">
-                      图片搜索结果最大支持500条数据，考虑系统性能压力，建议调小查询结果数量
+                      {t('图片搜索结果最大支持500条数据，考虑系统性能压力，建议调小查询结果数量')}
                     </Text>
                   </div>
                 </div>
               </FieldRow>
 
               <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-                提 交
+                {t('提 交')}
               </Button>
             </Card>
 
-            <Card title="图库" style={{ marginBottom: 16 }}>
-              <FieldRow label="连接检测">
+            <Card title={t('图库')} style={{ marginBottom: 16 }}>
+              <FieldRow label={t('连接检测')}>
                 <div>
                   <Button loading={checking} onClick={onCheck}>
-                    检测
+                    {t('检测')}
                   </Button>
                   <div style={{ marginTop: 4 }}>
                     <Text type="tertiary" size="small">
-                      检测通过只代表可以访问服务，不代表图库已构建完成
+                      {t('检测通过只代表可以访问服务，不代表图库已构建完成')}
                     </Text>
                   </div>
                 </div>
               </FieldRow>
 
-              <FieldRow label="构建图库">
+              <FieldRow label={t('构建图库')}>
                 <div>
                   <Button
                     theme="solid"
@@ -1700,11 +1709,11 @@ export function ImageSearchManage() {
                     onClick={onBuild}
                     icon={<IconPlus />}
                   >
-                    {jobActive ? '构建中' : '开始构建'}
+                    {jobActive ? t('构建中') : t('开始构建')}
                   </Button>
                   <div style={{ marginTop: 4 }}>
                     <Text type="tertiary" size="small">
-                      按当前商品重新对账图库，会新增、更新并删除已不需要的图片，商品较多时耗时较长
+                      {t('按当前商品重新对账图库，会新增、更新并删除已不需要的图片，商品较多时耗时较长')}
                     </Text>
                   </div>
                 </div>
@@ -1721,14 +1730,14 @@ export function ImageSearchManage() {
                 >
                   <Space style={{ marginBottom: 10 }}>
                     <Tag color={JOB_STATE_MAP[job.state || '']?.color || 'grey'}>
-                      {JOB_STATE_MAP[job.state || '']?.label || job.state || '未知'}
+                      {t(JOB_STATE_MAP[job.state || '']?.label || job.state || '未知')}
                     </Tag>
                     <Text type="tertiary" size="small">
-                      任务 #{job.id} {job.indexName ? `· ${job.indexName}` : ''}
+                      {t('任务')} #{job.id} {job.indexName ? `· ${job.indexName}` : ''}
                     </Text>
                     {job.state === 'FAILED' && (
                       <Button size="small" onClick={onRetry}>
-                        重试
+                        {t('重试')}
                       </Button>
                     )}
                   </Space>
@@ -1737,20 +1746,20 @@ export function ImageSearchManage() {
                   )}
                   <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                     <Text type="secondary" size="small">
-                      扫描商品：{job.scanned ?? 0}
+                      {t('扫描商品：')}{job.scanned ?? 0}
                     </Text>
                     <Text type="secondary" size="small">
-                      新增图片：{job.added ?? 0}
+                      {t('新增图片：')}{job.added ?? 0}
                     </Text>
                     <Text type="secondary" size="small">
-                      跳过图片：{job.skipped ?? 0}
+                      {t('跳过图片：')}{job.skipped ?? 0}
                     </Text>
                     <Text type="secondary" size="small">
-                      删除图片：{job.deleted ?? 0}
+                      {t('删除图片：')}{job.deleted ?? 0}
                     </Text>
                     {Number(job.attempts) > 0 && job.state === 'PENDING' && (
                       <Text type="warning" size="small">
-                        连续失败 {job.attempts} 次，自动重试中
+                        {t('连续失败 {count} 次，自动重试中', { count: Number(job.attempts) })}
                       </Text>
                     )}
                   </div>
@@ -1776,7 +1785,7 @@ export function ImageSearchManage() {
       >
         <Input
           value={secretValue}
-          placeholder="输入新值，留空表示保留原值"
+          placeholder={t('输入新值，留空表示保留原值')}
           onChange={(value) => setSecretValue(value)}
         />
       </Modal>
@@ -1825,6 +1834,7 @@ const ORDER_TABS = [
  * - 最近交易记录 GET order/order/list（vendorId=-2，按 tab 切 orderStatus/isSettlement/payStatus）
  */
 export function VendorAccountManage() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [account, setAccount] = useState<VendorAccountInfo>({});
   const [orderTab, setOrderTab] = useState('all');
@@ -1834,7 +1844,7 @@ export function VendorAccountManage() {
     setCapturedAt(todayText());
     apiGet<any>('/vendor/adminVendorAccount/index')
       .then((data) => setAccount(data || {}))
-      .catch((error) => toastError(error, '加载资金概览失败'))
+      .catch((error) => toastError(error, t('加载资金概览失败')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -1871,7 +1881,7 @@ export function VendorAccountManage() {
       title: '供应商状态',
       dataIndex: 'status',
       width: 110,
-      render: (value: number) => renderVendorStatus(value),
+      render: (value: number) => renderVendorStatus(value, t),
     },
   ];
 
@@ -1911,13 +1921,13 @@ export function VendorAccountManage() {
   return (
     <div style={{ padding: 20 }}>
       <Spin spinning={loading}>
-        <SectionTitle>所有供应商总余额: 截止时间: [{capturedAt || '--'}]</SectionTitle>
+        <SectionTitle>{t('所有供应商总余额: 截止时间:')} [{capturedAt || '--'}]</SectionTitle>
         <Card style={{ marginBottom: 8 }}>
           <Row gutter={16}>
             <Col span={8}>
-              <Tooltip content="可用供应商余额=供应商余额-不可用供应商余额">
+              <Tooltip content={t('可用供应商余额=供应商余额-不可用供应商余额')}>
                 <div style={{ background: 'var(--semi-color-fill-0)', padding: 20, borderRadius: 6 }}>
-                  <Text type="secondary">余额总结余</Text>
+                  <Text type="secondary">{t('余额总结余')}</Text>
                   <div
                     style={{
                       fontSize: 26,
@@ -1932,9 +1942,9 @@ export function VendorAccountManage() {
               </Tooltip>
             </Col>
             <Col span={8}>
-              <Tooltip content="交易未完成的订单总额，消费者确认收货后将自动转入供应商余额">
+              <Tooltip content={t('交易未完成的订单总额，消费者确认收货后将自动转入供应商余额')}>
                 <div style={{ background: 'var(--semi-color-fill-0)', padding: 20, borderRadius: 6 }}>
-                  <Text type="secondary">待结算总额</Text>
+                  <Text type="secondary">{t('待结算总额')}</Text>
                   <div
                     style={{
                       fontSize: 26,
@@ -1949,9 +1959,9 @@ export function VendorAccountManage() {
               </Tooltip>
             </Col>
             <Col span={8}>
-              <Tooltip content="提现中或者退款中的冻结供应商余额">
+              <Tooltip content={t('提现中或者退款中的冻结供应商余额')}>
                 <div style={{ background: 'var(--semi-color-fill-0)', padding: 20, borderRadius: 6 }}>
-                  <Text type="secondary">不可用余额</Text>
+                  <Text type="secondary">{t('不可用余额')}</Text>
                   <div
                     style={{
                       fontSize: 26,
@@ -1969,7 +1979,7 @@ export function VendorAccountManage() {
         </Card>
       </Spin>
 
-      <SectionTitle>供应商余额排行</SectionTitle>
+      <SectionTitle>{t('供应商余额排行')}</SectionTitle>
       <ListPage<VendorRankRow>
         api="/vendor/adminVendorAccount/listFund"
         query={{ sortField: 'vendorMoney', sortOrder: 'desc' }}
@@ -1979,12 +1989,12 @@ export function VendorAccountManage() {
         columns={rankColumns}
       />
 
-      <SectionTitle>最近交易记录</SectionTitle>
+      <SectionTitle>{t('最近交易记录')}</SectionTitle>
       <Tabs
         type="card"
         activeKey={orderTab}
         onChange={(key) => setOrderTab(key as string)}
-        tabList={ORDER_TABS.map((tab) => ({ itemKey: tab.itemKey, tab: tab.tab }))}
+        tabList={ORDER_TABS.map((tab) => ({ itemKey: tab.itemKey, tab: t(tab.tab) }))}
         style={{ marginBottom: 8 }}
       />
       <ListPage<VendorOrderRow>
@@ -2020,7 +2030,7 @@ interface VendorFundLogRow {
 }
 
 /** 变动资金列：after-before 差值着色，附变更后金额（与原版 financialLog/List.vue 一致）。 */
-const renderMoneyChange = (before: unknown, after: unknown) => {
+const renderMoneyChange = (before: unknown, after: unknown, t: Translate) => {
   const diff = Number(after || 0) - Number(before || 0);
   const color =
     diff > 0 ? 'var(--semi-color-info)' : diff < 0 ? 'var(--semi-color-danger)' : undefined;
@@ -2030,7 +2040,7 @@ const renderMoneyChange = (before: unknown, after: unknown) => {
       <span style={{ color }}>{text}</span>
       {Number(after) ? (
         <span style={{ color: 'var(--semi-color-text-2)', fontSize: 12 }}>
-          （变更后金额:{Number(after).toFixed(2)}）
+          {t('（变更后金额:{amount}）', { amount: Number(after).toFixed(2) })}
         </span>
       ) : null}
     </span>
@@ -2042,6 +2052,7 @@ const renderMoneyChange = (before: unknown, after: unknown) => {
  * vendorId 传入时按该供应商过滤（供应商资金列表行操作弹窗复用）。
  */
 export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<VendorFundLogRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -2071,7 +2082,7 @@ export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
         setTotal(Number(result?.total || 0));
       })
       .catch((error) => {
-        if (alive) toastError(error, '加载资金日志失败');
+        if (alive) toastError(error, t('加载资金日志失败'));
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -2099,33 +2110,33 @@ export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
 
   const columns: ColumnConfig<VendorFundLogRow>[] = [
     {
-      title: '账户变动时间',
+      title: t('账户变动时间'),
       dataIndex: 'addTime',
       width: 170,
       render: (value: string) => <span>{value || '--'}</span>,
     },
     {
-      title: '供应商名称',
+      title: t('供应商名称'),
       dataIndex: 'vendorName',
       width: 160,
       render: (value: string) => <span>{value || '--'}</span>,
     },
     {
-      title: '变动资金账户',
+      title: t('变动资金账户'),
       dataIndex: 'newVendorMoney',
       width: 240,
       render: (_value: unknown, row: VendorFundLogRow) =>
-        renderMoneyChange(row.vendorMoney, row.newVendorMoney),
+        renderMoneyChange(row.vendorMoney, row.newVendorMoney, t),
     },
     {
-      title: '冻结资金账户',
+      title: t('冻结资金账户'),
       dataIndex: 'newFrozenMoney',
       width: 250,
       render: (_value: unknown, row: VendorFundLogRow) =>
-        renderMoneyChange(row.frozenMoney, row.newFrozenMoney),
+        renderMoneyChange(row.frozenMoney, row.newFrozenMoney, t),
     },
     {
-      title: '变动原因',
+      title: t('变动原因'),
       dataIndex: 'changeReasons',
       render: (value: string) => <span>{value || '--'}</span>,
     },
@@ -2138,7 +2149,7 @@ export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
           <Input
             prefix={<IconSearch />}
             style={{ width: 200 }}
-            placeholder="输入供应商名称"
+            placeholder={t('输入供应商名称')}
             value={keyword}
             showClear
             onChange={(value) => setKeyword(value)}
@@ -2146,7 +2157,7 @@ export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
           />
           <DatePicker
             type="dateRange"
-            placeholder={['开始日期', '结束日期']}
+            placeholder={[t('开始日期'), t('结束日期')]}
             value={dates as any}
             onChange={(value: any) =>
               setDates([value?.[0] as Date | undefined, value?.[1] as Date | undefined])
@@ -2154,9 +2165,9 @@ export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
             style={{ width: 260 }}
           />
           <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-            搜索
+            {t('搜索')}
           </Button>
-          <Button onClick={reset}>重置</Button>
+          <Button onClick={reset}>{t('重置')}</Button>
         </Space>
       </div>
       <Table<VendorFundLogRow>
@@ -2182,6 +2193,7 @@ export function VendorFundLogTable({ vendorId }: { vendorId?: number }) {
  * GET vendor/adminVendorAccount/listFund（keyword/status 筛选），行操作「查看资金日志」打开 logList 弹窗。
  */
 export function VendorFundsManage() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [logTarget, setLogTarget] = useState<VendorFundRow | null>(null);
 
@@ -2203,7 +2215,7 @@ export function VendorFundsManage() {
       title: '供应商状态',
       dataIndex: 'status',
       width: 110,
-      render: (value: number) => renderVendorStatus(value),
+      render: (value: number) => renderVendorStatus(value, t),
     },
     {
       title: '供应商资金',
@@ -2257,13 +2269,13 @@ export function VendorFundsManage() {
         columns={columns}
         rowActions={(row) => (
           <Button theme="borderless" size="small" onClick={() => setLogTarget(row)}>
-            查看资金日志
+            {t('查看资金日志')}
           </Button>
         )}
       />
 
       <Modal
-        title={`资金日志 - ${logTarget?.vendorName || ''}`}
+        title={`${t('资金日志')} - ${logTarget?.vendorName || ''}`}
         visible={Boolean(logTarget)}
         width={920}
         footer={null}
@@ -2280,9 +2292,10 @@ export function VendorFundsManage() {
  * GET vendor/adminVendorAccount/logList（keyword / startTime / endTime 筛选）。
  */
 export function VendorFinancialLogManage() {
+  const { t } = useI18n();
   return (
     <div style={{ padding: 20 }}>
-      <Card title="资金日志">
+      <Card title={t('资金日志')}>
         <VendorFundLogTable />
       </Card>
     </div>

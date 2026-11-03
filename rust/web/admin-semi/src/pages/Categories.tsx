@@ -14,6 +14,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconRefresh } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import ImageUploader from '../components/ImageUploader';
 import type { CategoryRow } from '../types';
@@ -64,11 +65,12 @@ function CategorySwitch({
   value?: number;
   onChange: () => void;
 }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
 
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -80,7 +82,7 @@ function CategorySwitch({
       setChecked(next);
       onChange();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
 
@@ -88,6 +90,7 @@ function CategorySwitch({
 }
 
 export default function Categories() {
+  const { t } = useI18n();
   const [tree, setTree] = useState<CategoryRow[]>([]);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [selectedKeys, setSelectedKeys] = useState<Array<string | number>>([]);
@@ -120,7 +123,7 @@ export default function Categories() {
       } while (all.length < total && page <= 10);
       setTree(buildTree(all));
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '分类加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('分类加载失败') });
     } finally {
       setLoading(false);
     }
@@ -145,7 +148,7 @@ export default function Categories() {
   const visibleRows = useMemo(() => flattenTree(tree, expanded), [tree, expanded]);
 
   const categoryOptions = (excludeId?: number) =>
-    [{ label: '顶级分类', value: 0 }].concat(
+    [{ label: t('顶级分类'), value: 0 }].concat(
       flatCategories
         .filter((item) => item.categoryId !== excludeId)
         .map((item) => ({
@@ -182,11 +185,11 @@ export default function Categories() {
           isHot: payload.isHot ? 1 : 0,
         },
       );
-      Toast.success({ content: drawerMode === 'create' ? '分类已创建' : '分类已更新' });
+      Toast.success({ content: drawerMode === 'create' ? t('分类已创建') : t('分类已更新') });
       setDrawerVisible(false);
       refresh();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存分类失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存分类失败') });
       throw error;
     } finally {
       setSaving(false);
@@ -195,15 +198,17 @@ export default function Categories() {
 
   const removeCategory = (record: CategoryRow) => {
     Modal.confirm({
-      title: '删除商品分类',
-      content: `确定删除分类「${record.categoryName}」？有子分类或商品时可能无法删除。`,
+      title: t('删除商品分类'),
+      content: t('确定删除分类「{name}」？有子分类或商品时可能无法删除。', {
+        name: record.categoryName,
+      }),
       onOk: async () => {
         try {
           await apiPost('/product/category/del', { id: record.categoryId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           refresh();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -211,7 +216,7 @@ export default function Categories() {
 
   const moveCategory = async () => {
     if (!moveRow || !targetCategoryId) {
-      Toast.warning({ content: '请选择目标分类' });
+      Toast.warning({ content: t('请选择目标分类') });
       return;
     }
     try {
@@ -219,31 +224,31 @@ export default function Categories() {
         id: moveRow.categoryId,
         targetCatId: targetCategoryId,
       });
-      Toast.success({ content: '商品转移成功' });
+      Toast.success({ content: t('商品转移成功') });
       setMoveRow(null);
       setTargetCategoryId(undefined);
       refresh();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '商品转移失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('商品转移失败') });
     }
   };
 
   const batchDelete = () => {
     if (!selectedKeys.length) return;
     Modal.confirm({
-      title: '批量删除商品分类',
-      content: `确定删除选中的 ${selectedKeys.length} 个分类？`,
+      title: t('批量删除商品分类'),
+      content: t('确定删除选中的 {count} 个分类？', { count: selectedKeys.length }),
       onOk: async () => {
         try {
           await apiPost('/product/category/batch', {
             ids: selectedKeys.map(Number),
             type: 'del',
           });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           setSelectedKeys([]);
           refresh();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -251,7 +256,7 @@ export default function Categories() {
 
   const columns = [
     {
-      title: '分类名称',
+      title: t('分类名称'),
       dataIndex: 'categoryName',
       width: 260,
       render: (value: string, record: CategoryRow) => (
@@ -279,15 +284,15 @@ export default function Categories() {
       ),
     },
     {
-      title: '分类图片',
+      title: t('分类图片'),
       dataIndex: 'categoryPic',
       width: 100,
       render: (value: string) =>
         value ? <Image src={value} width={30} height={30} style={{ objectFit: 'contain' }} /> : '-',
     },
-    { title: '单位', dataIndex: 'measureUnit', width: 90, render: (value: string) => value || '-' },
+    { title: t('单位'), dataIndex: 'measureUnit', width: 90, render: (value: string) => value || '-' },
     {
-      title: '是否热门',
+      title: t('是否热门'),
       dataIndex: 'isHot',
       width: 90,
       render: (value: number, record: CategoryRow) => (
@@ -295,25 +300,25 @@ export default function Categories() {
       ),
     },
     {
-      title: '是否显示',
+      title: t('是否显示'),
       dataIndex: 'isShow',
       width: 90,
       render: (value: number, record: CategoryRow) => (
         <CategorySwitch row={record} field="isShow" value={value} onChange={refresh} />
       ),
     },
-    { title: '排序', dataIndex: 'sortOrder', width: 80 },
+    { title: t('排序'), dataIndex: 'sortOrder', width: 80 },
     {
-      title: '操作',
+      title: t('操作'),
       width: 230,
       fixed: 'right' as const,
       render: (_: unknown, record: CategoryRow) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small" onClick={() => openEdit(record)}>
-            编辑
+            {t('编辑')}
           </Button>
           <Button theme="borderless" size="small" onClick={() => openCreate(record.categoryId)}>
-            添加子分类
+            {t('添加子分类')}
           </Button>
           <Dropdown
             trigger="click"
@@ -321,17 +326,17 @@ export default function Categories() {
             menu={[
               {
                 node: 'item',
-                name: '商品转移',
+                name: t('商品转移'),
                 onClick: () => {
                   setMoveRow(record);
                   setTargetCategoryId(undefined);
                 },
               },
-              { node: 'item', name: '删除', onClick: () => removeCategory(record) },
+              { node: 'item', name: t('删除'), onClick: () => removeCategory(record) },
             ]}
           >
             <Button theme="borderless" size="small">
-              更多
+              {t('更多')}
             </Button>
           </Dropdown>
         </Space>
@@ -344,8 +349,10 @@ export default function Categories() {
       <Card className="table-card" shadows="hover">
         <div className="table-toolbar">
           <Space>
-            <Text type="tertiary">共 {flatCategories.length} 个分类</Text>
-            {selectedKeys.length > 0 && <Text type="tertiary">已选 {selectedKeys.length} 项</Text>}
+            <Text type="tertiary">{t('共 {count} 个分类', { count: flatCategories.length })}</Text>
+            {selectedKeys.length > 0 && (
+              <Text type="tertiary">{t('已选 {count} 项', { count: selectedKeys.length })}</Text>
+            )}
           </Space>
           <Space>
             <Button
@@ -353,13 +360,13 @@ export default function Categories() {
               onClick={() => setReloadKey((key) => key + 1)}
               loading={loading}
             >
-              刷新
+              {t('刷新')}
             </Button>
             <Button onClick={batchDelete} disabled={!selectedKeys.length}>
-              批量删除
+              {t('批量删除')}
             </Button>
             <Button theme="solid" type="primary" icon={<IconPlus />} onClick={() => openCreate(0)}>
-              添加分类
+              {t('添加分类')}
             </Button>
           </Space>
         </div>
@@ -400,20 +407,20 @@ export default function Categories() {
               fields: [
                 {
                   field: 'categoryName',
-                  label: '分类名称',
+                  label: t('分类名称'),
                   required: true,
-                  placeholder: '请输入分类名称',
+                  placeholder: t('请输入分类名称'),
                 },
-                { field: 'shortName', label: '分类短名' },
+                { field: 'shortName', label: t('分类短名') },
                 {
                   field: 'parentId',
-                  label: '上级分类',
+                  label: t('上级分类'),
                   type: 'select',
                   options: categoryOptions(drawerValues.categoryId),
                 },
                 {
                   field: 'categoryPic',
-                  label: '分类图片',
+                  label: t('分类图片'),
                   type: 'custom',
                   render: ({ formApi, values }) => (
                     <div>
@@ -423,36 +430,36 @@ export default function Categories() {
                         max={1}
                       />
                       <Text type="tertiary" size="small" style={{ display: 'block', marginTop: 6 }}>
-                        建议上传 2:1 图片，宽 200px，高 100px
+                        {t('建议上传 2:1 图片，宽 200px，高 100px')}
                       </Text>
                     </div>
                   ),
                 },
-                { field: 'measureUnit', label: '数量单位', placeholder: '如：件' },
-                { field: 'seoTitle', label: 'SEO标题' },
-                { field: 'keywords', label: '关键字' },
-                { field: 'categoryDesc', label: '分类描述', type: 'textarea' },
+                { field: 'measureUnit', label: t('数量单位'), placeholder: t('如：件') },
+                { field: 'seoTitle', label: t('SEO标题') },
+                { field: 'keywords', label: t('关键字') },
+                { field: 'categoryDesc', label: t('分类描述'), type: 'textarea' },
                 {
                   field: 'sortOrder',
-                  label: '排序',
+                  label: t('排序'),
                   type: 'number',
                   initValue: 50,
                 },
                 {
                   field: 'isHot',
-                  label: '是否热门',
+                  label: t('是否热门'),
                   type: 'switch',
                   initValue: 0,
-                  checkedText: '热门',
-                  uncheckedText: '不热门',
+                  checkedText: t('热门'),
+                  uncheckedText: t('不热门'),
                 },
                 {
                   field: 'isShow',
-                  label: '是否显示',
+                  label: t('是否显示'),
                   type: 'switch',
                   initValue: 1,
-                  checkedText: '显示',
-                  uncheckedText: '隐藏',
+                  checkedText: t('显示'),
+                  uncheckedText: t('隐藏'),
                 },
               ],
             },
@@ -468,27 +475,27 @@ export default function Categories() {
       />
 
       <Modal
-        title="商品转移"
+        title={t('商品转移')}
         visible={Boolean(moveRow)}
         onCancel={() => setMoveRow(null)}
         width={520}
         footer={
           <Space>
-            <Button onClick={() => setMoveRow(null)}>取消</Button>
+            <Button onClick={() => setMoveRow(null)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" onClick={moveCategory}>
-              确认转移
+              {t('确认转移')}
             </Button>
           </Space>
         }
       >
         <div style={{ marginBottom: 12 }}>
-          <Text type="tertiary">将当前分类下的商品转移到目标分类：</Text>
+          <Text type="tertiary">{t('将当前分类下的商品转移到目标分类：')}</Text>
         </div>
         <Select
           value={targetCategoryId}
           onChange={(value) => setTargetCategoryId(Number(value))}
           optionList={categoryOptions(moveRow?.categoryId)}
-          placeholder="请选择目标分类"
+          placeholder={t('请选择目标分类')}
           style={{ width: '100%' }}
         />
       </Modal>

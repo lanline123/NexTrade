@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import ImageUploader from '../components/ImageUploader';
 import type { ColumnConfig } from '../framework/types';
@@ -50,10 +51,11 @@ function CommentSwitch({
   field: 'isTop' | 'isRecommend';
   value?: number;
 }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -64,15 +66,17 @@ function CommentSwitch({
       });
       setChecked(next);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
   return <Switch checked={checked} onChange={toggle} size="small" />;
 }
 
-const columns: ColumnConfig<CommentRow>[] = [
+const buildColumns = (
+  t: (key: string, params?: Record<string, string | number>) => string,
+): ColumnConfig<CommentRow>[] => [
   {
-    title: '用户名称',
+    title: t('用户名称'),
     dataIndex: 'username',
     width: 160,
     render: (value: string, record) => (
@@ -85,7 +89,7 @@ const columns: ColumnConfig<CommentRow>[] = [
     ),
   },
   {
-    title: '评论对象',
+    title: t('评论对象'),
     dataIndex: 'productName',
     width: 240,
     render: (value: string, record) => (
@@ -98,7 +102,7 @@ const columns: ColumnConfig<CommentRow>[] = [
     ),
   },
   {
-    title: '评价内容',
+    title: t('评价内容'),
     dataIndex: 'content',
     width: 240,
     render: (value: string) => (
@@ -108,7 +112,7 @@ const columns: ColumnConfig<CommentRow>[] = [
     ),
   },
   {
-    title: '晒单',
+    title: t('晒单'),
     dataIndex: 'showPics',
     width: 200,
     render: (value: CommentRow['showPics']) => (
@@ -126,14 +130,14 @@ const columns: ColumnConfig<CommentRow>[] = [
     ),
   },
   {
-    title: '评论等级',
+    title: t('评论等级'),
     dataIndex: 'commentRank',
     width: 100,
-    render: (value: number) => `${value || 0}星`,
+    render: (value: number) => t('{count}星', { count: value || 0 }),
   },
-  { title: '评论日期', dataIndex: 'addTime', width: 170 },
+  { title: t('评论日期'), dataIndex: 'addTime', width: 170 },
   {
-    title: '是否置顶',
+    title: t('是否置顶'),
     dataIndex: 'isTop',
     width: 100,
     render: (value: number, record) => (
@@ -141,17 +145,19 @@ const columns: ColumnConfig<CommentRow>[] = [
     ),
   },
   {
-    title: '是否推荐',
+    title: t('是否推荐'),
     dataIndex: 'isRecommend',
     width: 100,
     render: (value: number, record) => (
       <CommentSwitch row={record} field="isRecommend" value={value} />
     ),
   },
-  { title: '排序', dataIndex: 'sortOrder', width: 80 },
+  { title: t('排序'), dataIndex: 'sortOrder', width: 80 },
 ];
 
 export default function Comments() {
+  const { t } = useI18n();
+  const columns = buildColumns(t);
   const [tab, setTab] = useState('all');
   const [reloadKey, setReloadKey] = useState(0);
   const [replyRow, setReplyRow] = useState<CommentRow | null>(null);
@@ -161,7 +167,7 @@ export default function Comments() {
 
   const submitReply = async () => {
     if (!replyRow || !replyContent.trim()) {
-      Toast.warning({ content: '请输入回复内容' });
+      Toast.warning({ content: t('请输入回复内容') });
       return;
     }
     try {
@@ -169,12 +175,12 @@ export default function Comments() {
         commentId: replyRow.commentId,
         content: replyContent.trim(),
       });
-      Toast.success({ content: '回复成功' });
+      Toast.success({ content: t('回复成功') });
       setReplyRow(null);
       setReplyContent('');
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '回复失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('回复失败') });
     }
   };
 
@@ -186,8 +192,8 @@ export default function Comments() {
           activeKey={tab}
           onChange={setTab}
           tabList={[
-            { tab: '全部评价', itemKey: 'all' },
-            { tab: '有晒单', itemKey: 'pics' },
+            { tab: t('全部评价'), itemKey: 'all' },
+            { tab: t('有晒单'), itemKey: 'pics' },
           ]}
         />
       </div>
@@ -204,25 +210,25 @@ export default function Comments() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '批量删除商品评价',
-                content: `确定删除选中的 ${rows.length} 条评价？`,
+                title: t('批量删除商品评价'),
+                content: t('确定删除选中的 {count} 条评价？', { count: rows.length }),
                 onOk: async () => {
                   try {
                     await apiPost('/product/comment/batch', {
                       ids: rows.map((row) => row.commentId),
                       type: 'del',
                     });
-                    Toast.success({ content: '批量删除成功' });
+                    Toast.success({ content: t('批量删除成功') });
                     clear();
                     setReloadKey((key) => key + 1);
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                   }
                 },
               });
             }}
           >
-            批量删除
+            {t('批量删除')}
           </Button>
         )}
         query={listQuery}
@@ -239,7 +245,7 @@ export default function Comments() {
         rowActions={(record) => (
           <Space spacing={2}>
             <Tag color={record.replies?.length ? 'green' : 'grey'} size="small">
-              {record.replies?.length ? '已回复' : '未回复'}
+              {record.replies?.length ? t('已回复') : t('未回复')}
             </Tag>
             <Text
               link
@@ -249,7 +255,7 @@ export default function Comments() {
                 setReplyContent('');
               }}
             >
-              回复
+              {t('回复')}
             </Text>
           </Space>
         )}
@@ -271,24 +277,24 @@ export default function Comments() {
               fields: [
                 {
                   field: 'productId',
-                  label: '评论商品',
+                  label: t('评论商品'),
                   type: 'select',
                   required: true,
                   optionsApi: '/product/product/list',
                   optionsParams: { page: 1, pageSize: 100 },
                   optionLabel: 'productName',
                   optionValue: 'productId',
-                  placeholder: '请选择评论商品',
+                  placeholder: t('请选择评论商品'),
                 },
                 {
                   field: 'username',
-                  label: '会员名称',
+                  label: t('会员名称'),
                   required: true,
-                  placeholder: '请输入会员名称',
+                  placeholder: t('请输入会员名称'),
                 },
                 {
                   field: 'avatar',
-                  label: '会员头像',
+                  label: t('会员头像'),
                   type: 'custom',
                   render: ({ formApi, values }) => (
                     <ImageUploader
@@ -300,28 +306,28 @@ export default function Comments() {
                 },
                 {
                   field: 'commentRank',
-                  label: '评论星级',
+                  label: t('评论星级'),
                   type: 'radio',
                   initValue: 5,
                   options: [1, 2, 3, 4, 5].map((value) => ({
-                    label: `${value}星`,
+                    label: t('{count}星', { count: value }),
                     value,
                   })),
                 },
                 {
                   field: 'commentTag',
-                  label: '标签',
-                  placeholder: '多个标签用逗号分隔',
+                  label: t('标签'),
+                  placeholder: t('多个标签用逗号分隔'),
                 },
                 {
                   field: 'content',
-                  label: '评论内容',
+                  label: t('评论内容'),
                   type: 'textarea',
                   required: true,
                 },
                 {
                   field: 'showPics',
-                  label: '晒单',
+                  label: t('晒单'),
                   type: 'custom',
                   render: ({ formApi, values }) => (
                     <ImageUploader
@@ -338,22 +344,22 @@ export default function Comments() {
                     />
                   ),
                 },
-                { field: 'sortOrder', label: '排序', type: 'number', initValue: 50 },
+                { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 50 },
                 {
                   field: 'isRecommend',
-                  label: '是否推荐',
+                  label: t('是否推荐'),
                   type: 'switch',
                   initValue: 0,
-                  checkedText: '推荐',
-                  uncheckedText: '不推荐',
+                  checkedText: t('推荐'),
+                  uncheckedText: t('不推荐'),
                 },
                 {
                   field: 'isTop',
-                  label: '是否置顶',
+                  label: t('是否置顶'),
                   type: 'switch',
                   initValue: 0,
-                  checkedText: '置顶',
-                  uncheckedText: '不置顶',
+                  checkedText: t('置顶'),
+                  uncheckedText: t('不置顶'),
                 },
               ],
             },
@@ -375,25 +381,25 @@ export default function Comments() {
       />
 
       <Modal
-        title="回复评论"
+        title={t('回复评论')}
         visible={Boolean(replyRow)}
         onCancel={() => setReplyRow(null)}
         width={520}
         footer={
           <Space>
-            <Button onClick={() => setReplyRow(null)}>取消</Button>
+            <Button onClick={() => setReplyRow(null)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" onClick={submitReply}>
-              提交回复
+              {t('提交回复')}
             </Button>
           </Space>
         }
       >
-        <div style={{ marginBottom: 10 }}>评论：{replyRow?.content}</div>
+        <div style={{ marginBottom: 10 }}>{t('评论：')}{replyRow?.content}</div>
         <TextArea
           value={replyContent}
           onChange={setReplyContent}
           rows={4}
-          placeholder="请输入回复内容"
+          placeholder={t('请输入回复内容')}
         />
       </Modal>
     </>

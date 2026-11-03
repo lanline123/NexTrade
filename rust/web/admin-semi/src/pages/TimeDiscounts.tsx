@@ -17,6 +17,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 import './time-discounts.css';
@@ -148,6 +149,7 @@ function ProductPickerModal({
   const [rows, setRows] = useState<ProductItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { t } = useI18n();
   const [selectedRows, setSelectedRows] = useState<ProductItem[]>([]);
 
   const loadProducts = async (nextPage = 1, nextKeyword = '') => {
@@ -161,7 +163,7 @@ function ProductPickerModal({
       setTotal(result.total || 0);
       setPage(nextPage);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '商品加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('商品加载失败') });
     } finally {
       setLoading(false);
     }
@@ -176,16 +178,16 @@ function ProductPickerModal({
 
   return (
     <Modal
-      title="选择商品"
+      title={t('选择商品')}
       visible={visible}
       onCancel={onCancel}
       width={780}
       footer={
         <Space>
-          <span className="time-discount-picker-count">已选择 {selectedRows.length} 个商品</span>
-          <Button onClick={onCancel}>取消</Button>
+          <span className="time-discount-picker-count">{t('已选择 {count} 个商品', { count: selectedRows.length })}</span>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" onClick={() => onConfirm(selectedRows)}>
-            确定
+            {t('确定')}
           </Button>
         </Space>
       }
@@ -193,13 +195,13 @@ function ProductPickerModal({
       <Space style={{ marginBottom: 12 }}>
         <Input
           prefix={<IconSearch />}
-          placeholder="搜索商品名称 / 编号"
+          placeholder={t('搜索商品名称 / 编号')}
           value={keyword}
           onChange={setKeyword}
           onEnterPress={() => loadProducts(1, keyword)}
           style={{ width: 300 }}
         />
-        <Button onClick={() => loadProducts(1, keyword)}>搜索</Button>
+        <Button onClick={() => loadProducts(1, keyword)}>{t('搜索')}</Button>
       </Space>
       <Table
         loading={loading}
@@ -228,7 +230,7 @@ function ProductPickerModal({
         }}
         columns={[
           {
-            title: '商品信息',
+            title: t('商品信息'),
             dataIndex: 'productName',
             render: (_: unknown, record: ProductItem) => (
               <div className="time-discount-item-info">
@@ -245,19 +247,19 @@ function ProductPickerModal({
                 <div>
                   <div className="time-discount-item-name">{record.productName}</div>
                   {record.productSn ? (
-                    <div className="time-discount-item-sn">编号：{record.productSn}</div>
+                    <div className="time-discount-item-sn">{t('编号：')}{record.productSn}</div>
                   ) : null}
                 </div>
               </div>
             ),
           },
           {
-            title: '商品价格',
+            title: t('商品价格'),
             dataIndex: 'productPrice',
             width: 120,
             render: (value: unknown) => <span>¥ {Number(value ?? 0)}</span>,
           },
-          { title: '商品库存', dataIndex: 'productStock', width: 100 },
+          { title: t('商品库存'), dataIndex: 'productStock', width: 100 },
         ] as any}
       />
     </Modal>
@@ -272,6 +274,7 @@ function DiscountItemEditor({
   value: DiscountItemRow[];
   onChange: (items: DiscountItemRow[]) => void;
 }) {
+  const { t } = useI18n();
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const updateRow = (productId: number, patch: Partial<DiscountItemRow>) => {
@@ -307,14 +310,14 @@ function DiscountItemEditor({
     <div className="time-discount-items">
       <Space>
         <Button theme="solid" type="primary" onClick={() => setPickerOpen(true)}>
-          选择商品
+          {t('选择商品')}
         </Button>
         {value.length > 0 ? (
           <>
             <span className="time-discount-picker-count">
-              已选择 {value.length} 个商品
+              {t('已选择 {count} 个商品', { count: value.length })}
             </span>
-            <Button onClick={() => onChange([])}>清空</Button>
+            <Button onClick={() => onChange([])}>{t('清空')}</Button>
           </>
         ) : null}
       </Space>
@@ -327,13 +330,13 @@ function DiscountItemEditor({
           style={{ marginTop: 10 }}
           columns={[
             {
-              title: '商品编号',
+              title: t('商品编号'),
               dataIndex: 'productSn',
               width: 110,
               render: (v: unknown) => <span>{(v as string) || '-'}</span>,
             },
             {
-              title: '商品信息',
+              title: t('商品信息'),
               dataIndex: 'productName',
               width: 250,
               render: (_: unknown, row: DiscountItemRow) => (
@@ -350,42 +353,42 @@ function DiscountItemEditor({
                   )}
                   <div>
                     <div className="time-discount-item-name">{row.productName || '-'}</div>
-                    <div className="time-discount-item-sn" title="skuIds 为空表示作用于该商品全部规格">
+                    <div className="time-discount-item-sn" title={t('skuIds 为空表示作用于该商品全部规格')}>
                       {row.skuIds && row.skuIds.length > 0
-                        ? `已选${row.skuIds.length}个规格`
-                        : '全部规格'}
+                        ? t('已选{count}个规格', { count: row.skuIds.length })
+                        : t('全部规格')}
                     </div>
                   </div>
                 </div>
               ),
             },
             {
-              title: '原价',
+              title: t('原价'),
               dataIndex: 'productPrice',
               width: 100,
               render: (_: unknown, row: DiscountItemRow) => <span>¥ {Number(row.productPrice ?? 0)}</span>,
             },
             {
-              title: '优惠方式',
+              title: t('优惠方式'),
               dataIndex: 'discountType',
               width: 110,
               render: (_: unknown, row: DiscountItemRow) => (
                 <Select
                   size="small"
                   style={{ width: 90 }}
-                  optionList={DISCOUNT_TYPE_OPTIONS}
+                  optionList={DISCOUNT_TYPE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
                   value={row.discountType}
                   onChange={(next) => updateRow(row.productId, { discountType: Number(next) })}
                 />
               ),
             },
             {
-              title: '优惠内容',
+              title: t('优惠内容'),
               dataIndex: 'value',
               width: 170,
               render: (_: unknown, row: DiscountItemRow) => (
                 <div className="time-discount-value-cell">
-                  {row.discountType === 2 ? <Text>减</Text> : null}
+                  {row.discountType === 2 ? <Text>{t('减')}</Text> : null}
                   <InputNumber
                     size="small"
                     style={{ width: 90 }}
@@ -403,16 +406,16 @@ function DiscountItemEditor({
                       })
                     }
                   />
-                  <Text>{row.discountType === 1 ? '折' : '元'}</Text>
+                  <Text>{row.discountType === 1 ? t('折') : t('元')}</Text>
                 </div>
               ),
             },
             {
-              title: '操作',
+              title: t('操作'),
               width: 80,
               render: (_: unknown, row: DiscountItemRow) => (
                 <Button theme="borderless" type="danger" size="small" onClick={() => removeRow(row.productId)}>
-                  删除
+                  {t('删除')}
                 </Button>
               ),
             },
@@ -429,6 +432,7 @@ function DiscountItemEditor({
 }
 
 export default function TimeDiscounts() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<TimeDiscountRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -540,49 +544,49 @@ export default function TimeDiscounts() {
 
   const validateForm = (values: Record<string, any>) => {
     if (!String(values.promotionName || '').trim()) {
-      Toast.error({ content: '请输入活动名称！' });
+      Toast.error({ content: t('请输入活动名称！') });
       return false;
     }
     if (!String(values.startTime || '')) {
-      Toast.error({ content: '活动日期不能为空' });
+      Toast.error({ content: t('活动日期不能为空') });
       return false;
     }
     if (!String(values.endTime || '')) {
-      Toast.error({ content: '活动日期不能为空' });
+      Toast.error({ content: t('活动日期不能为空') });
       return false;
     }
     const start = toTimestamp(values.startTime);
     const end = toTimestamp(values.endTime);
     if (start === undefined || end === undefined) {
-      Toast.error({ content: '活动日期格式不正确' });
+      Toast.error({ content: t('活动日期格式不正确') });
       return false;
     }
     if (start >= end) {
-      Toast.error({ content: '开始时间必须早于结束时间' });
+      Toast.error({ content: t('开始时间必须早于结束时间') });
       return false;
     }
     const items: DiscountItemRow[] = values.item || [];
     if (!items.length) {
-      Toast.error({ content: '活动商品不能为空' });
+      Toast.error({ content: t('活动商品不能为空') });
       return false;
     }
     for (const item of items) {
-      const name = item.productName || `商品${item.productId}`;
+      const name = item.productName || t('商品{id}', { id: item.productId });
       if (item.value === undefined || item.value === null || String(item.value) === '') {
-        Toast.error({ content: `【${name}】: 请输入折扣值` });
+        Toast.error({ content: t('【{name}】: 请输入折扣值', { name }) });
         return false;
       }
       const value = Number(item.value);
       if (Number.isNaN(value) || value <= 0) {
-        Toast.error({ content: `【${name}】: 请输入折扣值` });
+        Toast.error({ content: t('【{name}】: 请输入折扣值', { name }) });
         return false;
       }
       if (item.discountType === 1 && value > 9.9) {
-        Toast.error({ content: `【${name}】: 请输入0.1-9.9之间折扣` });
+        Toast.error({ content: t('【{name}】: 请输入0.1-9.9之间折扣', { name }) });
         return false;
       }
       if (item.discountType > 1 && value > Number(item.productPrice ?? 0)) {
-        Toast.error({ content: `【${name}】: 请输入大于0并且小于商品原价的折扣` });
+        Toast.error({ content: t('【{name}】: 请输入大于0并且小于商品原价的折扣', { name }) });
         return false;
       }
     }
@@ -611,11 +615,11 @@ export default function TimeDiscounts() {
       } else {
         await apiPost('/promotion/timeDiscount/create', body);
       }
-      Toast.success({ content: drawerMode === 'edit' ? '更新成功' : '创建成功' });
+      Toast.success({ content: drawerMode === 'edit' ? t('更新成功') : t('创建成功') });
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -624,20 +628,20 @@ export default function TimeDiscounts() {
   const deleteActivity = async (row: TimeDiscountRow) => {
     try {
       await apiPost('/promotion/timeDiscount/del', { id: row.discountId });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
   const batchDelete = async () => {
     try {
       await apiPost('/promotion/timeDiscount/batch', { ids: selectedIds, type: 'del' });
-      Toast.success({ content: '批量删除成功' });
+      Toast.success({ content: t('批量删除成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
     }
   };
 
@@ -656,18 +660,18 @@ export default function TimeDiscounts() {
         fields: [
           {
             field: 'promotionName',
-            label: '活动名称',
+            label: t('活动名称'),
             type: 'input',
             required: true,
-            placeholder: '请输入活动名称',
+            placeholder: t('请输入活动名称'),
             rules: [
-              { required: true, message: '请输入活动名称！' },
-              { max: 60, message: '活动名称不能超过60个字' },
+              { required: true, message: t('请输入活动名称！') },
+              { max: 60, message: t('活动名称不能超过60个字') },
             ],
           },
           {
             field: 'activityTime',
-            label: '活动时间',
+            label: t('活动时间'),
             type: 'custom',
             render: ({ formApi, values }) => (
               <div>
@@ -675,7 +679,7 @@ export default function TimeDiscounts() {
                   <DatePicker
                     type="dateTime"
                     format="yyyy-MM-dd HH:mm:ss"
-                    placeholder="开始时间"
+                    placeholder={t('开始时间')}
                     style={{ width: 200 }}
                     value={(values.startTime as string) || ''}
                     onChange={(first: unknown, second: unknown) =>
@@ -683,11 +687,11 @@ export default function TimeDiscounts() {
                     }
                     onClear={() => formApi?.setValue('startTime', '')}
                   />
-                  <Text>至</Text>
+                  <Text>{t('至')}</Text>
                   <DatePicker
                     type="dateTime"
                     format="yyyy-MM-dd HH:mm:ss"
-                    placeholder="截止时间"
+                    placeholder={t('截止时间')}
                     style={{ width: 200 }}
                     value={(values.endTime as string) || ''}
                     onChange={(first: unknown, second: unknown) =>
@@ -697,14 +701,14 @@ export default function TimeDiscounts() {
                   />
                 </Space>
                 <div className="time-discount-extra">
-                  只有当前时间介于起始日期和截止日期之间时，此活动才可以生效
+                  {t('只有当前时间介于起始日期和截止日期之间时，此活动才可以生效')}
                 </div>
               </div>
             ),
           },
           {
             field: 'item',
-            label: '活动商品',
+            label: t('活动商品'),
             type: 'custom',
             render: ({ formApi, values }) => (
               <DiscountItemEditor
@@ -725,49 +729,49 @@ export default function TimeDiscounts() {
 
   const columns: DiscountColumn[] = [
     {
-      title: '活动名称',
+      title: t('活动名称'),
       dataIndex: 'promotionName',
       width: 220,
       render: (value: string) => <span>{value || '--'}</span>,
     },
     {
-      title: '起始日期',
+      title: t('起始日期'),
       dataIndex: 'startTime',
       width: 180,
-      render: (value: number) => <span title="活动开始时间">{formatDateTime(value)}</span>,
+      render: (value: number) => <span title={t('活动开始时间')}>{formatDateTime(value)}</span>,
     },
     {
-      title: '截止日期',
+      title: t('截止日期'),
       dataIndex: 'endTime',
       width: 180,
-      render: (value: number) => <span title="活动截止时间">{formatDateTime(value)}</span>,
+      render: (value: number) => <span title={t('活动截止时间')}>{formatDateTime(value)}</span>,
     },
     {
-      title: '状态',
+      title: t('状态'),
       dataIndex: 'statusName',
       width: 100,
       render: (_: unknown, row: TimeDiscountRow) => {
         const meta = STATUS_META[Number(row.status)] || { text: row.statusName || '-', color: 'grey' };
         return (
-          <span title="活动状态">
-            <Tag color={meta.color as never}>{row.statusName || meta.text}</Tag>
+          <span title={t('活动状态')}>
+            <Tag color={meta.color as never}>{row.statusName || t(meta.text)}</Tag>
           </span>
         );
       },
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       fixed: 'right',
       width: 150,
       render: (_: unknown, row: TimeDiscountRow) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-            编辑
+            {t('编辑')}
           </Button>
-          <Popconfirm title="确定删除？" onConfirm={() => deleteActivity(row)}>
+          <Popconfirm title={t('确定删除？')} onConfirm={() => deleteActivity(row)}>
             <Button theme="borderless" type="danger" size="small">
-              删除
+              {t('删除')}
             </Button>
           </Popconfirm>
         </Space>
@@ -783,7 +787,7 @@ export default function TimeDiscounts() {
             <span className="framework-filter">
               <Input
                 prefix={<IconSearch />}
-                placeholder="输入活动名称"
+                placeholder={t('输入活动名称')}
                 value={keyword}
                 onChange={setKeyword}
                 onEnterPress={search}
@@ -791,25 +795,25 @@ export default function TimeDiscounts() {
               />
             </span>
             <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-              搜索
+              {t('搜索')}
             </Button>
             <span className="framework-filter">
               <Select
-                placeholder="请选择活动状态"
-                optionList={ACTIVE_STATE_OPTIONS}
+                placeholder={t('请选择活动状态')}
+                optionList={ACTIVE_STATE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
                 value={activeState}
                 onChange={(next) => setActiveState(next === undefined ? undefined : Number(next))}
                 style={{ width: 180 }}
               />
             </span>
-            <Button onClick={reset}>重置</Button>
+            <Button onClick={reset}>{t('重置')}</Button>
           </Space>
           <Space>
             <Button icon={<IconRefresh />} onClick={reload}>
-              刷新
+              {t('刷新')}
             </Button>
             <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-              新增限时折扣活动
+              {t('新增限时折扣活动')}
             </Button>
           </Space>
         </div>
@@ -817,13 +821,13 @@ export default function TimeDiscounts() {
         {selectedIds.length > 0 && (
           <div className="batch-floating-bar">
             <span>
-              已选择 <b>{selectedIds.length}</b> 项
+              {t('已选择')} <b>{selectedIds.length}</b> {t('项')}
             </span>
-            <Popconfirm title="您确认要批量删除所选数据吗？" onConfirm={batchDelete}>
-              <Button size="small">批量删除</Button>
+            <Popconfirm title={t('您确认要批量删除所选数据吗？')} onConfirm={batchDelete}>
+              <Button size="small">{t('批量删除')}</Button>
             </Popconfirm>
             <Button theme="borderless" size="small" onClick={() => setSelectedIds([])}>
-              取消选择
+              {t('取消选择')}
             </Button>
           </div>
         )}
@@ -839,7 +843,7 @@ export default function TimeDiscounts() {
           empty={
             loading ? null : (
               <div style={{ padding: 24, textAlign: 'center', color: 'var(--semi-color-text-2)' }}>
-                暂无数据
+                {t('暂无数据')}
               </div>
             )
           }

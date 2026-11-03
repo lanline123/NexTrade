@@ -17,6 +17,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconUser } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -54,6 +55,7 @@ const fromTagMap: Record<number, string> = {
 };
 
 export function Wholesalers() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [gradeOptions, setGradeOptions] = useState<GradeOption[]>([]);
 
@@ -90,30 +92,30 @@ export function Wholesalers() {
         wholesalerId: record.wholesalerId,
         status: nextStatus,
       });
-      Toast.success({ content: nextStatus === 1 ? '已启用该批发商' : '已禁用该批发商' });
+      Toast.success({ content: nextStatus === 1 ? t('已启用该批发商') : t('已禁用该批发商') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '状态切换失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('状态切换失败') });
     }
   };
 
   const handleRemove = async (ids: number[]) => {
     try {
       await apiPost('/wholesale/wholesaler/remove', { wholesalerIds: ids });
-      Toast.success({ content: '移除成功' });
+      Toast.success({ content: t('移除成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '移除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('移除失败') });
     }
   };
 
   const handleAddSubmit = async () => {
     if (!addForm.userId) {
-      Toast.warning({ content: '请输入或选择会员ID' });
+      Toast.warning({ content: t('请输入或选择会员ID') });
       return;
     }
     if (!addForm.gradeId) {
-      Toast.warning({ content: '请选择批发商等级' });
+      Toast.warning({ content: t('请选择批发商等级') });
       return;
     }
     setAddLoading(true);
@@ -122,12 +124,12 @@ export function Wholesalers() {
         userId: addForm.userId,
         gradeId: addForm.gradeId,
       });
-      Toast.success({ content: '添加批发商成功' });
+      Toast.success({ content: t('添加批发商成功') });
       setAddVisible(false);
       setAddForm({});
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '添加失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('添加失败') });
     } finally {
       setAddLoading(false);
     }
@@ -141,11 +143,11 @@ export function Wholesalers() {
         wholesalerId: currentWholesaler.wholesalerId,
         gradeId: targetGradeId,
       });
-      Toast.success({ content: '修改等级成功' });
+      Toast.success({ content: t('修改等级成功') });
       setGradeVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改等级失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改等级失败') });
     } finally {
       setGradeLoading(false);
     }
@@ -229,7 +231,7 @@ export function Wholesalers() {
                 setDetailVisible(true);
               }}
             >
-              查看
+              {t('查看')}
             </Button>
             <Button
               theme="borderless"
@@ -241,16 +243,16 @@ export function Wholesalers() {
                 setGradeVisible(true);
               }}
             >
-              设置批发商等级
+              {t('设置批发商等级')}
             </Button>
             <Popconfirm
-              title="确认删除该批发商？"
-              content="删除后该用户不再是批发商。"
+              title={t('确认删除该批发商？')}
+              content={t('删除后该用户不再是批发商。')}
               okType="danger"
               onConfirm={() => handleRemove([record.wholesalerId])}
             >
               <Button theme="borderless" type="danger" size="small">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -269,8 +271,8 @@ export function Wholesalers() {
         selectable
         batchActions={(rows: WholesalerRow[], clear) => (
           <Popconfirm
-            title="确认删除所选批发商吗？"
-            content="删除后该用户不再是批发商。"
+            title={t('确认删除所选批发商吗？')}
+            content={t('删除后该用户不再是批发商。')}
             okType="danger"
             onConfirm={async () => {
               await handleRemove(rows.map((r) => r.wholesalerId));
@@ -278,13 +280,13 @@ export function Wholesalers() {
             }}
           >
             <Button type="danger" size="small">
-              批量删除 ({rows.length})
+              {t('批量删除')} ({rows.length})
             </Button>
           </Popconfirm>
         )}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => setAddVisible(true)}>
-            添加批发商
+            {t('添加批发商')}
           </Button>
         }
         filters={[
@@ -329,30 +331,30 @@ export function Wholesalers() {
 
       {/* 添加批发商弹窗 */}
       <Modal
-        title="添加批发商"
+        title={t('添加批发商')}
         visible={addVisible}
         onCancel={() => setAddVisible(false)}
         onOk={handleAddSubmit}
         confirmLoading={addLoading}
         width={500}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>会员ID</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('会员ID')}</div>
             <InputNumber
               style={{ width: '100%' }}
-              placeholder="请输入会员ID"
+              placeholder={t('请输入会员ID')}
               value={addForm.userId}
               onChange={(val) => setAddForm({ ...addForm, userId: Number(val) || undefined })}
             />
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>批发商等级</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('批发商等级')}</div>
             <Select
               style={{ width: '100%' }}
-              placeholder="请选择批发商等级"
+              placeholder={t('请选择批发商等级')}
               value={addForm.gradeId}
               onChange={(val) => setAddForm({ ...addForm, gradeId: Number(val) || undefined })}
             >
@@ -368,20 +370,20 @@ export function Wholesalers() {
 
       {/* 设置等级弹窗 */}
       <Modal
-        title="设置批发商等级"
+        title={t('设置批发商等级')}
         visible={gradeVisible}
         onCancel={() => setGradeVisible(false)}
         onOk={handleChangeGradeSubmit}
         confirmLoading={gradeLoading}
         width={450}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>批发商等级</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('批发商等级')}</div>
           <Select
             style={{ width: '100%' }}
-            placeholder="请选择批发商等级"
+            placeholder={t('请选择批发商等级')}
             value={targetGradeId}
             onChange={(val) => setTargetGradeId(Number(val) || undefined)}
           >
@@ -396,24 +398,24 @@ export function Wholesalers() {
 
       {/* 会员详情查看弹窗 */}
       <Modal
-        title="会员管理"
+        title={t('会员管理')}
         visible={detailVisible}
         onCancel={() => setDetailVisible(false)}
         footer={
           <Button type="primary" onClick={() => setDetailVisible(false)}>
-            关闭
+            {t('关闭')}
           </Button>
         }
         width={500}
       >
         {selectedUser && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div><Text strong>客户名称：</Text>{selectedUser.username || selectedUser.nickname || '--'}</div>
-            <div><Text strong>手机号：</Text>{selectedUser.mobile || '--'}</div>
-            <div><Text strong>会员等级：</Text>{selectedUser.rankName || '--'}</div>
-            <div><Text strong>认证状态：</Text>{selectedUser.authStatusName || '--'}</div>
-            <div><Text strong>批发商等级：</Text>{selectedUser.gradeName || '--'}</div>
-            <div><Text strong>添加时间：</Text>{selectedUser.addTime || '--'}</div>
+            <div><Text strong>{t('客户名称：')}</Text>{selectedUser.username || selectedUser.nickname || '--'}</div>
+            <div><Text strong>{t('手机号：')}</Text>{selectedUser.mobile || '--'}</div>
+            <div><Text strong>{t('会员等级：')}</Text>{selectedUser.rankName || '--'}</div>
+            <div><Text strong>{t('认证状态：')}</Text>{selectedUser.authStatusName || '--'}</div>
+            <div><Text strong>{t('批发商等级：')}</Text>{selectedUser.gradeName || '--'}</div>
+            <div><Text strong>{t('添加时间：')}</Text>{selectedUser.addTime || '--'}</div>
           </div>
         )}
       </Modal>

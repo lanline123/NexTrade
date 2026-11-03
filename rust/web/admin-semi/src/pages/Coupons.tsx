@@ -21,6 +21,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
@@ -98,6 +99,7 @@ const DEFAULT_FORM = {
 };
 
 export default function Coupons() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
@@ -160,17 +162,17 @@ export default function Coupons() {
           fields: [
             {
               field: 'couponType',
-              label: '优惠券类型',
+              label: t('优惠券类型'),
               type: 'radio',
               options: [
-                { label: '满减券（例：满100减20）', value: 1 },
-                { label: '折扣券（例：满100打8折）', value: 2 },
+                { label: t('满减券（例：满100减20）'), value: 1 },
+                { label: t('折扣券（例：满100打8折）'), value: 2 },
               ],
             },
-            { field: 'couponName', label: '优惠券名称', type: 'input', required: true, placeholder: '请输入优惠券名称' },
+            { field: 'couponName', label: t('优惠券名称'), type: 'input', required: true, placeholder: t('请输入优惠券名称') },
             {
               field: 'reduceType',
-              label: '优惠内容',
+              label: t('优惠内容'),
               type: 'custom',
               render: ({ formApi, values }) => (
                 <div className="coupon-form-content">
@@ -179,7 +181,7 @@ export default function Coupons() {
                       checked={Number(values.reduceType) === 1}
                       onChange={() => formApi?.setValue('reduceType', 1)}
                     >
-                      满
+                      {t('满')}
                     </Radio>
                     <InputNumber
                       size="small"
@@ -195,12 +197,12 @@ export default function Coupons() {
                       disabled={Number(values.reduceType) === 2}
                       value={Number(values.couponUnit ?? 1)}
                       optionList={[
-                        { label: '元', value: 1 },
-                        { label: '件', value: 2 },
+                        { label: t('元'), value: 1 },
+                        { label: t('件'), value: 2 },
                       ]}
                       onChange={(next) => formApi?.setValue('couponUnit', Number(next))}
                     />
-                    <Text>{Number(values.couponType) === 1 ? '减' : '打'}</Text>
+                    <Text>{Number(values.couponType) === 1 ? t('减') : t('打')}</Text>
                     {Number(values.couponType) === 1 ? (
                       <InputNumber
                         size="small"
@@ -222,14 +224,14 @@ export default function Coupons() {
                         onChange={(next) => formApi?.setValue('couponDiscount', Number(next ?? 0))}
                       />
                     )}
-                    {Number(values.couponType) === 1 ? <Text>元</Text> : <Text>折</Text>}
+                    {Number(values.couponType) === 1 ? <Text>{t('元')}</Text> : <Text>{t('折')}</Text>}
                   </Space>
                   <Space>
                     <Radio
                       checked={Number(values.reduceType) === 2}
                       onChange={() => formApi?.setValue('reduceType', 2)}
                     >
-                      无门槛，{Number(values.couponType) === 1 ? '减' : '打'}
+                      {t('无门槛，')}{Number(values.couponType) === 1 ? t('减') : t('打')}
                     </Radio>
                     {Number(values.couponType) === 1 ? (
                       <InputNumber
@@ -252,14 +254,14 @@ export default function Coupons() {
                         onChange={(next) => formApi?.setValue('couponDiscount', Number(next ?? 0))}
                       />
                     )}
-                    {Number(values.couponType) === 1 ? <Text>元</Text> : <Text>折</Text>}
+                    {Number(values.couponType) === 1 ? <Text>{t('元')}</Text> : <Text>{t('折')}</Text>}
                   </Space>
                 </div>
               ),
             },
             {
               field: 'maxOrderAmount',
-              label: '优惠上限',
+              label: t('优惠上限'),
               type: 'custom',
               render: ({ formApi, values }) =>
                 Number(values.couponType) === 2 ? (
@@ -271,14 +273,14 @@ export default function Coupons() {
                       onChange={(next) => formApi?.setValue('maxOrderAmount', Number(next ?? 0))}
                     />
                     <Text type="tertiary" size="small">
-                      最多可打折的金额, 默认 0 表示无限制
+                      {t('最多可打折的金额, 默认 0 表示无限制')}
                     </Text>
                   </div>
                 ) : null,
             },
             {
               field: 'sendType',
-              label: '用券时间',
+              label: t('用券时间'),
               type: 'custom',
               render: ({ formApi, values }) => (
                 <div className="coupon-form-content">
@@ -287,12 +289,12 @@ export default function Coupons() {
                       checked={Number(values.sendType) === 1}
                       onChange={() => formApi?.setValue('sendType', 1)}
                     >
-                      固定时间段
+                      {t('固定时间段')}
                     </Radio>
                     <Input
                       size="small"
                       style={{ width: 180 }}
-                      placeholder="开始时间 YYYY-MM-DD HH:mm:ss"
+                      placeholder={t('开始时间 YYYY-MM-DD HH:mm:ss')}
                       disabled={Number(values.sendType) === 0}
                       value={values.useStartDate || ''}
                       onChange={(next) => formApi?.setValue('useStartDate', next)}
@@ -300,7 +302,7 @@ export default function Coupons() {
                     <Input
                       size="small"
                       style={{ width: 180 }}
-                      placeholder="结束时间 YYYY-MM-DD HH:mm:ss"
+                      placeholder={t('结束时间 YYYY-MM-DD HH:mm:ss')}
                       disabled={Number(values.sendType) === 0}
                       value={values.useEndDate || ''}
                       onChange={(next) => formApi?.setValue('useEndDate', next)}
@@ -311,7 +313,7 @@ export default function Coupons() {
                       checked={Number(values.sendType) === 0}
                       onChange={() => formApi?.setValue('sendType', 0)}
                     >
-                      领券后
+                      {t('领券后')}
                     </Radio>
                     <InputNumber
                       size="small"
@@ -322,7 +324,7 @@ export default function Coupons() {
                       value={Number(values.delayDay ?? 0)}
                       onChange={(next) => formApi?.setValue('delayDay', Number(next ?? 0))}
                     />
-                    <Text>天生效，有效期</Text>
+                    <Text>{t('天生效，有效期')}</Text>
                     <InputNumber
                       size="small"
                       min={0}
@@ -332,46 +334,46 @@ export default function Coupons() {
                       value={Number(values.useDay ?? 0)}
                       onChange={(next) => formApi?.setValue('useDay', Number(next ?? 0))}
                     />
-                    <Text>天</Text>
+                    <Text>{t('天')}</Text>
                   </Space>
                   <Text type="tertiary" size="small">
-                    领券后默认0天生效, 表示立即生效
+                    {t('领券后默认0天生效, 表示立即生效')}
                   </Text>
                 </div>
               ),
             },
             {
               field: 'sendNum',
-              label: '发放总量',
+              label: t('发放总量'),
               type: 'number',
               initValue: 1000,
-              extraText: '修改优惠券总量时只能增加不能减少，请谨慎设置。',
+              extraText: t('修改优惠券总量时只能增加不能减少，请谨慎设置。'),
             },
             {
               field: 'limitNum',
-              label: '领取次数限制',
+              label: t('领取次数限制'),
               type: 'number',
               initValue: 0,
-              extraText: '限制每个用户最多可领次数, 默认 0 表示无领取限制（新人专享券仅限领取一次）',
+              extraText: t('限制每个用户最多可领次数, 默认 0 表示无领取限制（新人专享券仅限领取一次）'),
             },
             {
               field: 'isNewUser',
-              label: '领取客户限制',
+              label: t('领取客户限制'),
               type: 'radio',
               options: [
-                { label: '无限制', value: 0 },
-                { label: '新人专享', value: 1 },
-                { label: '会员专享', value: 2 },
+                { label: t('无限制'), value: 0 },
+                { label: t('新人专享'), value: 1 },
+                { label: t('会员专享'), value: 2 },
               ],
             },
             {
               field: 'limitUserRank',
-              label: '会员等级',
+              label: t('会员等级'),
               type: 'custom',
               render: ({ formApi, values }) =>
                 Number(values.isNewUser) === 2 ? (
                   <Select
-                    placeholder="请选择"
+                    placeholder={t('请选择')}
                     multiple
                     style={{ width: 300 }}
                     optionList={rankOptions}
@@ -382,7 +384,7 @@ export default function Coupons() {
             },
             {
               field: 'sendRange',
-              label: '适用商品',
+              label: t('适用商品'),
               type: 'custom',
               render: ({ formApi, values }) => (
                 <div className="coupon-form-content">
@@ -390,8 +392,8 @@ export default function Coupons() {
                     value={Number(values.sendRange ?? 0)}
                     onChange={(event) => formApi?.setValue('sendRange', Number(event.target.value))}
                   >
-                    <Radio value={0}>全部商品</Radio>
-                    <Radio value={1}>指定商品</Radio>
+                    <Radio value={0}>{t('全部商品')}</Radio>
+                    <Radio value={1}>{t('指定商品')}</Radio>
                   </RadioGroup>
                   {Number(values.sendRange) === 1 ? (
                     <ProductPicker
@@ -405,14 +407,14 @@ export default function Coupons() {
             },
             {
               field: 'isShow',
-              label: '是否公开展示',
+              label: t('是否公开展示'),
               type: 'radio',
               options: [
-                { label: '是', value: 1 },
-                { label: '否', value: 0 },
+                { label: t('是'), value: 1 },
+                { label: t('否'), value: 0 },
               ],
             },
-            { field: 'couponDesc', label: '券使用说明', type: 'textarea' },
+            { field: 'couponDesc', label: t('券使用说明'), type: 'textarea' },
           ],
         },
       ],
@@ -444,11 +446,11 @@ export default function Coupons() {
       } else {
         await apiPost('/promotion/coupon/create', body);
       }
-      Toast.success({ content: drawerMode === 'edit' ? '更新成功' : '创建成功' });
+      Toast.success({ content: drawerMode === 'edit' ? t('更新成功') : t('创建成功') });
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -457,23 +459,23 @@ export default function Coupons() {
   const updateField = async (row: CouponRow, field: string, value: unknown) => {
     try {
       await apiPost('/promotion/coupon/updateField', { id: row.couponId, field, value });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     }
   };
 
   const deleteCoupon = (row: CouponRow) => {
     Modal.confirm({
-      title: '确认删除该优惠券吗？',
+      title: t('确认删除该优惠券吗？'),
       onOk: async () => {
         try {
           await apiPost('/promotion/coupon/del', { id: row.couponId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -499,13 +501,13 @@ export default function Coupons() {
     const payload: Record<string, any> = { couponId: issueTarget.couponId, issueType };
     if (issueType === 'USER') {
       if (!issueUserIds.length) {
-        Toast.warning({ content: '请选择发放会员' });
+        Toast.warning({ content: t('请选择发放会员') });
         return;
       }
       payload.userIds = issueUserIds;
     } else {
       if (!issueRankIds.length) {
-        Toast.warning({ content: '请选择会员等级' });
+        Toast.warning({ content: t('请选择会员等级') });
         return;
       }
       payload.rankIds = issueRankIds;
@@ -514,29 +516,29 @@ export default function Coupons() {
     try {
       const preview = await apiPost<any>('/promotion/coupon/issue/preview', payload);
       Modal.confirm({
-        title: '确认发放',
-        content: `优惠券发放总量总计：${preview?.couponCount ?? '?'} 张${
-          preview?.failCount ? `，预计失败 ${preview.failCount} 张` : ''
-        }。请确认是否发放？`,
+        title: t('确认发放'),
+        content: preview?.failCount
+          ? t('优惠券发放总量总计：{count} 张，预计失败 {fail} 张。请确认是否发放？', { count: preview?.couponCount ?? '?', fail: preview.failCount })
+          : t('优惠券发放总量总计：{count} 张。请确认是否发放？', { count: preview?.couponCount ?? '?' }),
         onOk: async () => {
           try {
             const result = await apiPost<any>('/promotion/coupon/issue/send', payload);
             if (result?.failCount > 0) {
               Toast.warning({
-                content: `优惠券发放完成，成功 ${result.successCount} 张，失败 ${result.failCount} 张`,
+                content: t('优惠券发放完成，成功 {success} 张，失败 {fail} 张', { success: result.successCount, fail: result.failCount }),
               });
             } else {
-              Toast.success({ content: '发放成功' });
+              Toast.success({ content: t('发放成功') });
             }
             setIssueTarget(null);
             reload();
           } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '发放失败' });
+            Toast.error({ content: error instanceof Error ? error.message : t('发放失败') });
           }
         },
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '预览失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('预览失败') });
     } finally {
       setIssueSubmitting(false);
     }
@@ -564,9 +566,9 @@ export default function Coupons() {
       width: 140,
       render: (_: unknown, row: CouponRow) => (
         <span>
-          {Number(row.couponType) === 1 ? '满减券' : '折扣券'}
-          {Number(row.isNewUser) === 1 ? <span className="coupon-tag-green">（新人专享）</span> : null}
-          {(row.limitUserRank || []).length ? <span className="coupon-tag-green">（会员专享）</span> : null}
+          {Number(row.couponType) === 1 ? t('满减券') : t('折扣券')}
+          {Number(row.isNewUser) === 1 ? <span className="coupon-tag-green">{t('（新人专享）')}</span> : null}
+          {(row.limitUserRank || []).length ? <span className="coupon-tag-green">{t('（会员专享）')}</span> : null}
         </span>
       ),
     },
@@ -576,9 +578,9 @@ export default function Coupons() {
       width: 150,
       render: (_: unknown, row: CouponRow) =>
         Number(row.couponType) === 1 ? (
-          <span title="优惠券金额">{row.couponMoney || 0}</span>
+          <span title={t('优惠券金额')}>{row.couponMoney || 0}</span>
         ) : (
-          <span title="优惠券折扣">{row.couponDiscount || 0}折</span>
+          <span title={t('优惠券折扣')}>{row.couponDiscount || 0}{t('折')}</span>
         ),
     },
     {
@@ -589,10 +591,10 @@ export default function Coupons() {
         Number(row.reduceType) === 1 ? (
           <span>
             {row.minOrderAmount || 0}
-            {Number(row.couponUnit) === 1 ? '元' : '件'}
+            {Number(row.couponUnit) === 1 ? t('元') : t('件')}
           </span>
         ) : (
-          <span>无门槛券</span>
+          <span>{t('无门槛券')}</span>
         ),
     },
     {
@@ -614,8 +616,8 @@ export default function Coupons() {
         Number(row.sendType) === 0 ? (
           <span>
             {(row.delayDay ?? 0) === 0
-              ? `领券后立即生效，有效期${row.useDay ?? 0}天`
-              : `领券后${row.delayDay}天生效，有效期${row.useDay ?? 0}天`}
+              ? t('领券后立即生效，有效期{day}天', { day: row.useDay ?? 0 })
+              : t('领券后{delay}天生效，有效期{day}天', { delay: row.delayDay ?? 0, day: row.useDay ?? 0 })}
           </span>
         ) : (
           <span>
@@ -628,7 +630,7 @@ export default function Coupons() {
       dataIndex: 'status',
       width: 100,
       render: (value: number) => {
-        const text = couponStatusText(value);
+        const text = t(couponStatusText(value));
         const color = value === 2 ? 'orange' : value === 3 ? 'grey' : 'green';
         return <Tag color={color as never}>{text}</Tag>;
       },
@@ -638,16 +640,16 @@ export default function Coupons() {
   return (
     <div className="coupons-page">
       <Card>
-        <Text strong>按使用场景快速创建</Text>
+        <Text strong>{t('按使用场景快速创建')}</Text>
         <div className="coupon-quick-cards">
           {QUICK_CARDS.map((card) => (
             <div className="coupon-quick-card" key={card.title}>
               <div>
-                <div className="coupon-quick-title">{card.title}</div>
-                <div className="coupon-quick-desc">{card.desc}</div>
+                <div className="coupon-quick-title">{t(card.title)}</div>
+                <div className="coupon-quick-desc">{t(card.desc)}</div>
               </div>
               <Button type="primary" onClick={() => openCreate(card.preset)}>
-                立即新建
+                {t('立即新建')}
               </Button>
             </div>
           ))}
@@ -670,38 +672,38 @@ export default function Coupons() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '您确认要批量删除所选数据吗？',
+                title: t('您确认要批量删除所选数据吗？'),
                 onOk: async () => {
                   try {
                     await apiPost('/promotion/coupon/batch', { ids: rows.map((row) => row.couponId), type: 'del' });
-                    Toast.success({ content: '批量删除成功' });
+                    Toast.success({ content: t('批量删除成功') });
                     clear();
                     reload();
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                   }
                 },
               });
             }}
           >
-            批量删除
+            {t('批量删除')}
           </Button>
         )}
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-              编辑
+              {t('编辑')}
             </Button>
             {!isCouponExpired(row) ? (
               <Button theme="borderless" size="small" onClick={() => openIssue(row)}>
-                发放
+                {t('发放')}
               </Button>
             ) : null}
             <Button theme="borderless" size="small" onClick={() => openLog(row)}>
-              发放记录
+              {t('发放记录')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => deleteCoupon(row)}>
-              删除
+              {t('删除')}
             </Button>
           </Space>
         )}
@@ -718,7 +720,7 @@ export default function Coupons() {
       />
 
       <Modal
-        title={issueTarget ? `优惠券发放：${issueTarget.couponName || ''}` : '优惠券发放'}
+        title={issueTarget ? `${t('优惠券发放')}：${issueTarget.couponName || ''}` : t('优惠券发放')}
         visible={Boolean(issueTarget)}
         confirmLoading={issueSubmitting}
         onOk={submitIssue}
@@ -726,25 +728,25 @@ export default function Coupons() {
         width={620}
       >
         <div className="coupon-issue-form">
-          <label>发放对象</label>
+          <label>{t('发放对象')}</label>
           <RadioGroup
             value={issueType}
             onChange={(event) => setIssueType(event.target.value as 'USER' | 'RANK')}
           >
-            <Radio value="USER">指定会员</Radio>
-            <Radio value="RANK">会员等级</Radio>
+            <Radio value="USER">{t('指定会员')}</Radio>
+            <Radio value="RANK">{t('会员等级')}</Radio>
           </RadioGroup>
           {issueType === 'USER' ? (
             <>
               <Space>
                 <Input
-                  placeholder="会员名称/手机号"
+                  placeholder={t('会员名称/手机号')}
                   value={issueUserKeyword}
                   onChange={setIssueUserKeyword}
                   onEnterPress={() => searchIssueUsers(issueUserKeyword)}
                   style={{ width: 240 }}
                 />
-                <Button onClick={() => searchIssueUsers(issueUserKeyword)}>搜索</Button>
+                <Button onClick={() => searchIssueUsers(issueUserKeyword)}>{t('搜索')}</Button>
               </Space>
               <div className="coupon-issue-users">
                 {issueUsers.map((user) => (
@@ -768,15 +770,15 @@ export default function Coupons() {
                     </Text>
                   </label>
                 ))}
-                {!issueUsers.length ? <Text type="tertiary">输入关键词搜索会员</Text> : null}
+                {!issueUsers.length ? <Text type="tertiary">{t('输入关键词搜索会员')}</Text> : null}
               </div>
               <Text type="tertiary" size="small">
-                已选 {issueUserIds.length} 位会员
+                {t('已选 {count} 位会员', { count: issueUserIds.length })}
               </Text>
             </>
           ) : (
             <Select
-              placeholder="请选择会员等级"
+              placeholder={t('请选择会员等级')}
               multiple
               optionList={rankOptions}
               value={issueRankIds}
@@ -788,7 +790,7 @@ export default function Coupons() {
       </Modal>
 
       <Modal
-        title={logTarget ? `发放记录：${logTarget.couponName || ''}` : '发放记录'}
+        title={logTarget ? `${t('发放记录')}：${logTarget.couponName || ''}` : t('发放记录')}
         visible={Boolean(logTarget)}
         footer={null}
         onCancel={() => setLogTarget(null)}
@@ -801,13 +803,13 @@ export default function Coupons() {
             rowKey={(record: any) => String(record.logId ?? record.id ?? record.userId)}
             dataSource={logRows}
             columns={[
-              { title: '会员', dataIndex: 'nickname', render: (v: any, r: any) => v || r.username || r.userId },
-              { title: '手机号', dataIndex: 'mobile' },
-              { title: '发放时间', dataIndex: 'createTime', render: (v: any, r: any) => v || r.sendTime || '-' },
-              { title: '状态', dataIndex: 'statusText', render: (v: any, r: any) => v || r.status || '-' },
+              { title: t('会员'), dataIndex: 'nickname', render: (v: any, r: any) => v || r.username || r.userId },
+              { title: t('手机号'), dataIndex: 'mobile' },
+              { title: t('发放时间'), dataIndex: 'createTime', render: (v: any, r: any) => v || r.sendTime || '-' },
+              { title: t('状态'), dataIndex: 'statusText', render: (v: any, r: any) => v || r.status || '-' },
             ]}
           />
-          {!logRows.length && !logLoading ? <Text type="tertiary">暂无发放记录</Text> : null}
+          {!logRows.length && !logLoading ? <Text type="tertiary">{t('暂无发放记录')}</Text> : null}
         </Spin>
       </Modal>
     </div>

@@ -30,6 +30,7 @@ import {
   IconSetting,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -53,6 +54,7 @@ interface WxMenuItem {
 }
 
 export function WechatMenu() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [menuList, setMenuList] = useState<WxMenuItem[]>([
@@ -83,7 +85,7 @@ export function WechatMenu() {
         if (res?.menu?.button && Array.isArray(res.menu.button)) {
           const list = res.menu.button.map((btn: any, idx: number) => ({
             id: String(idx + 1),
-            name: btn.name || '菜单',
+            name: btn.name || t('菜单'),
             type: btn.type || 'view',
             url: btn.url || '',
             appid: btn.appid || '',
@@ -91,7 +93,7 @@ export function WechatMenu() {
             key: btn.key || '',
             sub_button: (btn.sub_button || []).map((sub: any, sIdx: number) => ({
               id: `${idx + 1}-${sIdx + 1}`,
-              name: sub.name || '子菜单',
+              name: sub.name || t('子菜单'),
               type: sub.type || 'view',
               url: sub.url || '',
               appid: sub.appid || '',
@@ -135,13 +137,13 @@ export function WechatMenu() {
 
   const addRootMenu = () => {
     if (menuList.length >= 3) {
-      Toast.warning('一级菜单最多添加 3 个');
+      Toast.warning(t('一级菜单最多添加 3 个'));
       return;
     }
     const newId = String(Date.now());
     const newItem: WxMenuItem = {
       id: newId,
-      name: '新菜单',
+      name: t('新菜单'),
       type: 'view',
       url: 'https://',
       sub_button: [],
@@ -154,13 +156,13 @@ export function WechatMenu() {
     const parent = findNode(menuList, parentId);
     if (!parent) return;
     if ((parent.sub_button || []).length >= 5) {
-      Toast.warning('二级菜单最多添加 5 个');
+      Toast.warning(t('二级菜单最多添加 5 个'));
       return;
     }
     const newId = `${parentId}-${Date.now()}`;
     const newItem: WxMenuItem = {
       id: newId,
-      name: '新子菜单',
+      name: t('新子菜单'),
       type: 'view',
       url: 'https://',
     };
@@ -205,9 +207,9 @@ export function WechatMenu() {
         })),
       };
       await apiPost('/wechat/menu/saveAndPublish', payload);
-      Toast.success('保存并发布成功');
+      Toast.success(t('保存并发布成功'));
     } catch {
-      Toast.success('公众号菜单发布成功（本地模拟保存）');
+      Toast.success(t('公众号菜单发布成功（本地模拟保存）'));
     } finally {
       setSaving(false);
     }
@@ -222,7 +224,7 @@ export function WechatMenu() {
           {/* 左侧公众号模拟器 */}
           <Col span={9}>
             <Card
-              title="手机模拟预览"
+              title={t('手机模拟预览')}
               style={{
                 width: 340,
                 minHeight: 560,
@@ -235,11 +237,11 @@ export function WechatMenu() {
               }}
             >
               <div style={{ textAlign: 'center', padding: '10px 0', borderBottom: '1px solid #eef0f3' }}>
-                <Text strong>公众号名称</Text>
+                <Text strong>{t('公众号名称')}</Text>
               </div>
 
               <div style={{ flex: 1, padding: 20, color: '#888', textAlign: 'center', marginTop: 80 }}>
-                点击下方菜单按钮进行选择与配置
+                {t('点击下方菜单按钮进行选择与配置')}
               </div>
 
               {/* 模拟微信底部菜单栏 */}
@@ -267,7 +269,7 @@ export function WechatMenu() {
                     onClick={() => setSelectedId(item.id)}
                   >
                     <Text ellipsis={{ showTooltip: true }} style={{ fontSize: 13, fontWeight: selectedId === item.id ? 'bold' : 'normal' }}>
-                      {item.name || '菜单'}
+                      {item.name || t('菜单')}
                     </Text>
 
                     {/* 二级菜单浮层 */}
@@ -299,7 +301,7 @@ export function WechatMenu() {
                             }}
                           >
                             <Text ellipsis={{ showTooltip: true }} style={{ fontSize: 12 }}>
-                              {sub.name || '子菜单'}
+                              {sub.name || t('子菜单')}
                             </Text>
                           </div>
                         ))}
@@ -319,7 +321,7 @@ export function WechatMenu() {
                     }}
                     onClick={addRootMenu}
                   >
-                    <IconPlus /> 添加
+                    <IconPlus /> {t('添加')}
                   </div>
                 )}
               </div>
@@ -327,30 +329,30 @@ export function WechatMenu() {
 
             <div style={{ marginTop: 16 }}>
               <Button icon={<IconPlus />} onClick={addRootMenu} disabled={menuList.length >= 3}>
-                添加主菜单
+                {t('添加主菜单')}
               </Button>
             </div>
           </Col>
 
           {/* 右侧节点属性编辑表单 */}
           <Col span={15}>
-            <Card title="菜单内容配置">
+            <Card title={t('菜单内容配置')}>
               {activeNode ? (
                 <div style={{ maxWidth: 500 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <Title heading={5}>配置项：{activeNode.name}</Title>
+                    <Title heading={5}>{t('配置项：')}{activeNode.name}</Title>
                     <Button
                       theme="borderless"
                       type="danger"
                       icon={<IconDelete />}
                       onClick={() => removeNode(activeNode.id)}
                     >
-                      删除菜单
+                      {t('删除菜单')}
                     </Button>
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong>菜单名称</Text>
+                    <Text strong>{t('菜单名称')}</Text>
                     <Input
                       value={activeNode.name}
                       maxLength={16}
@@ -362,23 +364,23 @@ export function WechatMenu() {
                   {(!activeNode.sub_button || activeNode.sub_button.length === 0) && (
                     <>
                       <div style={{ marginBottom: 16 }}>
-                        <Text strong>菜单内容</Text>
+                        <Text strong>{t('菜单内容')}</Text>
                         <RadioGroup
                           value={activeNode.type}
                           onChange={(e) => updateNode(activeNode.id, { type: e.target.value })}
                           style={{ display: 'block', marginTop: 8 }}
                         >
-                          <Radio value="view">跳转网页</Radio>
-                          <Radio value="click">发送消息</Radio>
-                          <Radio value="miniprogram">小程序</Radio>
+                          <Radio value="view">{t('跳转网页')}</Radio>
+                          <Radio value="click">{t('发送消息')}</Radio>
+                          <Radio value="miniprogram">{t('小程序')}</Radio>
                         </RadioGroup>
                       </div>
 
                       {activeNode.type === 'view' && (
                         <div style={{ marginBottom: 16 }}>
-                          <Text strong>页面地址</Text>
+                          <Text strong>{t('页面地址')}</Text>
                           <Input
-                            placeholder="请输入网址，如 https://..."
+                            placeholder={t('请输入网址，如 https://...')}
                             value={activeNode.url || ''}
                             onChange={(val) => updateNode(activeNode.id, { url: val })}
                             style={{ marginTop: 6 }}
@@ -388,9 +390,9 @@ export function WechatMenu() {
 
                       {activeNode.type === 'click' && (
                         <div style={{ marginBottom: 16 }}>
-                          <Text strong>触发关键字</Text>
+                          <Text strong>{t('触发关键字')}</Text>
                           <Input
-                            placeholder="请输入绑定的消息Key"
+                            placeholder={t('请输入绑定的消息Key')}
                             value={activeNode.key || ''}
                             onChange={(val) => updateNode(activeNode.id, { key: val })}
                             style={{ marginTop: 6 }}
@@ -401,7 +403,7 @@ export function WechatMenu() {
                       {activeNode.type === 'miniprogram' && (
                         <>
                           <div style={{ marginBottom: 16 }}>
-                            <Text strong>小程序 AppID</Text>
+                            <Text strong>{t('小程序 AppID')}</Text>
                             <Input
                               placeholder="wx..."
                               value={activeNode.appid || ''}
@@ -410,7 +412,7 @@ export function WechatMenu() {
                             />
                           </div>
                           <div style={{ marginBottom: 16 }}>
-                            <Text strong>小程序页面路径</Text>
+                            <Text strong>{t('小程序页面路径')}</Text>
                             <Input
                               placeholder="pages/index/index"
                               value={activeNode.pagepath || ''}
@@ -430,19 +432,19 @@ export function WechatMenu() {
                         onClick={() => addChildMenu(activeNode.id)}
                         disabled={(activeNode.sub_button || []).length >= 5}
                       >
-                        添加子菜单
+                        {t('添加子菜单')}
                       </Button>
                     </div>
                   )}
                 </div>
               ) : (
-                <Empty description="请在左侧选择或新建一个菜单项" />
+                <Empty description={t('请在左侧选择或新建一个菜单项')} />
               )}
             </Card>
 
             <div style={{ marginTop: 24 }}>
               <Button type="primary" size="large" icon={<IconSave />} loading={saving} onClick={onSave}>
-                保存并发布
+                {t('保存并发布')}
               </Button>
             </div>
           </Col>
@@ -459,6 +461,7 @@ export function WechatMenu() {
  * props: ruleName, createdAt
  * ========================================================================= */
 export function WechatKeywordReply() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     {
       title: '规则名称',
@@ -490,7 +493,7 @@ export function WechatKeywordReply() {
       dataIndex: 'isEnabled',
       width: 120,
       render: (val: any) => (
-        <Tag color={val ? 'green' : 'grey'}>{val ? '启用' : '停用'}</Tag>
+        <Tag color={val ? 'green' : 'grey'}>{val ? t('启用') : t('停用')}</Tag>
       ),
     },
     {
@@ -524,38 +527,38 @@ export function WechatKeywordReply() {
               fields: [
                 {
                   field: 'ruleName',
-                  label: '规则名称',
+                  label: t('规则名称'),
                   type: 'input',
                   required: true,
                 },
                 {
                   field: 'keywords',
-                  label: '关键词',
+                  label: t('关键词'),
                   type: 'input',
-                  extraText: '多个关键词用逗号隔开',
+                  extraText: t('多个关键词用逗号隔开'),
                   required: true,
                 },
                 {
                   field: 'replyContent',
-                  label: '回复内容',
+                  label: t('回复内容'),
                   type: 'textarea',
                   required: true,
                 },
                 {
                   field: 'replyMode',
-                  label: '回复方式',
+                  label: t('回复方式'),
                   type: 'select',
                   options: [
-                    { label: '回复全部', value: 1 },
-                    { label: '随机回复一条', value: 2 },
+                    { label: t('回复全部'), value: 1 },
+                    { label: t('随机回复一条'), value: 2 },
                   ],
                 },
                 {
                   field: 'isEnabled',
-                  label: '启用状态',
+                  label: t('启用状态'),
                   type: 'switch',
-                  checkedText: '启用',
-                  uncheckedText: '停用',
+                  checkedText: t('启用'),
+                  uncheckedText: t('停用'),
                 },
               ],
             },
@@ -572,6 +575,7 @@ export function WechatKeywordReply() {
  * labels: 被关注回复, 登录成功回复, 收到消息回复
  * ========================================================================= */
 export function WechatAutoReply() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'subscribe' | 'loginSuccess' | 'default'>('subscribe');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -612,9 +616,9 @@ export function WechatAutoReply() {
     try {
       const current = formState[activeTab];
       await apiPost(`/wechat/autoReply/${activeTab}/save`, current);
-      Toast.success('保存成功');
+      Toast.success(t('保存成功'));
     } catch {
-      Toast.success('设置保存成功（本地模拟）');
+      Toast.success(t('设置保存成功（本地模拟）'));
     } finally {
       setSaving(false);
     }
@@ -626,15 +630,15 @@ export function WechatAutoReply() {
     <div style={{ padding: 20 }}>
       <Card>
         <Tabs activeKey={activeTab} onChange={(k: any) => setActiveTab(k)}>
-          <TabPane tab="被关注回复" itemKey="subscribe" />
-          <TabPane tab="登录成功回复" itemKey="loginSuccess" />
-          <TabPane tab="收到消息回复" itemKey="default" />
+          <TabPane tab={t('被关注回复')} itemKey="subscribe" />
+          <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
+          <TabPane tab={t('收到消息回复')} itemKey="default" />
         </Tabs>
 
         <Spin spinning={loading}>
           <div style={{ maxWidth: 600, marginTop: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-              <Text strong style={{ width: 100 }}>启用开关：</Text>
+              <Text strong style={{ width: 100 }}>{t('启用开关：')}</Text>
               <Switch
                 checked={currentConfig.enabled}
                 onChange={(checked) =>
@@ -647,7 +651,7 @@ export function WechatAutoReply() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-              <Text strong style={{ width: 100 }}>回复类型：</Text>
+              <Text strong style={{ width: 100 }}>{t('回复类型：')}</Text>
               <RadioGroup
                 value={currentConfig.replyType}
                 onChange={(e) =>
@@ -657,14 +661,14 @@ export function WechatAutoReply() {
                   }))
                 }
               >
-                <Radio value="text">文字回复</Radio>
-                <Radio value="image">图片回复</Radio>
-                <Radio value="news">图文回复</Radio>
+                <Radio value="text">{t('文字回复')}</Radio>
+                <Radio value="image">{t('图片回复')}</Radio>
+                <Radio value="news">{t('图文回复')}</Radio>
               </RadioGroup>
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <Text strong style={{ display: 'block', marginBottom: 8 }}>回复内容：</Text>
+              <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('回复内容：')}</Text>
               <TextArea
                 rows={5}
                 value={currentConfig.content}
@@ -674,12 +678,12 @@ export function WechatAutoReply() {
                     [activeTab]: { ...prev[activeTab], content: val },
                   }))
                 }
-                placeholder="请输入自动回复的内容..."
+                placeholder={t('请输入自动回复的内容...')}
               />
             </div>
 
             <Button type="primary" size="large" icon={<IconSave />} loading={saving} onClick={onSave}>
-              保存设置
+              {t('保存设置')}
             </Button>
           </div>
         </Spin>
@@ -695,6 +699,7 @@ export function WechatAutoReply() {
  * props: msgType, title, content, createTime
  * ========================================================================= */
 export function VoiceBroadcast() {
+  const { t } = useI18n();
   const [switches, setSwitches] = useState({
     newOrder: true,
     paidOrder: true,
@@ -706,11 +711,11 @@ export function VoiceBroadcast() {
 
   const onPreview = (label: string) => {
     if ('speechSynthesis' in window) {
-      const u = new SpeechSynthesisUtterance(`您有新的${label}，请及时处理`);
+      const u = new SpeechSynthesisUtterance(t('您有新的{label}，请及时处理', { label }));
       u.lang = 'zh-CN';
       window.speechSynthesis.speak(u);
     }
-    Toast.info(`正在试听：${label}语音播报`);
+    Toast.info(t('正在试听：{label}语音播报', { label }));
   };
 
   const columns: ColumnConfig<any>[] = [
@@ -719,7 +724,7 @@ export function VoiceBroadcast() {
       title: '消息类型',
       dataIndex: 'msgType',
       width: 140,
-      render: (t: any) => {
+      render: (value: any) => {
         const map: Record<string, string> = {
           newOrder: '新订单',
           paidOrder: '已付款订单',
@@ -727,7 +732,7 @@ export function VoiceBroadcast() {
           cancelOrder: '订单取消',
           kefuMsg: '客服消息',
         };
-        return <Tag color="blue">{map[t] || t || '系统通知'}</Tag>;
+        return <Tag color="blue">{map[value] ? t(map[value]) : value || t('系统通知')}</Tag>;
       },
     },
     { title: '消息标题', dataIndex: 'title', width: 180 },
@@ -737,14 +742,14 @@ export function VoiceBroadcast() {
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="语音播报设置" style={{ marginBottom: 20 }}>
+      <Card title={t('语音播报设置')} style={{ marginBottom: 20 }}>
         <Row gutter={[24, 16]}>
           <Col span={8}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--semi-color-fill-0)', borderRadius: 8 }}>
               <Space>
                 <IconVolume2 style={{ color: 'var(--semi-color-primary)' }} />
-                <Text strong>新订单语音播报</Text>
-                <Button size="small" theme="borderless" onClick={() => onPreview('新订单')}>试听</Button>
+                <Text strong>{t('新订单语音播报')}</Text>
+                <Button size="small" theme="borderless" onClick={() => onPreview(t('新订单'))}>{t('试听')}</Button>
               </Space>
               <Switch checked={switches.newOrder} onChange={(v) => setSwitches((s) => ({ ...s, newOrder: v }))} />
             </div>
@@ -753,8 +758,8 @@ export function VoiceBroadcast() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--semi-color-fill-0)', borderRadius: 8 }}>
               <Space>
                 <IconVolume2 style={{ color: 'var(--semi-color-success)' }} />
-                <Text strong>已付款订单播报</Text>
-                <Button size="small" theme="borderless" onClick={() => onPreview('已付款订单')}>试听</Button>
+                <Text strong>{t('已付款订单播报')}</Text>
+                <Button size="small" theme="borderless" onClick={() => onPreview(t('已付款订单'))}>{t('试听')}</Button>
               </Space>
               <Switch checked={switches.paidOrder} onChange={(v) => setSwitches((s) => ({ ...s, paidOrder: v }))} />
             </div>
@@ -763,8 +768,8 @@ export function VoiceBroadcast() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--semi-color-fill-0)', borderRadius: 8 }}>
               <Space>
                 <IconVolume2 style={{ color: 'var(--semi-color-warning)' }} />
-                <Text strong>售后申请语音播报</Text>
-                <Button size="small" theme="borderless" onClick={() => onPreview('售后申请')}>试听</Button>
+                <Text strong>{t('售后申请语音播报')}</Text>
+                <Button size="small" theme="borderless" onClick={() => onPreview(t('售后申请'))}>{t('试听')}</Button>
               </Space>
               <Switch checked={switches.afterSale} onChange={(v) => setSwitches((s) => ({ ...s, afterSale: v }))} />
             </div>
@@ -773,8 +778,8 @@ export function VoiceBroadcast() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--semi-color-fill-0)', borderRadius: 8 }}>
               <Space>
                 <IconVolume2 style={{ color: 'var(--semi-color-danger)' }} />
-                <Text strong>订单取消语音播报</Text>
-                <Button size="small" theme="borderless" onClick={() => onPreview('订单取消')}>试听</Button>
+                <Text strong>{t('订单取消语音播报')}</Text>
+                <Button size="small" theme="borderless" onClick={() => onPreview(t('订单取消'))}>{t('试听')}</Button>
               </Space>
               <Switch checked={switches.cancelOrder} onChange={(v) => setSwitches((s) => ({ ...s, cancelOrder: v }))} />
             </div>
@@ -783,8 +788,8 @@ export function VoiceBroadcast() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--semi-color-fill-0)', borderRadius: 8 }}>
               <Space>
                 <IconVolume2 style={{ color: 'var(--semi-color-info)' }} />
-                <Text strong>客服消息语音播报</Text>
-                <Button size="small" theme="borderless" onClick={() => onPreview('客服消息')}>试听</Button>
+                <Text strong>{t('客服消息语音播报')}</Text>
+                <Button size="small" theme="borderless" onClick={() => onPreview(t('客服消息'))}>{t('试听')}</Button>
               </Space>
               <Switch checked={switches.kefuMsg} onChange={(v) => setSwitches((s) => ({ ...s, kefuMsg: v }))} />
             </div>
@@ -793,7 +798,7 @@ export function VoiceBroadcast() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--semi-color-fill-0)', borderRadius: 8 }}>
               <Space>
                 <IconSetting style={{ color: '#888' }} />
-                <Text strong>弹窗显示同步通知</Text>
+                <Text strong>{t('弹窗显示同步通知')}</Text>
               </Space>
               <Switch checked={switches.popupEnabled} onChange={(v) => setSwitches((s) => ({ ...s, popupEnabled: v }))} />
             </div>

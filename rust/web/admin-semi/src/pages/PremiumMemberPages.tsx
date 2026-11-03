@@ -13,9 +13,12 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet } from '../api';
+import { useI18n } from '../i18n';
 import './premium-o2o-settings.css';
 
 const { Text } = Typography;
+
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 /* ==================================================================
    付费会员 ×2（premiumMemberManage 付费会员 / premiumMemberRightManage 权益中心）
@@ -90,17 +93,17 @@ const toNum = (value: unknown): number => {
 };
 
 /** 升级条件文案（与会员等级设置页 growthText 同语义） */
-const growthText = (row: RankRow): string => {
+const growthText = (row: RankRow, t: Translate): string => {
   const value = toNum(row.minGrowthPoints);
-  if (!value) return '无门槛';
-  if (Number(row.rankType) === 2) return `消费满${value}${AMOUNT_UNIT}`;
-  return `${value}成长值`;
+  if (!value) return t('无门槛');
+  if (Number(row.rankType) === 2) return t('消费满{value}元', { value });
+  return t('{value}成长值', { value });
 };
 
 /** 等级有效期文案（rankConfig.type=1 永久有效，否则按 N 个月重新计算） */
-const validityText = (config?: RankConfigData): string => {
-  if (!config || Number(config.type) === 1) return '永久有效';
-  return `${Number(config.rankAfterMonth) || 12}个月后重新计算`;
+const validityText = (config: RankConfigData | undefined, t: Translate): string => {
+  if (!config || Number(config.type) === 1) return t('永久有效');
+  return t('{months}个月后重新计算', { months: Number(config.rankAfterMonth) || 12 });
 };
 
 const navigateTo = (pageKey: string) => {
@@ -114,6 +117,7 @@ const navigateTo = (pageKey: string) => {
    降级展示：会员等级（Pro）方案 = 付费会员权益卡列表
 ================================================================== */
 export function PremiumMembers() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<RankRow[]>([]);
   const [rankConfig, setRankConfig] = useState<RankConfigData>({});
   const [loading, setLoading] = useState(true);
@@ -130,7 +134,7 @@ export function PremiumMembers() {
         setRankConfig(result?.rankConfig?.data || {});
       })
       .catch((error) =>
-        alive && Toast.error({ content: error instanceof Error ? error.message : '请求失败' }),
+        alive && Toast.error({ content: error instanceof Error ? error.message : t('请求失败') }),
       )
       .finally(() => {
         if (alive) setLoading(false);
@@ -148,54 +152,54 @@ export function PremiumMembers() {
 
   const columns = [
     {
-      title: '权益卡名称',
+      title: t('权益卡名称'),
       width: 220,
       render: (_: unknown, row: RankRow) => (
         <div className="pmo-card-name">
           {row.rankLogo ? (
             <Image src={row.rankLogo} width={22} height={22} style={{ objectFit: 'contain' }} />
           ) : (
-            <span className="pmo-card-badge">卡</span>
+            <span className="pmo-card-badge">{t('卡')}</span>
           )}
           <span style={{ fontWeight: 600 }}>{row.rankName || '--'}</span>
           <Tag color="red" size="small">
-            权益卡
+            {t('权益卡')}
           </Tag>
         </div>
       ),
     },
     {
-      title: '有效期/状态',
+      title: t('有效期/状态'),
       width: 160,
-      render: (_: unknown, row: RankRow) => <span>{validityText(rankConfig)}</span>,
+      render: (_: unknown, row: RankRow) => <span>{validityText(rankConfig, t)}</span>,
     },
     {
-      title: '升级条件',
+      title: t('升级条件'),
       width: 140,
-      render: (_: unknown, row: RankRow) => <span>{growthText(row)}</span>,
+      render: (_: unknown, row: RankRow) => <span>{growthText(row, t)}</span>,
     },
     {
-      title: '会员权益',
+      title: t('会员权益'),
       width: 280,
       render: (_: unknown, row: RankRow) => (
         <div className="pmo-rights-cell">
-          {toNum(row.discount) > 0 ? <div>会员折扣{row.discount}折</div> : null}
-          {toNum(row.rankPoint) > 0 ? <div>{row.rankPoint}倍会员积分</div> : null}
-          {Number(row.freeShipping) === 1 ? <div>享受会员包邮</div> : null}
+          {toNum(row.discount) > 0 ? <div>{t('会员折扣{discount}折', { discount: toNum(row.discount) })}</div> : null}
+          {toNum(row.rankPoint) > 0 ? <div>{t('{points}倍会员积分', { points: toNum(row.rankPoint) })}</div> : null}
+          {Number(row.freeShipping) === 1 ? <div>{t('享受会员包邮')}</div> : null}
           {(row.rights || []).filter((right) => Number(right.isChecked) === 1).length > 0 ? (
-            <div>{(row.rights || []).filter((right) => Number(right.isChecked) === 1).length}项自定义权益</div>
+            <div>{t('{count}项自定义权益', { count: (row.rights || []).filter((right) => Number(right.isChecked) === 1).length })}</div>
           ) : null}
         </div>
       ),
     },
     {
-      title: '领卡会员',
+      title: t('领卡会员'),
       dataIndex: 'userCount',
       width: 110,
       render: (value: number) => <span>{Number(value) || 0}</span>,
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 150,
       render: (_: unknown, row: RankRow) => (
         <Button
@@ -204,7 +208,7 @@ export function PremiumMembers() {
           size="small"
           onClick={() => navigateTo('userLevelProManage')}
         >
-          编辑付费方案
+          {t('编辑付费方案')}
         </Button>
       ),
     },
@@ -218,8 +222,8 @@ export function PremiumMembers() {
         bordered
         icon={null}
         closeIcon={null}
-        title="付费会员卡接口暂未迁移（backendReady）"
-        description="5.8.60 的付费会员卡（premiummember/card/*）、付费记录与投放能力在当前 Rust 后端尚未实现；本页以会员等级（Pro）方案数据（/user/userRank/listByPro）降级展示，权益卡方案请在「会员等级设置」中维护。"
+        title={t('付费会员卡接口暂未迁移（backendReady）')}
+        description={t('5.8.60 的付费会员卡（premiummember/card/*）、付费记录与投放能力在当前 Rust 后端尚未实现；本页以会员等级（Pro）方案数据（/user/userRank/listByPro）降级展示，权益卡方案请在「会员等级设置」中维护。')}
       />
       <Card shadows="hover" className="table-card">
         <div className="pmo-toolbar">
@@ -227,17 +231,17 @@ export function PremiumMembers() {
             <Input
               prefix={<IconSearch />}
               style={{ width: 220 }}
-              placeholder="输入权益卡名称"
+              placeholder={t('输入权益卡名称')}
               value={keyword}
               onChange={(next) => setKeyword(next || '')}
               showClear
             />
             <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-              刷新
+              {t('刷新')}
             </Button>
           </Space>
           <Button theme="solid" type="primary" onClick={() => navigateTo('userLevelProManage')}>
-            编辑会员方案
+            {t('编辑会员方案')}
           </Button>
         </div>
         <Table
@@ -247,7 +251,7 @@ export function PremiumMembers() {
           columns={columns}
           pagination={false}
           scroll={{ x: 1060 }}
-          empty={loading ? undefined : '暂无数据'}
+          empty={loading ? undefined : t('暂无数据')}
         />
       </Card>
     </div>
@@ -269,7 +273,7 @@ interface AggregatedRight {
   boundRanks: string[];
 }
 
-const aggregateRights = (rows: RankRow[]): AggregatedRight[] => {
+const aggregateRights = (rows: RankRow[], t: Translate): AggregatedRight[] => {
   const result: AggregatedRight[] = [];
   const push = (right: AggregatedRight) => {
     const existing = result.find((item) => item.key === right.key);
@@ -285,9 +289,9 @@ const aggregateRights = (rows: RankRow[]): AggregatedRight[] => {
     if (toNum(row.discount) > 0) {
       push({
         key: `discount:${row.discount}`,
-        showName: '会员折扣',
+        showName: t('会员折扣'),
         rightType: '消费折扣',
-        describe: `享受全部商品 ${row.discount} 折优惠`,
+        describe: t('享受全部商品 {discount} 折优惠', { discount: toNum(row.discount) }),
         value: row.discount,
         enabled: true,
         boundRanks: [rankName],
@@ -296,9 +300,9 @@ const aggregateRights = (rows: RankRow[]): AggregatedRight[] => {
     if (toNum(row.rankPoint) > 0) {
       push({
         key: `point:${row.rankPoint}`,
-        showName: '多倍积分',
+        showName: t('多倍积分'),
         rightType: '倍积分',
-        describe: `购物可获得 ${row.rankPoint} 倍积分`,
+        describe: t('购物可获得 {points} 倍积分', { points: toNum(row.rankPoint) }),
         value: row.rankPoint,
         enabled: true,
         boundRanks: [rankName],
@@ -307,9 +311,9 @@ const aggregateRights = (rows: RankRow[]): AggregatedRight[] => {
     if (Number(row.freeShipping) === 1) {
       push({
         key: 'freeShipping',
-        showName: '会员包邮',
+        showName: t('会员包邮'),
         rightType: '包邮',
-        describe: '下单享受全场包邮特权',
+        describe: t('下单享受全场包邮特权'),
         enabled: true,
         boundRanks: [rankName],
       });
@@ -330,6 +334,7 @@ const aggregateRights = (rows: RankRow[]): AggregatedRight[] => {
 };
 
 export function PremiumMemberRights() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<RankRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState('');
@@ -344,7 +349,7 @@ export function PremiumMemberRights() {
         setRows(result?.userRank?.records || []);
       })
       .catch((error) =>
-        alive && Toast.error({ content: error instanceof Error ? error.message : '请求失败' }),
+        alive && Toast.error({ content: error instanceof Error ? error.message : t('请求失败') }),
       )
       .finally(() => {
         if (alive) setLoading(false);
@@ -354,7 +359,7 @@ export function PremiumMemberRights() {
     };
   }, [reloadKey]);
 
-  const rights = useMemo(() => aggregateRights(rows), [rows]);
+  const rights = useMemo(() => aggregateRights(rows, t), [rows, t]);
   const filteredRights = useMemo(() => {
     const kw = keyword.trim();
     if (!kw) return rights;
@@ -363,55 +368,55 @@ export function PremiumMemberRights() {
 
   const columns = [
     {
-      title: '展示名称',
+      title: t('展示名称'),
       width: 180,
       render: (_: unknown, row: AggregatedRight) => (
         <span style={{ fontWeight: 600 }}>{row.showName}</span>
       ),
     },
     {
-      title: '权益类型',
+      title: t('权益类型'),
       width: 130,
       dataIndex: 'rightType',
       render: (val: AggregatedRight['rightType']) => (
-        <Tag color={val === '自定义权益' ? 'purple' : 'green'}>{val}</Tag>
+        <Tag color={val === '自定义权益' ? 'purple' : 'green'}>{t(val)}</Tag>
       ),
     },
     {
-      title: '权益说明',
+      title: t('权益说明'),
       width: 280,
       render: (_: unknown, row: AggregatedRight) => row.describe || '--',
     },
     {
-      title: '权益价值',
+      title: t('权益价值'),
       width: 120,
       render: (_: unknown, row: AggregatedRight) =>
         row.value === undefined || row.value === '' ? (
           '--'
         ) : (
           <Text>
-            该权益价值 {row.value} {AMOUNT_UNIT}
+            {t('该权益价值')} {row.value} {t(AMOUNT_UNIT)}
           </Text>
         ),
     },
     {
-      title: '启用状态',
+      title: t('启用状态'),
       width: 110,
       render: (_: unknown, row: AggregatedRight) =>
-        row.enabled ? <Tag color="blue">生效中</Tag> : <Tag color="grey">未启用</Tag>,
+        row.enabled ? <Tag color="blue">{t('生效中')}</Tag> : <Tag color="grey">{t('未启用')}</Tag>,
     },
     {
-      title: '关联卡',
+      title: t('关联卡'),
       width: 200,
       render: (_: unknown, row: AggregatedRight) => (
         <div className="pmo-bound-ranks">
           <span>{row.boundRanks.join('、')}</span>
-          <Text type="secondary">已关联 {row.boundRanks.length} 张权益卡</Text>
+          <Text type="secondary">{t('已关联 {count} 张权益卡', { count: row.boundRanks.length })}</Text>
         </div>
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 150,
       render: (_: unknown) => (
         <Button
@@ -420,7 +425,7 @@ export function PremiumMemberRights() {
           size="small"
           onClick={() => navigateTo('userLevelProManage')}
         >
-          设置规则
+          {t('设置规则')}
         </Button>
       ),
     },
@@ -434,8 +439,8 @@ export function PremiumMemberRights() {
         bordered
         icon={null}
         closeIcon={null}
-        title="权益接口暂未迁移（backendReady）"
-        description="5.8.60 的会员权益配置（premiummember/right/*）在当前 Rust 后端尚未实现；本页从会员等级（Pro）方案（/user/userRank/listByPro）聚合消费折扣、倍积分、包邮与自定义权益展示，可拖动权益列表进行排序，调整在用户端展示会员权益的顺序。权益编辑请在「会员等级设置」中完成。"
+        title={t('权益接口暂未迁移（backendReady）')}
+        description={t('5.8.60 的会员权益配置（premiummember/right/*）在当前 Rust 后端尚未实现；本页从会员等级（Pro）方案（/user/userRank/listByPro）聚合消费折扣、倍积分、包邮与自定义权益展示，可拖动权益列表进行排序，调整在用户端展示会员权益的顺序。权益编辑请在「会员等级设置」中完成。')}
       />
       <Card shadows="hover" className="table-card">
         <div className="pmo-toolbar">
@@ -443,17 +448,17 @@ export function PremiumMemberRights() {
             <Input
               prefix={<IconSearch />}
               style={{ width: 220 }}
-              placeholder="输入权益名称"
+              placeholder={t('输入权益名称')}
               value={keyword}
               onChange={(next) => setKeyword(next || '')}
               showClear
             />
             <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-              刷新
+              {t('刷新')}
             </Button>
           </Space>
           <Button theme="solid" type="primary" onClick={() => navigateTo('userLevelProManage')}>
-            新建权益
+            {t('新建权益')}
           </Button>
         </div>
         <Table
@@ -463,7 +468,7 @@ export function PremiumMemberRights() {
           columns={columns}
           pagination={false}
           scroll={{ x: 1170 }}
-          empty={loading ? undefined : '暂无数据'}
+          empty={loading ? undefined : t('暂无数据')}
         />
       </Card>
     </div>

@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import './user-certifications.css';
@@ -139,17 +140,27 @@ const DOCUMENT_TYPE_OPTIONS = [
   { value: 5, label: '来往大陆通行证（中国台湾居民）' },
 ];
 
-const documentTypeLabel = (value?: number | null) =>
-  DOCUMENT_TYPE_OPTIONS.find((option) => option.value === Number(value))?.label || '';
+const documentTypeLabel = (
+  value: number | null | undefined,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) => {
+  const label = DOCUMENT_TYPE_OPTIONS.find((option) => option.value === Number(value))?.label || '';
+  return label ? t(label) : '';
+};
 
 const orDash = (value?: string | null) => (value ? value : '-');
 
 /** 证件/营业期限：类型 1 为区间，否则「结束日期～ 长期」 */
-const validityText = (periodType?: number | null, range?: string[] | null, end?: string | null) => {
+const validityText = (
+  periodType: number | null | undefined,
+  range: string[] | null | undefined,
+  end: string | null | undefined,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) => {
   if (Number(periodType) === 1) {
     return `${range?.[0] || ''} ～ ${range?.[1] || ''}`;
   }
-  return `${end || ''}～ 长期`;
+  return `${end || ''}～ ${t('长期')}`;
 };
 
 const firstPicUrl = (photos?: CompanyPhoto[] | null) => photos?.[0]?.picUrl || '';
@@ -166,16 +177,18 @@ function StatusDot({ status }: { status?: number }) {
 }
 
 function StatusText({ status, text }: { status?: number; text?: string }) {
+  const { t } = useI18n();
   return (
     <span className="uc-status-text">
       <StatusDot status={status} />
-      {text}
+      {text ? t(text) : text}
     </span>
   );
 }
 
 function CertTypeTag({ type }: { type?: number }) {
-  return Number(type) === 1 ? <Tag color="grey">个人</Tag> : <Tag color="blue">企业</Tag>;
+  const { t } = useI18n();
+  return Number(type) === 1 ? <Tag color="grey">{t('个人')}</Tag> : <Tag color="blue">{t('企业')}</Tag>;
 }
 
 function DetailRow({ label, children }: { label: string; children: ReactNode }) {
@@ -194,6 +207,7 @@ function PicImage({ photos }: { photos?: CompanyPhoto[] | null }) {
 }
 
 export default function UserCertifications() {
+  const { t } = useI18n();
   const [statusTab, setStatusTab] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -229,7 +243,7 @@ export default function UserCertifications() {
         setAuditRemark(result?.auditRemark || '');
       })
       .catch((error) => {
-        Toast.error({ content: error instanceof Error ? error.message : '请求失败' });
+        Toast.error({ content: error instanceof Error ? error.message : t('请求失败') });
         setDetailOpen(false);
       })
       .finally(() => setDetailLoading(false));
@@ -238,17 +252,17 @@ export default function UserCertifications() {
   const submitAudit = async (status: number) => {
     if (!detail?.id) return;
     if (status === 3 && !auditRemark.trim()) {
-      Toast.error({ content: '请输入审核备注' });
+      Toast.error({ content: t('请输入审核备注') });
       return;
     }
     setAuditing(true);
     try {
       await apiPost('/user/userCompany/audit', { id: detail.id, status, auditRemark });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setDetailOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setAuditing(false);
     }
@@ -257,10 +271,10 @@ export default function UserCertifications() {
   const deleteRow = async (row: UserCompanyRow) => {
     try {
       await apiPost('/user/userCompany/del', { id: row.id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -332,10 +346,10 @@ export default function UserCertifications() {
             size="small"
             activeKey={String(statusTab)}
             onChange={(key: string) => setStatusTab(Number(key))}
-            tabList={STATUS_TABS.map((tab) => ({ tab: tab.label, itemKey: String(tab.value) }))}
+            tabList={STATUS_TABS.map((tab) => ({ tab: t(tab.label), itemKey: String(tab.value) }))}
           />
           <Typography.Text type="tertiary" size="small">
-            审核会员提交的个人/企业认证申请，通过后该会员将标记为已企业认证。
+            {t('审核会员提交的个人/企业认证申请，通过后该会员将标记为已企业认证。')}
           </Typography.Text>
         </div>
       </Card>
@@ -357,35 +371,35 @@ export default function UserCertifications() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '您确认要批量删除所选数据吗？',
+                title: t('您确认要批量删除所选数据吗？'),
                 onOk: async () => {
                   try {
                     await apiPost('/user/userCompany/batch', {
                       type: 'del',
                       ids: rows.map((row) => row.id),
                     });
-                    Toast.success({ content: '批量删除成功' });
+                    Toast.success({ content: t('批量删除成功') });
                     clear();
                     reload();
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
                   }
                 },
               });
             }}
           >
-            批量删除
+            {t('批量删除')}
           </Button>
         )}
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openDetail(row)}>
-              详情
+              {t('详情')}
             </Button>
             {Number(row.status) === 3 ? (
-              <Popconfirm title="您确认要删除该数据吗？" onConfirm={() => deleteRow(row)}>
+              <Popconfirm title={t('您确认要删除该数据吗？')} onConfirm={() => deleteRow(row)}>
                 <Button theme="borderless" type="danger" size="small">
-                  删除
+                  {t('删除')}
                 </Button>
               </Popconfirm>
             ) : null}
@@ -394,7 +408,7 @@ export default function UserCertifications() {
       />
 
       <Modal
-        title="申请详情"
+        title={t('申请详情')}
         visible={detailOpen}
         footer={null}
         width={640}
@@ -405,70 +419,72 @@ export default function UserCertifications() {
             activeKey={activeKey}
             onChange={(key: string) => setActiveKey(key)}
             tabList={[
-              { tab: '基础信息', itemKey: 'sm' },
-              ...(Number(detail?.type) === 2 ? [{ tab: '企业信息', itemKey: 'company' }] : []),
+              { tab: t('基础信息'), itemKey: 'sm' },
+              ...(Number(detail?.type) === 2 ? [{ tab: t('企业信息'), itemKey: 'company' }] : []),
             ]}
           />
           {activeKey === 'company' ? (
             <div className="uc-detail">
-              <DetailRow label="企业名称">{orDash(detailData.companyName)}</DetailRow>
-              <DetailRow label="注册地址">{orDash(detailData.licenseAddrProvinceName)}</DetailRow>
-              <DetailRow label="经营范围">{orDash(detailData.businessScope)}</DetailRow>
-              <DetailRow label="统一社会信用代码">{orDash(detailData.businessLicenseId)}</DetailRow>
-              <DetailRow label="营业期限">
+              <DetailRow label={t('企业名称')}>{orDash(detailData.companyName)}</DetailRow>
+              <DetailRow label={t('注册地址')}>{orDash(detailData.licenseAddrProvinceName)}</DetailRow>
+              <DetailRow label={t('经营范围')}>{orDash(detailData.businessScope)}</DetailRow>
+              <DetailRow label={t('统一社会信用代码')}>{orDash(detailData.businessLicenseId)}</DetailRow>
+              <DetailRow label={t('营业期限')}>
                 {validityText(
                   detailData.operatingTermType,
                   detailData.operatingTermTypeDate,
                   detailData.operatingTermTypeEnd,
+                  t,
                 )}
               </DetailRow>
-              <DetailRow label="营业执照">
+              <DetailRow label={t('营业执照')}>
                 <PicImage photos={detailData.businessLicenseImg} />
               </DetailRow>
             </div>
           ) : (
             <div className="uc-detail">
-              <DetailRow label="认证资质">
+              <DetailRow label={t('认证资质')}>
                 <CertTypeTag type={detail?.type} />
               </DetailRow>
-              <DetailRow label="审核结果">
+              <DetailRow label={t('审核结果')}>
                 <StatusText status={detail?.status} text={detail?.statusText} />
               </DetailRow>
               {detail?.auditRemark && Number(detail?.status) !== 1 ? (
-                <DetailRow label="审核备注">{detail.auditRemark}</DetailRow>
+                <DetailRow label={t('审核备注')}>{detail.auditRemark}</DetailRow>
               ) : null}
-              <DetailRow label="姓名">{orDash(detailData.corporateName)}</DetailRow>
-              <DetailRow label="联系人手机">{orDash(detailData.contactPhone)}</DetailRow>
-              <DetailRow label="证件类型">{orDash(documentTypeLabel(detailData.documentType))}</DetailRow>
-              <DetailRow label="证件号码">{orDash(detailData.documentNumber)}</DetailRow>
-              <DetailRow label="居住地址">{orDash(detailData.residentialAddress)}</DetailRow>
-              <DetailRow label="出生日期">{orDash(detailData.birthday)}</DetailRow>
-              <DetailRow label="证件有效期">
+              <DetailRow label={t('姓名')}>{orDash(detailData.corporateName)}</DetailRow>
+              <DetailRow label={t('联系人手机')}>{orDash(detailData.contactPhone)}</DetailRow>
+              <DetailRow label={t('证件类型')}>{orDash(documentTypeLabel(detailData.documentType, t))}</DetailRow>
+              <DetailRow label={t('证件号码')}>{orDash(detailData.documentNumber)}</DetailRow>
+              <DetailRow label={t('居住地址')}>{orDash(detailData.residentialAddress)}</DetailRow>
+              <DetailRow label={t('出生日期')}>{orDash(detailData.birthday)}</DetailRow>
+              <DetailRow label={t('证件有效期')}>
                 {validityText(
                   detailData.certificateValidityPeriod,
                   detailData.certificateValidityPeriodDate,
                   detailData.certificateValidityPeriodEnd,
+                  t,
                 )}
               </DetailRow>
-              <DetailRow label="证件照正面">
+              <DetailRow label={t('证件照正面')}>
                 <PicImage photos={detailData.frontOfPhoto} />
               </DetailRow>
-              <DetailRow label="证件照反面">
+              <DetailRow label={t('证件照反面')}>
                 <PicImage photos={detailData.backOfPhoto} />
               </DetailRow>
               {Number(detail?.status) === 1 ? (
                 <div className="uc-audit">
                   <Space>
                     <Button theme="solid" type="primary" loading={auditing} onClick={() => submitAudit(2)}>
-                      审核通过
+                      {t('审核通过')}
                     </Button>
                     <Button loading={auditing} onClick={() => submitAudit(3)}>
-                      审核不通过
+                      {t('审核不通过')}
                     </Button>
                   </Space>
                   <TextArea
                     rows={4}
-                    placeholder="请输入审核备注（审核不通过将必填）"
+                    placeholder={t('请输入审核备注（审核不通过将必填）')}
                     value={auditRemark}
                     onChange={setAuditRemark}
                   />

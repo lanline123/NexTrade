@@ -15,6 +15,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
@@ -57,6 +58,7 @@ const statusMap: Record<number, { text: string; type: 'success' | 'danger' }> = 
 };
 
 export default function SelfPackList() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   // 主账号管理弹窗
@@ -66,10 +68,10 @@ export default function SelfPackList() {
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/shop/shop/del', { id });
-      Toast.success({ content: '删除自提点成功' });
+      Toast.success({ content: t('删除自提点成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -92,46 +94,46 @@ export default function SelfPackList() {
         fields: [
           {
             field: 'shopTitle',
-            label: '自提点名称',
+            label: t('自提点名称'),
             type: 'input',
             required: true,
-            placeholder: '输入自提点名称',
-            extraText: '系统将自动追加（自提点）后缀',
+            placeholder: t('输入自提点名称'),
+            extraText: t('系统将自动追加（自提点）后缀'),
             width: 320,
           },
           {
             field: 'storeParentId',
-            label: '所属门店',
+            label: t('所属门店'),
             type: 'number',
-            placeholder: '所属门店ID（平台自营留空或填0）',
-            extraText: '所属类型：门店自营或平台自营',
+            placeholder: t('所属门店ID（平台自营留空或填0）'),
+            extraText: t('所属类型：门店自营或平台自营'),
             width: 220,
           },
           {
             field: 'shopLogo',
-            label: '自提点LOGO',
+            label: t('自提点LOGO'),
             type: 'input',
             required: true,
-            placeholder: '输入图片URL (建议尺寸100x100)',
+            placeholder: t('输入图片URL (建议尺寸100x100)'),
             width: 320,
           },
           {
             field: 'shopDetailedAddress',
-            label: '自提点地址',
+            label: t('自提点地址'),
             type: 'input',
             required: true,
-            placeholder: '详细地址',
+            placeholder: t('详细地址'),
             width: 320,
           },
           {
             field: 'status',
-            label: '营业状态',
+            label: t('营业状态'),
             type: 'radio',
             required: true,
             initValue: 1,
             options: [
-              { label: '启用', value: 1 },
-              { label: '禁用', value: 10 },
+              { label: t('启用'), value: 1 },
+              { label: t('禁用'), value: 10 },
             ],
           },
         ],
@@ -161,7 +163,7 @@ export default function SelfPackList() {
               color: 'var(--semi-color-text-2)',
             }}
           >
-            无LOGO
+            {t('无LOGO')}
           </div>
         ),
     },
@@ -176,7 +178,7 @@ export default function SelfPackList() {
       dataIndex: 'parentShopTitle',
       width: 160,
       render: (val: string, r) => (
-        <Tag color="cyan">{val || r.parentName || '平台自营'}</Tag>
+        <Tag color="cyan">{val || r.parentName || t('平台自营')}</Tag>
       ),
     },
     {
@@ -194,7 +196,7 @@ export default function SelfPackList() {
         return (
           <Space>
             <Badge dot type={s.type} style={{ marginRight: 4 }} />
-            <span>{s.text}</span>
+            <span>{t(s.text)}</span>
           </Space>
         );
       },
@@ -259,14 +261,14 @@ export default function SelfPackList() {
                 setAccountModalVisible(true);
               }}
             >
-              主账号管理
+              {t('主账号管理')}
             </Button>
             <Popconfirm
-              title="删除后自提点信息将无法恢复，请确认是否删除该自提点？"
+              title={t('删除后自提点信息将无法恢复，请确认是否删除该自提点？')}
               onConfirm={() => handleDelete(record.shopId)}
             >
               <Button theme="borderless" size="small" type="danger">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -275,11 +277,11 @@ export default function SelfPackList() {
 
       {/* 主账号管理弹窗 */}
       <Modal
-        title="主账号管理"
+        title={t('主账号管理')}
         visible={accountModalVisible}
         onCancel={() => setAccountModalVisible(false)}
         onOk={() => {
-          Toast.success({ content: '主账号更新成功' });
+          Toast.success({ content: t('主账号更新成功') });
           setAccountModalVisible(false);
         }}
         width={480}
@@ -287,8 +289,8 @@ export default function SelfPackList() {
         <div style={{ padding: '12px 0' }}>
           <Descriptions
             data={[
-              { key: '自提点名称', value: currentPack?.shopTitle || '--' },
-              { key: '当前主账号', value: currentPack?.mainAccount || '未绑定主账号' },
+              { key: t('自提点名称'), value: currentPack?.shopTitle || '--' },
+              { key: t('当前主账号'), value: currentPack?.mainAccount || t('未绑定主账号') },
             ]}
           />
         </div>

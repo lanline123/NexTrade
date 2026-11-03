@@ -25,6 +25,7 @@ import { mockDashboard, mockOrders } from '../mock';
 import type { DashboardData, OrderRow } from '../types';
 import type { PageKey } from '../layout/AdminLayout';
 import TrendChart from '../components/TrendChart';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -36,13 +37,14 @@ const orderTagColor: Record<string, string> = {
   已取消: 'grey',
 };
 
-function money(value: number) {
+function money(value: number, t: (key: string) => string) {
   if (!Number.isFinite(value)) return '¥ 0';
-  if (value >= 10000) return `¥ ${(value / 10000).toFixed(1)} 万`;
+  if (value >= 10000) return `¥ ${(value / 10000).toFixed(1)} ${t('万')}`;
   return `¥ ${value.toFixed(2)}`;
 }
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) => void }) {
+  const { t } = useI18n();
   const [data, setData] = useState<DashboardData | null>(isDemo() ? mockDashboard : null);
   const [orders, setOrders] = useState<OrderRow[]>(isDemo() ? mockOrders : []);
   const [trendData, setTrendData] = useState<{ labels: string[]; orderAmount: number[]; orderNum: number[]; access: number[] } | null>(null);
@@ -120,28 +122,28 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
 
   const stats = [
     {
-      label: '今日订单',
+      label: t('今日订单'),
       value: String(data?.consoleData.todayOrderNum ?? 0),
       growth: data?.orderGrowthRate ?? 0,
       icon: <IconOrderedList />,
       tone: 'blue',
     },
     {
-      label: '今日成交额',
-      value: money(data?.consoleData.todayOrderAmount ?? 0),
+      label: t('今日成交额'),
+      value: money(data?.consoleData.todayOrderAmount ?? 0, t),
       growth: data?.orderAmountGrowthRate ?? 0,
       icon: <IconCreditCard />,
       tone: 'green',
     },
     {
-      label: '在售商品',
+      label: t('在售商品'),
       value: String(data?.consoleData.productOnSaleNum ?? 0),
       growth: 0,
       icon: <IconShoppingBag />,
       tone: 'purple',
     },
     {
-      label: '今日访客',
+      label: t('今日访客'),
       value: String(data?.consoleData.todayVisitNum ?? 0),
       growth: 0,
       icon: <IconUser />,
@@ -175,7 +177,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
                   ) : (
                     <span className="trend-flat">—</span>
                   )}
-                  <span className="stat-compare">较昨日</span>
+                  <span className="stat-compare">{t('较昨日')}</span>
                 </div>
               </Card>
             </Col>
@@ -185,7 +187,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
         <Row gutter={16} style={{ width: '100%' }}>
           <Col span={16}>
             <Card
-              title="成交趋势"
+              title={t('成交趋势')}
               headerExtraContent={
                 <Space>
                   {[7, 15, 30].map((d) => (
@@ -196,7 +198,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
                       type={trendDays === d ? 'primary' : 'tertiary'}
                       onClick={() => setTrendDays(d)}
                     >
-                      {d}天
+                      {t('{days}天', { days: d })}
                     </Button>
                   ))}
                 </Space>
@@ -210,20 +212,20 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
 
           <Col span={8}>
             <Card
-              title="待处理事项"
+              title={t('待处理事项')}
               headerExtraContent={
                 <Button theme="borderless" size="small" onClick={() => onNavigate('orders')}>
-                  全部
+                  {t('全部')}
                 </Button>
               }
               shadows="hover"
               className="todo-card"
             >
               {[
-                { label: '待发货订单', value: data?.awaitShip ?? 0, page: 'orders' as PageKey, icon: <IconOrderedList /> },
-                { label: '待付款订单', value: data?.awaitPay ?? 0, page: 'orders' as PageKey, icon: <IconCreditCard /> },
-                { label: '待审核售后', value: data?.awaitAfterSale ?? 0, page: 'aftersales' as PageKey, icon: <IconComment /> },
-                { label: '待回复评价', value: data?.awaitComment ?? 0, page: 'marketing' as PageKey, icon: <IconGift /> },
+                { label: t('待发货订单'), value: data?.awaitShip ?? 0, page: 'orders' as PageKey, icon: <IconOrderedList /> },
+                { label: t('待付款订单'), value: data?.awaitPay ?? 0, page: 'orders' as PageKey, icon: <IconCreditCard /> },
+                { label: t('待审核售后'), value: data?.awaitAfterSale ?? 0, page: 'aftersales' as PageKey, icon: <IconComment /> },
+                { label: t('待回复评价'), value: data?.awaitComment ?? 0, page: 'marketing' as PageKey, icon: <IconGift /> },
               ].map((item) => (
                 <button
                   className="todo-row"
@@ -246,7 +248,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
         <Row gutter={16} style={{ width: '100%' }}>
           <Col span={24}>
             <Card
-              title="访问趋势"
+              title={t('访问趋势')}
               headerExtraContent={
                 <Space>
                   {[7, 15, 30].map((d) => (
@@ -257,7 +259,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
                       type={accessDays === d ? 'primary' : 'tertiary'}
                       onClick={() => setAccessDays(d)}
                     >
-                      {d}天
+                      {t('{days}天', { days: d })}
                     </Button>
                   ))}
                 </Space>
@@ -269,7 +271,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
                 height={260}
                 labels={accessTrend?.labels || []}
                 data={accessTrend?.access || []}
-                name="访问量"
+                name={t('访问量')}
                 yAxisPrefix=""
               />
             </Card>
@@ -279,10 +281,10 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
         <Row gutter={16} style={{ width: '100%' }}>
           <Col span={16}>
             <Card
-              title="最新订单"
+              title={t('最新订单')}
               headerExtraContent={
                 <Button theme="borderless" size="small" onClick={() => onNavigate('orders')}>
-                  查看全部
+                  {t('查看全部')}
                 </Button>
               }
               shadows="hover"
@@ -293,27 +295,27 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: PageKey) 
                 pagination={false}
                 rowKey="orderId"
                 columns={[
-                  { title: '订单号', dataIndex: 'orderSn', render: (value: string) => <span className="mono">{value}</span> },
-                  { title: '收货人', dataIndex: 'consignee' },
-                  { title: '金额', dataIndex: 'totalAmount', render: (value: string) => `¥ ${value}` },
+                  { title: t('订单号'), dataIndex: 'orderSn', render: (value: string) => <span className="mono">{value}</span> },
+                  { title: t('收货人'), dataIndex: 'consignee' },
+                  { title: t('金额'), dataIndex: 'totalAmount', render: (value: string) => `¥ ${value}` },
                   {
-                    title: '状态',
+                    title: t('状态'),
                     dataIndex: 'orderStatusName',
-                    render: (value: string) => <Tag color={(orderTagColor[value] || 'blue') as any}>{value}</Tag>,
+                    render: (value: string) => <Tag color={(orderTagColor[value] || 'blue') as any}>{t(value)}</Tag>,
                   },
-                  { title: '下单时间', dataIndex: 'addTime' },
+                  { title: t('下单时间'), dataIndex: 'addTime' },
                 ]}
               />
             </Card>
           </Col>
           <Col span={8}>
-            <Card title="快捷入口" shadows="hover" className="quick-card">
+            <Card title={t('快捷入口')} shadows="hover" className="quick-card">
               <div className="quick-grid">
                 {[
-                  { label: '商品管理', page: 'products' as PageKey, icon: <IconShoppingBag /> },
-                  { label: '订单处理', page: 'orders' as PageKey, icon: <IconOrderedList /> },
-                  { label: '内容管理', page: 'content' as PageKey, icon: <IconFile /> },
-                  { label: '会员管理', page: 'members' as PageKey, icon: <IconUser /> },
+                  { label: t('商品管理'), page: 'products' as PageKey, icon: <IconShoppingBag /> },
+                  { label: t('订单处理'), page: 'orders' as PageKey, icon: <IconOrderedList /> },
+                  { label: t('内容管理'), page: 'content' as PageKey, icon: <IconFile /> },
+                  { label: t('会员管理'), page: 'members' as PageKey, icon: <IconUser /> },
                 ].map((item) => (
                   <button className="quick-item" key={item.label} onClick={() => onNavigate(item.page)} type="button">
                     <span className="quick-icon">{item.icon}</span>

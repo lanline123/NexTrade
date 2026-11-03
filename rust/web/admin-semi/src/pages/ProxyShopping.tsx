@@ -18,6 +18,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text, Title } = Typography;
 
@@ -84,6 +85,7 @@ const flattenCart = (payload: any): ProxyCartItem[] => {
 
 /** 代客下单：对应旧版 order/proxyShopping/Index.vue + CheckPanel.vue（核心下单流程）。 */
 export default function ProxyShopping() {
+  const { t } = useI18n();
   const [step, setStep] = useState<'index' | 'check'>('index');
   const [user, setUser] = useState<ProxyUser | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
@@ -154,7 +156,7 @@ export default function ProxyShopping() {
 
   const addToCart = async (product: ProxyProduct) => {
     if (!user) {
-      Toast.warning({ content: '请先选择下单会员' });
+      Toast.warning({ content: t('请先选择下单会员') });
       return;
     }
     try {
@@ -163,10 +165,10 @@ export default function ProxyShopping() {
         id: product.productId,
         number: 1,
       });
-      Toast.success({ content: '已加入已选商品' });
+      Toast.success({ content: t('已加入已选商品') });
       loadCart();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加入失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加入失败') });
     }
   };
 
@@ -178,7 +180,7 @@ export default function ProxyShopping() {
       });
       loadCart();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
 
@@ -190,7 +192,7 @@ export default function ProxyShopping() {
       });
       loadCart();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '移除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('移除失败') });
     }
   };
 
@@ -244,14 +246,16 @@ export default function ProxyShopping() {
         },
       );
       Toast.success({
-        content: result?.orderSn ? `下单成功：${result.orderSn}` : '下单成功',
+        content: result?.orderSn
+          ? t('下单成功：{orderSn}', { orderSn: result.orderSn })
+          : t('下单成功'),
       });
       setStep('index');
       setCheckData(null);
       setBuyerNote('');
       loadCart();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '下单失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('下单失败') });
     } finally {
       setSubmitting(false);
     }
@@ -266,11 +270,11 @@ export default function ProxyShopping() {
       {step === 'index' ? (
         <Card shadows="hover">
           <div className="proxy-notice">
-            <Text strong>注意事项：</Text>
+            <Text strong>{t('注意事项：')}</Text>
             <ol>
-              <li>1、代客下单存在支付金额与用户自主下单金额不一致的风险，请仔细核对订单金额，确保交易金额准确无误。</li>
-              <li>2、订单支付金额可在商品列表中进行修改。</li>
-              <li>3、虚拟商品、卡密商品、付费内容、礼品卡只能单独购买。</li>
+              <li>{t('1、代客下单存在支付金额与用户自主下单金额不一致的风险，请仔细核对订单金额，确保交易金额准确无误。')}</li>
+              <li>{t('2、订单支付金额可在商品列表中进行修改。')}</li>
+              <li>{t('3、虚拟商品、卡密商品、付费内容、礼品卡只能单独购买。')}</li>
             </ol>
           </div>
 
@@ -284,14 +288,14 @@ export default function ProxyShopping() {
                   <Title heading={6} style={{ margin: 0 }}>
                     {user.nickname || user.username || '-'}
                   </Title>
-                  <Text type="tertiary">手机号：{user.mobile || '-'}</Text>
-                  <Text type="tertiary">可用余额：{money(user.balance)}</Text>
+                  <Text type="tertiary">{t('手机号：')}{user.mobile || '-'}</Text>
+                  <Text type="tertiary">{t('可用余额：')}{money(user.balance)}</Text>
                 </div>
-                <Button onClick={openUserDialog}>重新选择</Button>
+                <Button onClick={openUserDialog}>{t('重新选择')}</Button>
               </div>
             ) : (
               <Button theme="solid" type="primary" onClick={openUserDialog}>
-                选择下单会员
+                {t('选择下单会员')}
               </Button>
             )}
           </div>
@@ -299,27 +303,27 @@ export default function ProxyShopping() {
           <div className="proxy-two-col">
             <div className="proxy-panel">
               <div className="proxy-panel-head">
-                <Text strong>全部商品</Text>
+                <Text strong>{t('全部商品')}</Text>
                 <Space>
                   <Input
                     prefix={<IconSearch />}
-                    placeholder="商品名称/编码"
+                    placeholder={t('商品名称/编码')}
                     value={productKeyword}
                     onChange={setProductKeyword}
                     onEnterPress={() => loadProducts(1, productKeyword)}
                     style={{ width: 220 }}
                   />
                   <Button theme="solid" type="primary" onClick={() => loadProducts(1, productKeyword)}>
-                    搜索
+                    {t('搜索')}
                   </Button>
                 </Space>
               </div>
               <div className="proxy-product-header">
-                <span className="proxy-h-idx">序号</span>
-                <span>商品/编码</span>
-                <span className="proxy-product-cell">售价(currency)</span>
-                <span className="proxy-product-cell">库存</span>
-                <span className="proxy-product-cell">操作</span>
+                <span className="proxy-h-idx">{t('序号')}</span>
+                <span>{t('商品/编码')}</span>
+                <span className="proxy-product-cell">{t('售价(currency)')}</span>
+                <span className="proxy-product-cell">{t('库存')}</span>
+                <span className="proxy-product-cell">{t('操作')}</span>
               </div>
               <Spin spinning={productLoading}>
                 {products.length ? (
@@ -333,7 +337,7 @@ export default function ProxyShopping() {
                       <div className="proxy-product-info">
                         <div>{product.productName || '-'}</div>
                         <Text type="tertiary" size="small">
-                          编码：{product.productSn || '-'}
+                          {t('编码：')}{product.productSn || '-'}
                         </Text>
                       </div>
                       <div className="proxy-product-cell">{product.productPrice ?? '-'}</div>
@@ -346,29 +350,29 @@ export default function ProxyShopping() {
                           disabled={!user || product.isTimeDiscount === 1}
                           onClick={() => addToCart(product)}
                         >
-                          选择
+                          {t('选择')}
                         </Button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <Empty description={productLoading ? '加载中...' : '暂无数据'} />
+                  <Empty description={productLoading ? t('加载中...') : t('暂无数据')} />
                 )}
               </Spin>
               {productTotal > products.length ? (
                 <Space>
                   <Button size="small" disabled={productPage <= 1} onClick={() => loadProducts(productPage - 1, productKeyword)}>
-                    上一页
+                    {t('上一页')}
                   </Button>
                   <Text type="tertiary">
-                    第 {productPage} 页 / 共 {productTotal} 件
+                    {t('第 {page} 页 / 共 {total} 件', { page: productPage, total: productTotal })}
                   </Text>
                   <Button
                     size="small"
                     disabled={productPage >= Math.ceil(productTotal / 10)}
                     onClick={() => loadProducts(productPage + 1, productKeyword)}
                   >
-                    下一页
+                    {t('下一页')}
                   </Button>
                 </Space>
               ) : null}
@@ -376,15 +380,15 @@ export default function ProxyShopping() {
 
             <div className="proxy-panel">
               <div className="proxy-panel-head">
-                <Text strong>已选商品{cartCount > 0 ? `（${cartCount}）` : ''}</Text>
+                <Text strong>{t('已选商品')}{cartCount > 0 ? `（${cartCount}）` : ''}</Text>
               </div>
               <div className="proxy-product-header">
-                <span className="proxy-h-idx">序号</span>
-                <span>商品/编码</span>
-                <span className="proxy-product-cell">单价(currency)</span>
-                <span className="proxy-product-cell">数量</span>
-                <span className="proxy-product-cell">小计(currency)</span>
-                <span className="proxy-product-cell">操作</span>
+                <span className="proxy-h-idx">{t('序号')}</span>
+                <span>{t('商品/编码')}</span>
+                <span className="proxy-product-cell">{t('单价(currency)')}</span>
+                <span className="proxy-product-cell">{t('数量')}</span>
+                <span className="proxy-product-cell">{t('小计(currency)')}</span>
+                <span className="proxy-product-cell">{t('操作')}</span>
               </div>
               <Spin spinning={cartLoading}>
                 {cartItems.length ? (
@@ -399,7 +403,7 @@ export default function ProxyShopping() {
                           </Text>
                         ) : null}
                         <Text type="tertiary" size="small">
-                          编码：{item.productSn || '-'}
+                          {t('编码：')}{item.productSn || '-'}
                         </Text>
                       </div>
                       <div className="proxy-product-cell">{item.price != null ? money(item.price) : '-'}</div>
@@ -416,18 +420,18 @@ export default function ProxyShopping() {
                       <div className="proxy-product-cell">{item.subtotal != null ? money(item.subtotal) : '-'}</div>
                       <div className="proxy-product-cell">
                         <Button theme="borderless" type="danger" size="small" onClick={() => removeCart(item)}>
-                          移除
+                          {t('移除')}
                         </Button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <Empty description={user ? '暂无已选商品' : '请先选择下单会员'} />
+                  <Empty description={user ? t('暂无已选商品') : t('请先选择下单会员')} />
                 )}
               </Spin>
               <div className="proxy-checkout-row">
                 <Button theme="solid" type="primary" disabled={!user || !cartItems.length} onClick={goCheck}>
-                  结算
+                  {t('结算')}
                 </Button>
               </div>
             </div>
@@ -436,15 +440,15 @@ export default function ProxyShopping() {
       ) : (
         <Card
           shadows="hover"
-          title="确认订单信息"
+          title={t('确认订单信息')}
           headerExtraContent={
-            <Button onClick={() => setStep('index')}>返回修改商品</Button>
+            <Button onClick={() => setStep('index')}>{t('返回修改商品')}</Button>
           }
         >
           <Spin spinning={checkLoading}>
             <div className="proxy-check-grid">
               <div className="proxy-check-section">
-                <Text strong>收货地址</Text>
+                <Text strong>{t('收货地址')}</Text>
                 {addresses.length ? (
                   <RadioGroup value={addressId} onChange={(e) => setAddressId(Number(e.target.value))}>
                     {addresses.map((addr) => (
@@ -456,52 +460,52 @@ export default function ProxyShopping() {
                     ))}
                   </RadioGroup>
                 ) : (
-                  <Text type="tertiary">该会员暂无收货地址</Text>
+                  <Text type="tertiary">{t('该会员暂无收货地址')}</Text>
                 )}
               </div>
               <div className="proxy-check-section">
-                <Text strong>配送方式</Text>
+                <Text strong>{t('配送方式')}</Text>
                 <RadioGroup
                   value={deliveryType}
                   onChange={(e) => setDeliveryType(Number(e.target.value))}
                 >
-                  <Radio value={1}>物流快递</Radio>
-                  <Radio value={2}>到店自提</Radio>
-                  <Radio value={3}>同城配送</Radio>
+                  <Radio value={1}>{t('物流快递')}</Radio>
+                  <Radio value={2}>{t('到店自提')}</Radio>
+                  <Radio value={3}>{t('同城配送')}</Radio>
                 </RadioGroup>
               </div>
               <div className="proxy-check-section">
-                <Text strong>支付方式</Text>
+                <Text strong>{t('支付方式')}</Text>
                 {payments.length ? (
                   <RadioGroup value={payTypeId} onChange={(e) => setPayTypeId(Number(e.target.value))}>
                     {payments.map((pay) => (
                       <Radio key={pay.payTypeId ?? pay.name} value={Number(pay.payTypeId ?? 0)}>
-                        {pay.name || `支付方式${pay.payTypeId}`}
+                        {pay.name || t('支付方式{n}', { n: pay.payTypeId ?? '' })}
                       </Radio>
                     ))}
                   </RadioGroup>
                 ) : (
-                  <Text type="tertiary">无可用支付方式</Text>
+                  <Text type="tertiary">{t('无可用支付方式')}</Text>
                 )}
               </div>
               <div className="proxy-check-section">
-                <Text strong>订单备注</Text>
-                <TextArea value={buyerNote} onChange={setBuyerNote} placeholder="买家备注" />
+                <Text strong>{t('订单备注')}</Text>
+                <TextArea value={buyerNote} onChange={setBuyerNote} placeholder={t('买家备注')} />
               </div>
               <div className="proxy-check-section proxy-check-amount">
                 {checkData?.totalAmount != null && (
                   <span>
-                    商品总额：<b>{money(totalInfo.goodsAmount ?? checkData.totalAmount)}</b>
+                    {t('商品总额：')}<b>{money(totalInfo.goodsAmount ?? checkData.totalAmount)}</b>
                   </span>
                 )}
                 {checkData?.discountAmount != null && (
                   <span>
-                    优惠：<b>{money(checkData.discountAmount)}</b>
+                    {t('优惠：')}<b>{money(checkData.discountAmount)}</b>
                   </span>
                 )}
                 {checkData?.payAmount != null && (
                   <Tag color="red" size="large">
-                    应付：{money(checkData.payAmount)}
+                    {t('应付：')}{money(checkData.payAmount)}
                   </Tag>
                 )}
                 <Button
@@ -511,7 +515,7 @@ export default function ProxyShopping() {
                   disabled={!checkData}
                   onClick={submitOrder}
                 >
-                  提交订单
+                  {t('提交订单')}
                 </Button>
               </div>
             </div>
@@ -520,7 +524,7 @@ export default function ProxyShopping() {
       )}
 
       <Modal
-        title="选择下单会员"
+        title={t('选择下单会员')}
         visible={userDialogOpen}
         footer={null}
         onCancel={() => setUserDialogOpen(false)}
@@ -528,13 +532,13 @@ export default function ProxyShopping() {
       >
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <Input
-            placeholder="会员名称/手机号"
+            placeholder={t('会员名称/手机号')}
             value={userKeyword}
             onChange={setUserKeyword}
             onEnterPress={() => loadUserList(userKeyword)}
           />
           <Button theme="solid" type="primary" onClick={() => loadUserList(userKeyword)}>
-            搜索
+            {t('搜索')}
           </Button>
         </div>
         <div className="proxy-user-list">
@@ -553,13 +557,13 @@ export default function ProxyShopping() {
               <div className="proxy-user-info">
                 <div>{item.nickname || item.username || '-'}</div>
                 <Text type="tertiary" size="small">
-                  {item.mobile || '-'} · 余额 {money(item.balance)}
+                  {item.mobile || '-'} · {t('余额')} {money(item.balance)}
                 </Text>
               </div>
-              <Button size="small">选择</Button>
+              <Button size="small">{t('选择')}</Button>
             </div>
           ))}
-          {!userList.length ? <Empty description="暂无匹配会员" /> : null}
+          {!userList.length ? <Empty description={t('暂无匹配会员')} /> : null}
         </div>
       </Modal>
     </div>

@@ -18,6 +18,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconUser } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
@@ -59,6 +60,7 @@ const workStatusMap: Record<number, { text: string; type: 'success' | 'warning' 
 };
 
 export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'serviceman' }) {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [activeTab, setActiveTab] = useState<string>('list');
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -66,15 +68,15 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
 
   const isDelivery = staffType === 'deliveryman';
   const typeId = isDelivery ? 1 : 2;
-  const staffTitle = isDelivery ? '配送员' : '服务员';
+  const staffTitle = t(isDelivery ? '配送员' : '服务员');
 
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/o2o/serviceStaff/del', { id });
-      Toast.success({ content: `删除${staffTitle}成功` });
+      Toast.success({ content: t('删除{name}成功', { name: staffTitle }) });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -86,10 +88,10 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         field: 'status',
         val,
       });
-      Toast.success({ content: '状态更新成功' });
+      Toast.success({ content: t('状态更新成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新状态失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新状态失败') });
     }
   };
 
@@ -99,17 +101,17 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         type: 'del',
         ids: rows.map((r) => r.id),
       });
-      Toast.success({ content: '批量删除成功' });
+      Toast.success({ content: t('批量删除成功') });
       clear();
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
     }
   };
 
   const drawer: FormDrawerConfig = {
     title: staffTitle,
-    addText: `新增${staffTitle}`,
+    addText: t('新增{name}', { name: staffTitle }),
     width: 520,
     createApi: '/o2o/serviceStaff/create',
     updateApi: '/o2o/serviceStaff/update',
@@ -122,48 +124,48 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
     sections: [
       {
         key: 'base',
-        title: `${staffTitle}信息`,
+        title: t('{name}信息', { name: staffTitle }),
         fields: [
           {
             field: 'name',
-            label: `${staffTitle}名称`,
+            label: t('{name}名称', { name: staffTitle }),
             type: 'input',
             required: true,
-            placeholder: '请输入姓名',
+            placeholder: t('请输入姓名'),
             width: 300,
           },
           {
             field: 'phone',
-            label: '手机号',
+            label: t('手机号'),
             type: 'input',
             required: true,
-            placeholder: '请输入手机号码',
+            placeholder: t('请输入手机号码'),
             width: 300,
           },
           {
             field: 'memberId',
-            label: '会员账号',
+            label: t('会员账号'),
             type: 'number',
-            placeholder: '关联会员UID',
-            extraText: `添加${staffTitle}需绑定商城会员账号`,
+            placeholder: t('关联会员UID'),
+            extraText: t('添加{name}需绑定商城会员账号', { name: staffTitle }),
             width: 200,
           },
           {
             field: 'avatar',
-            label: '头像',
+            label: t('头像'),
             type: 'input',
-            placeholder: '头像图片URL',
+            placeholder: t('头像图片URL'),
             width: 300,
           },
           {
             field: 'status',
-            label: `${staffTitle}状态`,
+            label: t('{name}状态', { name: staffTitle }),
             type: 'radio',
             required: true,
             initValue: 1,
             options: [
-              { label: '启用', value: 1 },
-              { label: '禁用', value: 0 },
+              { label: t('启用'), value: 1 },
+              { label: t('禁用'), value: 0 },
             ],
           },
         ],
@@ -206,8 +208,8 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         <Switch
           checked={val === 1}
           onChange={(checked) => handleStatusChange(r, checked)}
-          checkedText="启用"
-          uncheckedText="禁用"
+          checkedText={t('启用')}
+          uncheckedText={t('禁用')}
         />
       ),
     },
@@ -220,7 +222,7 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         return (
           <Space>
             <Badge dot type={s.type} style={{ marginRight: 4 }} />
-            <span>{r.workStatusName || s.text}</span>
+            <span>{r.workStatusName || t(s.text)}</span>
           </Space>
         );
       },
@@ -244,8 +246,8 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
             setReloadKey((k) => k + 1);
           }}
         >
-          <Tabs.TabPane tab={isDelivery ? '配送员列表' : '服务员列表'} itemKey="list" />
-          <Tabs.TabPane tab={isDelivery ? '配送记录' : '服务记录'} itemKey="record" />
+          <Tabs.TabPane tab={t(isDelivery ? '配送员列表' : '服务员列表')} itemKey="list" />
+          <Tabs.TabPane tab={t(isDelivery ? '配送记录' : '服务记录')} itemKey="record" />
         </Tabs>
       </div>
 
@@ -282,11 +284,11 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         batchActions={(rows, clear) => (
           <Space>
             <Popconfirm
-              title={`您确认要批量删除所选${staffTitle}吗？`}
+              title={t('您确认要批量删除所选{name}吗？', { name: staffTitle })}
               onConfirm={() => handleBatchDelete(rows, clear)}
             >
               <Button size="small" type="danger" disabled={rows.length === 0}>
-                批量删除
+                {t('批量删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -302,14 +304,14 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
                 setDetailModalVisible(true);
               }}
             >
-              详情
+              {t('详情')}
             </Button>
             <Popconfirm
-              title={`确认删除该${staffTitle}吗？删除后不可恢复！`}
+              title={t('确认删除该{name}吗？删除后不可恢复！', { name: staffTitle })}
               onConfirm={() => handleDelete(record.id)}
             >
               <Button theme="borderless" size="small" type="danger">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -318,12 +320,12 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
 
       {/* 人员详情弹窗 */}
       <Modal
-        title={isDelivery ? '配送员详情' : '服务员详情'}
+        title={t(isDelivery ? '配送员详情' : '服务员详情')}
         visible={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setDetailModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={560}
@@ -331,21 +333,21 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         {currentStaff && (
           <Descriptions
             data={[
-              { key: `${staffTitle}姓名`, value: currentStaff.name || '--' },
-              { key: '联系电话', value: currentStaff.phone || '--' },
+              { key: t('{name}姓名', { name: staffTitle }), value: currentStaff.name || '--' },
+              { key: t('联系电话'), value: currentStaff.phone || '--' },
               {
-                key: '会员账号',
+                key: t('会员账号'),
                 value: currentStaff.memberInfo?.username || currentStaff.username || '--',
               },
               {
-                key: '账号状态',
-                value: currentStaff.status === 1 ? '启用' : '禁用',
+                key: t('账号状态'),
+                value: currentStaff.status === 1 ? t('启用') : t('禁用'),
               },
               {
-                key: `${staffTitle}状态`,
-                value: currentStaff.workStatusName || '空闲中',
+                key: t('{name}状态', { name: staffTitle }),
+                value: currentStaff.workStatusName || t('空闲中'),
               },
-              { key: '创建时间', value: currentStaff.createTime || '--' },
+              { key: t('创建时间'), value: currentStaff.createTime || '--' },
             ]}
           />
         )}

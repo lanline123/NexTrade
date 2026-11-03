@@ -25,7 +25,10 @@ import { IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, apiUpload, getToken } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
+
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 interface Row extends Record<string, any> {
   id?: number;
@@ -306,6 +309,10 @@ const STATUS_OPTIONS = [
   { label: '已驳回', value: 'REJECTED' },
 ];
 const STATUS_LABELS: Record<string, string> = Object.fromEntries(STATUS_OPTIONS.map((item) => [item.value, item.label]));
+const statusLabelText = (code: string | undefined, t: Translate) => {
+  const label = STATUS_LABELS[code || ''];
+  return label ? t(label) : '';
+};
 const STATUS_TAG_COLOR: Record<string, 'grey' | 'orange' | 'blue' | 'green' | 'red'> = {
   DRAFT: 'grey',
   PENDING_REVIEW: 'orange',
@@ -320,11 +327,11 @@ const STATUS_TAG_COLOR: Record<string, 'grey' | 'orange' | 'blue' | 'green' | 'r
 };
 const PAY_CHANNEL_LABELS: Record<string, string> = { WECHAT: '微信', ALIPAY: '支付宝', HUIFU: '汇付天下' };
 
-const formatPayChannel = (value?: string) => PAY_CHANNEL_LABELS[value || ''] || value || '微信';
-const formatOrganizationType = (value?: string) =>
-  (value === ORG_ENTERPRISE ? '企业' : value === ORG_INDIVIDUAL ? '个体工商户' : value === ORG_PERSONAL ? '个人' : '-');
-const formatBankAccountType = (value?: string) => (value === BANK_CORPORATE ? '对公' : value === BANK_PERSONAL ? '对私' : value || '-');
-const formatContactType = (value?: string) => (value === CONTACT_LEGAL ? '经营者/法人' : value === '66' ? '经办人' : value || '-');
+const formatPayChannel = (value: string | undefined, t: Translate) => t(PAY_CHANNEL_LABELS[value || ''] || value || '微信');
+const formatOrganizationType = (value: string | undefined, t: Translate) =>
+  (value === ORG_ENTERPRISE ? t('企业') : value === ORG_INDIVIDUAL ? t('个体工商户') : value === ORG_PERSONAL ? t('个人') : '-');
+const formatBankAccountType = (value: string | undefined, t: Translate) => (value === BANK_CORPORATE ? t('对公') : value === BANK_PERSONAL ? t('对私') : value || '-');
+const formatContactType = (value: string | undefined, t: Translate) => (value === CONTACT_LEGAL ? t('经营者/法人') : value === '66' ? t('经办人') : value || '-');
 
 const isPersonalOrg = (type?: string) => type === ORG_PERSONAL;
 const isClosedApplication = (row: MerchantApplicationItem) => row.status === 'FINISH' || !!row.subMchId?.trim();
@@ -788,6 +795,7 @@ function CertificateMediaField({ applicationId, role, readonly, disabled, value,
   onChange?: (mediaId: string) => void;
   onBusyChange?: (busy: boolean) => void;
 }) {
+  const { t } = useI18n();
   const [preview, setPreview] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -812,7 +820,7 @@ function CertificateMediaField({ applicationId, role, readonly, disabled, value,
       const blob = await fetchApplicationMedia(applicationId, role);
       if (seq === generationRef.current) replacePreview(blob);
     } catch {
-      if (seq === generationRef.current) setError('证件预览加载失败，请重试或重新上传');
+      if (seq === generationRef.current) setError(t('证件预览加载失败，请重试或重新上传'));
     } finally {
       if (seq === generationRef.current) setLoading(false);
     }
@@ -837,7 +845,7 @@ function CertificateMediaField({ applicationId, role, readonly, disabled, value,
       ['image/jpeg', 'image/png', 'image/bmp', 'image/x-ms-bmp'].includes(file.type) &&
       file.size <= 5 * 1024 * 1024;
     if (!valid) {
-      const message = '请上传不超过 5 MiB 的 JPG、JPEG、PNG 或 BMP 图片';
+      const message = t('请上传不超过 5 MiB 的 JPG、JPEG、PNG 或 BMP 图片');
       setError(message);
       Toast.error({ content: message });
       if (inputRef.current) inputRef.current.value = '';
@@ -850,13 +858,13 @@ function CertificateMediaField({ applicationId, role, readonly, disabled, value,
     try {
       const result = await uploadApplicationMedia(file);
       if (seq !== generationRef.current) return;
-      if (!result?.mediaId) throw new Error('证件上传失败，请重试');
+      if (!result?.mediaId) throw new Error(t('证件上传失败，请重试'));
       replacePreview(file);
       setError('');
       onChange?.(result.mediaId);
     } catch (uploadError) {
       if (seq === generationRef.current) {
-        const message = uploadError instanceof Error && uploadError.message ? uploadError.message : '证件上传失败，请重试';
+        const message = uploadError instanceof Error && uploadError.message ? uploadError.message : t('证件上传失败，请重试');
         setError(message);
         Toast.error({ content: message });
       }
@@ -874,7 +882,7 @@ function CertificateMediaField({ applicationId, role, readonly, disabled, value,
       ) : preview ? (
         <img
           src={preview}
-          alt="证件"
+          alt={t('证件')}
           style={{ width: 160, height: 100, objectFit: 'contain', border: '1px solid var(--semi-color-border)', borderRadius: 4, display: 'block', cursor: 'pointer' }}
           onClick={() => window.open(preview, '_blank')}
         />
@@ -884,22 +892,22 @@ function CertificateMediaField({ applicationId, role, readonly, disabled, value,
             {error}
           </Typography.Text>
           <Button theme="borderless" type="primary" size="small" onClick={() => void loadPreview()}>
-            刷新
+            {t('刷新')}
           </Button>
         </div>
       ) : (
         <Typography.Text type="tertiary" size="small">
-          暂无证件预览
+          {t('暂无证件预览')}
         </Typography.Text>
       )}
       {!readonly && (
         <div style={{ marginTop: 8 }}>
           <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,.bmp" hidden onChange={(event) => void handleUpload(event.target.files?.[0])} />
           <Button size="small" loading={uploading} disabled={disabled || uploading} onClick={() => inputRef.current?.click()}>
-            上传证件
+            {t('上传证件')}
           </Button>
           <Typography.Text type="tertiary" size="small" style={{ display: 'block', marginTop: 4 }}>
-            支持 JPG、JPEG、PNG、BMP，单张不超过 5 MiB
+            {t('支持 JPG、JPEG、PNG、BMP，单张不超过 5 MiB')}
           </Typography.Text>
         </div>
       )}
@@ -916,11 +924,11 @@ const HISTORICAL_BANK = '__historical_bank__';
 const BANK_PAGE_SIZE = 20;
 const BANK_BRANCH_PAGE_SIZE = 100;
 
-const stageFailureText = (stage: BankQueryStage) => {
-  if (stage === 'provinces') return '银行省份加载失败，请重试';
-  if (stage === 'cities') return '银行城市加载失败，请重试';
-  if (stage === 'branches') return '开户支行加载失败，请重试';
-  return '银行列表加载失败，请重试';
+const stageFailureText = (stage: BankQueryStage, t: Translate) => {
+  if (stage === 'provinces') return t('银行省份加载失败，请重试');
+  if (stage === 'cities') return t('银行城市加载失败，请重试');
+  if (stage === 'branches') return t('开户支行加载失败，请重试');
+  return t('银行列表加载失败，请重试');
 };
 
 interface WechatBankFieldsHandle {
@@ -933,6 +941,7 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
   disabled?: boolean;
   allowHistorical?: boolean;
 }>(function WechatBankFields({ value: model, onChange, disabled, allowHistorical }, ref) {
+  const { t } = useI18n();
   const [banks, setBanks] = useState<WechatBank[]>([]);
   const [provinces, setProvinces] = useState<WechatBankProvince[]>([]);
   const [cities, setCities] = useState<WechatBankCity[]>([]);
@@ -1011,7 +1020,7 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
           setFailedStage(stage);
           const detail = stageException instanceof Error ? stageException.message.trim() : '';
           const meaningless = !detail || detail === 'null' || detail === 'undefined';
-          const message = detail === 'INCOMPLETE_BANK_DATA' ? '银行数据加载不完整，请重新查询' : meaningless ? stageFailureText(stage) : detail;
+          const message = detail === 'INCOMPLETE_BANK_DATA' ? t('银行数据加载不完整，请重新查询') : meaningless ? stageFailureText(stage, t) : detail;
           setStageError(message);
           Toast.error({ content: message });
         }
@@ -1172,14 +1181,14 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
     ref,
     () => ({
       validate: () => {
-        if (stageLoading) throw new Error('银行数据正在加载');
+        if (stageLoading) throw new Error(t('银行数据正在加载'));
         if (!stateRef.current.bankCode && allowHistorical && model.bankName) return;
         if (stageError && (failedStage !== 'banks' || !selectedBank)) throw new Error(stageError);
         if (
           !selectedBank ||
           (selectedBank.needBankBranch && !branches.some((branch) => branch.bankBranchId === String(model.bankBranchId ?? '')))
         ) {
-          throw new Error('请选择银行及开户支行');
+          throw new Error(t('请选择银行及开户支行'));
         }
       },
     }),
@@ -1188,7 +1197,7 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
 
   const showHistorical = !bankCode && Boolean(allowHistorical) && !!model.bankName;
   const bankOptionList: Array<{ value: string; label: string; disabled?: boolean }> = [
-    ...(showHistorical ? [{ value: HISTORICAL_BANK, label: model.bankName || '历史开户银行', disabled: true }] : []),
+    ...(showHistorical ? [{ value: HISTORICAL_BANK, label: model.bankName || t('历史开户银行'), disabled: true }] : []),
     ...(bankCode && selectedBank && !banks.some((bank) => bank.bankAliasCode === bankCode)
       ? [{ value: bankCode, label: selectedBank.bankAlias }]
       : []),
@@ -1198,14 +1207,14 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
 
   return (
     <>
-      <MaItem label="开户银行" required error={banksFailed ? stageFailureText('banks') : ''}>
+      <MaItem label={t('开户银行')} required error={banksFailed ? stageFailureText('banks', t) : ''}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Select
             filter
             remote
             showClear
             disabled={disabled}
-            placeholder="请选择开户银行"
+            placeholder={t('请选择开户银行')}
             style={{ width: 300 }}
             optionList={bankOptionList}
             loading={bankLoading}
@@ -1216,25 +1225,25 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
           />
           {banksFailed && (
             <Button theme="borderless" type="primary" size="small" disabled={disabled} onClick={reloadFailedStage}>
-              刷新
+              {t('刷新')}
             </Button>
           )}
         </div>
       </MaItem>
       {showHistorical && model.bankBranchName ? (
-        <MaItem label="开户支行">
+        <MaItem label={t('开户支行')}>
           <Input value={model.bankBranchName} disabled style={{ width: 300 }} />
         </MaItem>
       ) : null}
       {selectedBank?.needBankBranch ? (
         <>
-          <MaItem label="银行所在省份" required error={failedStage === 'provinces' ? stageError : ''}>
+          <MaItem label={t('银行所在省份')} required error={failedStage === 'provinces' ? stageError : ''}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Select
                 filter
                 showClear
                 disabled={disabled || (stageLoading && loadingStage === 'provinces') || failedStage === 'provinces'}
-                placeholder="请选择省份"
+                placeholder={t('请选择省份')}
                 style={{ width: 300 }}
                 optionList={provinces.map((province) => ({ value: province.provinceCode, label: province.provinceName }))}
                 loading={stageLoading && loadingStage === 'provinces'}
@@ -1243,18 +1252,18 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
               />
               {failedStage === 'provinces' && (
                 <Button theme="borderless" type="primary" size="small" disabled={disabled} onClick={reloadFailedStage}>
-                  刷新
+                  {t('刷新')}
                 </Button>
               )}
             </div>
           </MaItem>
-          <MaItem label="银行所在城市" required error={failedStage === 'cities' ? stageError : ''}>
+          <MaItem label={t('银行所在城市')} required error={failedStage === 'cities' ? stageError : ''}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Select
                 filter
                 showClear
                 disabled={disabled || !provinceCode || (stageLoading && loadingStage === 'cities') || failedStage === 'cities'}
-                placeholder="请选择城市"
+                placeholder={t('请选择城市')}
                 style={{ width: 300 }}
                 optionList={cities.map((city) => ({ value: city.cityCode, label: city.cityName }))}
                 loading={stageLoading && loadingStage === 'cities'}
@@ -1263,18 +1272,18 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
               />
               {failedStage === 'cities' && (
                 <Button theme="borderless" type="primary" size="small" disabled={disabled} onClick={reloadFailedStage}>
-                  刷新
+                  {t('刷新')}
                 </Button>
               )}
             </div>
           </MaItem>
-          <MaItem label="开户支行" required error={failedStage === 'branches' ? stageError : ''}>
+          <MaItem label={t('开户支行')} required error={failedStage === 'branches' ? stageError : ''}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Select
                 filter
                 showClear
                 disabled={disabled || !cityCode || (stageLoading && loadingStage === 'branches') || failedStage === 'branches'}
-                placeholder="请选择开户支行"
+                placeholder={t('请选择开户支行')}
                 style={{ width: 300 }}
                 optionList={branches.map((branch) => ({ value: branch.bankBranchId, label: branch.bankBranchName }))}
                 loading={stageLoading && loadingStage === 'branches'}
@@ -1283,7 +1292,7 @@ const WechatBankFields = forwardRef<WechatBankFieldsHandle, {
               />
               {failedStage === 'branches' && (
                 <Button theme="borderless" type="primary" size="small" disabled={disabled} onClick={reloadFailedStage}>
-                  刷新
+                  {t('刷新')}
                 </Button>
               )}
             </div>
@@ -1374,6 +1383,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
   onSubmitted: (row: MerchantApplicationItem) => void;
   onChanged: () => void;
 }) {
+  const { t } = useI18n();
   const isReapply = act === 'reapply' && !!id;
   const isEdit = ['edit', 'reapply'].includes(act) && !!id;
 
@@ -1406,8 +1416,8 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
   const isWechat = form.payChannel === PAY_CHANNEL_WECHAT;
   const isEnterprise = form.organizationType === ORG_ENTERPRISE;
   const isPersonal = isPersonalOrg(form.organizationType);
-  const bankAccountNameLabel = form.bankAccountType === BANK_CORPORATE ? '对公账户名称' : '银行账户名称';
-  const merchantNameLabel = isEnterprise ? '公司名称' : isPersonal ? '店铺全称' : '商户名称';
+  const bankAccountNameLabel = form.bankAccountType === BANK_CORPORATE ? t('对公账户名称') : t('银行账户名称');
+  const merchantNameLabel = isEnterprise ? t('公司名称') : isPersonal ? t('店铺全称') : t('商户名称');
   const shopDisplay = shopName || String(form.shopId ?? '');
 
   const setField = useCallback((key: string, value: unknown) => {
@@ -1467,7 +1477,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
       } catch (loadException) {
         if (!alive) return;
         setLoadError(true);
-        Toast.error({ content: loadException instanceof Error ? loadException.message : '加载失败' });
+        Toast.error({ content: loadException instanceof Error ? loadException.message : t('加载失败') });
       } finally {
         if (alive) setPreparing(false);
       }
@@ -1548,7 +1558,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
   const onAutoGetShopUrl = async () => {
     const shopId = String(form.shopId ?? '').trim();
     if (!shopId) {
-      Toast.warning({ content: '请先选择店铺' });
+      Toast.warning({ content: t('请先选择店铺') });
       return;
     }
     let domain = '';
@@ -1579,56 +1589,56 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
     const requireValue = (key: string, message: string) => {
       if (!String((form as Record<string, unknown>)[key] ?? '').trim()) next[key] = message;
     };
-    if (!form.payChannel) next.payChannel = '请选择支付渠道';
-    if (!form.organizationType) next.organizationType = '请选择主体类型';
-    if (!isReapply && !String(form.shopId ?? '').trim()) next.shopId = '请选择店铺';
+    if (!form.payChannel) next.payChannel = t('请选择支付渠道');
+    if (!form.organizationType) next.organizationType = t('请选择主体类型');
+    if (!isReapply && !String(form.shopId ?? '').trim()) next.shopId = t('请选择店铺');
     if (!isPersonal) {
-      requireValue('businessLicenseNumber', '请输入营业执照号');
-      requireValue('legalPerson', '请输入法人/经营者姓名');
-      requireValue('licenseCopy', '请上传营业执照照片');
+      requireValue('businessLicenseNumber', t('请输入营业执照号'));
+      requireValue('legalPerson', t('请输入法人/经营者姓名'));
+      requireValue('licenseCopy', t('请上传营业执照照片'));
     }
-    if (!String(form.merchantName ?? '').trim()) next.merchantName = isPersonal ? '请输入店铺全称' : '请输入商户名称';
-    requireValue('idCardName', '请输入身份证姓名');
-    requireValue('idCardNumber', '请输入身份证号码');
-    if (!String(form.cardPeriodBegin ?? '').trim()) next.cardPeriodBegin = '请选择日期';
-    if (!cardLongTerm && !String(form.cardPeriodEnd ?? '').trim()) next.cardPeriodEnd = '请选择日期';
-    requireValue('idCardCopy', '请上传身份证人像面');
-    if (isDuplicateIdCardPhotos(form.idCardCopy, form.idCardNational)) next.idCardNational = '身份证人像面与国徽面不可使用同一张图片';
-    else requireValue('idCardNational', '请上传身份证国徽面');
-    requireValue('merchantShortName', '请输入商户简称');
-    if (!String(form.storeUrl ?? '').trim()) next.storeUrl = '请输入店铺Url';
-    else if (!isHttpStoreUrl(form.storeUrl)) next.storeUrl = '店铺主页须为可访问的 HTTP/HTTPS 链接';
-    if (!form.bankAccountType) next.bankAccountType = '请选择银行账户类型';
+    if (!String(form.merchantName ?? '').trim()) next.merchantName = isPersonal ? t('请输入店铺全称') : t('请输入商户名称');
+    requireValue('idCardName', t('请输入身份证姓名'));
+    requireValue('idCardNumber', t('请输入身份证号码'));
+    if (!String(form.cardPeriodBegin ?? '').trim()) next.cardPeriodBegin = t('请选择日期');
+    if (!cardLongTerm && !String(form.cardPeriodEnd ?? '').trim()) next.cardPeriodEnd = t('请选择日期');
+    requireValue('idCardCopy', t('请上传身份证人像面'));
+    if (isDuplicateIdCardPhotos(form.idCardCopy, form.idCardNational)) next.idCardNational = t('身份证人像面与国徽面不可使用同一张图片');
+    else requireValue('idCardNational', t('请上传身份证国徽面'));
+    requireValue('merchantShortName', t('请输入商户简称'));
+    if (!String(form.storeUrl ?? '').trim()) next.storeUrl = t('请输入店铺Url');
+    else if (!isHttpStoreUrl(form.storeUrl)) next.storeUrl = t('店铺主页须为可访问的 HTTP/HTTPS 链接');
+    if (!form.bankAccountType) next.bankAccountType = t('请选择银行账户类型');
     if (!String(form.bankAccountName ?? '').trim()) {
-      next.bankAccountName = form.bankAccountType === BANK_CORPORATE ? '请输入对公账户名称' : '请输入银行账户名称';
+      next.bankAccountName = form.bankAccountType === BANK_CORPORATE ? t('请输入对公账户名称') : t('请输入银行账户名称');
     }
-    requireValue('bankAccountNumber', '请输入银行账号');
-    if (!isWechat && !String(form.bankName ?? '').trim()) next.bankName = '请输入开户银行';
-    requireValue('contactType', '请选择超管类型');
-    requireValue('contactName', '请输入联系人姓名');
-    requireValue('contactIdNumber', '请输入超管身份证号');
-    requireValue('contactPhone', '请输入联系人手机');
+    requireValue('bankAccountNumber', t('请输入银行账号'));
+    if (!isWechat && !String(form.bankName ?? '').trim()) next.bankName = t('请输入开户银行');
+    requireValue('contactType', t('请选择超管类型'));
+    requireValue('contactName', t('请输入联系人姓名'));
+    requireValue('contactIdNumber', t('请输入超管身份证号'));
+    requireValue('contactPhone', t('请输入联系人手机'));
     if (isReapply) {
       const length = abandonReason.trim().length;
-      if (!length || length > 500) next.abandonReason = '请填写 1～500 字的放弃原因';
+      if (!length || length > 500) next.abandonReason = t('请填写 1～500 字的放弃原因');
     }
     setErrors(next);
     const firstKey = Object.keys(next)[0];
     if (firstKey) return next[firstKey];
     if (isWechat) {
-      if (!bankRef.current) return '银行数据正在加载';
+      if (!bankRef.current) return t('银行数据正在加载');
       try {
         bankRef.current.validate();
       } catch (bankException) {
-        return bankException instanceof Error ? bankException.message : '请选择银行及开户支行';
+        return bankException instanceof Error ? bankException.message : t('请选择银行及开户支行');
       }
-      if (form.bankBranchId && !/^\d{1,64}$/.test(String(form.bankBranchId))) return '请选择银行及开户支行';
-      if (String(form.storeUrl ?? '').length > 1024 || !isHttpStoreUrl(form.storeUrl)) return '店铺主页须为可访问的 HTTP/HTTPS 链接';
-      if (form.settlementId && !/^\d+$/.test(String(form.settlementId))) return '结算规则 ID 必须为数字';
-      if (!isPersonal && form.idCardName !== form.legalPerson) return '身份证姓名须与法人或经营者姓名一致';
-      if (form.contactName !== form.idCardName || form.contactIdNumber !== form.idCardNumber) return '超级管理员姓名和身份证号须与身份证资料一致';
+      if (form.bankBranchId && !/^\d{1,64}$/.test(String(form.bankBranchId))) return t('请选择银行及开户支行');
+      if (String(form.storeUrl ?? '').length > 1024 || !isHttpStoreUrl(form.storeUrl)) return t('店铺主页须为可访问的 HTTP/HTTPS 链接');
+      if (form.settlementId && !/^\d+$/.test(String(form.settlementId))) return t('结算规则 ID 必须为数字');
+      if (!isPersonal && form.idCardName !== form.legalPerson) return t('身份证姓名须与法人或经营者姓名一致');
+      if (form.contactName !== form.idCardName || form.contactIdNumber !== form.idCardNumber) return t('超级管理员姓名和身份证号须与身份证资料一致');
       const accountName = form.bankAccountType === BANK_CORPORATE ? form.merchantName : form.idCardName;
-      if (form.bankAccountName !== accountName) return '对公户名须与商户名称一致，对私户名须与身份证姓名一致';
+      if (form.bankAccountName !== accountName) return t('对公户名须与商户名称一致，对私户名须与身份证姓名一致');
     }
     return null;
   };
@@ -1645,9 +1655,9 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
         }
       }
       setSource(result);
-      const statusText = result.statusDesc || result.status || '进件处理中';
+      const statusText = result.statusDesc || result.status || t('进件处理中');
       if (result.retryable && !isClosedApplication(result)) {
-        Toast.warning({ content: result.rejectReason || '申请已保存，渠道结果待确认，请使用重试提交' });
+        Toast.warning({ content: result.rejectReason || t('申请已保存，渠道结果待确认，请使用重试提交') });
       } else if (!isClosedApplication(result) && (['DRAFT', 'REJECTED'].includes(result.status || '') || result.rejectReason)) {
         Toast.warning({ content: result.rejectReason || statusText });
       } else {
@@ -1673,7 +1683,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
           (row) => String(row.sourceApplicationId) === String(uncertainReapplyRef.current?.sourceApplicationId),
         );
         if (replacement) await finishSubmit(replacement);
-        else Toast.warning({ content: '暂未确认提交结果，请稍后查询' });
+        else Toast.warning({ content: t('暂未确认提交结果，请稍后查询') });
       } else {
         const list = await listApplications({ page: 1, size: 100, shopId: form.shopId });
         const rows = (list.records || []).filter(
@@ -1685,12 +1695,12 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
         );
         if (rows.length === 1) await finishSubmit(rows[0]);
         else {
-          Toast.warning({ content: '请在进件列表核对申请记录后继续，勿重复提交' });
+          Toast.warning({ content: t('请在进件列表核对申请记录后继续，勿重复提交') });
           onChanged();
         }
       }
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '查询失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('查询失败') });
       onChanged();
     } finally {
       setSubmitting(false);
@@ -1712,7 +1722,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
         const stillAllowed = current ? (isReapply ? applicationActions(current).reapply : canEditApplication(current, true)) : false;
         if (!current || String(current.id) !== String(source.id) || !stillAllowed) {
           if (current) setSource(current);
-          throw new Error('申请状态已变化，请查看最新详情');
+          throw new Error(t('申请状态已变化，请查看最新详情'));
         }
       }
       previousIdsRef.current = new Set();
@@ -1737,7 +1747,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
         await finishSubmit(await submitApplication(payload));
       }
     } catch (error) {
-      const message = error instanceof Error && error.message ? error.message : '提交失败';
+      const message = error instanceof Error && error.message ? error.message : t('提交失败');
       Toast.error({ content: message });
       if (isReapply && /(?:重新申请|替代申请|新记录).*已删除/.test(message)) setOperationBlocked(message);
       onChanged();
@@ -1778,7 +1788,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
     </MaItem>
   );
 
-  const title = isReapply ? '修改资料重新提交' : isEdit ? '修改并提交进件' : '提交进件';
+  const title = isReapply ? t('修改资料重新提交') : isEdit ? t('修改并提交进件') : t('提交进件');
   const controlWidth = { width: 300 };
 
   return (
@@ -1790,82 +1800,82 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
       bodyStyle={{ maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}
       footer={
         <Space>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={submitting} disabled={!canWrite} onClick={() => void onSubmit()}>
-            提交
+            {t('提交')}
           </Button>
         </Space>
       }
     >
       <Spin spinning={preparing}>
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
-          {snapshotMissing ? <Banner type="warning" closeIcon={null} description="原申请资料快照缺失或无效，请补全资料；无法自动重新申请" style={{ marginBottom: 12 }} /> : null}
-          {source?.retryable ? <Banner type="warning" closeIcon={null} description="渠道结果尚未确认，请由平台使用重试提交，不能修改资料" style={{ marginBottom: 12 }} /> : null}
+          {snapshotMissing ? <Banner type="warning" closeIcon={null} description={t('原申请资料快照缺失或无效，请补全资料；无法自动重新申请')} style={{ marginBottom: 12 }} /> : null}
+          {source?.retryable ? <Banner type="warning" closeIcon={null} description={t('渠道结果尚未确认，请由平台使用重试提交，不能修改资料')} style={{ marginBottom: 12 }} /> : null}
           {operationBlocked ? <Banner type="danger" closeIcon={null} description={operationBlocked} style={{ marginBottom: 12 }} /> : null}
           {uncertain ? (
             <div style={{ marginBottom: 12 }}>
-              <Banner type="warning" closeIcon={null} description="提交结果尚未确认，请先查询申请记录，勿重复提交" />
+              <Banner type="warning" closeIcon={null} description={t('提交结果尚未确认，请先查询申请记录，勿重复提交')} />
               <Button style={{ marginTop: 8 }} loading={submitting} onClick={() => void checkSubmission()}>
-                查询提交结果
+                {t('查询提交结果')}
               </Button>
             </div>
           ) : null}
-          {isEdit && !isReapply && isWechat ? <Banner type="info" closeIcon={null} description="修改后完整提交需重新上传证件，原证件仅供预览" style={{ marginBottom: 12 }} /> : null}
+          {isEdit && !isReapply && isWechat ? <Banner type="info" closeIcon={null} description={t('修改后完整提交需重新上传证件，原证件仅供预览')} style={{ marginBottom: 12 }} /> : null}
 
-          <MaSection title="主体信息">
-            <MaItem label="支付渠道" required error={errors.payChannel}>
+          <MaSection title={t('主体信息')}>
+            <MaItem label={t('支付渠道')} required error={errors.payChannel}>
               <Select
                 style={controlWidth}
                 disabled={isEdit}
-                optionList={[{ label: '微信', value: PAY_CHANNEL_WECHAT }]}
+                optionList={[{ label: t('微信'), value: PAY_CHANNEL_WECHAT }]}
                 value={form.payChannel || PAY_CHANNEL_WECHAT}
                 onChange={(next) => setField('payChannel', String(next))}
               />
               <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 4 }}>
-                选择进件的支付分账渠道，需与平台「分账设置」中的线上分账渠道一致
+                {t('选择进件的支付分账渠道，需与平台「分账设置」中的线上分账渠道一致')}
               </div>
             </MaItem>
-            <MaItem label="主体类型" required error={errors.organizationType}>
+            <MaItem label={t('主体类型')} required error={errors.organizationType}>
               <RadioGroup value={form.organizationType} disabled={isReapply} onChange={(event) => setField('organizationType', String(event.target.value))}>
-                <Radio value={ORG_ENTERPRISE}>企业</Radio>
-                <Radio value={ORG_INDIVIDUAL}>个体工商户</Radio>
-                <Radio value={ORG_PERSONAL}>个人</Radio>
+                <Radio value={ORG_ENTERPRISE}>{t('企业')}</Radio>
+                <Radio value={ORG_INDIVIDUAL}>{t('个体工商户')}</Radio>
+                <Radio value={ORG_PERSONAL}>{t('个人')}</Radio>
               </RadioGroup>
               <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 4 }}>
                 {isPersonal
-                  ? '“个人”为根据法律法规和相关规定免于办理工商登记，无营业执照的商家。'
-                  : '“个体工商户”在营业执照上的主体类型一般为：个体工商户。'}
+                  ? t('“个人”为根据法律法规和相关规定免于办理工商登记，无营业执照的商家。')
+                  : t('“个体工商户”在营业执照上的主体类型一般为：个体工商户。')}
               </div>
             </MaItem>
             {!isReapply ? (
-              <MaItem label="选择店铺" required error={errors.shopId}>
+              <MaItem label={t('选择店铺')} required error={errors.shopId}>
                 {isEdit ? (
                   <Input value={shopDisplay} disabled style={controlWidth} />
                 ) : (
-                  <RemoteSelect fetchOptions={fetchShopOptions} value={String(form.shopId ?? '')} onChange={onShopChange} placeholder="请输入店铺名称" width={300} />
+                  <RemoteSelect fetchOptions={fetchShopOptions} value={String(form.shopId ?? '')} onChange={onShopChange} placeholder={t('请输入店铺名称')} width={300} />
                 )}
               </MaItem>
             ) : null}
-            {!isPersonal ? <MaItem label="营业执照号" required error={errors.businessLicenseNumber}>
-              <Input value={form.businessLicenseNumber || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('businessLicenseNumber', next)} />
+            {!isPersonal ? <MaItem label={t('营业执照号')} required error={errors.businessLicenseNumber}>
+              <Input value={form.businessLicenseNumber || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('businessLicenseNumber', next)} />
             </MaItem> : null}
             <MaItem label={merchantNameLabel} required error={errors.merchantName}>
-              <Input value={form.merchantName || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('merchantName', next)} />
+              <Input value={form.merchantName || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('merchantName', next)} />
             </MaItem>
-            {!isPersonal ? <MaItem label="法人/经营者姓名" required error={errors.legalPerson}>
-              <Input value={form.legalPerson || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('legalPerson', next)} />
+            {!isPersonal ? <MaItem label={t('法人/经营者姓名')} required error={errors.legalPerson}>
+              <Input value={form.legalPerson || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('legalPerson', next)} />
             </MaItem> : null}
-            {!isPersonal ? <MaItem label="营业执照有效期开始" error={errors.licensePeriodBegin}>
+            {!isPersonal ? <MaItem label={t('营业执照有效期开始')} error={errors.licensePeriodBegin}>
               <DatePicker
                 type="date"
                 format="yyyy-MM-dd"
                 style={controlWidth}
                 value={form.licensePeriodBegin || undefined}
-                placeholder="请选择日期"
+                placeholder={t('请选择日期')}
                 onChange={(_date, dateStr) => setField('licensePeriodBegin', typeof dateStr === 'string' ? dateStr : '')}
               />
             </MaItem> : null}
-            {!isPersonal ? <MaItem label="营业执照有效期结束" error={errors.licensePeriodEnd}>
+            {!isPersonal ? <MaItem label={t('营业执照有效期结束')} error={errors.licensePeriodEnd}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <DatePicker
                   type="date"
@@ -1873,7 +1883,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
                   style={controlWidth}
                   disabled={licenseLongTerm}
                   value={form.licensePeriodEnd && form.licensePeriodEnd !== LONG_TERM_VALUE ? form.licensePeriodEnd : undefined}
-                  placeholder="请选择日期"
+                  placeholder={t('请选择日期')}
                   onChange={(_date, dateStr) => setField('licensePeriodEnd', typeof dateStr === 'string' ? dateStr : '')}
                 />
                 <Checkbox
@@ -1884,38 +1894,38 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
                     setField('licensePeriodEnd', checked ? LONG_TERM_VALUE : '');
                   }}
                 >
-                  长期
+                  {t('长期')}
                 </Checkbox>
               </div>
             </MaItem> : null}
-            {!isPersonal ? renderMedia('licenseCopy', '营业执照照片', 1) : null}
+            {!isPersonal ? renderMedia('licenseCopy', t('营业执照照片'), 1) : null}
           </MaSection>
 
-          <MaSection title="法人/经营者身份信息">
-            <MaItem label="身份证姓名" required error={errors.idCardName}>
+          <MaSection title={t('法人/经营者身份信息')}>
+            <MaItem label={t('身份证姓名')} required error={errors.idCardName}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Input value={form.idCardName || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('idCardName', next)} />
+                <Input value={form.idCardName || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('idCardName', next)} />
                 {!isPersonal && form.legalPerson ? (
                   <Button theme="borderless" type="primary" size="small" onClick={() => setField('idCardName', form.legalPerson)}>
-                    同步法人姓名
+                    {t('同步法人姓名')}
                   </Button>
                 ) : null}
               </div>
             </MaItem>
-            <MaItem label="身份证号码" required error={errors.idCardNumber}>
-              <Input value={form.idCardNumber || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('idCardNumber', next)} />
+            <MaItem label={t('身份证号码')} required error={errors.idCardNumber}>
+              <Input value={form.idCardNumber || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('idCardNumber', next)} />
             </MaItem>
-            <MaItem label="身份证有效期开始" required error={errors.cardPeriodBegin}>
+            <MaItem label={t('身份证有效期开始')} required error={errors.cardPeriodBegin}>
               <DatePicker
                 type="date"
                 format="yyyy-MM-dd"
                 style={controlWidth}
                 value={form.cardPeriodBegin || undefined}
-                placeholder="请选择日期"
+                placeholder={t('请选择日期')}
                 onChange={(_date, dateStr) => setField('cardPeriodBegin', typeof dateStr === 'string' ? dateStr : '')}
               />
             </MaItem>
-            <MaItem label="身份证有效期结束" required={!cardLongTerm} error={errors.cardPeriodEnd}>
+            <MaItem label={t('身份证有效期结束')} required={!cardLongTerm} error={errors.cardPeriodEnd}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <DatePicker
                   type="date"
@@ -1923,7 +1933,7 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
                   style={controlWidth}
                   disabled={cardLongTerm}
                   value={form.cardPeriodEnd && form.cardPeriodEnd !== LONG_TERM_VALUE ? form.cardPeriodEnd : undefined}
-                  placeholder="请选择日期"
+                  placeholder={t('请选择日期')}
                   onChange={(_date, dateStr) => setField('cardPeriodEnd', typeof dateStr === 'string' ? dateStr : '')}
                 />
                 <Checkbox
@@ -1934,53 +1944,53 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
                     setField('cardPeriodEnd', checked ? LONG_TERM_VALUE : '');
                   }}
                 >
-                  长期
+                  {t('长期')}
                 </Checkbox>
               </div>
             </MaItem>
-            {renderMedia('idCardCopy', '身份证人像面', 2)}
-            {renderMedia('idCardNational', '身份证国徽面', 3)}
+            {renderMedia('idCardCopy', t('身份证人像面'), 2)}
+            {renderMedia('idCardNational', t('身份证国徽面'), 3)}
           </MaSection>
 
-          <MaSection title="经营信息">
-            <MaItem label="商户简称" required error={errors.merchantShortName}>
-              <Input value={form.merchantShortName || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('merchantShortName', next)} />
+          <MaSection title={t('经营信息')}>
+            <MaItem label={t('商户简称')} required error={errors.merchantShortName}>
+              <Input value={form.merchantShortName || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('merchantShortName', next)} />
             </MaItem>
-            <MaItem label="客服电话" error={errors.servicePhone}>
-              <Input value={form.servicePhone || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('servicePhone', next)} />
-              <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 4 }}>注：该字段仅做内部记录，不会提交到微信支付</div>
+            <MaItem label={t('客服电话')} error={errors.servicePhone}>
+              <Input value={form.servicePhone || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('servicePhone', next)} />
+              <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 4 }}>{t('注：该字段仅做内部记录，不会提交到微信支付')}</div>
             </MaItem>
-            <MaItem label="店铺Url" required error={errors.storeUrl}>
+            <MaItem label={t('店铺Url')} required error={errors.storeUrl}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <Input value={form.storeUrl || ''} style={controlWidth} onChange={(next) => setField('storeUrl', next)} />
                 <Button theme="borderless" type="primary" size="small" onClick={() => void onAutoGetShopUrl()}>
-                  自动获取
+                  {t('自动获取')}
                 </Button>
               </div>
             </MaItem>
           </MaSection>
 
-          <MaSection title="结算信息">
-            <MaItem label="结算规则ID" error={errors.settlementId}>
-              <Input value={form.settlementId || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('settlementId', next)} />
+          <MaSection title={t('结算信息')}>
+            <MaItem label={t('结算规则ID')} error={errors.settlementId}>
+              <Input value={form.settlementId || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('settlementId', next)} />
             </MaItem>
-            <MaItem label="所属行业" error={errors.qualificationType}>
-              <Input value={form.qualificationType || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('qualificationType', next)} />
+            <MaItem label={t('所属行业')} error={errors.qualificationType}>
+              <Input value={form.qualificationType || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('qualificationType', next)} />
             </MaItem>
-            <MaItem label="银行账户类型" required error={errors.bankAccountType}>
+            <MaItem label={t('银行账户类型')} required error={errors.bankAccountType}>
               <RadioGroup value={form.bankAccountType} onChange={(event) => setField('bankAccountType', String(event.target.value))}>
-                <Radio value={BANK_CORPORATE} disabled={isPersonal}>对公</Radio>
-                <Radio value={BANK_PERSONAL} disabled={isEnterprise}>对私</Radio>
+                <Radio value={BANK_CORPORATE} disabled={isPersonal}>{t('对公')}</Radio>
+                <Radio value={BANK_PERSONAL} disabled={isEnterprise}>{t('对私')}</Radio>
               </RadioGroup>
               <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 4 }}>
-                {isEnterprise ? '企业主体仅支持对公账户' : isPersonal ? '个人主体仅支持对私账户' : ''}
+                {isEnterprise ? t('企业主体仅支持对公账户') : isPersonal ? t('个人主体仅支持对私账户') : ''}
               </div>
             </MaItem>
             <MaItem label={bankAccountNameLabel} required error={errors.bankAccountName}>
-              <Input value={form.bankAccountName || ''} placeholder="请输入" style={controlWidth} disabled={isPersonal} onChange={(next) => setField('bankAccountName', next)} />
+              <Input value={form.bankAccountName || ''} placeholder={t('请输入')} style={controlWidth} disabled={isPersonal} onChange={(next) => setField('bankAccountName', next)} />
             </MaItem>
-            <MaItem label="银行账号" required error={errors.bankAccountNumber}>
-              <Input value={form.bankAccountNumber || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('bankAccountNumber', next)} />
+            <MaItem label={t('银行账号')} required error={errors.bankAccountNumber}>
+              <Input value={form.bankAccountNumber || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('bankAccountNumber', next)} />
             </MaItem>
             {isWechat ? (
               <WechatBankFields
@@ -1992,48 +2002,48 @@ function SubmitFormModal({ visible, act, id, onClose, onSubmitted, onChanged }: 
               />
             ) : (
               <>
-                <MaItem label="开户银行" required error={errors.bankName}>
-                  <Input value={form.bankName || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('bankName', next)} />
+                <MaItem label={t('开户银行')} required error={errors.bankName}>
+                  <Input value={form.bankName || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('bankName', next)} />
                 </MaItem>
-                <MaItem label="开户银行全称（含支行）" error={errors.bankBranchName}>
-                  <Input value={form.bankBranchName || ''} placeholder="选填" style={controlWidth} onChange={(next) => setField('bankBranchName', next)} />
+                <MaItem label={t('开户银行全称（含支行）')} error={errors.bankBranchName}>
+                  <Input value={form.bankBranchName || ''} placeholder={t('选填')} style={controlWidth} onChange={(next) => setField('bankBranchName', next)} />
                 </MaItem>
               </>
             )}
           </MaSection>
 
-          <MaSection title="超级管理员信息">
-            <MaItem label="超管类型" required error={errors.contactType}>
+          <MaSection title={t('超级管理员信息')}>
+            <MaItem label={t('超管类型')} required error={errors.contactType}>
               <RadioGroup value={form.contactType} onChange={(event) => setField('contactType', String(event.target.value))}>
-                <Radio value={CONTACT_LEGAL}>经营者/法人</Radio>
+                <Radio value={CONTACT_LEGAL}>{t('经营者/法人')}</Radio>
               </RadioGroup>
             </MaItem>
-            <MaItem label="联系人姓名" required error={errors.contactName}>
-              <Input value={form.contactName || ''} placeholder="请输入" style={controlWidth} disabled={isPersonal} onChange={(next) => setField('contactName', next)} />
+            <MaItem label={t('联系人姓名')} required error={errors.contactName}>
+              <Input value={form.contactName || ''} placeholder={t('请输入')} style={controlWidth} disabled={isPersonal} onChange={(next) => setField('contactName', next)} />
             </MaItem>
-            <MaItem label="超管身份证号" required error={errors.contactIdNumber}>
-              <Input value={form.contactIdNumber || ''} placeholder="请输入" style={controlWidth} disabled={isPersonal} onChange={(next) => setField('contactIdNumber', next)} />
+            <MaItem label={t('超管身份证号')} required error={errors.contactIdNumber}>
+              <Input value={form.contactIdNumber || ''} placeholder={t('请输入')} style={controlWidth} disabled={isPersonal} onChange={(next) => setField('contactIdNumber', next)} />
             </MaItem>
-            <MaItem label="联系人手机" required error={errors.contactPhone}>
-              <Input value={form.contactPhone || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('contactPhone', next)} />
+            <MaItem label={t('联系人手机')} required error={errors.contactPhone}>
+              <Input value={form.contactPhone || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('contactPhone', next)} />
             </MaItem>
-            <MaItem label="联系人邮箱" error={errors.contactEmail}>
-              <Input value={form.contactEmail || ''} placeholder="请输入" style={controlWidth} onChange={(next) => setField('contactEmail', next)} />
+            <MaItem label={t('联系人邮箱')} error={errors.contactEmail}>
+              <Input value={form.contactEmail || ''} placeholder={t('请输入')} style={controlWidth} onChange={(next) => setField('contactEmail', next)} />
             </MaItem>
           </MaSection>
 
           {isReapply ? (
-            <MaSection title="重新申请">
-              <MaItem label="放弃原因" required error={errors.abandonReason}>
+            <MaSection title={t('重新申请')}>
+              <MaItem label={t('放弃原因')} required error={errors.abandonReason}>
                 <TextArea
                   rows={4}
                   maxLength={500}
                   value={abandonReason}
-                  placeholder="请填写 1～500 字的放弃原因"
+                  placeholder={t('请填写 1～500 字的放弃原因')}
                   onChange={(next) => setAbandonReason(next)}
                 />
                 <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginTop: 8, lineHeight: 1.6 }}>
-                  重新申请将放弃原记录，但不会撤销微信侧申请。主体类型、申请主体和渠道不能更改。
+                  {t('重新申请将放弃原记录，但不会撤销微信侧申请。主体类型、申请主体和渠道不能更改。')}
                 </div>
               </MaItem>
             </MaSection>
@@ -2058,6 +2068,7 @@ const DETAIL_SNAPSHOT_FIELDS = [
 ];
 
 function ApplicationDetailSheet({ target, onClose }: { target: { id: number | string; seq: number }; onClose: () => void }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<MerchantApplicationItem | null>(null);
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -2083,7 +2094,7 @@ function ApplicationDetailSheet({ target, onClose }: { target: { id: number | st
         setFields(next);
       })
       .catch((error) => {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -2097,118 +2108,118 @@ function ApplicationDetailSheet({ target, onClose }: { target: { id: number | st
     if (!detail?.signUrl) return;
     try {
       await navigator.clipboard.writeText(detail.signUrl);
-      Toast.success({ content: '已复制到剪贴板' });
+      Toast.success({ content: t('已复制到剪贴板') });
     } catch {
-      Toast.error({ content: '复制失败' });
+      Toast.error({ content: t('复制失败') });
     }
   };
 
   const organizationType = fields.organizationType;
   const isEnterprise = organizationType === ORG_ENTERPRISE;
   const isPersonal = isPersonalOrg(organizationType);
-  const merchantNameLabel = isEnterprise ? '公司名称' : isPersonal ? '店铺全称' : '商户名称';
+  const merchantNameLabel = isEnterprise ? t('公司名称') : isPersonal ? t('店铺全称') : t('商户名称');
   const isWechat = (detail?.payChannel || PAY_CHANNEL_WECHAT) === PAY_CHANNEL_WECHAT;
-  const statusText = detail ? (isAbandoned(detail) ? '已放弃（本地）' : detail.statusDesc || STATUS_LABELS[detail.status || ''] || detail.status || '-') : '-';
+  const statusText = detail ? (isAbandoned(detail) ? t('已放弃（本地）') : detail.statusDesc || statusLabelText(detail.status, t) || detail.status || '-') : '-';
 
   const renderCert = (role: number, url: string) =>
     isWechat ? (
       <CertificateMediaField applicationId={detail?.id} role={role} readonly />
     ) : url ? (
-      <img src={url} alt="证件" style={{ width: 160, height: 100, objectFit: 'contain', border: '1px solid var(--semi-color-border)', borderRadius: 4, display: 'block' }} />
+      <img src={url} alt={t('证件')} style={{ width: 160, height: 100, objectFit: 'contain', border: '1px solid var(--semi-color-border)', borderRadius: 4, display: 'block' }} />
     ) : (
       <Typography.Text type="tertiary">-</Typography.Text>
     );
 
   return (
-    <SideSheet title="进件详情" visible width={760} onCancel={onClose} footer={null}>
+    <SideSheet title={t('进件详情')} visible width={760} onCancel={onClose} footer={null}>
       <Spin spinning={loading}>
         {detail ? (
           <div>
-            <MaSection title="状态信息">
-              <MaDesc label="状态">
+            <MaSection title={t('状态信息')}>
+              <MaDesc label={t('状态')}>
                 <Tag color={STATUS_TAG_COLOR[detail.abandoned === 1 ? 'ABANDONED' : detail.status || ''] || 'grey'} type="light">
                   {statusText}
                 </Tag>
               </MaDesc>
-              {detail.abandoned === 1 ? <MaDesc label="放弃原因">{detail.abandonReason || '-'}</MaDesc> : null}
-              {detail.abandoned === 1 ? <MaDesc label="放弃时间">{detail.abandonTime || '-'}</MaDesc> : null}
-              {detail.sourceApplicationId != null ? <MaDesc label="原申请 ID">{detail.sourceApplicationId}</MaDesc> : null}
+              {detail.abandoned === 1 ? <MaDesc label={t('放弃原因')}>{detail.abandonReason || '-'}</MaDesc> : null}
+              {detail.abandoned === 1 ? <MaDesc label={t('放弃时间')}>{detail.abandonTime || '-'}</MaDesc> : null}
+              {detail.sourceApplicationId != null ? <MaDesc label={t('原申请 ID')}>{detail.sourceApplicationId}</MaDesc> : null}
               {detail.retryable && detail.abandoned !== 1 ? (
-                <Banner type="warning" closeIcon={null} description="渠道结果尚未确认，请由平台使用重试提交，不能修改资料" style={{ marginBottom: 12 }} />
+                <Banner type="warning" closeIcon={null} description={t('渠道结果尚未确认，请由平台使用重试提交，不能修改资料')} style={{ marginBottom: 12 }} />
               ) : null}
-              <MaDesc label="支付渠道">{formatPayChannel(detail.payChannel)}</MaDesc>
-              <MaDesc label="进件编号">{detail.businessCode || '-'}</MaDesc>
-              <MaDesc label="申请单号">{detail.applymentId || '-'}</MaDesc>
-              {detail.subMchId ? <MaDesc label="子商户号">{detail.subMchId}</MaDesc> : null}
+              <MaDesc label={t('支付渠道')}>{formatPayChannel(detail.payChannel, t)}</MaDesc>
+              <MaDesc label={t('进件编号')}>{detail.businessCode || '-'}</MaDesc>
+              <MaDesc label={t('申请单号')}>{detail.applymentId || '-'}</MaDesc>
+              {detail.subMchId ? <MaDesc label={t('子商户号')}>{detail.subMchId}</MaDesc> : null}
               {canSignApplication(detail) ? (
-                <MaDesc label="签约链接">
+                <MaDesc label={t('签约链接')}>
                   <a href={detail.signUrl} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
                     {detail.signUrl}
                   </a>
                   <Button theme="borderless" type="primary" size="small" style={{ marginLeft: 8 }} onClick={() => void copySignUrl()}>
-                    复制
+                    {t('复制')}
                   </Button>
                 </MaDesc>
               ) : null}
               {detail.rejectReason && detail.status !== 'FINISH' ? (
-                <MaDesc label={detail.reasonLabel || '失败原因'}>
+                <MaDesc label={detail.reasonLabel || t('失败原因')}>
                   <Typography.Text type="danger">{detail.rejectReason}</Typography.Text>
                 </MaDesc>
               ) : null}
             </MaSection>
 
-            <MaSection title="主体信息">
-              <MaDesc label="主体类型">{formatOrganizationType(organizationType)}</MaDesc>
-              <MaDesc label="店铺">{detail.applicantName || detail.shopName || fields.shopId || '-'}</MaDesc>
-              {!isPersonal ? <MaDesc label="营业执照号">{fields.businessLicenseNumber || '-'}</MaDesc> : null}
+            <MaSection title={t('主体信息')}>
+              <MaDesc label={t('主体类型')}>{formatOrganizationType(organizationType, t)}</MaDesc>
+              <MaDesc label={t('店铺')}>{detail.applicantName || detail.shopName || fields.shopId || '-'}</MaDesc>
+              {!isPersonal ? <MaDesc label={t('营业执照号')}>{fields.businessLicenseNumber || '-'}</MaDesc> : null}
               <MaDesc label={merchantNameLabel}>{fields.merchantName || '-'}</MaDesc>
-              {!isPersonal ? <MaDesc label="法人/经营者姓名">{fields.legalPerson || '-'}</MaDesc> : null}
-              {!isPersonal ? <MaDesc label="营业执照有效期开始">{fields.licensePeriodBegin || '-'}</MaDesc> : null}
-              {!isPersonal ? <MaDesc label="营业执照有效期结束">{fields.licensePeriodEnd || '-'}</MaDesc> : null}
-              {!isPersonal ? <MaDesc label="营业执照照片">{renderCert(1, fields.licenseCopy || detail.licenseCopy || '')}</MaDesc> : null}
+              {!isPersonal ? <MaDesc label={t('法人/经营者姓名')}>{fields.legalPerson || '-'}</MaDesc> : null}
+              {!isPersonal ? <MaDesc label={t('营业执照有效期开始')}>{fields.licensePeriodBegin || '-'}</MaDesc> : null}
+              {!isPersonal ? <MaDesc label={t('营业执照有效期结束')}>{fields.licensePeriodEnd || '-'}</MaDesc> : null}
+              {!isPersonal ? <MaDesc label={t('营业执照照片')}>{renderCert(1, fields.licenseCopy || detail.licenseCopy || '')}</MaDesc> : null}
             </MaSection>
 
-            <MaSection title="法人/经营者身份信息">
-              <MaDesc label="身份证姓名">{fields.idCardName || '-'}</MaDesc>
-              <MaDesc label="身份证号码">{fields.idCardNumber || '-'}</MaDesc>
-              <MaDesc label="身份证有效期开始">{fields.cardPeriodBegin || '-'}</MaDesc>
-              <MaDesc label="身份证有效期结束">{fields.cardPeriodEnd || '-'}</MaDesc>
-              <MaDesc label="身份证人像面">{renderCert(2, fields.idCardCopy || detail.idCardCopy || '')}</MaDesc>
-              <MaDesc label="身份证国徽面">{renderCert(3, fields.idCardNational || detail.idCardNational || '')}</MaDesc>
+            <MaSection title={t('法人/经营者身份信息')}>
+              <MaDesc label={t('身份证姓名')}>{fields.idCardName || '-'}</MaDesc>
+              <MaDesc label={t('身份证号码')}>{fields.idCardNumber || '-'}</MaDesc>
+              <MaDesc label={t('身份证有效期开始')}>{fields.cardPeriodBegin || '-'}</MaDesc>
+              <MaDesc label={t('身份证有效期结束')}>{fields.cardPeriodEnd || '-'}</MaDesc>
+              <MaDesc label={t('身份证人像面')}>{renderCert(2, fields.idCardCopy || detail.idCardCopy || '')}</MaDesc>
+              <MaDesc label={t('身份证国徽面')}>{renderCert(3, fields.idCardNational || detail.idCardNational || '')}</MaDesc>
             </MaSection>
 
-            <MaSection title="经营信息">
-              <MaDesc label="商户简称">{fields.merchantShortName || '-'}</MaDesc>
-              <MaDesc label="客服电话">{fields.servicePhone || '-'}</MaDesc>
-              <MaDesc label="店铺Url">{fields.storeUrl || '-'}</MaDesc>
+            <MaSection title={t('经营信息')}>
+              <MaDesc label={t('商户简称')}>{fields.merchantShortName || '-'}</MaDesc>
+              <MaDesc label={t('客服电话')}>{fields.servicePhone || '-'}</MaDesc>
+              <MaDesc label={t('店铺Url')}>{fields.storeUrl || '-'}</MaDesc>
             </MaSection>
 
-            <MaSection title="结算信息">
-              <MaDesc label="结算规则ID">{fields.settlementId || '-'}</MaDesc>
-              <MaDesc label="所属行业">{fields.qualificationType || '-'}</MaDesc>
-              <MaDesc label="银行账户类型">{formatBankAccountType(fields.bankAccountType)}</MaDesc>
-              <MaDesc label={fields.bankAccountType === BANK_CORPORATE ? '对公账户名称' : '银行账户名称'}>{fields.bankAccountName || '-'}</MaDesc>
-              <MaDesc label="银行账号">{fields.bankAccountNumber || '-'}</MaDesc>
-              <MaDesc label="开户银行">{fields.bankName || '-'}</MaDesc>
-              <MaDesc label="开户支行">{fields.bankBranchName || '-'}</MaDesc>
-              {isWechat ? <MaDesc label="联行号">{fields.bankBranchId || '-'}</MaDesc> : null}
+            <MaSection title={t('结算信息')}>
+              <MaDesc label={t('结算规则ID')}>{fields.settlementId || '-'}</MaDesc>
+              <MaDesc label={t('所属行业')}>{fields.qualificationType || '-'}</MaDesc>
+              <MaDesc label={t('银行账户类型')}>{formatBankAccountType(fields.bankAccountType, t)}</MaDesc>
+              <MaDesc label={fields.bankAccountType === BANK_CORPORATE ? t('对公账户名称') : t('银行账户名称')}>{fields.bankAccountName || '-'}</MaDesc>
+              <MaDesc label={t('银行账号')}>{fields.bankAccountNumber || '-'}</MaDesc>
+              <MaDesc label={t('开户银行')}>{fields.bankName || '-'}</MaDesc>
+              <MaDesc label={t('开户支行')}>{fields.bankBranchName || '-'}</MaDesc>
+              {isWechat ? <MaDesc label={t('联行号')}>{fields.bankBranchId || '-'}</MaDesc> : null}
             </MaSection>
 
-            <MaSection title="超级管理员信息">
-              <MaDesc label="超管类型">{formatContactType(fields.contactType)}</MaDesc>
-              <MaDesc label="联系人姓名">{fields.contactName || '-'}</MaDesc>
-              <MaDesc label="超管身份证号">{fields.contactIdNumber || '-'}</MaDesc>
-              <MaDesc label="联系人手机">{fields.contactPhone || '-'}</MaDesc>
-              <MaDesc label="联系人邮箱">{fields.contactEmail || '-'}</MaDesc>
+            <MaSection title={t('超级管理员信息')}>
+              <MaDesc label={t('超管类型')}>{formatContactType(fields.contactType, t)}</MaDesc>
+              <MaDesc label={t('联系人姓名')}>{fields.contactName || '-'}</MaDesc>
+              <MaDesc label={t('超管身份证号')}>{fields.contactIdNumber || '-'}</MaDesc>
+              <MaDesc label={t('联系人手机')}>{fields.contactPhone || '-'}</MaDesc>
+              <MaDesc label={t('联系人邮箱')}>{fields.contactEmail || '-'}</MaDesc>
             </MaSection>
 
-            <MaSection title="时间信息">
-              <MaDesc label="创建时间">{detail.createTime || '-'}</MaDesc>
-              <MaDesc label="更新时间">{detail.modifyTime || '-'}</MaDesc>
+            <MaSection title={t('时间信息')}>
+              <MaDesc label={t('创建时间')}>{detail.createTime || '-'}</MaDesc>
+              <MaDesc label={t('更新时间')}>{detail.modifyTime || '-'}</MaDesc>
             </MaSection>
           </div>
         ) : !loading ? (
-          <Typography.Text type="tertiary">暂无数据</Typography.Text>
+          <Typography.Text type="tertiary">{t('暂无数据')}</Typography.Text>
         ) : null}
       </Spin>
     </SideSheet>
@@ -2225,26 +2236,27 @@ function RejectModal({ target, onClose, onChanged, onView }: {
   onChanged: () => void;
   onView: (id: number | string) => void;
 }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
     const text = reason.trim();
     if (!text) {
-      Toast.warning({ content: '请填写驳回原因' });
+      Toast.warning({ content: t('请填写驳回原因') });
       return;
     }
     setBusy(true);
     try {
       const current = await getApplicationDetail(target.id);
-      if (!applicationActions(current).reject) throw new Error('申请状态已变化，请查看最新详情');
+      if (!applicationActions(current).reject) throw new Error(t('申请状态已变化，请查看最新详情'));
       await rejectApplication(target.id, text);
-      Toast.success({ content: '已拒绝' });
+      Toast.success({ content: t('已拒绝') });
       onChanged();
       onView(target.id);
       onClose();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
       onChanged();
     } finally {
       setBusy(false);
@@ -2253,22 +2265,22 @@ function RejectModal({ target, onClose, onChanged, onView }: {
 
   return (
     <Modal
-      title="审核拒绝"
+      title={t('审核拒绝')}
       visible
       width={480}
       onCancel={onClose}
       footer={
         <Space>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={busy} onClick={() => void submit()}>
-            确认拒绝
+            {t('确认拒绝')}
           </Button>
         </Space>
       }
     >
       <div>
-        <div style={{ marginBottom: 8, fontSize: 14 }}>驳回原因</div>
-        <TextArea rows={4} maxLength={500} value={reason} placeholder="请填写驳回原因，将展示给申请方" onChange={setReason} />
+        <div style={{ marginBottom: 8, fontSize: 14 }}>{t('驳回原因')}</div>
+        <TextArea rows={4} maxLength={500} value={reason} placeholder={t('请填写驳回原因，将展示给申请方')} onChange={setReason} />
       </div>
     </Modal>
   );
@@ -2280,27 +2292,28 @@ function AbandonModal({ target, onClose, onChanged, onView }: {
   onChanged: () => void;
   onView: (id: number | string) => void;
 }) {
+  const { t } = useI18n();
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
     const text = reason.trim();
     if (!text || text.length > 500) {
-      Toast.warning({ content: '请填写 1～500 字的放弃原因' });
+      Toast.warning({ content: t('请填写 1～500 字的放弃原因') });
       return;
     }
     if (!target.id) return;
     setBusy(true);
     try {
       const latest = await getApplicationDetail(target.id);
-      if (!applicationActions(latest).abandon) throw new Error('申请状态已变化，请查看最新详情');
+      if (!applicationActions(latest).abandon) throw new Error(t('申请状态已变化，请查看最新详情'));
       await abandonApplication(target.id, text);
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       onChanged();
       onView(target.id);
       onClose();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
       onChanged();
     } finally {
       setBusy(false);
@@ -2309,23 +2322,23 @@ function AbandonModal({ target, onClose, onChanged, onView }: {
 
   return (
     <Modal
-      title="放弃申请"
+      title={t('放弃申请')}
       visible
       width={520}
       onCancel={onClose}
       footer={
         <Space>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={busy} onClick={() => void submit()}>
-            确认放弃
+            {t('确认放弃')}
           </Button>
         </Space>
       }
     >
       <div style={{ marginBottom: 8, fontSize: 13, lineHeight: 1.7, color: 'var(--semi-color-text-1)' }}>
-        放弃后本系统将停止跟进该申请，该操作不会撤销微信侧申请。请填写放弃原因。
+        {t('放弃后本系统将停止跟进该申请，该操作不会撤销微信侧申请。请填写放弃原因。')}
       </div>
-      <TextArea rows={4} maxLength={500} value={reason} placeholder="请填写 1～500 字的放弃原因" onChange={setReason} />
+      <TextArea rows={4} maxLength={500} value={reason} placeholder={t('请填写 1～500 字的放弃原因')} onChange={setReason} />
     </Modal>
   );
 }
@@ -2337,6 +2350,7 @@ function AbandonModal({ target, onClose, onChanged, onView }: {
 const APPLICATION_PAGE_SIZE = 10;
 
 export function MerchantApplications() {
+  const { t } = useI18n();
   const [applicantType, setApplicantType] = useState('');
   const [subjectId, setSubjectId] = useState('');
   const [statuses, setStatuses] = useState<string[]>([]);
@@ -2381,7 +2395,7 @@ export function MerchantApplications() {
         if (!records.length && page > 1 && totalCount > 0) setPage(Math.max(1, Math.ceil(totalCount / APPLICATION_PAGE_SIZE)));
       })
       .catch((error) => {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -2431,13 +2445,13 @@ export function MerchantApplications() {
         attempted = true;
         const latest = await getApplicationDetail(id);
         if (!applicationActions(latest)[action]) {
-          Toast.warning({ content: '申请状态已变化，请查看最新详情' });
+          Toast.warning({ content: t('申请状态已变化，请查看最新详情') });
           showDetail(id);
           return;
         }
         if (action === 'retry') {
           const result = await retryApplication(id);
-          Toast.success({ content: '操作成功' });
+          Toast.success({ content: t('操作成功') });
           reload();
           showDetail(result?.id ?? id);
         } else {
@@ -2447,7 +2461,7 @@ export function MerchantApplications() {
           showDetail(id);
         }
       } catch (error) {
-        Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+        Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
         if (attempted) {
           reload();
           showDetail(id);
@@ -2461,16 +2475,16 @@ export function MerchantApplications() {
 
   const getRowActions = (row: MerchantApplicationItem): Array<{ key: string; label: string }> => {
     const flags = applicationActions(row);
-    const items: Array<{ key: string; label: string }> = [{ key: 'detail', label: '详情' }];
-    if (flags.edit) items.push({ key: 'edit', label: '修改并提交' });
-    if (flags.reapply) items.push({ key: 'reapply', label: '重新申请' });
-    if (flags.retry) items.push({ key: 'retry', label: '重试提交' });
-    if (flags.abandon) items.push({ key: 'abandon', label: '放弃申请' });
-    if (flags.delete) items.push({ key: 'delete', label: '删除记录' });
-    if (flags.approve) items.push({ key: 'approve', label: '通过并提交进件' });
-    if (flags.reject) items.push({ key: 'reject', label: '拒绝' });
-    if (canSignApplication(row)) items.push({ key: 'sign', label: '签约链接' });
-    if (flags.refresh) items.push({ key: 'refresh', label: '刷新状态' });
+    const items: Array<{ key: string; label: string }> = [{ key: 'detail', label: t('详情') }];
+    if (flags.edit) items.push({ key: 'edit', label: t('修改并提交') });
+    if (flags.reapply) items.push({ key: 'reapply', label: t('重新申请') });
+    if (flags.retry) items.push({ key: 'retry', label: t('重试提交') });
+    if (flags.abandon) items.push({ key: 'abandon', label: t('放弃申请') });
+    if (flags.delete) items.push({ key: 'delete', label: t('删除记录') });
+    if (flags.approve) items.push({ key: 'approve', label: t('通过并提交进件') });
+    if (flags.reject) items.push({ key: 'reject', label: t('拒绝') });
+    if (canSignApplication(row)) items.push({ key: 'sign', label: t('签约链接') });
+    if (flags.refresh) items.push({ key: 'refresh', label: t('刷新状态') });
     return items;
   };
 
@@ -2486,26 +2500,26 @@ export function MerchantApplications() {
       void (async () => {
         try {
           await navigator.clipboard.writeText(row.signUrl || '');
-          Toast.success({ content: '已复制签约链接' });
+          Toast.success({ content: t('已复制签约链接') });
         } catch {
-          Toast.error({ content: '复制失败' });
+          Toast.error({ content: t('复制失败') });
         }
       })();
       return;
     }
     if (key === 'delete') {
       Modal.confirm({
-        title: '删除记录',
-        content: '删除后该记录将不再展示，历史申请和证件仍保留。此操作不会删除微信侧申请。',
+        title: t('删除记录'),
+        content: t('删除后该记录将不再展示，历史申请和证件仍保留。此操作不会删除微信侧申请。'),
         onOk: async () => {
           try {
             const latest = await getApplicationDetail(id);
-            if (!applicationActions(latest).delete) throw new Error('申请状态已变化，请查看最新详情');
+            if (!applicationActions(latest).delete) throw new Error(t('申请状态已变化，请查看最新详情'));
             await deleteApplicationRecord(id);
-            Toast.success({ content: '操作成功' });
+            Toast.success({ content: t('操作成功') });
             reload();
           } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+            Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
             reload();
             showDetail(id);
           }
@@ -2515,8 +2529,8 @@ export function MerchantApplications() {
     }
     if (key === 'approve') {
       Modal.confirm({
-        title: '审核通过',
-        content: '确认审核通过并提交进件吗？',
+        title: t('审核通过'),
+        content: t('确认审核通过并提交进件吗？'),
         onOk: () => runApplicationAction('approve', id),
       });
       return;
@@ -2526,11 +2540,11 @@ export function MerchantApplications() {
 
   const statusCell = (row: MerchantApplicationItem) => {
     const abandoned = isAbandoned(row);
-    const text = abandoned ? '已放弃（本地）' : row.statusDesc || STATUS_LABELS[row.status || ''] || row.status || '-';
+    const text = abandoned ? t('已放弃（本地）') : row.statusDesc || statusLabelText(row.status, t) || row.status || '-';
     const tag = <Tag color={STATUS_TAG_COLOR[abandoned ? 'ABANDONED' : row.status || ''] || 'grey'} type="light">{text}</Tag>;
     if (row.rejectReason && row.status !== 'FINISH') {
       return (
-        <Tooltip content={`${row.reasonLabel || '失败原因'}：${row.rejectReason}`}>
+        <Tooltip content={`${row.reasonLabel || t('失败原因')}：${row.rejectReason}`}>
           <span>{tag}</span>
         </Tooltip>
       );
@@ -2541,56 +2555,56 @@ export function MerchantApplications() {
   type MaColumn = ColumnConfig<MerchantApplicationItem> & { fixed?: 'left' | 'right' };
   const columns: MaColumn[] = [
     {
-      title: '店铺/供应商',
+      title: t('店铺/供应商'),
       dataIndex: 'applicantName',
       width: 180,
       fixed: 'left',
       render: (_value: unknown, row) => <span>{row.applicantName || row.shopName || row.merchantName || '-'}</span>,
     },
     {
-      title: '组织类型',
+      title: t('组织类型'),
       dataIndex: 'applicantType',
       width: 100,
-      render: (value: string) => <span>{value === 'VENDOR' ? '供应商' : '店铺'}</span>,
+      render: (value: string) => <span>{value === 'VENDOR' ? t('供应商') : t('店铺')}</span>,
     },
     {
-      title: '商户名称',
+      title: t('商户名称'),
       dataIndex: 'merchantName',
       width: 200,
       render: (value: string) => <span>{value || '-'}</span>,
     },
     {
-      title: '支付渠道',
+      title: t('支付渠道'),
       dataIndex: 'payChannel',
       width: 90,
-      render: (value: string) => <span>{formatPayChannel(value)}</span>,
+      render: (value: string) => <span>{formatPayChannel(value, t)}</span>,
     },
     {
-      title: '主体类型',
+      title: t('主体类型'),
       dataIndex: 'organizationType',
       width: 110,
-      render: (value: string) => <span>{formatOrganizationType(value)}</span>,
+      render: (value: string) => <span>{formatOrganizationType(value, t)}</span>,
     },
     {
-      title: '状态',
+      title: t('状态'),
       dataIndex: 'status',
       width: 150,
       render: (_value: unknown, row) => statusCell(row),
     },
     {
-      title: '子商户号',
+      title: t('子商户号'),
       dataIndex: 'subMchId',
       width: 150,
       render: (value: string) => <span>{value || '—'}</span>,
     },
     {
-      title: '申请时间',
+      title: t('申请时间'),
       dataIndex: 'createTime',
       width: 170,
       render: (value: string) => <span>{value || '-'}</span>,
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       width: 320,
       fixed: 'right',
@@ -2621,7 +2635,7 @@ export function MerchantApplications() {
                 }
               >
                 <Button theme="borderless" type="primary" size="small" disabled={busy}>
-                  更多
+                  {t('更多')}
                 </Button>
               </Dropdown>
             ) : null}
@@ -2637,12 +2651,12 @@ export function MerchantApplications() {
         <div className="table-toolbar">
           <Space wrap>
             <Select
-              placeholder="组织类型"
+              placeholder={t('组织类型')}
               showClear
               style={{ width: 150 }}
               optionList={[
-                { label: '店铺', value: 'SHOP' },
-                { label: '供应商', value: 'VENDOR' },
+                { label: t('店铺'), value: 'SHOP' },
+                { label: t('供应商'), value: 'VENDOR' },
               ]}
               value={applicantType || undefined}
               onChange={(next) => {
@@ -2651,33 +2665,33 @@ export function MerchantApplications() {
               }}
             />
             {applicantType === 'VENDOR' ? (
-              <RemoteSelect fetchOptions={fetchVendorOptions} value={subjectId} onChange={setSubjectId} placeholder="请输入供应商名称" />
+              <RemoteSelect fetchOptions={fetchVendorOptions} value={subjectId} onChange={setSubjectId} placeholder={t('请输入供应商名称')} />
             ) : (
-              <RemoteSelect fetchOptions={fetchShopOptions} value={subjectId} onChange={setSubjectId} placeholder="请输入店铺名称" />
+              <RemoteSelect fetchOptions={fetchShopOptions} value={subjectId} onChange={setSubjectId} placeholder={t('请输入店铺名称')} />
             )}
             <Select
-              placeholder="请选择状态"
+              placeholder={t('请选择状态')}
               showClear
               multiple
               maxTagCount={2}
               style={{ width: 260 }}
-              optionList={STATUS_OPTIONS}
+              optionList={STATUS_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
               value={statuses}
               onChange={(next) => setStatuses((next as string[]) || [])}
             />
             <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-              搜索
+              {t('搜索')}
             </Button>
-            <Button onClick={reset}>重置</Button>
+            <Button onClick={reset}>{t('重置')}</Button>
           </Space>
           <Space>
             {canSubmit ? (
               <Button theme="solid" type="primary" icon={<IconPlus />} onClick={() => setFormTarget({ act: 'add' })}>
-                提交进件
+                {t('提交进件')}
               </Button>
             ) : null}
             <Button icon={<IconRefresh />} onClick={reload}>
-              刷新
+              {t('刷新')}
             </Button>
           </Space>
         </div>

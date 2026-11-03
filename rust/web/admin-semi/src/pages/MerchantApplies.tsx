@@ -18,6 +18,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -60,6 +61,7 @@ interface MerchantApplyRow {
 }
 
 export default function MerchantApplies() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [currentStatus, setCurrentStatus] = useState<number>(-1);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -92,7 +94,7 @@ export default function MerchantApplies() {
   const handleAuditSubmit = async () => {
     if (!selectedRecord) return;
     if (auditStatus === 20 && !auditRemark.trim()) {
-      Toast.warning({ content: '审核未通过时请输入拒绝原因' });
+      Toast.warning({ content: t('审核未通过时请输入拒绝原因') });
       return;
     }
     setAuditSubmitting(true);
@@ -102,11 +104,11 @@ export default function MerchantApplies() {
         status: auditStatus,
         auditRemark: auditRemark.trim(),
       });
-      Toast.success({ content: '审核处理成功' });
+      Toast.success({ content: t('审核处理成功') });
       setDetailModalVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '审核处理失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('审核处理失败') });
     } finally {
       setAuditSubmitting(false);
     }
@@ -115,25 +117,25 @@ export default function MerchantApplies() {
   const deleteRecord = async (id: number) => {
     try {
       await apiPost('/merchant/apply/del', { id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除申请',
-      content: `确定删除选中的 ${ids.length} 条申请？`,
+      title: t('批量删除申请'),
+      content: t('确定删除选中的 {count} 条申请？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/merchant/apply/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((k) => k + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -147,9 +149,9 @@ export default function MerchantApplies() {
       render: (_: unknown, record) => (
         <Space>
           {record.type === 1 ? (
-            <Tag color="cyan">个人</Tag>
+            <Tag color="cyan">{t('个人')}</Tag>
           ) : (
-            <Tag color="blue">企业</Tag>
+            <Tag color="blue">{t('企业')}</Tag>
           )}
           <Text strong>
             {record.type === 1
@@ -204,7 +206,7 @@ export default function MerchantApplies() {
         return (
           <Space>
             <Badge dot type={badgeType} style={{ marginRight: 4 }} />
-            <span>{value || record.statusText || (record.status === 1 ? '待审核' : record.status === 10 ? '审核通过' : '审核未通过')}</span>
+            <span>{t(value || record.statusText || (record.status === 1 ? '待审核' : record.status === 10 ? '审核通过' : '审核未通过'))}</span>
           </Space>
         );
       },
@@ -253,10 +255,10 @@ export default function MerchantApplies() {
             onChange={(key) => setCurrentStatus(Number(key))}
             style={{ marginBottom: 0 }}
           >
-            <TabPane tab="全部" itemKey="-1" />
-            <TabPane tab="待审核" itemKey="1" />
-            <TabPane tab="审核通过" itemKey="10" />
-            <TabPane tab="审核未通过" itemKey="20" />
+            <TabPane tab={t('全部')} itemKey="-1" />
+            <TabPane tab={t('待审核')} itemKey="1" />
+            <TabPane tab={t('审核通过')} itemKey="10" />
+            <TabPane tab={t('审核未通过')} itemKey="20" />
           </Tabs>
         }
         filters={[
@@ -277,7 +279,7 @@ export default function MerchantApplies() {
               disabled={rows.length === 0}
               onClick={() => batchDelete(rows.map((r) => r.merchantApplyId), clear)}
             >
-              批量删除
+              {t('批量删除')}
             </Button>
           </Space>
         )}
@@ -289,16 +291,16 @@ export default function MerchantApplies() {
               type="primary"
               onClick={() => openDetail(record)}
             >
-              详情
+              {t('详情')}
             </Button>
             {record.status === 20 && (
               <Popconfirm
-                title="确定删除此条申请？"
-                content="删除后将无法恢复。"
+                title={t('确定删除此条申请？')}
+                content={t('删除后将无法恢复。')}
                 onConfirm={() => deleteRecord(record.merchantApplyId)}
               >
                 <Button theme="borderless" size="small" type="danger">
-                  删除
+                  {t('删除')}
                 </Button>
               </Popconfirm>
             )}
@@ -308,21 +310,21 @@ export default function MerchantApplies() {
 
       {/* 申请详情及审核弹窗 */}
       <Modal
-        title="入驻申请详情"
+        title={t('入驻申请详情')}
         visible={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         width={720}
         loading={detailLoading}
         footer={
           <Space>
-            <Button onClick={() => setDetailModalVisible(false)}>关闭</Button>
+            <Button onClick={() => setDetailModalVisible(false)}>{t('关闭')}</Button>
             {selectedRecord?.status === 1 && (
               <Button
                 type="primary"
                 loading={auditSubmitting}
                 onClick={handleAuditSubmit}
               >
-                提交审核
+                {t('提交审核')}
               </Button>
             )}
           </Space>
@@ -330,24 +332,24 @@ export default function MerchantApplies() {
       >
         {selectedRecord && (
           <Tabs defaultActiveKey="base">
-            <TabPane tab="基础信息" itemKey="base">
+            <TabPane tab={t('基础信息')} itemKey="base">
               <Descriptions
                 data={[
                   {
-                    key: '预期店铺名称',
+                    key: t('预期店铺名称'),
                     value:
                       selectedRecord.shopTitle ||
                       selectedRecord.shopData?.shopTitle ||
                       '--',
                   },
                   {
-                    key: '入驻资质',
-                    value: selectedRecord.type === 1 ? '个人入驻' : '企业入驻',
+                    key: t('入驻资质'),
+                    value: selectedRecord.type === 1 ? t('个人入驻') : t('企业入驻'),
                   },
                   ...(selectedRecord.type === 2
                     ? [
                         {
-                          key: '企业名称',
+                          key: t('企业名称'),
                           value:
                             selectedRecord.companyName ||
                             selectedRecord.baseData?.companyName ||
@@ -356,45 +358,45 @@ export default function MerchantApplies() {
                       ]
                     : []),
                   {
-                    key: '联系人姓名',
+                    key: t('联系人姓名'),
                     value:
                       selectedRecord.contactName ||
                       selectedRecord.merchantData?.contactName ||
                       '--',
                   },
                   {
-                    key: '联系人电话',
+                    key: t('联系人电话'),
                     value:
                       selectedRecord.contactMobile ||
                       selectedRecord.merchantData?.contactPhone ||
                       '--',
                   },
                   {
-                    key: '联系人邮箱',
+                    key: t('联系人邮箱'),
                     value: selectedRecord.merchantData?.contactEmail || '--',
                   },
                   {
-                    key: '申请状态',
+                    key: t('申请状态'),
                     value:
                       selectedRecord.statusText ||
                       (selectedRecord.status === 1
-                        ? '待审核'
+                        ? t('待审核')
                         : selectedRecord.status === 10
-                        ? '审核通过'
-                        : '审核未通过'),
+                        ? t('审核通过')
+                        : t('审核未通过')),
                   },
                   {
-                    key: '申请时间',
+                    key: t('申请时间'),
                     value: selectedRecord.addTime || '--',
                   },
                   ...(selectedRecord.status !== 1
                     ? [
                         {
-                          key: '审核人',
+                          key: t('审核人'),
                           value: selectedRecord.auditAdminName || '--',
                         },
                         {
-                          key: '审核时间',
+                          key: t('审核时间'),
                           value: selectedRecord.auditTime || '--',
                         },
                       ]
@@ -402,7 +404,7 @@ export default function MerchantApplies() {
                   ...(selectedRecord.status === 20 && selectedRecord.auditRemark
                     ? [
                         {
-                          key: '拒绝原因',
+                          key: t('拒绝原因'),
                           value: selectedRecord.auditRemark,
                         },
                       ]
@@ -421,26 +423,26 @@ export default function MerchantApplies() {
                   }}
                 >
                   <Text strong style={{ display: 'block', marginBottom: 12 }}>
-                    审核处理
+                    {t('审核处理')}
                   </Text>
                   <Space vertical align="start" style={{ width: '100%' }}>
                     <RadioGroup
                       value={auditStatus}
                       onChange={(e) => setAuditStatus(Number(e.target.value))}
                     >
-                      <Radio value={10}>审核通过</Radio>
-                      <Radio value={20}>审核未通过</Radio>
+                      <Radio value={10}>{t('审核通过')}</Radio>
+                      <Radio value={20}>{t('审核未通过')}</Radio>
                     </RadioGroup>
                     <div style={{ width: '100%', marginTop: 8 }}>
                       <Text style={{ display: 'block', marginBottom: 4 }}>
-                        {auditStatus === 20 ? '拒绝原因（必填）' : '审核备注（选填）'}
+                        {auditStatus === 20 ? t('拒绝原因（必填）') : t('审核备注（选填）')}
                       </Text>
                       <TextArea
                         rows={3}
                         placeholder={
                           auditStatus === 20
-                            ? '请输入审核拒绝的具体原因'
-                            : '请输入审核意见或备注'
+                            ? t('请输入审核拒绝的具体原因')
+                            : t('请输入审核意见或备注')
                         }
                         value={auditRemark}
                         onChange={(val) => setAuditRemark(val)}
@@ -452,26 +454,26 @@ export default function MerchantApplies() {
             </TabPane>
 
             {selectedRecord.type === 2 && (
-              <TabPane tab="企业信息" itemKey="company">
+              <TabPane tab={t('企业信息')} itemKey="company">
                 <Descriptions
                   data={[
                     {
-                      key: '企业名称',
+                      key: t('企业名称'),
                       value:
                         selectedRecord.companyName ||
                         selectedRecord.baseData?.companyName ||
                         '--',
                     },
                     {
-                      key: '统一社会信用代码',
+                      key: t('统一社会信用代码'),
                       value: selectedRecord.baseData?.businessLicenseId || '--',
                     },
                     {
-                      key: '经营范围',
+                      key: t('经营范围'),
                       value: selectedRecord.baseData?.businessScope || '--',
                     },
                     {
-                      key: '注册地址',
+                      key: t('注册地址'),
                       value:
                         (selectedRecord.baseData?.licenseAddrProvinceName || '') +
                         ' ' +
@@ -483,38 +485,38 @@ export default function MerchantApplies() {
             )}
 
             <TabPane
-              tab={selectedRecord.type === 1 ? '个人信息' : '法人代表信息'}
+              tab={selectedRecord.type === 1 ? t('个人信息') : t('法人代表信息')}
               itemKey="legal"
             >
               <Descriptions
                 data={[
                   {
-                    key: selectedRecord.type === 1 ? '个人姓名' : '法定代表人姓名',
+                    key: selectedRecord.type === 1 ? t('个人姓名') : t('法定代表人姓名'),
                     value:
                       selectedRecord.corporateName ||
                       selectedRecord.baseData?.corporateName ||
                       '--',
                   },
                   {
-                    key: '证件号码',
+                    key: t('证件号码'),
                     value: selectedRecord.baseData?.documentNumber || '--',
                   },
                 ]}
               />
             </TabPane>
 
-            <TabPane tab="商户与店铺" itemKey="shop">
+            <TabPane tab={t('商户与店铺')} itemKey="shop">
               <Descriptions
                 data={[
                   {
-                    key: '预期店铺名称',
+                    key: t('预期店铺名称'),
                     value:
                       selectedRecord.shopTitle ||
                       selectedRecord.shopData?.shopTitle ||
                       '--',
                   },
                   {
-                    key: '店铺描述',
+                    key: t('店铺描述'),
                     value: selectedRecord.shopData?.description || '--',
                   },
                 ]}

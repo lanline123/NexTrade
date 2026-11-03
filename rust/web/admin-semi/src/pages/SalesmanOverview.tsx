@@ -14,6 +14,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh } from '@douyinfe/semi-icons';
 import { apiGet, getContextHeaders, getToken } from '../api';
+import { useI18n } from '../i18n';
 import TrendChart from '../components/TrendChart';
 import './salesman.css';
 
@@ -53,6 +54,7 @@ export async function salesmanDownloadExport(
   path: string,
   params: Record<string, unknown>,
   filename: string,
+  t?: (key: string, params?: Record<string, string | number>) => string,
 ): Promise<void> {
   const query = new URLSearchParams();
   Object.entries({ ...params, isExport: 1 }).forEach(([key, value]) => {
@@ -63,7 +65,8 @@ export async function salesmanDownloadExport(
   });
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
-    Toast.warning({ content: '后端暂未提供该列表的 Excel 导出,已记录差异' });
+    const message = '后端暂未提供该列表的 Excel 导出,已记录差异';
+    Toast.warning({ content: t ? t(message) : message });
     return;
   }
   const blob = await res.blob();
@@ -104,6 +107,7 @@ export function SalesmanTimeFilter({
   value: SalesmanTimeValue;
   onSearch: (next: SalesmanTimeValue) => void;
 }) {
+  const { t } = useI18n();
   const [dateType, setDateType] = useState<number>(value.dateType || 3);
   const [day, setDay] = useState<string>(value.startEndTime.split(',')[0]?.slice(0, 10) || today());
   const [month, setMonth] = useState<string>(value.startEndTime.split(',')[0]?.slice(0, 7) || thisMonth());
@@ -125,14 +129,14 @@ export function SalesmanTimeFilter({
 
   return (
     <div className="salesman-time-filter">
-      <span className="label">时间筛选：</span>
+      <span className="label">{t('时间筛选：')}</span>
       <Select
         value={dateType}
         style={{ width: 110 }}
         optionList={[
-          { label: '自然日', value: 3 },
-          { label: '自然月', value: 2 },
-          { label: '自定义', value: 0 },
+          { label: t('自然日'), value: 3 },
+          { label: t('自然月'), value: 2 },
+          { label: t('自定义'), value: 0 },
         ]}
         onChange={(next) => setDateType(Number(next))}
       />
@@ -151,7 +155,7 @@ export function SalesmanTimeFilter({
           style={{ width: 260 }}
         />
       )}
-      <Button onClick={search}>搜索</Button>
+      <Button onClick={search}>{t('搜索')}</Button>
     </div>
   );
 }
@@ -170,6 +174,7 @@ interface AnalysisRow {
 }
 
 export function SalesmanAnalysisTable() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<AnalysisRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -192,7 +197,7 @@ export function SalesmanAnalysisTable() {
       setRows(res?.records || []);
       setTotal(res?.total || 0);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setLoading(false);
     }
@@ -205,7 +210,7 @@ export function SalesmanAnalysisTable() {
 
   const columns = [
     {
-      title: '排名',
+      title: t('排名'),
       width: 76,
       render: (_: unknown, __: AnalysisRow, index: number) => {
         const rank = (page - 1) * 15 + index + 1;
@@ -213,27 +218,27 @@ export function SalesmanAnalysisTable() {
       },
     },
     {
-      title: '商品',
+      title: t('商品'),
       dataIndex: 'productName',
       render: (_: unknown, row: AnalysisRow) => (
         <div className="salesman-user-cell">
           {row.picThumb ? <Image src={row.picThumb} width={44} height={44} style={{ borderRadius: 4 }} /> : null}
           <div>
             <div>{row.productName || '--'}</div>
-            <Text type="tertiary" size="small">货号：{row.productSn || '--'}</Text>
+            <Text type="tertiary" size="small">{t('货号：')}{row.productSn || '--'}</Text>
           </div>
         </div>
       ),
     },
     {
-      title: '成交金额',
+      title: t('成交金额'),
       dataIndex: 'totalProductMoney',
       width: 180,
       sorter: true,
       render: (val: any) => <span className="salesman-text-money">{salesmanFormatPrice(val)}</span>,
     },
     {
-      title: '支出佣金',
+      title: t('支出佣金'),
       dataIndex: 'commissionExpenses',
       width: 180,
       sorter: true,
@@ -242,14 +247,14 @@ export function SalesmanAnalysisTable() {
   ];
 
   return (
-    <Card title="商品成交分析">
+    <Card title={t('商品成交分析')}>
       <SalesmanTimeFilter value={time} onSearch={(next) => { setPage(1); setTime(next); }} />
       <Table
         loading={loading}
         columns={columns as any}
         dataSource={rows}
         rowKey="productId"
-        empty="暂无数据"
+        empty={t('暂无数据')}
         pagination={{
           currentPage: page,
           pageSize: 15,
@@ -282,6 +287,7 @@ interface RankingRow {
 }
 
 export function SalesmanRankingTable() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<RankingRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -303,7 +309,7 @@ export function SalesmanRankingTable() {
       setRows(res?.records || []);
       setTotal(res?.total || 0);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setLoading(false);
     }
@@ -316,7 +322,7 @@ export function SalesmanRankingTable() {
 
   const columns = [
     {
-      title: '排名',
+      title: t('排名'),
       width: 76,
       render: (_: unknown, __: RankingRow, index: number) => {
         const rank = (page - 1) * 15 + index + 1;
@@ -324,33 +330,33 @@ export function SalesmanRankingTable() {
       },
     },
     {
-      title: '分销员昵称',
+      title: t('分销员昵称'),
       dataIndex: 'nickname',
       render: (_: unknown, row: RankingRow) => row.nickname || row.username || '--',
     },
     {
-      title: '新增销售额',
+      title: t('新增销售额'),
       dataIndex: 'totalSaleAmount',
       width: 160,
       sorter: true,
       render: (val: any) => <span className="salesman-text-money">{salesmanFormatPrice(val)}</span>,
     },
     {
-      title: '新增客户数',
+      title: t('新增客户数'),
       dataIndex: 'totalCustomers',
       width: 130,
       sorter: true,
       render: (val: any) => val ?? 0,
     },
     {
-      title: '支付客户数',
+      title: t('支付客户数'),
       dataIndex: 'totalPayCustomers',
       width: 130,
       sorter: true,
       render: (val: any) => val ?? 0,
     },
     {
-      title: '开单邀请数',
+      title: t('开单邀请数'),
       dataIndex: 'orderNum',
       width: 130,
       sorter: true,
@@ -359,14 +365,14 @@ export function SalesmanRankingTable() {
   ];
 
   return (
-    <Card title="分销员排行">
+    <Card title={t('分销员排行')}>
       <SalesmanTimeFilter value={time} onSearch={(next) => { setPage(1); setTime(next); }} />
       <Table
         loading={loading}
         columns={columns as any}
         dataSource={rows}
         rowKey="salesmanId"
-        empty="暂无数据"
+        empty={t('暂无数据')}
         pagination={{
           currentPage: page,
           pageSize: 15,
@@ -397,6 +403,7 @@ interface CoreSummary {
 }
 
 export default function SalesmanOverview() {
+  const { t } = useI18n();
   const [summaryType, setSummaryType] = useState<number>(0); // 0 今日 / 1 累计
   const [loading, setLoading] = useState(false);
   const [updateTime, setUpdateTime] = useState<string>('--');
@@ -413,7 +420,7 @@ export default function SalesmanOverview() {
       setSummary(res || {});
       setUpdateTime(salesmanFormatTime(Date.now()));
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setLoading(false);
     }
@@ -429,7 +436,7 @@ export default function SalesmanOverview() {
       setTrendAxis(res?.horizontalAxis || []);
       setTrendValues((res?.longitudinalAxis || []).map((item) => Number(item || 0)));
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setTrendLoading(false);
     }
@@ -445,7 +452,7 @@ export default function SalesmanOverview() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trend]);
 
-  const amountSuffix = '（¥）';
+  const amountSuffix = t('（¥）');
   const summaryCards = useMemo(() => {
     const renderAmount = (val: number | string | undefined) =>
       Number(val || 0) > 0 ? (
@@ -455,21 +462,21 @@ export default function SalesmanOverview() {
       );
     if (summaryType === 0) {
       return [
-        { title: '今日新增分销员数', node: summary.newSalesmanCount ?? 0 },
-        { title: `今日分销员销售额${amountSuffix}`, node: renderAmount(summary.salesmanAmount) },
-        { title: '今日成交客户数', node: summary.customNum ?? 0 },
-        { title: `今日支出佣金${amountSuffix}`, node: renderAmount(summary.salesmanCommission) },
+        { title: t('今日新增分销员数'), node: summary.newSalesmanCount ?? 0 },
+        { title: `${t('今日分销员销售额')}${amountSuffix}`, node: renderAmount(summary.salesmanAmount) },
+        { title: t('今日成交客户数'), node: summary.customNum ?? 0 },
+        { title: `${t('今日支出佣金')}${amountSuffix}`, node: renderAmount(summary.salesmanCommission) },
       ];
     }
     return [
-      { title: '分销员数', node: summary.newSalesmanCount ?? 0 },
-      { title: `分销员销售额${amountSuffix}`, node: renderAmount(summary.salesmanAmount) },
-      { title: '成交客户数', node: summary.customNum ?? 0 },
-      { title: `支出佣金${amountSuffix}`, node: renderAmount(summary.salesmanCommission) },
+      { title: t('分销员数'), node: summary.newSalesmanCount ?? 0 },
+      { title: `${t('分销员销售额')}${amountSuffix}`, node: renderAmount(summary.salesmanAmount) },
+      { title: t('成交客户数'), node: summary.customNum ?? 0 },
+      { title: `${t('支出佣金')}${amountSuffix}`, node: renderAmount(summary.salesmanCommission) },
     ];
-  }, [summary, summaryType]);
+  }, [summary, summaryType, t, amountSuffix]);
 
-  const trendLabel = trend.dateType === 2 ? '日' : trend.dateType === 3 ? '时' : '';
+  const trendLabel = trend.dateType === 2 ? t('日') : trend.dateType === 3 ? t('时') : '';
   const axisLabels = useMemo(
     () => trendAxis.map((item) => (trendLabel ? `${item}${trendLabel}` : item)),
     [trendAxis, trendLabel],
@@ -479,14 +486,14 @@ export default function SalesmanOverview() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* 核心数据汇总 */}
       <Card
-        title="核心数据汇总"
+        title={t('核心数据汇总')}
         headerExtraContent={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <RadioGroup type="button" value={summaryType} onChange={(e) => setSummaryType(Number(e.target.value))}>
-              <Radio value={0}>今日</Radio>
-              <Radio value={1}>累计</Radio>
+              <Radio value={0}>{t('今日')}</Radio>
+              <Radio value={1}>{t('累计')}</Radio>
             </RadioGroup>
-            <span className="salesman-muted" style={{ fontSize: 13 }}>更新时间：{updateTime}</span>
+            <span className="salesman-muted" style={{ fontSize: 13 }}>{t('更新时间：')}{updateTime}</span>
             <Button
               icon={<IconRefresh />}
               theme="borderless"
@@ -510,7 +517,7 @@ export default function SalesmanOverview() {
       </Card>
 
       {/* 核心指标趋势(分销员销售额折线) */}
-      <Card title="核心指标趋势">
+      <Card title={t('核心指标趋势')}>
         <SalesmanTimeFilter value={trend} onSearch={(next) => setTrend(next)} />
         <Spin spinning={trendLoading}>
           <TrendChart labels={axisLabels} data={trendValues} height={300} />

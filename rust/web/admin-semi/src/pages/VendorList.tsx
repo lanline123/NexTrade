@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import ImageUploader from '../components/ImageUploader';
@@ -41,6 +42,7 @@ interface VendorRow {
 }
 
 export default function VendorList() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [adminModalVisible, setAdminModalVisible] = useState(false);
@@ -61,16 +63,16 @@ export default function VendorList() {
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除供应商',
-      content: `确定删除选中的 ${ids.length} 个供应商？删除后供应商信息将无法恢复。`,
+      title: t('批量删除供应商'),
+      content: t('确定删除选中的 {count} 个供应商？删除后供应商信息将无法恢复。', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/vendor/vendor/delVendor', { ids });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((k) => k + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -91,7 +93,7 @@ export default function VendorList() {
               style={{ objectFit: 'contain', borderRadius: 4 }}
             />
           ) : (
-            <Text type="tertiary">[暂无图片]</Text>
+            <Text type="tertiary">{t('[暂无图片]')}</Text>
           )}
           <Text strong>{value || '--'}</Text>
         </Space>
@@ -103,9 +105,9 @@ export default function VendorList() {
       width: 120,
       render: (value: number) =>
         value === 1 ? (
-          <Tag color="cyan">个人</Tag>
+          <Tag color="cyan">{t('个人')}</Tag>
         ) : (
-          <Tag color="blue">企业</Tag>
+          <Tag color="blue">{t('企业')}</Tag>
         ),
     },
     {
@@ -150,7 +152,7 @@ export default function VendorList() {
         return (
           <Space>
             <Badge dot type={isOpen ? 'success' : 'danger'} style={{ marginRight: 4 }} />
-            <span>{isOpen ? '开启' : '关闭'}</span>
+            <span>{isOpen ? t('开启') : t('关闭')}</span>
           </Space>
         );
       },
@@ -208,7 +210,7 @@ export default function VendorList() {
               disabled={rows.length === 0}
               onClick={() => batchDelete(rows.map((r) => r.vendorId), clear)}
             >
-              批量删除
+              {t('批量删除')}
             </Button>
           </Space>
         )}
@@ -219,7 +221,7 @@ export default function VendorList() {
             type="primary"
             onClick={() => openDetail(record)}
           >
-            详情
+            {t('详情')}
           </Button>
         )}
         drawer={{
@@ -239,24 +241,24 @@ export default function VendorList() {
               fields: [
                 {
                   field: 'type',
-                  label: '企业属性',
+                  label: t('企业属性'),
                   type: 'radio',
                   initValue: 2,
                   options: [
-                    { label: '企业', value: 2 },
-                    { label: '个人', value: 1 },
+                    { label: t('企业'), value: 2 },
+                    { label: t('个人'), value: 1 },
                   ],
                 },
                 {
                   field: 'vendorName',
-                  label: '供应商名称',
+                  label: t('供应商名称'),
                   type: 'input',
-                  placeholder: '请输入供应商名称',
+                  placeholder: t('请输入供应商名称'),
                   required: true,
                 },
                 {
                   field: 'vendorLogo',
-                  label: '供应商LOGO',
+                  label: t('供应商LOGO'),
                   type: 'custom',
                   render: ({ formApi, values }) => (
                     <ImageUploader
@@ -269,24 +271,24 @@ export default function VendorList() {
                 },
                 {
                   field: 'contactName',
-                  label: '联系人姓名',
+                  label: t('联系人姓名'),
                   type: 'input',
-                  placeholder: '请输入联系人姓名',
+                  placeholder: t('请输入联系人姓名'),
                 },
                 {
                   field: 'contactMobile',
-                  label: '联系方式',
+                  label: t('联系方式'),
                   type: 'input',
-                  placeholder: '请输入联系方式',
+                  placeholder: t('请输入联系方式'),
                 },
                 {
                   field: 'status',
-                  label: '供应商状态',
+                  label: t('供应商状态'),
                   type: 'radio',
                   initValue: 1,
                   options: [
-                    { label: '开启', value: 1 },
-                    { label: '关闭', value: 2 },
+                    { label: t('开启'), value: 1 },
+                    { label: t('关闭'), value: 2 },
                   ],
                 },
               ],
@@ -297,12 +299,12 @@ export default function VendorList() {
 
       {/* 供应商详情弹窗 */}
       <Modal
-        title="供应商详情"
+        title={t('供应商详情')}
         visible={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setDetailModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={640}
@@ -310,20 +312,20 @@ export default function VendorList() {
         {selectedRecord && (
           <Descriptions
             data={[
-              { key: '供应商ID', value: selectedRecord.vendorId },
-              { key: '供应商名称', value: selectedRecord.vendorName || '--' },
+              { key: t('供应商ID'), value: selectedRecord.vendorId },
+              { key: t('供应商名称'), value: selectedRecord.vendorName || '--' },
               {
-                key: '企业属性',
-                value: selectedRecord.type === 1 ? '个人' : '企业',
+                key: t('企业属性'),
+                value: selectedRecord.type === 1 ? t('个人') : t('企业'),
               },
-              { key: '联系人姓名', value: selectedRecord.contactName || '--' },
-              { key: '联系方式', value: selectedRecord.contactMobile || '--' },
-              { key: '主账号', value: selectedRecord.loginAccount || '--' },
+              { key: t('联系人姓名'), value: selectedRecord.contactName || '--' },
+              { key: t('联系方式'), value: selectedRecord.contactMobile || '--' },
+              { key: t('主账号'), value: selectedRecord.loginAccount || '--' },
               {
-                key: '供应商状态',
-                value: selectedRecord.status === 1 ? '开启' : '关闭',
+                key: t('供应商状态'),
+                value: selectedRecord.status === 1 ? t('开启') : t('关闭'),
               },
-              { key: '创建时间', value: selectedRecord.addTime || '--' },
+              { key: t('创建时间'), value: selectedRecord.addTime || '--' },
             ]}
           />
         )}
@@ -331,12 +333,12 @@ export default function VendorList() {
 
       {/* 主账号管理弹窗 */}
       <Modal
-        title="主账号管理"
+        title={t('主账号管理')}
         visible={adminModalVisible}
         onCancel={() => setAdminModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setAdminModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={480}
@@ -344,9 +346,9 @@ export default function VendorList() {
         {selectedRecord && (
           <Descriptions
             data={[
-              { key: '供应商ID', value: selectedRecord.vendorId },
-              { key: '供应商名称', value: selectedRecord.vendorName || '--' },
-              { key: '登录主账号', value: selectedRecord.loginAccount || '未绑定主账号' },
+              { key: t('供应商ID'), value: selectedRecord.vendorId },
+              { key: t('供应商名称'), value: selectedRecord.vendorName || '--' },
+              { key: t('登录主账号'), value: selectedRecord.loginAccount || t('未绑定主账号') },
             ]}
           />
         )}

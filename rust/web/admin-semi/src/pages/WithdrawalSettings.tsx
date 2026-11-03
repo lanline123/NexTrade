@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
 import { InputNumber, Select } from '@douyinfe/semi-ui';
+import { useI18n } from '../i18n';
 import AutoConfigPage, {
   type ConfigControlType,
   type ConfigFieldRule,
   type ConfigRendererContext,
 } from './AutoConfigPage';
+
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 interface WithdrawalTabDef {
   title: string;
@@ -22,10 +25,10 @@ interface WithdrawalTabDef {
   notice?: string;
 }
 
-const frequencyOptions = [
-  { label: '每日', value: 1 },
-  { label: '每月', value: 2 },
-  { label: '每年', value: 3 },
+const frequencyOptions = (t: Translate) => [
+  { label: t('每日'), value: 1 },
+  { label: t('每月'), value: 2 },
+  { label: t('每年'), value: 3 },
 ];
 
 // 旧版模板遗留 prop 名映射：prop="withdrawalLimit" 实际绑定 withdrawalFrequencyUnit/Count，
@@ -33,7 +36,7 @@ const frequencyOptions = [
 
 
 /** 提现限额：min ~ max 两个数字输入共用一行。 */
-const rangeRenderer = (minKey: string, maxKey: string) =>
+const rangeRenderer = (t: Translate, minKey: string, maxKey: string) =>
   ({ values, update }: ConfigRendererContext) => (
     <div className="withdrawal-range">
       <InputNumber
@@ -49,32 +52,32 @@ const rangeRenderer = (minKey: string, maxKey: string) =>
         value={Number(values[maxKey] ?? 0) || undefined}
         onChange={(next) => update(maxKey, Number(next ?? 0))}
       />
-      <span className="withdrawal-unit">元</span>
+      <span className="withdrawal-unit">{t('元')}</span>
     </div>
   );
 
 /** 提现频次：单位选择 + 可申请提现 N 次。 */
-const frequencyRenderer = (unitKey: string, countKey: string) =>
+const frequencyRenderer = (t: Translate, unitKey: string, countKey: string) =>
   ({ value, values, update }: ConfigRendererContext) => (
     <div className="withdrawal-frequency">
       <Select
         style={{ width: 120 }}
         value={Number(value ?? 1)}
-        optionList={frequencyOptions}
+        optionList={frequencyOptions(t)}
         onChange={(next) => update(unitKey, Number(next))}
       />
-      <span className="withdrawal-frequency-text">可申请提现</span>
+      <span className="withdrawal-frequency-text">{t('可申请提现')}</span>
       <InputNumber
         style={{ width: 120 }}
         min={0}
         value={Number(values[countKey] ?? 0) || undefined}
         onChange={(next) => update(countKey, Number(next ?? 0))}
       />
-      <span className="withdrawal-unit">次</span>
+      <span className="withdrawal-unit">{t('次')}</span>
     </div>
   );
 
-const offlineDef: WithdrawalTabDef = {
+const offlineDef = (t: Translate): WithdrawalTabDef => ({
   title: '提现设置',
   getApi: '/setting/config/withdrawalSettings',
   saveApi: '/setting/config/saveWithdrawal',
@@ -108,16 +111,16 @@ const offlineDef: WithdrawalTabDef = {
   },
   options: {
     withdrawalReceiptMethod: [
-      { label: '银行卡', value: 1 },
-      { label: '支付宝', value: 2 },
-      { label: '微信', value: 3 },
+      { label: t('银行卡'), value: 1 },
+      { label: t('支付宝'), value: 2 },
+      { label: t('微信'), value: 3 },
     ],
     withdrawalEnabled: [
-      { label: '不开通提现', value: 0 },
-      { label: '开通提现', value: 1 },
+      { label: t('不开通提现'), value: 0 },
+      { label: t('开通提现'), value: 1 },
     ],
-    withdrawalReviewMethod: [{ label: '人工审核（平台在提现管理页人工确认审核）', value: 1 }],
-    withdrawalFrequencyUnit: frequencyOptions,
+    withdrawalReviewMethod: [{ label: t('人工审核（平台在提现管理页人工确认审核）'), value: 1 }],
+    withdrawalFrequencyUnit: frequencyOptions(t),
   },
   rules: {
     minAmount: { visibleWhen: { field: 'withdrawalEnabled', equals: 1 } },
@@ -125,9 +128,9 @@ const offlineDef: WithdrawalTabDef = {
     withdrawalReviewMethod: { visibleWhen: { field: 'withdrawalEnabled', equals: 1 } },
   },
   fieldHelp: {
-    withdrawalEnabled: '不开通提现适用于由平台完全线下结算的场景',
-    withdrawalReviewMethod: '入账时间设置周期结束，资金会自动入账结算',
-    withdrawalDescription: '注释：展示在商户添加账户的详情页，建议填写结算周期，打款方式等',
+    withdrawalEnabled: t('不开通提现适用于由平台完全线下结算的场景'),
+    withdrawalReviewMethod: t('入账时间设置周期结束，资金会自动入账结算'),
+    withdrawalDescription: t('注释：展示在商户添加账户的详情页，建议填写结算周期，打款方式等'),
   },
   hiddenFields: ['maxAmount', 'withdrawalFrequencyCount'],
   defaults: {
@@ -140,12 +143,12 @@ const offlineDef: WithdrawalTabDef = {
     withdrawalReviewMethod: 1,
   },
   renderers: {
-    minAmount: rangeRenderer('minAmount', 'maxAmount'),
-    withdrawalFrequencyUnit: frequencyRenderer('withdrawalFrequencyUnit', 'withdrawalFrequencyCount'),
+    minAmount: rangeRenderer(t, 'minAmount', 'maxAmount'),
+    withdrawalFrequencyUnit: frequencyRenderer(t, 'withdrawalFrequencyUnit', 'withdrawalFrequencyCount'),
   },
-};
+});
 
-const onlineDef: WithdrawalTabDef = {
+const onlineDef = (t: Translate): WithdrawalTabDef => ({
   title: '线上提现设置',
   getApi: '/setting/config/withdrawalSettings',
   saveApi: '/setting/config/saveWithdrawal',
@@ -179,16 +182,16 @@ const onlineDef: WithdrawalTabDef = {
   },
   options: {
     onlineWithdrawChannels: [
-      { label: '微信', value: 'WECHAT' },
-      { label: '汇付', value: 'HUIFU' },
-      { label: '支付宝', value: 'ALIPAY' },
+      { label: t('微信'), value: 'WECHAT' },
+      { label: t('汇付'), value: 'HUIFU' },
+      { label: t('支付宝'), value: 'ALIPAY' },
     ],
     onlineWithdrawEnabled: [
-      { label: '不开通提现', value: 0 },
-      { label: '开通提现', value: 1 },
+      { label: t('不开通提现'), value: 0 },
+      { label: t('开通提现'), value: 1 },
     ],
-    onlineWithdrawalReviewMethod: [{ label: '人工审核（平台在提现管理页人工确认审核）', value: 1 }],
-    onlineWithdrawalFrequencyUnit: frequencyOptions,
+    onlineWithdrawalReviewMethod: [{ label: t('人工审核（平台在提现管理页人工确认审核）'), value: 1 }],
+    onlineWithdrawalFrequencyUnit: frequencyOptions(t),
   },
   rules: {
     onlineMinAmount: { visibleWhen: { field: 'onlineWithdrawEnabled', equals: 1 } },
@@ -196,11 +199,12 @@ const onlineDef: WithdrawalTabDef = {
     onlineWithdrawalReviewMethod: { visibleWhen: { field: 'onlineWithdrawEnabled', equals: 1 } },
   },
   fieldHelp: {
-    onlineWithdrawChannels:
+    onlineWithdrawChannels: t(
       '线上提现允许商户将线上分账到账的资金提现到银行账户。需先开启线上分账并完成子商户绑定。勾选后对应渠道的线上提现才对商户开放，可多选；提现限额/频次/审核等参数三渠道共用下方配置',
-    onlineWithdrawEnabled: '开启后，商户端提现页面将显示微信余额，商户可选择线上提现',
-    onlineWithdrawalReviewMethod: '入账时间设置周期结束，资金会自动入账结算',
-    onlineWithdrawalDescription: '注释：展示在商户添加账户的详情页，建议填写结算周期，打款方式等',
+    ),
+    onlineWithdrawEnabled: t('开启后，商户端提现页面将显示微信余额，商户可选择线上提现'),
+    onlineWithdrawalReviewMethod: t('入账时间设置周期结束，资金会自动入账结算'),
+    onlineWithdrawalDescription: t('注释：展示在商户添加账户的详情页，建议填写结算周期，打款方式等'),
   },
   hiddenFields: ['onlineMaxAmount', 'onlineWithdrawalFrequencyCount'],
   defaults: {
@@ -213,30 +217,34 @@ const onlineDef: WithdrawalTabDef = {
     onlineWithdrawalReviewMethod: 1,
   },
   renderers: {
-    onlineMinAmount: rangeRenderer('onlineMinAmount', 'onlineMaxAmount'),
+    onlineMinAmount: rangeRenderer(t, 'onlineMinAmount', 'onlineMaxAmount'),
     onlineWithdrawalFrequencyUnit: frequencyRenderer(
+      t,
       'onlineWithdrawalFrequencyUnit',
       'onlineWithdrawalFrequencyCount',
     ),
   },
-};
+});
 
 export default function WithdrawalSettings() {
+  const { t } = useI18n();
+  const offline = offlineDef(t);
+  const online = onlineDef(t);
   return (
     <div className="withdrawal-settings">
       <AutoConfigPage
-        title={offlineDef.title}
-        getApi={offlineDef.getApi}
-        saveApi={offlineDef.saveApi}
-        sections={[...offlineDef.sections, ...onlineDef.sections]}
-        labels={{ ...offlineDef.labels, ...onlineDef.labels }}
-        controls={{ ...offlineDef.controls, ...onlineDef.controls }}
-        options={{ ...offlineDef.options, ...onlineDef.options }}
-        rules={{ ...offlineDef.rules, ...onlineDef.rules }}
-        fieldHelp={{ ...offlineDef.fieldHelp, ...onlineDef.fieldHelp }}
-        hiddenFields={[...offlineDef.hiddenFields, ...onlineDef.hiddenFields]}
-        defaults={{ ...offlineDef.defaults, ...onlineDef.defaults }}
-        renderers={{ ...offlineDef.renderers, ...onlineDef.renderers }}
+        title={offline.title}
+        getApi={offline.getApi}
+        saveApi={offline.saveApi}
+        sections={[...offline.sections, ...online.sections]}
+        labels={{ ...offline.labels, ...online.labels }}
+        controls={{ ...offline.controls, ...online.controls }}
+        options={{ ...offline.options, ...online.options }}
+        rules={{ ...offline.rules, ...online.rules }}
+        fieldHelp={{ ...offline.fieldHelp, ...online.fieldHelp }}
+        hiddenFields={[...offline.hiddenFields, ...online.hiddenFields]}
+        defaults={{ ...offline.defaults, ...online.defaults }}
+        renderers={{ ...offline.renderers, ...online.renderers }}
       />
     </div>
   );

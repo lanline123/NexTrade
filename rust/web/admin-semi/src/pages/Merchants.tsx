@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -61,6 +62,7 @@ interface MerchantRow {
 }
 
 export default function Merchants() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MerchantRow | null>(null);
@@ -80,16 +82,16 @@ export default function Merchants() {
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除商户',
-      content: `确定删除选中的 ${ids.length} 个商户？删除后商户信息将无法恢复。`,
+      title: t('批量删除商户'),
+      content: t('确定删除选中的 {count} 个商户？删除后商户信息将无法恢复。', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/merchant/merchant/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((k) => k + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -103,9 +105,9 @@ export default function Merchants() {
       render: (_: unknown, record) => (
         <Space>
           {record.type === 1 ? (
-            <Tag color="cyan">个人</Tag>
+            <Tag color="cyan">{t('个人')}</Tag>
           ) : (
-            <Tag color="blue">企业</Tag>
+            <Tag color="blue">{t('企业')}</Tag>
           )}
           <Text strong>
             {record.type === 1
@@ -136,7 +138,7 @@ export default function Merchants() {
       dataIndex: 'typeText',
       width: 120,
       render: (value: string, record) =>
-        value || (record.type === 1 ? '个人' : '企业'),
+        value || (record.type === 1 ? t('个人') : t('企业')),
     },
     {
       title: '管理员',
@@ -176,7 +178,7 @@ export default function Merchants() {
         return (
           <Space>
             <Badge dot type={isCertified ? 'success' : 'danger'} style={{ marginRight: 4 }} />
-            <span>{value || (isCertified ? '已认证' : '未认证')}</span>
+            <span>{value || (isCertified ? t('已认证') : t('未认证'))}</span>
           </Space>
         );
       },
@@ -216,7 +218,7 @@ export default function Merchants() {
               disabled={rows.length === 0}
               onClick={() => batchDelete(rows.map((r) => r.merchantId), clear)}
             >
-              批量删除
+              {t('批量删除')}
             </Button>
           </Space>
         )}
@@ -227,7 +229,7 @@ export default function Merchants() {
             type="primary"
             onClick={() => openDetail(record)}
           >
-            详情
+            {t('详情')}
           </Button>
         )}
         drawer={{
@@ -247,43 +249,43 @@ export default function Merchants() {
               fields: [
                 {
                   field: 'type',
-                  label: '商户类型',
+                  label: t('商户类型'),
                   type: 'radio',
                   initValue: 2,
                   options: [
-                    { label: '企业', value: 2 },
-                    { label: '个人', value: 1 },
+                    { label: t('企业'), value: 2 },
+                    { label: t('个人'), value: 1 },
                   ],
                 },
                 {
                   field: 'companyName',
-                  label: '企业名称',
+                  label: t('企业名称'),
                   type: 'input',
-                  placeholder: '请输入企业全称',
+                  placeholder: t('请输入企业全称'),
                   requiredWhen: (mode) => true,
                 },
                 {
                   field: 'corporateName',
-                  label: '法人姓名',
+                  label: t('法人姓名'),
                   type: 'input',
-                  placeholder: '请输入法定代表人姓名',
+                  placeholder: t('请输入法定代表人姓名'),
                   required: true,
                 },
                 {
                   field: 'settlementCycle',
-                  label: '结算周期',
+                  label: t('结算周期'),
                   type: 'number',
                   initValue: 1,
-                  extraText: '结算周期，单位：天',
+                  extraText: t('结算周期，单位：天'),
                 },
                 {
                   field: 'status',
-                  label: '认证状态',
+                  label: t('认证状态'),
                   type: 'radio',
                   initValue: 1,
                   options: [
-                    { label: '已认证', value: 1 },
-                    { label: '未认证', value: 2 },
+                    { label: t('已认证'), value: 1 },
+                    { label: t('未认证'), value: 2 },
                   ],
                 },
               ],
@@ -294,12 +296,12 @@ export default function Merchants() {
 
       {/* 商户详情弹窗 */}
       <Modal
-        title="商户详情"
+        title={t('商户详情')}
         visible={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setDetailModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={680}
@@ -307,44 +309,44 @@ export default function Merchants() {
         {selectedRecord && (
           <Descriptions
             data={[
-              { key: '商户ID', value: selectedRecord.merchantId },
+              { key: t('商户ID'), value: selectedRecord.merchantId },
               {
-                key: '商户所属单位',
+                key: t('商户所属单位'),
                 value:
                   selectedRecord.type === 1
                     ? selectedRecord.corporateName || selectedRecord.companyName || '--'
                     : selectedRecord.companyName || selectedRecord.corporateName || '--',
               },
               {
-                key: '商户所属会员(ID)',
+                key: t('商户所属会员(ID)'),
                 value: selectedRecord.user
                   ? `${selectedRecord.user.username || '--'} (${selectedRecord.user.userId || '--'})`
                   : '--',
               },
               {
-                key: '商户类型',
-                value: selectedRecord.typeText || (selectedRecord.type === 1 ? '个人' : '企业'),
+                key: t('商户类型'),
+                value: selectedRecord.typeText || (selectedRecord.type === 1 ? t('个人') : t('企业')),
               },
               {
-                key: '管理员',
+                key: t('管理员'),
                 value: selectedRecord.admin?.username || '--',
               },
               {
-                key: '已绑定店铺',
+                key: t('已绑定店铺'),
                 value: String(selectedRecord.shopCount ?? 0),
               },
               {
-                key: '认证状态',
+                key: t('认证状态'),
                 value:
                   selectedRecord.statusText ||
-                  (selectedRecord.status === 1 ? '已认证' : '未认证'),
+                  (selectedRecord.status === 1 ? t('已认证') : t('未认证')),
               },
               {
-                key: '结算周期',
-                value: `${selectedRecord.settlementCycle ?? 1} 天`,
+                key: t('结算周期'),
+                value: t('{days} 天', { days: selectedRecord.settlementCycle ?? 1 }),
               },
               {
-                key: '认证日期',
+                key: t('认证日期'),
                 value: selectedRecord.addTime || '--',
               },
             ]}

@@ -18,6 +18,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconArrowDown, IconArrowUp, IconHelpCircle } from '@douyinfe/semi-icons';
 import { apiGet, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import TrendChart from '../components/TrendChart';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
@@ -33,6 +34,7 @@ interface AxisVO {
 }
 
 export function NewMembers() {
+  const { t } = useI18n();
   const [dateType, setDateType] = useState<'1' | '2' | '3'>('3'); // 1年, 2月, 3日
   const [loading, setLoading] = useState(false);
   const [axisData, setAxisData] = useState<AxisVO>({
@@ -68,29 +70,29 @@ export function NewMembers() {
   }));
 
   const columns = [
-    { title: '日期', dataIndex: 'date' },
-    { title: '新增会员数 (人)', dataIndex: 'count' },
+    { title: t('日期'), dataIndex: 'date' },
+    { title: t('新增会员数 (人)'), dataIndex: 'count' },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card>
         <Space align="center" spacing={16}>
-          <Text strong>时间维度：</Text>
+          <Text strong>{t('时间维度：')}</Text>
           <RadioGroup
             value={dateType}
             onChange={(e) => setDateType(e.target.value as any)}
             type="button"
           >
-            <Radio value="3">按日</Radio>
-            <Radio value="2">按月</Radio>
-            <Radio value="1">按年</Radio>
+            <Radio value="3">{t('按日')}</Radio>
+            <Radio value="2">{t('按月')}</Radio>
+            <Radio value="1">{t('按年')}</Radio>
           </RadioGroup>
-          <Button onClick={loadData}>查询</Button>
+          <Button onClick={loadData}>{t('查询')}</Button>
         </Space>
       </Card>
 
-      <Card title="新增会员趋势">
+      <Card title={t('新增会员趋势')}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <Spin size="large" />
@@ -100,7 +102,7 @@ export function NewMembers() {
         )}
       </Card>
 
-      <Card title="明细数据">
+      <Card title={t('明细数据')}>
         <Table
           dataSource={tableData}
           columns={columns}
@@ -115,6 +117,7 @@ export function NewMembers() {
    2. 访问统计 statisticsAccess
 ========================================================= */
 export function StatisticsAccess() {
+  const { t } = useI18n();
   const [isHits, setIsHits] = useState<number>(1); // 1: 点击量统计, 0: 访客数统计
   const [loading, setLoading] = useState(false);
   const [axisData, setAxisData] = useState<AxisVO>({
@@ -150,18 +153,18 @@ export function StatisticsAccess() {
   }));
 
   const columns = [
-    { title: '日期', dataIndex: 'date' },
-    { title: isHits === 1 ? '点击量' : '访客数', dataIndex: 'value' },
+    { title: t('日期'), dataIndex: 'date' },
+    { title: isHits === 1 ? t('点击量') : t('访客数'), dataIndex: 'value' },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Tabs activeKey={String(isHits)} onChange={(k) => setIsHits(Number(k))}>
-        <Tabs.TabPane tab="点击量统计" itemKey="1" />
-        <Tabs.TabPane tab="访客数统计" itemKey="0" />
+        <Tabs.TabPane tab={t('点击量统计')} itemKey="1" />
+        <Tabs.TabPane tab={t('访客数统计')} itemKey="0" />
       </Tabs>
 
-      <Card title={isHits === 1 ? '点击量统计趋势' : '访客数统计趋势'}>
+      <Card title={isHits === 1 ? t('点击量统计趋势') : t('访客数统计趋势')}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <Spin size="large" />
@@ -171,7 +174,7 @@ export function StatisticsAccess() {
         )}
       </Card>
 
-      <Card title="明细报表">
+      <Card title={t('明细报表')}>
         <Table
           dataSource={tableData}
           columns={columns}
@@ -260,13 +263,14 @@ const COUNT_CARDS: StatCardDef[] = [
 
 /** 环比展示：上涨红色上箭头，否则绿色下箭头（与原版一致） */
 function GrowthLine({ value }: { value?: number | string }) {
+  const { t } = useI18n();
   const raw = value === undefined || value === null || value === '' ? '--' : String(value);
   const num = Number(raw);
   const valid = raw !== '--' && !Number.isNaN(num);
   const up = valid && num > 0;
   return (
     <span style={{ fontSize: 13, color: 'var(--semi-color-text-2)', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-      环比：<span>{raw}%</span>
+      {t('环比：')}<span>{raw}%</span>
       {valid &&
         (up ? (
           <IconArrowUp size="small" style={{ color: 'var(--semi-color-danger)' }} />
@@ -278,6 +282,7 @@ function GrowthLine({ value }: { value?: number | string }) {
 }
 
 export function StatisticsOrder() {
+  const { t } = useI18n();
   const [statisticType, setStatisticType] = useState<'1' | '0'>('1'); // 1: 订单金额统计, 0: 订单数统计
   const [dateType, setDateType] = useState<'1' | '2'>('1'); // 1: 按年, 2: 按月
   const [selectDate, setSelectDate] = useState<{ '1': string; '2': string }>(() => {
@@ -337,7 +342,7 @@ export function StatisticsOrder() {
     };
   }, [statisticType, dateType, searchTick]);
 
-  const labels = (axisData.horizontalAxis || []).map((l) => `${l}${dateType === '1' ? '月' : '日'}`);
+  const labels = (axisData.horizontalAxis || []).map((l) => `${l}${dateType === '1' ? t('月') : t('日')}`);
   const numData = (axisData.longitudinalAxis || []).map((v) => Number(v) || 0);
 
   const cards = (statisticType === '1' ? AMOUNT_CARDS : COUNT_CARDS).filter((c) => isAdmin || !c.adminOnly);
@@ -345,14 +350,14 @@ export function StatisticsOrder() {
   const handleExport = () => {
     setExportLoading(true);
     try {
-      const header = ['日期', statisticType === '1' ? '订单金额' : '订单数'];
+      const header = [t('日期'), statisticType === '1' ? t('订单金额') : t('订单数')];
       const rows = labels.map((l, i) => [l, numData[i] ?? 0]);
       const csv = `\uFEFF${[header, ...rows].map((r) => r.join(',')).join('\n')}`;
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `销售统计导出_${selectDate[dateType]}.csv`;
+      a.download = `${t('销售统计导出')}_${selectDate[dateType]}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -366,8 +371,8 @@ export function StatisticsOrder() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card>
         <Tabs activeKey={statisticType} onChange={(k) => setStatisticType(k as '1' | '0')}>
-          <Tabs.TabPane tab="订单金额统计" itemKey="1" />
-          <Tabs.TabPane tab="订单数统计" itemKey="0" />
+          <Tabs.TabPane tab={t('订单金额统计')} itemKey="1" />
+          <Tabs.TabPane tab={t('订单数统计')} itemKey="0" />
         </Tabs>
         <Space wrap spacing={12} style={{ marginTop: 4 }}>
           <Select
@@ -376,8 +381,8 @@ export function StatisticsOrder() {
             onChange={(v) => setDateType(v as '1' | '2')}
             showClear={false}
           >
-            <Select.Option value="1">按年筛选</Select.Option>
-            <Select.Option value="2">按月筛选</Select.Option>
+            <Select.Option value="1">{t('按年筛选')}</Select.Option>
+            <Select.Option value="2">{t('按月筛选')}</Select.Option>
           </Select>
           {dateType === '1' ? (
             <Select
@@ -388,7 +393,7 @@ export function StatisticsOrder() {
             >
               {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((y) => (
                 <Select.Option key={y} value={String(y)}>
-                  {y}年
+                  {y}{t('年')}
                 </Select.Option>
               ))}
             </Select>
@@ -401,9 +406,9 @@ export function StatisticsOrder() {
               style={{ width: 200 }}
             />
           )}
-          <Button onClick={() => setSearchTick((t) => t + 1)}>搜索</Button>
+          <Button onClick={() => setSearchTick((tick) => tick + 1)}>{t('搜索')}</Button>
           <Button loading={exportLoading} onClick={handleExport}>
-            导出EXCEL
+            {t('导出EXCEL')}
           </Button>
         </Space>
       </Card>
@@ -412,9 +417,9 @@ export function StatisticsOrder() {
         {cards.map((card) => (
           <div key={card.label} className="stat-order-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--semi-color-text-2)', fontSize: 14 }}>
-              <span>{card.label}</span>
+              <span>{t(card.label)}</span>
               {card.tip && (
-                <Tooltip content={<div style={{ width: 280, lineHeight: '22px' }}>{card.tip}</div>} position="top">
+                <Tooltip content={<div style={{ width: 280, lineHeight: '22px' }}>{t(card.tip)}</div>} position="top">
                   <IconHelpCircle size="small" style={{ color: 'var(--semi-color-text-2)', cursor: 'help' }} />
                 </Tooltip>
               )}
@@ -427,7 +432,7 @@ export function StatisticsOrder() {
         ))}
       </div>
 
-      <Card title={statisticType === '1' ? '订单金额统计' : '订单数统计'}>
+      <Card title={statisticType === '1' ? t('订单金额统计') : t('订单数统计')}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <Spin size="large" />
@@ -438,9 +443,9 @@ export function StatisticsOrder() {
             labels={labels}
             height={400}
             legend
-            name={statisticType === '1' ? '订单金额' : '订单数'}
+            name={statisticType === '1' ? t('订单金额') : t('订单数')}
             yAxisPrefix={statisticType === '1' ? '¥' : ''}
-            unit={statisticType === '1' ? '' : '件'}
+            unit={statisticType === '1' ? '' : t('件')}
             color={statisticType === '1' ? '#1456f0' : '#fac858'}
           />
         )}
@@ -453,6 +458,7 @@ export function StatisticsOrder() {
    4. 销售统计 statisticsSale
 ========================================================= */
 export function StatisticsSale() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'detail' | 'product'>('detail');
 
   const detailColumns: ColumnConfig[] = [
@@ -506,8 +512,8 @@ export function StatisticsSale() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Tabs activeKey={activeTab} onChange={(k) => setActiveTab(k as any)}>
-        <Tabs.TabPane tab="销售明细" itemKey="detail" />
-        <Tabs.TabPane tab="销售商品明细" itemKey="product" />
+        <Tabs.TabPane tab={t('销售明细')} itemKey="detail" />
+        <Tabs.TabPane tab={t('销售商品明细')} itemKey="product" />
       </Tabs>
 
       {activeTab === 'detail' ? (

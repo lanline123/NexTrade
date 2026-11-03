@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Space, Tabs, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import AutoConfigPage from './AutoConfigPage';
@@ -37,6 +38,7 @@ interface CommentRow {
 }
 
 function BuyerShowList() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const action = async (api: string, payload: Record<string, unknown>, message: string) => {
@@ -45,7 +47,7 @@ function BuyerShowList() {
       Toast.success({ content: message });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
@@ -106,11 +108,11 @@ function BuyerShowList() {
               action(
                 '/promotion/buyerShow/audit',
                 { buyerShowId: record.buyerShowId, status: 1 },
-                '审核通过',
+                t('审核通过'),
               )
             }
           >
-            通过
+            {t('通过')}
           </Button>
           <Button
             theme="borderless"
@@ -120,11 +122,11 @@ function BuyerShowList() {
               action(
                 '/promotion/buyerShow/audit',
                 { buyerShowId: record.buyerShowId, status: 2 },
-                '已拒绝',
+                t('已拒绝'),
               )
             }
           >
-            拒绝
+            {t('拒绝')}
           </Button>
           <Button
             theme="borderless"
@@ -133,11 +135,11 @@ function BuyerShowList() {
               action(
                 '/promotion/buyerShow/showOrHide',
                 { buyerShowId: record.buyerShowId, isShow: record.status === 1 ? 0 : 1 },
-                '状态已更新',
+                t('状态已更新'),
               )
             }
           >
-            {record.status === 1 ? '隐藏' : '公开'}
+            {record.status === 1 ? t('隐藏') : t('公开')}
           </Button>
         </Space>
       )}
@@ -151,13 +153,13 @@ function BuyerShowList() {
                 type: 'audit',
                 value: 1,
               }).then(() => {
-                Toast.success({ content: '批量通过成功' });
+                Toast.success({ content: t('批量通过成功') });
                 clear();
                 setReloadKey((key) => key + 1);
               })
             }
           >
-            批量通过
+            {t('批量通过')}
           </Button>
           <Button
             size="small"
@@ -167,13 +169,13 @@ function BuyerShowList() {
                 type: 'audit',
                 value: 2,
               }).then(() => {
-                Toast.success({ content: '批量拒绝成功' });
+                Toast.success({ content: t('批量拒绝成功') });
                 clear();
                 setReloadKey((key) => key + 1);
               })
             }
           >
-            批量拒绝
+            {t('批量拒绝')}
           </Button>
         </Space>
       )}
@@ -182,6 +184,7 @@ function BuyerShowList() {
 }
 
 function BuyerShowGroups() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const columns: ColumnConfig<GroupRow>[] = [
@@ -214,10 +217,10 @@ function BuyerShowGroups() {
             key: 'basic',
             title: '分组信息',
             fields: [
-              { field: 'groupName', label: '分组名称', required: true },
+              { field: 'groupName', label: t('分组名称'), required: true },
               {
                 field: 'productGroups',
-                label: '关联商品分组',
+                label: t('关联商品分组'),
                 type: 'select',
                 multiple: true,
                 required: true,
@@ -242,6 +245,7 @@ function BuyerShowGroups() {
 }
 
 function BuyerShowComments() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const action = async (api: string, payload: Record<string, unknown>, message: string) => {
@@ -250,7 +254,7 @@ function BuyerShowComments() {
       Toast.success({ content: message });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
@@ -292,11 +296,11 @@ function BuyerShowComments() {
               action(
                 '/promotion/buyerShow/commentInfo/audit',
                 { buyerShowCommentId: record.buyerShowCommentId, status: 1 },
-                '审核通过',
+                t('审核通过'),
               )
             }
           >
-            通过
+            {t('通过')}
           </Button>
           <Button
             theme="borderless"
@@ -306,11 +310,11 @@ function BuyerShowComments() {
               action(
                 '/promotion/buyerShow/commentInfo/audit',
                 { buyerShowCommentId: record.buyerShowCommentId, status: 2 },
-                '已拒绝',
+                t('已拒绝'),
               )
             }
           >
-            拒绝
+            {t('拒绝')}
           </Button>
           <Button
             theme="borderless"
@@ -319,11 +323,11 @@ function BuyerShowComments() {
               action(
                 '/promotion/buyerShow/commentInfo/isTop',
                 { buyerShowCommentId: record.buyerShowCommentId, isTop: record.isTop === 1 ? 0 : 1 },
-                '置顶状态已更新',
+                t('置顶状态已更新'),
               )
             }
           >
-            {record.isTop === 1 ? '取消置顶' : '置顶'}
+            {record.isTop === 1 ? t('取消置顶') : t('置顶')}
           </Button>
         </Space>
       )}
@@ -337,13 +341,13 @@ function BuyerShowComments() {
                 type: 'audit',
                 value: 1,
               }).then(() => {
-                Toast.success({ content: '批量通过成功' });
+                Toast.success({ content: t('批量通过成功') });
                 clear();
                 setReloadKey((key) => key + 1);
               })
             }
           >
-            批量通过
+            {t('批量通过')}
           </Button>
         </Space>
       )}
@@ -362,19 +366,20 @@ function BuyerShowSettings() {
 }
 
 export default function BuyerShow() {
+  const { t } = useI18n();
   const [tab, setTab] = useState('list');
   return (
     <Tabs activeKey={tab} onChange={(key) => setTab(String(key))} type="line">
-      <Tabs.TabPane tab="买家秀" itemKey="list">
+      <Tabs.TabPane tab={t('买家秀')} itemKey="list">
         <BuyerShowList />
       </Tabs.TabPane>
-      <Tabs.TabPane tab="分组" itemKey="groups">
+      <Tabs.TabPane tab={t('分组')} itemKey="groups">
         <BuyerShowGroups />
       </Tabs.TabPane>
-      <Tabs.TabPane tab="评论" itemKey="comments">
+      <Tabs.TabPane tab={t('评论')} itemKey="comments">
         <BuyerShowComments />
       </Tabs.TabPane>
-      <Tabs.TabPane tab="设置" itemKey="settings">
+      <Tabs.TabPane tab={t('设置')} itemKey="settings">
         <BuyerShowSettings />
       </Tabs.TabPane>
     </Tabs>

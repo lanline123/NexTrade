@@ -16,6 +16,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconDelete, IconEdit, IconPlus, IconRefresh } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import type { FormDrawerConfig } from '../framework/types';
 import './authorities.css';
@@ -128,6 +129,7 @@ function InlineEditCell({
   inputType?: 'text' | 'integer';
   onSave: (next: string) => Promise<boolean>;
 }) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [draft, setDraft] = useState(String(value ?? ''));
 
@@ -138,11 +140,11 @@ function InlineEditCell({
   const confirm = async () => {
     const next = draft.trim();
     if (inputType === 'text' && !next) {
-      Toast.warning({ content: `${label}不能为空` });
+      Toast.warning({ content: t('{label}不能为空', { label }) });
       return;
     }
     if (inputType === 'integer' && !/^-?\d+$/.test(next)) {
-      Toast.warning({ content: `${label}须为整数` });
+      Toast.warning({ content: t('{label}须为整数', { label }) });
       return;
     }
     const ok = await onSave(next);
@@ -177,10 +179,10 @@ function InlineEditCell({
             {renderInput()}
             <Space>
               <Button size="small" onClick={() => setVisible(false)}>
-                取消
+                {t('取消')}
               </Button>
               <Button size="small" theme="solid" type="primary" onClick={confirm}>
-                确认
+                {t('确认')}
               </Button>
             </Space>
           </div>
@@ -191,7 +193,7 @@ function InlineEditCell({
           size="small"
           icon={<IconEdit />}
           className="auth-inline-trigger"
-          aria-label={`编辑${label}`}
+          aria-label={t('编辑{label}', { label })}
         />
       </Popover>
     </span>
@@ -223,6 +225,7 @@ function ShowSwitch({
 }
 
 export default function Authorities() {
+  const { t } = useI18n();
   const [activeKey, setActiveKey] = useState('admin');
   const [parentChain, setParentChain] = useState<number[]>([0]);
   const [page, setPage] = useState(1);
@@ -260,7 +263,7 @@ export default function Authorities() {
     apiGet<AuthorityTreeNode[]>('/authority/authority/getAllAuthority', { adminType: activeKey })
       .then((tree) => {
         if (alive) {
-          setParentOptions([{ label: '顶级目录', value: 0 }, ...flattenAuthorityTree(tree || [])]);
+          setParentOptions([{ label: t('顶级目录'), value: 0 }, ...flattenAuthorityTree(tree || [])]);
         }
       })
       .catch(() => undefined);
@@ -319,7 +322,7 @@ export default function Authorities() {
         setRows(roots);
         setTotal(result.total || 0);
       } catch (error) {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '权限列表加载失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('权限列表加载失败') });
       } finally {
         if (alive) setLoading(false);
       }
@@ -357,7 +360,7 @@ export default function Authorities() {
       const children = await loadChildrenOf(id, (row.depth || 0) + 1);
       setRows((current) => attachChildRows(current, id, children));
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载子级失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载子级失败') });
     }
   };
 
@@ -375,35 +378,35 @@ export default function Authorities() {
 
   const applyField = async (row: AuthorityRow, field: string, val: unknown): Promise<boolean> => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return false;
     }
     try {
       await apiPost('/authority/authority/updateField', { id: row.authorityId, field, val });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       reload();
       return true;
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
       return false;
     }
   };
 
   const removeAuthority = (row: AuthorityRow) => {
     Modal.confirm({
-      title: '确认删除该权限吗？',
-      content: `「${row.authorityName || row.authorityId}」删除后不可恢复，存在子级时将无法删除。`,
+      title: t('确认删除该权限吗？'),
+      content: t('「{name}」删除后不可恢复，存在子级时将无法删除。', { name: String(row.authorityName || row.authorityId) }),
       onOk: async () => {
         if (isDemo()) {
-          Toast.warning({ content: '演示模式不支持操作' });
+          Toast.warning({ content: t('演示模式不支持操作') });
           return;
         }
         try {
           await apiPost('/authority/authority/del', { id: row.authorityId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -429,11 +432,11 @@ export default function Authorities() {
   const batchDelete = () => {
     if (!selectedRows.length) return;
     Modal.confirm({
-      title: '您确认要批量删除所选数据吗？',
-      content: `将删除选中的 ${selectedRows.length} 个权限，存在子级的会被后端拒绝。`,
+      title: t('您确认要批量删除所选数据吗？'),
+      content: t('将删除选中的 {count} 个权限，存在子级的会被后端拒绝。', { count: selectedRows.length }),
       onOk: async () => {
         if (isDemo()) {
-          Toast.warning({ content: '演示模式不支持操作' });
+          Toast.warning({ content: t('演示模式不支持操作') });
           return;
         }
         try {
@@ -441,11 +444,11 @@ export default function Authorities() {
             ids: selectedRows.map((row) => row.authorityId),
             type: 'del',
           });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           setSelectedKeys([]);
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -474,22 +477,22 @@ export default function Authorities() {
 
   const saveAuthority = async (payload: Record<string, any>) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     setSaving(true);
     try {
       if (drawerMode === 'edit' && editingId) {
         await apiPost('/authority/authority/update', { ...payload, authorityId: editingId });
-        Toast.success({ content: '更新成功' });
+        Toast.success({ content: t('更新成功') });
       } else {
         await apiPost('/authority/authority/create', payload);
-        Toast.success({ content: '创建成功' });
+        Toast.success({ content: t('创建成功') });
       }
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -512,23 +515,23 @@ export default function Authorities() {
           fields: [
             {
               field: 'authorityName',
-              label: '权限名称',
+              label: t('权限名称'),
               type: 'input',
               required: true,
-              placeholder: '请输入权限名称',
+              placeholder: t('请输入权限名称'),
             },
             {
               field: 'authoritySn',
-              label: '唯一编号',
+              label: t('唯一编号'),
               type: 'input',
               required: true,
-              placeholder: '请输入唯一编号',
-              extraText: '只能为英文字母，推荐小驼峰，非目录权限则以Manage结尾，如：productManage',
+              placeholder: t('请输入唯一编号'),
+              extraText: t('只能为英文字母，推荐小驼峰，非目录权限则以Manage结尾，如：productManage'),
               rules: [
-                { required: true, message: '唯一编号不能为空!' },
+                { required: true, message: t('唯一编号不能为空!') },
                 {
                   validator: (_rule: unknown, value: string) => !value || /^[a-zA-Z]+$/.test(value),
-                  message: '只能输入英文字母',
+                  message: t('只能输入英文字母'),
                 },
               ],
             },
@@ -536,11 +539,11 @@ export default function Authorities() {
             // 后端仍支持（updateField 白名单含 route_link），此处保持与旧版一致不展示。
             {
               field: 'parentId',
-              label: '上级分类',
+              label: t('上级分类'),
               type: 'custom',
               render: ({ formApi, values, mode }) => (
                 <Select
-                  placeholder="请选择上级权限"
+                  placeholder={t('请选择上级权限')}
                   filter
                   optionList={parentOptions.filter((option) => option.value !== editingId)}
                   value={Number(values.parentId ?? 0)}
@@ -552,35 +555,35 @@ export default function Authorities() {
             },
             {
               field: 'authorityIco',
-              label: 'ICO编码',
+              label: t('ICO编码'),
               type: 'input',
-              placeholder: '图标 class，如 icon-home',
-              extraText: '请先在本系统设置中的"全局设置"中设置"ico图标库地址"',
+              placeholder: t('图标 class，如 icon-home'),
+              extraText: t('请先在本系统设置中的"全局设置"中设置"ico图标库地址"'),
             },
-            { field: 'sortOrder', label: '排序', type: 'number', initValue: 0 },
+            { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 0 },
             {
               field: 'adminType',
-              label: '权限所属系统',
+              label: t('权限所属系统'),
               type: 'radio',
               disabled: true,
               options: [
-                { label: '管理后台', value: 'admin' },
-                { label: '店铺后台', value: 'shop' },
+                { label: t('管理后台'), value: 'admin' },
+                { label: t('店铺后台'), value: 'shop' },
               ],
             },
             {
               field: 'isShow',
-              label: '是否显示',
+              label: t('是否显示'),
               type: 'radio',
               initValue: 1,
               options: [
-                { label: '是', value: 1 },
-                { label: '否', value: 0 },
+                { label: t('是'), value: 1 },
+                { label: t('否'), value: 0 },
               ],
             },
             {
               field: 'childAuth',
-              label: '细分权限',
+              label: t('细分权限'),
               type: 'custom',
               render: ({ formApi, values }) => {
                 const items = childAuthList(values as Partial<AuthorityRow>);
@@ -590,10 +593,10 @@ export default function Authorities() {
                   <div className="auth-child-list">
                     {items.map((item, index) => (
                       <div className="auth-child-row" key={index}>
-                        <span className="auth-child-label">权限名称：</span>
+                        <span className="auth-child-label">{t('权限名称：')}</span>
                         <Input
                           value={item.authName}
-                          placeholder="权限名称"
+                          placeholder={t('权限名称')}
                           style={{ width: 120 }}
                           onChange={(next) =>
                             update(
@@ -601,10 +604,10 @@ export default function Authorities() {
                             )
                           }
                         />
-                        <span className="auth-child-label">权限编码：</span>
+                        <span className="auth-child-label">{t('权限编码：')}</span>
                         <Input
                           value={item.authSn}
-                          placeholder="权限编码"
+                          placeholder={t('权限编码')}
                           style={{ width: 150 }}
                           onChange={(next) =>
                             update(
@@ -622,7 +625,7 @@ export default function Authorities() {
                       </div>
                     ))}
                     <Button size="small" onClick={() => update([...items, { authName: '', authSn: '' }])}>
-                      新增细分权限
+                      {t('新增细分权限')}
                     </Button>
                   </div>
                 );
@@ -645,7 +648,7 @@ export default function Authorities() {
         ...(mode === 'edit' && editingId ? { authorityId: editingId } : {}),
       }),
     }),
-    [drawerMode, editingId, createParentId, parentOptions],
+    [drawerMode, editingId, createParentId, parentOptions, t],
   );
 
   const sortOrderFor = (field: string): 'ascend' | 'descend' | false => {
@@ -655,7 +658,7 @@ export default function Authorities() {
 
   const columns = [
     {
-      title: '权限名称',
+      title: t('权限名称'),
       dataIndex: 'authorityName',
       width: 280,
       render: (_: unknown, row: AuthorityRow) => (
@@ -665,7 +668,7 @@ export default function Authorities() {
               type="button"
               className="category-expand-btn"
               onClick={() => toggleExpand(row)}
-              aria-label={expanded.has(row.authorityId) ? '收起' : '展开'}
+              aria-label={expanded.has(row.authorityId) ? t('收起') : t('展开')}
             >
               {expanded.has(row.authorityId) ? '−' : '+'}
             </button>
@@ -673,16 +676,16 @@ export default function Authorities() {
             <span className="category-expand-placeholder" />
           )}
           {Number(row.hasChildren) > 0 ? (
-            <span className="auth-name-link" title="查看下级" onClick={() => drillDown(row)}>
+            <span className="auth-name-link" title={t('查看下级')} onClick={() => drillDown(row)}>
               {row.authorityName || '-'}
             </span>
           ) : (
-            <span className="auth-name-text" title="权限名称">
+            <span className="auth-name-text" title={t('权限名称')}>
               {row.authorityName || '-'}
             </span>
           )}
           <InlineEditCell
-            label="权限名称"
+            label={t('权限名称')}
             value={row.authorityName}
             onSave={(next) => applyField(row, 'authorityName', next)}
           />
@@ -690,42 +693,42 @@ export default function Authorities() {
       ),
     },
     {
-      title: '权限图标',
+      title: t('权限图标'),
       dataIndex: 'authorityIco',
       width: 130,
       render: (_: unknown, row: AuthorityRow) => (
-        <span className="auth-icon-text" title={`权限图标：${row.authorityIco || '-'}`}>
+        <span className="auth-icon-text" title={t('权限图标：{ico}', { ico: row.authorityIco || '-' })}>
           {row.authorityIco || '-'}
         </span>
       ),
     },
     {
-      title: '唯一编码',
+      title: t('唯一编码'),
       dataIndex: 'authoritySn',
       width: 200,
       render: (_: unknown, row: AuthorityRow) => (
         <InlineEditCell
-          label="唯一编码"
+          label={t('唯一编码')}
           value={row.authoritySn}
           onSave={(next) => applyField(row, 'authoritySn', next)}
         />
       ),
     },
     {
-      title: '细分权限',
+      title: t('细分权限'),
       dataIndex: 'childAuth',
       width: 180,
       render: (_: unknown, row: AuthorityRow) => {
         const items = childAuthList(row).filter((item) => item.authName);
         return (
-          <span className="auth-child-tags" title="细分权限">
+          <span className="auth-child-tags" title={t('细分权限')}>
             {items.length ? items.map((item) => item.authName).join('，') : '-'}
           </span>
         );
       },
     },
     {
-      title: '是否显示',
+      title: t('是否显示'),
       dataIndex: 'isShow',
       width: 100,
       sorter: true,
@@ -735,14 +738,14 @@ export default function Authorities() {
       ),
     },
     {
-      title: '排序',
+      title: t('排序'),
       dataIndex: 'sortOrder',
       width: 110,
       sorter: true,
       sortOrder: sortOrderFor('sortOrder'),
       render: (_: unknown, row: AuthorityRow) => (
         <InlineEditCell
-          label="排序"
+          label={t('排序')}
           inputType="integer"
           value={row.sortOrder}
           onSave={(next) => applyField(row, 'sortOrder', Number(next))}
@@ -750,20 +753,20 @@ export default function Authorities() {
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       width: 220,
       fixed: 'right' as const,
       render: (_: unknown, row: AuthorityRow) => (
         <Space spacing={2}>
           <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-            编辑
+            {t('编辑')}
           </Button>
           <Button theme="borderless" size="small" onClick={() => openCreate(row.authorityId)}>
-            添加子目录
+            {t('添加子目录')}
           </Button>
           <Button theme="borderless" type="danger" size="small" onClick={() => removeAuthority(row)}>
-            删除
+            {t('删除')}
           </Button>
         </Space>
       ),
@@ -782,16 +785,16 @@ export default function Authorities() {
             setParentChain([0]);
             clearTreeView();
           }}
-          tabList={ADMIN_TYPE_TABS}
+          tabList={ADMIN_TYPE_TABS.map((item) => ({ ...item, tab: t(item.tab) }))}
         />
         <div className="table-toolbar">
           <Space>
-            {parentId > 0 && <Button onClick={backToParent}>返回上一级</Button>}
-            <Text type="tertiary">共 {total} 项</Text>
+            {parentId > 0 && <Button onClick={backToParent}>{t('返回上一级')}</Button>}
+            <Text type="tertiary">{t('共 {count} 项', { count: total })}</Text>
           </Space>
           <Space>
             <Button icon={<IconRefresh />} loading={loading} onClick={reload}>
-              刷新
+              {t('刷新')}
             </Button>
             <Button
               theme="solid"
@@ -799,19 +802,19 @@ export default function Authorities() {
               icon={<IconPlus />}
               onClick={() => openCreate(parentId)}
             >
-              添加权限
+              {t('添加权限')}
             </Button>
           </Space>
         </div>
 
         {selectedRows.length > 0 && (
           <div className="batch-floating-bar">
-            <span>已选择 {selectedRows.length} 项</span>
+            <span>{t('已选择 {count} 项', { count: selectedRows.length })}</span>
             <Button size="small" onClick={batchDelete}>
-              批量删除
+              {t('批量删除')}
             </Button>
             <Button size="small" theme="borderless" onClick={() => setSelectedKeys([])}>
-              取消选择
+              {t('取消选择')}
             </Button>
           </div>
         )}

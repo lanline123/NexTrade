@@ -19,6 +19,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconAlertTriangle, IconPlus, IconSetting } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -40,6 +41,7 @@ interface WholesaleProductRow {
 }
 
 export function WholesaleProducts() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [bannerVisible, setBannerVisible] = useState(true);
 
@@ -73,27 +75,27 @@ export function WholesaleProducts() {
   const handleDelete = async (ids: number[]) => {
     try {
       await apiPost('/wholesale/product/batchDelete', { productIds: ids });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
   const handleAddSubmit = async () => {
     if (!addProductId) {
-      Toast.warning({ content: '请输入商品ID' });
+      Toast.warning({ content: t('请输入商品ID') });
       return;
     }
     setAddLoading(true);
     try {
       await apiPost('/wholesale/product/batchAdd', { productIds: [addProductId] });
-      Toast.success({ content: '添加成功' });
+      Toast.success({ content: t('添加成功') });
       setAddVisible(false);
       setAddProductId(undefined);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '添加失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('添加失败') });
     } finally {
       setAddLoading(false);
     }
@@ -113,11 +115,11 @@ export function WholesaleProducts() {
         productId: currentProduct.productId,
         wholesalePrice: priceForm.wholesalePrice,
       });
-      Toast.success({ content: '批发价设置成功' });
+      Toast.success({ content: t('批发价设置成功') });
       setPriceVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setPriceLoading(false);
     }
@@ -141,11 +143,11 @@ export function WholesaleProducts() {
         moqDimension: buyRuleForm.moqDimension,
         moq: buyRuleForm.moq,
       });
-      Toast.success({ content: '起批量设置成功' });
+      Toast.success({ content: t('起批量设置成功') });
       setBuyRuleVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setBuyRuleLoading(false);
     }
@@ -159,11 +161,11 @@ export function WholesaleProducts() {
         productIds: batchProductIds,
         moq: batchMoq,
       });
-      Toast.success({ content: '批量设置起批量成功' });
+      Toast.success({ content: t('批量设置起批量成功') });
       setBatchRuleVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量设置失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量设置失败') });
     } finally {
       setBatchRuleLoading(false);
     }
@@ -183,11 +185,11 @@ export function WholesaleProducts() {
         productId: currentProduct.productId,
         multiple: multipleVal,
       });
-      Toast.success({ content: '倍数购买设置成功' });
+      Toast.success({ content: t('倍数购买设置成功') });
       setMultipleVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setMultipleLoading(false);
     }
@@ -229,8 +231,8 @@ export function WholesaleProducts() {
         const record = row as WholesaleProductRow;
         return (
           <div style={{ display: 'flex', flexDirection: 'column', fontSize: 12 }}>
-            <Text type="tertiary">编码：{record.productSn || '--'}</Text>
-            <Text type="tertiary">售价：{record.retailPriceRange || '--'}</Text>
+            <Text type="tertiary">{t('编码：')}{record.productSn || '--'}</Text>
+            <Text type="tertiary">{t('售价：')}{record.retailPriceRange || '--'}</Text>
           </div>
         );
       },
@@ -244,7 +246,7 @@ export function WholesaleProducts() {
         return record.wholesalePriceDisplay ? (
           <Text style={{ color: 'var(--semi-color-danger)' }}>{record.wholesalePriceDisplay}</Text>
         ) : (
-          <Text type="tertiary">未设置</Text>
+          <Text type="tertiary">{t('未设置')}</Text>
         );
       },
     },
@@ -257,7 +259,7 @@ export function WholesaleProducts() {
         return record.moqDimensionName ? (
           <Tag size="small">{record.moqDimensionName}</Tag>
         ) : (
-          <Text type="tertiary">未设置</Text>
+          <Text type="tertiary">{t('未设置')}</Text>
         );
       },
     },
@@ -265,14 +267,14 @@ export function WholesaleProducts() {
       title: '起批数量',
       dataIndex: 'moqDisplay',
       width: 100,
-      render: (v: unknown) => (v != null ? <span>{String(v)}</span> : <Text type="tertiary">未设置</Text>),
+      render: (v: unknown) => (v != null ? <span>{String(v)}</span> : <Text type="tertiary">{t('未设置')}</Text>),
     },
     {
       title: '倍数购买',
       dataIndex: 'multipleSet',
       width: 100,
       render: (v: unknown) => (
-        v ? <Tag size="small" color="green">已设置</Tag> : <Text type="tertiary">未设置</Text>
+        v ? <Tag size="small" color="green">{t('已设置')}</Tag> : <Text type="tertiary">{t('未设置')}</Text>
       ),
     },
     {
@@ -287,7 +289,7 @@ export function WholesaleProducts() {
       width: 110,
       render: (v: unknown) => (
         <Tag size="small" color={Number(v) === 1 ? 'green' : 'grey'}>
-          {Number(v) === 1 ? '上架' : '下架'}
+          {Number(v) === 1 ? t('上架') : t('下架')}
         </Tag>
       ),
     },
@@ -305,7 +307,7 @@ export function WholesaleProducts() {
               size="small"
               onClick={() => openPriceModal(record)}
             >
-              批发价
+              {t('批发价')}
             </Button>
             <Button
               theme="borderless"
@@ -313,7 +315,7 @@ export function WholesaleProducts() {
               size="small"
               onClick={() => openBuyRuleModal(record)}
             >
-              起批量
+              {t('起批量')}
             </Button>
             <Button
               theme="borderless"
@@ -321,15 +323,15 @@ export function WholesaleProducts() {
               size="small"
               onClick={() => openMultipleModal(record)}
             >
-              倍数购买
+              {t('倍数购买')}
             </Button>
             <Popconfirm
-              title="确认删除该批发商品？"
+              title={t('确认删除该批发商品？')}
               okType="danger"
               onConfirm={() => handleDelete([record.productId])}
             >
               <Button theme="borderless" type="danger" size="small">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -343,7 +345,7 @@ export function WholesaleProducts() {
       {bannerVisible && (
         <Banner
           type="warning"
-          description="批发类商品与各类营销活动互斥，不可叠加优惠"
+          description={t('批发类商品与各类营销活动互斥，不可叠加优惠')}
           closeIcon
           onClose={() => setBannerVisible(false)}
           style={{ marginBottom: 16 }}
@@ -365,10 +367,10 @@ export function WholesaleProducts() {
                 setBatchRuleVisible(true);
               }}
             >
-              批量设置起批量
+              {t('批量设置起批量')}
             </Button>
             <Popconfirm
-              title="确认要批量删除所选批发商品吗？"
+              title={t('确认要批量删除所选批发商品吗？')}
               okType="danger"
               onConfirm={async () => {
                 await handleDelete(rows.map((r) => r.productId));
@@ -376,14 +378,14 @@ export function WholesaleProducts() {
               }}
             >
               <Button type="danger" size="small">
-                批量删除 ({rows.length})
+                {t('批量删除')} ({rows.length})
               </Button>
             </Popconfirm>
           </Space>
         )}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => setAddVisible(true)}>
-            添加批发商品
+            {t('添加批发商品')}
           </Button>
         }
         filters={[
@@ -408,20 +410,20 @@ export function WholesaleProducts() {
 
       {/* 添加商品弹窗 */}
       <Modal
-        title="添加批发商品"
+        title={t('添加批发商品')}
         visible={addVisible}
         onCancel={() => setAddVisible(false)}
         onOk={handleAddSubmit}
         confirmLoading={addLoading}
         width={480}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>商品ID</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('商品ID')}</div>
           <InputNumber
             style={{ width: '100%' }}
-            placeholder="请输入商品ID"
+            placeholder={t('请输入商品ID')}
             value={addProductId}
             onChange={(val) => setAddProductId(Number(val) || undefined)}
           />
@@ -430,21 +432,21 @@ export function WholesaleProducts() {
 
       {/* 批发价设置 */}
       <Modal
-        title="批发价设置"
+        title={t('批发价设置')}
         visible={priceVisible}
         onCancel={() => setPriceVisible(false)}
         onOk={handlePriceSubmit}
         confirmLoading={priceLoading}
         width={500}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>商品名称</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('商品名称')}</div>
           <Text>{currentProduct?.productName || '--'}</Text>
-          <div style={{ marginTop: 16, marginBottom: 6, fontWeight: 500 }}>批发价</div>
+          <div style={{ marginTop: 16, marginBottom: 6, fontWeight: 500 }}>{t('批发价')}</div>
           <Input
-            placeholder="请输入批发价 (如 19.90)"
+            placeholder={t('请输入批发价 (如 19.90)')}
             value={priceForm.wholesalePrice}
             onChange={(val) => setPriceForm({ wholesalePrice: val })}
           />
@@ -453,18 +455,18 @@ export function WholesaleProducts() {
 
       {/* 起批量设置 */}
       <Modal
-        title="起批量设置"
+        title={t('起批量设置')}
         visible={buyRuleVisible}
         onCancel={() => setBuyRuleVisible(false)}
         onOk={handleBuyRuleSubmit}
         confirmLoading={buyRuleLoading}
         width={500}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>起批维度</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('起批维度')}</div>
             <RadioGroup
               value={buyRuleForm.moqDimension}
               onChange={(e) => setBuyRuleForm({ ...buyRuleForm, moqDimension: Number(e.target.value) })}
@@ -474,7 +476,7 @@ export function WholesaleProducts() {
             </RadioGroup>
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>起批数量</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('起批数量')}</div>
             <InputNumber
               style={{ width: '100%' }}
               min={1}
@@ -487,17 +489,17 @@ export function WholesaleProducts() {
 
       {/* 批量设置起批量 */}
       <Modal
-        title="批量设置起批量"
+        title={t('批量设置起批量')}
         visible={batchRuleVisible}
         onCancel={() => setBatchRuleVisible(false)}
         onOk={handleBatchRuleSubmit}
         confirmLoading={batchRuleLoading}
         width={480}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>起批数量</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('起批数量')}</div>
           <InputNumber
             style={{ width: '100%' }}
             min={1}
@@ -509,17 +511,17 @@ export function WholesaleProducts() {
 
       {/* 倍数购买设置 */}
       <Modal
-        title="倍数购买设置"
+        title={t('倍数购买设置')}
         visible={multipleVisible}
         onCancel={() => setMultipleVisible(false)}
         onOk={handleMultipleSubmit}
         confirmLoading={multipleLoading}
         width={480}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>购买倍数</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('购买倍数')}</div>
           <InputNumber
             style={{ width: '100%' }}
             min={1}

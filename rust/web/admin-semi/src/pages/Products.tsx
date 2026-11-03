@@ -18,16 +18,17 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconEdit, IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import { mockProductPage } from '../mock';
 import type { PageResult, ProductRow } from '../types';
 import ProductFormDrawer from '../components/ProductFormDrawer';
 
 const { Text } = Typography;
 
-const statusOptions = [
-  { label: '全部状态', value: '' },
-  { label: '在售', value: '1' },
-  { label: '下架', value: '0' },
+const buildStatusOptions = (t: (key: string) => string) => [
+  { label: t('全部状态'), value: '' },
+  { label: t('在售'), value: '1' },
+  { label: t('下架'), value: '0' },
 ];
 
 interface Option {
@@ -67,6 +68,7 @@ function StockPopover({
   stock: number;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [skus, setSkus] = useState<SkuRow[]>([]);
@@ -95,17 +97,17 @@ function StockPopover({
 
   const save = async () => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     if (skus.length > 0) {
       const empty = skus.find((item) => item.skuStock === undefined || item.skuStock === null || String(item.skuStock) === '');
       if (empty) {
-        Toast.error({ content: '请填写库存' });
+        Toast.error({ content: t('请填写库存') });
         return;
       }
     } else if (singleStock === '') {
-      Toast.error({ content: '请填写库存' });
+      Toast.error({ content: t('请填写库存') });
       return;
     }
     setSaving(true);
@@ -123,11 +125,11 @@ function StockPopover({
           val: Number(singleStock || 0),
         });
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setVisible(false);
       onSaved();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -183,10 +185,10 @@ function StockPopover({
           </Spin>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
             <Button size="small" onClick={() => setVisible(false)}>
-              取消
+              {t('取消')}
             </Button>
             <Button size="small" theme="solid" type="primary" loading={saving} onClick={save}>
-              保存
+              {t('保存')}
             </Button>
           </div>
         </div>
@@ -207,6 +209,8 @@ function StockPopover({
 }
 
 export default function Products() {
+  const { t } = useI18n();
+  const statusOptions = buildStatusOptions(t);
   const [rows, setRows] = useState<ProductRow[]>(isDemo() ? mockProductPage.records : []);
   const [total, setTotal] = useState(isDemo() ? mockProductPage.total : 0);
   const [page, setPage] = useState(1);
@@ -273,7 +277,7 @@ export default function Products() {
 
   const toggleStatus = async (record: ProductRow) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -283,17 +287,17 @@ export default function Products() {
         field: 'productStatus',
         val: next,
       });
-      Toast.success({ content: next === 1 ? '商品已上架' : '商品已下架' });
+      Toast.success({ content: next === 1 ? t('商品已上架') : t('商品已下架') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   /** 在售状态切换（v5.8.61，对齐原版 List.vue changeSaleStatus：POST /product/product/saleStatus） */
   const changeSaleStatus = async (record: ProductRow, val: number) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     setSalePendingId(record.productId);
@@ -303,10 +307,10 @@ export default function Products() {
         saleStatus: val,
         saleBanTime: 0,
       });
-      Toast.success({ content: val === 1 ? '商品已设为可售' : '商品已设为禁售' });
+      Toast.success({ content: val === 1 ? t('商品已设为可售') : t('商品已设为禁售') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setSalePendingId(undefined);
     }
@@ -314,15 +318,15 @@ export default function Products() {
 
   const remove = async (record: ProductRow) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
       await apiPost('/product/product/del', { id: record.productId });
-      Toast.success({ content: '商品已删除' });
+      Toast.success({ content: t('商品已删除') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -333,7 +337,7 @@ export default function Products() {
           <Space>
             <Input
               prefix={<IconSearch />}
-              placeholder="搜索商品名称 / 编号"
+              placeholder={t('搜索商品名称 / 编号')}
               value={keyword}
               onChange={setKeyword}
               onEnterPress={search}
@@ -349,12 +353,12 @@ export default function Products() {
               style={{ width: 140 }}
             />
             <Button theme="solid" type="primary" onClick={search}>
-              查询
+              {t('查询')}
             </Button>
           </Space>
           <Space>
             <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-              刷新
+              {t('刷新')}
             </Button>
             <Button
               theme="solid"
@@ -365,7 +369,7 @@ export default function Products() {
                 setModalOpen(true);
               }}
             >
-              新增商品
+              {t('新增商品')}
             </Button>
           </Space>
         </div>
@@ -382,7 +386,7 @@ export default function Products() {
           }}
           columns={[
             {
-              title: '商品',
+              title: t('商品'),
               dataIndex: 'productName',
               render: (value: string, record: ProductRow) => (
                 <div className="product-cell">
@@ -401,13 +405,13 @@ export default function Products() {
               ),
             },
             {
-              title: '销售价',
+              title: t('销售价'),
               dataIndex: 'productPrice',
               width: 140,
               render: (value: string) => <span className="money">¥ {Number(value || 0).toLocaleString()}</span>,
             },
             {
-              title: '库存',
+              title: t('库存'),
               dataIndex: 'productStock',
               width: 110,
               render: (value: number, record: ProductRow) => (
@@ -419,21 +423,21 @@ export default function Products() {
               ),
             },
             {
-              title: '状态',
+              title: t('状态'),
               dataIndex: 'productStatus',
               width: 90,
               render: (value: number) =>
-                value === 1 ? <Tag color="green">在售</Tag> : <Tag color="grey">下架</Tag>,
+                value === 1 ? <Tag color="green">{t('在售')}</Tag> : <Tag color="grey">{t('下架')}</Tag>,
             },
             {
-              title: '在售状态',
+              title: t('在售状态'),
               dataIndex: 'saleStatus',
               width: 100,
               render: (_: unknown, record: ProductRow) => {
                 const onSale = Number(record.saleStatus ?? 1) === 1;
                 return (
                   <Popconfirm
-                    title={onSale ? '确定将所选商品设为禁售状态吗?' : '确定将所选商品设为可售状态吗?'}
+                    title={onSale ? t('确定将所选商品设为禁售状态吗?') : t('确定将所选商品设为可售状态吗?')}
                     onConfirm={() => changeSaleStatus(record, onSale ? 0 : 1)}
                   >
                     <Switch
@@ -446,21 +450,21 @@ export default function Products() {
               },
             },
             {
-              title: '审核',
+              title: t('审核'),
               dataIndex: 'checkStatus',
               width: 100,
               render: (value: number) => {
                 const map: Record<number, { color: string; text: string }> = {
-                  0: { color: 'orange', text: '待审核' },
-                  1: { color: 'green', text: '已通过' },
-                  2: { color: 'red', text: '未通过' },
+                  0: { color: 'orange', text: t('待审核') },
+                  1: { color: 'green', text: t('已通过') },
+                  2: { color: 'red', text: t('未通过') },
                 };
                 const item = map[value] || map[0];
                 return <Tag color={item.color as any}>{item.text}</Tag>;
               },
             },
             {
-              title: '操作',
+              title: t('操作'),
               width: 230,
               render: (_: unknown, record: ProductRow) => (
                 <Space spacing={4}>
@@ -472,14 +476,14 @@ export default function Products() {
                       setModalOpen(true);
                     }}
                   >
-                    编辑
+                    {t('编辑')}
                   </Button>
                   <Button theme="borderless" size="small" onClick={() => toggleStatus(record)}>
-                    {record.productStatus === 1 ? '下架' : '上架'}
+                    {record.productStatus === 1 ? t('下架') : t('上架')}
                   </Button>
-                  <Popconfirm title="确定删除该商品？" onConfirm={() => remove(record)}>
+                  <Popconfirm title={t('确定删除该商品？')} onConfirm={() => remove(record)}>
                     <Button theme="borderless" type="danger" size="small">
-                      删除
+                      {t('删除')}
                     </Button>
                   </Popconfirm>
                 </Space>

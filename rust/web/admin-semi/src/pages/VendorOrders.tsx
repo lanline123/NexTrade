@@ -15,6 +15,7 @@ import {
 import { IconSearch } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 import OrderDetailModal from '../components/OrderDetailModal';
 
 const { Text } = Typography;
@@ -81,6 +82,7 @@ const orderStatusMap: Record<number, { text: string; type: 'primary' | 'warning'
 };
 
 export default function VendorOrders() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [activeTab, setActiveTab] = useState<string>('-1');
   const [detailVisible, setDetailVisible] = useState(false);
@@ -99,28 +101,28 @@ export default function VendorOrders() {
             {record.orderSn || `--`}
           </Text>
           <Text type="tertiary" size="small" style={{ display: 'block' }}>
-            下单时间：{record.addTime || '--'}
+            {t('下单时间：')}{record.addTime || '--'}
           </Text>
           {record.vendorName && (
             <Tag color="cyan" size="small" style={{ marginTop: 4 }}>
-              订单来自供应商：{record.vendorName}
+              {t('订单来自供应商：')}{record.vendorName}
             </Tag>
           )}
           {record.shopName && (
             <Tag color="blue" size="small" style={{ marginTop: 4, marginLeft: 4 }}>
-              订单来自店铺：{record.shopName}
+              {t('订单来自店铺：')}{record.shopName}
             </Tag>
           )}
           {record.isSplit === 1 && (
-            <span title="该订单已拆分，点击可查看父订单">
+            <span title={t('该订单已拆分，点击可查看父订单')}>
               <Tag color="amber" size="small" style={{ marginTop: 4 }}>
-                子订单
+                {t('子订单')}
               </Tag>
             </span>
           )}
           {record.orderType === 2 && (
             <Tag color="purple" size="small" style={{ marginTop: 4 }}>
-              积分兑换
+              {t('积分兑换')}
             </Tag>
           )}
         </div>
@@ -142,8 +144,8 @@ export default function VendorOrders() {
       width: 130,
       render: (val: string, record) => (
         <div>
-          <div>{val || `会员UID:${record.userId || '--'}`}</div>
-          <Text type="tertiary" size="small">用户信息</Text>
+          <div>{val || `${t('会员UID:')}${record.userId || '--'}`}</div>
+          <Text type="tertiary" size="small">{t('用户信息')}</Text>
         </div>
       ),
     },
@@ -153,10 +155,10 @@ export default function VendorOrders() {
       width: 200,
       render: (_: unknown, record) => (
         <div>
-          <div>收货人：{record.consignee || '--'}</div>
-          <div>手机号：{record.mobile || '--'}</div>
+          <div>{t('收货人：')}{record.consignee || '--'}</div>
+          <div>{t('手机号：')}{record.mobile || '--'}</div>
           <Text type="tertiary" size="small" ellipsis={{ showTooltip: true }}>
-            收货地址：{record.address || '--'}
+            {t('收货地址：')}{record.address || '--'}
           </Text>
         </div>
       ),
@@ -171,20 +173,20 @@ export default function VendorOrders() {
         return (
           <div>
             <div>
-              支付状态：
+              {t('支付状态：')}
               <Tag color={payInfo.color} size="small">
-                {record.payName || payInfo.text}
+                {record.payName || t(payInfo.text)}
               </Tag>
             </div>
             <div style={{ marginTop: 4 }}>
-              发货状态：
+              {t('发货状态：')}
               <Tag color={shipInfo.color} size="small">
-                {record.shippingName || shipInfo.text}
+                {record.shippingName || t(shipInfo.text)}
               </Tag>
             </div>
             {record.shippingName && (
               <Text type="tertiary" size="small">
-                配送物流：{record.shippingName}
+                {t('配送物流：')}{record.shippingName}
               </Text>
             )}
           </div>
@@ -200,7 +202,7 @@ export default function VendorOrders() {
         return (
           <Space>
             <Badge dot type={status.type} style={{ marginRight: 4 }} />
-            <span>{status.text}</span>
+            <span>{t(status.text)}</span>
           </Space>
         );
       },
@@ -223,12 +225,12 @@ export default function VendorOrders() {
             setReloadKey((k) => k + 1);
           }}
         >
-          <Tabs.TabPane tab="全部订单" itemKey="-1" />
-          <Tabs.TabPane tab="待支付" itemKey="0" />
-          <Tabs.TabPane tab="待发货" itemKey="1" />
-          <Tabs.TabPane tab="已发货" itemKey="2" />
-          <Tabs.TabPane tab="已完成" itemKey="5" />
-          <Tabs.TabPane tab="已取消" itemKey="3" />
+          <Tabs.TabPane tab={t('全部订单')} itemKey="-1" />
+          <Tabs.TabPane tab={t('待支付')} itemKey="0" />
+          <Tabs.TabPane tab={t('待发货')} itemKey="1" />
+          <Tabs.TabPane tab={t('已发货')} itemKey="2" />
+          <Tabs.TabPane tab={t('已完成')} itemKey="5" />
+          <Tabs.TabPane tab={t('已取消')} itemKey="3" />
         </Tabs>
       </div>
 
@@ -302,9 +304,9 @@ export default function VendorOrders() {
             <Button
               size="small"
               disabled={rows.length === 0}
-              onClick={() => Toast.info({ content: `已选择 ${rows.length} 项，批量打印中...` })}
+              onClick={() => Toast.info({ content: t('已选择 {count} 项，批量打印中...', { count: rows.length }) })}
             >
-              批量打印
+              {t('批量打印')}
             </Button>
           </Space>
         )}
@@ -319,16 +321,16 @@ export default function VendorOrders() {
                 setDetailVisible(true);
               }}
             >
-              查看详情
+              {t('查看详情')}
             </Button>
             {record.orderStatus === 1 && (
               <Button
                 theme="borderless"
                 size="small"
                 type="primary"
-                onClick={() => Toast.success({ content: '订单发货 操作成功' })}
+                onClick={() => Toast.success({ content: t('订单发货 操作成功') })}
               >
-                去发货
+                {t('去发货')}
               </Button>
             )}
             <Button
@@ -340,7 +342,7 @@ export default function VendorOrders() {
                 setMarkModalVisible(true);
               }}
             >
-              添加标记
+              {t('添加标记')}
             </Button>
           </Space>
         )}
@@ -358,24 +360,24 @@ export default function VendorOrders() {
 
       {/* 订单标记弹窗 */}
       <Modal
-        title="添加标记"
+        title={t('添加标记')}
         visible={markModalVisible}
         onCancel={() => setMarkModalVisible(false)}
         onOk={() => {
-          Toast.success({ content: '标记已保存' });
+          Toast.success({ content: t('标记已保存') });
           setMarkModalVisible(false);
         }}
         width={480}
       >
         <div style={{ padding: '12px 0' }}>
           <Text strong style={{ display: 'block', marginBottom: 8 }}>
-            标记内容：
+            {t('标记内容：')}
           </Text>
           <Descriptions
             data={[
-              { key: '订单编号', value: currentOrder?.orderSn || '--' },
-              { key: '订单来自', value: currentOrder?.vendorName ? '供应商' : '店铺' },
-              { key: '详细地址', value: currentOrder?.address || '--' },
+              { key: t('订单编号'), value: currentOrder?.orderSn || '--' },
+              { key: t('订单来自'), value: currentOrder?.vendorName ? t('供应商') : t('店铺') },
+              { key: t('详细地址'), value: currentOrder?.address || '--' },
             ]}
           />
         </div>
@@ -383,19 +385,19 @@ export default function VendorOrders() {
 
       {/* 静态兼容标签隐藏域(覆盖逆向代码中存在的全部边缘文本与操作) */}
       <div style={{ display: 'none' }}>
-        <span>订单标记：</span>
-        <span>全部订单</span>
-        <span>已选择：</span>
-        <span>项</span>
-        <span>订单详情 </span>
-        <span>售后详情 </span>
-        <span>售后详情</span>
-        <span>取消订单</span>
-        <span>删除订单</span>
-        <span>催发货</span>
-        <span>确认收货</span>
-        <span>暂无数据</span>
-        <span>标记</span>
+        <span>{t('订单标记：')}</span>
+        <span>{t('全部订单')}</span>
+        <span>{t('已选择：')}</span>
+        <span>{t('项')}</span>
+        <span>{t('订单详情 ')}</span>
+        <span>{t('售后详情 ')}</span>
+        <span>{t('售后详情')}</span>
+        <span>{t('取消订单')}</span>
+        <span>{t('删除订单')}</span>
+        <span>{t('催发货')}</span>
+        <span>{t('确认收货')}</span>
+        <span>{t('暂无数据')}</span>
+        <span>{t('标记')}</span>
       </div>
     </>
   );

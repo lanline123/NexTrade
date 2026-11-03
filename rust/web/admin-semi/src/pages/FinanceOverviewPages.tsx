@@ -17,6 +17,7 @@ import {
   Avatar,
 } from '@douyinfe/semi-ui';
 import { apiGet } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { SalesmanPerformanceSettlement } from './SalesmanSettlementPages';
@@ -30,6 +31,7 @@ const { Text } = Typography;
  * props: voucherAmount, toCashAmount, balance, frozenMoney, surplus, usePoints
  * ========================================================================= */
 export function AccountPanel() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   // 兼容 audit-page-spec: [{ field: 'searchStartDate' }, { field: 'searchEndDate' }]
   const [dates, setDates] = useState<[Date | undefined, Date | undefined]>([
@@ -80,20 +82,20 @@ export function AccountPanel() {
             type="dateRange"
             value={dates as any}
             onChange={(val: any) => setDates(val)}
-            placeholder={['开始日期', '结束日期']}
+            placeholder={[t('开始日期'), t('结束日期')]}
           />
           <Button type="primary" onClick={fetchData}>
-            搜索
+            {t('搜索')}
           </Button>
         </Space>
       </Card>
 
       <Spin spinning={loading}>
-        <Card title="会员账户信息" style={{ marginBottom: 20 }}>
+        <Card title={t('会员账户信息')} style={{ marginBottom: 20 }}>
           <Row gutter={16}>
             <Col span={6}>
               <div style={{ background: 'var(--semi-color-fill-0)', padding: 16, borderRadius: 6 }}>
-                <Text type="secondary">会员充值总额</Text>
+                <Text type="secondary">{t('会员充值总额')}</Text>
                 <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-primary)' }}>
                   ¥{data.voucherAmount.toFixed(2)}
                 </div>
@@ -101,7 +103,7 @@ export function AccountPanel() {
             </Col>
             <Col span={6}>
               <div style={{ background: 'var(--semi-color-fill-0)', padding: 16, borderRadius: 6 }}>
-                <Text type="secondary">提现金额</Text>
+                <Text type="secondary">{t('提现金额')}</Text>
                 <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-warning)' }}>
                   ¥{data.toCashAmount.toFixed(2)}
                 </div>
@@ -109,7 +111,7 @@ export function AccountPanel() {
             </Col>
             <Col span={6}>
               <div style={{ background: 'var(--semi-color-fill-0)', padding: 16, borderRadius: 6 }}>
-                <Text type="secondary">会员余额变化金额</Text>
+                <Text type="secondary">{t('会员余额变化金额')}</Text>
                 <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8 }}>
                   ¥{data.balance.toFixed(2)}
                 </div>
@@ -117,7 +119,7 @@ export function AccountPanel() {
             </Col>
             <Col span={6}>
               <div style={{ background: 'var(--semi-color-fill-0)', padding: 16, borderRadius: 6 }}>
-                <Text type="secondary">会员冻结变化金额</Text>
+                <Text type="secondary">{t('会员冻结变化金额')}</Text>
                 <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8 }}>
                   ¥{data.frozenMoney.toFixed(2)}
                 </div>
@@ -126,11 +128,11 @@ export function AccountPanel() {
           </Row>
         </Card>
 
-        <Card title="余额使用信息">
+        <Card title={t('余额使用信息')}>
           <Row gutter={16}>
             <Col span={12}>
               <div style={{ background: 'var(--semi-color-fill-0)', padding: 16, borderRadius: 6 }}>
-                <Text type="secondary">交易使用余额</Text>
+                <Text type="secondary">{t('交易使用余额')}</Text>
                 <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-danger)' }}>
                   ¥{data.surplus.toFixed(2)}
                 </div>
@@ -138,7 +140,7 @@ export function AccountPanel() {
             </Col>
             <Col span={12}>
               <div style={{ background: 'var(--semi-color-fill-0)', padding: 16, borderRadius: 6 }}>
-                <Text type="secondary">交易使用积分</Text>
+                <Text type="secondary">{t('交易使用积分')}</Text>
                 <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-success)' }}>
                   {data.usePoints}
                 </div>
@@ -157,6 +159,7 @@ export function AccountPanel() {
  * labels: 分销佣金, 提现记录
  * ========================================================================= */
 export function DistributionCommission() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('commission');
 
   const withdrawColumns: ColumnConfig<any>[] = [
@@ -175,7 +178,7 @@ export function DistributionCommission() {
       dataIndex: 'status',
       width: 110,
       render: (s: any) => {
-        const text = s === 1 ? '已通过' : s === 2 ? '已拒绝' : '待审核';
+        const text = s === 1 ? t('已通过') : s === 2 ? t('已拒绝') : t('待审核');
         const color = s === 1 ? 'green' : s === 2 ? 'red' : 'orange';
         return <Tag color={color}>{text}</Tag>;
       },
@@ -186,10 +189,10 @@ export function DistributionCommission() {
   return (
     <div style={{ padding: 20 }}>
       <Tabs activeKey={activeTab} onChange={(k: string) => setActiveTab(k)}>
-        <TabPane tab="分销佣金" itemKey="commission">
+        <TabPane tab={t('分销佣金')} itemKey="commission">
           <SalesmanPerformanceSettlement />
         </TabPane>
-        <TabPane tab="提现记录" itemKey="withdraw">
+        <TabPane tab={t('提现记录')} itemKey="withdraw">
           <ListPage
             api="/finance/userWithdrawApply/list"
             rowKey="id"
@@ -211,6 +214,7 @@ export function DistributionCommission() {
  * props: shopId, shopTitle, shopLogo, status, statusText, shopMoney, withdrawnAmount, pendingWithdrawAmount, addTime
  * ========================================================================= */
 export function ShopWithdrawApplySummary() {
+  const { t } = useI18n();
   const [detailModal, setDetailModal] = useState<any>(null);
 
   const columns: ColumnConfig<any>[] = [
@@ -233,7 +237,7 @@ export function ShopWithdrawApplySummary() {
       render: (s: any, row: any) => {
         const isOnline = s === 1;
         const color = isOnline ? 'green' : s === 4 ? 'red' : 'amber';
-        const label = row?.statusText || (isOnline ? '开业' : s === 4 ? '停业' : '打烊');
+        const label = row?.statusText || (isOnline ? t('开业') : s === 4 ? t('停业') : t('打烊'));
         return <Tag color={color}>{label}</Tag>;
       },
     },
@@ -267,7 +271,7 @@ export function ShopWithdrawApplySummary() {
       width: 100,
       render: (_: any, row: any) => (
         <Button theme="borderless" type="primary" onClick={() => setDetailModal(row)}>
-          详情
+          {t('详情')}
         </Button>
       ),
     },
@@ -296,20 +300,20 @@ export function ShopWithdrawApplySummary() {
       />
 
       <Modal
-        title="提现详情"
+        title={t('提现详情')}
         visible={Boolean(detailModal)}
         onCancel={() => setDetailModal(null)}
-        footer={<Button onClick={() => setDetailModal(null)}>关闭</Button>}
+        footer={<Button onClick={() => setDetailModal(null)}>{t('关闭')}</Button>}
         // width: 600
         width={600}
       >
         {detailModal && (
           <div style={{ lineHeight: 2.2 }}>
-            <p><strong>店铺名称：</strong>{detailModal.shopTitle || detailModal.shopName || '--'}</p>
-            <p><strong>店铺剩余资金：</strong>¥{Number(detailModal.shopMoney || 0).toFixed(2)}</p>
-            <p><strong>已提现金额：</strong>¥{Number(detailModal.withdrawnAmount || 0).toFixed(2)}</p>
-            <p><strong>待提现金额：</strong>¥{Number(detailModal.pendingWithdrawAmount || 0).toFixed(2)}</p>
-            <p><strong>开店时间：</strong>{detailModal.addTime || '--'}</p>
+            <p><strong>{t('店铺名称：')}</strong>{detailModal.shopTitle || detailModal.shopName || '--'}</p>
+            <p><strong>{t('店铺剩余资金：')}</strong>¥{Number(detailModal.shopMoney || 0).toFixed(2)}</p>
+            <p><strong>{t('已提现金额：')}</strong>¥{Number(detailModal.withdrawnAmount || 0).toFixed(2)}</p>
+            <p><strong>{t('待提现金额：')}</strong>¥{Number(detailModal.pendingWithdrawAmount || 0).toFixed(2)}</p>
+            <p><strong>{t('开店时间：')}</strong>{detailModal.addTime || '--'}</p>
           </div>
         )}
       </Modal>
@@ -324,6 +328,7 @@ export function ShopWithdrawApplySummary() {
  * props: totalIncome, availableBalance, frozenBalance, totalWithdrawn, staffId, staffName, staffPhone, type, balance, frozenBalance
  * ========================================================================= */
 export function StaffFundWallet() {
+  const { t } = useI18n();
   const [overview, setOverview] = useState({
     totalIncome: 0,
     availableBalance: 0,
@@ -354,7 +359,7 @@ export function StaffFundWallet() {
       title: '类型',
       dataIndex: 'type',
       width: 110,
-      render: (t: any) => (t === 2 ? '服务员' : '配送员'),
+      render: (v: any) => (v === 2 ? t('服务员') : t('配送员')),
     },
     {
       title: '可用收益',
@@ -381,7 +386,7 @@ export function StaffFundWallet() {
       <Row gutter={16} style={{ marginBottom: 20 }}>
         <Col span={6}>
           <Card>
-            <Text type="secondary">总收益</Text>
+            <Text type="secondary">{t('总收益')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: '#ff5000' }}>
               ¥{overview.totalIncome.toFixed(2)}
             </div>
@@ -389,7 +394,7 @@ export function StaffFundWallet() {
         </Col>
         <Col span={6}>
           <Card>
-            <Text type="secondary">可用收益</Text>
+            <Text type="secondary">{t('可用收益')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: '#ff5000' }}>
               ¥{overview.availableBalance.toFixed(2)}
             </div>
@@ -397,7 +402,7 @@ export function StaffFundWallet() {
         </Col>
         <Col span={6}>
           <Card>
-            <Text type="secondary">不可用收益</Text>
+            <Text type="secondary">{t('不可用收益')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: '#ff5000' }}>
               ¥{overview.frozenBalance.toFixed(2)}
             </div>
@@ -405,7 +410,7 @@ export function StaffFundWallet() {
         </Col>
         <Col span={6}>
           <Card>
-            <Text type="secondary">已提现金额</Text>
+            <Text type="secondary">{t('已提现金额')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: '#ff5000' }}>
               ¥{overview.totalWithdrawn.toFixed(2)}
             </div>
