@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Col, Form, Row, SideSheet, Toast } from '@douyinfe/semi-ui';
 import type { FormDrawerConfig } from './types';
 import FieldRenderer from './FieldRenderer';
+import { useI18n } from '../i18n';
 
 interface FormDrawerProps {
   visible: boolean;
@@ -22,6 +23,7 @@ export default function FormDrawer({
   onCancel,
   onSubmit,
 }: FormDrawerProps) {
+  const { t } = useI18n();
   const [formApi, setFormApi] = useState<any>(null);
   const [activeSection, setActiveSection] = useState(config.sections[0]?.key || '');
   const [values, setValues] = useState<Record<string, any>>(initialValues || {});
@@ -62,8 +64,8 @@ export default function FormDrawer({
     <SideSheet
       title={
         mode === 'create'
-          ? config.title || config.addText || '新增'
-          : `编辑${config.title || ''}`
+          ? t(config.title || config.addText || '新增')
+          : `${t('编辑')}${t(config.title || '')}`
       }
       visible={visible}
       onCancel={onCancel}
@@ -71,9 +73,9 @@ export default function FormDrawer({
       placement="right"
       bodyStyle={{ padding: 0, overflowY: 'auto' }}      footer={
         <div className="modal-footer">
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       }
@@ -86,7 +88,7 @@ export default function FormDrawer({
             className={activeSection === section.key ? 'is-active' : ''}
             onClick={() => scrollTo(section.key)}
           >
-            {section.title}
+            {t(section.title)}
           </button>
         ))}
       </div>
@@ -110,9 +112,9 @@ export default function FormDrawer({
               className="product-section"
               key={section.key}
             >
-              <div className="product-section-title">{section.title}</div>
+              <div className="product-section-title">{t(section.title)}</div>
               {section.description && (
-                <div className="framework-section-desc">{section.description}</div>
+                <div className="framework-section-desc">{t(section.description)}</div>
               )}
               {fields.map((field) =>
                 field.span && field.span < 24 ? (

@@ -13,6 +13,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconClose, IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import type { FilterConfig, ListPageProps } from './types';
 import FormDrawer from './FormDrawer';
 import TagFilter from './TagFilter';
@@ -21,6 +22,7 @@ function renderFilter(
   filter: FilterConfig,
   value: any,
   onChange: (value: any) => void,
+  t: (key: string) => string,
 ) {
   const style = { width: filter.width || 180 };
   if (filter.type === 'tags') {
@@ -29,21 +31,21 @@ function renderFilter(
   if (filter.type === 'select') {
     return (
       <Select
-        placeholder={filter.placeholder || filter.label}
+        placeholder={t(filter.placeholder || filter.label)}
         value={value}
-        optionList={filter.options || []}
+        optionList={(filter.options || []).map((option) => ({ ...option, label: t(String(option.label)) }))}
         onChange={onChange}
         style={style}
       />
     );
   }
   if (filter.type === 'date') {
-    return <DatePicker placeholder={filter.placeholder || filter.label} value={value} onChange={onChange} style={style} />;
+    return <DatePicker placeholder={t(filter.placeholder || filter.label)} value={value} onChange={onChange} style={style} />;
   }
   if (filter.type === 'number') {
     return (
       <Input
-        placeholder={filter.placeholder || filter.label}
+        placeholder={t(filter.placeholder || filter.label)}
         value={value ?? ''}
         onChange={(next) => onChange(next)}
         style={style}
@@ -53,7 +55,7 @@ function renderFilter(
   return (
     <Input
       prefix={<IconSearch />}
-      placeholder={filter.placeholder || filter.label}
+      placeholder={t(filter.placeholder || filter.label)}
       value={value ?? ''}
       onChange={(next) => onChange(next)}
       onEnterPress={() => onChange(value)}
@@ -83,6 +85,7 @@ export default function ListPage<T extends Record<string, any>>({
   onRowClick,
   rowActions,
 }: ListPageProps<T>) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<T[]>([]);
   const resolvedRowKey =
     typeof rowKey === 'function' ? '__frameworkKey' : (rowKey as string);
@@ -204,12 +207,12 @@ export default function ListPage<T extends Record<string, any>>({
           ? { ...payload, [drawer.idField]: (editingRecord as Record<string, any>)?.[resolvedRowKey] }
           : payload;
       await apiPost(targetApi, body);
-      Toast.success({ content: drawerMode === 'create' ? '创建成功' : '更新成功' });
+      Toast.success({ content: drawerMode === 'create' ? t('创建成功') : t('更新成功') });
       setDrawerVisible(false);
       setPage(1);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -219,10 +222,10 @@ export default function ListPage<T extends Record<string, any>>({
     if (!drawer?.deleteApi) return;
     try {
       await apiPost(drawer.deleteApi, { id: (record as Record<string, any>)[resolvedRowKey] });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -246,29 +249,33 @@ export default function ListPage<T extends Record<string, any>>({
   const displayFilterValue = (field: string, value: any) => {
     const config = filterMap[field];
     const option = config?.options?.find((item) => item.value === value);
-    return option ? `：${option.label}` : `：${value}`;
+    return option ? `：${t(String(option.label))}` : `：${value}`;
   };
   const scrollX =
     columns.reduce((sum, column) => sum + (column.width || 150), 0) + (hasActions ? actionWidth : 0);
+  const localizedColumns = columns.map((column) => ({
+    ...column,
+    title: typeof column.title === 'string' ? t(column.title) : column.title,
+  }));
   const tableColumns = [
-    ...columns,
+    ...localizedColumns,
     ...(hasActions
       ? [
           {
-            title: '操作',
+            title: t('操作'),
             width: actionWidth,
             fixed: 'right',
             render: (_: unknown, record: T) => (
               <Space spacing={2}>
                 {drawer && showEdit && (
                   <Button theme="borderless" size="small" onClick={() => openEdit(record)}>
-                    编辑
+                    {t('编辑')}
                   </Button>
                 )}
                 {drawer?.deleteApi && (
-                  <Popconfirm title="确定删除？" onConfirm={() => remove(record)}>
+                  <Popconfirm title={t('确定删除？')} onConfirm={() => remove(record)}>
                     <Button theme="borderless" type="danger" size="small">
-                      删除
+                      {t('删除')}
                     </Button>
                   </Popconfirm>
                 )}
@@ -290,12 +297,12 @@ export default function ListPage<T extends Record<string, any>>({
               <span className="framework-filter">
                 {renderFilter(filterMap[filters[0].field], filterValues[filters[0].field], (value) =>
                   setFilterValues((current) => ({ ...current, [filters[0].field]: value })),
-                )}
+                t)}
               </span>
             )}
             {filters[0] && (
               <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-                搜索
+                {t('搜索')}
               </Button>
             )}
             {filterLayout === 'popover' && filters.length > 1 ? (
@@ -306,23 +313,23 @@ export default function ListPage<T extends Record<string, any>>({
                   <div className="framework-filter-popover">
                     {filters.slice(1).map((filter) => (
                       <div className="framework-filter-row" key={filter.field}>
-                        <label>{filter.label}</label>
+                        <label>{t(filter.label)}</label>
                         {renderFilter(filter, filterValues[filter.field], (value) =>
                           setFilterValues((current) => ({ ...current, [filter.field]: value })),
-                        )}
+                        t)}
                       </div>
                     ))}
                     <div className="framework-filter-actions">
-                      <Button onClick={reset}>重置</Button>
+                      <Button onClick={reset}>{t('重置')}</Button>
                       <Button theme="solid" type="primary" onClick={search}>
-                        应用筛选
+                        {t('应用筛选')}
                       </Button>
                     </div>
                   </div>
                 }
               >
                 <Button>
-                  筛选
+                  {t('筛选')}
                   {activeEntries.length > 0 ? ` (${activeEntries.length})` : ''}
                 </Button>
               </Popover>
@@ -332,11 +339,11 @@ export default function ListPage<T extends Record<string, any>>({
                   <span key={filter.field} className="framework-filter">
                     {renderFilter(filter, filterValues[filter.field], (value) =>
                       setFilterValues((current) => ({ ...current, [filter.field]: value })),
-                    )}
+                    t)}
                   </span>
                 ))}
                 {filters.length > 0 && (
-                  <Button onClick={reset}>重置</Button>
+                  <Button onClick={reset}>{t('重置')}</Button>
                 )}
               </>
             )}
@@ -344,11 +351,11 @@ export default function ListPage<T extends Record<string, any>>({
           <Space>
             {toolbarExtra}
             <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-              刷新
+              {t('刷新')}
             </Button>
             {drawer && (
               <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-                {drawer.addText || '新增'}
+                {t(drawer.addText || '新增')}
               </Button>
             )}
           </Space>
@@ -356,10 +363,10 @@ export default function ListPage<T extends Record<string, any>>({
 
         {filterLayout === 'popover' && activeEntries.length > 0 && (
           <div className="framework-active-filters">
-            <span className="framework-active-label">已选条件</span>
+            <span className="framework-active-label">{t('已选条件')}</span>
             {activeEntries.map(([field, value]) => (
               <span className="framework-filter-chip" key={field}>
-                {filterMap[field]?.label || field}
+                {t(filterMap[field]?.label || field)}
                 {displayFilterValue(field, value)}
                 <IconClose
                   size="small"
@@ -374,17 +381,17 @@ export default function ListPage<T extends Record<string, any>>({
               </span>
             ))}
             <button type="button" onClick={reset}>
-              清空
+              {t('清空')}
             </button>
           </div>
         )}
 
         {batchActions && selectedRows.length > 0 && (
           <div className="batch-floating-bar">
-            <span>已选择 {selectedRows.length} 项</span>
+            <span>{t('已选择 {count} 项', { count: selectedRows.length })}</span>
             {batchActions(selectedRows, () => setSelectedKeys([]))}
             <Button theme="borderless" size="small" onClick={() => setSelectedKeys([])}>
-              取消选择
+              {t('取消选择')}
             </Button>
           </div>
         )}

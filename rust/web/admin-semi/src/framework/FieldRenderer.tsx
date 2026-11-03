@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Form, Switch } from '@douyinfe/semi-ui';
 import { apiGet } from '../api';
+import { useI18n } from '../i18n';
 import type { FieldConfig, OptionItem } from './types';
 
 interface FieldRendererProps {
@@ -61,6 +62,7 @@ function SwitchField({
   formApi: any;
   values: Record<string, any>;
 }) {
+  const { t } = useI18n();
   const normalize = (value: any) => value === true || Number(value) === 1;
   const [checked, setChecked] = useState(normalize(values[config.field]));
 
@@ -81,7 +83,7 @@ function SwitchField({
           }}
         />
         <span className={checked ? 'framework-switch-on' : 'framework-switch-off'}>
-          {checked ? config.checkedText || '已开启' : config.uncheckedText || '已关闭'}
+          {checked ? config.checkedText || t('已开启') : config.uncheckedText || t('已关闭')}
         </span>
       </div>
     </div>
@@ -95,11 +97,12 @@ export default function FieldRenderer({
   mode,
   inputWidth,
 }: FieldRendererProps) {
+  const { t } = useI18n();
   const width = config.width ?? config.inputWidth ?? inputWidth ?? 360;
   const required = config.required || config.requiredWhen?.(mode);
   const rules =
     config.rules ??
-    (required ? [{ required: true, message: `请填写${config.label}` }] : undefined);
+    (required ? [{ required: true, message: t('请填写{label}', { label: t(config.label) }) }] : undefined);
   const common = {
     field: config.field,
     label: config.label,

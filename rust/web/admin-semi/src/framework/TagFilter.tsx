@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Select } from '@douyinfe/semi-ui';
 import { apiGet } from '../api';
+import { useI18n } from '../i18n';
 
 interface TagFilterProps {
   value?: Array<string | number>;
@@ -9,6 +10,7 @@ interface TagFilterProps {
 }
 
 export default function TagFilter({ value, onChange, width = 220 }: TagFilterProps) {
+  const { t } = useI18n();
   const [options, setOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +50,7 @@ export default function TagFilter({ value, onChange, width = 220 }: TagFilterPro
       multiple
       filter
       loading={loading}
-      placeholder="选择客户标签"
+      placeholder={t('选择客户标签')}
       value={Array.isArray(value) ? value : []}
       optionList={options}
       onChange={(next) => onChange((next as Array<string | number>) || [])}

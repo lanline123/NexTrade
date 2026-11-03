@@ -16,6 +16,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
 import { configLabels } from '../config/configLabels';
+import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
 import RichTextEditor from '../components/RichTextEditor';
 import RegionSelect from '../components/RegionSelect';
@@ -228,6 +229,7 @@ export default function AutoConfigPage({
   renderers,
   onSaved,
 }: AutoConfigPageProps) {
+  const { t } = useI18n();
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -266,14 +268,14 @@ export default function AutoConfigPage({
         try {
           payload[key] = JSON.parse(raw);
         } catch {
-          throw new Error(`${labelOf(key)} JSON 格式不正确`);
+          throw new Error(`${t(labelOf(key))} ${t('JSON 格式不正确')}`);
         }
       });
       await apiPost(saveApi, payload);
       onSaved?.(payload);
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -293,7 +295,7 @@ export default function AutoConfigPage({
     const rest = entries.filter(([key]) => !known.has(key));
     if (rest.length) {
       if (result.length) result[result.length - 1].items.push(...rest);
-      else result.push({ title: '其它', items: rest });
+      else result.push({ title: t('其它'), items: rest });
     }
     return result;
   }, [entries, sections]);
@@ -341,7 +343,7 @@ export default function AutoConfigPage({
     const custom = renderers?.[key];
     return (
       <div className={`auto-config-field ${wide ? 'is-wide' : ''}`} key={key}>
-        <label>{labelOf(key)}</label>
+        <label>{t(labelOf(key))}</label>
         <div className="auto-config-control">
         {custom ? (
           custom({ value, values, update })
@@ -448,8 +450,8 @@ export default function AutoConfigPage({
             disabled={disabled}
             onChange={(event) => update(key, Number(event.target.value))}
           >
-            <Radio value="1">是</Radio>
-            <Radio value="0">否</Radio>
+            <Radio value="1">{t('是')}</Radio>
+            <Radio value="0">{t('否')}</Radio>
           </RadioGroup>
         ) : isBinaryFlag ? (
           <Switch
@@ -495,14 +497,14 @@ export default function AutoConfigPage({
     <Card className="auto-config-card" shadows="hover">
       <div className="auto-config-head">
         <Text type="tertiary" size="small">
-          共 {visibleEntries.length} 项配置
+          {t('共 {count} 项配置', { count: visibleEntries.length })}
         </Text>
       </div>
       {grouped.map((group) => {
         const renderedGroups = new Set<string>();
         return (
           <div className="auto-config-section" key={group.title || 'all'}>
-            {group.title && <h4>{group.title}</h4>}
+            {group.title && <h4>{t(group.title)}</h4>}
             <div className="auto-config-grid">
               {group.items.map(([key, value]) => {
                 const fieldGroup = (fieldGroups || []).find((item) => item.fields.includes(key));
@@ -522,13 +524,13 @@ export default function AutoConfigPage({
                           <span className="auto-config-subgroup-icon">{fieldGroup.icon}</span>
                         )}
                         <div className="auto-config-subgroup-head-main">
-                          <h5>{fieldGroup.title}</h5>
+                          <h5>{t(fieldGroup.title)}</h5>
                           {fieldGroup.description && (
-                            <p className="auto-config-subgroup-desc">{fieldGroup.description}</p>
+                            <p className="auto-config-subgroup-desc">{t(fieldGroup.description)}</p>
                           )}
                         </div>
                         {fieldGroup.tag && (
-                          <span className="auto-config-subgroup-tag">{fieldGroup.tag}</span>
+                          <span className="auto-config-subgroup-tag">{t(fieldGroup.tag)}</span>
                         )}
                       </div>
                       <div className="auto-config-subgroup-body">
@@ -548,7 +550,7 @@ export default function AutoConfigPage({
       })}
       <div className="auto-config-actions">
         <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
-          保存
+          {t('保存')}
         </Button>
       </div>
     </Card>
