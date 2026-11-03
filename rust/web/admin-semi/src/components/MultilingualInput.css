@@ -1,0 +1,80 @@
+.multilingual-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.multilingual-input > .semi-input-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+.multilingual-input__button {
+  flex-shrink: 0;
+  border-radius: 7px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-color: transparent;
+}
+.multilingual-input__button:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: #fff;
+}
+.multilingual-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.multilingual-dialog__source {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.multilingual-dialog__source > span {
+  width: 72px;
+  flex-shrink: 0;
+  color: #667085;
+  font-size: 13px;
+}
+.multilingual-dialog__source > .semi-input-wrapper {
+  flex: 1;
+}
+.multilingual-dialog__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.multilingual-dialog__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.multilingual-dialog__language {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 130px;
+  flex-shrink: 0;
+  color: #344054;
+  font-size: 13px;
+}
+.multilingual-dialog__language em {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 10px;
+  font-style: normal;
+  line-height: 16px;
+}
+.multilingual-dialog__row > .semi-input-wrapper {
+  flex: 1;
+}
+.multilingual-dialog__empty {
+  padding: 30px 0;
+  color: #98a2b3;
+  text-align: center;
+}

@@ -6705,3 +6705,32 @@ body {
   font-size: 12.5px;
   text-align: right;
 }
+
+/* 配置页输入框：增强边框、底色和聚焦状态 */
+.base-settings-card .auto-config-field .semi-input-wrapper,
+.base-settings-card .auto-config-field .semi-input-number,
+.base-settings-card .auto-config-field .semi-select,
+.base-settings-card .auto-config-field .semi-input-textarea-wrapper {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.base-settings-card .auto-config-field .semi-input-wrapper:hover,
+.base-settings-card .auto-config-field .semi-input-number:hover,
+.base-settings-card .auto-config-field .semi-select:hover,
+.base-settings-card .auto-config-field .semi-input-textarea-wrapper:hover {
+  border-color: #98a2b3;
+}
+.base-settings-card .auto-config-field .semi-input-wrapper-focus,
+.base-settings-card .auto-config-field .semi-input-number-focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+}
+.base-settings-card .auto-config-field .semi-input-wrapper input,
+.base-settings-card .auto-config-field .semi-input-number input {
+  height: 34px;
+  line-height: 34px;
+  color: #1f2329;
+}

@@ -11934,5 +11934,14 @@
   "店铺端取消已发货订单的规则。": "Store rules for cancelling shipped orders.",
   "平台代客下单时积分与余额的使用规则。": "Points and balance rules for platform-assisted orders.",
   "许可证号": "License number",
-  "经营性互联网信息服务需公示 ICP 增值电信业务经营许可证，该信息将展示在商城底部，证号为空则前台不显示。": "Commercial internet information services must display the ICP value-added telecom license. It appears in the storefront footer and is hidden when the license number is empty."
+  "经营性互联网信息服务需公示 ICP 增值电信业务经营许可证，该信息将展示在商城底部，证号为空则前台不显示。": "Commercial internet information services must display the ICP value-added telecom license. It appears in the storefront footer and is hidden when the license number is empty.",
+  "多语言": "Multilingual",
+  "多语言翻译": "Multilingual translation",
+  "翻译原文": "Source text",
+  "请输入翻译原文": "Enter source text",
+  "请输入翻译内容": "Enter translation",
+  "保存翻译": "Save translations",
+  "翻译已保存": "Translations saved",
+  "保存翻译失败": "Failed to save translations",
+  "读取多语言配置失败": "Failed to load multilingual settings"
 }

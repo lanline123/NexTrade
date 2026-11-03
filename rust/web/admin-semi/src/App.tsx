@@ -27,6 +27,7 @@ import TaxRates from './pages/TaxRates';
 import ShippingTypes from './pages/ShippingTypes';
 import ShippingSettingsPage from './pages/ShippingSettings';
 import AutoConfigPage, { BusinessLicenseConfigField, CopyrightConfigField, TechSupportConfigField, type ConfigRendererContext, type ConfigFieldGroup, type ConfigFieldRule } from './pages/AutoConfigPage';
+import MultilingualInput from './components/MultilingualInput';
 import LogisticsSettings from './pages/LogisticsSettings';
 import PayLogs from './pages/PayLogs';
 import RefundLogs from './pages/RefundLogs';
@@ -405,6 +406,15 @@ const configPages: Record<string, ConfigPageDef> = {
       shopCompany: (context) => <CopyrightConfigField {...context} />,
       poweredBy: (context) => <TechSupportConfigField {...context} />,
       businessLicenseEnabled: (context) => <BusinessLicenseConfigField {...context} />,
+      shopName: (context) => (
+        <MultilingualInput value={String(context.value ?? '')} onChange={(next) => context.update('shopName', next)} />
+      ),
+      kefuAddress: (context) => (
+        <MultilingualInput value={String(context.value ?? '')} onChange={(next) => context.update('kefuAddress', next)} />
+      ),
+      shopIcpNo: (context) => (
+        <MultilingualInput value={String(context.value ?? '')} onChange={(next) => context.update('shopIcpNo', next)} />
+      ),
     },
   },
   baseProductManage: { title: '商品设置', getApi: '/setting/config/productSettings', saveApi: '/setting/config/saveProduct' },
