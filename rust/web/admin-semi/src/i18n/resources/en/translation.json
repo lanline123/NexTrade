@@ -11965,5 +11965,10 @@
   "请输入 AppKey": "Enter AppKey",
   "请输入 AppSecret": "Enter AppSecret",
   "第三方配送配置接口暂未接入": "Third-party delivery configuration API is not available yet",
-  "请前往美团配送技术服务合作中心，商家端的开发管理模块直接获取": "Obtain these credentials from the Meituan Delivery technical service partner center, under the merchant developer management module."
+  "请前往美团配送技术服务合作中心，商家端的开发管理模块直接获取": "Obtain these credentials from the Meituan Delivery technical service partner center, under the merchant developer management module.",
+  "配送范围": "Delivery area",
+  "拖动地图上的圆点可调整配送半径，收货地址在配送范围之外的买家将不可下单": "Drag the handle on the map to adjust the delivery radius. Buyers outside the area cannot place orders.",
+  "未配置高德地图 JS Key，请先在「地图设置」中配置": "AMap JS Key is not configured. Configure it in Map settings first.",
+  "门店未设置经纬度，请先在门店信息中完善地址": "The store has no coordinates. Complete the store address first.",
+  "地图加载失败": "Failed to load the map"
 }

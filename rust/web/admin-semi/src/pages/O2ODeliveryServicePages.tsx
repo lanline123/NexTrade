@@ -19,6 +19,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconInfoCircle, IconMapPin, IconPlus, IconSend, IconSetting } from '@douyinfe/semi-icons';
 import SettingsCard from '../components/SettingsCard';
+import DeliveryRadiusMap from '../components/DeliveryRadiusMap';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import './premium-o2o-settings.css';
@@ -98,6 +99,8 @@ interface StoreSelfOperatedInfo {
   storeSelfOperatedRegion?: string;
   storeSelfOperatedAddress?: string;
   storeSelfOperatedPhone?: string;
+  storeSelfOperatedLongitude?: string | number;
+  storeSelfOperatedLatitude?: string | number;
 }
 
 const DEFAULT_INTRA_CITY: IntraCityPlatformConfig = {
@@ -396,8 +399,25 @@ export function IntraCityDelivery() {
             icon={<IconSend />}
             title={t('自营门店配送')}
             description={t('配送范围、费用与履约规则。')}
-            count={t('{count} 项', { count: 7 })}
+            count={t('{count} 项', { count: 8 })}
           >
+            <div className="config-field">
+              <label>{t('配送范围')}</label>
+              <div>
+                <DeliveryRadiusMap
+                  center={
+                    Number(store.storeSelfOperatedLongitude) && Number(store.storeSelfOperatedLatitude)
+                      ? [Number(store.storeSelfOperatedLongitude), Number(store.storeSelfOperatedLatitude)]
+                      : undefined
+                  }
+                  radius={Number(local.deliveryRadius) || 0}
+                  onChangeRadius={(next) => updateLocal({ deliveryRadius: next })}
+                />
+                <p className="config-field__help">
+                  {t('拖动地图上的圆点可调整配送半径，收货地址在配送范围之外的买家将不可下单')}
+                </p>
+              </div>
+            </div>
             <div className="config-field">
               <label>{t('配送半径')}</label>
               <div className="pmo-form-row">

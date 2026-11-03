@@ -7022,3 +7022,42 @@ body {
   margin-top: 2px;
   color: var(--primary);
 }
+
+
+/* 自营门店配送范围地图 */
+.delivery-radius-map {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  height: 320px;
+  overflow: hidden;
+  border: 1px solid #e9edf2;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.delivery-radius-map__canvas {
+  width: 100%;
+  height: 100%;
+}
+.delivery-radius-map__state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+}
+.delivery-radius-map__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 18px;
+}
