@@ -1390,3 +1390,20 @@
 .pchead-benefit-notice .image-uploader-tip {
   display: none;
 }
+
+/* 顶部提示内容：标题在上，分组占满整列 */
+.pchead-benefit-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+}
+.pchead-benefit-content__label {
+  color: #646a73;
+  font-size: 13px;
+  line-height: 28px;
+}
+.pchead-benefit-content .pchead-benefit-groups {
+  width: 100%;
+}

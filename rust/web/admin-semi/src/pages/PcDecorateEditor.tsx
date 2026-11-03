@@ -4327,12 +4327,13 @@ function PcHeaderPanel({
                 <HeaderField label="顶部菜单文字悬浮颜色">
                   <HeaderColorInput value={header.topMenuTextHoverColor || ''} onChange={(v) => set('topMenuTextHoverColor', v)} />
                 </HeaderField>
-                <HeaderField label="顶部提示内容">
+                <div className="pchead-benefit-content">
+                  <div className="pchead-benefit-content__label">{t('顶部提示内容')}</div>
                   <BenefitGroupsEditor
                     groups={(header.benefitNoticeGroups || []) as Array<Record<string, any>>}
                     onChange={updateBenefitGroups}
                   />
-                </HeaderField>
+                </div>
               </>
             )}
           </>
