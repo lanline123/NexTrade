@@ -3715,9 +3715,7 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
                     const notice = group?.notices?.[0] || {};
                     return (
                       <div className="pchead-benefit" key={groupIndex}>
-                        {notice.picUrl
-                          ? <img className="pchead-benefit__icon" src={notice.picUrl} alt="" />
-                          : <span className="pchead-benefit__check">✓</span>}
+                        {notice.picUrl && <img className="pchead-benefit__icon" src={notice.picUrl} alt="" />}
                         <span className="pchead-benefit__text">
                           <strong style={h.benefitTitleColor ? { color: h.benefitTitleColor } : undefined}>
                             {notice.picTitle || t('主标题')}

@@ -1437,3 +1437,24 @@
   min-width: 0;
   overflow: hidden;
 }
+
+/* 顶部提示内容：主标题、副标题同一行、同字号；无默认绿点 */
+.pchead-benefit__text {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.pchead-benefit__text strong,
+.pchead-benefit__text small {
+  font-size: 12px;
+  line-height: 1.2;
+}
+.pchead-benefit__text strong {
+  font-weight: 600;
+}
+.pchead-benefit__text small {
+  font-weight: 400;
+}
