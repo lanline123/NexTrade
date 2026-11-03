@@ -1160,3 +1160,49 @@
   .deco-loading-main { padding: 16px; }
   .deco-loading-dialog { min-width: 0; width: min(300px, 86vw); }
 }
+
+/* 跨境风 PC 头部预览：语言 / 我的 / 购物车 + 分类 / 搜索 / 导航 */
+.dec-pchead-overseas {
+  background: #fff;
+  padding: 14px 24px 0;
+}
+.dec-pchead-overseas--divider-1 { box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06); }
+.dec-pchead-overseas--divider-2 { border-bottom: 1px solid #eef0f3; }
+.dec-pchead-overseas__grid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: 20px;
+  min-height: 64px;
+}
+.dec-pchead-overseas__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.dec-pchead-overseas__entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 7px;
+  background: #f7f8fa;
+  color: #1f2329;
+  font-size: 12px;
+}
+.dec-pchead-overseas__entry .semi-icon {
+  font-size: 14px;
+  color: #64748b;
+}
+.dec-pchead-overseas__entry i {
+  font-style: normal;
+  color: #94a3b8;
+  font-size: 10px;
+}
+.dec-pchead-overseas .dec-pchead-nav {
+  margin-top: 8px;
+}

@@ -39,6 +39,8 @@ import {
   IconDelete,
   IconEyeClosed,
   IconEyeOpened,
+  IconGlobe,
+  IconUser,
   IconPlus,
   IconRefresh,
 } from '@douyinfe/semi-icons';
@@ -3767,8 +3769,62 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
         </div>
       )}
       {!simple && (
-        <div className="dec-pchead-body dec-pchead-body--white dec-pchead-body--divider-0" style={{ padding: '20px 24px', fontSize: 13, color: '#999' }}>
-          {t('跨境风头部（由跨境风专属字段驱动，画布预览以简约风结构为准）')}
+        <div className={`dec-pchead-overseas dec-pchead-overseas--divider-${divider}`}>
+          <div className="dec-pchead-overseas__grid">
+            <div className="dec-pchead-body__left">
+              <div className={`dec-pchead-logo dec-pchead-logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
+                {h.logoPic?.picUrl
+                  ? <img src={h.logoPic.picUrl} alt="logo" style={logoStyle} />
+                  : <span style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a' }}>LOGO</span>}
+              </div>
+              {showCategory && (
+                <div className="dec-pchead-cate" style={{ marginTop: Number(h.categoryMarginTop) || 0 }}>
+                  <span className="dec-pchead-cate__icon">☰</span>
+                  <span className="dec-pchead-cate__txt">{t('分类')}</span>
+                  <span className="dec-pchead-cate__arrow">▾</span>
+                </div>
+              )}
+            </div>
+            <div className="dec-pchead-body__center">
+              <div className="dec-pchead-search">
+                <div className="dec-pchead-search__box" style={{ borderColor: searchAccent }}>
+                  <span className="dec-pchead-search__type">{t('商品')} <i>▾</i></span>
+                  <input className="dec-pchead-search__input" placeholder={t('请输入关键词')} disabled />
+                  <span className="dec-pchead-search__submit" style={{ background: searchAccent }}>{t('搜索')}</span>
+                </div>
+                {showMainNav && (
+                  <ul className="dec-pchead-nav" style={{ marginTop: Number(h.mainNavPaddingTop) || 0, marginBottom: Number(h.mainNavPaddingBottom) || 0 }}>
+                    {navItems.map((label: string, i: number) => <li key={i}>{label}</li>)}
+                  </ul>
+                )}
+              </div>
+            </div>
+            <div className="dec-pchead-overseas__right">
+              <div className="dec-pchead-overseas__entry">
+                <IconGlobe />
+                <span>EN</span>
+                <i>▾</i>
+              </div>
+              <div className="dec-pchead-overseas__entry">
+                <IconUser />
+                <span>{t('我的')}</span>
+                <i>▾</i>
+              </div>
+              {showRightCart && (
+                cartStyle === 2 ? (
+                  <div className={`dec-pchead-cartpic${h.cartPic?.picUrl ? '' : ' dec-pchead-cartpic--empty'}`}>
+                    {h.cartPic?.picUrl ? <img src={h.cartPic.picUrl} alt="" /> : <span>{t('购物车图')}</span>}
+                  </div>
+                ) : (
+                  <div className="dec-pchead-cart">
+                    <span className="dec-pchead-cart__icon">🛒</span>
+                    <span className="dec-pchead-cart__count">18</span>
+                    <span className="dec-pchead-cart__text">{t('购物车')}</span>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
