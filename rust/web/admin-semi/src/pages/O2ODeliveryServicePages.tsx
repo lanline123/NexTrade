@@ -7,12 +7,15 @@ import {
   Radio,
   RadioGroup,
   Switch,
+  TabPane,
   Table,
+  Tabs,
   Tag,
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconPlus } from '@douyinfe/semi-icons';
+import { IconMapPin, IconPlus, IconSend, IconSetting } from '@douyinfe/semi-icons';
+import SettingsCard from '../components/SettingsCard';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import './premium-o2o-settings.css';
@@ -101,6 +104,7 @@ export function IntraCityDelivery() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<IntraCityPlatformConfig>(DEFAULT_INTRA_CITY);
+  const [activeTab, setActiveTab] = useState('delivery');
   const [local, setLocal] = useState<LocalDeliveryConfig>(DEFAULT_LOCAL_DELIVERY);
   const [store, setStore] = useState<StoreSelfOperatedInfo>({});
 
@@ -232,12 +236,17 @@ export function IntraCityDelivery() {
   const selfEnabled = Number(config.intraCitySelfDeliveryEnabled) === 1;
 
   return (
-    <div className="pmo-page">
-      <Card shadows="hover" className="table-card" loading={loading} title={t('同城配送')}>
-        <div className="pmo-form">
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('同城配送功能')}</div>
-            <div className="pmo-switch-row">
+    <div className="base-settings-list">
+      <SettingsCard
+        icon={<IconSend />}
+        title={t('同城配送功能')}
+        description={t('买家下单支持同城配送，商家可自行配送')}
+        count={t('{count} 项', { count: 1 })}
+      >
+        <div className="config-field">
+          <label>{t('同城配送功能')}</label>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Switch
                 aria-label={t('同城配送功能')}
                 checked={Number(config.intraCityDeliveryEnabled) === 1}
@@ -247,60 +256,96 @@ export function IntraCityDelivery() {
                 {Number(config.intraCityDeliveryEnabled) === 1 ? t('已开启') : t('已关闭')}
               </Tag>
             </div>
-            <div className="pmo-help">{t('买家下单支持同城配送，商家可自行配送')}</div>
           </div>
+        </div>
+      </SettingsCard>
 
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('配送设置')}</div>
-            <div className="pmo-option-block">
-              <div className="pmo-switch-row">
+      <Tabs
+        type="line"
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(String(key))}
+        style={{ marginBottom: 12 }}
+      >
+        <TabPane tab={t('配送设置')} itemKey="delivery" />
+        <TabPane tab={t('自营门店配送')} itemKey="selfShop" />
+      </Tabs>
+
+      {activeTab === 'delivery' && (
+        <SettingsCard
+          icon={<IconSetting />}
+          title={t('配送设置')}
+          description={t('商家自配送与第三方配送渠道。')}
+          count={t('{count} 项', { count: 2 })}
+        >
+          <div className="config-field">
+            <label>{t('商家自配送')}</label>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Switch
                   aria-label={t('启用商家自配送')}
                   checked={selfEnabled}
                   onChange={(checked) => setConfig({ ...config, intraCitySelfDeliveryEnabled: checked ? 1 : 0 })}
                 />
-                <span className="pmo-option-name">{t('商家自配送')}</span>
+                <span>{selfEnabled ? t('已开启') : t('已关闭')}</span>
               </div>
-              <div className="pmo-help">
+              <p className="config-field__help">
                 {t('启用商家自配送：平台启用后，商家同城配送订单，可选用平台已配置的任意配送渠道完成发货。')}
-              </div>
+              </p>
             </div>
-            <div className="pmo-option-block">
-              <div className="pmo-switch-row">
+          </div>
+          <div className="config-field">
+            <label>{t('第三方配送')}</label>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Switch
                   aria-label={t('启用第三方配送')}
                   checked={Number(config.intraCityThirdPartyDeliveryEnabled) === 1}
                   onChange={(checked) => setConfig({ ...config, intraCityThirdPartyDeliveryEnabled: checked ? 1 : 0 })}
                 />
-                <span className="pmo-option-name">{t('第三方配送')}</span>
+                <span>
+                  {Number(config.intraCityThirdPartyDeliveryEnabled) === 1 ? t('已开启') : t('已关闭')}
+                </span>
               </div>
-              <div className="pmo-help">
+              <p className="config-field__help">
                 {t('启用第三方配送：开启后，将由第三方物流进行配送，配送产生的费用，将在门店余额中进行扣除。')}
-              </div>
+              </p>
             </div>
           </div>
+        </SettingsCard>
+      )}
 
-          {selfEnabled && (
-            <div className="pmo-section">
-              <div className="pmo-section-title">{t('自营门店配送')}</div>
-              <div className="pmo-option-block">
-                <div className="pmo-form-row">
-                  <span className="pmo-form-label">{t('发货方')}</span>
-                  <Text>{store.storeSelfOperatedName || '--'}</Text>
-                </div>
-                <div className="pmo-form-row">
-                  <span className="pmo-form-label">{t('门店地址')}</span>
-                  <Text>
-                    {(store.storeSelfOperatedRegion || '') + (store.storeSelfOperatedAddress || '') || '--'}
-                  </Text>
-                </div>
-                <div className="pmo-help">
+      {activeTab === 'selfShop' && (
+        <>
+          <SettingsCard
+            icon={<IconMapPin />}
+            title={t('门店信息')}
+            description={t('自营门店发货信息，地址请在门店设置中维护。')}
+            count={t('{count} 项', { count: 2 })}
+          >
+            <div className="config-field">
+              <label>{t('发货方')}</label>
+              <div>{store.storeSelfOperatedName || '--'}</div>
+            </div>
+            <div className="config-field">
+              <label>{t('门店地址')}</label>
+              <div>
+                {(store.storeSelfOperatedRegion || '') + (store.storeSelfOperatedAddress || '') || '--'}
+                <p className="config-field__help">
                   {t('配送区域以门店为中心设置服务半径，若要修改地址，请前往门店设置 → 门店信息编辑。')}
-                </div>
+                </p>
               </div>
+            </div>
+          </SettingsCard>
 
+          <SettingsCard
+            icon={<IconSend />}
+            title={t('自营门店配送')}
+            description={t('配送范围、费用与履约规则。')}
+            count={t('{count} 项', { count: 7 })}
+          >
+            <div className="config-field">
+              <label>{t('配送半径')}</label>
               <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('配送半径')}</span>
                 <InputNumber
                   min={0}
                   value={local.deliveryRadius}
@@ -309,9 +354,10 @@ export function IntraCityDelivery() {
                 />
                 <span className="pmo-unit">{t('米')}</span>
               </div>
-
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('发单模式')}</span>
+            </div>
+            <div className="config-field">
+              <label>{t('发单模式')}</label>
+              <div>
                 <RadioGroup
                   value={local.orderDispatchMode}
                   onChange={(event) => updateLocal({ orderDispatchMode: Number(event.target.value) })}
@@ -320,116 +366,126 @@ export function IntraCityDelivery() {
                   <Radio value={2}>{t('手动派单')}</Radio>
                 </RadioGroup>
               </div>
-
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('取货时拍照')}</span>
+            </div>
+            <div className="config-field">
+              <label>{t('取货时拍照')}</label>
+              <div>
                 <Switch
                   checked={Number(local.pickupPhotoEnabled) === 1}
                   onChange={(checked) => updateLocal({ pickupPhotoEnabled: checked ? 1 : 0 })}
                 />
-                <span className="pmo-help">{t('开启后配送员取货时需拍照上传取货照片')}</span>
+                <p className="config-field__help">{t('开启后配送员取货时需拍照上传取货照片')}</p>
               </div>
-
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('配送完成拍照')}</span>
+            </div>
+            <div className="config-field">
+              <label>{t('配送完成拍照')}</label>
+              <div>
                 <Switch
                   checked={Number(local.deliveryCompletePhotoEnabled) === 1}
                   onChange={(checked) => updateLocal({ deliveryCompletePhotoEnabled: checked ? 1 : 0 })}
                 />
-                <span className="pmo-help">{t('开启后配送员完成订单需拍照上传送达照片')}</span>
+                <p className="config-field__help">{t('开启后配送员完成订单需拍照上传送达照片')}</p>
               </div>
-
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('起送价')}</span>
-                <InputNumber
-                  min={0}
-                  value={local.minOrderAmount}
-                  onChange={(value) => updateLocal({ minOrderAmount: toNumber(value) })}
-                  style={{ width: 160 }}
-                />
-                <span className="pmo-unit">{t('元')}</span>
-                <span className="pmo-help">
+            </div>
+            <div className="config-field">
+              <label>{t('起送价')}</label>
+              <div>
+                <div className="pmo-form-row">
+                  <InputNumber
+                    min={0}
+                    value={local.minOrderAmount}
+                    onChange={(value) => updateLocal({ minOrderAmount: toNumber(value) })}
+                    style={{ width: 160 }}
+                  />
+                  <span className="pmo-unit">{t('元')}</span>
+                </div>
+                <p className="config-field__help">
                   {t('订单商品优惠前金额低于起送价时，买家不能下单')}
-                </span>
+                </p>
               </div>
-
-              <div className="pmo-form-row">
-                <span className="pmo-form-label">{t('基础运费')}</span>
-                <InputNumber
-                  min={0}
-                  value={local.baseDeliveryFee}
-                  onChange={(value) => updateLocal({ baseDeliveryFee: toNumber(value) })}
-                  style={{ width: 160 }}
-                />
-                <span className="pmo-unit">{t('元')}</span>
-                <span className="pmo-help">
+            </div>
+            <div className="config-field">
+              <label>{t('基础运费')}</label>
+              <div>
+                <div className="pmo-form-row">
+                  <InputNumber
+                    min={0}
+                    value={local.baseDeliveryFee}
+                    onChange={(value) => updateLocal({ baseDeliveryFee: toNumber(value) })}
+                    style={{ width: 160 }}
+                  />
+                  <span className="pmo-unit">{t('元')}</span>
+                </div>
+                <p className="config-field__help">
                   {t('未开启叠加溢价时，所有订单统一使用基础运费')}
-                </span>
+                </p>
               </div>
-
-              <div className="pmo-switch-row">
-                <Switch
-                  checked={Number(local.distancePricingEnabled) === 1}
-                  onChange={(checked) => updateLocal({ distancePricingEnabled: checked ? 1 : 0 })}
-                />
-                <span className="pmo-option-name">{t('叠加溢价')}</span>
-                <span className="pmo-help">{t('最终费用 = 基础运费 + 叠加溢价')}</span>
-              </div>
-
-              {Number(local.distancePricingEnabled) === 1 && (
-                <div className="pmo-pricing-block">
-                  {(local.distancePricingList || []).map((rule, index) => (
-                    <div className="pmo-form-row" key={index}>
-                      <span>{t('超过')}</span>
-                      <InputNumber
-                        min={0}
-                        value={rule.distanceThreshold}
-                        onChange={(value) => updateRule(index, { distanceThreshold: toNumber(value) })}
-                        style={{ width: 100 }}
-                      />
-                      <span>{t('km，每增加')}</span>
-                      <InputNumber
-                        min={0}
-                        value={rule.distanceUnit}
-                        onChange={(value) => updateRule(index, { distanceUnit: toNumber(value) })}
-                        style={{ width: 100 }}
-                      />
-                      <span>{t('km，配送费增加')}</span>
-                      <InputNumber
-                        min={0}
-                        value={rule.additionalFee}
-                        onChange={(value) => updateRule(index, { additionalFee: toNumber(value) })}
-                        style={{ width: 100 }}
-                      />
-                      <span>{t('元')}</span>
-                      <Button theme="borderless" type="danger" size="small" onClick={() => removeRule(index)}>
-                        {t('删除')}
+            </div>
+            <div className="config-field">
+              <label>{t('叠加溢价')}</label>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Switch
+                    checked={Number(local.distancePricingEnabled) === 1}
+                    onChange={(checked) => updateLocal({ distancePricingEnabled: checked ? 1 : 0 })}
+                  />
+                  <span className="pmo-help">{t('最终费用 = 基础运费 + 叠加溢价')}</span>
+                </div>
+                {Number(local.distancePricingEnabled) === 1 && (
+                  <div className="pmo-pricing-block">
+                    {(local.distancePricingList || []).map((rule, index) => (
+                      <div className="pmo-form-row" key={index}>
+                        <span>{t('超过')}</span>
+                        <InputNumber
+                          min={0}
+                          value={rule.distanceThreshold}
+                          onChange={(value) => updateRule(index, { distanceThreshold: toNumber(value) })}
+                          style={{ width: 100 }}
+                        />
+                        <span>{t('km，每增加')}</span>
+                        <InputNumber
+                          min={0}
+                          value={rule.distanceUnit}
+                          onChange={(value) => updateRule(index, { distanceUnit: toNumber(value) })}
+                          style={{ width: 100 }}
+                        />
+                        <span>{t('km，配送费增加')}</span>
+                        <InputNumber
+                          min={0}
+                          value={rule.additionalFee}
+                          onChange={(value) => updateRule(index, { additionalFee: toNumber(value) })}
+                          style={{ width: 100 }}
+                        />
+                        <span>{t('元')}</span>
+                        <Button theme="borderless" type="danger" size="small" onClick={() => removeRule(index)}>
+                          {t('删除')}
+                        </Button>
+                      </div>
+                    ))}
+                    <div>
+                      <Button
+                        icon={<IconPlus />}
+                        theme="borderless"
+                        type="primary"
+                        disabled={(local.distancePricingList || []).length >= 10}
+                        onClick={addRule}
+                      >
+                        {t('添加收费规则')}
                       </Button>
                     </div>
-                  ))}
-                  <div>
-                    <Button
-                      icon={<IconPlus />}
-                      theme="borderless"
-                      type="primary"
-                      disabled={(local.distancePricingList || []).length >= 10}
-                      onClick={addRule}
-                    >
-                      {t('添加收费规则')}
-                    </Button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          )}
+          </SettingsCard>
+        </>
+      )}
 
-          <div>
-            <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
-              {t('提交')}
-            </Button>
-          </div>
-        </div>
-      </Card>
+      <div className="config-actions">
+        <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
+          {t('提交')}
+        </Button>
+      </div>
     </div>
   );
 }
