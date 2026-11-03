@@ -1299,3 +1299,12 @@
   flex: 1;
   min-width: 90px;
 }
+
+/* LOGO 宽高：滑块在左，数值输入在右 */
+.pchead-size-control {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+.pchead-size-control .semi-input-number {
+  flex-shrink: 0;
+}
