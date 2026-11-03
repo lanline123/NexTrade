@@ -3750,7 +3750,7 @@ function BenefitNoticePreview({
     const root = measureRef.current;
     if (!root) return;
     const widths = Array.from(root.querySelectorAll<HTMLElement>('.pchead-benefit__measure-item'))
-      .map((el) => Math.ceil(el.getBoundingClientRect().width));
+      .map((el) => Math.ceil(el.offsetWidth || el.scrollWidth));
     setTextWidth(widths.length ? Math.max(...widths) : 0);
   }, [signature]);
 
