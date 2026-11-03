@@ -5442,3 +5442,103 @@ body {
   height: 36px;
   border-radius: 11px;
 }
+
+/* ============================================================
+   登录页明亮版：浅色背景 + 浅薄荷/浅蓝品牌区
+   ============================================================ */
+.login-page {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(153, 246, 228, 0.55) 0, transparent 34%),
+    radial-gradient(circle at 88% 82%, rgba(191, 219, 254, 0.55) 0, transparent 38%),
+    linear-gradient(160deg, #f8fcfb 0%, #f2f8ff 55%, #f7fbfa 100%);
+}
+.login-aurora {
+  opacity: 0.55;
+  filter: blur(110px);
+}
+.login-aurora--one {
+  background: #99f6e4;
+}
+.login-aurora--two {
+  background: #bfdbfe;
+}
+.login-shell {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
+}
+.login-hero {
+  color: #0f172a;
+  background:
+    radial-gradient(circle at 82% 28%, rgba(45, 212, 191, 0.16) 0, transparent 42%),
+    linear-gradient(150deg, #f0fdfa 0%, #ecfeff 48%, #eef6ff 100%);
+  border-right: 1px solid #e6eef0;
+}
+.login-hero-grid {
+  opacity: 0.55;
+  background-image:
+    linear-gradient(rgba(13, 148, 136, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13, 148, 136, 0.1) 1px, transparent 1px);
+}
+.login-hero-rings span {
+  border-color: rgba(13, 148, 136, 0.14);
+}
+.login-hero-rings span:nth-child(2) {
+  border-color: rgba(13, 148, 136, 0.2);
+}
+.login-hero-rings span:nth-child(3) {
+  border-color: rgba(13, 148, 136, 0.28);
+  box-shadow: 0 0 80px rgba(45, 212, 191, 0.16);
+}
+.login-hero-brand strong {
+  color: #0f172a;
+}
+.login-hero-brand small {
+  color: #64748b;
+}
+.login-hero-eyebrow {
+  color: #0f766e;
+}
+.login-hero-copy h1 {
+  color: #0f172a;
+}
+.login-hero-copy h1 em {
+  color: #0f766e;
+}
+.login-hero-copy h1 em::after {
+  background: linear-gradient(90deg, #14b8a6, rgba(20, 184, 166, 0));
+}
+.login-hero-copy p {
+  color: #475569;
+}
+.login-hero-points {
+  border-top-color: rgba(15, 23, 42, 0.08);
+}
+.login-hero-points strong {
+  color: #0f172a;
+}
+.login-hero-points span {
+  color: #64748b;
+}
+.login-hero-footer {
+  color: #94a3b8;
+}
+.login-ai-tag {
+  border-color: #99f6e4;
+  background: #ccfbf1;
+  color: #0f766e;
+}
+.login-ai-tag i {
+  background: #14b8a6;
+  box-shadow: 0 0 8px rgba(20, 184, 166, 0.8);
+}
+.login-panel {
+  background: #fff;
+}
+@media (max-width: 960px) {
+  .login-page {
+    background:
+      radial-gradient(circle at 20% 0%, rgba(153, 246, 228, 0.5) 0, transparent 45%),
+      linear-gradient(170deg, #f8fcfb 0%, #f2f8ff 100%);
+  }
+}
