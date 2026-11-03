@@ -6559,3 +6559,39 @@ body {
     gap: 10px;
   }
 }
+
+/* 基础信息：与图像搜索页同宽、同标题规格 */
+.base-settings-list {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+.base-settings-card .semi-card-header-wrapper {
+  padding: 14px 20px;
+  border-bottom: 0;
+}
+.base-settings-card .semi-card-header,
+.base-settings-card .semi-card-header-bordered {
+  border-bottom: 0;
+}
+.base-settings-card__title {
+  align-items: center;
+  gap: 10px;
+}
+.base-settings-card__title-text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.base-settings-card__title-text strong {
+  color: #1f2329;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+}
+.base-settings-card__title-text small {
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 18px;
+}
