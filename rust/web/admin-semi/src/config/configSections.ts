@@ -194,7 +194,8 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
         "primaryColor",
         "layout",
         "adminLightLogo",
-        "versionInfoHidden"
+        "versionInfoHidden",
+        "clientDefaultUse"
       ]
     },
     {
@@ -239,7 +240,24 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
       "title": "地区设置",
       "fields": [
         "shopCountry",
-        "defaultCountry"
+        "defaultCountry",
+        "shopDefaultRegions"
+      ]
+    },
+    {
+      "title": "多语言设置",
+      "fields": [
+        "langOn",
+        "langType",
+        "langVolcengineAccessKey",
+        "langVolcengineSecret"
+      ]
+    },
+    {
+      "title": "链接设置",
+      "fields": [
+        "seoCategoryEnable",
+        "seoProductEnable"
       ]
     },
     {
@@ -280,6 +298,7 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
     {
       "title": "MCP 设置",
       "fields": [
+        "workbuddyApiKey",
         "workbuddyApiKeyExpiresAt"
       ]
     }
@@ -382,10 +401,29 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
     {
       "title": "短信设置",
       "fields": [
+        "smsProvider",
+        "smsAliyunChannel",
+        "smsHuaweiAppKey",
+        "smsHuaweiAppSecret",
+        "smsHuaweiChannel",
+        "smsHuaweiEndpoint",
+        "smsHuaweiShopMobile",
+        "smsHuaweiSignName",
         "smsKeyId",
         "smsKeySecret",
+        "smsSenderId",
+        "smsShopMobile",
         "smsSignName",
-        "smsShopMobile"
+        "smsTencentSdkAppId",
+        "smsTencentSecretId",
+        "smsTencentSecretKey",
+        "smsTencentShopMobile",
+        "smsTencentSignName",
+        "smsVolcengineAccessKey",
+        "smsVolcengineSecretKey",
+        "smsVolcengineShopMobile",
+        "smsVolcengineSignName",
+        "smsVolcengineSmsAccount"
       ]
     },
     {

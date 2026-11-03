@@ -101,7 +101,7 @@ export const configLabels: Record<string, string> = {
   "workbuddyApiKeyExpiresAt": "密钥有效期",
   "guestLikeGoodsName": "自定义名称",
   "isGuestLikeGoods": "猜你喜欢",
-  "searchSelfStore": "searchScopeTitle",
+  "searchSelfStore": "搜门店",
   "indexSearchShop": "首页搜索",
   "mapProvider": "地图服务商",
   "kefuType": "客服选择",
