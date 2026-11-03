@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Form, Toast, Typography } from '@douyinfe/semi-ui';
 import { IconArrowLeft, IconHome, IconLock, IconPhone, IconUser } from '@douyinfe/semi-icons';
 import { apiGet, login, loginMobile, sendMobileCode, setToken } from '../api';
+import { useI18n } from '../i18n';
 
 const { Title, Text } = Typography;
 
@@ -23,6 +24,7 @@ function tokenAdminType(token: string): string {
 }
 
 export default function Login({ onSuccess }: { onSuccess: () => void }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'login' | 'org'>('login');
   const [account, setAccount] = useState('');
@@ -182,7 +184,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
 
-          <div className="login-hero-footer">© 2026 NexTrade · 数字化交易底座</div>
+          <div className="login-hero-footer">© 2026 NexTrade · {t('数字化交易底座')}</div>
         </aside>
 
         <main className="login-panel">

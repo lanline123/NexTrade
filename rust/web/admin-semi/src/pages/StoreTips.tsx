@@ -9,6 +9,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
 import ListPage from '../framework/ListPage';
+import { useI18n } from '../i18n';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 /**
@@ -29,15 +30,16 @@ interface StoreTipRow {
 }
 
 export default function StoreTips() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/o2o/tip/del', { id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -49,10 +51,10 @@ export default function StoreTips() {
         field: 'status',
         val,
       });
-      Toast.success({ content: '状态更新成功' });
+      Toast.success({ content: t('状态更新成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新状态失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新状态失败') });
     }
   };
 
@@ -71,21 +73,21 @@ export default function StoreTips() {
         fields: [
           {
             field: 'tipName',
-            label: '标签名称',
+            label: t('标签名称'),
             type: 'input',
             required: true,
-            placeholder: '输入标签名称',
+            placeholder: t('输入标签名称'),
             width: 320,
           },
           {
             field: 'status',
-            label: '状态',
+            label: t('状态'),
             type: 'radio',
             required: true,
             initValue: 1,
             options: [
-              { label: '启用', value: 1 },
-              { label: '禁用', value: 0 },
+              { label: t('启用'), value: 1 },
+              { label: t('禁用'), value: 0 },
             ],
           },
         ],
@@ -119,8 +121,8 @@ export default function StoreTips() {
         <Switch
           checked={val === 1}
           onChange={(checked) => handleStatusChange(record, checked)}
-          checkedText="启用"
-          uncheckedText="禁用"
+          checkedText={t('启用')}
+          uncheckedText={t('禁用')}
         />
       ),
     },

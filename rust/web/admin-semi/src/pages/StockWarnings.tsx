@@ -16,6 +16,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconHelpCircle, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, apiUpload, clearToken, getContextHeaders, getToken, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
 import type { FormDrawerConfig, OptionItem } from '../framework/types';
 import './stock-warnings.css';
@@ -158,15 +159,16 @@ const requestDownload = async (
   URL.revokeObjectURL(url);
 };
 
-const ensureNotDemo = () => {
+const ensureNotDemo = (t: (key: string) => string) => {
   if (isDemo()) {
-    Toast.warning({ content: '演示模式不支持该操作' });
+    Toast.warning({ content: t('演示模式不支持该操作') });
     return false;
   }
   return true;
 };
 
 export default function StockWarnings() {
+  const { t } = useI18n();
   // 库存预警通知总开关（GET/POST /product/stockWarning/setting）
   const [notifyEnabled, setNotifyEnabled] = useState(0);
   const [notifySaving, setNotifySaving] = useState(false);
@@ -215,7 +217,7 @@ export default function StockWarnings() {
     if (isDemo()) return;
     apiGet<{ notifyEnabled?: number }>('/product/stockWarning/setting')
       .then((result) => setNotifyEnabled(result?.notifyEnabled === 1 ? 1 : 0))
-      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '请求失败' }));
+      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : t('请求失败') }));
   }, []);
 
   useEffect(() => {
@@ -237,7 +239,7 @@ export default function StockWarnings() {
         setTotal(result.total || 0);
       })
       .catch((error) => {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '请求失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('请求失败') });
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -275,17 +277,17 @@ export default function StockWarnings() {
 
   // ——— 总开关 ———
   const onNotifyChange = async (next: boolean) => {
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     const value = next ? 1 : 0;
     const previous = notifyEnabled;
     setNotifyEnabled(value);
     setNotifySaving(true);
     try {
       await apiPost('/product/stockWarning/setting', { notifyEnabled: value });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
     } catch (error) {
       setNotifyEnabled(previous);
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setNotifySaving(false);
     }
@@ -312,7 +314,7 @@ export default function StockWarnings() {
 
   const columns = [
     {
-      title: '商品名称',
+      title: t('商品名称'),
       dataIndex: 'productName',
       width: 320,
       render: (_: unknown, row: StockWarningRow) => (
@@ -326,7 +328,7 @@ export default function StockWarnings() {
             />
           ) : null}
           <div className="sw-product-text">
-            <span className="sw-product-name" title="商品名称">
+            <span className="sw-product-name" title={t('商品名称')}>
               {row.productName || '-'}
             </span>
             <span className="sw-product-sn">{row.productSn || '-'}</span>
@@ -335,21 +337,21 @@ export default function StockWarnings() {
       ),
     },
     {
-      title: '规格',
+      title: t('规格'),
       dataIndex: 'productSkuName',
       width: 160,
       render: (value: string) => <span>{value || '-'}</span>,
     },
     {
-      title: '相关商品',
+      title: t('相关商品'),
       dataIndex: 'relatedProductCount',
       width: 90,
       render: (value: number) => (
-        <span title="相关商品数量">{Number(value) > 0 ? value : '-'}</span>
+        <span title={t('相关商品数量')}>{Number(value) > 0 ? value : '-'}</span>
       ),
     },
     {
-      title: '实物库存',
+      title: t('实物库存'),
       dataIndex: 'currentStock',
       width: 110,
       sorter: true,
@@ -358,8 +360,8 @@ export default function StockWarnings() {
     {
       title: (
         <span className="sw-header-tip">
-          在途库存
-          <Tooltip content="采购未入库的数量">
+          {t('在途库存')}
+          <Tooltip content={t('采购未入库的数量')}>
             <IconHelpCircle size="small" />
           </Tooltip>
         </span>
@@ -371,7 +373,7 @@ export default function StockWarnings() {
       render: (value: number) => <span>{formatLimit(value)}</span>,
     },
     {
-      title: '库存下限',
+      title: t('库存下限'),
       dataIndex: 'lowerLimit',
       width: 110,
       sorter: true,
@@ -379,7 +381,7 @@ export default function StockWarnings() {
       render: (value: number | null) => <span>{formatLimit(value)}</span>,
     },
     {
-      title: '库存上限',
+      title: t('库存上限'),
       dataIndex: 'upperLimit',
       width: 110,
       sorter: true,
@@ -387,28 +389,28 @@ export default function StockWarnings() {
       render: (value: number | null) => <span>{formatLimit(value)}</span>,
     },
     {
-      title: '库存状态',
+      title: t('库存状态'),
       dataIndex: 'stockStatus',
       width: 100,
       render: (_: unknown, row: StockWarningRow) => {
         const meta = stockStatusMeta(row);
         if (!meta) return <span>-</span>;
-        return <Tag color={meta.color as never}>{meta.label}</Tag>;
+        return <Tag color={meta.color as never}>{t(meta.label)}</Tag>;
       },
     },
     {
-      title: '库存预警',
+      title: t('库存预警'),
       dataIndex: 'warnEnabled',
       width: 90,
-      render: (value: number | null) => <span>{warnEnabledLabel(value)}</span>,
+      render: (value: number | null) => <span>{t(warnEnabledLabel(value))}</span>,
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       width: 80,
       render: (_: unknown, row: StockWarningRow) => (
         <Button theme="borderless" size="small" onClick={() => openSet(row)}>
-          设置
+          {t('设置')}
         </Button>
       ),
     },
@@ -428,34 +430,34 @@ export default function StockWarnings() {
       sections: [
         {
           key: 'rule',
-          title: '预警规则',
+          title: t('预警规则'),
           description: isBatch
-            ? `将为选中的 ${setTargets.length} 个商品/SKU 统一设置以下预警规则`
+            ? t('将为选中的 {count} 个商品/SKU 统一设置以下预警规则', { count: setTargets.length })
             : undefined,
           fields: [
             {
               field: 'warnEnabled',
-              label: '库存预警',
+              label: t('库存预警'),
               type: 'switch',
-              checkedText: '开启',
-              uncheckedText: '关闭',
-              extraText: '开启后，该商品达到库存上/下限的商品将会自动推送消息',
+              checkedText: t('开启'),
+              uncheckedText: t('关闭'),
+              extraText: t('开启后，该商品达到库存上/下限的商品将会自动推送消息'),
             },
             {
               field: 'lowerLimit',
-              label: '库存下限',
+              label: t('库存下限'),
               type: 'number',
               required: true,
-              placeholder: '请输入库存下限',
-              extraText: '当实时库存 < 库存下限，将显示低库存',
+              placeholder: t('请输入库存下限'),
+              extraText: t('当实时库存 < 库存下限，将显示低库存'),
             },
             {
               field: 'upperLimit',
-              label: '库存上限',
+              label: t('库存上限'),
               type: 'number',
               required: true,
-              placeholder: '请输入库存上限',
-              extraText: '当实时库存 > 库存上限，将显示高库存',
+              placeholder: t('请输入库存上限'),
+              extraText: t('当实时库存 > 库存上限，将显示高库存'),
             },
           ],
         },
@@ -466,7 +468,7 @@ export default function StockWarnings() {
         upperLimit: values.upperLimit === '' || values.upperLimit === undefined ? null : Number(values.upperLimit),
       }),
     }),
-    [isBatch, setTargets.length],
+    [isBatch, setTargets.length, t],
   );
 
   const openSet = (row: StockWarningRow) => {
@@ -491,14 +493,14 @@ export default function StockWarnings() {
     const successCount = Number(result?.successCount || 0);
     const failItems = result?.failItems || [];
     if (successCount > 0) {
-      Toast.success({ content: `成功设置${successCount}条` });
+      Toast.success({ content: t('成功设置{count}条', { count: successCount }) });
     }
     // 后端失败项只回传定位信息，没有商品名
     failItems.forEach((item) => {
-      Toast.error({ content: `${item.productId}：${item.reason || '设置失败'}` });
+      Toast.error({ content: t('{id}：{reason}', { id: String(item.productId ?? ''), reason: item.reason || t('设置失败') }) });
     });
     if (successCount === 0 && failItems.length === 0) {
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
     }
   };
 
@@ -508,15 +510,15 @@ export default function StockWarnings() {
     const upperLimit = Number(payload.upperLimit);
     // 后端要求上下限始终必填，关闭开关时也照样保存，重新打开即恢复
     if (!Number.isInteger(lowerLimit) || lowerLimit < 0) {
-      Toast.error({ content: '库存下限须为非负整数' });
+      Toast.error({ content: t('库存下限须为非负整数') });
       return;
     }
     if (!Number.isInteger(upperLimit) || upperLimit < 0) {
-      Toast.error({ content: '库存上限须为非负整数' });
+      Toast.error({ content: t('库存上限须为非负整数') });
       return;
     }
     if (upperLimit <= lowerLimit) {
-      Toast.error({ content: '库存上限必须大于库存下限' });
+      Toast.error({ content: t('库存上限必须大于库存下限') });
       return;
     }
     setSetSaving(true);
@@ -536,13 +538,13 @@ export default function StockWarnings() {
           lowerLimit,
           upperLimit,
         });
-        Toast.success({ content: '操作成功' });
+        Toast.success({ content: t('操作成功') });
       }
       setSetOpen(false);
       clearSelection();
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setSetSaving(false);
     }
@@ -551,17 +553,17 @@ export default function StockWarnings() {
   // ——— 批量导出（只导勾选行：后端按 productId_skuId 定位，筛选条件不参与） ———
   const handleExport = async () => {
     if (!selectedRows.length) {
-      Toast.error({ content: '请先选择要导出的数据' });
+      Toast.error({ content: t('请先选择要导出的数据') });
       return;
     }
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     setExporting(true);
     try {
       const ids = selectedRows.map((row) => `${row.productId}_${row.skuId}`).join(',');
       await requestDownload('/product/stockWarning/export', '库存预警导出.xlsx', { params: { ids } });
-      Toast.success({ content: '导出成功' });
+      Toast.success({ content: t('导出成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     } finally {
       setExporting(false);
     }
@@ -588,18 +590,18 @@ export default function StockWarnings() {
   };
 
   const downloadTemplate = async () => {
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     try {
       await requestDownload('/product/stockWarning/downloadTemplate', '库存预警导入模板.xlsx');
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   const pickImportFile = (file: File | null | undefined) => {
     if (!file) return;
     if (file.size / 1024 / 1024 >= 10) {
-      Toast.error({ content: '只能上传10M以内的文件' });
+      Toast.error({ content: t('只能上传10M以内的文件') });
       return;
     }
     setImportFile(file);
@@ -610,7 +612,7 @@ export default function StockWarnings() {
 
   const importNow = async () => {
     if (!importFile) return;
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     setImporting(true);
     setImportMessage('');
     // 接口一旦发出数据就可能已变化，关闭时刷新，不等结果
@@ -622,15 +624,15 @@ export default function StockWarnings() {
       if (failCount > 0) {
         setImportState('partial');
         setImportSuccessCount(Number(result?.successCount || 0));
-        setImportMessage(`导入完成，成功${Number(result?.successCount || 0)}条，失败${failCount}条`);
+        setImportMessage(t('导入完成，成功{success}条，失败{fail}条', { success: Number(result?.successCount || 0), fail: failCount }));
         return;
       }
       setImportState('success');
       setImportSuccessCount(Number(result?.successCount || 0));
-      Toast.success({ content: '导入成功' });
+      Toast.success({ content: t('导入成功') });
     } catch (error) {
       setImportState('error');
-      setImportMessage(error instanceof Error ? error.message : '导入失败');
+      setImportMessage(error instanceof Error ? error.message : t('导入失败'));
     } finally {
       setImporting(false);
     }
@@ -644,7 +646,7 @@ export default function StockWarnings() {
         file: importFile,
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
@@ -660,9 +662,9 @@ export default function StockWarnings() {
       return (
         <Select
           key={filter.field}
-          placeholder={filter.label}
+          placeholder={t(filter.label)}
           value={query.warnEnabled}
-          optionList={filter.options}
+          optionList={(filter.options || []).map((option) => ({ ...option, label: t(String(option.label)) }))}
           onChange={(next) => {
             setQuery((current) => ({ ...current, warnEnabled: Number(next) }));
             setPage(1);
@@ -675,7 +677,7 @@ export default function StockWarnings() {
       <Input
         key={filter.field}
         prefix={<IconSearch />}
-        placeholder={filter.placeholder}
+        placeholder={t(filter.placeholder)}
         value={keyword}
         onChange={(next) => setKeyword(next)}
         onEnterPress={search}
@@ -688,19 +690,19 @@ export default function StockWarnings() {
     <div className="sw-page">
       <Card shadows="hover" className="sw-switch-block">
         <div className="sw-switch-line">
-          <span className="sw-switch-label">库存预警通知</span>
+          <span className="sw-switch-label">{t('库存预警通知')}</span>
           <Switch
             checked={notifyEnabled === 1}
             loading={notifySaving}
             onChange={(next) => onNotifyChange(next)}
           />
-          <span className="sw-switch-desc">开启后，达到库存上/下限的商品将会自动推送消息预警</span>
+          <span className="sw-switch-desc">{t('开启后，达到库存上/下限的商品将会自动推送消息预警')}</span>
         </div>
       </Card>
 
       <Card shadows="hover" className="table-card">
         <div className="sw-section-header">
-          <div className="sw-section-title">商品预警设置</div>
+          <div className="sw-section-title">{t('商品预警设置')}</div>
           <Tabs
             type="button"
             size="small"
@@ -709,7 +711,7 @@ export default function StockWarnings() {
               setStockStatus(Number(key));
               setPage(1);
             }}
-            tabList={STOCK_STATUS_TABS.map((tab) => ({ tab: tab.label, itemKey: String(tab.value) }))}
+            tabList={STOCK_STATUS_TABS.map((tab) => ({ tab: t(tab.label), itemKey: String(tab.value) }))}
           />
         </div>
 
@@ -717,24 +719,24 @@ export default function StockWarnings() {
           <Space wrap>
             {FILTERS.map((filter) => renderFilter(filter))}
             <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-              搜索
+              {t('搜索')}
             </Button>
-            <Button onClick={reset}>重置</Button>
+            <Button onClick={reset}>{t('重置')}</Button>
             <Button icon={<IconRefresh />} onClick={reload}>
-              刷新
+              {t('刷新')}
             </Button>
           </Space>
           <Space wrap>
             <Button disabled={!selectedRows.length} onClick={openBatchSet}>
-              设置库存预警
+              {t('设置库存预警')}
             </Button>
-            <Button onClick={openImport}>导入库存预警</Button>
+            <Button onClick={openImport}>{t('导入库存预警')}</Button>
             <Button loading={exporting} disabled={!selectedRows.length} onClick={handleExport}>
-              批量导出
+              {t('批量导出')}
             </Button>
             <span className="sw-selected-total">
-              共{total}条
-              {selectedRows.length ? `，已选择${selectedRows.length}条` : ''}
+              {t('共{count}条', { count: total })}
+              {selectedRows.length ? t('，已选择{count}条', { count: selectedRows.length }) : ''}
             </span>
           </Space>
         </div>
@@ -776,12 +778,12 @@ export default function StockWarnings() {
         onSubmit={submitSet}
       />
 
-      <Modal title="导入库存预警" visible={importOpen} footer={null} width={620} onCancel={closeImport}>
+      <Modal title={t('导入库存预警')} visible={importOpen} footer={null} width={620} onCancel={closeImport}>
         <div className="sw-import">
           <div className="sw-import-tip">
-            上传前请先按Excel模板中的格式编辑内容{' '}
+            {t('上传前请先按Excel模板中的格式编辑内容')}{' '}
             <a className="sw-import-link" onClick={downloadTemplate}>
-              下载Excel模版
+              {t('下载Excel模版')}
             </a>
           </div>
           <input
@@ -805,17 +807,17 @@ export default function StockWarnings() {
           >
             {!importFile ? (
               <div className="sw-import-hint">
-                <div>将文件拖拽至此区域，或点击添加</div>
-                <div className="sw-import-sub">支持 .xls, .xlsx 格式，限10M以内</div>
+                <div>{t('将文件拖拽至此区域，或点击添加')}</div>
+                <div className="sw-import-sub">{t('支持 .xls, .xlsx 格式，限10M以内')}</div>
               </div>
             ) : importState === 'success' ? (
               <div className="sw-import-hint">
                 <div className="sw-import-file">{importFile.name}</div>
-                <div>全部导入成功，共{importSuccessCount}条</div>
+                <div>{t('全部导入成功，共{count}条', { count: importSuccessCount })}</div>
                 <Space>
-                  <Button onClick={clearImportFile}>继续导入</Button>
+                  <Button onClick={clearImportFile}>{t('继续导入')}</Button>
                   <Button theme="solid" type="primary" onClick={closeImport}>
-                    完成
+                    {t('完成')}
                   </Button>
                 </Space>
               </div>
@@ -824,14 +826,14 @@ export default function StockWarnings() {
                 <div className="sw-import-file">{importFile.name}</div>
                 <Space>
                   <a className="sw-import-link" onClick={(event) => { event.stopPropagation(); fileInputRef.current?.click(); }}>
-                    重新上传
+                    {t('重新上传')}
                   </a>
                   <a className="sw-import-link" onClick={(event) => { event.stopPropagation(); clearImportFile(); }}>
-                    删除
+                    {t('删除')}
                   </a>
                 </Space>
                 <Button theme="solid" type="primary" loading={importing} onClick={(event) => { event.stopPropagation(); importNow(); }}>
-                  立即导入
+                  {t('立即导入')}
                 </Button>
               </div>
             ) : (
@@ -839,27 +841,27 @@ export default function StockWarnings() {
                 <div className="sw-import-file sw-import-error-text">{importMessage}</div>
                 {importState === 'partial' ? (
                   <div className="sw-import-sub">
-                    您可以下载失败数据，修改后再重新导入{' '}
+                    {t('您可以下载失败数据，修改后再重新导入')}{' '}
                     <a className="sw-import-link" onClick={(event) => { event.stopPropagation(); downloadErrorData(); }}>
-                      下载失败数据
+                      {t('下载失败数据')}
                     </a>
                   </div>
                 ) : null}
                 <Space>
-                  <Button onClick={clearImportFile}>继续导入</Button>
+                  <Button onClick={clearImportFile}>{t('继续导入')}</Button>
                   <Button theme="solid" type="primary" onClick={(event) => { event.stopPropagation(); closeImport(); }}>
-                    完成
+                    {t('完成')}
                   </Button>
                 </Space>
               </div>
             )}
           </div>
           <div className="sw-import-footer">
-            <div className="sw-import-footer-title">导入规则</div>
-            <div>1. 请先下载模板，在模板中按字段填写信息，然后上传该文件。</div>
-            <div>2. 导入未完成之前，请勿关闭页面，否则可能数据错误。</div>
-            <div>3. 文件大小不超过10MB。</div>
-            <div>4. 限制导入10000行记录，超出部分请分多次导入。</div>
+            <div className="sw-import-footer-title">{t('导入规则')}</div>
+            <div>{t('1. 请先下载模板，在模板中按字段填写信息，然后上传该文件。')}</div>
+            <div>{t('2. 导入未完成之前，请勿关闭页面，否则可能数据错误。')}</div>
+            <div>{t('3. 文件大小不超过10MB。')}</div>
+            <div>{t('4. 限制导入10000行记录，超出部分请分多次导入。')}</div>
           </div>
         </div>
       </Modal>

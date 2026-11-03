@@ -18,6 +18,7 @@ import { IconExport } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import { salesmanDownloadExport, salesmanFormatPrice, salesmanFormatTime } from './SalesmanOverview';
 import './salesman.css';
 
@@ -29,6 +30,7 @@ const { Text } = Typography;
    接口: GET/POST /salesman/config/detail|save?code=salesmanSettlement
 =================================================================== */
 export function SalesmanSettlementSetting() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settlementType, setSettlementType] = useState<number>(1);
@@ -46,7 +48,7 @@ export function SalesmanSettlementSetting() {
           setDesc(String(res.desc ?? ''));
         }
       } catch (error) {
-        Toast.error({ content: error instanceof Error ? error.message : '加载结算方案失败' });
+        Toast.error({ content: error instanceof Error ? error.message : t('加载结算方案失败') });
       } finally {
         setLoading(false);
       }
@@ -61,9 +63,9 @@ export function SalesmanSettlementSetting() {
         dateType,
         desc,
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -76,20 +78,20 @@ export function SalesmanSettlementSetting() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div className={`salesman-settle-radio-card ${settlementType === 1 ? 'is-active' : ''}`}>
               <Radio value={1}>
-                <span style={{ fontWeight: 600 }}>系统自动结算</span>
+                <span style={{ fontWeight: 600 }}>{t('系统自动结算')}</span>
                 <div className="salesman-radio-desc">
-                  佣金结算时，订单佣金将自动从店铺账户余额中扣除发放到分销员的零钱账户，分销员即可提现。
+                  {t('佣金结算时，订单佣金将自动从店铺账户余额中扣除发放到分销员的零钱账户，分销员即可提现。')}
                 </div>
-                <div className="salesman-settle-radio-card-tips">效率高，适合分销员为外部人员的商家</div>
+                <div className="salesman-settle-radio-card-tips">{t('效率高，适合分销员为外部人员的商家')}</div>
               </Radio>
             </div>
             <div className={`salesman-settle-radio-card ${settlementType === 2 ? 'is-active' : ''}`}>
               <Radio value={2}>
-                <span style={{ fontWeight: 600 }}>线下人工结算</span>
+                <span style={{ fontWeight: 600 }}>{t('线下人工结算')}</span>
                 <div className="salesman-radio-desc">
-                  系统仅做业绩统计，商家需和分销员线下确认佣金结算时间和佣金支付方式（例如“微信转账”等）。
+                  {t('系统仅做业绩统计，商家需和分销员线下确认佣金结算时间和佣金支付方式（例如“微信转账”等）。')}
                 </div>
-                <div className="salesman-settle-radio-card-tips">更灵活，适合分销员为内部员工的商家</div>
+                <div className="salesman-settle-radio-card-tips">{t('更灵活，适合分销员为内部员工的商家')}</div>
               </Radio>
             </div>
           </div>
@@ -97,26 +99,25 @@ export function SalesmanSettlementSetting() {
 
         {settlementType === 1 && (
           <div className="salesman-form-row" style={{ marginTop: 24 }}>
-            <div className="row-label">自动结算时间：</div>
+            <div className="row-label">{t('自动结算时间：')}</div>
             <div className="row-body">
               <RadioGroup value={dateType} onChange={(e) => setDateType(Number(e.target.value))} direction="vertical">
                 <Radio value={0}>
                   <div>
-                    订单确认收货后第15天结算
-                    <span className="salesman-radio-label-tag">无亏损风险</span>
+                    {t('订单确认收货后第15天结算')}
+                    <span className="salesman-radio-label-tag">{t('无亏损风险')}</span>
                   </div>
                   <div className="salesman-radio-desc">
-                    当前订单客户无法再发起退款，可避免订单退款但佣金已结算的亏损。自动结算时间一般为7+15天。
+                    {t('当前订单客户无法再发起退款，可避免订单退款但佣金已结算的亏损。自动结算时间一般为7+15天。')}
                   </div>
                 </Radio>
                 <Radio value={1}>
                   <div>
-                    订单确认收货，立即结算
-                    <span className="salesman-radio-label-tag">结算时间短</span>
+                    {t('订单确认收货，立即结算')}
+                    <span className="salesman-radio-label-tag">{t('结算时间短')}</span>
                   </div>
                   <div className="salesman-radio-desc">
-                    风险提示：可能会产生订单退款但佣金已发放的亏损
-                    。若想进一步加快结算时间，可在订单处设置更短的自动确认收货时间。
+                    {t('风险提示：可能会产生订单退款但佣金已发放的亏损。若想进一步加快结算时间，可在订单处设置更短的自动确认收货时间。')}
                   </div>
                 </Radio>
               </RadioGroup>
@@ -126,23 +127,23 @@ export function SalesmanSettlementSetting() {
 
         {settlementType === 2 && (
           <div className="salesman-form-row" style={{ marginTop: 24 }}>
-            <div className="row-label">人工结算说明：</div>
+            <div className="row-label">{t('人工结算说明：')}</div>
             <div className="row-body">
               <TextArea
                 rows={5}
                 maxLength={200}
-                placeholder="请输入结算说明, 不超过200字"
+                placeholder={t('请输入结算说明, 不超过200字')}
                 value={desc}
                 onChange={(value) => setDesc(value)}
               />
-              <div className="salesman-mode-extra">结算说明将展示在商品推广订单中，若为空则不展示</div>
+              <div className="salesman-mode-extra">{t('结算说明将展示在商品推广订单中，若为空则不展示')}</div>
             </div>
           </div>
         )}
 
         <div style={{ marginTop: 24 }}>
           <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       </div>
@@ -185,6 +186,7 @@ const STATUS_TEXT_MAP: Record<number, { text: string; color: string }> = {
 };
 
 export function SalesmanPerformanceSettlement() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [exportVisible, setExportVisible] = useState(false);
   const [exportRange, setExportRange] = useState<number>(0);
@@ -195,16 +197,16 @@ export function SalesmanPerformanceSettlement() {
 
   const doSettle = async (ids: number[]) => {
     if (!ids.length) {
-      Toast.warning({ content: '请选择待结算记录' });
+      Toast.warning({ content: t('请选择待结算记录') });
       return;
     }
     try {
       await apiPost('/salesman/order/settlement', { ids });
-      Toast.success({ content: '结算成功' });
+      Toast.success({ content: t('结算成功') });
       setSelectedIds([]);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '结算失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('结算失败') });
     }
   };
 
@@ -212,7 +214,7 @@ export function SalesmanPerformanceSettlement() {
     setExporting(true);
     try {
       // Rust 未实现 isExport/range Excel 导出(参数被忽略),统一给出明确提示
-      await salesmanDownloadExport('/salesman/order/list', { range: exportRange }, '分销员业绩结算表.xlsx');
+      await salesmanDownloadExport('/salesman/order/list', { range: exportRange }, t('分销员业绩结算表.xlsx'));
       setExportVisible(false);
     } finally {
       setExporting(false);
@@ -227,15 +229,15 @@ export function SalesmanPerformanceSettlement() {
       render: (val: any, row: SalesmanOrderRow) => (
         <div>
           <div style={{ fontWeight: 600 }}>{val || '--'}</div>
-          <Text type="tertiary" size="small">下单时间：{row.addTime || '--'}</Text>
+          <Text type="tertiary" size="small">{t('下单时间：{time}', { time: row.addTime || '--' })}</Text>
         </div>
       ),
     },
     {
       title: (
         <span>
-          成交金额
-          <Tooltip content="不计运费、税费和附加费">
+          {t('成交金额')}
+          <Tooltip content={t('不计运费、税费和附加费')}>
             <span className="salesman-tooltip-icon">?</span>
           </Tooltip>
         </span>
@@ -247,7 +249,7 @@ export function SalesmanPerformanceSettlement() {
     {
       title: '收益类型',
       width: 110,
-      render: () => '商品佣金',
+      render: () => t('商品佣金'),
     },
     {
       title: '收益',
@@ -262,7 +264,7 @@ export function SalesmanPerformanceSettlement() {
       render: (val: any, row: SalesmanOrderRow) => {
         const meta = STATUS_TEXT_MAP[Number(val)];
         if (!meta) return row.statusText || '--';
-        return <Tag color={meta.color as never}>{meta.text}</Tag>;
+        return <Tag color={meta.color as never}>{t(meta.text)}</Tag>;
       },
     },
     {
@@ -289,12 +291,14 @@ export function SalesmanPerformanceSettlement() {
             onClick={async () => {
               const ids = rows.filter(canSettle).map((row) => row.salesmanOrderId);
               if (!ids.length) {
-                Toast.warning({ content: '请选择待结算记录' });
+                Toast.warning({ content: t('请选择待结算记录') });
                 return;
               }
               Modal.confirm({
-                title: '确认批量人工结算？',
-                content: `将对选中的 ${ids.length} 条待结算记录执行人工结算，仅统计业绩，不发放佣金金额。`,
+                title: t('确认批量人工结算？'),
+                content: t('将对选中的 {count} 条待结算记录执行人工结算，仅统计业绩，不发放佣金金额。', {
+                  count: ids.length,
+                }),
                 onOk: async () => {
                   await doSettle(ids);
                   clear();
@@ -302,7 +306,7 @@ export function SalesmanPerformanceSettlement() {
               });
             }}
           >
-            批量人工结算
+            {t('批量人工结算')}
           </Button>
         )}
         filters={[
@@ -331,18 +335,18 @@ export function SalesmanPerformanceSettlement() {
         ]}
         toolbarExtra={
           <Button icon={<IconExport />} theme="light" onClick={() => setExportVisible(true)}>
-            导出
+            {t('导出')}
           </Button>
         }
         rowActions={(record: SalesmanOrderRow) =>
           canSettle(record) ? (
             <Popconfirm
-              title="确认人工结算？"
-              content="结算后该记录将标记为「已结算」，仅统计业绩，不发放佣金金额（佣金按约定线下支付）。"
+              title={t('确认人工结算？')}
+              content={t('结算后该记录将标记为「已结算」，仅统计业绩，不发放佣金金额（佣金按约定线下支付）。')}
               onConfirm={() => doSettle([record.salesmanOrderId])}
             >
               <Button theme="borderless" type="primary" size="small">
-                人工结算
+                {t('人工结算')}
               </Button>
             </Popconfirm>
           ) : (
@@ -355,24 +359,24 @@ export function SalesmanPerformanceSettlement() {
 
       {/* 导出数据(导出维度)弹窗 */}
       <Modal
-        title="导出数据"
+        title={t('导出数据')}
         visible={exportVisible}
         onCancel={() => setExportVisible(false)}
         onOk={handleExportData}
-        okText="导出"
-        cancelText="取消"
+        okText={t('导出')}
+        cancelText={t('取消')}
         confirmLoading={exporting}
         width={480}
       >
         <div className="salesman-form-row">
-          <div className="row-label">导出维度：</div>
+          <div className="row-label">{t('导出维度：')}</div>
           <div className="row-body">
             <RadioGroup value={exportRange} onChange={(e) => setExportRange(Number(e.target.value))}>
-              <Radio value={0}>商品维度</Radio>
-              <Radio value={1}>订单维度</Radio>
+              <Radio value={0}>{t('商品维度')}</Radio>
+              <Radio value={1}>{t('订单维度')}</Radio>
             </RadioGroup>
             <div className="salesman-mode-extra">
-              {exportRange === 0 ? '以商品维度导出，每个商品展示一行' : '以订单维度导出，每个订单展示一行'}
+              {exportRange === 0 ? t('以商品维度导出，每个商品展示一行') : t('以订单维度导出，每个订单展示一行')}
             </div>
           </div>
         </div>

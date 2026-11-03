@@ -17,6 +17,7 @@ import {
   Toast,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 
@@ -29,6 +30,7 @@ const { Text, Title } = Typography;
  * props: promotionName, typeText, timeText
  * ========================================================================= */
 export function PromotionOverview() {
+  const { t } = useI18n();
   const [stats, setStats] = useState({
     activeCount: 12,
     totalCount: 48,
@@ -59,7 +61,7 @@ export function PromotionOverview() {
       title: '状态',
       dataIndex: 'status',
       width: 110,
-      render: (s: any) => <Tag color="green">进行中</Tag>,
+      render: (s: any) => <Tag color="green">{t('进行中')}</Tag>,
     },
     {
       title: '操作',
@@ -67,7 +69,7 @@ export function PromotionOverview() {
       width: 100,
       render: (_: any, row: any) => (
         <Button theme="borderless" type="primary">
-          查看
+          {t('查看')}
         </Button>
       ),
     },
@@ -78,31 +80,31 @@ export function PromotionOverview() {
       <Row gutter={16} style={{ marginBottom: 20 }}>
         <Col span={6}>
           <Card>
-            <Text type="secondary">进行中活动</Text>
+            <Text type="secondary">{t('进行中活动')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-primary)' }}>
-              {stats.activeCount} 个
+              {t('{count} 个', { count: stats.activeCount })}
             </div>
           </Card>
         </Col>
         <Col span={6}>
           <Card>
-            <Text type="secondary">累计开展活动</Text>
+            <Text type="secondary">{t('累计开展活动')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8 }}>
-              {stats.totalCount} 个
+              {t('{count} 个', { count: stats.totalCount })}
             </div>
           </Card>
         </Col>
         <Col span={6}>
           <Card>
-            <Text type="secondary">参与客户数</Text>
+            <Text type="secondary">{t('参与客户数')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-success)' }}>
-              {stats.userCount} 人
+              {t('{count} 人', { count: stats.userCount })}
             </div>
           </Card>
         </Col>
         <Col span={6}>
           <Card>
-            <Text type="secondary">累计优惠金额</Text>
+            <Text type="secondary">{t('累计优惠金额')}</Text>
             <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-danger)' }}>
               ¥{stats.discountAmount.toFixed(2)}
             </div>
@@ -129,6 +131,7 @@ export function PromotionOverview() {
  * props: styleId, styleName, styleTypeName, productCount, status, addTime
  * ========================================================================= */
 export function PromotionStyle() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'styleId', width: 80 },
     { title: '名称', dataIndex: 'styleName', width: 160 },
@@ -144,7 +147,7 @@ export function PromotionStyle() {
       dataIndex: 'status',
       width: 120,
       render: (s: any) => {
-        const text = s === 1 ? '活动进行中' : s === 2 ? '活动已结束' : '活动未开始';
+        const text = s === 1 ? t('活动进行中') : s === 2 ? t('活动已结束') : t('活动未开始');
         const color = s === 1 ? 'green' : s === 2 ? 'grey' : 'orange';
         return <Tag color={color}>{text}</Tag>;
       },
@@ -154,7 +157,7 @@ export function PromotionStyle() {
       title: '是否开启',
       dataIndex: 'isEnabled',
       width: 100,
-      render: (v: any) => <Tag color={v !== false ? 'green' : 'grey'}>{v !== false ? '开启' : '关闭'}</Tag>,
+      render: (v: any) => <Tag color={v !== false ? 'green' : 'grey'}>{v !== false ? t('开启') : t('关闭')}</Tag>,
     },
     { title: '创建时间', dataIndex: 'addTime', width: 170 },
     {
@@ -163,8 +166,8 @@ export function PromotionStyle() {
       width: 140,
       render: () => (
         <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
+          <Button theme="borderless" type="primary">{t('编辑')}</Button>
+          <Button theme="borderless" type="danger">{t('删除')}</Button>
         </Space>
       ),
     },
@@ -191,17 +194,23 @@ export function PromotionStyle() {
               key: 'basic',
               title: '基础配置',
               fields: [
-                { field: 'styleName', label: '样式名称', type: 'input', required: true },
+                { field: 'styleName', label: t('样式名称'), type: 'input', required: true },
                 {
                   field: 'styleType',
-                  label: '样式类型',
+                  label: t('样式类型'),
                   type: 'select',
                   options: [
-                    { label: '商品边框', value: 1 },
-                    { label: '活动背景', value: 2 },
+                    { label: t('商品边框'), value: 1 },
+                    { label: t('活动背景'), value: 2 },
                   ],
                 },
-                { field: 'isEnabled', label: '是否开启', type: 'switch', checkedText: '开启', uncheckedText: '关闭' },
+                {
+                  field: 'isEnabled',
+                  label: t('是否开启'),
+                  type: 'switch',
+                  checkedText: t('开启'),
+                  uncheckedText: t('关闭'),
+                },
               ],
             },
           ],
@@ -218,13 +227,14 @@ export function PromotionStyle() {
  * props: promotionName, limitAmount, giftName, startTime, endTime, status
  * ========================================================================= */
 export function RewardGift() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: '活动名称', dataIndex: 'promotionName', width: 180 },
     {
       title: '满额条件',
       dataIndex: 'limitAmount',
       width: 130,
-      render: (v: any) => `满 ¥${Number(v || 0).toFixed(2)}`,
+      render: (v: any) => t('满 ¥{amount}', { amount: Number(v || 0).toFixed(2) }),
     },
     { title: '赠品名称', dataIndex: 'giftName', width: 180, render: (v: any) => v || '专属定制礼包' },
     {
@@ -237,7 +247,7 @@ export function RewardGift() {
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '进行中' : '未开启'}</Tag>,
+      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('进行中') : t('未开启')}</Tag>,
     },
     {
       title: '操作',
@@ -245,8 +255,8 @@ export function RewardGift() {
       width: 140,
       render: () => (
         <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
+          <Button theme="borderless" type="primary">{t('编辑')}</Button>
+          <Button theme="borderless" type="danger">{t('删除')}</Button>
         </Space>
       ),
     },
@@ -274,9 +284,9 @@ export function RewardGift() {
               key: 'basic',
               title: '基础配置',
               fields: [
-                { field: 'promotionName', label: '活动名称', type: 'input', required: true },
-                { field: 'limitAmount', label: '满额条件(元)', type: 'input', required: true },
-                { field: 'giftName', label: '赠品名称', type: 'input', required: true },
+                { field: 'promotionName', label: t('活动名称'), type: 'input', required: true },
+                { field: 'limitAmount', label: t('满额条件(元)'), type: 'input', required: true },
+                { field: 'giftName', label: t('赠品名称'), type: 'input', required: true },
               ],
             },
           ],
@@ -293,13 +303,14 @@ export function RewardGift() {
  * props: name, points, sortOrder
  * ========================================================================= */
 export function SignInSetting() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: '名称', dataIndex: 'name', width: 160 },
     {
       title: '赠送积分',
       dataIndex: 'points',
       width: 130,
-      render: (v: any) => <Tag color="orange">+{v || 10} 积分</Tag>,
+      render: (v: any) => <Tag color="orange">{t('+{points} 积分', { points: v || 10 })}</Tag>,
     },
     { title: '排序', dataIndex: 'sortOrder', width: 100, render: (v: any) => v ?? 50 },
     {
@@ -308,8 +319,8 @@ export function SignInSetting() {
       width: 140,
       render: () => (
         <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
+          <Button theme="borderless" type="primary">{t('编辑')}</Button>
+          <Button theme="borderless" type="danger">{t('删除')}</Button>
         </Space>
       ),
     },
@@ -336,9 +347,9 @@ export function SignInSetting() {
               key: 'basic',
               title: '规则配置',
               fields: [
-                { field: 'name', label: '规则名称', type: 'input', required: true },
-                { field: 'points', label: '赠送积分', type: 'input', required: true },
-                { field: 'sortOrder', label: '排序', type: 'input' },
+                { field: 'name', label: t('规则名称'), type: 'input', required: true },
+                { field: 'points', label: t('赠送积分'), type: 'input', required: true },
+                { field: 'sortOrder', label: t('排序'), type: 'input' },
               ],
             },
           ],
@@ -355,6 +366,7 @@ export function SignInSetting() {
  * props: groupId, groupName, isUse, remark, addTime, upTime
  * ========================================================================= */
 export function ECard() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: '分组ID', dataIndex: 'groupId', width: 90 },
     { title: '分组名称', dataIndex: 'groupName', width: 180 },
@@ -362,7 +374,7 @@ export function ECard() {
       title: '是否使用',
       dataIndex: 'isUse',
       width: 110,
-      render: (v: any) => <Tag color={v ? 'green' : 'grey'}>{v ? '已使用' : '未使用'}</Tag>,
+      render: (v: any) => <Tag color={v ? 'green' : 'grey'}>{v ? t('已使用') : t('未使用')}</Tag>,
     },
     { title: '备注', dataIndex: 'remark', width: 200, render: (v: any) => v || '--' },
     { title: '创建时间', dataIndex: 'addTime', width: 170 },
@@ -373,8 +385,8 @@ export function ECard() {
       width: 140,
       render: () => (
         <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
+          <Button theme="borderless" type="primary">{t('编辑')}</Button>
+          <Button theme="borderless" type="danger">{t('删除')}</Button>
         </Space>
       ),
     },
@@ -401,8 +413,8 @@ export function ECard() {
               key: 'basic',
               title: '基础配置',
               fields: [
-                { field: 'groupName', label: '分组名称', type: 'input', required: true },
-                { field: 'remark', label: '备注', type: 'textarea' },
+                { field: 'groupName', label: t('分组名称'), type: 'input', required: true },
+                { field: 'remark', label: t('备注'), type: 'textarea' },
               ],
             },
           ],
@@ -419,6 +431,7 @@ export function ECard() {
  * props: cardGroupName, status, remark, groupTypeName, addTime
  * ========================================================================= */
 export function GiftCard() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: '礼品卡名称', dataIndex: 'cardGroupName', width: 180 },
     {
@@ -431,7 +444,7 @@ export function GiftCard() {
       title: '状态',
       dataIndex: 'status',
       width: 110,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '正常' : '已停用'}</Tag>,
+      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('正常') : t('已停用')}</Tag>,
     },
     { title: '备注', dataIndex: 'remark', width: 180, render: (v: any) => v || '--' },
     { title: '创建时间', dataIndex: 'addTime', width: 170 },
@@ -441,8 +454,8 @@ export function GiftCard() {
       width: 140,
       render: () => (
         <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
+          <Button theme="borderless" type="primary">{t('编辑')}</Button>
+          <Button theme="borderless" type="danger">{t('删除')}</Button>
         </Space>
       ),
     },
@@ -469,8 +482,8 @@ export function GiftCard() {
               key: 'basic',
               title: '基础配置',
               fields: [
-                { field: 'cardGroupName', label: '礼品卡名称', type: 'input', required: true },
-                { field: 'remark', label: '备注', type: 'textarea' },
+                { field: 'cardGroupName', label: t('礼品卡名称'), type: 'input', required: true },
+                { field: 'remark', label: t('备注'), type: 'textarea' },
               ],
             },
           ],
@@ -487,13 +500,14 @@ export function GiftCard() {
  * props: activityName, status, participantCount, startTime, endTime, createTime
  * ========================================================================= */
 export function Lottery() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: '活动名称', dataIndex: 'activityName', width: 180 },
     {
       title: '状态',
       dataIndex: 'status',
       width: 110,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '进行中' : '未开启'}</Tag>,
+      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('进行中') : t('未开启')}</Tag>,
     },
     { title: '参与人数', dataIndex: 'participantCount', width: 110, render: (v: any) => v ?? 0 },
     { title: '开始时间', dataIndex: 'startTime', width: 170 },
@@ -505,8 +519,8 @@ export function Lottery() {
       width: 140,
       render: () => (
         <Space>
-          <Button theme="borderless" type="primary">编辑</Button>
-          <Button theme="borderless" type="danger">删除</Button>
+          <Button theme="borderless" type="primary">{t('编辑')}</Button>
+          <Button theme="borderless" type="danger">{t('删除')}</Button>
         </Space>
       ),
     },
@@ -533,9 +547,9 @@ export function Lottery() {
               key: 'basic',
               title: '基础配置',
               fields: [
-                { field: 'activityName', label: '活动名称', type: 'input', required: true },
-                { field: 'startTime', label: '开始时间', type: 'date', required: true },
-                { field: 'endTime', label: '结束时间', type: 'date', required: true },
+                { field: 'activityName', label: t('活动名称'), type: 'input', required: true },
+                { field: 'startTime', label: t('开始时间'), type: 'date', required: true },
+                { field: 'endTime', label: t('结束时间'), type: 'date', required: true },
               ],
             },
           ],

@@ -20,6 +20,7 @@ import { IconPlus } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import RichTextEditor from '../components/RichTextEditor';
 import ImageUploader from '../components/ImageUploader';
 import ProductPicker from '../components/ProductPicker';
@@ -44,6 +45,7 @@ interface NoticeRow {
 }
 
 export function SalesmanNotice() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [statusOptions, setStatusOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [range, setRange] = useState<[string, string]>(['', '']);
@@ -100,7 +102,7 @@ export function SalesmanNotice() {
         content: res?.content || '',
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载内容详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载内容详情失败') });
       setFormVisible(false);
     } finally {
       setFormLoading(false);
@@ -109,23 +111,23 @@ export function SalesmanNotice() {
 
   const submit = async () => {
     if (!form.title.trim()) {
-      Toast.error({ content: '页面名称不能为空!' });
+      Toast.error({ content: t('页面名称不能为空!') });
       return;
     }
     if (!form.img.length) {
-      Toast.error({ content: '封面图片不能为空!' });
+      Toast.error({ content: t('封面图片不能为空!') });
       return;
     }
     if (!form.startTime) {
-      Toast.error({ content: '推送时间不能为空!' });
+      Toast.error({ content: t('推送时间不能为空!') });
       return;
     }
     if (!form.describe.trim()) {
-      Toast.error({ content: '页面描述不能为空!' });
+      Toast.error({ content: t('页面描述不能为空!') });
       return;
     }
     if (!form.content.trim()) {
-      Toast.error({ content: '正文内容不能为空!' });
+      Toast.error({ content: t('正文内容不能为空!') });
       return;
     }
     setSaving(true);
@@ -144,11 +146,11 @@ export function SalesmanNotice() {
       } else {
         await apiPost('/salesman/content/create', payload);
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setFormVisible(false);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -157,20 +159,20 @@ export function SalesmanNotice() {
   const updateField = async (row: NoticeRow, field: string, val: number) => {
     try {
       await apiPost('/salesman/content/updateField', { id: row.id, field, val });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   const removeOne = async (row: NoticeRow) => {
     try {
       await apiPost('/salesman/content/del', { id: row.id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -181,7 +183,7 @@ export function SalesmanNotice() {
       width: 260,
       render: (_: unknown, row: NoticeRow) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {Number(row.isTop) !== 0 && <Tag color="blue">置顶</Tag>}
+          {Number(row.isTop) !== 0 && <Tag color="blue">{t('置顶')}</Tag>}
           <span>{row.title || '--'}</span>
         </div>
       ),
@@ -223,32 +225,32 @@ export function SalesmanNotice() {
               style={{ width: 260 }}
             />
             <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-              立即新建
+              {t('立即新建')}
             </Button>
           </div>
         }
         rowActions={(record: NoticeRow) => (
           <>
             {Number(record.isTop) !== 0 && (
-              <Popconfirm title="确定取消置顶吗？" onConfirm={() => updateField(record, 'isTop', 0)}>
+              <Popconfirm title={t('确定取消置顶吗？')} onConfirm={() => updateField(record, 'isTop', 0)}>
                 <Button theme="borderless" type="primary" size="small">
-                  取消置顶
+                  {t('取消置顶')}
                 </Button>
               </Popconfirm>
             )}
             <Button theme="borderless" type="primary" size="small" onClick={() => openEdit(record)}>
-              编辑
+              {t('编辑')}
             </Button>
             {Number(record.isAvailable) === 1 ? (
-              <Popconfirm title="失效后将不可恢复，确认失效？" onConfirm={() => updateField(record, 'isAvailable', 0)}>
+              <Popconfirm title={t('失效后将不可恢复，确认失效？')} onConfirm={() => updateField(record, 'isAvailable', 0)}>
                 <Button theme="borderless" type="warning" size="small">
-                  失效
+                  {t('失效')}
                 </Button>
               </Popconfirm>
             ) : (
-              <Popconfirm title="确定删除？" onConfirm={() => removeOne(record)}>
+              <Popconfirm title={t('确定删除？')} onConfirm={() => removeOne(record)}>
                 <Button theme="borderless" type="danger" size="small">
-                  删除
+                  {t('删除')}
                 </Button>
               </Popconfirm>
             )}
@@ -258,33 +260,33 @@ export function SalesmanNotice() {
 
       {/* 添加活动通知/编辑内容(旧 Info.vue,双 Tab) */}
       <Modal
-        title={editingId ? '编辑内容' : '添加活动通知'}
+        title={editingId ? t('编辑内容') : t('添加活动通知')}
         visible={formVisible}
         onCancel={() => setFormVisible(false)}
         onOk={submit}
-        okText="提交"
-        cancelText="取消"
+        okText={t('提交')}
+        cancelText={t('取消')}
         confirmLoading={saving}
         width={760}
       >
         <Spin spinning={formLoading}>
           <Tabs type="line">
-            <Tabs.TabPane tab="基础设置" itemKey="base">
+            <Tabs.TabPane tab={t('基础设置')} itemKey="base">
               <div className="salesman-form-row">
-                <div className="row-label is-required">页面名称</div>
+                <div className="row-label is-required">{t('页面名称')}</div>
                 <div className="row-body">
                   <Input value={form.title} onChange={(value) => setForm({ ...form, title: value })} />
                 </div>
               </div>
               <div className="salesman-form-row">
-                <div className="row-label is-required">封面图片</div>
+                <div className="row-label is-required">{t('封面图片')}</div>
                 <div className="row-body">
                   <ImageUploader value={form.img} onChange={(next) => setForm({ ...form, img: next })} single />
-                  <div className="salesman-mode-extra">请统一上传比例为2:1的图片，宽600px，高450px（高清）</div>
+                  <div className="salesman-mode-extra">{t('请统一上传比例为2:1的图片，宽600px，高450px（高清）')}</div>
                 </div>
               </div>
               <div className="salesman-form-row">
-                <div className="row-label is-required">推送时间</div>
+                <div className="row-label is-required">{t('推送时间')}</div>
                 <div className="row-body">
                   <DatePicker
                     type="dateTime"
@@ -296,7 +298,7 @@ export function SalesmanNotice() {
                 </div>
               </div>
               <div className="salesman-form-row">
-                <div className="row-label">失效时间</div>
+                <div className="row-label">{t('失效时间')}</div>
                 <div className="row-body">
                   <DatePicker
                     type="dateTime"
@@ -308,22 +310,22 @@ export function SalesmanNotice() {
                 </div>
               </div>
               <div className="salesman-form-row">
-                <div className="row-label is-required">页面描述</div>
+                <div className="row-label is-required">{t('页面描述')}</div>
                 <div className="row-body">
                   <TextArea rows={3} value={form.describe} onChange={(value) => setForm({ ...form, describe: value })} />
                 </div>
               </div>
               <div className="salesman-form-row">
-                <div className="row-label">是否置顶</div>
+                <div className="row-label">{t('是否置顶')}</div>
                 <div className="row-body">
                   <RadioGroup value={form.isTop} onChange={(e) => setForm({ ...form, isTop: Number(e.target.value) })}>
-                    <Radio value={1}>置顶</Radio>
-                    <Radio value={0}>不置顶</Radio>
+                    <Radio value={1}>{t('置顶')}</Radio>
+                    <Radio value={0}>{t('不置顶')}</Radio>
                   </RadioGroup>
                 </div>
               </div>
             </Tabs.TabPane>
-            <Tabs.TabPane tab="正文内容" itemKey="content">
+            <Tabs.TabPane tab={t('正文内容')} itemKey="content">
               <RichTextEditor
                 value={form.content}
                 onChange={(html) => setForm((prev) => ({ ...prev, content: html }))}
@@ -350,6 +352,7 @@ interface CategoryRow {
 }
 
 export function SalesmanMaterialCategory() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [formVisible, setFormVisible] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -374,7 +377,7 @@ export function SalesmanMaterialCategory() {
         sortOrder: Number(res?.sortOrder ?? row.sortOrder ?? 50),
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载分类详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载分类详情失败') });
       setFormVisible(false);
     } finally {
       setFormLoading(false);
@@ -383,7 +386,7 @@ export function SalesmanMaterialCategory() {
 
   const submit = async () => {
     if (!form.categoryName.trim()) {
-      Toast.error({ content: '分类名称不能为空!' });
+      Toast.error({ content: t('分类名称不能为空!') });
       return;
     }
     setSaving(true);
@@ -393,11 +396,11 @@ export function SalesmanMaterialCategory() {
       } else {
         await apiPost('/salesman/category/create', form);
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setFormVisible(false);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -406,20 +409,20 @@ export function SalesmanMaterialCategory() {
   const removeOne = async (id: number) => {
     try {
       await apiPost('/salesman/category/del', { id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
   const removeBatch = async (ids: number[]) => {
     try {
       await apiPost('/salesman/category/batch', { type: 'del', ids });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -440,30 +443,30 @@ export function SalesmanMaterialCategory() {
         filters={[{ field: 'categoryName', label: '分类名称', placeholder: '输入分类名称', type: 'input' }]}
         batchActions={(rows: CategoryRow[], clear: () => void) => (
           <Popconfirm
-            title="您确认要批量删除所选数据吗？"
+            title={t('您确认要批量删除所选数据吗？')}
             onConfirm={async () => {
               await removeBatch(rows.map((row) => row.categoryId));
               clear();
             }}
           >
             <Button type="danger" theme="solid" size="small">
-              批量删除
+              {t('批量删除')}
             </Button>
           </Popconfirm>
         )}
         toolbarExtra={
           <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-            新建分类
+            {t('新建分类')}
           </Button>
         }
         rowActions={(record: CategoryRow) => (
           <>
             <Button theme="borderless" type="primary" size="small" onClick={() => openEdit(record)}>
-              编辑
+              {t('编辑')}
             </Button>
-            <Popconfirm title="确定删除此分类吗？" onConfirm={() => removeOne(record.categoryId)}>
+            <Popconfirm title={t('确定删除此分类吗？')} onConfirm={() => removeOne(record.categoryId)}>
               <Button theme="borderless" type="danger" size="small">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </>
@@ -471,23 +474,23 @@ export function SalesmanMaterialCategory() {
       />
 
       <Modal
-        title={editingId ? '编辑分类' : '新建分类'}
+        title={editingId ? t('编辑分类') : t('新建分类')}
         visible={formVisible}
         onCancel={() => setFormVisible(false)}
         onOk={submit}
-        okText="提交"
-        cancelText="取消"
+        okText={t('提交')}
+        cancelText={t('取消')}
         confirmLoading={saving}
         width={600}
       >
         <div className="salesman-form-row">
-          <div className="row-label is-required">分类名称：</div>
+          <div className="row-label is-required">{t('分类名称：')}</div>
           <div className="row-body">
             <Input value={form.categoryName} onChange={(value) => setForm({ ...form, categoryName: value })} />
           </div>
         </div>
         <div className="salesman-form-row">
-          <div className="row-label">排序：</div>
+          <div className="row-label">{t('排序：')}</div>
           <div className="row-body">
             <InputNumber
               min={0}
@@ -520,6 +523,7 @@ interface MaterialRow {
 }
 
 export function SalesmanMaterial() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [categoryOptions, setCategoryOptions] = useState<Array<{ label: string; value: number }>>([]);
 
@@ -576,7 +580,7 @@ export function SalesmanMaterial() {
         isTop: Number(res?.isTop ?? 0),
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载素材详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载素材详情失败') });
       setFormVisible(false);
     } finally {
       setFormLoading(false);
@@ -585,19 +589,19 @@ export function SalesmanMaterial() {
 
   const submit = async () => {
     if (!form.pics.length) {
-      Toast.error({ content: '素材图片不能为空!' });
+      Toast.error({ content: t('素材图片不能为空!') });
       return;
     }
     if (!form.categoryId) {
-      Toast.error({ content: '请选择素材分类!' });
+      Toast.error({ content: t('请选择素材分类!') });
       return;
     }
     if (!form.content.trim()) {
-      Toast.error({ content: '素材内容不能为空!' });
+      Toast.error({ content: t('素材内容不能为空!') });
       return;
     }
     if (!form.productId.length) {
-      Toast.error({ content: '请选择商品!' });
+      Toast.error({ content: t('请选择商品!') });
       return;
     }
     setSaving(true);
@@ -614,11 +618,11 @@ export function SalesmanMaterial() {
       } else {
         await apiPost('/salesman/material/create', payload);
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setFormVisible(false);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -627,20 +631,20 @@ export function SalesmanMaterial() {
   const updateField = async (row: MaterialRow, field: string, val: number) => {
     try {
       await apiPost('/salesman/material/updateField', { id: row.id, field, val });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
     }
   };
 
   const removeOne = async (row: MaterialRow) => {
     try {
       await apiPost('/salesman/material/del', { id: row.id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -650,7 +654,7 @@ export function SalesmanMaterial() {
       dataIndex: 'content',
       render: (_: unknown, row: MaterialRow) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {Number(row.isTop) !== 0 && <Tag color="blue">置顶</Tag>}
+          {Number(row.isTop) !== 0 && <Tag color="blue">{t('置顶')}</Tag>}
           <span>{row.content || '--'}</span>
         </div>
       ),
@@ -684,33 +688,33 @@ export function SalesmanMaterial() {
         ]}
         toolbarExtra={
           <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-            立即新建
+            {t('立即新建')}
           </Button>
         }
         rowActions={(record: MaterialRow) => (
           <>
             {Number(record.isTop) !== 0 && (
-              <Popconfirm title="确定取消置顶吗？" onConfirm={() => updateField(record, 'isTop', 0)}>
+              <Popconfirm title={t('确定取消置顶吗？')} onConfirm={() => updateField(record, 'isTop', 0)}>
                 <Button theme="borderless" type="primary" size="small">
-                  取消置顶
+                  {t('取消置顶')}
                 </Button>
               </Popconfirm>
             )}
             <Button theme="borderless" type="primary" size="small" onClick={() => openEdit(record)}>
-              编辑
+              {t('编辑')}
             </Button>
             <Popconfirm
-              title={Number(record.isAvailable) === 1 ? '确认失效？' : '确认恢复？'}
+              title={Number(record.isAvailable) === 1 ? t('确认失效？') : t('确认恢复？')}
               onConfirm={() => updateField(record, 'isAvailable', Number(record.isAvailable) === 1 ? 0 : 1)}
             >
               <Button theme="borderless" type="warning" size="small">
-                {Number(record.isAvailable) === 1 ? '失效' : '恢复'}
+                {Number(record.isAvailable) === 1 ? t('失效') : t('恢复')}
               </Button>
             </Popconfirm>
             {Number(record.isAvailable) !== 1 && (
-              <Popconfirm title="确定删除？" onConfirm={() => removeOne(record)}>
+              <Popconfirm title={t('确定删除？')} onConfirm={() => removeOne(record)}>
                 <Button theme="borderless" type="danger" size="small">
-                  删除
+                  {t('删除')}
                 </Button>
               </Popconfirm>
             )}
@@ -720,28 +724,28 @@ export function SalesmanMaterial() {
 
       {/* 添加素材/编辑素材(旧 Info.vue) */}
       <Modal
-        title={editingId ? '编辑素材' : '添加素材'}
+        title={editingId ? t('编辑素材') : t('添加素材')}
         visible={formVisible}
         onCancel={() => setFormVisible(false)}
         onOk={submit}
-        okText="提交"
-        cancelText="取消"
+        okText={t('提交')}
+        cancelText={t('取消')}
         confirmLoading={saving}
         width={700}
       >
         <Spin spinning={formLoading}>
           <div className="salesman-form-row">
-            <div className="row-label is-required">素材图片</div>
+            <div className="row-label is-required">{t('素材图片')}</div>
             <div className="row-body">
               <ImageUploader value={form.pics} onChange={(next) => setForm({ ...form, pics: next })} />
             </div>
           </div>
           <div className="salesman-form-row">
-            <div className="row-label is-required">素材分类</div>
+            <div className="row-label is-required">{t('素材分类')}</div>
             <div className="row-body">
               <Select
                 style={{ width: 240 }}
-                placeholder="请选择素材分类"
+                placeholder={t('请选择素材分类')}
                 optionList={categoryOptions}
                 value={form.categoryId}
                 onChange={(value) => setForm({ ...form, categoryId: value ? Number(value) : undefined })}
@@ -750,13 +754,13 @@ export function SalesmanMaterial() {
             </div>
           </div>
           <div className="salesman-form-row">
-            <div className="row-label is-required">素材内容</div>
+            <div className="row-label is-required">{t('素材内容')}</div>
             <div className="row-body">
               <TextArea rows={5} value={form.content} onChange={(value) => setForm({ ...form, content: value })} />
             </div>
           </div>
           <div className="salesman-form-row">
-            <div className="row-label is-required">选择商品</div>
+            <div className="row-label is-required">{t('选择商品')}</div>
             <div className="row-body">
               <ProductPicker
                 value={form.productId}
@@ -766,11 +770,11 @@ export function SalesmanMaterial() {
             </div>
           </div>
           <div className="salesman-form-row">
-            <div className="row-label">是否置顶</div>
+            <div className="row-label">{t('是否置顶')}</div>
             <div className="row-body">
               <RadioGroup value={form.isTop} onChange={(e) => setForm({ ...form, isTop: Number(e.target.value) })}>
-                <Radio value={1}>置顶</Radio>
-                <Radio value={0}>不置顶</Radio>
+                <Radio value={1}>{t('置顶')}</Radio>
+                <Radio value={0}>{t('不置顶')}</Radio>
               </RadioGroup>
             </div>
           </div>

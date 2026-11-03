@@ -21,15 +21,17 @@ import { IconDelete, IconPlus } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
 /* ==================================================================
    供应链供应商模块（对齐原版 api/supplyChain/supplier*.ts live 契约）
 ================================================================== */
-function errMsg(error: unknown): string {
+function errMsg(error: unknown, t?: (key: string) => string): string {
   if (error instanceof Error) return error.message;
-  return typeof error === 'string' ? error : '操作失败';
+  if (typeof error === 'string') return error;
+  return t ? t('操作失败') : '操作失败';
 }
 
 function currentShopId(): string {
@@ -218,6 +220,7 @@ function SupplierFormDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<SupplierFormState>(emptySupplierForm());
   const [regionTree, setRegionTree] = useState<RegionNode[]>([]);
@@ -276,7 +279,7 @@ function SupplierFormDrawer({
         fallback.contactName = editing.contactName || '';
         fallback.primaryPhoneKey = fallback.phones[0]?.key || '';
         setForm(fallback);
-        Toast.warning('供应商详情加载失败，请手动补全后保存');
+        Toast.warning(t('供应商详情加载失败，请手动补全后保存'));
       });
     return () => {
       alive = false;
@@ -293,10 +296,10 @@ function SupplierFormDrawer({
   const patchForm = (patch: Partial<SupplierFormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const submit = async () => {
-    if (!form.name.trim()) return Toast.warning('供应商名称不能为空');
-    if (!form.categoryId) return Toast.warning('请选择供应商分类');
+    if (!form.name.trim()) return Toast.warning(t('供应商名称不能为空'));
+    if (!form.categoryId) return Toast.warning(t('请选择供应商分类'));
     const activePhones = form.phones.filter((phone) => phone.number.trim());
-    if (!activePhones.length) return Toast.warning('请至少填写一个联系电话');
+    if (!activePhones.length) return Toast.warning(t('请至少填写一个联系电话'));
     let primaryIndex = activePhones.findIndex((phone) => phone.key === form.primaryPhoneKey);
     if (primaryIndex < 0) primaryIndex = 0;
     setSaving(true);
@@ -334,10 +337,10 @@ function SupplierFormDrawer({
       };
       if (editing) payload.id = Number(editing.vendorId ?? editing.id ?? 0);
       await apiPost(editing ? '/supplyChain/supplier/update' : '/supplyChain/supplier/create', payload);
-      Toast.success(editing ? '更新成功' : '创建成功');
+      Toast.success(editing ? t('更新成功') : t('创建成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -347,7 +350,7 @@ function SupplierFormDrawer({
 
   return (
     <SideSheet
-      title={editing ? '编辑供应商' : '添加供应商'}
+      title={editing ? t('编辑供应商') : t('添加供应商')}
       visible={visible}
       onCancel={onClose}
       width={760}
@@ -355,23 +358,23 @@ function SupplierFormDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       }
     >
-      <SectionTitle text="基本设置" />
-      <Field label="供应商名称" required>
-        <Input placeholder="请输入供应商名称" style={{ width: 360 }} value={form.name} onChange={(val) => patchForm({ name: val })} />
+      <SectionTitle text={t('基本设置')} />
+      <Field label={t('供应商名称')} required>
+        <Input placeholder={t('请输入供应商名称')} style={{ width: 360 }} value={form.name} onChange={(val) => patchForm({ name: val })} />
       </Field>
-      <Field label="供应商编码">
-        <Input placeholder="请输入供应商编码" style={{ width: 360 }} maxLength={50} value={form.code} onChange={(val) => patchForm({ code: val })} />
+      <Field label={t('供应商编码')}>
+        <Input placeholder={t('请输入供应商编码')} style={{ width: 360 }} maxLength={50} value={form.code} onChange={(val) => patchForm({ code: val })} />
       </Field>
-      <Field label="供应商分类" required>
+      <Field label={t('供应商分类')} required>
         <Select
-          placeholder="请选择"
+          placeholder={t('请选择')}
           style={{ width: 360 }}
           showClear
           value={form.categoryId || undefined}
@@ -379,17 +382,17 @@ function SupplierFormDrawer({
           onChange={(val) => patchForm({ categoryId: val === undefined || val === null ? '' : String(val) })}
         />
       </Field>
-      <Field label="启用状态" tip="停用后该供应商不可再被业务单据选择">
+      <Field label={t('启用状态')} tip={t('停用后该供应商不可再被业务单据选择')}>
         <Switch
           checked={form.status === 1}
           onChange={(checked) => patchForm({ status: checked ? 1 : 2 })}
         />
       </Field>
-      <Field label="供应商地址" tip="选择省/市/区后填写详细地址">
+      <Field label={t('供应商地址')} tip={t('选择省/市/区后填写详细地址')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Cascader
             style={{ width: 360 }}
-            placeholder="请选择省/市/区"
+            placeholder={t('请选择省/市/区')}
             showClear
             treeData={regionTree as any}
             value={form.regionIds.length ? form.regionIds[form.regionIds.length - 1] : undefined}
@@ -399,7 +402,7 @@ function SupplierFormDrawer({
             }}
           />
           <TextArea
-            placeholder="请输入详细地址"
+            placeholder={t('请输入详细地址')}
             rows={3}
             style={{ width: 500 }}
             value={form.address}
@@ -409,30 +412,30 @@ function SupplierFormDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="银行账户信息" />
-      <Field label="付款方式">
+      <SectionTitle text={t('银行账户信息')} />
+      <Field label={t('付款方式')}>
         <Select
-          placeholder="请选择"
+          placeholder={t('请选择')}
           style={{ width: 360 }}
           showClear
           value={form.bankPaymentMethod || undefined}
-          optionList={[{ label: '银行转账', value: 'bank_transfer' }]}
+          optionList={[{ label: t('银行转账'), value: 'bank_transfer' }]}
           onChange={(val) => patchForm({ bankPaymentMethod: val === undefined || val === null ? '' : String(val) })}
         />
       </Field>
-      <Field label="账户名称" tip="请填写对公账户信息，向私人银行账户付款可能会付款失败">
-        <Input placeholder="请输入账户名称" style={{ width: 360 }} value={form.bankAccountName} onChange={(val) => patchForm({ bankAccountName: val })} />
+      <Field label={t('账户名称')} tip={t('请填写对公账户信息，向私人银行账户付款可能会付款失败')}>
+        <Input placeholder={t('请输入账户名称')} style={{ width: 360 }} value={form.bankAccountName} onChange={(val) => patchForm({ bankAccountName: val })} />
       </Field>
-      <Field label="银行账号">
-        <Input placeholder="请输入银行账号" style={{ width: 360 }} value={form.bankAccountNo} onChange={(val) => patchForm({ bankAccountNo: val })} />
+      <Field label={t('银行账号')}>
+        <Input placeholder={t('请输入银行账号')} style={{ width: 360 }} value={form.bankAccountNo} onChange={(val) => patchForm({ bankAccountNo: val })} />
       </Field>
-      <Field label="开户银行">
-        <Input placeholder="请输入开户银行" style={{ width: 360 }} value={form.bankBankName} onChange={(val) => patchForm({ bankBankName: val })} />
+      <Field label={t('开户银行')}>
+        <Input placeholder={t('请输入开户银行')} style={{ width: 360 }} value={form.bankBankName} onChange={(val) => patchForm({ bankBankName: val })} />
       </Field>
-      <Field label="开户地区">
+      <Field label={t('开户地区')}>
         <Cascader
           style={{ width: 360 }}
-          placeholder="请选择开户地区"
+          placeholder={t('请选择开户地区')}
           showClear
           treeData={regionTree as any}
           value={form.bankRegionIds.length ? form.bankRegionIds[form.bankRegionIds.length - 1] : undefined}
@@ -442,23 +445,23 @@ function SupplierFormDrawer({
           }}
         />
       </Field>
-      <Field label="支行名称">
-        <Input placeholder="请输入支行名称" style={{ width: 500 }} value={form.bankBranch} onChange={(val) => patchForm({ bankBranch: val })} />
+      <Field label={t('支行名称')}>
+        <Input placeholder={t('请输入支行名称')} style={{ width: 500 }} value={form.bankBranch} onChange={(val) => patchForm({ bankBranch: val })} />
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="联系人信息" />
-      <Field label="联系人姓名" required>
-        <Input placeholder="请输入联系人姓名" style={{ width: 360 }} value={form.contactName} onChange={(val) => patchForm({ contactName: val })} />
+      <SectionTitle text={t('联系人信息')} />
+      <Field label={t('联系人姓名')} required>
+        <Input placeholder={t('请输入联系人姓名')} style={{ width: 360 }} value={form.contactName} onChange={(val) => patchForm({ contactName: val })} />
       </Field>
-      <Field label="联系电话" required tip="至少填写一个号码，且必须指定唯一主号">
+      <Field label={t('联系电话')} required tip={t('至少填写一个号码，且必须指定唯一主号')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {form.phones.map((phone, index) => (
             <div key={phone.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Select
                 style={{ width: 120 }}
                 value={phone.type}
-                optionList={PHONE_TYPE_OPTIONS}
+                optionList={PHONE_TYPE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
                 onChange={(val) =>
                   patchForm({
                     phones: form.phones.map((row) =>
@@ -469,7 +472,7 @@ function SupplierFormDrawer({
               />
               {phone.type !== 'mobile' ? (
                 <Input
-                  placeholder="区号"
+                  placeholder={t('区号')}
                   style={{ width: 80 }}
                   value={phone.areaCode}
                   onChange={(val) =>
@@ -480,7 +483,7 @@ function SupplierFormDrawer({
                 />
               ) : null}
               <Input
-                placeholder="请输入手机号或座机号"
+                placeholder={t('请输入手机号或座机号')}
                 style={{ width: 220 }}
                 value={phone.number}
                 onChange={(val) =>
@@ -493,7 +496,7 @@ function SupplierFormDrawer({
                 checked={form.primaryPhoneKey ? form.primaryPhoneKey === phone.key : index === 0}
                 onChange={() => patchForm({ primaryPhoneKey: phone.key })}
               >
-                主号
+                {t('主号')}
               </Radio>
               <Button
                 theme="borderless"
@@ -524,15 +527,15 @@ function SupplierFormDrawer({
                 });
               }}
             >
-              添加联系电话
+              {t('添加联系电话')}
             </Button>
           </div>
         </div>
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="附件信息" />
-      <Field label="资质图片" tip="请填写营业执照等资质文件的图片 URL">
+      <SectionTitle text={t('附件信息')} />
+      <Field label={t('资质图片')} tip={t('请填写营业执照等资质文件的图片 URL')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {form.qualificationImages.map((url, index) => (
             <div key={`${url}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -570,14 +573,14 @@ function SupplierFormDrawer({
               icon={<IconPlus />}
               onClick={() => patchForm({ qualificationImages: [...form.qualificationImages, ''] })}
             >
-              添加资质图片
+              {t('添加资质图片')}
             </Button>
           </div>
         </div>
       </Field>
-      <Field label="备注信息">
+      <Field label={t('备注信息')}>
         <TextArea
-          placeholder="请输入备注信息"
+          placeholder={t('请输入备注信息')}
           rows={3}
           style={{ width: 500 }}
           value={form.remark}
@@ -589,6 +592,7 @@ function SupplierFormDrawer({
 }
 
 export function SupplierList() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SupplierItem | null>(null);
@@ -606,7 +610,7 @@ export function SupplierList() {
 
   const columns: ColumnConfig<SupplierItem>[] = [
     {
-      title: '供应商名称',
+      title: t('供应商名称'),
       dataIndex: 'vendorName',
       width: 180,
       render: (val: any, row: SupplierItem) => (
@@ -614,25 +618,25 @@ export function SupplierList() {
       ),
     },
     {
-      title: '供应商编号',
+      title: t('供应商编号'),
       dataIndex: 'vendorCode',
       width: 150,
       render: (val: any, row: SupplierItem) => val || row.code || '--',
     },
     {
-      title: '供应商分类',
+      title: t('供应商分类'),
       dataIndex: 'categoryName',
       width: 130,
       render: (val: any) => val || '--',
     },
     {
-      title: '联系人',
+      title: t('联系人'),
       dataIndex: 'contactName',
       width: 120,
       render: (val: any) => val || '--',
     },
     {
-      title: '状态',
+      title: t('状态'),
       dataIndex: 'status',
       width: 100,
       render: (val: any, row: SupplierItem) => (
@@ -646,23 +650,23 @@ export function SupplierList() {
                 shopId: Number(currentShopId() || 0),
                 status: checked ? 1 : 2,
               });
-              Toast.success('状态更新成功');
+              Toast.success(t('状态更新成功'));
               setReloadKey((k) => k + 1);
             } catch (error) {
-              Toast.error({ content: errMsg(error) });
+              Toast.error({ content: errMsg(error, t) });
             }
           }}
         />
       ),
     },
     {
-      title: '创建时间',
+      title: t('创建时间'),
       dataIndex: 'createTime',
       width: 170,
       render: (val: any) => val || '--',
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 120,
       render: (_: any, record: SupplierItem) => (
         <Button
@@ -674,7 +678,7 @@ export function SupplierList() {
             setFormOpen(true);
           }}
         >
-          编辑
+          {t('编辑')}
         </Button>
       ),
     },
@@ -696,20 +700,20 @@ export function SupplierList() {
               setFormOpen(true);
             }}
           >
-            添加供应商
+            {t('添加供应商')}
           </Button>
         }
         filters={[
           {
             field: 'vendorName',
-            label: '供应商名称',
-            placeholder: '输入供应商名称',
+            label: t('供应商名称'),
+            placeholder: t('输入供应商名称'),
             type: 'input',
           },
           {
             field: 'vendorCode',
-            label: '供应商编号',
-            placeholder: '输入供应商编号',
+            label: t('供应商编号'),
+            placeholder: t('输入供应商编号'),
             type: 'input',
           },
         ]}
@@ -741,6 +745,7 @@ interface SupplierCategoryItem {
 }
 
 export function SupplierCategories() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [formVisible, setFormVisible] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -764,7 +769,7 @@ export function SupplierCategories() {
 
   const handleFormSubmit = async () => {
     if (!formState.categoryName.trim()) {
-      Toast.error('分类名称不能为空');
+      Toast.error(t('分类名称不能为空'));
       return;
     }
     setFormLoading(true);
@@ -776,11 +781,11 @@ export function SupplierCategories() {
         status: formState.status,
         remark: formState.remark.trim(),
       });
-      Toast.success('保存成功');
+      Toast.success(t('保存成功'));
       setFormVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setFormLoading(false);
     }
@@ -789,23 +794,23 @@ export function SupplierCategories() {
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/supplyChain/supplierCategory/delete', { id, shopId: Number(currentShopId() || 0) });
-      Toast.success('删除成功');
+      Toast.success(t('删除成功'));
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     }
   };
 
   const columns: ColumnConfig<SupplierCategoryItem>[] = [
     {
-      title: '分类名称',
+      title: t('分类名称'),
       dataIndex: 'categoryName',
       render: (val: any, row: SupplierCategoryItem) => (
         <span style={{ fontWeight: 500 }}>{val || row.name || '--'}</span>
       ),
     },
     {
-      title: '状态',
+      title: t('状态'),
       dataIndex: 'status',
       width: 100,
       render: (val: any, row: SupplierCategoryItem) => (
@@ -818,30 +823,30 @@ export function SupplierCategories() {
                 shopId: Number(currentShopId() || 0),
                 status: checked ? 1 : 2,
               });
-              Toast.success('状态更新成功');
+              Toast.success(t('状态更新成功'));
               setReloadKey((k) => k + 1);
             } catch (error) {
-              Toast.error({ content: errMsg(error) });
+              Toast.error({ content: errMsg(error, t) });
             }
           }}
         />
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 140,
       render: (_: any, record: SupplierCategoryItem) => (
         <Space>
           <Button theme="borderless" type="primary" size="small" onClick={() => openForm(record)}>
-            编辑
+            {t('编辑')}
           </Button>
           <Popconfirm
-            title="您确认要删除此分类吗？"
+            title={t('您确认要删除此分类吗？')}
             okType="danger"
             onConfirm={() => handleDelete(record.id)}
           >
             <Button theme="borderless" type="danger" size="small">
-              删除
+              {t('删除')}
             </Button>
           </Popconfirm>
         </Space>
@@ -858,49 +863,49 @@ export function SupplierCategories() {
         columns={columns}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => openForm()}>
-            添加分类
+            {t('添加分类')}
           </Button>
         }
         filters={[
           {
             field: 'keyword',
-            label: '分类名称',
-            placeholder: '输入分类名称',
+            label: t('分类名称'),
+            placeholder: t('输入分类名称'),
             type: 'input',
           },
         ]}
       />
 
       <Modal
-        title={editingId ? '编辑分类' : '添加分类'}
+        title={editingId ? t('编辑分类') : t('添加分类')}
         visible={formVisible}
         onCancel={() => setFormVisible(false)}
         onOk={handleFormSubmit}
         confirmLoading={formLoading}
         width={520}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>分类名称</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('分类名称')}</div>
             <Input
-              placeholder="请输入供应商分类名称"
+              placeholder={t('请输入供应商分类名称')}
               value={formState.categoryName}
               onChange={(val) => setFormState({ ...formState, categoryName: val })}
             />
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>启用状态</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('启用状态')}</div>
             <Switch
               checked={formState.status === 1}
               onChange={(checked) => setFormState({ ...formState, status: checked ? 1 : 2 })}
             />
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>备注</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('备注')}</div>
             <TextArea
-              placeholder="请输入备注"
+              placeholder={t('请输入备注')}
               rows={2}
               value={formState.remark}
               onChange={(val) => setFormState({ ...formState, remark: val })}
@@ -951,6 +956,7 @@ function ProductPickerModal({
   onConfirm: (lines: ProductLinkLine[]) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [keyword, setKeyword] = useState('');
   const [appliedKeyword, setAppliedKeyword] = useState('');
   const [page, setPage] = useState(1);
@@ -989,7 +995,7 @@ function ProductPickerModal({
         );
         setTotal(Number(res.total || 0));
       })
-      .catch((error) => alive && Toast.error({ content: errMsg(error) }))
+      .catch((error) => alive && Toast.error({ content: errMsg(error, t) }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -1026,22 +1032,22 @@ function ProductPickerModal({
 
   return (
     <Modal
-      title="选择平台商品"
+      title={t('选择平台商品')}
       visible={visible}
       onCancel={onCancel}
       width={820}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" disabled={selectedKeys.length === 0} onClick={confirm}>
-            确认
+            {t('确认')}
           </Button>
         </Space>
       }
     >
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <Input
-          placeholder="请输入商品名称"
+          placeholder={t('请输入商品名称')}
           value={keyword}
           showClear
           style={{ width: 240 }}
@@ -1058,7 +1064,7 @@ function ProductPickerModal({
             setAppliedKeyword(keyword.trim());
           }}
         >
-          搜索
+          {t('搜索')}
         </Button>
       </div>
       <Table
@@ -1070,7 +1076,7 @@ function ProductPickerModal({
         columns={
           [
             {
-              title: '商品信息',
+              title: t('商品信息'),
               dataIndex: 'productName',
               render: (_: any, row: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1086,13 +1092,13 @@ function ProductPickerModal({
               ),
             },
             {
-              title: '平台售价(元)',
+              title: t('平台售价(元)'),
               dataIndex: 'productPrice',
               width: 120,
               render: (val: any) => (Number.isFinite(Number(val)) ? Number(val).toFixed(2) : '--'),
             },
             {
-              title: '规格数',
+              title: t('规格数'),
               width: 90,
               render: (_: any, row: any) =>
                 Array.isArray(row.productSku) && row.productSku.length ? row.productSku.length : 1,
@@ -1113,6 +1119,7 @@ function SupplierProductBatchDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [saving, setSaving] = useState(false);
   const [supplierOptions, setSupplierOptions] = useState<SupplierOptionItem[]>([]);
   const [vendorId, setVendorId] = useState('');
@@ -1137,14 +1144,14 @@ function SupplierProductBatchDrawer({
   };
 
   const submit = async () => {
-    if (!vendorId) return Toast.warning('请选择供应商');
-    if (!lines.length) return Toast.warning('请选择要挂接的平台商品');
+    if (!vendorId) return Toast.warning(t('请选择供应商'));
+    if (!lines.length) return Toast.warning(t('请选择要挂接的平台商品'));
     for (const line of lines) {
       if (!parseMoneyValid(line.supplyPrice)) {
-        return Toast.warning(`商品「${line.productName}」的供货价格式不正确（最多两位小数）`);
+        return Toast.warning(t('商品「{name}」的供货价格式不正确（最多两位小数）', { name: line.productName }));
       }
       if ((Math.round(Number(line.minPurchaseQty)) || 0) < 1) {
-        return Toast.warning(`商品「${line.productName}」的最小起订量需大于 0`);
+        return Toast.warning(t('商品「{name}」的最小起订量需大于 0', { name: line.productName }));
       }
     }
     setSaving(true);
@@ -1166,10 +1173,10 @@ function SupplierProductBatchDrawer({
           })),
         })),
       });
-      Toast.success('挂接成功');
+      Toast.success(t('挂接成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -1177,7 +1184,7 @@ function SupplierProductBatchDrawer({
 
   const columns = [
     {
-      title: '商品信息',
+      title: t('商品信息'),
       dataIndex: 'productName',
       render: (_: any, row: ProductLinkLine) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1192,7 +1199,7 @@ function SupplierProductBatchDrawer({
       ),
     },
     {
-      title: '供货价(元)',
+      title: t('供货价(元)'),
       width: 150,
       render: (_: any, row: ProductLinkLine) => (
         <InputNumber
@@ -1205,7 +1212,7 @@ function SupplierProductBatchDrawer({
       ),
     },
     {
-      title: '最小起订量',
+      title: t('最小起订量'),
       width: 150,
       render: (_: any, row: ProductLinkLine) => (
         <InputNumber
@@ -1220,7 +1227,7 @@ function SupplierProductBatchDrawer({
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 80,
       render: (_: any, row: ProductLinkLine) => (
         <Button
@@ -1229,7 +1236,7 @@ function SupplierProductBatchDrawer({
           size="small"
           onClick={() => setLines((prev) => prev.filter((line) => line.key !== row.key))}
         >
-          删除
+          {t('删除')}
         </Button>
       ),
     },
@@ -1237,7 +1244,7 @@ function SupplierProductBatchDrawer({
 
   return (
     <SideSheet
-      title="批量挂接平台商品"
+      title={t('批量挂接平台商品')}
       visible={visible}
       onCancel={onClose}
       width={860}
@@ -1245,16 +1252,16 @@ function SupplierProductBatchDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            保存
+            {t('保存')}
           </Button>
         </div>
       }
     >
-      <Field label="供应商" required>
+      <Field label={t('供应商')} required>
         <Select
-          placeholder="选择供应商"
+          placeholder={t('选择供应商')}
           style={{ width: 320 }}
           showClear
           filter
@@ -1268,29 +1275,29 @@ function SupplierProductBatchDrawer({
       </Field>
       <div style={{ marginBottom: 12 }}>
         <Button type="primary" icon={<IconPlus />} disabled={!vendorId} onClick={() => setPickerOpen(true)}>
-          选择平台商品
+          {t('选择平台商品')}
         </Button>
         {lines.length ? (
-          <Text style={{ marginLeft: 8 }}>已选择 {lines.length} 条供货明细</Text>
+          <Text style={{ marginLeft: 8 }}>{t('已选择 {count} 条供货明细', { count: lines.length })}</Text>
         ) : null}
       </div>
       {lines.length ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <Input
-            placeholder="供货价(元)"
+            placeholder={t('供货价(元)')}
             style={{ width: 130 }}
             value={batchSupplyPrice}
             onChange={(val) => setBatchSupplyPrice(val)}
           />
           <Input
-            placeholder="最小起订量"
+            placeholder={t('最小起订量')}
             style={{ width: 130 }}
             value={batchMinQty}
             onChange={(val) => setBatchMinQty(val)}
           />
           <Button
             onClick={() => {
-              if (!batchSupplyPrice && !batchMinQty) return Toast.warning('请先填写要批量填充的值');
+              if (!batchSupplyPrice && !batchMinQty) return Toast.warning(t('请先填写要批量填充的值'));
               setLines((prev) =>
                 prev.map((line) => ({
                   ...line,
@@ -1300,7 +1307,7 @@ function SupplierProductBatchDrawer({
               );
             }}
           >
-            批量填充
+            {t('批量填充')}
           </Button>
         </div>
       ) : null}
@@ -1309,7 +1316,7 @@ function SupplierProductBatchDrawer({
         rowKey="key"
         columns={columns as any}
         pagination={false}
-        empty="暂无商品，请点击「选择平台商品」"
+        empty={t('暂无商品，请点击「选择平台商品」')}
       />
 
       <ProductPickerModal
@@ -1331,6 +1338,7 @@ function SupplierProductBatchDrawer({
 }
 
 export function SupplierProducts() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [batchOpen, setBatchOpen] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -1356,23 +1364,23 @@ export function SupplierProducts() {
 
   const columns: ColumnConfig<SupplierProductItem>[] = [
     {
-      title: '商品名称',
+      title: t('商品名称'),
       dataIndex: 'productName',
       render: (val: any, row: SupplierProductItem) => (
         <div>
           <div style={{ fontWeight: 500 }}>{val || '--'}</div>
-          {row.productSn ? <Text type="tertiary" size="small">货号: {row.productSn}</Text> : null}
+          {row.productSn ? <Text type="tertiary" size="small">{t('货号: {sn}', { sn: row.productSn })}</Text> : null}
         </div>
       ),
     },
     {
-      title: '供应商',
+      title: t('供应商'),
       dataIndex: 'vendorName',
       width: 180,
       render: (val: any, row: SupplierProductItem) => val || row.supplierName || '--',
     },
     {
-      title: '供货价(元)',
+      title: t('供货价(元)'),
       dataIndex: 'purchasePrice',
       width: 140,
       render: (val: any) => (
@@ -1382,13 +1390,13 @@ export function SupplierProducts() {
       ),
     },
     {
-      title: '供货库存',
+      title: t('供货库存'),
       dataIndex: 'supplyStock',
       width: 120,
       render: (val: any) => val ?? 0,
     },
     {
-      title: '更新时间',
+      title: t('更新时间'),
       dataIndex: 'updateTime',
       width: 170,
       render: (val: any) => val || '--',
@@ -1401,16 +1409,16 @@ export function SupplierProducts() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: 48 }}>
             <div>
-              <div style={{ fontSize: 13, color: 'var(--semi-color-text-2)', marginBottom: 4 }}>供应商数量</div>
+              <div style={{ fontSize: 13, color: 'var(--semi-color-text-2)', marginBottom: 4 }}>{t('供应商数量')}</div>
               <div style={{ fontSize: 22, fontWeight: 600 }}>{summaryLoading ? '--' : supplierTotal}</div>
             </div>
             <div>
-              <div style={{ fontSize: 13, color: 'var(--semi-color-text-2)', marginBottom: 4 }}>挂接商品总数</div>
+              <div style={{ fontSize: 13, color: 'var(--semi-color-text-2)', marginBottom: 4 }}>{t('挂接商品总数')}</div>
               <div style={{ fontSize: 22, fontWeight: 600 }}>{summaryLoading ? '--' : productTotal}</div>
             </div>
           </div>
           <Text type="tertiary" size="small">
-            数据来源：supplyChain/supplierProduct/summary（取前 100 家供应商聚合）
+            {t('数据来源：supplyChain/supplierProduct/summary（取前 100 家供应商聚合）')}
           </Text>
         </div>
       </Card>
@@ -1421,20 +1429,20 @@ export function SupplierProducts() {
         columns={columns}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => setBatchOpen(true)}>
-            批量挂接平台商品
+            {t('批量挂接平台商品')}
           </Button>
         }
         filters={[
           {
             field: 'keyword',
-            label: '商品',
-            placeholder: '输入商品名称/货号',
+            label: t('商品'),
+            placeholder: t('输入商品名称/货号'),
             type: 'input',
           },
           {
             field: 'supplierId',
-            label: '供应商',
-            placeholder: '输入供应商名称',
+            label: t('供应商'),
+            placeholder: t('输入供应商名称'),
             type: 'input',
           },
         ]}
@@ -1458,6 +1466,7 @@ export function SupplierProducts() {
    inherited；save 提交 {shopId, autoFinishDays, allowOverReceive}
 ================================================================== */
 export function PurchaseSetting() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoFinishDays, setAutoFinishDays] = useState<string>('');
@@ -1489,35 +1498,35 @@ export function PurchaseSetting() {
         autoFinishDays: autoFinishDays === '' ? null : Number(autoFinishDays),
         allowOverReceive: inherited ? null : allowOverReceive ? 1 : 0,
       });
-      Toast.success('供应链设置保存成功');
+      Toast.success(t('供应链设置保存成功'));
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Card title="采购与供应链设置" loading={loading}>
+    <Card title={t('采购与供应链设置')} loading={loading}>
       <div style={{ maxWidth: 650, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>采购单自动完结天数</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('采购单自动完结天数')}</div>
           <InputNumber
             style={{ width: 240 }}
             min={0}
             max={3650}
             step={1}
             precision={0}
-            placeholder="留空表示不自动完结"
+            placeholder={t('留空表示不自动完结')}
             value={autoFinishDays === '' ? undefined : Number(autoFinishDays)}
             onChange={(val) => setAutoFinishDays(val === null || val === undefined ? '' : String(val))}
           />
           <div style={{ marginTop: 4, fontSize: 12, color: 'var(--semi-color-text-2)' }}>
-            采购单超过该天数仍未完结时由系统自动完结；留空表示不启用自动完结。
+            {t('采购单超过该天数仍未完结时由系统自动完结；留空表示不启用自动完结。')}
           </div>
         </div>
         <div>
-          <div style={{ marginBottom: 6, fontWeight: 500 }}>允许超量收货</div>
+          <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('允许超量收货')}</div>
           <Switch
             checked={allowOverReceive}
             disabled={inherited}
@@ -1525,13 +1534,13 @@ export function PurchaseSetting() {
           />
           {inherited ? (
             <div style={{ marginTop: 4, fontSize: 12, color: 'var(--semi-color-text-2)' }}>
-              当前店铺未单独配置，继承上级设置，如需修改请先在上级店铺配置。
+              {t('当前店铺未单独配置，继承上级设置，如需修改请先在上级店铺配置。')}
             </div>
           ) : null}
         </div>
         <div>
           <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
-            保存设置
+            {t('保存设置')}
           </Button>
         </div>
       </div>

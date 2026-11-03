@@ -23,6 +23,7 @@ import { IconPlus } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import { salesmanFormatPrice, salesmanFormatTime } from './SalesmanOverview';
 import './salesman.css';
 
@@ -69,6 +70,7 @@ interface SalesmanConfigData {
 }
 
 const useSalesmanConfig = () => {
+  const { t } = useI18n();
   const [config, setConfig] = useState<SalesmanConfigData>({});
   const [loading, setLoading] = useState(false);
   const reload = async () => {
@@ -78,7 +80,7 @@ const useSalesmanConfig = () => {
       setConfig(res || {});
       return res || {};
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载分销配置失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载分销配置失败') });
       return {};
     } finally {
       setLoading(false);
@@ -120,17 +122,20 @@ const CONDITION_PRESETS = (): SalesmanLevelCondition => ({
   salesInviteUsers: { checked: false, disabled: false, value: 0, title: '发展客户数', unit: '人' },
 });
 
-const conditionText = (condition?: SalesmanLevelCondition): string[] => {
+const conditionText = (
+  condition: SalesmanLevelCondition | undefined,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string[] => {
   if (!condition) return [];
   const out: string[] = [];
   if (condition.selfBuyAmount?.checked && Number(condition.selfBuyAmount.value) > 0) {
-    out.push(`自购金额满${condition.selfBuyAmount.value}${condition.selfBuyAmount.unit || '元'}`);
+    out.push(t('自购金额满{value}元', { value: Number(condition.selfBuyAmount.value) }));
   }
   if (condition.salesAmount?.checked && Number(condition.salesAmount.value) > 0) {
-    out.push(`推广金额满${condition.salesAmount.value}${condition.salesAmount.unit || '元'}`);
+    out.push(t('推广金额满{value}元', { value: Number(condition.salesAmount.value) }));
   }
   if (condition.salesInviteUsers?.checked && Number(condition.salesInviteUsers.value) > 0) {
-    out.push(`发展客户数满${condition.salesInviteUsers.value}人`);
+    out.push(t('发展客户数满{value}人', { value: Number(condition.salesInviteUsers.value) }));
   }
   return out;
 };
@@ -149,6 +154,7 @@ function ConditionEditor({
   onApply: (index: number, next: SalesmanLevelCondition) => void;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<SalesmanLevelCondition>(condition);
   const [visible, setVisible] = useState(false);
 
@@ -184,10 +190,13 @@ function ConditionEditor({
             setDraft({ ...draft, [key]: { ...item, checked: e.target.checked } } as SalesmanLevelCondition)
           }
         >
-          {item.title || (key === 'selfBuyAmount' ? '自购金额' : key === 'salesAmount' ? '推广金额' : '发展客户数')}
+          {t(
+            item.title ||
+              (key === 'selfBuyAmount' ? '自购金额' : key === 'salesAmount' ? '推广金额' : '发展客户数'),
+          )}
         </Checkbox>
         <div className="inp">
-          满
+          {t('满')}
           <InputNumber
             value={item.value ?? 0}
             min={0}
@@ -197,7 +206,7 @@ function ConditionEditor({
               setDraft({ ...draft, [key]: { ...item, value: Number(next ?? 0) } } as SalesmanLevelCondition)
             }
           />
-          {item.unit || ''}
+          {item.unit ? t(item.unit) : ''}
         </div>
       </div>
     );
@@ -208,7 +217,7 @@ function ConditionEditor({
     const anyChecked = keys.some((key) => draft[key]?.checked && Number(draft[key]?.value) > 0);
     const anyCheckedRaw = keys.some((key) => draft[key]?.checked);
     if (!anyCheckedRaw || !anyChecked) {
-      Toast.error({ content: '请设置升级条件' });
+      Toast.error({ content: t('请设置升级条件') });
       return;
     }
     onApply(index, draft);
@@ -224,19 +233,19 @@ function ConditionEditor({
       showArrow
       content={
         <div style={{ width: 340 }}>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>升级设置</div>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>{t('升级设置')}</div>
           <div className="salesman-muted" style={{ marginBottom: 8 }}>
-            以下条件至少选择一个，选择多个需同时满足才可升级。自购金额、推广金额需交易完成后才会统计。
+            {t('以下条件至少选择一个，选择多个需同时满足才可升级。自购金额、推广金额需交易完成后才会统计。')}
           </div>
           {renderRow('selfBuyAmount')}
           {renderRow('salesAmount')}
           {renderRow('salesInviteUsers')}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
             <Button size="small" onClick={() => setVisible(false)}>
-              取消
+              {t('取消')}
             </Button>
             <Button size="small" theme="solid" type="primary" onClick={confirm}>
-              确认
+              {t('确认')}
             </Button>
           </div>
         </div>
@@ -248,6 +257,7 @@ function ConditionEditor({
 }
 
 export function SalesmanPromoteMode() {
+  const { t } = useI18n();
   const { config, setConfig, loading, reload } = useSalesmanConfig();
   const [saving, setSaving] = useState(false);
   const [levels, setLevels] = useState<SalesmanConfigLevel[]>([]);
@@ -290,7 +300,7 @@ export function SalesmanPromoteMode() {
 
   const addLevel = () => {
     if (levels.length >= 10) {
-      Toast.warning({ content: '最多添加10级' });
+      Toast.warning({ content: t('最多添加10级') });
       return;
     }
     setLevels((prev) => [
@@ -316,18 +326,18 @@ export function SalesmanPromoteMode() {
   const validateLevels = (): boolean => {
     const names = levels.map((item) => (item.name || '').trim());
     if (names.some((name) => !name)) {
-      Toast.error({ content: '请输入等级名' });
+      Toast.error({ content: t('请输入等级名') });
       return false;
     }
     if (new Set(names).size !== names.length) {
-      Toast.error({ content: '等级名不能重复' });
+      Toast.error({ content: t('等级名不能重复') });
       return false;
     }
     for (let index = 1; index < levels.length; index += 1) {
       const condition = levels[index].condition;
-      const checked = conditionText(condition);
+      const checked = conditionText(condition, t);
       if (!checked.length) {
-        Toast.error({ content: '请设置升级条件' });
+        Toast.error({ content: t('请设置升级条件') });
         return false;
       }
     }
@@ -337,7 +347,7 @@ export function SalesmanPromoteMode() {
   const handleSave = async () => {
     if (!validateLevels()) return;
     if (isWechatBiz && recruitMethods.length === 0) {
-      Toast.error({ content: '微商模式下请至少选择一种下级招募方式' });
+      Toast.error({ content: t('微商模式下请至少选择一种下级招募方式') });
       return;
     }
     setSaving(true);
@@ -357,10 +367,10 @@ export function SalesmanPromoteMode() {
         viewCustomerInfo: Number(config.viewCustomerInfo ?? 0),
         level,
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -370,53 +380,69 @@ export function SalesmanPromoteMode() {
     <div className="salesman-mode-tooltip">
       <div className="lead">
         {key === MODE_PROMOTER
-          ? '分销员分享商品链接，任何人点进来下单，分销员就拿佣金。二级分销下，分销员的上级再拿一份。'
-          : '先邀请客户成为下级，客户下单后，上级(邀请人)就能拿佣金。二级分销下，再往上一级也能拿邀请佣金。'}
+          ? t('分销员分享商品链接，任何人点进来下单，分销员就拿佣金。二级分销下，分销员的上级再拿一份。')
+          : t('先邀请客户成为下级，客户下单后，上级(邀请人)就能拿佣金。二级分销下，再往上一级也能拿邀请佣金。')}
       </div>
       <div className="section">
         {key === MODE_PROMOTER ? (
           <>
-            <div>示例：分销员分享链接，客户通过分享的链接下单，该分销员获得佣金奖励</div>
-            <div>若客户自己回来买（不走链接），算正常下单，不计算佣金</div>
+            <div>{t('示例：分销员分享链接，客户通过分享的链接下单，该分销员获得佣金奖励')}</div>
+            <div>{t('若客户自己回来买（不走链接），算正常下单，不计算佣金')}</div>
           </>
         ) : (
-          <div>示例：分销员 A 发展 B 为下级，B 自行购买分销商品（无需 A 再分享链接）A 可拿分销佣金。</div>
+          <div>{t('示例：分销员 A 发展 B 为下级，B 自行购买分销商品（无需 A 再分享链接）A 可拿分销佣金。')}</div>
         )}
       </div>
       <div className="section">
         {key === MODE_PROMOTER
-          ? '适合场景：导购分享、KOL 推广、按次推广结算'
-          : '适合场景：私域老客户、复购场景、长期绑定关系'}
+          ? t('适合场景：导购分享、KOL 推广、按次推广结算')
+          : t('适合场景：私域老客户、复购场景、长期绑定关系')}
       </div>
     </div>
   );
 
   const compareRows = [
-    { label: '计佣触发方式', promote: '客户必须通过分销员的推广链接下单', micro: '下级分销员绑定后，自行购买分销商品即触发' },
-    { label: '上级是否需重复推广', promote: '是，每次下单都需分享链接', micro: '否，绑定一次，后续自购也计佣' },
-    { label: '下级分销员从哪来', promote: '不支持专属招募计划', micro: '支持：消费自动开通/名片邀请开通' },
-    { label: '典型运营场景', promote: '导购分享、KOL推广、按次结算', micro: '私域绑定、老客户复购、长期关系' },
+    {
+      label: t('计佣触发方式'),
+      promote: t('客户必须通过分销员的推广链接下单'),
+      micro: t('下级分销员绑定后，自行购买分销商品即触发'),
+    },
+    {
+      label: t('上级是否需重复推广'),
+      promote: t('是，每次下单都需分享链接'),
+      micro: t('否，绑定一次，后续自购也计佣'),
+    },
+    {
+      label: t('下级分销员从哪来'),
+      promote: t('不支持专属招募计划'),
+      micro: t('支持：消费自动开通/名片邀请开通'),
+    },
+    {
+      label: t('典型运营场景'),
+      promote: t('导购分享、KOL推广、按次结算'),
+      micro: t('私域绑定、老客户复购、长期关系'),
+    },
   ];
 
   const compareFaq = [
     {
-      question: '我希望分销员每次主动分享商品，客户点了链接才给佣金',
-      answer: '选【推广员等级模式】',
-      example: '场景：门店导购、达人带货、临时推广活动',
+      question: t('我希望分销员每次主动分享商品，客户点了链接才给佣金'),
+      answer: t('选【推广员等级模式】'),
+      example: t('场景：门店导购、达人带货、临时推广活动'),
     },
     {
-      question: '我希望绑定客户/下级后，对方自己回来买也能持续给我佣金',
-      answer: '选【微商模式】',
-      example: '场景：私域绑定、老客户复购、复购型商品',
+      question: t('我希望绑定客户/下级后，对方自己回来买也能持续给我佣金'),
+      answer: t('选【微商模式】'),
+      example: t('场景：私域绑定、老客户复购、复购型商品'),
     },
     {
-      question: '分销方案(一级/二级)、等级、准入方式两种模式一样吗？',
-      answer: '一样，两种模式只区别在「计佣方式」和「下级招募方式」。',
+      question: t('分销方案(一级/二级)、等级、准入方式两种模式一样吗？'),
+      answer: t('一样，两种模式只区别在「计佣方式」和「下级招募方式」。'),
       example: '',
     },
     {
-      question: '可以随时切换吗？',
-      answer: '可以。切换后新订单按新模式计佣，历史订单不受影响。',
+      question: t('可以随时切换吗？'),
+      answer: t('可以。切换后新订单按新模式计佣，历史订单不受影响。'),
       example: '',
     },
   ];
@@ -424,94 +450,100 @@ export function SalesmanPromoteMode() {
   return (
     <Spin spinning={loading}>
       <div style={{ maxWidth: 860 }}>
-        <div className="salesman-mode-section-title">分销模式</div>
+        <div className="salesman-mode-section-title">{t('分销模式')}</div>
         <RadioGroup value={mode} onChange={(e) => requestModeChange(Number(e.target.value))}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div className={`salesman-settle-radio-card ${mode === MODE_PROMOTER ? 'is-active' : ''}`}>
               <Radio value={MODE_PROMOTER}>
                 <Tooltip content={modeTooltip(MODE_PROMOTER)}>
-                  <span style={{ fontWeight: 600 }}>推广员等级模式</span>
+                  <span style={{ fontWeight: 600 }}>{t('推广员等级模式')}</span>
                 </Tooltip>
-                <div className="salesman-radio-desc">分销员分享商品链接，任何人点进来下单，分销员就拿佣金</div>
+                <div className="salesman-radio-desc">{t('分销员分享商品链接，任何人点进来下单，分销员就拿佣金')}</div>
               </Radio>
             </div>
             <div className={`salesman-settle-radio-card ${mode === MODE_WECHAT_BIZ ? 'is-active' : ''}`}>
               <Radio value={MODE_WECHAT_BIZ}>
                 <Tooltip content={modeTooltip(MODE_WECHAT_BIZ)}>
-                  <span style={{ fontWeight: 600 }}>微商模式</span>
+                  <span style={{ fontWeight: 600 }}>{t('微商模式')}</span>
                 </Tooltip>
-                <div className="salesman-radio-desc">先邀请客户成为下级，客户下单后，上级(推荐人)就能拿佣金。</div>
+                <div className="salesman-radio-desc">{t('先邀请客户成为下级，客户下单后，上级(推荐人)就能拿佣金。')}</div>
               </Radio>
             </div>
           </div>
         </RadioGroup>
         <div className="salesman-mode-tip">
-          推广员等级模式和微商模式的分销方案、分销等级、准入方式两种模式完全相同，区别仅在计佣方式和下级招募，详情请查看{' '}
+          {t('推广员等级模式和微商模式的分销方案、分销等级、准入方式两种模式完全相同，区别仅在计佣方式和下级招募，详情请查看')}{' '}
           <a className="link" onClick={() => setCompareVisible(true)}>
-            《功能对比》
+            {t('《功能对比》')}
           </a>
         </div>
 
-        <div className="salesman-mode-section-title">分销方案</div>
+        <div className="salesman-mode-section-title">{t('分销方案')}</div>
         <RadioGroup value={saleType} onChange={(e) => patchConfig({ saleType: Number(e.target.value) })}>
-          <Radio value={1}>一级分销（仅分销员本人推广可获取佣金）</Radio>
-          <Radio value={2}>二级分销（下级分销员成交后，上级可获得邀请奖励）</Radio>
+          <Radio value={1}>{t('一级分销（仅分销员本人推广可获取佣金）')}</Radio>
+          <Radio value={2}>{t('二级分销（下级分销员成交后，上级可获得邀请奖励）')}</Radio>
         </RadioGroup>
 
-        <div className="salesman-mode-section-title">分销员等级方案</div>
+        <div className="salesman-mode-section-title">{t('分销员等级方案')}</div>
         <Button type="primary" theme="light" icon={<IconPlus />} onClick={addLevel}>
-          添加等级({levels.length}/10)
+          {t('添加等级({count}/10)', { count: levels.length })}
         </Button>
         <table className="salesman-level-table" style={{ marginTop: 10 }}>
           <thead>
             <tr>
-              <th style={{ width: 64 }}>序号</th>
-              <th style={{ width: 150 }}>等级名</th>
-              <th style={{ minWidth: 220 }}>升级条件</th>
+              <th style={{ width: 64 }}>{t('序号')}</th>
+              <th style={{ width: 150 }}>{t('等级名')}</th>
+              <th style={{ minWidth: 220 }}>{t('升级条件')}</th>
               <th style={{ width: 300 }}>
-                佣金比例
+                {t('佣金比例')}
                 <Tooltip
                   content={
                     <div style={{ width: 380 }}>
-                      <p>修改后的比例只影响之后升级的佣金发放</p>
+                      <p>{t('修改后的比例只影响之后升级的佣金发放')}</p>
                       {saleType === 2 ? (
                         <>
-                          <p>商品佣金比例：分销员推广商品后获得的商品佣金=商品佣金比例*商品实付金额（扣除运费、税费和附加费）。</p>
                           <p>
-                            下级分销员邀请奖励比例：下级分销员推广后，上级分销员获得邀请奖励=下级分销员邀请奖励比例*商品实付金额（扣除运费、税费和附加费）。
+                            {t('商品佣金比例：分销员推广商品后获得的商品佣金=商品佣金比例*商品实付金额（扣除运费、税费和附加费）。')}
                           </p>
-                          <p>举例：B是A发展的分销员，B成功推广商品后，B可获得商品佣金，A可获得邀请奖励。</p>
+                          <p>
+                            {t('下级分销员邀请奖励比例：下级分销员推广后，上级分销员获得邀请奖励=下级分销员邀请奖励比例*商品实付金额（扣除运费、税费和附加费）。')}
+                          </p>
+                          <p>{t('举例：B是A发展的分销员，B成功推广商品后，B可获得商品佣金，A可获得邀请奖励。')}</p>
                         </>
                       ) : (
-                        <p>商品佣金比例：分销员推广商品后获得的商品佣金=商品佣金比例*商品实付金额（扣除运费、税费和附加费）。</p>
+                        <p>
+                          {t('商品佣金比例：分销员推广商品后获得的商品佣金=商品佣金比例*商品实付金额（扣除运费、税费和附加费）。')}
+                        </p>
                       )}
-                      <p>当分销员升至对应等级即会发放对应佣金，降级时按着当时等级发放，频繁调整分销员等级会导致佣金多次发放。</p>
+                      <p>
+                        {t('当分销员升至对应等级即会发放对应佣金，降级时按着当时等级发放，频繁调整分销员等级会导致佣金多次发放。')}
+                      </p>
                     </div>
                   }
                 >
                   <span className="salesman-tooltip-icon">?</span>
                 </Tooltip>
               </th>
-              <th style={{ width: 80 }}>操作</th>
+              <th style={{ width: 80 }}>{t('操作')}</th>
             </tr>
           </thead>
           <tbody>
             {levels.length === 0 && (
               <tr>
                 <td colSpan={5} style={{ textAlign: 'center', color: '#a4abb5' }}>
-                  暂无等级,请点击"添加等级"
+                  {t('暂无等级,请点击"添加等级"')}
                 </td>
               </tr>
             )}
             {levels.map((level, index) => {
-              const texts = index === 0 ? [] : conditionText(level.condition);
+              const texts = index === 0 ? [] : conditionText(level.condition, t);
               return (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>
                     <Input
                       style={{ width: 110 }}
-                      placeholder="请输入等级名"
+                      placeholder={t('请输入等级名')}
                       value={level.name || ''}
                       onChange={(value) =>
                         setLevels((prev) => prev.map((item, i) => (i === index ? { ...item, name: value } : item)))
@@ -520,9 +552,9 @@ export function SalesmanPromoteMode() {
                   </td>
                   <td>
                     <div className="condition-text">
-                      {index === 0 && <p>初始等级，无需设置</p>}
+                      {index === 0 && <p>{t('初始等级，无需设置')}</p>}
                       {index > 0 && texts.length > 0 && texts.map((text) => <p key={text}>{text}</p>)}
-                      {index > 0 && texts.length === 0 && <p className="gray">未设置</p>}
+                      {index > 0 && texts.length === 0 && <p className="gray">{t('未设置')}</p>}
                     </div>
                     {index > 0 && (
                       <ConditionEditor
@@ -531,13 +563,13 @@ export function SalesmanPromoteMode() {
                         superior={index > 1 ? levels[index - 1].condition || null : null}
                         onApply={applyCondition}
                       >
-                        <a style={{ marginLeft: 10 }}>编辑</a>
+                        <a style={{ marginLeft: 10 }}>{t('编辑')}</a>
                       </ConditionEditor>
                     )}
                   </td>
                   <td>
                     <div className="rate-item">
-                      <div className="rate-label">商品佣金</div>
+                      <div className="rate-label">{t('商品佣金')}</div>
                       <InputNumber
                         style={{ width: 120 }}
                         min={0}
@@ -554,7 +586,7 @@ export function SalesmanPromoteMode() {
                     </div>
                     {saleType === 2 && (
                       <div className="rate-item">
-                        <div className="rate-label">下级分销员邀请奖励</div>
+                        <div className="rate-label">{t('下级分销员邀请奖励')}</div>
                         <InputNumber
                           style={{ width: 120 }}
                           min={0}
@@ -582,7 +614,7 @@ export function SalesmanPromoteMode() {
                   <td>
                     {index > 0 && levels.length > 1 ? (
                       <Button theme="borderless" type="danger" size="small" onClick={() => removeLevel(index)}>
-                        删除
+                        {t('删除')}
                       </Button>
                     ) : (
                       '-'
@@ -595,65 +627,65 @@ export function SalesmanPromoteMode() {
         </table>
 
         <div className="salesman-form-row" style={{ marginTop: 24 }}>
-          <div className="row-label is-required">成为分销员</div>
+          <div className="row-label is-required">{t('成为分销员')}</div>
           <div className="row-body">
             <RadioGroup value={registerToSalesman} onChange={(e) => patchConfig({ registerToSalesman: Number(e.target.value) })}>
-              <Radio value={0}>手动创建</Radio>
-              <Radio value={1}>商城注册自动开通</Radio>
+              <Radio value={0}>{t('手动创建')}</Radio>
+              <Radio value={1}>{t('商城注册自动开通')}</Radio>
             </RadioGroup>
             {registerToSalesman === 0 && (
-              <div className="salesman-mode-extra">手动创建分销员：商城所有一级分销员，需管理员在后台手动创建</div>
+              <div className="salesman-mode-extra">{t('手动创建分销员：商城所有一级分销员，需管理员在后台手动创建')}</div>
             )}
             {registerToSalesman === 1 && (
-              <div className="salesman-mode-extra">注册自动开通：用户通过商城完成注册后，自动成为分销员</div>
+              <div className="salesman-mode-extra">{t('注册自动开通：用户通过商城完成注册后，自动成为分销员')}</div>
             )}
           </div>
         </div>
 
         <div className="salesman-form-row">
-          <div className="row-label is-required">下级招募方式</div>
+          <div className="row-label is-required">{t('下级招募方式')}</div>
           <div className="row-body">
             <CheckboxGroup
               value={recruitMethods}
               disabled={!isWechatBiz}
               onChange={(values) => patchConfig({ recruitMethods: (values as number[]) || [] })}
               options={[
-                { label: '消费自动开通', value: 1 },
-                { label: '名片邀请开通', value: 2 },
+                { label: t('消费自动开通'), value: 1 },
+                { label: t('名片邀请开通'), value: 2 },
               ]}
             />
-            <div className="salesman-mode-extra">消费自动开通：客户通过分销员推广链接下单后，自动成为该分销员的下级</div>
-            <div className="salesman-mode-extra">名片邀请开通：分销员分享专属名片，商城新用户扫码并注册即可成为其下级</div>
+            <div className="salesman-mode-extra">{t('消费自动开通：客户通过分销员推广链接下单后，自动成为该分销员的下级')}</div>
+            <div className="salesman-mode-extra">{t('名片邀请开通：分销员分享专属名片，商城新用户扫码并注册即可成为其下级')}</div>
           </div>
         </div>
 
         <div className="salesman-form-row">
-          <div className="row-label">分销隐私</div>
+          <div className="row-label">{t('分销隐私')}</div>
           <div className="row-body">
             <Checkbox
               checked={Number(config.viewCustomerInfo ?? 0) === 1}
               onChange={(e) => patchConfig({ viewCustomerInfo: e.target.checked ? 1 : 0 })}
             >
-              查看客户信息
+              {t('查看客户信息')}
             </Checkbox>
-            <div className="salesman-mode-extra">开启后，分销员可查看自己的客户信息</div>
+            <div className="salesman-mode-extra">{t('开启后，分销员可查看自己的客户信息')}</div>
           </div>
         </div>
 
         <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
-          保 存
+          {t('保 存')}
         </Button>
       </div>
 
       {/* 分销模式功能对比抽屉 */}
-      <Modal title="分销模式功能对比" visible={compareVisible} onCancel={() => setCompareVisible(false)} width={720}>
-        <div style={{ fontWeight: 600, marginBottom: 10 }}>模式差异：</div>
+      <Modal title={t('分销模式功能对比')} visible={compareVisible} onCancel={() => setCompareVisible(false)} width={720}>
+        <div style={{ fontWeight: 600, marginBottom: 10 }}>{t('模式差异：')}</div>
         <table className="salesman-level-table">
           <thead>
             <tr>
-              <th style={{ width: 150 }}>对比项</th>
-              <th>推广员等级模式</th>
-              <th>微商模式</th>
+              <th style={{ width: 150 }}>{t('对比项')}</th>
+              <th>{t('推广员等级模式')}</th>
+              <th>{t('微商模式')}</th>
             </tr>
           </thead>
           <tbody>
@@ -666,7 +698,7 @@ export function SalesmanPromoteMode() {
             ))}
           </tbody>
         </table>
-        <div style={{ fontWeight: 600, margin: '18px 0 10px' }}>如何选择这种分销模式？</div>
+        <div style={{ fontWeight: 600, margin: '18px 0 10px' }}>{t('如何选择这种分销模式？')}</div>
         {compareFaq.map((item) => (
           <div key={item.question} style={{ background: '#f7f8fa', borderRadius: 8, padding: 12, marginBottom: 10 }}>
             <div>
@@ -682,18 +714,18 @@ export function SalesmanPromoteMode() {
 
       {/* 切换分销模式确认弹窗 */}
       <Modal
-        title={pendingMode === MODE_WECHAT_BIZ ? '切换为微商模式？' : '切换为推广员等级模式？'}
+        title={pendingMode === MODE_WECHAT_BIZ ? t('切换为微商模式？') : t('切换为推广员等级模式？')}
         visible={pendingMode !== null}
         onOk={confirmModeChange}
         onCancel={() => setPendingMode(null)}
-        okText="确认"
-        cancelText="取消"
+        okText={t('确认')}
+        cancelText={t('取消')}
         width={440}
       >
         <div style={{ lineHeight: 1.7, color: 'rgba(0,0,0,0.65)' }}>
           {pendingMode === MODE_WECHAT_BIZ
-            ? '切换为【微商模式】后，下级分销员购买分销商品时，上级将自动获得佣金，无需每次推广。同时可配置下级招募方式。分销方案、等级等配置保持不变。确认切换？'
-            : '切换为【推广员等级模式】后，上级仅在客户通过推广链接下单时才获得佣金。下级招募方式将不再生效。确认切换？'}
+            ? t('切换为【微商模式】后，下级分销员购买分销商品时，上级将自动获得佣金，无需每次推广。同时可配置下级招募方式。分销方案、等级等配置保持不变。确认切换？')
+            : t('切换为【推广员等级模式】后，上级仅在客户通过推广链接下单时才获得佣金。下级招募方式将不再生效。确认切换？')}
         </div>
       </Modal>
     </Spin>
@@ -732,6 +764,7 @@ const COMMISSION_TYPE_LABEL: Record<number, string> = {
 };
 
 export function SalesmanProducts() {
+  const { t } = useI18n();
   const [typeOptions, setTypeOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -800,7 +833,7 @@ export function SalesmanProducts() {
         levelArr,
       });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载佣金详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载佣金详情失败') });
       setDrawerVisible(false);
     } finally {
       setDrawerLoading(false);
@@ -814,7 +847,7 @@ export function SalesmanProducts() {
         (item) => item.rate === '' || (form.saleType === 2 && item.downSalesmanRate === ''),
       );
       if (empty) {
-        Toast.error({ content: '请填写完整的佣金比例' });
+        Toast.error({ content: t('请填写完整的佣金比例') });
         return;
       }
     }
@@ -834,11 +867,11 @@ export function SalesmanProducts() {
       } else {
         await apiPost('/salesman/product/create', payload);
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setDrawerVisible(false);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -853,7 +886,7 @@ export function SalesmanProducts() {
           {row.picThumb ? <Image src={row.picThumb} width={50} height={50} style={{ borderRadius: 4 }} /> : null}
           <div>
             <div>{row.productName || '--'}</div>
-            {row.productType === 2 && <div style={{ color: 'var(--semi-color-success)' }}>【虚拟商品】</div>}
+            {row.productType === 2 && <div style={{ color: 'var(--semi-color-success)' }}>{t('【虚拟商品】')}</div>}
           </div>
         </div>
       ),
@@ -869,13 +902,15 @@ export function SalesmanProducts() {
       title: '是否参与推广',
       width: 120,
       render: (_: unknown, row: SalesmanProductRow) =>
-        row.salesmanProduct && row.salesmanProduct.isJoin === 1 ? '参与' : '不参与',
+        row.salesmanProduct && row.salesmanProduct.isJoin === 1 ? t('参与') : t('不参与'),
     },
     {
       title: '佣金',
       width: 140,
-      render: (_: unknown, row: SalesmanProductRow) =>
-        COMMISSION_TYPE_LABEL[Number(row.commissionType ?? 0)] || '--',
+      render: (_: unknown, row: SalesmanProductRow) => {
+        const label = COMMISSION_TYPE_LABEL[Number(row.commissionType ?? 0)];
+        return label ? t(label) : '--';
+      },
     },
     {
       title: '商品佣金',
@@ -891,7 +926,7 @@ export function SalesmanProducts() {
       title: '商品状态',
       dataIndex: 'productStatus',
       width: 100,
-      render: (val: any) => <Tag color={Number(val) === 1 ? 'green' : 'grey'}>{Number(val) === 1 ? '上架' : '下架'}</Tag>,
+      render: (val: any) => <Tag color={Number(val) === 1 ? 'green' : 'grey'}>{Number(val) === 1 ? t('上架') : t('下架')}</Tag>,
     },
     {
       title: '操作时间',
@@ -927,56 +962,56 @@ export function SalesmanProducts() {
         ]}
         rowActions={(record: SalesmanProductRow) => (
           <Button theme="borderless" type="primary" size="small" onClick={() => openCommission(record)}>
-            设置佣金
+            {t('设置佣金')}
           </Button>
         )}
       />
 
       {/* 设置商品佣金抽屉(旧 salesman/product/Info.vue) */}
       <Modal
-        title="设置商品佣金"
+        title={t('设置商品佣金')}
         visible={drawerVisible}
         onCancel={() => setDrawerVisible(false)}
         width={620}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={() => setDrawerVisible(false)}>取消</Button>
+            <Button onClick={() => setDrawerVisible(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={saving} onClick={submitCommission}>
-              确定
+              {t('确定')}
             </Button>
           </div>
         }
       >
         <Spin spinning={drawerLoading}>
           <div className="salesman-form-row">
-            <div className="row-label">推广：</div>
+            <div className="row-label">{t('推广：')}</div>
             <div className="row-body">
               <RadioGroup
                 value={form.isJoin}
                 onChange={(e) => setForm({ ...form, isJoin: Number(e.target.value) })}
               >
-                <Radio value={1}>参与</Radio>
-                <Radio value={0}>不参与</Radio>
+                <Radio value={1}>{t('参与')}</Radio>
+                <Radio value={0}>{t('不参与')}</Radio>
               </RadioGroup>
             </div>
           </div>
           {form.isJoin === 1 && (
             <>
               <div className="salesman-form-row">
-                <div className="row-label">佣金计算：</div>
+                <div className="row-label">{t('佣金计算：')}</div>
                 <div className="row-body">
                   <RadioGroup
                     value={form.commissionType}
                     onChange={(e) => setForm({ ...form, commissionType: Number(e.target.value) })}
                   >
                     <div>
-                      <Radio value={1}>默认佣金比例</Radio>
+                      <Radio value={1}>{t('默认佣金比例')}</Radio>
                     </div>
                     <div>
-                      <Radio value={2}>自定义佣金比例</Radio>
+                      <Radio value={2}>{t('自定义佣金比例')}</Radio>
                     </div>
                     <div>
-                      <Radio value={3}>自定义佣金金额</Radio>
+                      <Radio value={3}>{t('自定义佣金金额')}</Radio>
                     </div>
                   </RadioGroup>
                 </div>
@@ -993,8 +1028,8 @@ export function SalesmanProducts() {
                   <tr>
                     {form.levelNames.map((level) => (
                       <React.Fragment key={level.id}>
-                        <th>商品佣金</th>
-                        {form.saleType === 2 && <th>邀请佣金</th>}
+                        <th>{t('商品佣金')}</th>
+                        {form.saleType === 2 && <th>{t('邀请佣金')}</th>}
                       </React.Fragment>
                     ))}
                   </tr>
@@ -1106,6 +1141,7 @@ function UserCell({ user, fallback }: { user?: UserBaseInfo | null; fallback?: s
 }
 
 export function SalesmanPromoters() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [groupOptions, setGroupOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [levelOptions, setLevelOptions] = useState<Array<{ label: string; value: number }>>([]);
@@ -1206,22 +1242,22 @@ export function SalesmanPromoters() {
           : [],
       );
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载分销员详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载分销员详情失败') });
       setFormVisible(false);
     }
   };
 
   const submitForm = async () => {
     if (formMode === 'create' && !form.userId) {
-      Toast.error({ content: '请选择账号' });
+      Toast.error({ content: t('请选择账号') });
       return;
     }
     if (!form.level) {
-      Toast.error({ content: '请选择分销员等级' });
+      Toast.error({ content: t('请选择分销员等级') });
       return;
     }
     if (!form.groupId) {
-      Toast.error({ content: '请选择分销员分组' });
+      Toast.error({ content: t('请选择分销员分组') });
       return;
     }
     setFormSaving(true);
@@ -1242,11 +1278,11 @@ export function SalesmanPromoters() {
           pid: form.pid || 0,
         });
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setFormVisible(false);
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setFormSaving(false);
     }
@@ -1259,7 +1295,7 @@ export function SalesmanPromoters() {
       const res = await apiGet<any>('/salesman/salesman/detail', { id: row.salesmanId });
       setDetail(res);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载详情失败') });
     } finally {
       setDetailLoading(false);
     }
@@ -1275,7 +1311,7 @@ export function SalesmanPromoters() {
       setCustomerRows(res?.records || []);
       setCustomerTotal(res?.total || 0);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载客户列表失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载客户列表失败') });
     }
   };
 
@@ -1310,7 +1346,7 @@ export function SalesmanPromoters() {
         row.pidUserInfo?.baseUserInfo ? (
           <UserCell user={row.pidUserInfo.baseUserInfo} />
         ) : (
-          <span>系统添加</span>
+          <span>{t('系统添加')}</span>
         ),
     },
     {
@@ -1356,16 +1392,16 @@ export function SalesmanPromoters() {
         ]}
         toolbarExtra={
           <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-            添加分销员
+            {t('添加分销员')}
           </Button>
         }
         rowActions={(record: PromoterRow) => (
           <>
             <Button theme="borderless" type="primary" size="small" onClick={() => openDetail(record)}>
-              详情
+              {t('详情')}
             </Button>
             <Button theme="borderless" type="primary" size="small" onClick={() => openEdit(record)}>
-              编辑
+              {t('编辑')}
             </Button>
           </>
         )}
@@ -1373,24 +1409,24 @@ export function SalesmanPromoters() {
 
       {/* 添加/编辑分销员(旧 Info.vue) */}
       <Modal
-        title={formMode === 'create' ? '添加分销员' : '编辑分销员'}
+        title={formMode === 'create' ? t('添加分销员') : t('编辑分销员')}
         visible={formVisible}
         onCancel={() => setFormVisible(false)}
         onOk={submitForm}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
         confirmLoading={formSaving}
         width={560}
       >
         <div className="salesman-form-row">
-          <div className="row-label is-required">绑定账号</div>
+          <div className="row-label is-required">{t('绑定账号')}</div>
           <div className="row-body">
             {formMode === 'create' ? (
               <Select
                 style={{ width: '100%' }}
                 filter
                 remote
-                placeholder="可输入手机号查询绑定会员"
+                placeholder={t('可输入手机号查询绑定会员')}
                 onSearch={searchUsers}
                 optionList={userOptions.map((item) => ({ label: item.label, value: item.value }))}
                 value={form.userId}
@@ -1402,11 +1438,11 @@ export function SalesmanPromoters() {
           </div>
         </div>
         <div className="salesman-form-row">
-          <div className="row-label is-required">等级</div>
+          <div className="row-label is-required">{t('等级')}</div>
           <div className="row-body">
             <Select
               style={{ width: '100%' }}
-              placeholder="请选择分销员等级"
+              placeholder={t('请选择分销员等级')}
               optionList={levelOptions}
               value={form.level}
               onChange={(value) => setForm({ ...form, level: Number(value) })}
@@ -1414,11 +1450,11 @@ export function SalesmanPromoters() {
           </div>
         </div>
         <div className="salesman-form-row">
-          <div className="row-label is-required">分组</div>
+          <div className="row-label is-required">{t('分组')}</div>
           <div className="row-body">
             <Select
               style={{ width: '100%' }}
-              placeholder="请选择分销员分组"
+              placeholder={t('请选择分销员分组')}
               optionList={groupOptions}
               value={form.groupId}
               onChange={(value) => setForm({ ...form, groupId: Number(value) })}
@@ -1426,13 +1462,13 @@ export function SalesmanPromoters() {
           </div>
         </div>
         <div className="salesman-form-row">
-          <div className="row-label">上级分销员</div>
+          <div className="row-label">{t('上级分销员')}</div>
           <div className="row-body">
             <Select
               style={{ width: '100%' }}
               filter
               remote
-              placeholder="可输入手机号查询上级分销员"
+              placeholder={t('可输入手机号查询上级分销员')}
               onSearch={searchSuperiors}
               optionList={pidOptions}
               value={form.pid}
@@ -1444,7 +1480,7 @@ export function SalesmanPromoters() {
 
       {/* 分销员详情(旧 Detail.vue) */}
       <Modal
-        title="分销员详情"
+        title={t('分销员详情')}
         visible={detailVisible}
         onCancel={() => setDetailVisible(false)}
         footer={null}
@@ -1461,49 +1497,59 @@ export function SalesmanPromoters() {
                 <span className="level-tag">{detail.salesmanVO.levelText || '--'}</span>
               </div>
               <div className="salesman-detail-rows">
-                <div className="item">手机号：{detail.salesmanVO.baseUserInfo?.mobile || '--'}</div>
-                <div className="item">加入时间：{detail.salesmanVO.addTime || '--'}</div>
-                <div className="item">分组：{detail.salesmanVO.groupInfo?.groupName || '--'}</div>
-                <div className="item">邀请方：{detail.salesmanVO.pidUserInfo?.baseUserInfo?.nickname || '--'}</div>
+                <div className="item">
+                  {t('手机号：{mobile}', { mobile: detail.salesmanVO.baseUserInfo?.mobile || '--' })}
+                </div>
+                <div className="item">
+                  {t('加入时间：{addTime}', { addTime: detail.salesmanVO.addTime || '--' })}
+                </div>
+                <div className="item">
+                  {t('分组：{groupName}', { groupName: detail.salesmanVO.groupInfo?.groupName || '--' })}
+                </div>
+                <div className="item">
+                  {t('邀请方：{nickname}', {
+                    nickname: detail.salesmanVO.pidUserInfo?.baseUserInfo?.nickname || '--',
+                  })}
+                </div>
               </div>
               <div className="salesman-detail-band">
-                <div className="txt">业绩概况</div>
+                <div className="txt">{t('业绩概况')}</div>
               </div>
               <div className="salesman-stat-list">
                 <div className="item">
                   <div className="txt">
-                    累计销售额（¥）
-                    <Tooltip content="销售额已减去退款金额">
+                    {t('累计销售额（¥）')}
+                    <Tooltip content={t('销售额已减去退款金额')}>
                       <span className="salesman-tooltip-icon">?</span>
                     </Tooltip>
                   </div>
                   <div className="num">{salesmanFormatPrice(statistical.saleAmount)}</div>
                 </div>
                 <div className="item">
-                  <div className="txt">累计订单数</div>
+                  <div className="txt">{t('累计订单数')}</div>
                   <div className="num">{statistical.orderNum ?? 0}</div>
                 </div>
                 <div className="item">
-                  <div className="txt">累计客户数</div>
+                  <div className="txt">{t('累计客户数')}</div>
                   <div className="num">{statistical.customerNum ?? 0}</div>
                 </div>
                 <div className="item">
-                  <div className="txt">累计邀请数</div>
+                  <div className="txt">{t('累计邀请数')}</div>
                   <div className="num">{statistical.inviteNum ?? 0}</div>
                 </div>
               </div>
               <div className="salesman-detail-band">
-                <div className="txt">佣金统计</div>
+                <div className="txt">{t('佣金统计')}</div>
               </div>
               <div className="salesman-stat-list">
                 <div className="item">
-                  <div className="txt">累计佣金（¥）</div>
+                  <div className="txt">{t('累计佣金（¥）')}</div>
                   <div className="num">{salesmanFormatPrice(statistical.commissionAmount)}</div>
                 </div>
                 <div className="item">
                   <div className="txt">
-                    商品佣金（¥）
-                    <Tooltip content="含待结算">
+                    {t('商品佣金（¥）')}
+                    <Tooltip content={t('含待结算')}>
                       <span className="salesman-tooltip-icon">?</span>
                     </Tooltip>
                   </div>
@@ -1517,7 +1563,7 @@ export function SalesmanPromoters() {
 
       {/* 客户数量(旧 UserList.vue) */}
       <Modal
-        title="客户数量"
+        title={t('客户数量')}
         visible={customerVisible}
         onCancel={() => setCustomerVisible(false)}
         footer={null}
@@ -1527,7 +1573,7 @@ export function SalesmanPromoters() {
           columns={
             [
               {
-                title: '会员名称',
+                title: t('会员名称'),
                 width: 180,
                 render: (_: unknown, row: any) => (
                   <div className="salesman-user-cell">
@@ -1538,15 +1584,15 @@ export function SalesmanPromoters() {
                   </div>
                 ),
               },
-              { title: '会员手机', dataIndex: 'mobile', width: 140, render: (val: any) => val || '--' },
+              { title: t('会员手机'), dataIndex: 'mobile', width: 140, render: (val: any) => val || '--' },
               {
-                title: '会员等级',
+                title: t('会员等级'),
                 dataIndex: 'rankName',
                 width: 130,
                 render: (val: any) => val || '--',
               },
               {
-                title: '注册日期',
+                title: t('注册日期'),
                 dataIndex: 'regTime',
                 width: 170,
                 render: (val: any) => salesmanFormatTime(val),
@@ -1555,7 +1601,7 @@ export function SalesmanPromoters() {
           }
           dataSource={customerRows}
           rowKey="userId"
-          empty="暂无数据"
+          empty={t('暂无数据')}
           pagination={{
             currentPage: customerPage,
             pageSize: 10,

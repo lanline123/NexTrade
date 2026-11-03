@@ -16,6 +16,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconChevronDown, IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
@@ -142,6 +143,7 @@ const buildDefaultForm = (): Record<string, any> => ({
 });
 
 function SortEditor({ row, onSaved }: { row: PromotionRow; onSaved: () => void }) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [value, setValue] = useState<number>(Number(row.sortOrder ?? 50));
   const [saving, setSaving] = useState(false);
@@ -154,11 +156,11 @@ function SortEditor({ row, onSaved }: { row: PromotionRow; onSaved: () => void }
         field: 'sortOrder',
         val: Number(value ?? 50),
       });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
       setVisible(false);
       onSaved();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     } finally {
       setSaving(false);
     }
@@ -171,7 +173,7 @@ function SortEditor({ row, onSaved }: { row: PromotionRow; onSaved: () => void }
       onClickOutside={() => setVisible(false)}
       content={
         <div className="promo-sort-pop">
-          <label>排序</label>
+          <label>{t('排序')}</label>
           <InputNumber
             size="small"
             min={0}
@@ -180,19 +182,19 @@ function SortEditor({ row, onSaved }: { row: PromotionRow; onSaved: () => void }
             value={value}
             onChange={(next) => setValue(Number(next ?? 50))}
           />
-          <div className="promo-sort-tip">默认值为50，数值越小，排序越靠前</div>
+          <div className="promo-sort-tip">{t('默认值为50，数值越小，排序越靠前')}</div>
           <Space>
             <Button size="small" onClick={() => setVisible(false)}>
-              取消
+              {t('取消')}
             </Button>
             <Button size="small" theme="solid" type="primary" loading={saving} onClick={submit}>
-              确定
+              {t('确定')}
             </Button>
           </Space>
         </div>
       }
     >
-      <span className="promo-sort-edit" title="点击修改排序" onClick={() => setVisible(true)}>
+      <span className="promo-sort-edit" title={t('点击修改排序')} onClick={() => setVisible(true)}>
         {row.sortOrder ?? 50}
       </span>
     </Popover>
@@ -201,27 +203,28 @@ function SortEditor({ row, onSaved }: { row: PromotionRow; onSaved: () => void }
 
 /** 活动类型卡片（旧 RadioType：满N元减 元/折 与 满N件减 元/折） */
 function UnitField({ formApi, values }: { formApi: any; values: Record<string, any> }) {
+  const { t } = useI18n();
   return (
     <div className="promo-unit-options">
       <div
         className={`promo-unit-option${Number(values.unit) === 1 ? ' is-active' : ''}`}
-        title="按金额满减/满折"
+        title={t('按金额满减/满折')}
         onClick={() => formApi?.setValue('unit', 1)}
       >
         <div className="promo-unit-title">
-          满N{AMOUNT_UNIT}减 {AMOUNT_UNIT}/折
+          {t('满N{unit}减 {unit}/折', { unit: t(AMOUNT_UNIT) })}
         </div>
         <div className="promo-unit-desc">
-          例：满100{AMOUNT_UNIT}减10{AMOUNT_UNIT}/满100{AMOUNT_UNIT}打8折
+          {t('例：满100{unit}减10{unit}/满100{unit}打8折', { unit: t(AMOUNT_UNIT) })}
         </div>
       </div>
       <div
         className={`promo-unit-option${Number(values.unit) === 2 ? ' is-active' : ''}`}
-        title="按件数满减/满折"
+        title={t('按件数满减/满折')}
         onClick={() => formApi?.setValue('unit', 2)}
       >
-        <div className="promo-unit-title">满N件减 {AMOUNT_UNIT}/折</div>
-        <div className="promo-unit-desc">例：满3件减10{AMOUNT_UNIT}/满3件打8折</div>
+        <div className="promo-unit-title">{t('满N件减 {unit}/折', { unit: t(AMOUNT_UNIT) })}</div>
+        <div className="promo-unit-desc">{t('例：满3件减10{unit}/满3件打8折', { unit: t(AMOUNT_UNIT) })}</div>
       </div>
     </div>
   );
@@ -229,21 +232,22 @@ function UnitField({ formApi, values }: { formApi: any; values: Record<string, a
 
 /** 活动时间（旧 SelectTimeInterval + 1天/7天/15天 快捷按钮） */
 function TimeRangeField({ formApi, values }: { formApi: any; values: Record<string, any> }) {
+  const { t } = useI18n();
   return (
     <div className="promo-time-row">
       <DatePicker
         type="dateTime"
         format="yyyy-MM-dd HH:mm:ss"
-        placeholder="开始时间"
+        placeholder={t('开始时间')}
         style={{ width: 185 }}
         value={values.startTime || ''}
         onChange={(next: any) => formApi?.setValue('startTime', toDateTimeString(next))}
       />
-      <span className="promo-time-sep">至</span>
+      <span className="promo-time-sep">{t('至')}</span>
       <DatePicker
         type="dateTime"
         format="yyyy-MM-dd HH:mm:ss"
-        placeholder="截止时间"
+        placeholder={t('截止时间')}
         style={{ width: 185 }}
         value={values.endTime || ''}
         onChange={(next: any) => formApi?.setValue('endTime', toDateTimeString(next))}
@@ -260,7 +264,7 @@ function TimeRangeField({ formApi, values }: { formApi: any; values: Record<stri
       >
         {TIME_QUICK.map((item) => (
           <Radio key={item.value} value={item.value}>
-            {item.label}
+            {t(item.label)}
           </Radio>
         ))}
       </RadioGroup>
@@ -283,6 +287,7 @@ function StepTableField({
   values: Record<string, any>;
   canChangeType: boolean;
 }) {
+  const { t } = useI18n();
   const rulesType = Number(values.rulesType ?? 1);
   const promotionType = Number(values.promotionType ?? 1);
   const unit = Number(values.unit ?? 1);
@@ -308,15 +313,15 @@ function StepTableField({
           icon={<IconPlus />}
           disabled={rows.length >= 5}
           onClick={addStep}
-          title="最多添加5级优惠"
+          title={t('最多添加5级优惠')}
         >
-          {rows.length >= 5 ? '多添加5级优惠' : '添加下一级优惠'}
+          {rows.length >= 5 ? t('多添加5级优惠') : t('添加下一级优惠')}
         </Button>
       ) : null}
       <div className="promo-step-table">
         <div className="promo-step-head">
-          {rulesType === 1 ? <div className="promo-step-col promo-step-level">层级</div> : null}
-          <div className="promo-step-col promo-step-min">门槛</div>
+          {rulesType === 1 ? <div className="promo-step-col promo-step-level">{t('层级')}</div> : null}
+          <div className="promo-step-col promo-step-min">{t('门槛')}</div>
           <div className="promo-step-col promo-step-reduce">
             <Popover
               trigger="click"
@@ -326,19 +331,27 @@ function StepTableField({
                     value={promotionType}
                     onChange={(event: any) => formApi?.setValue('promotionType', Number(event.target.value))}
                   >
-                    <Radio value={1}>减价</Radio>
-                    {rulesType === 1 ? <Radio value={2}>折扣</Radio> : null}
+                    <Radio value={1}>{t('减价')}</Radio>
+                    {rulesType === 1 ? <Radio value={2}>{t('折扣')}</Radio> : null}
                   </RadioGroup>
                 </div>
               }
             >
-              <Button size="small" theme="borderless" disabled={!canChangeType} title={canChangeType ? '切换减价/折扣' : '活动进行中不可切换'}>
-                {rulesType === 1 ? '减价/折扣' : '减价'}已选: ({promotionType === 1 ? '减价' : '折扣'})
+              <Button
+                size="small"
+                theme="borderless"
+                disabled={!canChangeType}
+                title={canChangeType ? t('切换减价/折扣') : t('活动进行中不可切换')}
+              >
+                {t('{type}已选: ({current})', {
+                  type: rulesType === 1 ? t('减价/折扣') : t('减价'),
+                  current: promotionType === 1 ? t('减价') : t('折扣'),
+                })}
                 <IconChevronDown size="small" />
               </Button>
             </Popover>
           </div>
-          {rulesType === 1 ? <div className="promo-step-col promo-step-op">操作</div> : null}
+          {rulesType === 1 ? <div className="promo-step-col promo-step-op">{t('操作')}</div> : null}
         </div>
         {rows.map((row, index) => (
           <div className="promo-step-row" key={index}>
@@ -347,7 +360,7 @@ function StepTableField({
             ) : null}
             <div className="promo-step-col promo-step-min">
               <Space spacing={6}>
-                <span>{rulesType === 1 ? '满' : '每满'}</span>
+                <span>{rulesType === 1 ? t('满') : t('每满')}</span>
                 <InputNumber
                   size="small"
                   min={0}
@@ -356,13 +369,13 @@ function StepTableField({
                   value={row.minAmount as number | undefined}
                   onChange={(next) => patchRow(index, { minAmount: isEmptyInput(next) ? '' : next })}
                 />
-                <span>{unit === 1 ? AMOUNT_UNIT : '件'}</span>
+                <span>{unit === 1 ? t(AMOUNT_UNIT) : t('件')}</span>
               </Space>
             </div>
             <div className="promo-step-col promo-step-reduce">
               {promotionType === 2 ? (
                 <Space spacing={6}>
-                  <span>打</span>
+                  <span>{t('打')}</span>
                   <InputNumber
                     size="small"
                     min={0.1}
@@ -373,11 +386,11 @@ function StepTableField({
                     value={row.reduce as number | undefined}
                     onChange={(next) => patchRow(index, { reduce: isEmptyInput(next) ? '' : next })}
                   />
-                  <span>折</span>
+                  <span>{t('折')}</span>
                 </Space>
               ) : (
                 <Space spacing={6}>
-                  <span>减</span>
+                  <span>{t('减')}</span>
                   <InputNumber
                     size="small"
                     min={0}
@@ -387,7 +400,7 @@ function StepTableField({
                     value={row.reduce as number | undefined}
                     onChange={(next) => patchRow(index, { reduce: isEmptyInput(next) ? '' : next })}
                   />
-                  <span>{AMOUNT_UNIT}</span>
+                  <span>{t(AMOUNT_UNIT)}</span>
                 </Space>
               )}
             </div>
@@ -395,7 +408,7 @@ function StepTableField({
               <div className="promo-step-col promo-step-op">
                 {index > 0 ? (
                   <Button theme="borderless" type="danger" size="small" onClick={() => removeStep(index)}>
-                    删除
+                    {t('删除')}
                   </Button>
                 ) : null}
               </div>
@@ -408,6 +421,7 @@ function StepTableField({
 }
 
 export default function ProductPromotions() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [statusOptions, setStatusOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [rankOptions, setRankOptions] = useState<Array<{ label: string; value: number }>>([]);
@@ -479,9 +493,9 @@ export default function ProductPromotions() {
         field,
         val,
       });
-      Toast.success({ content: '修改成功' });
+      Toast.success({ content: t('修改成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '修改失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('修改失败') });
     } finally {
       reload();
     }
@@ -489,15 +503,15 @@ export default function ProductPromotions() {
 
   const deletePromotion = (row: PromotionRow) => {
     Modal.confirm({
-      title: '确认删除该优惠活动吗？',
-      content: '启用中的活动需先停用后才能删除',
+      title: t('确认删除该优惠活动吗？'),
+      content: t('启用中的活动需先停用后才能删除'),
       onOk: async () => {
         try {
           await apiPost('/promotion/productPromotion/del', { id: row.promotionId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -528,21 +542,21 @@ export default function ProductPromotions() {
     const rows = (Array.isArray(payload.promotionTypeData)
       ? payload.promotionTypeData
       : []) as PromotionStep[];
-    if (!rows.length) return '请添加优惠规则';
+    if (!rows.length) return t('请添加优惠规则');
     for (let index = 0; index < rows.length; index += 1) {
       const row = rows[index];
-      if (isEmptyInput(row.minAmount)) return '请输入门槛数值';
+      if (isEmptyInput(row.minAmount)) return t('请输入门槛数值');
       const minAmount = Number(row.minAmount);
-      if (minAmount < 0) return '门槛数值必须为正数';
+      if (minAmount < 0) return t('门槛数值必须为正数');
       if (promotionType === 2) {
-        if (isEmptyInput(row.reduce)) return '请输入折扣';
+        if (isEmptyInput(row.reduce)) return t('请输入折扣');
         const reduce = Number(row.reduce);
-        if (reduce < 0.1 || reduce > 9.9) return '折扣范围为0.1-9.9';
+        if (reduce < 0.1 || reduce > 9.9) return t('折扣范围为0.1-9.9');
       } else if (unit === 1) {
-        if (isEmptyInput(row.reduce)) return '请输入金额数';
+        if (isEmptyInput(row.reduce)) return t('请输入金额数');
         const reduce = Number(row.reduce);
-        if (reduce >= minAmount) return '应小于门槛金额';
-        if (reduce < 0.01 || reduce > 99999) return '输入范围为0.01-99999';
+        if (reduce >= minAmount) return t('应小于门槛金额');
+        if (reduce < 0.01 || reduce > 99999) return t('输入范围为0.01-99999');
       }
     }
     return '';
@@ -551,15 +565,15 @@ export default function ProductPromotions() {
   const savePromotion = async (payload: Record<string, any>) => {
     const name = String(payload.promotionName || '').trim();
     if (!name) {
-      Toast.warning({ content: '请输入活动名称' });
+      Toast.warning({ content: t('请输入活动名称') });
       return;
     }
     if (name.length > 50) {
-      Toast.warning({ content: '满减活动名称长度不能超过50' });
+      Toast.warning({ content: t('满减活动名称长度不能超过50') });
       return;
     }
     if (!payload.startTime || !payload.endTime) {
-      Toast.warning({ content: '请选择活动时间' });
+      Toast.warning({ content: t('请选择活动时间') });
       return;
     }
     const stepsError = validateSteps(payload);
@@ -570,7 +584,7 @@ export default function ProductPromotions() {
     const range = Number(payload.range ?? 0);
     const rangeData = Array.isArray(payload.rangeData) ? payload.rangeData.map(Number) : [];
     if (range !== 0 && !rangeData.length) {
-      Toast.warning({ content: '请选择商品' });
+      Toast.warning({ content: t('请选择商品') });
       return;
     }
     const body: Record<string, any> = {
@@ -614,11 +628,11 @@ export default function ProductPromotions() {
           sendUserTarget: EMPTY_SEND_USER_TARGET,
         });
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setDrawerOpen(false);
       reload();
     } catch (error) {
-      const message = error instanceof Error ? error.message : '保存失败';
+      const message = error instanceof Error ? error.message : t('保存失败');
       Toast.error({ content: message });
       // 后端冲突码 5001（存在冲突活动，请重新设置活动）→ 弹冲突列表（旧 fetchProductConflict）
       if (message.includes('冲突')) {
@@ -644,21 +658,21 @@ export default function ProductPromotions() {
           fields: [
             {
               field: 'unit',
-              label: '活动类型',
+              label: t('活动类型'),
               type: 'custom',
               render: ({ formApi, values }) => <UnitField formApi={formApi} values={values} />,
             },
             {
               field: 'promotionName',
-              label: '活动名称',
+              label: t('活动名称'),
               type: 'input',
               required: true,
-              placeholder: '请输入活动名称',
-              rules: [{ required: true, message: '请输入活动名称' }],
+              placeholder: t('请输入活动名称'),
+              rules: [{ required: true, message: t('请输入活动名称') }],
             },
             {
               field: 'startTime',
-              label: '活动时间',
+              label: t('活动时间'),
               type: 'custom',
               // 旧 Info.vue 该 form-item 的 prop="sendType" 为遗留命名（复制自优惠券表单），
               // 实际载荷字段为 startTime / endTime，此处保持语义对应。
@@ -666,7 +680,7 @@ export default function ProductPromotions() {
             },
             {
               field: 'rulesType',
-              label: '优惠规则',
+              label: t('优惠规则'),
               type: 'custom',
               render: ({ formApi, values }) => (
                 <div className="promo-rules-wrap">
@@ -685,8 +699,12 @@ export default function ProductPromotions() {
                       }
                     }}
                   >
-                    <Radio value={1}>阶梯优惠（例：满1件减10{AMOUNT_UNIT}）</Radio>
-                    <Radio value={0}>循环优惠（例：每满1件减10{AMOUNT_UNIT}）</Radio>
+                    <Radio value={1}>
+                      {t('阶梯优惠（例：满1件减10{unit}）', { unit: t(AMOUNT_UNIT) })}
+                    </Radio>
+                    <Radio value={0}>
+                      {t('循环优惠（例：每满1件减10{unit}）', { unit: t(AMOUNT_UNIT) })}
+                    </Radio>
                   </RadioGroup>
                   <StepTableField
                     formApi={formApi}
@@ -704,7 +722,7 @@ export default function ProductPromotions() {
           fields: [
             {
               field: 'range',
-              label: '适用商品',
+              label: t('适用商品'),
               type: 'custom',
               render: ({ formApi, values }) => (
                 <div className="promo-range-wrap">
@@ -712,9 +730,9 @@ export default function ProductPromotions() {
                     value={Number(values.range ?? 0)}
                     onChange={(event: any) => formApi?.setValue('range', Number(event.target.value))}
                   >
-                    <Radio value={0}>全部商品</Radio>
-                    <Radio value={3}>以下商品</Radio>
-                    <Radio value={4}>不含以下商品</Radio>
+                    <Radio value={0}>{t('全部商品')}</Radio>
+                    <Radio value={3}>{t('以下商品')}</Radio>
+                    <Radio value={4}>{t('不含以下商品')}</Radio>
                   </RadioGroup>
                   {Number(values.range) !== 0 ? (
                     <ProductPicker
@@ -728,11 +746,11 @@ export default function ProductPromotions() {
             },
             {
               field: 'limitUserRank',
-              label: '参与客户限制',
+              label: t('参与客户限制'),
               type: 'custom',
               render: ({ formApi, values }) => (
                 <Select
-                  placeholder="请选择"
+                  placeholder={t('请选择')}
                   multiple
                   style={{ width: 300 }}
                   optionList={rankOptions}
@@ -743,14 +761,14 @@ export default function ProductPromotions() {
             },
             {
               field: 'sendUserTarget',
-              label: '适用会员',
+              label: t('适用会员'),
               type: 'custom',
               render: () => (
                 <div
                   className="promo-member-target"
-                  title="SendUserSelector 人群圈选未迁移：创建/编辑统一按全部会员提交"
+                  title={t('SendUserSelector 人群圈选未迁移：创建/编辑统一按全部会员提交')}
                 >
-                  全部会员（人群圈选暂未迁移，按全部会员提交）
+                  {t('全部会员（人群圈选暂未迁移，按全部会员提交）')}
                 </div>
               ),
             },
@@ -758,7 +776,7 @@ export default function ProductPromotions() {
         },
       ],
     };
-  }, [drawerMode, rankOptions, editingStatus]);
+  }, [drawerMode, rankOptions, editingStatus, t]);
 
   const columns: ColumnConfig<PromotionRow>[] = [
     {
@@ -835,7 +853,7 @@ export default function ProductPromotions() {
         columns={columns}
         toolbarExtra={
           <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openCreate}>
-            新增满减活动
+            {t('新增满减活动')}
           </Button>
         }
         batchActions={(rows, clear) => (
@@ -843,35 +861,35 @@ export default function ProductPromotions() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: '您确认要批量删除所选数据吗？',
+                title: t('您确认要批量删除所选数据吗？'),
                 onOk: async () => {
                   try {
                     await apiPost('/promotion/productPromotion/batch', {
                       ids: rows.map((row) => row.promotionId),
                       type: 'del',
                     });
-                    Toast.success({ content: '批量删除成功' });
+                    Toast.success({ content: t('批量删除成功') });
                     clear();
                     reload();
                   } catch (error) {
                     Toast.error({
-                      content: error instanceof Error ? error.message : '批量删除失败',
+                      content: error instanceof Error ? error.message : t('批量删除失败'),
                     });
                   }
                 },
               });
             }}
           >
-            批量删除
+            {t('批量删除')}
           </Button>
         )}
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
-              编辑
+              {t('编辑')}
             </Button>
             <Button theme="borderless" type="danger" size="small" onClick={() => deletePromotion(row)}>
-              删除
+              {t('删除')}
             </Button>
           </Space>
         )}
@@ -888,7 +906,7 @@ export default function ProductPromotions() {
       />
 
       <Modal
-        title="冲突提示"
+        title={t('冲突提示')}
         visible={conflictVisible}
         footer={null}
         onCancel={() => setConflictVisible(false)}
@@ -900,17 +918,18 @@ export default function ProductPromotions() {
           rowKey="promotionId"
           dataSource={conflictList}
           columns={[
-            { title: '活动名称', dataIndex: 'promotionName', width: 150 },
+            { title: t('活动名称'), dataIndex: 'promotionName', width: 150 },
             {
-              title: '活动重合时间',
+              title: t('活动重合时间'),
               dataIndex: 'name',
               width: 300,
-              render: (_: unknown, row: any) => `${row.startTime}至${row.endTime}`,
+              render: (_: unknown, row: any) =>
+                t('{start}至{end}', { start: row.startTime, end: row.endTime }),
             },
-            { title: '活动类型', dataIndex: 'promotionTypeName' },
+            { title: t('活动类型'), dataIndex: 'promotionTypeName' },
           ]}
         />
-        {!conflictList.length ? <span className="promo-member-target">暂无冲突活动</span> : null}
+        {!conflictList.length ? <span className="promo-member-target">{t('暂无冲突活动')}</span> : null}
       </Modal>
     </div>
   );

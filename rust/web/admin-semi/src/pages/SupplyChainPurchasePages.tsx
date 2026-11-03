@@ -21,6 +21,7 @@ import { IconPlus, IconSearch } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiDownload, apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -32,9 +33,10 @@ const { Text } = Typography;
 ================================================================== */
 const MONEY_PATTERN = /^\d+(?:\.\d{1,2})?$/;
 
-function errMsg(error: unknown): string {
+function errMsg(error: unknown, t?: (key: string) => string): string {
   if (error instanceof Error) return error.message;
-  return typeof error === 'string' ? error : '操作失败';
+  if (typeof error === 'string') return error;
+  return t ? t('操作失败') : '操作失败';
 }
 
 function currentShopId(): string {
@@ -247,6 +249,7 @@ function ProductSelectorModal({
   onConfirm: (lines: ProductSelectorLine[]) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [keyword, setKeyword] = useState('');
   const [appliedKeyword, setAppliedKeyword] = useState('');
   const [page, setPage] = useState(1);
@@ -292,7 +295,7 @@ function ProductSelectorModal({
         );
         setTotal(Number(res.total || 0));
       })
-      .catch((error) => alive && Toast.error({ content: errMsg(error) }))
+      .catch((error) => alive && Toast.error({ content: errMsg(error, t) }))
       .finally(() => {
         if (alive) setLoading(false);
       });
@@ -324,26 +327,26 @@ function ProductSelectorModal({
 
   const columns = [
     {
-      title: '商品信息',
+      title: t('商品信息'),
       dataIndex: 'productName',
       render: (_: any, row: any) => (
         <ProductCell pic={row.picThumb} name={row.productName} sku={row.skuName} />
       ),
     },
     {
-      title: '商品分类',
+      title: t('商品分类'),
       dataIndex: 'categoryName',
       width: 130,
       render: (val: any) => val || '-',
     },
     {
-      title: '供应商库存',
+      title: t('供应商库存'),
       dataIndex: 'supplierStock',
       width: 110,
       render: (val: any) => val ?? '-',
     },
     {
-      title: '销售价(元)',
+      title: t('销售价(元)'),
       dataIndex: 'supplyPrice',
       width: 110,
       render: (val: any) => fmtYuan(val),
@@ -353,7 +356,7 @@ function ProductSelectorModal({
       width: 70,
       render: (_: any, row: any) =>
         selectedIds.includes(String(row.vendorProductSkuId)) ? (
-          <Text type="tertiary" size="small">已添加</Text>
+          <Text type="tertiary" size="small">{t('已添加')}</Text>
         ) : null,
     },
   ];
@@ -377,22 +380,22 @@ function ProductSelectorModal({
 
   return (
     <Modal
-      title="添加商品"
+      title={t('添加商品')}
       visible={visible}
       onCancel={onCancel}
       width={860}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" disabled={pending.size === 0} onClick={confirmSelection}>
-            确认
+            {t('确认')}
           </Button>
         </Space>
       }
     >
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <Input
-          placeholder="请输入商品名称"
+          placeholder={t('请输入商品名称')}
           value={keyword}
           showClear
           onChange={(val) => setKeyword(val)}
@@ -410,7 +413,7 @@ function ProductSelectorModal({
             setAppliedKeyword(keyword.trim());
           }}
         >
-          搜索
+          {t('搜索')}
         </Button>
       </div>
       <Table
@@ -477,6 +480,7 @@ function PurchaseOrderCreateDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const platform = isPlatformAdmin();
   const [saving, setSaving] = useState(false);
   const [shopOptions, setShopOptions] = useState<ShopOptionItem[]>([]);
@@ -508,7 +512,7 @@ function PurchaseOrderCreateDrawer({
         setShopOptions(shops);
         setLogisticsOptions(logistics.filter((item) => item.logisticsId > 0 && item.logisticsName));
       } catch (error) {
-        Toast.error({ content: errMsg(error) });
+        Toast.error({ content: errMsg(error, t) });
       }
       if (!platform) {
         try {
@@ -534,7 +538,7 @@ function PurchaseOrderCreateDrawer({
     try {
       setSupplierOptions(await fetchSupplierOptions(next));
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
       setSupplierOptions([]);
     }
   };
@@ -553,26 +557,26 @@ function PurchaseOrderCreateDrawer({
 
   const lineColumns = [
     {
-      title: '商品信息',
+      title: t('商品信息'),
       dataIndex: 'productName',
       render: (_: any, row: ProductSelectorLine) => (
         <ProductCell pic={row.picThumb} name={row.productName} sku={row.skuName} />
       ),
     },
     {
-      title: '商品分类',
+      title: t('商品分类'),
       dataIndex: 'categoryName',
       width: 110,
       render: (val: any) => val || '-',
     },
     {
-      title: '供应商库存',
+      title: t('供应商库存'),
       dataIndex: 'supplierStock',
       width: 100,
       render: (val: any) => val ?? '-',
     },
     {
-      title: '采购数量',
+      title: t('采购数量'),
       width: 140,
       render: (_: any, row: ProductSelectorLine) => (
         <InputNumber
@@ -587,7 +591,7 @@ function PurchaseOrderCreateDrawer({
       ),
     },
     {
-      title: '供货价(元/件)',
+      title: t('供货价(元/件)'),
       width: 140,
       render: (_: any, row: ProductSelectorLine) => (
         <InputNumber
@@ -600,12 +604,12 @@ function PurchaseOrderCreateDrawer({
       ),
     },
     {
-      title: '小计(元)',
+      title: t('小计(元)'),
       width: 100,
       render: (_: any, row: ProductSelectorLine) => centsToYuanText(lineCents(row)),
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 70,
       render: (_: any, row: ProductSelectorLine) => (
         <Button
@@ -614,26 +618,26 @@ function PurchaseOrderCreateDrawer({
           size="small"
           onClick={() => setLines((prev) => prev.filter((line) => line.vendorProductSkuId !== row.vendorProductSkuId))}
         >
-          移除
+          {t('移除')}
         </Button>
       ),
     },
   ];
 
   const submit = async () => {
-    if (!shopId) return Toast.warning('请选择采购店铺');
-    if (!vendorId) return Toast.warning('请选择供应商');
-    if (!expectedAt) return Toast.warning('请选择期望送达日期');
-    if (!lines.length) return Toast.warning('请添加商品');
+    if (!shopId) return Toast.warning(t('请选择采购店铺'));
+    if (!vendorId) return Toast.warning(t('请选择供应商'));
+    if (!expectedAt) return Toast.warning(t('请选择期望送达日期'));
+    if (!lines.length) return Toast.warning(t('请添加商品'));
     if (shippingMethod === 1 && (!logisticsId || !trackingNo.trim())) {
-      return Toast.warning('请完善物流公司与物流单号');
+      return Toast.warning(t('请完善物流公司与物流单号'));
     }
     for (const line of lines) {
       if (parseMoneyToMinorUnits(line.purchasePrice) === null) {
-        return Toast.warning(`商品「${line.productName}」的供货价格式不正确（最多两位小数）`);
+        return Toast.warning(t('商品「{name}」的供货价格式不正确（最多两位小数）', { name: line.productName }));
       }
       if (lineQuantity(line) < Number(line.minPurchaseQty || 1)) {
-        return Toast.warning(`商品「${line.productName}」的采购数量不能低于最小起订量 ${line.minPurchaseQty}`);
+        return Toast.warning(t('商品「{name}」的采购数量不能低于最小起订量 {qty}', { name: line.productName, qty: line.minPurchaseQty }));
       }
     }
     setSaving(true);
@@ -658,10 +662,10 @@ function PurchaseOrderCreateDrawer({
           purchasePrice: Number(line.purchasePrice),
         })),
       });
-      Toast.success('采购单创建成功');
+      Toast.success(t('采购单创建成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -669,7 +673,7 @@ function PurchaseOrderCreateDrawer({
 
   return (
     <SideSheet
-      title="新建采购单"
+      title={t('新建采购单')}
       visible={visible}
       onCancel={onClose}
       width={960}
@@ -677,17 +681,17 @@ function PurchaseOrderCreateDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            提交
+            {t('提交')}
           </Button>
         </div>
       }
     >
-      <SectionTitle text="基本信息" />
-      <Field label="采购店铺" required>
+      <SectionTitle text={t('基本信息')} />
+      <Field label={t('采购店铺')} required>
         <Select
-          placeholder="选择采购店铺"
+          placeholder={t('选择采购店铺')}
           style={{ width: 320 }}
           showClear
           disabled={!platform}
@@ -696,9 +700,9 @@ function PurchaseOrderCreateDrawer({
           onChange={handleShopChange}
         />
       </Field>
-      <Field label="供应商" required>
+      <Field label={t('供应商')} required>
         <Select
-          placeholder={shopId ? '选择供应商' : '请先选择采购店铺'}
+          placeholder={shopId ? t('选择供应商') : t('请先选择采购店铺')}
           style={{ width: 320 }}
           showClear
           filter
@@ -711,11 +715,11 @@ function PurchaseOrderCreateDrawer({
           }}
         />
       </Field>
-      <Field label="期望送达日期" required>
+      <Field label={t('期望送达日期')} required>
         <DatePicker
           style={{ width: 320 }}
           type="date"
-          placeholder="选择日期"
+          placeholder={t('选择日期')}
           value={expectedAt || undefined}
           disabledDate={(date: any) => Boolean(date && date.getTime() < todayStart().getTime())}
           onChange={(date: any) => setExpectedAt(date ? (date instanceof Date ? toYMD(date) : String(date).slice(0, 10)) : '')}
@@ -723,8 +727,8 @@ function PurchaseOrderCreateDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="物流信息" />
-      <Field label="发货方式" required>
+      <SectionTitle text={t('物流信息')} />
+      <Field label={t('发货方式')} required>
         <RadioGroup
           value={shippingMethod}
           onChange={(e: any) => {
@@ -736,15 +740,15 @@ function PurchaseOrderCreateDrawer({
             }
           }}
         >
-          <Radio value={1}>物流发货</Radio>
-          <Radio value={2}>无需物流</Radio>
+          <Radio value={1}>{t('物流发货')}</Radio>
+          <Radio value={2}>{t('无需物流')}</Radio>
         </RadioGroup>
       </Field>
       {shippingMethod === 1 ? (
         <>
-          <Field label="物流公司" required>
+          <Field label={t('物流公司')} required>
             <Select
-              placeholder="请选择"
+              placeholder={t('请选择')}
               style={{ width: 320 }}
               showClear
               filter
@@ -756,9 +760,9 @@ function PurchaseOrderCreateDrawer({
               onChange={(val) => setLogisticsId(val === undefined || val === null ? '' : String(val))}
             />
           </Field>
-          <Field label="物流单号" required>
+          <Field label={t('物流单号')} required>
             <Input
-              placeholder="请输入"
+              placeholder={t('请输入')}
               style={{ width: 320 }}
               value={trackingNo}
               onChange={(val) => setTrackingNo(val)}
@@ -766,9 +770,9 @@ function PurchaseOrderCreateDrawer({
           </Field>
         </>
       ) : null}
-      <Field label="备注">
+      <Field label={t('备注')}>
         <TextArea
-          placeholder="请输入"
+          placeholder={t('请输入')}
           rows={3}
           maxCount={255}
           style={{ width: 520 }}
@@ -778,7 +782,7 @@ function PurchaseOrderCreateDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="商品信息" />
+      <SectionTitle text={t('商品信息')} />
       <div style={{ marginBottom: 12 }}>
         <Button
           type="primary"
@@ -786,29 +790,29 @@ function PurchaseOrderCreateDrawer({
           disabled={!shopId || !vendorId}
           onClick={() => setSelectorOpen(true)}
         >
-          添加商品
+          {t('添加商品')}
         </Button>
         {!shopId || !vendorId ? (
           <Text type="tertiary" size="small" style={{ marginLeft: 8 }}>
-            请先选择采购店铺与供应商
+            {t('请先选择采购店铺与供应商')}
           </Text>
         ) : null}
       </div>
       <div style={summaryStyle}>
-        <span>商品共</span>
+        <span>{t('商品共')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{lines.length}</strong>
-        <span>种，总数</span>
+        <span>{t('种，总数')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{totalQuantity}</strong>
-        <span>，合计</span>
+        <span>{t('，合计')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{centsToYuanText(totalCents)}</strong>
-        <span>元</span>
+        <span>{t('元')}</span>
       </div>
       <Table
         dataSource={lines}
         rowKey="vendorProductSkuId"
         columns={lineColumns as any}
         pagination={false}
-        empty="暂无商品，请点击「添加商品」"
+        empty={t('暂无商品，请点击「添加商品」')}
       />
 
       <ProductSelectorModal
@@ -844,6 +848,7 @@ function PurchaseOrderInboundDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [orderSn, setOrderSn] = useState('');
@@ -893,7 +898,7 @@ function PurchaseOrderInboundDrawer({
           }),
         );
       })
-      .catch((error) => alive && Toast.error({ content: errMsg(error) }))
+      .catch((error) => alive && Toast.error({ content: errMsg(error, t) }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -902,12 +907,12 @@ function PurchaseOrderInboundDrawer({
 
   const submit = async () => {
     if (!order) return;
-    if (!lines.length) return Toast.warning('暂无可入库的商品');
+    if (!lines.length) return Toast.warning(t('暂无可入库的商品'));
     const active = lines.filter((line) => Math.round(Number(line.actualQuantity) || 0) > 0);
-    if (!active.length) return Toast.warning('请填写实际入库量');
+    if (!active.length) return Toast.warning(t('请填写实际入库量'));
     for (const line of active) {
       if (Math.round(Number(line.actualQuantity)) > line.remainingQuantity) {
-        return Toast.warning(`商品「${line.productName}」的入库量不能超过剩余入库量 ${line.remainingQuantity}`);
+        return Toast.warning(t('商品「{name}」的入库量不能超过剩余入库量 {qty}', { name: line.productName, qty: line.remainingQuantity }));
       }
     }
     setSaving(true);
@@ -925,10 +930,10 @@ function PurchaseOrderInboundDrawer({
           purchasePrice: Number(line.purchasePrice || 0),
         })),
       });
-      Toast.success('入库成功');
+      Toast.success(t('入库成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -936,28 +941,28 @@ function PurchaseOrderInboundDrawer({
 
   const columns = [
     {
-      title: '商品信息',
+      title: t('商品信息'),
       dataIndex: 'productName',
       render: (_: any, row: InboundLine) => (
         <ProductCell pic={row.picThumb} name={row.productName} sku={row.skuName} />
       ),
     },
     {
-      title: '商品分类',
+      title: t('商品分类'),
       dataIndex: 'categoryName',
       width: 110,
       render: (val: any) => val || '-',
     },
-    { title: '预计入库量', dataIndex: 'orderedQuantity', width: 110 },
-    { title: '已入库量', dataIndex: 'receivedQuantity', width: 100 },
+    { title: t('预计入库量'), dataIndex: 'orderedQuantity', width: 110 },
+    { title: t('已入库量'), dataIndex: 'receivedQuantity', width: 100 },
     {
-      title: '剩余入库量',
+      title: t('剩余入库量'),
       dataIndex: 'remainingQuantity',
       width: 110,
       render: (val: any) => <span style={{ color: 'var(--semi-color-warning)', fontWeight: 600 }}>{val}</span>,
     },
     {
-      title: '实际入库量',
+      title: t('实际入库量'),
       width: 140,
       render: (_: any, row: InboundLine) => (
         <InputNumber
@@ -966,7 +971,7 @@ function PurchaseOrderInboundDrawer({
           min={0}
           step={1}
           precision={0}
-          placeholder="请输入"
+          placeholder={t('请输入')}
           value={row.actualQuantity}
           onChange={(val) =>
             setLines((prev) =>
@@ -980,7 +985,7 @@ function PurchaseOrderInboundDrawer({
 
   return (
     <SideSheet
-      title="收货入库"
+      title={t('收货入库')}
       visible={Boolean(order)}
       onCancel={onClose}
       width={900}
@@ -988,37 +993,37 @@ function PurchaseOrderInboundDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            确认入库
+            {t('确认入库')}
           </Button>
         </div>
       }
     >
-      <SectionTitle text="基本信息" />
-      <Field label="采购单号">
+      <SectionTitle text={t('基本信息')} />
+      <Field label={t('采购单号')}>
         <Text strong>{orderSn || '-'}</Text>
       </Field>
-      <Field label="入库类型">
-        <Text>采购入库</Text>
+      <Field label={t('入库类型')}>
+        <Text>{t('采购入库')}</Text>
       </Field>
-      <Field label="供应商">
+      <Field label={t('供应商')}>
         <Text>{vendorName || '-'}</Text>
       </Field>
-      <Field label="入库时间" required>
+      <Field label={t('入库时间')} required>
         <DatePicker
           style={{ width: 320 }}
           type="dateTime"
           format="yyyy-MM-dd HH:mm"
-          placeholder="选择日期时间"
+          placeholder={t('选择日期时间')}
           value={inboundAt || undefined}
           disabledDate={(date: any) => Boolean(date && date.getTime() > Date.now())}
           onChange={(date: any) => setInboundAt(date ? (date instanceof Date ? toYMDHM(date) : String(date).slice(0, 16)) : '')}
         />
       </Field>
-      <Field label="备注">
+      <Field label={t('备注')}>
         <TextArea
-          placeholder="请输入"
+          placeholder={t('请输入')}
           rows={3}
           maxCount={255}
           style={{ width: 520 }}
@@ -1028,14 +1033,14 @@ function PurchaseOrderInboundDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="入库信息" />
+      <SectionTitle text={t('入库信息')} />
       <Table
         loading={loading}
         dataSource={lines}
         rowKey="key"
         columns={columns as any}
         pagination={false}
-        empty={loading ? '加载中...' : '暂无数据'}
+        empty={loading ? t('加载中...') : t('暂无数据')}
       />
     </SideSheet>
   );
@@ -1049,6 +1054,7 @@ function PurchaseOrderDetailDrawer({
   order: PurchaseOrderItem | null;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<any>(null);
 
@@ -1059,7 +1065,7 @@ function PurchaseOrderDetailDrawer({
     let alive = true;
     apiGet<any>('/supplyChain/purchaseOrder/detail', { id: orderIdOf(order) })
       .then((res) => alive && setDetail(res || {}))
-      .catch((error) => alive && Toast.error({ content: errMsg(error) }))
+      .catch((error) => alive && Toast.error({ content: errMsg(error, t) }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -1073,7 +1079,7 @@ function PurchaseOrderDetailDrawer({
 
   return (
     <SideSheet
-      title="采购订单详情"
+      title={t('采购订单详情')}
       visible={Boolean(order)}
       onCancel={onClose}
       width={920}
@@ -1081,42 +1087,42 @@ function PurchaseOrderDetailDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ textAlign: 'right' }}>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>{t('关闭')}</Button>
         </div>
       }
     >
-      <SectionTitle text="基本信息" />
-      <Field label="采购单号">
+      <SectionTitle text={t('基本信息')} />
+      <Field label={t('采购单号')}>
         <Text strong>{detail?.orderSn || order?.orderSn || '-'}</Text>
       </Field>
-      <Field label="供应商">
+      <Field label={t('供应商')}>
         <Text>{detail?.vendorName || order?.vendorName || order?.supplierName || '-'}</Text>
       </Field>
-      <Field label="采购组织">
+      <Field label={t('采购组织')}>
         <Text>{detail?.shopName || order?.shopName || '-'}</Text>
       </Field>
-      <Field label="期望送达日期">
+      <Field label={t('期望送达日期')}>
         <Text>{formatUnix(detail?.expectedDeliveryDate)}</Text>
       </Field>
-      <Field label="发货方式">
-        <Text>{detail ? (Number(detail.shippingMethod) === 2 ? '无需物流' : '物流发货') : '-'}</Text>
+      <Field label={t('发货方式')}>
+        <Text>{detail ? (Number(detail.shippingMethod) === 2 ? t('无需物流') : t('物流发货')) : '-'}</Text>
       </Field>
       {detail && Number(detail.shippingMethod) !== 2 ? (
         <>
-          <Field label="物流公司">
+          <Field label={t('物流公司')}>
             <Text>{detail.logisticsName || '-'}</Text>
           </Field>
-          <Field label="物流单号">
+          <Field label={t('物流单号')}>
             <Text>{detail.trackingNo || '-'}</Text>
           </Field>
         </>
       ) : null}
-      <Field label="备注">
+      <Field label={t('备注')}>
         <Text>{detail?.remark || '-'}</Text>
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="商品信息" />
+      <SectionTitle text={t('商品信息')} />
       <Table
         loading={loading}
         dataSource={detailItems}
@@ -1125,28 +1131,28 @@ function PurchaseOrderDetailDrawer({
         columns={
           [
             {
-              title: '商品信息',
+              title: t('商品信息'),
               dataIndex: 'productName',
               render: (_: any, row: any) => (
                 <ProductCell pic={row.picThumb} name={row.productName} sku={row.skuName} />
               ),
             },
             {
-              title: '商品分类',
+              title: t('商品分类'),
               dataIndex: 'categoryName',
               width: 110,
               render: (val: any) => val || '-',
             },
-            { title: '采购数量', dataIndex: 'quantity', width: 100 },
-            { title: '已入库量', dataIndex: 'receivedQuantity', width: 100 },
+            { title: t('采购数量'), dataIndex: 'quantity', width: 100 },
+            { title: t('已入库量'), dataIndex: 'receivedQuantity', width: 100 },
             {
-              title: '供货价(元/件)',
+              title: t('供货价(元/件)'),
               dataIndex: 'purchasePrice',
               width: 130,
               render: (val: any) => fmtYuan(val),
             },
             {
-              title: '小计(元)',
+              title: t('小计(元)'),
               width: 110,
               render: (_: any, row: any) =>
                 fmtYuan((Number(row.purchasePrice) || 0) * Math.max(0, Number(row.quantity) || 0)),
@@ -1159,84 +1165,85 @@ function PurchaseOrderDetailDrawer({
 }
 
 export function PurchaseOrders() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [inboundOrder, setInboundOrder] = useState<PurchaseOrderItem | null>(null);
   const [detailOrder, setDetailOrder] = useState<PurchaseOrderItem | null>(null);
 
   const statusName = (status: number) =>
-    ({ 1: '待入库', 2: '部分入库', 3: '已完成', 4: '已关闭' })[status] || '未知状态';
+    ({ 1: t('待入库'), 2: t('部分入库'), 3: t('已完成'), 4: t('已关闭') })[status] || t('未知状态');
   const statusColor = (status: number): any =>
     ({ 1: 'orange', 2: 'blue', 3: 'green', 4: 'grey' })[status] || 'grey';
 
   const columns: ColumnConfig<PurchaseOrderItem>[] = [
     {
-      title: '采购单号',
+      title: t('采购单号'),
       dataIndex: 'orderSn',
       width: 180,
       render: (val: any) => <span style={{ fontWeight: 600 }}>{val}</span>,
     },
     {
-      title: '物流单号',
+      title: t('物流单号'),
       dataIndex: 'trackingNo',
       width: 160,
       render: (val: any) => val || '--',
     },
     {
-      title: '单据状态',
+      title: t('单据状态'),
       dataIndex: 'status',
       width: 100,
       render: (val: any) => <Tag color={statusColor(Number(val))}>{statusName(Number(val))}</Tag>,
     },
     {
-      title: '采购总金额(元)',
+      title: t('采购总金额(元)'),
       dataIndex: 'totalAmount',
       width: 140,
       render: (val: any) => <span style={{ fontWeight: 600, color: '#165dff' }}>{fmtYuan(val)}</span>,
     },
     {
-      title: '采购数量',
+      title: t('采购数量'),
       dataIndex: 'totalQuantity',
       width: 100,
       render: (val: any) => val ?? 0,
     },
     {
-      title: '供应商',
+      title: t('供应商'),
       dataIndex: 'vendorName',
       width: 150,
       render: (val: any, row: PurchaseOrderItem) => val || row.supplierName || '--',
     },
     {
-      title: '采购组织',
+      title: t('采购组织'),
       dataIndex: 'shopName',
       width: 140,
       render: (val: any) => val || '--',
     },
     {
-      title: '制单时间',
+      title: t('制单时间'),
       dataIndex: 'createTime',
       width: 170,
       render: (val: any) => val || '--',
     },
     {
-      title: '备注',
+      title: t('备注'),
       dataIndex: 'remark',
       width: 160,
       render: (val: any) => val || '--',
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 180,
       render: (_: any, record: PurchaseOrderItem) => (
         <Space spacing={2}>
           {record.status === 1 || record.status === 2 ? (
             <Button theme="borderless" type="primary" size="small" onClick={() => setInboundOrder(record)}>
-              入库
+              {t('入库')}
             </Button>
           ) : null}
           {record.status === 2 ? (
             <Popconfirm
-              title="确认标记采购完成？"
+              title={t('确认标记采购完成？')}
               onConfirm={async () => {
                 try {
                   await apiPost('/supplyChain/purchaseOrder/finish', {
@@ -1244,20 +1251,20 @@ export function PurchaseOrders() {
                     shopId: Number(record.shopId ?? currentShopId() ?? 0),
                     remark: '',
                   });
-                  Toast.success('采购已完成');
+                  Toast.success(t('采购已完成'));
                   setReloadKey((k) => k + 1);
                 } catch (error) {
-                  Toast.error({ content: errMsg(error) });
+                  Toast.error({ content: errMsg(error, t) });
                 }
               }}
             >
               <Button theme="borderless" type="warning" size="small">
-                完成
+                {t('完成')}
               </Button>
             </Popconfirm>
           ) : null}
           <Button theme="borderless" type="primary" size="small" onClick={() => setDetailOrder(record)}>
-            详情
+            {t('详情')}
           </Button>
         </Space>
       ),
@@ -1273,32 +1280,32 @@ export function PurchaseOrders() {
         columns={columns}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => setCreateOpen(true)}>
-            新建采购单
+            {t('新建采购单')}
           </Button>
         }
         filters={[
           {
             field: 'orderSn',
-            label: '采购单号',
-            placeholder: '输入采购单号',
+            label: t('采购单号'),
+            placeholder: t('输入采购单号'),
             type: 'input',
           },
           {
             field: 'trackingNo',
-            label: '物流单号',
-            placeholder: '输入物流单号',
+            label: t('物流单号'),
+            placeholder: t('输入物流单号'),
             type: 'input',
           },
           {
             field: 'status',
-            label: '状态',
+            label: t('状态'),
             type: 'select',
             options: [
-              { label: '全部', value: '' },
-              { label: '待入库', value: 1 },
-              { label: '部分入库', value: 2 },
-              { label: '已完成', value: 3 },
-              { label: '已关闭', value: 4 },
+              { label: t('全部'), value: '' },
+              { label: t('待入库'), value: 1 },
+              { label: t('部分入库'), value: 2 },
+              { label: t('已完成'), value: 3 },
+              { label: t('已关闭'), value: 4 },
             ],
           },
         ]}
@@ -1356,6 +1363,7 @@ function ReceiptDirectDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const platform = isPlatformAdmin();
   const [saving, setSaving] = useState(false);
   const [shopOptions, setShopOptions] = useState<ShopOptionItem[]>([]);
@@ -1379,7 +1387,7 @@ function ReceiptDirectDrawer({
     if (platform) {
       fetchShopOptions()
         .then(setShopOptions)
-        .catch((error) => Toast.error({ content: errMsg(error) }));
+        .catch((error) => Toast.error({ content: errMsg(error, t) }));
     } else {
       fetchSupplierOptions(currentShopId())
         .then(setSupplierOptions)
@@ -1399,7 +1407,7 @@ function ReceiptDirectDrawer({
     try {
       setSupplierOptions(await fetchSupplierOptions(next));
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
       setSupplierOptions([]);
     }
   };
@@ -1418,20 +1426,20 @@ function ReceiptDirectDrawer({
 
   const lineColumns = [
     {
-      title: '商品信息',
+      title: t('商品信息'),
       dataIndex: 'productName',
       render: (_: any, row: ProductSelectorLine) => (
         <ProductCell pic={row.picThumb} name={row.productName} sku={row.skuName} />
       ),
     },
     {
-      title: '商品分类',
+      title: t('商品分类'),
       dataIndex: 'categoryName',
       width: 110,
       render: (val: any) => val || '-',
     },
     {
-      title: '入库数量',
+      title: t('入库数量'),
       width: 140,
       render: (_: any, row: ProductSelectorLine) => (
         <InputNumber
@@ -1446,7 +1454,7 @@ function ReceiptDirectDrawer({
       ),
     },
     {
-      title: '成本价(元/件)',
+      title: t('成本价(元/件)'),
       width: 140,
       render: (_: any, row: ProductSelectorLine) => (
         <InputNumber
@@ -1459,12 +1467,12 @@ function ReceiptDirectDrawer({
       ),
     },
     {
-      title: '小计(元)',
+      title: t('小计(元)'),
       width: 100,
       render: (_: any, row: ProductSelectorLine) => centsToYuanText(lineCents(row)),
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 70,
       render: (_: any, row: ProductSelectorLine) => (
         <Button
@@ -1473,24 +1481,24 @@ function ReceiptDirectDrawer({
           size="small"
           onClick={() => setLines((prev) => prev.filter((line) => line.vendorProductSkuId !== row.vendorProductSkuId))}
         >
-          移除
+          {t('移除')}
         </Button>
       ),
     },
   ];
 
   const submit = async () => {
-    if (!shopId) return Toast.warning('请选择采购店铺');
-    if (!vendorId) return Toast.warning('请选择供应商');
-    if (!inboundAt) return Toast.warning('请选择入库日期');
+    if (!shopId) return Toast.warning(t('请选择采购店铺'));
+    if (!vendorId) return Toast.warning(t('请选择供应商'));
+    if (!inboundAt) return Toast.warning(t('请选择入库日期'));
     const active = lines.filter((line) => lineQty(line) > 0);
-    if (!active.length) return Toast.warning('请选择商品并填写入库数量');
+    if (!active.length) return Toast.warning(t('请选择商品并填写入库数量'));
     for (const line of active) {
       if (parseMoneyToMinorUnits(line.purchasePrice) === null) {
-        return Toast.warning(`商品「${line.productName}」的成本价格式不正确（最多两位小数）`);
+        return Toast.warning(t('商品「{name}」的成本价格式不正确（最多两位小数）', { name: line.productName }));
       }
     }
-    if (voucherUrl.trim().length > 512) return Toast.warning('入库凭证图 URL 过长（最多 512 字符）');
+    if (voucherUrl.trim().length > 512) return Toast.warning(t('入库凭证图 URL 过长（最多 512 字符）'));
     setSaving(true);
     try {
       await apiPost('/supplyChain/purchaseReceipt/save', {
@@ -1507,10 +1515,10 @@ function ReceiptDirectDrawer({
           purchasePrice: Number(line.purchasePrice || 0),
         })),
       });
-      Toast.success('入库成功');
+      Toast.success(t('入库成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -1518,7 +1526,7 @@ function ReceiptDirectDrawer({
 
   return (
     <SideSheet
-      title="直接入库"
+      title={t('直接入库')}
       visible={visible}
       onCancel={onClose}
       width={920}
@@ -1526,17 +1534,17 @@ function ReceiptDirectDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            提交
+            {t('提交')}
           </Button>
         </div>
       }
     >
-      <SectionTitle text="基本信息" />
-      <Field label="采购店铺" required>
+      <SectionTitle text={t('基本信息')} />
+      <Field label={t('采购店铺')} required>
         <Select
-          placeholder="选择采购店铺"
+          placeholder={t('选择采购店铺')}
           style={{ width: 320 }}
           showClear
           disabled={!platform}
@@ -1545,9 +1553,9 @@ function ReceiptDirectDrawer({
           onChange={handleShopChange}
         />
       </Field>
-      <Field label="供应商" required>
+      <Field label={t('供应商')} required>
         <Select
-          placeholder={shopId ? '选择供应商' : '请先选择采购店铺'}
+          placeholder={shopId ? t('选择供应商') : t('请先选择采购店铺')}
           style={{ width: 320 }}
           showClear
           filter
@@ -1560,12 +1568,12 @@ function ReceiptDirectDrawer({
           }}
         />
       </Field>
-      <Field label="入库日期" required>
+      <Field label={t('入库日期')} required>
         <DatePicker
           style={{ width: 320 }}
           type="dateTime"
           format="yyyy-MM-dd HH:mm"
-          placeholder="选择日期时间"
+          placeholder={t('选择日期时间')}
           value={inboundAt || undefined}
           disabledDate={(date: any) => Boolean(date && date.getTime() > Date.now())}
           onChange={(date: any) => setInboundAt(date ? (date instanceof Date ? toYMDHM(date) : String(date).slice(0, 16)) : '')}
@@ -1573,8 +1581,8 @@ function ReceiptDirectDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="附件" />
-      <Field label="入库凭证图 URL" tip="请填写一张入库凭证图片的 URL，可留空">
+      <SectionTitle text={t('附件')} />
+      <Field label={t('入库凭证图 URL')} tip={t('请填写一张入库凭证图片的 URL，可留空')}>
         <Input
           placeholder="https://..."
           style={{ width: 520 }}
@@ -1587,9 +1595,9 @@ function ReceiptDirectDrawer({
           <ProductPic src={voucherUrl.trim()} size={96} />
         </div>
       ) : null}
-      <Field label="备注">
+      <Field label={t('备注')}>
         <TextArea
-          placeholder="请输入"
+          placeholder={t('请输入')}
           rows={3}
           maxCount={255}
           style={{ width: 520 }}
@@ -1599,7 +1607,7 @@ function ReceiptDirectDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="商品信息" />
+      <SectionTitle text={t('商品信息')} />
       <div style={{ marginBottom: 12 }}>
         <Button
           type="primary"
@@ -1607,29 +1615,29 @@ function ReceiptDirectDrawer({
           disabled={!shopId || !vendorId}
           onClick={() => setSelectorOpen(true)}
         >
-          选择商品
+          {t('选择商品')}
         </Button>
         {!shopId || !vendorId ? (
           <Text type="tertiary" size="small" style={{ marginLeft: 8 }}>
-            请先选择采购店铺与供应商
+            {t('请先选择采购店铺与供应商')}
           </Text>
         ) : null}
       </div>
       <div style={summaryStyle}>
-        <span>商品共</span>
+        <span>{t('商品共')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{lines.length}</strong>
-        <span>种，总数</span>
+        <span>{t('种，总数')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{totalQty}</strong>
-        <span>，合计</span>
+        <span>{t('，合计')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{centsToYuanText(totalCents)}</strong>
-        <span>元</span>
+        <span>{t('元')}</span>
       </div>
       <Table
         dataSource={lines}
         rowKey="vendorProductSkuId"
         columns={lineColumns as any}
         pagination={false}
-        empty="暂无商品，请点击「选择商品」"
+        empty={t('暂无商品，请点击「选择商品」')}
       />
 
       <ProductSelectorModal
@@ -1657,6 +1665,7 @@ function ReceiptDirectDrawer({
 
 /* ---------------- 入库单详情抽屉（原版 purchaseInbound/Detail.vue） ---------------- */
 function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem | null; onClose: () => void }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<any>(null);
 
@@ -1665,7 +1674,7 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
     // 原版以关联采购订单 id 调 purchaseReceipt/detail（无关联单据无法查看详情）
     const detailId = Number(record.orderId ?? record.id ?? 0);
     if (!detailId) {
-      Toast.error('该入库单缺少关联采购订单，无法查看详情');
+      Toast.error(t('该入库单缺少关联采购订单，无法查看详情'));
       return;
     }
     setLoading(true);
@@ -1673,7 +1682,7 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
     let alive = true;
     apiGet<any>('/supplyChain/purchaseReceipt/detail', { id: detailId })
       .then((res) => alive && setDetail(res || {}))
-      .catch((error) => alive && Toast.error({ content: errMsg(error) }))
+      .catch((error) => alive && Toast.error({ content: errMsg(error, t) }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -1696,7 +1705,7 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
 
   return (
     <SideSheet
-      title="采购入库详情"
+      title={t('采购入库详情')}
       visible={Boolean(record)}
       onCancel={onClose}
       width={900}
@@ -1704,24 +1713,24 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ textAlign: 'right' }}>
-          <Button onClick={onClose}>关闭</Button>
+          <Button onClick={onClose}>{t('关闭')}</Button>
         </div>
       }
     >
-      <SectionTitle text="基本信息" />
-      <Field label="单据编号">
+      <SectionTitle text={t('基本信息')} />
+      <Field label={t('单据编号')}>
         <Text strong>{detail?.receiptSn || record?.receiptSn || '-'}</Text>
       </Field>
-      <Field label="关联采购单">
+      <Field label={t('关联采购单')}>
         <Text>{detail?.orderSn || record?.orderSn || '-'}</Text>
       </Field>
-      <Field label="供应商">
+      <Field label={t('供应商')}>
         <Text>{detail?.vendorName || record?.vendorName || record?.supplierName || '-'}</Text>
       </Field>
-      <Field label="入库日期">
+      <Field label={t('入库日期')}>
         <Text>{formatUnix(detail?.businessDate ?? detail?.expectedDeliveryDate)}</Text>
       </Field>
-      <Field label="入库凭证">
+      <Field label={t('入库凭证')}>
         {detail?.voucherUrl ? (
           <ProductPic src={detail.voucherUrl} size={96} />
         ) : (
@@ -1730,15 +1739,15 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="商品信息" />
+      <SectionTitle text={t('商品信息')} />
       <div style={summaryStyle}>
-        <span>商品共</span>
+        <span>{t('商品共')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{items.length}</strong>
-        <span>种，总数</span>
+        <span>{t('种，总数')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{totalQty}</strong>
-        <span>，合计</span>
+        <span>{t('，合计')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{centsToYuanText(totalCents)}</strong>
-        <span>元</span>
+        <span>{t('元')}</span>
       </div>
       <Table
         loading={loading}
@@ -1748,27 +1757,27 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
         columns={
           [
             {
-              title: '商品信息',
+              title: t('商品信息'),
               dataIndex: 'productName',
               render: (_: any, row: any) => (
                 <ProductCell pic={row.picThumb} name={row.productName} sku={row.skuName} />
               ),
             },
             {
-              title: '商品分类',
+              title: t('商品分类'),
               dataIndex: 'categoryName',
               width: 110,
               render: (val: any) => val || '-',
             },
-            { title: '入库数量', dataIndex: 'quantity', width: 100 },
+            { title: t('入库数量'), dataIndex: 'quantity', width: 100 },
             {
-              title: '成本价(元/件)',
+              title: t('成本价(元/件)'),
               dataIndex: 'purchasePrice',
               width: 130,
               render: (val: any) => fmtYuan(val),
             },
             {
-              title: '小计(元)',
+              title: t('小计(元)'),
               width: 110,
               render: (_: any, row: any) =>
                 Number.isFinite(Number(row.amount)) && row.amount !== undefined && row.amount !== null
@@ -1783,71 +1792,72 @@ function ReceiptDetailDrawer({ record, onClose }: { record: PurchaseReceiptItem 
 }
 
 export function PurchaseInbound() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [directOpen, setDirectOpen] = useState(false);
   const [detailRecord, setDetailRecord] = useState<PurchaseReceiptItem | null>(null);
 
   const columns: ColumnConfig<PurchaseReceiptItem>[] = [
     {
-      title: '单据编号',
+      title: t('单据编号'),
       dataIndex: 'receiptSn',
       width: 180,
       render: (val: any) => <span style={{ fontWeight: 600 }}>{val}</span>,
     },
     {
-      title: '采购订单号',
+      title: t('采购订单号'),
       dataIndex: 'orderSn',
       width: 180,
       render: (val: any) => val || '--',
     },
     {
-      title: '采购组织',
+      title: t('采购组织'),
       dataIndex: 'shopName',
       width: 130,
       render: (val: any) => val || '--',
     },
     {
-      title: '供应商',
+      title: t('供应商'),
       dataIndex: 'vendorName',
       width: 150,
       render: (val: any, row: PurchaseReceiptItem) => val || row.supplierName || '--',
     },
     {
-      title: '单据状态',
+      title: t('单据状态'),
       dataIndex: 'status',
       width: 100,
-      render: (val: any) => (Number(val) === 2 ? <Tag color="green">已入库</Tag> : <Tag color="orange">待入库</Tag>),
+      render: (val: any) => (Number(val) === 2 ? <Tag color="green">{t('已入库')}</Tag> : <Tag color="orange">{t('待入库')}</Tag>),
     },
     {
-      title: '入库数量',
+      title: t('入库数量'),
       dataIndex: 'totalQuantity',
       width: 100,
       render: (val: any) => <span style={{ fontWeight: 600, color: '#00b42a' }}>+{val ?? 0}</span>,
     },
     {
-      title: '入库总金额(元)',
+      title: t('入库总金额(元)'),
       dataIndex: 'totalAmount',
       width: 140,
       render: (val: any) => fmtYuan(val),
     },
     {
-      title: '制单人',
+      title: t('制单人'),
       dataIndex: 'createByName',
       width: 110,
       render: (val: any) => val || '--',
     },
     {
-      title: '制单时间',
+      title: t('制单时间'),
       dataIndex: 'createTime',
       width: 170,
       render: (val: any) => val || '--',
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 90,
       render: (_: any, record: PurchaseReceiptItem) => (
         <Button theme="borderless" type="primary" size="small" onClick={() => setDetailRecord(record)}>
-          详情
+          {t('详情')}
         </Button>
       ),
     },
@@ -1862,20 +1872,20 @@ export function PurchaseInbound() {
         columns={columns}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => setDirectOpen(true)}>
-            直接入库
+            {t('直接入库')}
           </Button>
         }
         filters={[
           {
             field: 'receiptSn',
-            label: '单据编号',
-            placeholder: '输入入库单号',
+            label: t('单据编号'),
+            placeholder: t('输入入库单号'),
             type: 'input',
           },
           {
             field: 'orderSn',
-            label: '采购订单号',
-            placeholder: '输入采购订单号',
+            label: t('采购订单号'),
+            placeholder: t('输入采购订单号'),
             type: 'input',
           },
         ]}
@@ -1938,6 +1948,7 @@ function PurchaseReturnCreateDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [receipts, setReceipts] = useState<any[]>([]);
@@ -1966,14 +1977,14 @@ function PurchaseReturnCreateDrawer({
         }));
         setReceipts(rows);
       })
-      .catch((error) => Toast.error({ content: errMsg(error) }));
+      .catch((error) => Toast.error({ content: errMsg(error, t) }));
   }, [visible]);
 
   const selectReceipt = async (row: any) => {
     // 原版以入库单的关联采购订单 id 调 purchaseReceipt/detail 带出可退明细
     const detailId = Number(row.orderId ?? row.id ?? 0);
     if (!detailId) {
-      Toast.error('该入库单缺少关联采购订单，无法带出可退明细');
+      Toast.error(t('该入库单缺少关联采购订单，无法带出可退明细'));
       return;
     }
     setLoading(true);
@@ -1999,7 +2010,7 @@ function PurchaseReturnCreateDrawer({
         })),
       );
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setLoading(false);
     }
@@ -2034,7 +2045,7 @@ function PurchaseReturnCreateDrawer({
 
   const columns = [
     {
-      title: '商品信息',
+      title: t('商品信息'),
       dataIndex: 'productName',
       render: (_: any, row: ReturnLine) => (
         <div>
@@ -2044,24 +2055,24 @@ function PurchaseReturnCreateDrawer({
       ),
     },
     {
-      title: '商品分类',
+      title: t('商品分类'),
       dataIndex: 'categoryName',
       width: 100,
       render: (val: any) => val || '-',
     },
     {
-      title: '可用库存',
+      title: t('可用库存'),
       dataIndex: 'availableQuantity',
       width: 90,
     },
     {
-      title: '可退库存',
+      title: t('可退库存'),
       dataIndex: 'returnableQuantity',
       width: 90,
       render: (val: any) => <span style={{ color: 'var(--semi-color-warning)', fontWeight: 600 }}>{val}</span>,
     },
     {
-      title: '退货数量',
+      title: t('退货数量'),
       width: 140,
       render: (_: any, row: ReturnLine) => (
         <InputNumber
@@ -2077,7 +2088,7 @@ function PurchaseReturnCreateDrawer({
       ),
     },
     {
-      title: '退货价(元)',
+      title: t('退货价(元)'),
       width: 130,
       render: (_: any, row: ReturnLine) => (
         <InputNumber
@@ -2090,36 +2101,36 @@ function PurchaseReturnCreateDrawer({
       ),
     },
     {
-      title: '退货原因',
+      title: t('退货原因'),
       width: 160,
       render: (_: any, row: ReturnLine) => (
         <Input
           size="small"
-          placeholder="请输入"
+          placeholder={t('请输入')}
           value={row.reason}
           onChange={(val) => updateLine(row.receiptItemId, { reason: val })}
         />
       ),
     },
     {
-      title: '小计(元)',
+      title: t('小计(元)'),
       width: 100,
       render: (_: any, row: ReturnLine) => centsToYuanText(lineCents(row)),
     },
   ];
 
   const submit = async () => {
-    if (!receiptId) return Toast.warning('请选择关联采购入库单');
-    if (!shopId) return Toast.warning('无法确定退货店铺，请重新选择入库单');
-    if (!vendorId) return Toast.warning('无法确定供应商，请重新选择入库单');
+    if (!receiptId) return Toast.warning(t('请选择关联采购入库单'));
+    if (!shopId) return Toast.warning(t('无法确定退货店铺，请重新选择入库单'));
+    if (!vendorId) return Toast.warning(t('无法确定供应商，请重新选择入库单'));
     const active = lines.filter((line) => lineQty(line) > 0);
-    if (!active.length) return Toast.warning('请填写退货数量');
+    if (!active.length) return Toast.warning(t('请填写退货数量'));
     for (const line of active) {
       if (lineQty(line) > line.returnableQuantity) {
-        return Toast.warning(`商品「${line.productName}」退货数量不能超过可退库存 ${line.returnableQuantity}`);
+        return Toast.warning(t('商品「{name}」退货数量不能超过可退库存 {qty}', { name: line.productName, qty: line.returnableQuantity }));
       }
       if (parseMoneyToMinorUnits(line.returnPrice || line.inboundPurchasePrice) === null) {
-        return Toast.warning(`商品「${line.productName}」的退货价格式不正确（最多两位小数）`);
+        return Toast.warning(t('商品「{name}」的退货价格式不正确（最多两位小数）', { name: line.productName }));
       }
     }
     setSaving(true);
@@ -2137,10 +2148,10 @@ function PurchaseReturnCreateDrawer({
           reason: line.reason.trim(),
         })),
       });
-      Toast.success('退货单提交成功');
+      Toast.success(t('退货单提交成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -2148,7 +2159,7 @@ function PurchaseReturnCreateDrawer({
 
   return (
     <SideSheet
-      title="新建退货单"
+      title={t('新建退货单')}
       visible={visible}
       onCancel={onClose}
       width={1020}
@@ -2156,17 +2167,17 @@ function PurchaseReturnCreateDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            确认
+            {t('确认')}
           </Button>
         </div>
       }
     >
-      <SectionTitle text="基本信息" />
-      <Field label="关联采购入库单" required>
+      <SectionTitle text={t('基本信息')} />
+      <Field label={t('关联采购入库单')} required>
         <Select
-          placeholder="请选择入库单"
+          placeholder={t('请选择入库单')}
           style={{ width: 360 }}
           showClear
           filter
@@ -2179,15 +2190,15 @@ function PurchaseReturnCreateDrawer({
           onChange={handleReceiptChange}
         />
       </Field>
-      <Field label="退货店铺">
-        <Text>{shopName || (shopId ? `店铺${shopId}` : '选择入库单后自动带出')}</Text>
+      <Field label={t('退货店铺')}>
+        <Text>{shopName || (shopId ? t('店铺{id}', { id: shopId }) : t('选择入库单后自动带出'))}</Text>
       </Field>
-      <Field label="供应商">
-        <Text>{vendorName || (vendorId ? `供应商${vendorId}` : '选择入库单后自动带出')}</Text>
+      <Field label={t('供应商')}>
+        <Text>{vendorName || (vendorId ? t('供应商{id}', { id: vendorId }) : t('选择入库单后自动带出'))}</Text>
       </Field>
-      <Field label="备注">
+      <Field label={t('备注')}>
         <TextArea
-          placeholder="请输入"
+          placeholder={t('请输入')}
           rows={3}
           maxCount={255}
           style={{ width: 520 }}
@@ -2197,13 +2208,13 @@ function PurchaseReturnCreateDrawer({
       </Field>
 
       <div style={{ height: 16 }} />
-      <SectionTitle text="商品信息" />
+      <SectionTitle text={t('商品信息')} />
       <div style={summaryStyle}>
-        <span>退货</span>
+        <span>{t('退货')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{totalQty}</strong>
-        <span>件，合计</span>
+        <span>{t('件，合计')}</span>
         <strong style={{ color: 'var(--semi-color-primary)' }}>{centsToYuanText(totalCents)}</strong>
-        <span>元</span>
+        <span>{t('元')}</span>
       </div>
       <Table
         loading={loading}
@@ -2211,67 +2222,68 @@ function PurchaseReturnCreateDrawer({
         rowKey="receiptItemId"
         columns={columns as any}
         pagination={false}
-        empty={loading ? '加载中...' : '请先选择采购入库单'}
+        empty={loading ? t('加载中...') : t('请先选择采购入库单')}
       />
     </SideSheet>
   );
 }
 
 export function PurchaseReturns() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
 
   const columns: ColumnConfig<PurchaseReturnItem>[] = [
     {
-      title: '退货单号',
+      title: t('退货单号'),
       dataIndex: 'returnSn',
       width: 190,
       render: (val: any) => <span style={{ fontWeight: 600 }}>{val}</span>,
     },
     {
-      title: '关联入库单号',
+      title: t('关联入库单号'),
       dataIndex: 'receiptSn',
       width: 190,
       render: (val: any) => val || '--',
     },
     {
-      title: '退货组织',
+      title: t('退货组织'),
       dataIndex: 'shopName',
       width: 130,
       render: (val: any) => val || '--',
     },
     {
-      title: '供应商',
+      title: t('供应商'),
       dataIndex: 'vendorName',
       width: 150,
       render: (val: any, row: PurchaseReturnItem) => val || row.supplierName || '--',
     },
     {
-      title: '退货状态',
+      title: t('退货状态'),
       dataIndex: 'status',
       width: 100,
-      render: (val: any) => (Number(val) === 2 ? <Tag color="green">已完成</Tag> : <Tag color="orange">待确认</Tag>),
+      render: (val: any) => (Number(val) === 2 ? <Tag color="green">{t('已完成')}</Tag> : <Tag color="orange">{t('待确认')}</Tag>),
     },
     {
-      title: '退货总数量',
+      title: t('退货总数量'),
       dataIndex: 'totalQuantity',
       width: 110,
       render: (val: any) => val ?? 0,
     },
     {
-      title: '退货总金额(元)',
+      title: t('退货总金额(元)'),
       dataIndex: 'totalAmount',
       width: 140,
       render: (val: any) => <span style={{ fontWeight: 600, color: '#eb2f96' }}>{fmtYuan(val)}</span>,
     },
     {
-      title: '制单时间',
+      title: t('制单时间'),
       dataIndex: 'createTime',
       width: 170,
       render: (val: any) => val || '--',
     },
     {
-      title: '备注',
+      title: t('备注'),
       dataIndex: 'remark',
       width: 160,
       render: (val: any) => val || '--',
@@ -2287,20 +2299,20 @@ export function PurchaseReturns() {
         columns={columns}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => setCreateOpen(true)}>
-            新建退货单
+            {t('新建退货单')}
           </Button>
         }
         filters={[
           {
             field: 'returnSn',
-            label: '退货单号',
-            placeholder: '输入退货单号',
+            label: t('退货单号'),
+            placeholder: t('输入退货单号'),
             type: 'input',
           },
           {
             field: 'receiptSn',
-            label: '入库单号',
-            placeholder: '输入关联入库单号',
+            label: t('入库单号'),
+            placeholder: t('输入关联入库单号'),
             type: 'input',
           },
         ]}
@@ -2363,6 +2375,7 @@ function CandidatesModal({
   onConfirm: (docs: ReconciliationDocument[]) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState<any[]>([]);
   const [selectedKeys, setSelectedKeys] = useState<Array<string | number>>([]);
@@ -2393,7 +2406,7 @@ function CandidatesModal({
               id: String(row.sourceId ?? ''),
               sn: row.sn || row.sourceSn || '',
               type,
-              typeName: type === 'return' ? '采购退货' : '采购入库',
+              typeName: type === 'return' ? t('采购退货') : t('采购入库'),
               amount: String(row.amount ?? row.sourceAmount ?? 0),
               totalQuantity: String(row.totalQuantity ?? 0),
               vendorId: String(row.vendorId ?? row.supplierId ?? supplierId),
@@ -2405,7 +2418,7 @@ function CandidatesModal({
           }),
         );
       })
-      .catch((error) => alive && Toast.error({ content: errMsg(error) }))
+      .catch((error) => alive && Toast.error({ content: errMsg(error, t) }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -2438,21 +2451,21 @@ function CandidatesModal({
 
   return (
     <Modal
-      title="选择申请单据"
+      title={t('选择申请单据')}
       visible={visible}
       onCancel={onCancel}
       width={960}
       footer={
         <Space>
-          <Button onClick={onCancel}>取消</Button>
+          <Button onClick={onCancel}>{t('取消')}</Button>
           <Button theme="solid" type="primary" disabled={selectedKeys.length === 0} onClick={confirm}>
-            确认
+            {t('确认')}
           </Button>
         </Space>
       }
     >
       <Text type="tertiary" size="small">
-        仅展示该供应商未对账的入库/退货单据，跨单据供应商需一致。
+        {t('仅展示该供应商未对账的入库/退货单据，跨单据供应商需一致。')}
       </Text>
       <Table
         style={{ marginTop: 8 }}
@@ -2463,20 +2476,20 @@ function CandidatesModal({
         pagination={false}
         columns={
           [
-            { title: '单据编号', dataIndex: 'sn', width: 180 },
-            { title: '单据类型', dataIndex: 'typeName', width: 100 },
-            { title: '出入库时间', dataIndex: 'confirmTime', width: 170, render: (val: any) => val || '-' },
-            { title: '所属店铺', dataIndex: 'shopName', width: 140, render: (val: any) => val || '-' },
+            { title: t('单据编号'), dataIndex: 'sn', width: 180 },
+            { title: t('单据类型'), dataIndex: 'typeName', width: 100 },
+            { title: t('出入库时间'), dataIndex: 'confirmTime', width: 170, render: (val: any) => val || '-' },
+            { title: t('所属店铺'), dataIndex: 'shopName', width: 140, render: (val: any) => val || '-' },
             {
-              title: '对账总金额(元)',
+              title: t('对账总金额(元)'),
               dataIndex: 'amount',
               width: 130,
               render: (val: any) => fmtYuan(val),
             },
-            { title: '实际入库量', dataIndex: 'totalQuantity', width: 100 },
+            { title: t('实际入库量'), dataIndex: 'totalQuantity', width: 100 },
           ] as any
         }
-        empty={loading ? '加载中...' : '暂无可选未对账单据'}
+        empty={loading ? t('加载中...') : t('暂无可选未对账单据')}
       />
     </Modal>
   );
@@ -2491,6 +2504,7 @@ function PurchaseReconciliationCreateDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useI18n();
   const platform = isPlatformAdmin();
   const [saving, setSaving] = useState(false);
   const [shopOptions, setShopOptions] = useState<ShopOptionItem[]>([]);
@@ -2512,7 +2526,7 @@ function PurchaseReconciliationCreateDrawer({
     if (platform) {
       fetchShopOptions()
         .then(setShopOptions)
-        .catch((error) => Toast.error({ content: errMsg(error) }));
+        .catch((error) => Toast.error({ content: errMsg(error, t) }));
     } else {
       fetchSupplierOptions(currentShopId())
         .then(setSupplierOptions)
@@ -2533,7 +2547,7 @@ function PurchaseReconciliationCreateDrawer({
     try {
       setSupplierOptions(await fetchSupplierOptions(next));
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
       setSupplierOptions([]);
     }
   };
@@ -2558,9 +2572,9 @@ function PurchaseReconciliationCreateDrawer({
   const totalRows = documents.reduce((sum, doc) => sum + (doc.items?.length || 0), 0);
 
   const submit = async () => {
-    if (platform && !shopId) return Toast.warning('请选择采购店铺');
-    if (!supplierId) return Toast.warning('请选择供应商');
-    if (!documents.length) return Toast.warning('请选择申请单据');
+    if (platform && !shopId) return Toast.warning(t('请选择采购店铺'));
+    if (!supplierId) return Toast.warning(t('请选择供应商'));
+    if (!documents.length) return Toast.warning(t('请选择申请单据'));
     setSaving(true);
     try {
       await apiPost('/supplyChain/purchaseReconciliation/create', {
@@ -2572,10 +2586,10 @@ function PurchaseReconciliationCreateDrawer({
           sourceId: Number(doc.id),
         })),
       });
-      Toast.success('对账单创建成功');
+      Toast.success(t('对账单创建成功'));
       onSaved();
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setSaving(false);
     }
@@ -2583,7 +2597,7 @@ function PurchaseReconciliationCreateDrawer({
 
   return (
     <SideSheet
-      title="新建对账单"
+      title={t('新建对账单')}
       visible={visible}
       onCancel={onClose}
       width={960}
@@ -2591,16 +2605,16 @@ function PurchaseReconciliationCreateDrawer({
       bodyStyle={{ overflowY: 'auto' }}
       footer={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t('取消')}</Button>
           <Button theme="solid" type="primary" loading={saving} onClick={submit}>
-            提交
+            {t('提交')}
           </Button>
         </div>
       }
     >
-      <Field label="采购店铺" required>
+      <Field label={t('采购店铺')} required>
         <Select
-          placeholder="选择采购店铺"
+          placeholder={t('选择采购店铺')}
           style={{ width: 320 }}
           showClear
           disabled={!platform}
@@ -2609,9 +2623,9 @@ function PurchaseReconciliationCreateDrawer({
           onChange={handleShopChange}
         />
       </Field>
-      <Field label="供应商" required>
+      <Field label={t('供应商')} required>
         <Select
-          placeholder={shopId || !platform ? '选择供应商' : '请先选择采购店铺'}
+          placeholder={shopId || !platform ? t('选择供应商') : t('请先选择采购店铺')}
           style={{ width: 320 }}
           showClear
           filter
@@ -2631,11 +2645,11 @@ function PurchaseReconciliationCreateDrawer({
         onClick={() => setSelectorOpen(true)}
         style={{ marginBottom: 12 }}
       >
-        选择申请单据
+        {t('选择申请单据')}
       </Button>
       <div style={{ marginBottom: 12, color: 'var(--semi-color-text-1)' }}>
-        共 {totalRows} 行商品明细，合计金额：
-        <strong style={{ color: '#f59a23' }}>{centsToYuanText(totalCents)}</strong> 元
+        {t('共 {count} 行商品明细，合计金额：', { count: totalRows })}
+        <strong style={{ color: '#f59a23' }}>{centsToYuanText(totalCents)}</strong> {t('元')}
       </div>
 
       {documents.length ? (
@@ -2654,12 +2668,12 @@ function PurchaseReconciliationCreateDrawer({
                 background: 'var(--semi-color-fill-0)',
               }}
             >
-              <span>单据类型：{doc.type === 'return' ? '采购退货' : '采购入库'}</span>
-              {doc.sn ? <span>单据编号：{doc.sn}</span> : null}
-              <span>店铺：{doc.shopName || '-'}</span>
-              <span>{doc.type === 'return' ? '出库时间' : '入库时间'}：{doc.confirmTime || '-'}</span>
+              <span>{t('单据类型：')}{doc.type === 'return' ? t('采购退货') : t('采购入库')}</span>
+              {doc.sn ? <span>{t('单据编号：')}{doc.sn}</span> : null}
+              <span>{t('店铺：')}{doc.shopName || '-'}</span>
+              <span>{doc.type === 'return' ? t('出库时间：') : t('入库时间：')}{doc.confirmTime || '-'}</span>
               <span>
-                对账总金额：<strong style={{ color: '#f59a23' }}>{fmtYuan(doc.amount)}</strong>
+                {t('对账总金额：')}<strong style={{ color: '#f59a23' }}>{fmtYuan(doc.amount)}</strong>
               </span>
               <Button
                 theme="borderless"
@@ -2668,7 +2682,7 @@ function PurchaseReconciliationCreateDrawer({
                 style={{ marginLeft: 'auto' }}
                 onClick={() => setDocuments((prev) => prev.filter((_, i) => i !== index))}
               >
-                删除
+                {t('删除')}
               </Button>
             </div>
             <div style={{ padding: '6px 14px 10px' }}>
@@ -2680,7 +2694,7 @@ function PurchaseReconciliationCreateDrawer({
                 columns={
                   [
                     {
-                      title: '商品名称',
+                      title: t('商品名称'),
                       dataIndex: 'productName',
                       render: (_: any, item: any) => (
                         <div>
@@ -2689,9 +2703,9 @@ function PurchaseReconciliationCreateDrawer({
                         </div>
                       ),
                     },
-                    { title: '出入库数量', dataIndex: 'quantity', width: 110 },
-                    { title: '单价(元)', dataIndex: 'price', width: 100, render: (val: any) => fmtYuan(val) },
-                    { title: '小计(元)', dataIndex: 'subtotal', width: 100, render: (val: any) => fmtYuan(val) },
+                    { title: t('出入库数量'), dataIndex: 'quantity', width: 110 },
+                    { title: t('单价(元)'), dataIndex: 'price', width: 100, render: (val: any) => fmtYuan(val) },
+                    { title: t('小计(元)'), dataIndex: 'subtotal', width: 100, render: (val: any) => fmtYuan(val) },
                   ] as any
                 }
               />
@@ -2699,7 +2713,7 @@ function PurchaseReconciliationCreateDrawer({
           </div>
         ))
       ) : (
-        <Text type="tertiary">尚未选择单据，点击「选择申请单据」勾选需要聚合对账的入库/退货单。</Text>
+        <Text type="tertiary">{t('尚未选择单据，点击「选择申请单据」勾选需要聚合对账的入库/退货单。')}</Text>
       )}
 
       <CandidatesModal
@@ -2715,6 +2729,7 @@ function PurchaseReconciliationCreateDrawer({
 }
 
 export function PurchaseReconciliation() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -2748,9 +2763,9 @@ export function PurchaseReconciliation() {
         { ...applied },
         `采购对账单_${toYMDHM(new Date()).replace(/[-: ]/g, '')}`,
       );
-      Toast.success('导出成功');
+      Toast.success(t('导出成功'));
     } catch (error) {
-      Toast.error({ content: errMsg(error) });
+      Toast.error({ content: errMsg(error, t) });
     } finally {
       setExporting(false);
     }
@@ -2758,48 +2773,48 @@ export function PurchaseReconciliation() {
 
   const columns: ColumnConfig<PurchaseReconciliationItem>[] = [
     {
-      title: '对账单编号',
+      title: t('对账单编号'),
       dataIndex: 'reconciliationSn',
       width: 190,
       render: (val: any) => <span style={{ fontWeight: 600 }}>{val}</span>,
     },
     {
-      title: '对账单状态',
+      title: t('对账单状态'),
       dataIndex: 'status',
       width: 110,
       render: (val: any) => {
         const status = Number(val);
-        if (status === 2) return <Tag color="green">已对账</Tag>;
-        if (status === 3) return <Tag color="red">已驳回</Tag>;
-        if (status === 4) return <Tag color="grey">已作废</Tag>;
-        return <Tag color="orange">待对账</Tag>;
+        if (status === 2) return <Tag color="green">{t('已对账')}</Tag>;
+        if (status === 3) return <Tag color="red">{t('已驳回')}</Tag>;
+        if (status === 4) return <Tag color="grey">{t('已作废')}</Tag>;
+        return <Tag color="orange">{t('待对账')}</Tag>;
       },
     },
     {
-      title: '供应商',
+      title: t('供应商'),
       dataIndex: 'vendorName',
       width: 150,
       render: (val: any, row: PurchaseReconciliationItem) => val || row.supplierName || '--',
     },
     {
-      title: '创建人',
+      title: t('创建人'),
       dataIndex: 'createByName',
       width: 110,
       render: (val: any) => val || '--',
     },
     {
-      title: '创建时间',
+      title: t('创建时间'),
       dataIndex: 'createTime',
       width: 170,
       render: (val: any) => val || '--',
     },
     {
-      title: '操作',
+      title: t('操作'),
       width: 130,
       render: (_: any, record: PurchaseReconciliationItem) => (
         Number(record.status) === 1 ? (
           <Popconfirm
-            title="确认对账吗？"
+            title={t('确认对账吗？')}
             onConfirm={async () => {
               try {
                 await apiPost('/supplyChain/purchaseReconciliation/approve', {
@@ -2807,15 +2822,15 @@ export function PurchaseReconciliation() {
                   shopId: Number(currentShopId() || 0),
                   remark: '',
                 });
-                Toast.success('对账成功');
+                Toast.success(t('对账成功'));
                 setReloadKey((k) => k + 1);
               } catch (error) {
-                Toast.error({ content: errMsg(error) });
+                Toast.error({ content: errMsg(error, t) });
               }
             }}
           >
             <Button theme="borderless" type="primary" size="small">
-              对账
+              {t('对账')}
             </Button>
           </Popconfirm>
         ) : (
@@ -2837,7 +2852,7 @@ export function PurchaseReconciliation() {
           <>
             <Input
               prefix={<IconSearch />}
-              placeholder="输入对账单号"
+              placeholder={t('输入对账单号')}
               value={snInput}
               showClear
               style={{ width: 200 }}
@@ -2845,27 +2860,27 @@ export function PurchaseReconciliation() {
               onEnterPress={applyFilters}
             />
             <Select
-              placeholder="状态"
+              placeholder={t('状态')}
               style={{ width: 130 }}
               value={statusInput || undefined}
               optionList={[
-                { label: '全部', value: '' },
-                { label: '待对账', value: '1' },
-                { label: '已对账', value: '2' },
-                { label: '已驳回', value: '3' },
-                { label: '已作废', value: '4' },
+                { label: t('全部'), value: '' },
+                { label: t('待对账'), value: '1' },
+                { label: t('已对账'), value: '2' },
+                { label: t('已驳回'), value: '3' },
+                { label: t('已作废'), value: '4' },
               ]}
               onChange={(val) => setStatusInput(val === undefined || val === null ? '' : String(val))}
             />
             <Button type="primary" theme="solid" icon={<IconSearch />} onClick={applyFilters}>
-              搜索
+              {t('搜索')}
             </Button>
-            <Button onClick={resetFilters}>重置</Button>
+            <Button onClick={resetFilters}>{t('重置')}</Button>
             <Button loading={exporting} onClick={handleExport}>
-              导出EXCEL
+              {t('导出EXCEL')}
             </Button>
             <Button icon={<IconPlus />} type="primary" theme="solid" onClick={() => setCreateOpen(true)}>
-              新建对账单
+              {t('新建对账单')}
             </Button>
           </>
         }

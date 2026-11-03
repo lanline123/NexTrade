@@ -27,6 +27,7 @@ import {
   IconUpload,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, apiUpload, clearToken, getContextHeaders, getToken, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import { AiEraseDialog, AiTranslateDialog, ensureAiImageEnabled } from './components/AiImageDialogs';
 import './material-center.css';
 
@@ -227,9 +228,9 @@ const postForBlob = async (path: string, body: unknown, filename: string) => {
   saveBlob(await res.blob(), filename);
 };
 
-const ensureNotDemo = () => {
+const ensureNotDemo = (t: (key: string) => string) => {
   if (isDemo()) {
-    Toast.warning({ content: '演示模式不支持该操作' });
+    Toast.warning({ content: t('演示模式不支持该操作') });
     return false;
   }
   return true;
@@ -316,6 +317,7 @@ const isSameOrDescendant = (nodes: GroupNode[], ancestorId: number, targetId: nu
 };
 
 export default function MaterialCenter() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<MaterialTab>('image');
   const [groups, setGroups] = useState<GroupNode[]>([]);
   const [groupSearch, setGroupSearch] = useState('');
@@ -452,7 +454,7 @@ export default function MaterialCenter() {
           }
         }
       } catch (error) {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '加载分组失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('加载分组失败') });
       }
     };
     loadTree();
@@ -505,7 +507,7 @@ export default function MaterialCenter() {
           }
         }
       } catch (error) {
-        if (alive) Toast.error({ content: error instanceof Error ? error.message : '加载素材失败' });
+        if (alive) Toast.error({ content: error instanceof Error ? error.message : t('加载素材失败') });
       } finally {
         if (alive) setLoading(false);
       }
@@ -521,7 +523,7 @@ export default function MaterialCenter() {
   /** 分组下拉选项（扁平 + 全角空格缩进，对齐旧版 tree-select check-strictly） */
   const groupOptions = useMemo(() => {
     const flat: Array<{ label: string; value: number; disabled?: boolean }> = [
-      { label: tab === 'image' ? '全部图片' : '全部视频', value: 0 },
+      { label: tab === 'image' ? t('全部图片') : t('全部视频'), value: 0 },
     ];
     const walk = (nodes: GroupNode[], depth: number) => {
       nodes.forEach((node) => {
@@ -531,10 +533,10 @@ export default function MaterialCenter() {
     };
     walk(groups, 0);
     return flat;
-  }, [groups, tab]);
+  }, [groups, tab, t]);
 
   const currentAlbumName = useMemo(() => {
-    if (albumId === 0) return tab === 'image' ? '全部图片' : '全部视频';
+    if (albumId === 0) return tab === 'image' ? t('全部图片') : t('全部视频');
     const find = (nodes: GroupNode[]): string => {
       for (const node of nodes) {
         if (node.id === albumId) return node.name;
@@ -544,7 +546,7 @@ export default function MaterialCenter() {
       return '';
     };
     return find(groups);
-  }, [groups, albumId, tab]);
+  }, [groups, albumId, tab, t]);
 
   const isAllSelected = items.length > 0 && items.every((item) => selectedIds.includes(itemId(item, tab)));
   const isIndeterminate = selectedIds.length > 0 && !isAllSelected;
@@ -607,7 +609,7 @@ export default function MaterialCenter() {
   const submitAlbumForm = async () => {
     const name = albumForm.name.trim();
     if (!name) {
-      Toast.warning({ content: '请输入分组名称' });
+      Toast.warning({ content: t('请输入分组名称') });
       return;
     }
     setAlbumSaving(true);
@@ -627,11 +629,11 @@ export default function MaterialCenter() {
             : { id: albumForm.id, name },
         );
       }
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
       setAlbumFormOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setAlbumSaving(false);
     }
@@ -650,7 +652,7 @@ export default function MaterialCenter() {
     try {
       const payload = { id: albumDeleteTarget.id, deleteMode };
       await apiPost(tab === 'image' ? '/setting/gallery/del' : '/setting/galleryVideo/del', payload);
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setAlbumDeleteOpen(false);
       if (isSameOrDescendant(groups, albumDeleteTarget.id, albumId)) {
         setAlbumId(0);
@@ -659,7 +661,7 @@ export default function MaterialCenter() {
       }
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     } finally {
       setAlbumDeleting(false);
     }
@@ -675,11 +677,11 @@ export default function MaterialCenter() {
 
   const submitManage = async () => {
     if (manageSource === undefined || manageTarget === undefined) {
-      Toast.warning({ content: '请选择需要转移的分组和目标分组' });
+      Toast.warning({ content: t('请选择需要转移的分组和目标分组') });
       return;
     }
     if (String(manageSource) === String(manageTarget)) {
-      Toast.warning({ content: '转移分组和目标分组不能相同' });
+      Toast.warning({ content: t('转移分组和目标分组不能相同') });
       return;
     }
     setManageSaving(true);
@@ -690,11 +692,11 @@ export default function MaterialCenter() {
         mode: manageMode,
         type: tab,
       });
-      Toast.success({ content: '分组转移成功' });
+      Toast.success({ content: t('分组转移成功') });
       setManageOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '分组转移失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('分组转移失败') });
     } finally {
       setManageSaving(false);
     }
@@ -709,7 +711,7 @@ export default function MaterialCenter() {
 
   const submitTransfer = async () => {
     if (transferTarget === undefined) {
-      Toast.warning({ content: '请选择目标分组' });
+      Toast.warning({ content: t('请选择目标分组') });
       return;
     }
     setTransferSaving(true);
@@ -719,12 +721,12 @@ export default function MaterialCenter() {
         targetGalleryId: transferTarget,
         type: tab,
       });
-      Toast.success({ content: '移动成功' });
+      Toast.success({ content: t('移动成功') });
       setTransferOpen(false);
       setSelectedIds([]);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '移动失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('移动失败') });
     } finally {
       setTransferSaving(false);
     }
@@ -733,17 +735,17 @@ export default function MaterialCenter() {
   // ——— 删除素材 ———
   const confirmDeleteOne = (item: MaterialItem) => {
     Modal.confirm({
-      title: `确认删除该${tab === 'image' ? '图片' : '视频'}吗?`,
+      title: t('确认删除该{type}吗?', { type: tab === 'image' ? t('图片') : t('视频') }),
       onOk: async () => {
         try {
           await apiPost(
             tab === 'image' ? '/setting/galleryPic/del' : '/setting/galleryVideoInfo/del',
             { id: itemId(item, tab) },
           );
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -752,15 +754,15 @@ export default function MaterialCenter() {
   const confirmBatchDelete = () => {
     if (!selectedIds.length) return;
     Modal.confirm({
-      title: `确认批量删除已选中的 ${selectedIds.length} 个素材吗？`,
+      title: t('确认批量删除已选中的 {count} 个素材吗？', { count: selectedIds.length }),
       onOk: async () => {
         try {
           await apiPost('/setting/galleryPic/batchDel', { ids: selectedIds, type: tab });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           setSelectedIds([]);
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -769,16 +771,16 @@ export default function MaterialCenter() {
   // ——— 批量下载（zip 二进制） ———
   const handleBatchDownload = async () => {
     if (!selectedIds.length) return;
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     try {
       await postForBlob(
         '/setting/galleryPic/batchDownload',
         { ids: selectedIds, type: tab },
         `${tab === 'image' ? '图片' : '视频'}素材.zip`,
       );
-      Toast.success({ content: '下载成功' });
+      Toast.success({ content: t('下载成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '下载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('下载失败') });
     }
   };
 
@@ -793,16 +795,16 @@ export default function MaterialCenter() {
     try {
       await downloadUrlAsFile(url, name);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '下载失败，请检查资源跨域配置' });
+      Toast.error({ content: error instanceof Error ? error.message : t('下载失败，请检查资源跨域配置') });
     }
   };
 
   const copyOne = async (item: MaterialItem) => {
     try {
       await copyText(materialUrl(item, tab));
-      Toast.success({ content: '链接已复制' });
+      Toast.success({ content: t('链接已复制') });
     } catch {
-      Toast.error({ content: '复制失败' });
+      Toast.error({ content: t('复制失败') });
     }
   };
 
@@ -817,7 +819,7 @@ export default function MaterialCenter() {
     let head: string[];
     let rows: string[][];
     if (tab === 'image') {
-      head = ['图片名称', '格式', '尺寸', '大小', '上传时间', '图片链接地址'];
+      head = [t('图片名称'), t('格式'), t('尺寸'), t('大小'), t('上传时间'), t('图片链接地址')];
       rows = selected.map((item) => {
         const pic = item as PicItem;
         return [
@@ -830,7 +832,7 @@ export default function MaterialCenter() {
         ];
       });
     } else {
-      head = ['视频名称', '上传时间', '格式', '大小', '时长', '视频链接地址'];
+      head = [t('视频名称'), t('上传时间'), t('格式'), t('大小'), t('时长'), t('视频链接地址')];
       rows = selected.map((item) => {
         const video = item as VideoItem;
         return [
@@ -845,7 +847,7 @@ export default function MaterialCenter() {
     }
     const csv = [head, ...rows].map((row) => row.map(escape).join(',')).join('\r\n');
     saveBlob(new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' }), `${tab === 'image' ? '图片' : '视频'}素材链接.csv`);
-    Toast.success({ content: '导出成功' });
+    Toast.success({ content: t('导出成功') });
   };
 
   // ——— 预览 ———
@@ -857,7 +859,7 @@ export default function MaterialCenter() {
   // ——— AI图片处理入口（原版对商品图/业务图触发 AI翻译/AI擦除；素材中心对图片项提供同样入口） ———
   const openAiDialog = async (mode: 'translate' | 'erase', item: MaterialItem) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持该操作' });
+      Toast.warning({ content: t('演示模式不支持该操作') });
       return;
     }
     if (!(await ensureAiImageEnabled())) return;
@@ -903,14 +905,14 @@ export default function MaterialCenter() {
       }
       setEditOpen(true);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载详情失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载详情失败') });
     }
   };
 
   const submitEdit = async () => {
     const name = editForm.name.trim();
     if (!name) {
-      Toast.warning({ content: tab === 'image' ? '请输入图片名称' : '请输入视频名称' });
+      Toast.warning({ content: tab === 'image' ? t('请输入图片名称') : t('请输入视频名称') });
       return;
     }
     setEditSaving(true);
@@ -934,11 +936,11 @@ export default function MaterialCenter() {
           description: editForm.description,
         });
       }
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
       setEditOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setEditSaving(false);
     }
@@ -955,7 +957,7 @@ export default function MaterialCenter() {
     if (!list || !list.length) return;
     const images = Array.from(list).filter((file) => file.type.startsWith('image/'));
     if (!images.length) {
-      Toast.warning({ content: '请选择图片文件' });
+      Toast.warning({ content: t('请选择图片文件') });
       return;
     }
     setUploadFiles((current) =>
@@ -973,10 +975,10 @@ export default function MaterialCenter() {
 
   const submitUploadImage = async () => {
     if (!uploadFiles.length) {
-      Toast.warning({ content: '请先选择要上传的图片' });
+      Toast.warning({ content: t('请先选择要上传的图片') });
       return;
     }
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     setUploading(true);
     let success = 0;
     let fail = 0;
@@ -990,12 +992,12 @@ export default function MaterialCenter() {
         }
       }
       if (fail === 0) {
-        Toast.success({ content: '全部上传成功' });
+        Toast.success({ content: t('全部上传成功') });
         setUploadImgOpen(false);
       } else if (success > 0) {
-        Toast.warning({ content: `上传完成，成功 ${success} 个，失败 ${fail} 个` });
+        Toast.warning({ content: t('上传完成，成功 {success} 个，失败 {fail} 个', { success, fail }) });
       } else {
-        Toast.error({ content: '上传失败' });
+        Toast.error({ content: t('上传失败') });
       }
       if (success > 0) {
         setUploadFiles([]);
@@ -1023,10 +1025,10 @@ export default function MaterialCenter() {
   const pickVideoFile = async (file: File | undefined | null) => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.mp4')) {
-      Toast.error({ content: '不支持该格式的视频文件，仅支持 .mp4' });
+      Toast.error({ content: t('不支持该格式的视频文件，仅支持 .mp4') });
       return;
     }
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     setVideoUploading(true);
     try {
       const data = await apiUpload<Record<string, any>>('/setting/galleryVideoInfo/uploadVideo', file);
@@ -1040,9 +1042,9 @@ export default function MaterialCenter() {
         duration,
         size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
       }));
-      Toast.success({ content: '视频上传成功！' });
+      Toast.success({ content: t('视频上传成功！') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '视频上传失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('视频上传失败') });
     } finally {
       setVideoUploading(false);
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -1051,16 +1053,16 @@ export default function MaterialCenter() {
 
   const submitUploadVideo = async () => {
     if (!videoForm.videoUrl) {
-      Toast.warning({ content: '请上传本地视频!' });
+      Toast.warning({ content: t('请上传本地视频!') });
       return;
     }
     const name = videoForm.videoName.trim();
     if (!name) {
-      Toast.warning({ content: '视频名称不能为空' });
+      Toast.warning({ content: t('视频名称不能为空') });
       return;
     }
     if (name.length > 20) {
-      Toast.warning({ content: '视频名称不能超过20个字' });
+      Toast.warning({ content: t('视频名称不能超过20个字') });
       return;
     }
     setVideoSaving(true);
@@ -1075,11 +1077,11 @@ export default function MaterialCenter() {
         size: videoForm.size,
         source: 'upload',
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setUploadVideoOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '上传视频失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('上传视频失败') });
     } finally {
       setVideoSaving(false);
     }
@@ -1094,11 +1096,11 @@ export default function MaterialCenter() {
   const submitExtImage = async () => {
     const url = extImgForm.picUrl.trim();
     if (!url) {
-      Toast.warning({ content: '请输入图片的网络地址' });
+      Toast.warning({ content: t('请输入图片的网络地址') });
       return;
     }
     if (!isHttpUrl(url)) {
-      Toast.warning({ content: '请输入以 http:// 或 https:// 开头的网络地址' });
+      Toast.warning({ content: t('请输入以 http:// 或 https:// 开头的网络地址') });
       return;
     }
     setExtImgSaving(true);
@@ -1110,11 +1112,11 @@ export default function MaterialCenter() {
         galleryId: extImgForm.galleryId || 0,
         source: 'external',
       });
-      Toast.success({ content: '添加外部图片成功' });
+      Toast.success({ content: t('添加外部图片成功') });
       setExtImgOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '添加外部图片失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('添加外部图片失败') });
     } finally {
       setExtImgSaving(false);
     }
@@ -1127,7 +1129,7 @@ export default function MaterialCenter() {
 
   const pickExtVideoCover = async (file: File | undefined | null) => {
     if (!file) return;
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     setExtCoverUploading(true);
     try {
       const result = await apiUpload<{ picUrl?: string }>('/setting/galleryPic/uploadImg?galleryId=0', file);
@@ -1135,7 +1137,7 @@ export default function MaterialCenter() {
         setExtVideoForm((current) => ({ ...current, videoCover: result.picUrl as string }));
       }
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '封面上传失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('封面上传失败') });
     } finally {
       setExtCoverUploading(false);
       if (extVideoCoverInputRef.current) extVideoCoverInputRef.current.value = '';
@@ -1145,15 +1147,15 @@ export default function MaterialCenter() {
   const submitExtVideo = async () => {
     const url = extVideoForm.videoUrl.trim();
     if (!url) {
-      Toast.warning({ content: '请输入视频文件的网络地址' });
+      Toast.warning({ content: t('请输入视频文件的网络地址') });
       return;
     }
     if (!isHttpUrl(url)) {
-      Toast.warning({ content: '请输入以 http:// 或 https:// 开头的网络地址' });
+      Toast.warning({ content: t('请输入以 http:// 或 https:// 开头的网络地址') });
       return;
     }
     if (!extVideoForm.videoName.trim()) {
-      Toast.warning({ content: '请输入视频名称' });
+      Toast.warning({ content: t('请输入视频名称') });
       return;
     }
     setExtVideoSaving(true);
@@ -1168,11 +1170,11 @@ export default function MaterialCenter() {
         size: '',
         format: '',
       });
-      Toast.success({ content: '添加外部视频成功' });
+      Toast.success({ content: t('添加外部视频成功') });
       setExtVideoOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '添加外部视频失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('添加外部视频失败') });
     } finally {
       setExtVideoSaving(false);
     }
@@ -1181,12 +1183,12 @@ export default function MaterialCenter() {
   // ——— 拖拽上传（落到当前分组） ———
   const handleDroppedFiles = async (files: FileList | null) => {
     if (!files || !files.length) return;
-    if (!ensureNotDemo()) return;
+    if (!ensureNotDemo(t)) return;
     const list = Array.from(files).filter((file) =>
       tab === 'image' ? file.type.startsWith('image/') : file.name.toLowerCase().endsWith('.mp4'),
     );
     if (!list.length) {
-      Toast.warning({ content: tab === 'image' ? '请拖入图片文件' : '请拖入 .mp4 视频文件' });
+      Toast.warning({ content: tab === 'image' ? t('请拖入图片文件') : t('请拖入 .mp4 视频文件') });
       return;
     }
     const totalCount = list.length;
@@ -1196,14 +1198,14 @@ export default function MaterialCenter() {
     try {
       for (let i = 0; i < list.length; i += 1) {
         const file = list[i];
-        setDropText(totalCount > 1 ? `正在上传 ${i + 1}/${totalCount}` : '正在上传');
+        setDropText(totalCount > 1 ? t('正在上传 {current}/{total}', { current: i + 1, total: totalCount }) : t('正在上传'));
         try {
           if (tab === 'image') {
             await apiUpload(`/setting/galleryPic/uploadImg?galleryId=${albumId || 0}`, file);
           } else {
             const data = await apiUpload<Record<string, any>>('/setting/galleryVideoInfo/uploadVideo', file);
             const duration = await readVideoDuration(file);
-            setDropText(totalCount > 1 ? `正在保存 ${i + 1}/${totalCount}` : '正在保存');
+            setDropText(totalCount > 1 ? t('正在保存 {current}/{total}', { current: i + 1, total: totalCount }) : t('正在保存'));
             await apiPost('/setting/galleryVideoInfo/create', {
               ...data,
               videoName: videoNameFromFile(file),
@@ -1225,11 +1227,11 @@ export default function MaterialCenter() {
     }
     if (success > 0) reload();
     if (fail === 0 && success > 0) {
-      Toast.success({ content: '全部上传成功' });
+      Toast.success({ content: t('全部上传成功') });
     } else if (success > 0) {
-      Toast.warning({ content: `上传完成，成功 ${success} 个，失败 ${fail} 个` });
+      Toast.warning({ content: t('上传完成，成功 {success} 个，失败 {fail} 个', { success, fail }) });
     } else {
-      Toast.error({ content: '上传失败' });
+      Toast.error({ content: t('上传失败') });
     }
   };
 
@@ -1259,9 +1261,9 @@ export default function MaterialCenter() {
             trigger="click"
             position="bottomRight"
             menu={[
-              { node: 'item', name: '添加子分组', onClick: () => openAlbumForm('add', node.id) },
-              { node: 'item', name: '重命名', onClick: () => openAlbumForm('rename', node.id, node.parentId || 0, node.name) },
-              { node: 'item', name: '删除', onClick: () => openAlbumDelete(node) },
+              { node: 'item', name: t('添加子分组'), onClick: () => openAlbumForm('add', node.id) },
+              { node: 'item', name: t('重命名'), onClick: () => openAlbumForm('rename', node.id, node.parentId || 0, node.name) },
+              { node: 'item', name: t('删除'), onClick: () => openAlbumDelete(node) },
             ]}
           >
             <span className="mc-tree-more" onClick={(event) => event.stopPropagation()}>
@@ -1312,7 +1314,7 @@ export default function MaterialCenter() {
               checked={selected}
               onChange={() => toggleSelect(id)}
               onClick={(event: ReactMouseEvent<HTMLElement>) => event.stopPropagation()}
-              aria-label="选择素材"
+              aria-label={t('选择素材')}
             />
           </div>
           <span className="mc-card-meta" title={meta}>
@@ -1320,19 +1322,19 @@ export default function MaterialCenter() {
           </span>
         </div>
         <div className="mc-card-actions">
-          <Button theme="borderless" size="small" icon={<IconEdit />} title="编辑" onClick={() => openEdit(item)} />
-          <Button theme="borderless" size="small" icon={<IconDownload />} title="下载" onClick={() => downloadOne(item)} />
-          <Button theme="borderless" size="small" icon={<IconLink />} title="复制链接" onClick={() => copyOne(item)} />
+          <Button theme="borderless" size="small" icon={<IconEdit />} title={t('编辑')} onClick={() => openEdit(item)} />
+          <Button theme="borderless" size="small" icon={<IconDownload />} title={t('下载')} onClick={() => downloadOne(item)} />
+          <Button theme="borderless" size="small" icon={<IconLink />} title={t('复制链接')} onClick={() => copyOne(item)} />
           {isVideo ? null : (
             <Dropdown
               trigger="click"
               position="bottomRight"
               menu={[
-                { node: 'item', name: 'AI翻译', onClick: () => openAiDialog('translate', item) },
-                { node: 'item', name: 'AI擦除', onClick: () => openAiDialog('erase', item) },
+                { node: 'item', name: t('AI翻译'), onClick: () => openAiDialog('translate', item) },
+                { node: 'item', name: t('AI擦除'), onClick: () => openAiDialog('erase', item) },
               ]}
             >
-              <Button theme="borderless" size="small" icon={<IconMore />} title="AI图片处理" />
+              <Button theme="borderless" size="small" icon={<IconMore />} title={t('AI图片处理')} />
             </Dropdown>
           )}
           <Button
@@ -1340,7 +1342,7 @@ export default function MaterialCenter() {
             type="danger"
             size="small"
             icon={<IconDelete />}
-            title="删除"
+            title={t('删除')}
             onClick={() => confirmDeleteOne(item)}
           />
         </div>
@@ -1354,7 +1356,7 @@ export default function MaterialCenter() {
         <Input
           key={filter.field}
           prefix={<IconSearch />}
-          placeholder={tab === 'image' ? '图片名称' : '视频名称'}
+          placeholder={tab === 'image' ? t('图片名称') : t('视频名称')}
           value={keyword}
           onChange={setKeyword}
           onEnterPress={search}
@@ -1369,7 +1371,7 @@ export default function MaterialCenter() {
         <Select
           key={filter.field}
           value={query.sortMode}
-          optionList={SORT_OPTIONS}
+          optionList={SORT_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           onChange={(next) => {
             setQuery((current) => ({ ...current, sortMode: String(next) }));
             setPage(1);
@@ -1384,7 +1386,7 @@ export default function MaterialCenter() {
         <Select
           key={filter.field}
           value={query.format}
-          optionList={FORMAT_OPTIONS}
+          optionList={FORMAT_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
           onChange={(next) => {
             setQuery((current) => ({ ...current, format: String(next) }));
             setPage(1);
@@ -1397,7 +1399,7 @@ export default function MaterialCenter() {
       <Select
         key={filter.field}
         value={query.source}
-        optionList={SOURCE_OPTIONS}
+        optionList={SOURCE_OPTIONS.map((option) => ({ ...option, label: t(option.label) }))}
         onChange={(next) => {
           setQuery((current) => ({ ...current, source: String(next) }));
           setPage(1);
@@ -1412,18 +1414,18 @@ export default function MaterialCenter() {
   const previewUrl = previewItem ? materialUrl(previewItem, tab) : '';
   const previewName = previewItem
     ? tab === 'image'
-      ? previewPic?.picName || '素材预览'
-      : previewVideo?.videoName || '素材预览'
+      ? previewPic?.picName || t('素材预览')
+      : previewVideo?.videoName || t('素材预览')
     : '';
 
   return (
     <div className="mc-page">
       <div className="mc-tabs">
         <span className={`mc-tab${tab === 'image' ? ' is-active' : ''}`} onClick={() => switchTab('image')}>
-          图片
+          {t('图片')}
         </span>
         <span className={`mc-tab${tab === 'video' ? ' is-active' : ''}`} onClick={() => switchTab('video')}>
-          视频
+          {t('视频')}
         </span>
       </div>
 
@@ -1431,16 +1433,16 @@ export default function MaterialCenter() {
         {tab === 'image' ? (
           <Space>
             <Button theme="solid" type="primary" icon={<IconUpload />} onClick={openUploadImage}>
-              上传图片
+              {t('上传图片')}
             </Button>
-            <Button onClick={openExtImage}>添加外部链接</Button>
+            <Button onClick={openExtImage}>{t('添加外部链接')}</Button>
           </Space>
         ) : (
           <Space>
             <Button theme="solid" type="primary" icon={<IconUpload />} onClick={openUploadVideo}>
-              上传视频
+              {t('上传视频')}
             </Button>
-            <Button onClick={openExtVideo}>添加外部链接</Button>
+            <Button onClick={openExtVideo}>{t('添加外部链接')}</Button>
           </Space>
         )}
       </div>
@@ -1448,22 +1450,22 @@ export default function MaterialCenter() {
       <div className="mc-body">
         <aside className="mc-sidebar">
           <div className="mc-sidebar-header">
-            <span className="mc-sidebar-title">{tab === 'image' ? '图片分组' : '视频分组'}</span>
+            <span className="mc-sidebar-title">{tab === 'image' ? t('图片分组') : t('视频分组')}</span>
             <a className="mc-sidebar-manage" onClick={openManage}>
-              分组管理
+              {t('分组管理')}
             </a>
           </div>
           <div className="mc-sidebar-search">
-            <Input placeholder="搜索分组" value={groupSearch} onChange={setGroupSearch} showClear />
+            <Input placeholder={t('搜索分组')} value={groupSearch} onChange={setGroupSearch} showClear />
           </div>
           <div className="mc-sidebar-tree">
             <div className={`mc-tree-node is-root${albumId === 0 ? ' is-active' : ''}`} onClick={() => handleAlbumSelect(0)}>
               <span className="mc-tree-arrow is-expanded" />
-              <span className="mc-tree-name">{tab === 'image' ? '全部图片' : '全部视频'}</span>
+              <span className="mc-tree-name">{tab === 'image' ? t('全部图片') : t('全部视频')}</span>
               <Dropdown
                 trigger="click"
                 position="bottomRight"
-                menu={[{ node: 'item', name: '添加子分组', onClick: () => openAlbumForm('add', 0) }]}
+                menu={[{ node: 'item', name: t('添加子分组'), onClick: () => openAlbumForm('add', 0) }]}
               >
                 <span className="mc-tree-more" onClick={(event) => event.stopPropagation()}>
                   <IconMore size="small" />
@@ -1480,11 +1482,11 @@ export default function MaterialCenter() {
               <Space wrap>
                 {FILTERS.map((filter) => renderFilter(filter))}
                 <Button theme="solid" type="primary" icon={<IconSearch />} onClick={search}>
-                  搜索
+                  {t('搜索')}
                 </Button>
-                <Button onClick={resetFilters}>重置</Button>
+                <Button onClick={resetFilters}>{t('重置')}</Button>
                 <Button icon={<IconRefresh />} onClick={reload}>
-                  刷新
+                  {t('刷新')}
                 </Button>
               </Space>
             </div>
@@ -1495,23 +1497,23 @@ export default function MaterialCenter() {
                 indeterminate={isIndeterminate}
                 onChange={(event) => handleSelectAll(Boolean(event.target.checked))}
               >
-                全选
+                {t('全选')}
               </Checkbox>
               <span className="mc-batch-info">
-                共{total}条，已选{selectedIds.length}条
+                {t('共{total}条，已选{selected}条', { total, selected: selectedIds.length })}
               </span>
               <Space spacing={8}>
                 <Button size="small" disabled={!selectedIds.length} onClick={handleBatchDownload}>
-                  批量下载
+                  {t('批量下载')}
                 </Button>
                 <Button size="small" disabled={!selectedIds.length} onClick={confirmBatchDelete}>
-                  批量删除
+                  {t('批量删除')}
                 </Button>
                 <Button size="small" disabled={!selectedIds.length} onClick={openTransfer}>
-                  移动到
+                  {t('移动到')}
                 </Button>
                 <Button size="small" disabled={!selectedIds.length} onClick={handleExportLinks}>
-                  导出链接
+                  {t('导出链接')}
                 </Button>
               </Space>
             </div>
@@ -1535,7 +1537,7 @@ export default function MaterialCenter() {
                 {items.length ? (
                   <ul className="mc-grid">{items.map((item) => renderCard(item))}</ul>
                 ) : !loading ? (
-                  <div className="mc-empty">暂无素材</div>
+                  <div className="mc-empty">{t('暂无素材')}</div>
                 ) : null}
               </Spin>
             </div>
@@ -1561,9 +1563,9 @@ export default function MaterialCenter() {
 
       {/* 分组新增 / 重命名 */}
       <Modal
-        title={albumForm.mode === 'add' ? '新建分组' : '重命名分组'}
+        title={albumForm.mode === 'add' ? t('新建分组') : t('重命名分组')}
         visible={albumFormOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={albumSaving}
         onOk={submitAlbumForm}
         onCancel={() => setAlbumFormOpen(false)}
@@ -1571,12 +1573,12 @@ export default function MaterialCenter() {
       >
         <div className="mc-album-form">
           <label className="mc-form-label">
-            分组名称 <span className="mc-form-required">*</span>
+            {t('分组名称')} <span className="mc-form-required">*</span>
           </label>
           <Input
             maxLength={20}
             value={albumForm.name}
-            placeholder="请输入分组名称"
+            placeholder={t('请输入分组名称')}
             onChange={(next) => setAlbumForm((current) => ({ ...current, name: next }))}
             onEnterPress={submitAlbumForm}
           />
@@ -1585,31 +1587,31 @@ export default function MaterialCenter() {
 
       {/* 分组删除（策略选择） */}
       <Modal
-        title="删除分组"
+        title={t('删除分组')}
         visible={albumDeleteOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={albumDeleting}
         onOk={submitAlbumDelete}
         onCancel={() => setAlbumDeleteOpen(false)}
         width={520}
       >
         <div className="mc-album-delete">
-          <div className="mc-album-delete-tip">即将对当前分组进行删除</div>
-          <div className="mc-album-delete-label">请选择删除策略</div>
+          <div className="mc-album-delete-tip">{t('即将对当前分组进行删除')}</div>
+          <div className="mc-album-delete-label">{t('请选择删除策略')}</div>
           <RadioGroup value={deleteMode} onChange={(event) => setDeleteMode(event.target.value)}>
             <div className="mc-radio-block">
               <Radio value="only_group">
                 <div>
-                  <div className="mc-radio-title">仅删除分组(推荐)</div>
-                  <div className="mc-radio-desc">仅删除分组，组内的素材会移出分组，仍可在全部列表中找到</div>
+                  <div className="mc-radio-title">{t('仅删除分组(推荐)')}</div>
+                  <div className="mc-radio-desc">{t('仅删除分组，组内的素材会移出分组，仍可在全部列表中找到')}</div>
                 </div>
               </Radio>
             </div>
             <div className="mc-radio-block">
               <Radio value="group_and_files">
                 <div>
-                  <div className="mc-radio-title">删除分组及组内素材</div>
-                  <div className="mc-radio-desc">分组及组内素材将会一并删除，删除不会对已使用图片的业务产生影响。</div>
+                  <div className="mc-radio-title">{t('删除分组及组内素材')}</div>
+                  <div className="mc-radio-desc">{t('分组及组内素材将会一并删除，删除不会对已使用图片的业务产生影响。')}</div>
                 </div>
               </Radio>
             </div>
@@ -1619,9 +1621,9 @@ export default function MaterialCenter() {
 
       {/* 分组管理（素材转移） */}
       <Modal
-        title="分组管理"
+        title={t('分组管理')}
         visible={manageOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={manageSaving}
         onOk={submitManage}
         onCancel={() => setManageOpen(false)}
@@ -1629,18 +1631,18 @@ export default function MaterialCenter() {
       >
         <div className="mc-manage-form">
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">素材转移</label>
-            <span>将</span>
+            <label className="mc-form-label-inline">{t('素材转移')}</label>
+            <span>{t('将')}</span>
             <Select
-              placeholder="请选择"
+              placeholder={t('请选择')}
               value={manageSource}
               optionList={groupOptions}
               onChange={(next) => setManageSource(Number(next))}
               style={{ width: 200 }}
             />
-            <span>移动至</span>
+            <span>{t('移动至')}</span>
             <Select
-              placeholder="请选择"
+              placeholder={t('请选择')}
               value={manageTarget}
               optionList={groupOptions}
               onChange={(next) => setManageTarget(Number(next))}
@@ -1648,21 +1650,21 @@ export default function MaterialCenter() {
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">转移方式</label>
+            <label className="mc-form-label-inline">{t('转移方式')}</label>
             <RadioGroup value={manageMode} onChange={(event) => setManageMode(event.target.value)}>
               <div className="mc-radio-block">
                 <Radio value="move_and_delete">
                   <div>
-                    <div className="mc-radio-title">移动素材并删除分组</div>
-                    <div className="mc-radio-desc">原分组及其下级分组将从原目录被删除</div>
+                    <div className="mc-radio-title">{t('移动素材并删除分组')}</div>
+                    <div className="mc-radio-desc">{t('原分组及其下级分组将从原目录被删除')}</div>
                   </div>
                 </Radio>
               </div>
               <div className="mc-radio-block">
                 <Radio value="move_and_keep">
                   <div>
-                    <div className="mc-radio-title">移动素材，保留原分组</div>
-                    <div className="mc-radio-desc">原分组及其下级分组的所有素材将被直接合并，并移动至新分组目录下</div>
+                    <div className="mc-radio-title">{t('移动素材，保留原分组')}</div>
+                    <div className="mc-radio-desc">{t('原分组及其下级分组的所有素材将被直接合并，并移动至新分组目录下')}</div>
                   </div>
                 </Radio>
               </div>
@@ -1673,18 +1675,18 @@ export default function MaterialCenter() {
 
       {/* 移动到 */}
       <Modal
-        title="移动到"
+        title={t('移动到')}
         visible={transferOpen}
-        okText="确认移动"
+        okText={t('确认移动')}
         confirmLoading={transferSaving}
         onOk={submitTransfer}
         onCancel={() => setTransferOpen(false)}
         width={460}
       >
         <div className="mc-transfer-form">
-          <p>已选择{selectedIds.length}个素材，请选择目标分组：</p>
+          <p>{t('已选择{count}个素材，请选择目标分组：', { count: selectedIds.length })}</p>
           <Select
-            placeholder="请选择"
+            placeholder={t('请选择')}
             value={transferTarget}
             optionList={groupOptions.map((option) => ({
               ...option,
@@ -1698,9 +1700,9 @@ export default function MaterialCenter() {
 
       {/* 上传图片 */}
       <Modal
-        title="上传图片"
+        title={t('上传图片')}
         visible={uploadImgOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={uploading}
         onOk={submitUploadImage}
         onCancel={() => setUploadImgOpen(false)}
@@ -1708,7 +1710,7 @@ export default function MaterialCenter() {
       >
         <div className="mc-upload-form">
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">上传至分组</label>
+            <label className="mc-form-label-inline">{t('上传至分组')}</label>
             <Select
               value={uploadGalleryId}
               optionList={groupOptions}
@@ -1717,7 +1719,7 @@ export default function MaterialCenter() {
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">上传图片</label>
+            <label className="mc-form-label-inline">{t('上传图片')}</label>
             <div>
               <input
                 ref={uploadInputRef}
@@ -1732,15 +1734,15 @@ export default function MaterialCenter() {
               />
               <div className="mc-upload-dragger" onClick={() => uploadInputRef.current?.click()}>
                 <IconPlus size="large" />
-                <div className="mc-upload-text">点击或将文件拖拽到这里上传</div>
-                {uploadFiles.length ? <div className="mc-upload-count">({uploadFiles.length}张)</div> : null}
+                <div className="mc-upload-text">{t('点击或将文件拖拽到这里上传')}</div>
+                {uploadFiles.length ? <div className="mc-upload-count">({t('{count}张', { count: uploadFiles.length })})</div> : null}
               </div>
               {uploadFiles.length ? (
                 <div className="mc-upload-previews">
                   {uploadFiles.map((entry, index) => (
                     <div key={`${entry.file.name}-${index}`} className="mc-upload-preview">
                       <img src={entry.url} alt={entry.file.name} />
-                      <span className="mc-upload-status">待上传</span>
+                      <span className="mc-upload-status">{t('待上传')}</span>
                       <span
                         className="mc-upload-remove"
                         onClick={(event) => {
@@ -1755,8 +1757,8 @@ export default function MaterialCenter() {
                 </div>
               ) : null}
               <div className="mc-upload-notice">
-                <div>注意： 1. 图片上传支持bmp、png、jpeg、jpg、gif、svg、webp格式；</div>
-                <div style={{ paddingLeft: 42 }}>2. 大小限制以系统存储设置为准。</div>
+                <div>{t('注意： 1. 图片上传支持bmp、png、jpeg、jpg、gif、svg、webp格式；')}</div>
+                <div style={{ paddingLeft: 42 }}>{t('2. 大小限制以系统存储设置为准。')}</div>
               </div>
             </div>
           </div>
@@ -1765,9 +1767,9 @@ export default function MaterialCenter() {
 
       {/* 上传视频 */}
       <Modal
-        title="上传视频"
+        title={t('上传视频')}
         visible={uploadVideoOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={videoSaving}
         onOk={submitUploadVideo}
         onCancel={() => setUploadVideoOpen(false)}
@@ -1775,7 +1777,7 @@ export default function MaterialCenter() {
       >
         <div className="mc-upload-form">
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">本地视频</label>
+            <label className="mc-form-label-inline">{t('本地视频')}</label>
             <div>
               <input
                 ref={videoInputRef}
@@ -1794,24 +1796,24 @@ export default function MaterialCenter() {
               ) : (
                 <div className="mc-upload-dragger mc-upload-dragger-video" onClick={() => videoInputRef.current?.click()}>
                   <IconPlus size="large" />
-                  <div className="mc-upload-text">{videoUploading ? '视频上传中...' : '可拖拽文件上传'}</div>
+                  <div className="mc-upload-text">{videoUploading ? t('视频上传中...') : t('可拖拽文件上传')}</div>
                 </div>
               )}
-              <div className="mc-upload-notice">视频大小不超过系统限制，时长5秒-5分钟以内，建议时长15-190秒，支持的视频文件类型 .mp4。</div>
+              <div className="mc-upload-notice">{t('视频大小不超过系统限制，时长5秒-5分钟以内，建议时长15-190秒，支持的视频文件类型 .mp4。')}</div>
             </div>
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">视频名称</label>
+            <label className="mc-form-label-inline">{t('视频名称')}</label>
             <Input
               maxLength={20}
               value={videoForm.videoName}
-              placeholder="20个字以内"
+              placeholder={t('20个字以内')}
               style={{ width: 320 }}
               onChange={(next) => setVideoForm((current) => ({ ...current, videoName: next }))}
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">所在视频分组</label>
+            <label className="mc-form-label-inline">{t('所在视频分组')}</label>
             <Select
               value={videoForm.galleryId}
               optionList={groupOptions}
@@ -1820,7 +1822,7 @@ export default function MaterialCenter() {
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">视频封面</label>
+            <label className="mc-form-label-inline">{t('视频封面')}</label>
             <div>
               <input
                 ref={videoCoverInputRef}
@@ -1836,10 +1838,10 @@ export default function MaterialCenter() {
                     .then((result) => {
                       if (result?.picUrl) {
                         setVideoForm((current) => ({ ...current, videoCover: result.picUrl as string }));
-                        Toast.success({ content: '封面上传成功' });
+                        Toast.success({ content: t('封面上传成功') });
                       }
                     })
-                    .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '封面上传失败' }))
+                    .catch((error) => Toast.error({ content: error instanceof Error ? error.message : t('封面上传失败') }))
                     .finally(() => {
                       if (videoCoverInputRef.current) videoCoverInputRef.current.value = '';
                     });
@@ -1847,7 +1849,7 @@ export default function MaterialCenter() {
               />
               {videoForm.videoCover ? (
                 <span className="mc-cover-thumb">
-                  <img src={videoForm.videoCover} alt="视频封面" />
+                  <img src={videoForm.videoCover} alt={t('视频封面')} />
                   <span
                     className="mc-upload-remove"
                     onClick={() => setVideoForm((current) => ({ ...current, videoCover: '' }))}
@@ -1857,10 +1859,10 @@ export default function MaterialCenter() {
                 </span>
               ) : (
                 <Button icon={<IconPlus />} loading={videoUploading} onClick={() => videoCoverInputRef.current?.click()}>
-                  上传封面
+                  {t('上传封面')}
                 </Button>
               )}
-              <div className="mc-upload-notice">如果不添加封面，系统会默认截取视频的第一个画面作为封面。</div>
+              <div className="mc-upload-notice">{t('如果不添加封面，系统会默认截取视频的第一个画面作为封面。')}</div>
             </div>
           </div>
         </div>
@@ -1868,9 +1870,9 @@ export default function MaterialCenter() {
 
       {/* 外部图片 */}
       <Modal
-        title="添加外部链接"
+        title={t('添加外部链接')}
         visible={extImgOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={extImgSaving}
         onOk={submitExtImage}
         onCancel={() => setExtImgOpen(false)}
@@ -1878,7 +1880,7 @@ export default function MaterialCenter() {
       >
         <div className="mc-upload-form">
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">所在分组</label>
+            <label className="mc-form-label-inline">{t('所在分组')}</label>
             <Select
               value={extImgForm.galleryId}
               optionList={groupOptions}
@@ -1887,16 +1889,16 @@ export default function MaterialCenter() {
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">外部链接</label>
+            <label className="mc-form-label-inline">{t('外部链接')}</label>
             <div>
               <Input
                 value={extImgForm.picUrl}
-                placeholder="请输入图片的网络地址"
+                placeholder={t('请输入图片的网络地址')}
                 style={{ width: 320 }}
                 onChange={(next) => setExtImgForm((current) => ({ ...current, picUrl: next }))}
               />
               <div className="mc-upload-notice">
-                需要填写单张图片的网络地址，格式支持 bmp/jpg/png/gif，不支持 webp/svg；不能填百度图片搜索结果页这种"页面地址"
+                {t('需要填写单张图片的网络地址，格式支持 bmp/jpg/png/gif，不支持 webp/svg；不能填百度图片搜索结果页这种"页面地址"')}
               </div>
             </div>
           </div>
@@ -1905,9 +1907,9 @@ export default function MaterialCenter() {
 
       {/* 外部视频 */}
       <Modal
-        title="添加外部视频链接"
+        title={t('添加外部视频链接')}
         visible={extVideoOpen}
-        okText="确定"
+        okText={t('确定')}
         confirmLoading={extVideoSaving}
         onOk={submitExtVideo}
         onCancel={() => setExtVideoOpen(false)}
@@ -1915,7 +1917,7 @@ export default function MaterialCenter() {
       >
         <div className="mc-upload-form">
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">上传至分组</label>
+            <label className="mc-form-label-inline">{t('上传至分组')}</label>
             <Select
               value={extVideoForm.galleryId}
               optionList={groupOptions}
@@ -1924,31 +1926,31 @@ export default function MaterialCenter() {
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">外部视频地址</label>
+            <label className="mc-form-label-inline">{t('外部视频地址')}</label>
             <div>
               <Input
                 value={extVideoForm.videoUrl}
-                placeholder="请输入视频文件的网络地址"
+                placeholder={t('请输入视频文件的网络地址')}
                 style={{ width: 320 }}
                 onChange={(next) => setExtVideoForm((current) => ({ ...current, videoUrl: next }))}
               />
               <div className="mc-upload-notice">
-                需要填写视频文件的网络地址，格式支持 mp4/flv/webm/avi；不能填视频网站播放页这种"页面地址"
+                {t('需要填写视频文件的网络地址，格式支持 mp4/flv/webm/avi；不能填视频网站播放页这种"页面地址"')}
               </div>
             </div>
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">视频名称</label>
+            <label className="mc-form-label-inline">{t('视频名称')}</label>
             <Input
               maxLength={20}
               value={extVideoForm.videoName}
-              placeholder="20个字以内"
+              placeholder={t('20个字以内')}
               style={{ width: 320 }}
               onChange={(next) => setExtVideoForm((current) => ({ ...current, videoName: next }))}
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">视频封面</label>
+            <label className="mc-form-label-inline">{t('视频封面')}</label>
             <div>
               <input
                 ref={extVideoCoverInputRef}
@@ -1959,7 +1961,7 @@ export default function MaterialCenter() {
               />
               {extVideoForm.videoCover ? (
                 <span className="mc-cover-thumb">
-                  <img src={extVideoForm.videoCover} alt="视频封面" />
+                  <img src={extVideoForm.videoCover} alt={t('视频封面')} />
                   <span
                     className="mc-upload-remove"
                     onClick={() => setExtVideoForm((current) => ({ ...current, videoCover: '' }))}
@@ -1969,10 +1971,10 @@ export default function MaterialCenter() {
                 </span>
               ) : (
                 <Button icon={<IconPlus />} loading={extCoverUploading} onClick={() => extVideoCoverInputRef.current?.click()}>
-                  上传封面
+                  {t('上传封面')}
                 </Button>
               )}
-              <div className="mc-upload-notice">建议尺寸：800*800px，支持 jpg/gif/png 格式。</div>
+              <div className="mc-upload-notice">{t('建议尺寸：800*800px，支持 jpg/gif/png 格式。')}</div>
             </div>
           </div>
         </div>
@@ -2006,21 +2008,21 @@ export default function MaterialCenter() {
               ) : null}
             </div>
             <div className="mc-preview-info">
-              <h3 className="mc-preview-heading">{tab === 'image' ? '图片标题' : '视频标题'}</h3>
+              <h3 className="mc-preview-heading">{tab === 'image' ? t('图片标题') : t('视频标题')}</h3>
               <p className="mc-preview-filename">{previewName}</p>
-              <h4 className="mc-preview-subheading">基本信息</h4>
+              <h4 className="mc-preview-subheading">{t('基本信息')}</h4>
               <div className="mc-preview-row">
-                <span className="mc-preview-label">分组：</span>
-                <span>{currentAlbumName || (tab === 'image' ? '全部图片' : '全部视频')}</span>
+                <span className="mc-preview-label">{t('分组：')}</span>
+                <span>{currentAlbumName || (tab === 'image' ? t('全部图片') : t('全部视频'))}</span>
               </div>
               {tab === 'image' ? (
                 <>
                   <div className="mc-preview-row">
-                    <span className="mc-preview-label">尺寸：</span>
+                    <span className="mc-preview-label">{t('尺寸：')}</span>
                     <span>{previewPic?.picWidth && previewPic?.picHeight ? `${previewPic.picWidth} x ${previewPic.picHeight}` : '-'}</span>
                   </div>
                   <div className="mc-preview-row">
-                    <span className="mc-preview-label">大小：</span>
+                    <span className="mc-preview-label">{t('大小：')}</span>
                     <span>{formatBytes(previewPic?.picSize) || '-'}</span>
                   </div>
                 </>
@@ -2028,20 +2030,20 @@ export default function MaterialCenter() {
                 <>
                   {previewVideo?.format ? (
                     <div className="mc-preview-row">
-                      <span className="mc-preview-label">格式：</span>
+                      <span className="mc-preview-label">{t('格式：')}</span>
                       <span>{previewVideo.format.toUpperCase()}</span>
                     </div>
                   ) : null}
                   {previewVideo?.duration ? (
                     <div className="mc-preview-row">
-                      <span className="mc-preview-label">时长：</span>
+                      <span className="mc-preview-label">{t('时长：')}</span>
                       <span>{previewVideo.duration}</span>
                     </div>
                   ) : null}
                 </>
               )}
               <div className="mc-preview-row">
-                <span className="mc-preview-label">上传时间：</span>
+                <span className="mc-preview-label">{t('上传时间：')}</span>
                 <span>
                   {formatDate(
                     tab === 'image' ? (previewPic as any)?.createTime ?? previewPic?.addTime : previewVideo?.addTime,
@@ -2050,10 +2052,10 @@ export default function MaterialCenter() {
               </div>
               <div className="mc-preview-actions">
                 <Button theme="solid" type="primary" onClick={() => downloadOne(previewItem as MaterialItem)}>
-                  {tab === 'image' ? '下载原图' : '下载原视频'}
+                  {tab === 'image' ? t('下载原图') : t('下载原视频')}
                 </Button>
                 <Button onClick={() => previewUrl && window.open(previewUrl, '_blank', 'noopener,noreferrer')}>
-                  {tab === 'image' ? '查看原图' : '查看原视频'}
+                  {tab === 'image' ? t('查看原图') : t('查看原视频')}
                 </Button>
               </div>
             </div>
@@ -2063,9 +2065,9 @@ export default function MaterialCenter() {
 
       {/* 编辑素材 */}
       <Modal
-        title={tab === 'image' ? '编辑图片' : '编辑视频'}
+        title={tab === 'image' ? t('编辑图片') : t('编辑视频')}
         visible={editOpen}
-        okText="保存"
+        okText={t('保存')}
         confirmLoading={editSaving}
         onOk={submitEdit}
         onCancel={() => setEditOpen(false)}
@@ -2073,7 +2075,7 @@ export default function MaterialCenter() {
       >
         <div className="mc-upload-form">
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">{tab === 'image' ? '图片名称' : '视频名称'}</label>
+            <label className="mc-form-label-inline">{tab === 'image' ? t('图片名称') : t('视频名称')}</label>
             <Input
               value={editForm.name}
               style={{ width: 300 }}
@@ -2081,7 +2083,7 @@ export default function MaterialCenter() {
             />
           </div>
           <div className="mc-form-row">
-            <label className="mc-form-label-inline">所属分组</label>
+            <label className="mc-form-label-inline">{t('所属分组')}</label>
             <Select
               value={editForm.galleryId}
               optionList={groupOptions}
@@ -2092,7 +2094,7 @@ export default function MaterialCenter() {
           {tab === 'video' ? (
             <>
               <div className="mc-form-row">
-                <label className="mc-form-label-inline">视频封面</label>
+                <label className="mc-form-label-inline">{t('视频封面')}</label>
                 <div>
                   <input
                     ref={editCoverInputRef}
@@ -2106,10 +2108,10 @@ export default function MaterialCenter() {
                         .then((result) => {
                           if (result?.picUrl) {
                             setEditForm((current) => ({ ...current, videoCover: result.picUrl as string }));
-                            Toast.success({ content: '封面上传成功' });
+                            Toast.success({ content: t('封面上传成功') });
                           }
                         })
-                        .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '封面上传失败' }))
+                        .catch((error) => Toast.error({ content: error instanceof Error ? error.message : t('封面上传失败') }))
                         .finally(() => {
                           if (editCoverInputRef.current) editCoverInputRef.current.value = '';
                         });
@@ -2117,7 +2119,7 @@ export default function MaterialCenter() {
                   />
                   {editForm.videoCover ? (
                     <span className="mc-cover-thumb">
-                      <img src={editForm.videoCover} alt="视频封面" />
+                      <img src={editForm.videoCover} alt={t('视频封面')} />
                       <span
                         className="mc-upload-remove"
                         onClick={() => setEditForm((current) => ({ ...current, videoCover: '' }))}
@@ -2127,13 +2129,13 @@ export default function MaterialCenter() {
                     </span>
                   ) : (
                     <Button icon={<IconPlus />} onClick={() => editCoverInputRef.current?.click()}>
-                      上传封面
+                      {t('上传封面')}
                     </Button>
                   )}
                 </div>
               </div>
               <div className="mc-form-row">
-                <label className="mc-form-label-inline">简介</label>
+                <label className="mc-form-label-inline">{t('简介')}</label>
                 <TextArea
                   value={editForm.description}
                   style={{ width: 300 }}

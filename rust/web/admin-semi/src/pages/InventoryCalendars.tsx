@@ -18,6 +18,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ProductPicker from '../components/ProductPicker';
 import './inventory-calendars.css';
 
@@ -288,6 +289,7 @@ interface ExcludePatch {
 }
 
 export default function InventoryCalendars() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(!isDemo());
   const [rows, setRows] = useState<CalendarRow[]>([]);
   const [dayList, setDayList] = useState<string[]>([]);
@@ -368,13 +370,13 @@ export default function InventoryCalendars() {
 
   const storeSelectOptions = useMemo(
     () => [
-      { label: '全部门店', value: 0 },
+      { label: t('全部门店'), value: 0 },
       ...storeOptions.map((shop) => ({
         label: shop.shopTitle || shop.shopName || `门店${shop.shopId}`,
         value: shop.shopId,
       })),
     ],
-    [storeOptions],
+    [storeOptions, t],
   );
 
   const handleStoreChange = (value: unknown) => {
@@ -450,7 +452,7 @@ export default function InventoryCalendars() {
         })),
       )
       .catch((error) => {
-        Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+        Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
         setDayModal((current) => ({ ...current, loading: false }));
       });
   };
@@ -465,7 +467,7 @@ export default function InventoryCalendars() {
 
   const saveDayModal = async () => {
     if (!dayModal.slots.length) {
-      Toast.warning({ content: '该商品未配置可预约时间段' });
+      Toast.warning({ content: t('该商品未配置可预约时间段') });
       return;
     }
     setDayModal((current) => ({ ...current, saving: true }));
@@ -480,11 +482,11 @@ export default function InventoryCalendars() {
           stockChange: Number(slot.stockChange || 0),
         })),
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setDayModal(closedDayModal());
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setDayModal((current) => ({ ...current, saving: false }));
     }
@@ -540,16 +542,16 @@ export default function InventoryCalendars() {
 
   const saveUnified = async () => {
     if (Number(unified.productId) <= 0) {
-      Toast.warning({ content: '请选择商品' });
+      Toast.warning({ content: t('请选择商品') });
       return;
     }
     // 原版 BatchSetInventory：多规格商品必须选择规格
     if (unified.skuOptions.length > 1 && !unified.skuId) {
-      Toast.warning({ content: '请选择规格' });
+      Toast.warning({ content: t('请选择规格') });
       return;
     }
     if (!unified.dateRange[0] || !unified.dateRange[1]) {
-      Toast.warning({ content: '请选择时间范围' });
+      Toast.warning({ content: t('请选择时间范围') });
       return;
     }
     // 全部门店 + 排除门店 → selectionType 2（排除模式），对齐旧 BatchSetInventory
@@ -573,11 +575,11 @@ export default function InventoryCalendars() {
         },
         quantity: Number(unified.quantity || 0),
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setUnified(closedUnifiedModal());
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setUnified((current) => ({ ...current, saving: false }));
     }
@@ -587,7 +589,7 @@ export default function InventoryCalendars() {
 
   const openSlotModal = (row: CalendarRow | null) => {
     if (!row) {
-      Toast.warning({ content: '请至少选择一项商品' });
+      Toast.warning({ content: t('请至少选择一项商品') });
       return;
     }
     const productId = Number(row.productInfo?.productId || 0);
@@ -606,7 +608,7 @@ export default function InventoryCalendars() {
         })),
       )
       .catch((error) => {
-        Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+        Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
         setSlotModal((current) => ({ ...current, loading: false }));
       });
   };
@@ -623,7 +625,7 @@ export default function InventoryCalendars() {
     const row = slotModal.row;
     if (!row) return;
     if (!slotModal.dateRange[0] || !slotModal.dateRange[1]) {
-      Toast.warning({ content: '请选择时间范围' });
+      Toast.warning({ content: t('请选择时间范围') });
       return;
     }
     setSlotModal((current) => ({ ...current, saving: true }));
@@ -649,11 +651,11 @@ export default function InventoryCalendars() {
           quantity: Number(slot.quantity || 0),
         })),
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setSlotModal(closedSlotModal());
       setReloadKey((key) => key + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSlotModal((current) => ({ ...current, saving: false }));
     }
@@ -670,21 +672,21 @@ export default function InventoryCalendars() {
       return (
         <div className="cal-cell">
           <Button size="small" theme="borderless" onClick={() => openDayModal(row, day, 'set')}>
-            设置库存
+            {t('设置库存')}
           </Button>
         </div>
       );
     }
     return (
       <div className="cal-cell">
-        <span className="cal-cell-stock" title="可预约数">
-          可预约数：{data.availableStock}
+        <span className="cal-cell-stock" title={t('可预约数')}>
+          {t('可预约数：')}{data.availableStock}
         </span>
-        <span className="cal-cell-used" title="已预约数">
-          已预约数：{Number(data.usedStock) || 0}
+        <span className="cal-cell-used" title={t('已预约数')}>
+          {t('已预约数：')}{Number(data.usedStock) || 0}
         </span>
         <Button size="small" theme="borderless" onClick={() => openDayModal(row, day, 'edit')}>
-          修改库存
+          {t('修改库存')}
         </Button>
       </div>
     );
@@ -693,7 +695,7 @@ export default function InventoryCalendars() {
   const columns = useMemo(() => {
     const fixedColumns = [
       {
-        title: '商品信息',
+        title: t('商品信息'),
         dataIndex: 'productInfo',
         key: 'productInfo',
         width: 280,
@@ -713,7 +715,7 @@ export default function InventoryCalendars() {
         ),
       },
       {
-        title: '规格',
+        title: t('规格'),
         dataIndex: 'specValue',
         key: 'specValue',
         width: 150,
@@ -725,7 +727,7 @@ export default function InventoryCalendars() {
         ),
       },
       {
-        title: '门店',
+        title: t('门店'),
         dataIndex: 'shopInfo',
         key: 'shopInfo',
         width: 140,
@@ -740,7 +742,7 @@ export default function InventoryCalendars() {
     const dayColumns = dayList.map((day) => ({
       title: (
         <div className="cal-day-head">
-          {timeType === 'week' ? <span className="cal-day-week">{weekLabel(day)}</span> : null}
+          {timeType === 'week' ? <span className="cal-day-week">{t(weekLabel(day))}</span> : null}
           <span className="cal-day-date">{shortDay(day)}</span>
         </div>
       ),
@@ -751,7 +753,7 @@ export default function InventoryCalendars() {
     }));
     return [...fixedColumns, ...dayColumns];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dayList, timeType]);
+  }, [dayList, timeType, t]);
 
   const renderExcludeBlock = (
     isExcluded: 0 | 1,
@@ -764,7 +766,7 @@ export default function InventoryCalendars() {
         checked={isExcluded === 1}
         onChange={(event) => onChange({ isExcluded: event.target.checked ? 1 : 0, excludeDay: [] })}
       >
-        排除时间
+        {t('排除时间')}
       </Checkbox>
       {isExcluded === 1 ? (
         <>
@@ -774,18 +776,18 @@ export default function InventoryCalendars() {
               onChange({ excludeType: Number(event.target.value) as 1 | 2, excludeDay: [] })
             }
           >
-            <Radio value={1}>每周排除</Radio>
-            <Radio value={2}>每月排除</Radio>
+            <Radio value={1}>{t('每周排除')}</Radio>
+            <Radio value={2}>{t('每月排除')}</Radio>
           </RadioGroup>
           <Select
             multiple
-            placeholder="请选择排除时间"
+            placeholder={t('请选择排除时间')}
             style={{ width: 260 }}
-            optionList={excludeType === 1 ? WEEKDAY_OPTIONS : MONTH_DAY_OPTIONS}
+            optionList={(excludeType === 1 ? WEEKDAY_OPTIONS : MONTH_DAY_OPTIONS).map((option) => ({ ...option, label: t(option.label) }))}
             value={excludeDay}
             onChange={(next) => onChange({ excludeDay: (next as number[]) || [] })}
           />
-          <p className="cal-exclude-tip">仅修改商品在改日期范围内的可预约数量</p>
+          <p className="cal-exclude-tip">{t('仅修改商品在改日期范围内的可预约数量')}</p>
         </>
       ) : null}
     </div>
@@ -800,7 +802,7 @@ export default function InventoryCalendars() {
         loading={loading}
         dataSource={rows}
         rowKey="rowKey"
-        empty={isDemo() ? '演示模式下不加载库存日历数据' : '暂无数据'}
+        empty={isDemo() ? t('演示模式下不加载库存日历数据') : t('暂无数据')}
         scroll={scrollX > 1000 ? { x: scrollX } : undefined}
         rowSelection={{
           selectedRowKeys: selectedKeys,
@@ -832,14 +834,14 @@ export default function InventoryCalendars() {
             <Space wrap>
               <Input
                 prefix={<IconSearch />}
-                placeholder="输入商品名称"
+                placeholder={t('输入商品名称')}
                 value={productName}
                 onChange={setProductName}
                 onEnterPress={() => search({ productName })}
                 style={{ width: 220 }}
               />
               <Select
-                placeholder="请选择门店"
+                placeholder={t('请选择门店')}
                 filter
                 value={selectedStoreId}
                 optionList={storeSelectOptions}
@@ -849,14 +851,14 @@ export default function InventoryCalendars() {
               <Select
                 value={timeType}
                 optionList={[
-                  { label: '按周', value: 'week' },
-                  { label: '按月', value: 'month' },
+                  { label: t('按周'), value: 'week' },
+                  { label: t('按月'), value: 'month' },
                 ]}
                 onChange={(next) => changeTimeType(next as 'week' | 'month')}
                 style={{ width: 90 }}
               />
               <Button disabled={isPrevDisabled} onClick={() => changePeriod('prev')}>
-                上一{timeType === 'week' ? '周' : '月'}
+                {timeType === 'week' ? t('上一周') : t('上一月')}
               </Button>
               {timeType === 'week' ? (
                 <>
@@ -898,23 +900,23 @@ export default function InventoryCalendars() {
                 />
               )}
               <Button onClick={() => changePeriod('next')}>
-                下一{timeType === 'week' ? '周' : '月'}
+                {timeType === 'week' ? t('下一周') : t('下一月')}
               </Button>
               <Button icon={<IconRefresh />} onClick={() => setReloadKey((key) => key + 1)}>
-                刷新
+                {t('刷新')}
               </Button>
             </Space>
             <Space wrap>
               <span className="cal-total">
-                共{total}条{selectedRow ? '，已选择1条' : ''}
+                {t('共{count}条', { count: total })}{selectedRow ? t('，已选择1条') : ''}
               </span>
               {isAdmin ? (
                 <Button theme="solid" type="primary" onClick={openUnifiedModal}>
-                  统一设置库存
+                  {t('统一设置库存')}
                 </Button>
               ) : null}
               <Button disabled={!selectedRow} onClick={() => openSlotModal(selectedRow)}>
-                按时段设置库存
+                {t('按时段设置库存')}
               </Button>
             </Space>
           </div>
@@ -923,19 +925,19 @@ export default function InventoryCalendars() {
 
       {/* 某日库存（旧 SetInventory.vue：按时间段增量修改） */}
       <Modal
-        title={`${dayModal.mode === 'edit' ? '修改库存' : '设置库存'}${
+        title={`${dayModal.mode === 'edit' ? t('修改库存') : t('设置库存')}${
           dayModal.day ? `（${dayModal.day}）` : ''
         }`}
         visible={dayModal.visible}
         confirmLoading={dayModal.saving}
         onOk={saveDayModal}
-        okText="保存"
+        okText={t('保存')}
         onCancel={() => setDayModal(closedDayModal())}
         width={dayModal.mode === 'edit' ? 620 : 480}
       >
         <div className="cal-modal-meta">
           <Text strong>{dayModal.productName || '-'}</Text>
-          {dayModal.shopName ? <Text type="tertiary">门店：{dayModal.shopName}</Text> : null}
+          {dayModal.shopName ? <Text type="tertiary">{t('门店：')}{dayModal.shopName}</Text> : null}
         </div>
         <Table
           size="small"
@@ -943,11 +945,11 @@ export default function InventoryCalendars() {
           pagination={false}
           rowKey="productReservationTimeId"
           dataSource={dayModal.slots}
-          empty="该商品未配置可预约时间段"
+          empty={t('该商品未配置可预约时间段')}
           columns={
             [
               {
-                title: '时间段',
+                title: t('时间段'),
                 dataIndex: 'startTime',
                 render: (_value: unknown, slot: TimeSlotRow) => (
                   <span>{`${slot.startTime || ''}~${slot.endTime || ''}`}</span>
@@ -956,11 +958,11 @@ export default function InventoryCalendars() {
               ...(dayModal.mode === 'edit'
                 ? [
                     {
-                      title: '当前可预约',
+                      title: t('当前可预约'),
                       dataIndex: 'availableStock',
                       width: 110,
                       render: (_value: unknown, slot: TimeSlotRow) => (
-                        <span title="当前可预约">{Number(slot.availableStock) || 0}</span>
+                        <span title={t('当前可预约')}>{Number(slot.availableStock) || 0}</span>
                       ),
                     },
                   ]
@@ -968,8 +970,8 @@ export default function InventoryCalendars() {
               {
                 title: (
                   <span className="cal-table-head">
-                    {dayModal.mode === 'edit' ? '增加/减少数量' : '可预约数量'}
-                    <Tooltip content="正数为增加数量 负数为减少数量">
+                    {dayModal.mode === 'edit' ? t('增加/减少数量') : t('可预约数量')}
+                    <Tooltip content={t('正数为增加数量 负数为减少数量')}>
                       <span className="cal-help-icon">?</span>
                     </Tooltip>
                   </span>
@@ -993,11 +995,11 @@ export default function InventoryCalendars() {
               ...(dayModal.mode === 'edit'
                 ? [
                     {
-                      title: '实际可预约',
+                      title: t('实际可预约'),
                       dataIndex: 'usedStock',
                       width: 110,
                       render: (_value: unknown, slot: TimeSlotRow) => (
-                        <span title="实际可预约">
+                        <span title={t('实际可预约')}>
                           {Math.max(
                             0,
                             (Number(slot.availableStock) || 0) + (Number(slot.stockChange) || 0),
@@ -1014,17 +1016,17 @@ export default function InventoryCalendars() {
 
       {/* 统一设置库存（旧 BatchSetInventory.vue） */}
       <Modal
-        title="统一设置库存"
+        title={t('统一设置库存')}
         visible={unified.visible}
         confirmLoading={unified.saving}
         onOk={saveUnified}
-        okText="保存"
+        okText={t('保存')}
         onCancel={() => setUnified(closedUnifiedModal())}
         width={640}
       >
-        <div className="cal-modal-tip">批量设置库存即：同时对商品设置多个门店的库存</div>
+        <div className="cal-modal-tip">{t('批量设置库存即：同时对商品设置多个门店的库存')}</div>
         <div className="cal-form-field">
-          <label className="cal-form-label">商品</label>
+          <label className="cal-form-label">{t('商品')}</label>
           <div className="cal-form-control">
             <ProductPicker
               value={unified.productId > 0 ? [unified.productId] : []}
@@ -1053,7 +1055,7 @@ export default function InventoryCalendars() {
                 {unified.skuOptions.length > 1 ? (
                   unified.skuId ? (
                     <Text type="tertiary" size="small">
-                      已选规格：
+                      {t('已选规格：')}
                       {(
                         unified.skuOptions.find((option) => option.skuId === unified.skuId)?.skuValue || ''
                       )
@@ -1064,7 +1066,7 @@ export default function InventoryCalendars() {
                     </Text>
                   ) : (
                     <Text type="warning" size="small">
-                      请选择规格
+                      {t('请选择规格')}
                     </Text>
                   )
                 ) : null}
@@ -1072,10 +1074,10 @@ export default function InventoryCalendars() {
             ) : null}
             {unified.productId > 0 && unified.skuOptions.length > 1 ? (
               <div className="cal-form-field" style={{ marginTop: 8 }}>
-                <label className="cal-form-label">规格</label>
+                <label className="cal-form-label">{t('规格')}</label>
                 <div className="cal-form-control">
                   <Select
-                    placeholder="请选择规格"
+                    placeholder={t('请选择规格')}
                     optionList={unified.skuOptions.map((option) => ({
                       value: option.skuId,
                       label:
@@ -1083,7 +1085,7 @@ export default function InventoryCalendars() {
                           .split('|')
                           .map((item) => item.trim())
                           .filter(Boolean)
-                          .join(';') || `规格${option.skuId}`,
+                          .join(';') || t('规格{id}', { id: option.skuId }),
                     }))}
                     value={unified.skuId || undefined}
                     onChange={(next) =>
@@ -1097,10 +1099,10 @@ export default function InventoryCalendars() {
           </div>
         </div>
         <div className="cal-form-field">
-          <label className="cal-form-label">门店</label>
+          <label className="cal-form-label">{t('门店')}</label>
           <div className="cal-form-control">
             {!unified.productId ? (
-              <Text type="tertiary">请先选择商品</Text>
+              <Text type="tertiary">{t('请先选择商品')}</Text>
             ) : (
               <>
                 <RadioGroup
@@ -1113,13 +1115,13 @@ export default function InventoryCalendars() {
                     }))
                   }
                 >
-                  <Radio value={1}>全部门店</Radio>
-                  <Radio value={3}>指定门店</Radio>
+                  <Radio value={1}>{t('全部门店')}</Radio>
+                  <Radio value={3}>{t('指定门店')}</Radio>
                 </RadioGroup>
                 <Select
                   multiple
                   filter
-                  placeholder={unified.selectionType === 1 ? '排除门店' : '选择门店'}
+                  placeholder={unified.selectionType === 1 ? t('排除门店') : t('选择门店')}
                   optionList={storeSelectOptions.filter((option) => option.value !== 0)}
                   value={unified.storeIds}
                   onChange={(next) =>
@@ -1132,7 +1134,7 @@ export default function InventoryCalendars() {
           </div>
         </div>
         <div className="cal-form-field">
-          <label className="cal-form-label">日期范围</label>
+          <label className="cal-form-label">{t('日期范围')}</label>
           <div className="cal-form-control">
             <DatePicker
               type="dateRange"
@@ -1151,9 +1153,9 @@ export default function InventoryCalendars() {
           </div>
         </div>
         <div className="cal-form-field">
-          <label className="cal-form-label">可预约数量</label>
+          <label className="cal-form-label">{t('可预约数量')}</label>
           <div className="cal-form-control cal-inline-field">
-            <span className="cal-inline-text">所选商品在每个可预约时间段上同时增加/减少</span>
+            <span className="cal-inline-text">{t('所选商品在每个可预约时间段上同时增加/减少')}</span>
             <InputNumber
               precision={0}
               style={{ width: 100 }}
@@ -1166,11 +1168,11 @@ export default function InventoryCalendars() {
 
       {/* 按时段设置库存（旧 ModifyInventory.vue） */}
       <Modal
-        title="单个设置库存"
+        title={t('单个设置库存')}
         visible={slotModal.visible}
         confirmLoading={slotModal.saving}
         onOk={saveSlotModal}
-        okText="保存"
+        okText={t('保存')}
         onCancel={() => setSlotModal(closedSlotModal())}
         width={620}
       >
@@ -1188,10 +1190,10 @@ export default function InventoryCalendars() {
               {slotModal.productName || slotModal.row?.productInfo?.productName || '-'}
             </span>
           </div>
-          <Text type="tertiary">门店：{slotModal.row?.shopInfo?.shopName || '-'}</Text>
+          <Text type="tertiary">{t('门店：')}{slotModal.row?.shopInfo?.shopName || '-'}</Text>
         </div>
         <div className="cal-form-field">
-          <label className="cal-form-label">日期范围</label>
+          <label className="cal-form-label">{t('日期范围')}</label>
           <div className="cal-form-control">
             <DatePicker
               type="dateRange"
@@ -1213,7 +1215,7 @@ export default function InventoryCalendars() {
           </div>
         </div>
         <div className="cal-form-field">
-          <label className="cal-form-label">可预约时段</label>
+          <label className="cal-form-label">{t('可预约时段')}</label>
           <div className="cal-form-control">
             <Table
               size="small"
@@ -1221,11 +1223,11 @@ export default function InventoryCalendars() {
               pagination={false}
               rowKey="productReservationTimeId"
               dataSource={slotModal.slots}
-              empty="该商品未配置可预约时间段"
+              empty={t('该商品未配置可预约时间段')}
               columns={
                 [
                   {
-                    title: '时间段',
+                    title: t('时间段'),
                     dataIndex: 'startTime',
                     render: (_value: unknown, slot: TimeSlotRow) => (
                       <span>{`${slot.startTime || ''}~${slot.endTime || ''}`}</span>
@@ -1234,8 +1236,8 @@ export default function InventoryCalendars() {
                   {
                     title: (
                       <span className="cal-table-head">
-                        增加/减少数量
-                        <Tooltip content="正数为增加数量 负数为减少数量">
+                        {t('增加/减少数量')}
+                        <Tooltip content={t('正数为增加数量 负数为减少数量')}>
                           <span className="cal-help-icon">?</span>
                         </Tooltip>
                       </span>
