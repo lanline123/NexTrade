@@ -633,7 +633,12 @@ export default function AutoConfigPage({
     const renderedGroups = new Set<string>();
     return (
       <div className="auto-config-section" key={group.title || 'all'} id={`settings-section-${sectionIndex}`}>
-        {group.title && <h4>{t(group.title)}</h4>}
+        {group.title && (
+          <h4>
+            {t(group.title)}
+            <span className="auto-config-section-count">{group.items.length}</span>
+          </h4>
+        )}
         <div className="auto-config-grid">
           {group.items.map(([key, value]) => {
             const fieldGroup = (fieldGroups || []).find((item) => item.fields.includes(key));
