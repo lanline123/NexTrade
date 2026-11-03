@@ -22,14 +22,14 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::error::ApiResponse;
-use tigshop_core::models::LoginDTO;
+use tigshop_core::models::{LoginDTO, MobileLoginDTO};
 use tigshop_core::types::PageResult;
 use tigshop_openapi as openapi;
 use tigshop_security::web::{ok, require_auth, ApiResult, AppError, AuthUser};
 use tigshop_security::JwtService;
 
-pub mod routes;
 pub mod root;
+pub mod routes;
 
 /// 本 crate 实际注册的路由（用于计算与原 Java 契约的覆盖率）。
 ///
@@ -37,9 +37,11 @@ pub mod root;
 /// 运行时 `/openapi/coverage` 给出同样的数字。
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
-    let base = [
-        ("POST", "/adminapi/login/signin", "LoginFilter.attemptAuthentication"),
-    ];
+    let base = [(
+        "POST",
+        "/adminapi/login/signin",
+        "LoginFilter.attemptAuthentication",
+    )];
     let mut out: Vec<tigshop_openapi::RouteDoc> = base
         .iter()
         .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -53,10 +55,7 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 
 /// 构建契约/覆盖率文档端点状态。
 fn openapi_state() -> tigshop_openapi::OpenApiState {
-    tigshop_openapi::OpenApiState::new(
-        tigshop_openapi::Contract::embedded(),
-        implemented_routes(),
-    )
+    tigshop_openapi::OpenApiState::new(tigshop_openapi::Contract::embedded(), implemented_routes())
 }
 
 /// 管理端应用状态。
@@ -94,8 +93,14 @@ pub struct AdminState {
 pub fn router(state: AdminState) -> Router {
     // —— 根级路由（无 `/adminapi` 前缀：/im/** 需登录，/img|/video|/app 免登录）——
     let root_protected = root::merge_protected(&state)
-        .layer(middleware::from_fn_with_state(state.jwt.clone(), require_auth))
-        .layer(middleware::from_fn_with_state(state.clone(), support::api_token::api_token_auth));
+        .layer(middleware::from_fn_with_state(
+            state.jwt.clone(),
+            require_auth,
+        ))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            support::api_token::api_token_auth,
+        ));
     let root_public = root::merge_public(&state);
 
     let protected = Router::new()
@@ -126,6 +131,7 @@ pub fn router(state: AdminState) -> Router {
         // 原系统登录由 Spring Security 的 LoginFilter 注册：
         // `setFilterProcessesUrl("/adminapi/login/signin")`
         .route("/login/signin", post(login))
+        .route("/login/mobileSignin", post(login_mobile))
         // 刷新令牌为 Rust 版新增（原系统靠 Redis 会话续期）
         .route("/login/refresh", post(refresh))
         .route("/health", get(health));
@@ -187,6 +193,22 @@ async fn login(
     Ok(Json(ApiResponse::success(vo)))
 }
 
+/// `POST /adminapi/login/mobileSignin`：后台手机验证码登录。
+async fn login_mobile(
+    State(state): State<AdminState>,
+    headers: axum::http::HeaderMap,
+    Json(dto): Json<MobileLoginDTO>,
+) -> Result<Json<ApiResponse<tigshop_core::models::LoginVO>>, AppError> {
+    let ip = headers
+        .get("X-Forwarded-For")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.split(',').next())
+        .unwrap_or("unknown")
+        .to_string();
+    let vo = state.identity.auth.login_mobile(&dto, &ip).await?;
+    Ok(Json(ApiResponse::success(vo)))
+}
+
 /// `POST /adminapi/login/refresh`：刷新令牌。
 async fn refresh(
     State(state): State<AdminState>,
@@ -242,7 +264,9 @@ async fn change_password(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<ChangePasswordDTO>,
 ) -> ApiResult<&'static str> {
-    state.identity.auth
+    state
+        .identity
+        .auth
         .change_password(auth.id, &dto.old_password, &dto.new_password)
         .await?;
     ok("密码修改成功")

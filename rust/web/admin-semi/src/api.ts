@@ -48,6 +48,39 @@ export async function login(username: string, password: string): Promise<LoginRe
   return json.data as LoginResult;
 }
 
+/** 发送后台登录短信验证码（event=login）。 */
+export async function sendMobileCode(mobile: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/login/sendMobileCode`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event: 'login', mobile }),
+  });
+  const json = await readJson(res);
+  if (!res.ok || json.code !== 0) {
+    throw new Error(json.msg || '验证码发送失败');
+  }
+}
+
+/** 后台手机验证码登录。 */
+export async function loginMobile(mobile: string, mobileCode: string): Promise<LoginResult> {
+  const csrf = await getCsrfToken();
+  const res = await fetch(`${API_BASE}/login/mobileSignin`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrf,
+    },
+    body: JSON.stringify({ mobile, mobileCode }),
+  });
+  const json = await readJson(res);
+  if (!res.ok || json.code !== 0) {
+    throw new Error(json.msg || '登录失败');
+  }
+  return json.data as LoginResult;
+}
+
 export function getToken(): string {
   return localStorage.getItem('admin_access_token') || '';
 }

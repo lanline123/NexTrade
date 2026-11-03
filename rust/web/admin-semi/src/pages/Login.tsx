@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Form, Toast, Typography } from '@douyinfe/semi-ui';
-import { IconArrowLeft, IconHome, IconLock, IconUser } from '@douyinfe/semi-icons';
-import { apiGet, login, setToken } from '../api';
+import { IconArrowLeft, IconHome, IconLock, IconPhone, IconUser } from '@douyinfe/semi-icons';
+import { apiGet, login, loginMobile, sendMobileCode, setToken } from '../api';
 
 const { Title, Text } = Typography;
 
@@ -28,6 +28,16 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
   const [account, setAccount] = useState('');
   const [adminType, setAdminType] = useState('admin');
   const [shops, setShops] = useState<OrgShop[]>([]);
+  const [mode, setMode] = useState<'password' | 'mobile'>('password');
+  const [mobileValue, setMobileValue] = useState('');
+  const [sending, setSending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [countdown]);
 
   const chooseAdmin = () => {
     localStorage.setItem('adminType', 'admin');
@@ -52,24 +62,69 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
     try {
       const result = await login(username, password);
-      setToken(result.token);
-      localStorage.removeItem('adminType');
-      localStorage.removeItem('shopId');
-      const type = result.adminType || tokenAdminType(result.token);
-      setAccount(username);
-      setAdminType(type);
-      Toast.success({ content: '登录成功' });
+      await finishLogin(result, username);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '登录失败' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      try {
-        const resultShops = await apiGet<any>('/merchant/shop/myShop', {
-          sortField: 'lastLoginTime',
-        });
-        const list: OrgShop[] = resultShops?.shop?.list || [];
-        setShops(list);
-        setStep('org');
-      } catch {
-        onSuccess();
-      }
+  const finishLogin = async (result: { token: string; adminType?: string }, displayName: string) => {
+    setToken(result.token);
+    localStorage.removeItem('adminType');
+    localStorage.removeItem('shopId');
+    const type = result.adminType || tokenAdminType(result.token);
+    setAccount(displayName);
+    setAdminType(type);
+    Toast.success({ content: '登录成功' });
+
+    try {
+      const resultShops = await apiGet<any>('/merchant/shop/myShop', {
+        sortField: 'lastLoginTime',
+      });
+      const list: OrgShop[] = resultShops?.shop?.list || [];
+      setShops(list);
+      setStep('org');
+    } catch {
+      onSuccess();
+    }
+  };
+
+  const sendCode = async () => {
+    if (sending || countdown > 0) return;
+    const mobile = mobileValue.trim();
+    if (!/^1\d{10}$/.test(mobile)) {
+      Toast.warning({ content: '请输入正确的手机号' });
+      return;
+    }
+    setSending(true);
+    try {
+      await sendMobileCode(mobile);
+      Toast.success({ content: '验证码已发送' });
+      setCountdown(60);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '验证码发送失败' });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleMobileSubmit = async (values: Record<string, unknown>) => {
+    const mobile = String(values.mobile || '').trim();
+    const mobileCode = String(values.mobileCode || '').trim();
+    if (!/^1\d{10}$/.test(mobile)) {
+      Toast.warning({ content: '请输入正确的手机号' });
+      return;
+    }
+    if (!mobileCode) {
+      Toast.warning({ content: '请输入短信验证码' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await loginMobile(mobile, mobileCode);
+      await finishLogin(result, mobile);
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '登录失败' });
     } finally {
@@ -145,52 +200,112 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
                 </div>
 
                 <div className="login-tabs" role="tablist">
-                  <button type="button" className="is-active" role="tab" aria-selected="true">
+                  <button
+                    type="button"
+                    className={mode === 'password' ? 'is-active' : ''}
+                    role="tab"
+                    aria-selected={mode === 'password'}
+                    onClick={() => setMode('password')}
+                  >
                     密码登录
                   </button>
-                  <button type="button" role="tab" aria-selected="false" disabled>
+                  <button
+                    type="button"
+                    className={mode === 'mobile' ? 'is-active' : ''}
+                    role="tab"
+                    aria-selected={mode === 'mobile'}
+                    onClick={() => setMode('mobile')}
+                  >
                     手机登录
                   </button>
                 </div>
 
-                <Form onSubmit={handleSubmit} labelPosition="top" className="login-form">
-                  <Form.Input
-                    field="username"
-                    placeholder="请输入用户名"
-                    size="large"
-                    prefix={<IconUser />}
-                    autoComplete="username"
-                  />
-                  <Form.Input
-                    field="password"
-                    mode="password"
-                    placeholder="请输入密码"
-                    size="large"
-                    prefix={<IconLock />}
-                    autoComplete="current-password"
-                  />
+                {mode === 'password' ? (
+                  <Form onSubmit={handleSubmit} labelPosition="top" className="login-form">
+                    <Form.Input
+                      field="username"
+                      placeholder="请输入用户名"
+                      size="large"
+                      prefix={<IconUser />}
+                      autoComplete="username"
+                    />
+                    <Form.Input
+                      field="password"
+                      mode="password"
+                      placeholder="请输入密码"
+                      size="large"
+                      prefix={<IconLock />}
+                      autoComplete="current-password"
+                    />
 
-                  <div className="login-options">
-                    <label className="login-remember">
-                      <input type="checkbox" /> 记住登录状态
-                    </label>
-                    <a className="login-forgot" href="javascript:;">
-                      忘记密码？
-                    </a>
-                  </div>
+                    <div className="login-options">
+                      <label className="login-remember">
+                        <input type="checkbox" /> 记住登录状态
+                      </label>
+                      <a className="login-forgot" href="javascript:;">
+                        忘记密码？
+                      </a>
+                    </div>
 
-                  <Button
-                    theme="solid"
-                    type="primary"
-                    htmlType="submit"
-                    loading={loading}
-                    block
-                    size="large"
-                    className="login-submit"
-                  >
-                    登 录
-                  </Button>
-                </Form>
+                    <Button
+                      theme="solid"
+                      type="primary"
+                      htmlType="submit"
+                      loading={loading}
+                      block
+                      size="large"
+                      className="login-submit"
+                    >
+                      登 录
+                    </Button>
+                  </Form>
+                ) : (
+                  <Form onSubmit={handleMobileSubmit} labelPosition="top" className="login-form">
+                    <Form.Input
+                      field="mobile"
+                      placeholder="请输入手机号"
+                      size="large"
+                      prefix={<IconPhone />}
+                      autoComplete="tel"
+                      onChange={(value) => setMobileValue(String(value ?? ''))}
+                    />
+                    <Form.Input
+                      field="mobileCode"
+                      placeholder="请输入短信验证码"
+                      size="large"
+                      prefix={<IconLock />}
+                      autoComplete="one-time-code"
+                      suffix={
+                        <Button
+                          theme="borderless"
+                          size="small"
+                          htmlType="button"
+                          className="login-code-btn"
+                          disabled={sending || countdown > 0}
+                          onClick={() => void sendCode()}
+                        >
+                          {countdown > 0 ? `${countdown}s 后重发` : '获取验证码'}
+                        </Button>
+                      }
+                    />
+
+                    <div className="login-options login-options--mobile">
+                      <span className="login-mobile-hint">未绑定手机号请联系管理员</span>
+                    </div>
+
+                    <Button
+                      theme="solid"
+                      type="primary"
+                      htmlType="submit"
+                      loading={loading}
+                      block
+                      size="large"
+                      className="login-submit"
+                    >
+                      登 录
+                    </Button>
+                  </Form>
+                )}
 
                 <div className="login-agreement">
                   <input type="checkbox" defaultChecked />

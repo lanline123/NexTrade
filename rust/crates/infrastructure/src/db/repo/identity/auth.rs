@@ -25,6 +25,17 @@ impl AdminUserRepository {
         .map_err(map_err)
     }
 
+    /// 按手机号查询（后台手机验证码登录）。
+    pub async fn find_by_mobile(&self, mobile: &str) -> Result<Option<AdminUser>> {
+        sqlx::query_as::<_, AdminUser>(
+            "SELECT * FROM admin_user WHERE mobile = ? AND is_deleted = 0 LIMIT 1",
+        )
+        .bind(mobile)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_err)
+    }
+
     /// 按 ID 查询。
     pub async fn find_by_id(&self, admin_id: i32) -> Result<Option<AdminUser>> {
         sqlx::query_as::<_, AdminUser>("SELECT * FROM admin_user WHERE admin_id = ? LIMIT 1")

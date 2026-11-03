@@ -5542,3 +5542,21 @@ body {
       linear-gradient(170deg, #f8fcfb 0%, #f2f8ff 100%);
   }
 }
+
+/* 手机验证码登录 */
+.login-code-btn {
+  color: #0d9488 !important;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.login-code-btn:disabled {
+  color: #b0b7c3 !important;
+}
+.login-options--mobile {
+  margin: 2px 0 22px;
+}
+.login-mobile-hint {
+  color: #9aa3b2;
+  font-size: 12px;
+}

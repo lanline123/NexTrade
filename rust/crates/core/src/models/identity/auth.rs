@@ -16,6 +16,18 @@ pub struct LoginDTO {
     pub captcha_verification: Option<String>,
 }
 
+/// 后台手机验证码登录请求。
+#[derive(Debug, Clone, Deserialize, Serialize, Validate)]
+pub struct MobileLoginDTO {
+    /// 手机号
+    #[validate(length(min = 6, max = 32, message = "手机号格式不正确"))]
+    pub mobile: String,
+    /// 短信验证码
+    #[serde(rename = "mobileCode")]
+    #[validate(length(min = 4, max = 8, message = "验证码格式不正确"))]
+    pub mobile_code: String,
+}
+
 /// 登录成功返回。
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginVO {
