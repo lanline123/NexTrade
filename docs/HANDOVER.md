@@ -295,7 +295,7 @@ Intl 金额 / 日期 / 数字格式化
 说明：
 
 - 新页面必须用 `useI18n().t()`。
-- 存量页面在迁移完成前由 `legacyAutoTranslate` 做英文兜底；全部 t() 化后关闭 `ENABLE_LEGACY_AUTO_TRANSLATE` 并删除该文件。
+- 页面/组件已全部迁移到 t()，DOM 过渡翻译层已删除；新增页面不得再引入 DOM 文本替换。
 - 语言菜单只展示 `translated: true` 的语言，避免展示未翻译语言。
 - 资源自检：`npm run i18n:check`。
 
@@ -804,7 +804,7 @@ nginx -s reload
 1. admin-semi 尚未部署到生产 /admin-semi/
 2. 生产消息 SSE 当前无推送，未读数走 homeSummary 轮询
 3. 语音播报真实发声未人工验证
-4. 全站页面级 i18n 未完成（顶部栏/菜单已翻译）
+4. 页面级 i18n 已完成；ja / ko / es / fr / ru / ar 仍待提供翻译资源
 5. Google / Facebook OAuth 外部配置未完成
 6. 支付宝真实付款/回调/退款未执行
 7. PC 装修逐模块视觉 parity 未逐条核对

@@ -175,5 +175,3 @@ export function translatedLocales(): LocaleDefinition[] {
   return LOCALES.filter((item) => item.translated);
 }
 
-/** 存量页面 DOM 翻译回退层开关；页面完成 t() 迁移后设为 false。 */
-export const ENABLE_LEGACY_AUTO_TRANSLATE = true;

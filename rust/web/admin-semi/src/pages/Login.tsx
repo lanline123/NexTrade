@@ -58,7 +58,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
     const username = String(values.username || '').trim();
     const password = String(values.password || '');
     if (!username || !password) {
-      Toast.warning({ content: '请输入账号和密码' });
+      Toast.warning({ content: t('请输入账号和密码') });
       return;
     }
     setLoading(true);
@@ -66,7 +66,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
       const result = await login(username, password);
       await finishLogin(result, username);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '登录失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('登录失败') });
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
     const type = result.adminType || tokenAdminType(result.token);
     setAccount(displayName);
     setAdminType(type);
-    Toast.success({ content: '登录成功' });
+    Toast.success({ content: t('登录成功') });
 
     try {
       const resultShops = await apiGet<any>('/merchant/shop/myShop', {
@@ -97,16 +97,16 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
     if (sending || countdown > 0) return;
     const mobile = mobileValue.trim();
     if (!/^1\d{10}$/.test(mobile)) {
-      Toast.warning({ content: '请输入正确的手机号' });
+      Toast.warning({ content: t('请输入正确的手机号') });
       return;
     }
     setSending(true);
     try {
       await sendMobileCode(mobile);
-      Toast.success({ content: '验证码已发送' });
+      Toast.success({ content: t('验证码已发送') });
       setCountdown(60);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '验证码发送失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('验证码发送失败') });
     } finally {
       setSending(false);
     }
@@ -116,11 +116,11 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
     const mobile = String(values.mobile || '').trim();
     const mobileCode = String(values.mobileCode || '').trim();
     if (!/^1\d{10}$/.test(mobile)) {
-      Toast.warning({ content: '请输入正确的手机号' });
+      Toast.warning({ content: t('请输入正确的手机号') });
       return;
     }
     if (!mobileCode) {
-      Toast.warning({ content: '请输入短信验证码' });
+      Toast.warning({ content: t('请输入短信验证码') });
       return;
     }
     setLoading(true);
@@ -128,7 +128,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
       const result = await loginMobile(mobile, mobileCode);
       await finishLogin(result, mobile);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '登录失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('登录失败') });
     } finally {
       setLoading(false);
     }

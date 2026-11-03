@@ -388,7 +388,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                           key={child.key}
                         >
                           {/* 对齐跨境版 pageLeftMenu 的 menu-chider-item：三级项只有文字，无装饰点 */}
-                          <span>{child.label}</span>
+                          <span>{t(child.label)}</span>
                         </button>
                       ))}
                     </div>
@@ -414,12 +414,12 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
             <>
               <div className="side-help">
                 <IconHelpCircle />
-                <span>帮助与文档</span>
+                <span>{t('帮助与文档')}</span>
                 <span className="side-version">v0.1.0 · Semi UI</span>
               </div>
             </>
           ) : (
-            <Tooltip content="帮助与文档" position="right">
+            <Tooltip content={t('帮助与文档')} position="right">
               <button type="button" className="rail-help">
                 <IconHelpCircle />
               </button>

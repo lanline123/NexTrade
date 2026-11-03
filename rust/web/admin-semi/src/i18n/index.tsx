@@ -4,7 +4,6 @@ import { I18nextProvider, initReactI18next, useTranslation } from 'react-i18next
 import { ConfigProvider } from '@douyinfe/semi-ui';
 import {
   DEFAULT_LOCALE,
-  ENABLE_LEGACY_AUTO_TRANSLATE,
   FALLBACK_LOCALE,
   getLocaleDefinition,
   getSemiLocale,
@@ -12,7 +11,6 @@ import {
   type LocaleCode,
 } from './config';
 import { ensureTranslation } from './loader';
-import LegacyAutoTranslate from './legacyAutoTranslate';
 
 export type Locale = LocaleCode;
 
@@ -130,12 +128,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 function LocaleShell({ children }: { children: ReactNode }) {
   const { locale } = useI18n();
-  const content = ENABLE_LEGACY_AUTO_TRANSLATE ? (
-    <LegacyAutoTranslate locale={locale}>{children}</LegacyAutoTranslate>
-  ) : (
-    children
-  );
-  return <ConfigProvider locale={getSemiLocale(locale) as never}>{content}</ConfigProvider>;
+  return <ConfigProvider locale={getSemiLocale(locale) as never}>{children}</ConfigProvider>;
 }
 
 export function useI18n() {
