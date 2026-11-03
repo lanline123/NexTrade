@@ -41,6 +41,7 @@ import {
   IconRefresh,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 import type { Icon as IconParkIcon } from '@icon-park/react/es/runtime';
 import Carousel from '@icon-park/react/es/icons/Carousel';
 import MultiPictureCarousel from '@icon-park/react/es/icons/MultiPictureCarousel';
@@ -917,6 +918,7 @@ interface PcDecorateEditorProps {
 }
 
 export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEditorProps) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<'draft' | 'publish' | null>(null);
   const [title, setTitle] = useState('');
@@ -979,7 +981,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
           module: item.module || {},
         })));
       })
-      .catch((e) => Toast.error(e?.message || '加载装修数据失败'))
+      .catch((e) => Toast.error(e?.message || t('加载装修数据失败')))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -1044,16 +1046,16 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
   const handleSave = async (mode: 'draft' | 'publish') => {
     if (!decorateIdRef.current) {
-      Toast.warning('缺少装修页面 ID');
+      Toast.warning(t('缺少装修页面 ID'));
       return;
     }
     setSaving(mode);
     try {
       await apiPost(mode === 'draft' ? '/decorate/decorate/saveDraft' : '/decorate/decorate/publish', buildPayload(getSaveData()));
-      Toast.success(mode === 'draft' ? '草稿已保存' : '发布成功');
+      Toast.success(mode === 'draft' ? t('草稿已保存') : t('发布成功'));
       dirtyRef.current = false;
     } catch (e: any) {
-      Toast.error(e?.message || '保存失败');
+      Toast.error(e?.message || t('保存失败'));
     } finally {
       setSaving(null);
     }
@@ -1061,14 +1063,14 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
   const handleRename = async () => {
     if (!title.trim()) {
-      Toast.warning('页面名称不能为空');
+      Toast.warning(t('页面名称不能为空'));
       return;
     }
     try {
       await apiPost('/decorate/decorate/updateField', { id: decorateIdRef.current, field: 'decorateTitle', val: title.trim() });
-      Toast.success('页面名称修改成功');
+      Toast.success(t('页面名称修改成功'));
     } catch (e: any) {
-      Toast.error(e?.message || '修改失败');
+      Toast.error(e?.message || t('修改失败'));
     }
   };
 
@@ -1078,17 +1080,17 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     const clearCount = toNew
       ? moduleList.filter((m) => LEGACY_TYPES.has(m.type)).length
       : moduleList.filter((m) => !LEGACY_TYPES.has(m.type)).length;
-    const clearLabel = toNew ? '旧版' : '新版';
-    const targetLabel = toNew ? '新版' : '旧版';
+    const clearLabel = toNew ? t('旧版') : t('新版');
+    const targetLabel = toNew ? t('新版') : t('旧版');
     const clearsHeader = !toNew; // 切旧版时 pcHeader 头部装修数据会随保存一并清空
     const clearParts: string[] = [];
-    if (clearCount > 0) clearParts.push(`${clearCount} 个${clearLabel}模块`);
-    if (clearsHeader) clearParts.push('头部装修数据');
+    if (clearCount > 0) clearParts.push(t('{count} 个{mode}模块', { count: clearCount, mode: clearLabel }));
+    if (clearsHeader) clearParts.push(t('头部装修数据'));
     Modal.confirm({
-      title: '切换首页装修版本',
-      content: `切换到${targetLabel}后，将清空当前画布上的${clearParts.join('和') || '无关内容'}；一经预览、保存草稿或发布，将无法恢复。确认切换？`,
-      okText: '确认切换',
-      cancelText: '取消',
+      title: t('切换首页装修版本'),
+      content: t('切换到{target}后，将清空当前画布上的{parts}；一经预览、保存草稿或发布，将无法恢复。确认切换？', { target: targetLabel, parts: clearParts.join(t('和')) || t('无关内容') }),
+      okText: t('确认切换'),
+      cancelText: t('取消'),
       onOk: () => {
         setModuleList((prev) => prev.filter((m) => (LEGACY_TYPES.has(m.type) ? !toNew : toNew)));
         setPageModule((prev) => {
@@ -1097,7 +1099,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
           return next;
         });
         markDirty();
-        Toast.success(`已切换到${targetLabel}首页`);
+        Toast.success(t('已切换到{target}首页', { target: targetLabel }));
       },
     });
   };
@@ -1115,7 +1117,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     setActiveIndex(moduleList.length);
     setPanelTab('module');
     markDirty();
-    Toast.success(`已添加「${def.label}」`);
+    Toast.success(t('已添加「{name}」', { name: t(def.label) }));
   };
 
   /** 拖拽入画布：插入到目标位置（原版 vuedraggable clone 行为） */
@@ -1132,7 +1134,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     setActiveIndex(index);
     setPanelTab('module');
     markDirty();
-    Toast.success(`已添加「${def.label}」`);
+    Toast.success(t('已添加「{name}」', { name: t(def.label) }));
   };
 
   const removeModule = (index: number) => {
@@ -1186,7 +1188,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f2f3f5' }}>
-        <Spin size="large" tip="加载装修数据..." />
+        <Spin size="large" tip={t('加载装修数据...')} />
       </div>
     );
   }
@@ -1202,12 +1204,12 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         <Button
           icon={<IconArrowLeft />}
           onClick={() => {
-            if (dirtyRef.current && !window.confirm('有未保存的修改，确定离开？')) return;
+            if (dirtyRef.current && !window.confirm(t('有未保存的修改，确定离开？'))) return;
             if (onExit) onExit();
             else window.location.href = `${window.location.origin}/?page=pcDecorateManage`;
           }}
         >
-          返回列表
+          {t('返回列表')}
         </Button>
         <Space>
           <Input
@@ -1217,19 +1219,19 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
             onEnterPress={handleRename}
             style={{ width: 280 }}
           />
-          {hasDraft && <Tag color="blue">草稿</Tag>}
-          {dirtyRef.current && <Tag color="orange">未保存</Tag>}
-          {getSaveData().pageModule.homeStyleVersion === 'new' ? <Tag color="green">新版装修</Tag> : <Tag color="grey">旧版兼容</Tag>}
+          {hasDraft && <Tag color="blue">{t('草稿')}</Tag>}
+          {dirtyRef.current && <Tag color="orange">{t('未保存')}</Tag>}
+          {getSaveData().pageModule.homeStyleVersion === 'new' ? <Tag color="green">{t('新版装修')}</Tag> : <Tag color="grey">{t('旧版兼容')}</Tag>}
         </Space>
         <div style={{ flex: 1 }} />
         <Button icon={<IconRefresh />} onClick={() => window.open(`${window.location.origin}/?page=home`, '_blank')}>
-          打开商城首页
+          {t('打开商城首页')}
         </Button>
         <Button theme="light" loading={saving === 'draft'} onClick={() => handleSave('draft')}>
-          保存草稿
+          {t('保存草稿')}
         </Button>
         <Button theme="solid" type="primary" loading={saving === 'publish'} onClick={() => handleSave('publish')}>
-          保存并发布
+          {t('保存并发布')}
         </Button>
       </div>
 
@@ -1238,7 +1240,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         <div className="pc-decorate-lib">
           <div className="pc-decorate-lib__inside">
             <div className="pc-decorate-lib__head" onClick={() => setLibOpen((v) => !v)}>
-              <span>PC首页模块</span>
+              <span>{t('PC首页模块')}</span>
               <span className={`pc-decorate-lib__arrow${libOpen ? ' pc-decorate-lib__arrow--open' : ''}`}>▾</span>
             </div>
             {libOpen && (
@@ -1249,7 +1251,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                   .map((def) => {
                     const LibIcon = LIB_META[def.type]?.Icon || ViewGridList;
                     return (
-                    <Tooltip key={def.type} content={def.note || `${def.label}（点击添加，可拖入画布指定位置）`} position="right">
+                    <Tooltip key={def.type} content={def.note ? t(def.note) : t('{name}（点击添加，可拖入画布指定位置）', { name: t(def.label) })} position="right">
                       <div
                         className="pc-decorate-lib__item"
                         onClick={() => addModule(def)}
@@ -1262,7 +1264,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                         <span className="pc-decorate-lib__pic">
                           <LibIcon size={34} strokeWidth={3} />
                         </span>
-                        <span className="pc-decorate-lib__content" title={def.label}>{def.label}</span>
+                        <span className="pc-decorate-lib__content" title={t(def.label)}>{t(def.label)}</span>
                       </div>
                     </Tooltip>
                     );
@@ -1276,9 +1278,9 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         {/* 中间画布：1600px 整页无缝渲染（对齐原版 CanvasViewport，与 C 端一致） */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#eef1f6' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fff', borderBottom: '1px solid var(--semi-color-border)' }}>
-            <Button size="small" onClick={() => { setPanelTab('page'); setActiveIndex(-1); }}>页面设置</Button>
-            <Button size="small" onClick={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}>PC头部装修</Button>
-            <Text type="tertiary" size="small">画布按窗口宽度等比缩放，与前台首页渲染一致</Text>
+            <Button size="small" onClick={() => { setPanelTab('page'); setActiveIndex(-1); }}>{t('页面设置')}</Button>
+            <Button size="small" onClick={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}>{t('PC头部装修')}</Button>
+            <Text type="tertiary" size="small">{t('画布按窗口宽度等比缩放，与前台首页渲染一致')}</Text>
           </div>
           <div ref={canvasViewportRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '24px 0 60px', position: 'relative' }}>
@@ -1312,7 +1314,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                   onOpen={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}
                 />
                 {moduleList.length === 0 && (
-                  <div style={{ padding: 100, textAlign: 'center', color: '#c0c4cc' }}>暂无模块，请从左侧模块库拖入或点击添加</div>
+                  <div style={{ padding: 100, textAlign: 'center', color: '#c0c4cc' }}>{t('暂无模块，请从左侧模块库拖入或点击添加')}</div>
                 )}
                 {moduleList.map((item, index) => {
                   const isActive = activeIndex === index;
@@ -1346,7 +1348,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                         setPanelTab('module');
                       }}
                     >
-                      {isActive && <span className="pc-decorate-module__tag">{item.label}{isLegacy ? '（旧版）' : ''}</span>}
+                      {isActive && <span className="pc-decorate-module__tag">{t(item.label)}{isLegacy ? '（' + t('旧版') + '）' : ''}</span>}
                       <ModulePreview type={item.type} data={item.module} />
                     </div>
                   );
@@ -1358,7 +1360,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                   <div className="pc-decorate-rail-operate" style={{ top: (railTops[moduleList[activeIndex]?.moduleIndex] ?? 0) * canvasScale }} onClick={(e) => e.stopPropagation()}>
                     <Button size="small" theme="borderless" icon={<IconChevronUp />} disabled={activeIndex === 0} onClick={() => moveModule(activeIndex, -1)} />
                     <Button size="small" theme="borderless" icon={<IconChevronDown />} disabled={activeIndex === moduleList.length - 1} onClick={() => moveModule(activeIndex, 1)} />
-                    <Button size="small" theme="borderless" onClick={() => toggleShow(activeIndex)}>{moduleList[activeIndex]?.isShow ? '隐藏' : '显示'}</Button>
+                    <Button size="small" theme="borderless" onClick={() => toggleShow(activeIndex)}>{moduleList[activeIndex]?.isShow ? t('隐藏') : t('显示')}</Button>
                     <Button size="small" theme="borderless" icon={<IconCopy />} onClick={() => copyModule(activeIndex)} />
                     <Button size="small" theme="borderless" type="danger" icon={<IconDelete />} onClick={() => removeModule(activeIndex)} />
                   </div>
@@ -1390,7 +1392,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                 onChange={(next) => updateActiveModule(() => next)}
               />
             ) : (
-              <Text type="tertiary">请在画布中选择一个模块，或切换到「页面设置 / PC头部装修」</Text>
+              <Text type="tertiary">{t('请在画布中选择一个模块，或切换到「页面设置 / PC头部装修」')}</Text>
             )
           )}
         </div>
@@ -1403,6 +1405,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
 /** 模块标题预览（对齐原版 _shared/ModuleTitle.vue：样式一/二/三 装饰、对齐、背景色、圆角、更多/倒计时） */
 function PreviewTitle({ title }: { title?: Record<string, any> }) {
+  const { t } = useI18n();
   if (!title || Number(title.showTitle) !== 1) return null;
   const align = Number(title.titleAlign) || 1;
   const style = Number(title.titleStyle) || 1;
@@ -1441,11 +1444,11 @@ function PreviewTitle({ title }: { title?: Record<string, any> }) {
       </div>
       {Number(title.showMore) === 1 && Number(title.moreType ?? 1) === 1 && (
         <span style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: moreColor, ...(align === 2 ? { position: 'absolute' as const, right: 10 } : {}) }}>
-          {getPath(title, 'moreLink.title') || getPath(title, 'moreLink.name') || '更多'} ›
+          {getPath(title, 'moreLink.title') || getPath(title, 'moreLink.name') || t('更多')} ›
         </span>
       )}
       {Number(title.moreType) === 2 && (
-        <span style={{ fontSize: 12, color: moreColor, ...(align === 2 ? { position: 'absolute' as const, right: 10 } : {}) }}>{title.countdownLabel || '倒计时'} 00:00:00</span>
+        <span style={{ fontSize: 12, color: moreColor, ...(align === 2 ? { position: 'absolute' as const, right: 10 } : {}) }}>{title.countdownLabel || t('倒计时')} 00:00:00</span>
       )}
     </div>
   );
@@ -1597,8 +1600,9 @@ function ProductCards({
   priceField?: string;
   groupMode?: boolean;
 }) {
+  const { t } = useI18n();
   if (!rows.length) {
-    return <div style={{ padding: 30, textAlign: 'center', color: '#c0c4cc', fontSize: 13 }}>{emptyHint || '暂无商品数据'}</div>;
+    return <div style={{ padding: 30, textAlign: 'center', color: '#c0c4cc', fontSize: 13 }}>{emptyHint || t('暂无商品数据')}</div>;
   }
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10, padding: 10 }}>
@@ -1617,7 +1621,7 @@ function ProductCards({
               <span style={{ color: '#e1251b', fontWeight: 700, fontSize: 14 }}>
                 ¥{Number((p as any)[priceField] ?? p.productPrice ?? 0).toFixed(2)}
               </span>
-              {groupMode && p.minGroupNum ? <span style={{ fontSize: 11, color: '#999' }}>{p.minGroupNum}人团</span> : null}
+              {groupMode && p.minGroupNum ? <span style={{ fontSize: 11, color: '#999' }}>{t('{count}人团', { count: p.minGroupNum })}</span> : null}
               {p.marketPrice && Number(p.marketPrice) > 0 ? (
                 <span style={{ fontSize: 11, color: '#999', textDecoration: 'line-through' }}>¥{Number(p.marketPrice).toFixed(2)}</span>
               ) : null}
@@ -1630,6 +1634,7 @@ function ProductCards({
 }
 
 function ModulePreview({ type, data }: { type: string; data: Record<string, any> }) {
+  const { t } = useI18n();
   const m = data || {};
   switch (type) {
     case 'pc-banner2': {
@@ -1640,7 +1645,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
       if (!pics.length) {
         return (
           <div style={{ height: 280, border: '1px dashed #dcdfe6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', color: '#909399', fontSize: 14 }}>
-            点击添加轮播Banner2
+            {t('点击添加轮播Banner2')}
           </div>
         );
       }
@@ -1671,7 +1676,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
       if (!pics.length) {
         return (
           <div style={{ height: 140, border: '1px dashed #dcdfe6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', color: '#909399', fontSize: 14 }}>
-            点击添加分组轮播Banner
+            {t('点击添加分组轮播Banner')}
           </div>
         );
       }
@@ -1689,7 +1694,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
     }
     case 'pc-image-ad': {
       // 对齐原版 dec-image-ad：通宽时左右 padding 为 0，背景/圆角内外双层，图片高度自适应，间距=图片边距
-      const t = Number(m.picType) || 1;
+      const picType = Number(m.picType) || 1;
       const pics = (m.picList || []) as PicItem[];
       const radius = Number(m.picRadioStyle) === 2 ? 8 : 0;
       const f = (m.frame || {}) as Record<string, any>;
@@ -1697,9 +1702,9 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
       const pad = Number(m.imgPadding) || 0;
       const boxBg = f.backgroundColor || '#ffffff';
       const boxRadius = Number(f.boxRadius) || 0;
-      const cols = t === 5 ? 2 : t === 6 ? 3 : t === 7 ? 4 : 1;
+      const cols = picType === 5 ? 2 : picType === 6 ? 3 : picType === 7 ? 4 : 1;
       let grid: JSX.Element;
-      if (t === 2) {
+      if (picType === 2) {
         const perView = Math.max(1, Number(m.swiperPreView) || 1);
         grid = (
           <div style={{ borderRadius: radius, overflow: 'hidden', display: 'flex', gap: pad }}>
@@ -1726,7 +1731,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
           <div style={{ backgroundColor: boxBg, borderRadius: boxRadius, overflow: 'hidden' }}>
             <PreviewTitle title={m.title} />
             {pics.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>点击添加图片广告</div>
+              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>{t('点击添加图片广告')}</div>
             ) : (
               grid
             )}
@@ -1749,7 +1754,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
         <div style={{ padding: `${Number(f.boxPaddingTop ?? 5)}px ${Number(f.boxPadding ?? 10)}px ${Number(f.boxPaddingBottom ?? 5)}px`, backgroundColor: f.backgroundColor || '#ffffff' }}>
           <div style={{ backgroundColor: m.backgroundColor || '#ffffff', borderRadius: Number(f.boxRadius) || 0, overflow: 'hidden' }}>
             {items.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>点击添加图文导航</div>
+              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>{t('点击添加图文导航')}</div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${rowNum}, minmax(0, 1fr))`, gap: pad, padding: pad, boxSizing: 'border-box' }}>
                 {items.map((p, i) => (
@@ -1771,7 +1776,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
     case 'pc-image-square-ad': {
       // 对齐原版 dec-image-cube：布局 4/5/6/7 为特殊拼版，1/2/3 为等分栅格；间距=图片边距，内容区带左右内边距
       const pics = ((m.picList || []) as PicItem[]).map((p) => p || ({} as PicItem));
-      const t = Number(m.picType) || 1;
+      const picType = Number(m.picType) || 1;
       const f = (m.frame || {}) as Record<string, any>;
       const pad = Number(m.imgPadding) || 0;
       const boxBg = f.backgroundColor || '#ffffff';
@@ -1783,7 +1788,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
         </div>
       );
       let body: JSX.Element;
-      if (t === 5) {
+      if (picType === 5) {
         // 左一右二
         body = (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad, alignItems: 'stretch' }}>
@@ -1791,7 +1796,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
             <div style={{ display: 'grid', gridTemplateRows: 'repeat(2, 1fr)', gap: pad }}>{cubeImg(pics[1], true)}{cubeImg(pics[2], true)}</div>
           </div>
         );
-      } else if (t === 7) {
+      } else if (picType === 7) {
         // 上一下二
         body = (
           <div style={{ display: 'grid', gridTemplateRows: 'auto auto', gap: pad }}>
@@ -1799,7 +1804,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad }}>{cubeImg(pics[1])}{cubeImg(pics[2])}</div>
           </div>
         );
-      } else if (t === 6) {
+      } else if (picType === 6) {
         // 左一右三
         body = (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad, alignItems: 'stretch' }}>
@@ -1810,7 +1815,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
             </div>
           </div>
         );
-      } else if (t === 4) {
+      } else if (picType === 4) {
         // 左二右二：列优先排布（左列 1/2，右列 3/4）
         body = (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gridAutoFlow: 'column', gap: pad }}>
@@ -1818,7 +1823,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
           </div>
         );
       } else {
-        const cols = t === 2 ? 3 : t === 3 ? 4 : 2;
+        const cols = picType === 2 ? 3 : picType === 3 ? 4 : 2;
         body = (
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: pad }}>
             {pics.map((p, i) => (
@@ -1832,7 +1837,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
           <div style={{ backgroundColor: boxBg, borderRadius: boxRadius, overflow: 'hidden', padding: inner }}>
             <PreviewTitle title={m.title} />
             {pics.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>点击添加图片魔方</div>
+              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>{t('点击添加图片魔方')}</div>
             ) : (
               <div style={{ overflow: 'hidden' }}>{body}</div>
             )}
@@ -1883,6 +1888,7 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
 
 /** 热图绘制预览（对齐原版 dec-image-hotarea：图片纵向堆叠，热区按 500px 基准随容器宽度等比缩放） */
 function HotareaPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const pics = (data.picList || []) as Array<PicItem & { hotarea?: Array<Record<string, any>> }>;
   const f = (data.frame || {}) as Record<string, any>;
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -1906,7 +1912,7 @@ function HotareaPreview({ data }: { data: Record<string, any> }) {
         {pics.length === 0 ? (
           <div style={{ paddingTop: 30, paddingBottom: 50, textAlign: 'center', backgroundColor: '#f2f4f6', color: '#666', fontSize: 14 }}>
             <div style={{ width: 100, height: 100, margin: '0 auto 10px', background: '#e5e9f0', borderRadius: 8 }} />
-            点击添加热图绘制
+            {t('点击添加热图绘制')}
           </div>
         ) : (
           <div style={{ overflow: 'hidden' }}>
@@ -1951,6 +1957,7 @@ function HotareaPreview({ data }: { data: Record<string, any> }) {
 
 /** 商品模块预览（对齐原版 dec-pc-product：4/5 列栅格 gap 12、商品边距包裹层、卡片描边、名称/描述/价格开关） */
 function ProductPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const rows = usePreviewProducts(data.products);
   const f = (data.frame || {}) as Record<string, any>;
   const cols = Number(data.style) === 2 ? 5 : 4;
@@ -1964,7 +1971,7 @@ function ProductPreview({ data }: { data: Record<string, any> }) {
         {!hasData || rows.length === 0 ? (
           <div style={{ paddingTop: 30, paddingBottom: 50, textAlign: 'center', backgroundColor: '#f2f4f6', color: '#666', fontSize: 14 }}>
             <div style={{ width: 100, height: 100, margin: '0 auto 10px', background: '#e5e9f0', borderRadius: 8 }} />
-            点击添加商品
+            {t('点击添加商品')}
           </div>
         ) : (
           <div style={{ padding: Number(data.goodsPadding ?? 5) }}>
@@ -1980,7 +1987,7 @@ function ProductPreview({ data }: { data: Record<string, any> }) {
                         <div style={{ fontSize: 13, lineHeight: '18px', color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.productName}</div>
                       )}
                       {Number(data.showBrief) !== 0 && (
-                        <div style={{ marginTop: 6, fontSize: 12, lineHeight: '16px', color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(p as any).brief || '商品描述'}</div>
+                        <div style={{ marginTop: 6, fontSize: 12, lineHeight: '16px', color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(p as any).brief || t('商品描述')}</div>
                       )}
                       {Number(data.showPrice) !== 0 && (
                         <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: '#e60012' }}>¥{Number(p.productPrice ?? 0).toFixed(2)}</div>
@@ -1999,6 +2006,7 @@ function ProductPreview({ data }: { data: Record<string, any> }) {
 
 /** 推荐商品预览（对齐原版 dec-pc-recommend-product：大标题+下划线、columns/itemGap 栅格、白卡 1:1 contain 图、加购圆钮） */
 function RecommendPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const rows = usePreviewProducts(data.products);
   const f = (data.frame || {}) as Record<string, any>;
   const columns = Number(f.columns) || 5;
@@ -2008,7 +2016,7 @@ function RecommendPreview({ data }: { data: Record<string, any> }) {
       {!rows.length ? (
         <div style={{ minHeight: 120, borderRadius: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '30px 0 50px', textAlign: 'center', backgroundColor: '#f2f4f6', color: '#666', fontSize: 14 }}>
           <div style={{ width: 100, height: 100, margin: '0 auto 10px', background: '#e5e9f0', borderRadius: 8 }} />
-          点击添加商品
+          {t('点击添加商品')}
         </div>
       ) : (
         <>
@@ -2027,7 +2035,7 @@ function RecommendPreview({ data }: { data: Record<string, any> }) {
                 <div style={{ padding: '8px 12px 0', marginTop: 8 }}>
                   <div style={{ fontSize: 16, fontWeight: 400, lineHeight: '22px', wordBreak: 'break-word', textAlign: 'left', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, color: '#19191b', minHeight: 44 }}>{p.productName}</div>
                   <div style={{ minHeight: 18, marginTop: 10 }}>
-                    <div style={{ fontSize: 14, fontWeight: 400, lineHeight: '18px', color: '#888b94', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>已售 {(p as any).virtualSales ?? 0}</div>
+                    <div style={{ fontSize: 14, fontWeight: 400, lineHeight: '18px', color: '#888b94', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('已售')} {(p as any).virtualSales ?? 0}</div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, minHeight: 32 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', color: '#be081d', fontWeight: 600 }}>
@@ -2040,7 +2048,7 @@ function RecommendPreview({ data }: { data: Record<string, any> }) {
                     </div>
                   </div>
                   <div style={{ fontSize: 14, lineHeight: '18px', color: '#269636', fontWeight: 600, marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {(p as any).shopTitle || '官方自营'}
+                    {(p as any).shopTitle || t('官方自营')}
                   </div>
                 </div>
               </div>
@@ -2054,6 +2062,7 @@ function RecommendPreview({ data }: { data: Record<string, any> }) {
 
 /** 商品分组预览（对齐原版 dec-pc-product-group：分组标题栏（标题图/分割线/选中态）+ 卡片式商品列表） */
 function ProductGroupPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const groups = (data.productGroups || []) as Array<Record<string, any>>;
   const [activeIndex, setActiveIndex] = useState(0);
   const ms = data.moduleStyle || {};
@@ -2106,7 +2115,7 @@ function ProductGroupPreview({ data }: { data: Record<string, any> }) {
           {activeGroup ? (
             <GroupProductsList key={activeIndex} group={activeGroup} itemWidth={itemWidth} data={data} />
           ) : (
-            <div style={{ padding: 30, textAlign: 'center', color: '#c0c4cc', fontSize: 13 }}>请在设置中添加商品分组</div>
+            <div style={{ padding: 30, textAlign: 'center', color: '#c0c4cc', fontSize: 13 }}>{t('请在设置中添加商品分组')}</div>
           )}
         </div>
       </div>
@@ -2116,6 +2125,7 @@ function ProductGroupPreview({ data }: { data: Record<string, any> }) {
 
 /** 商品分组商品列表（listStyle 定宽 + productColor/groupTitle/buyBtnStyle 变量，对齐原版 preview.less；取数口径对齐原版 fetchProductList） */
 function GroupProductsList({ group, itemWidth, data }: { group: Record<string, any>; itemWidth: string; data: Record<string, any> }) {
+  const { t } = useI18n();
   const listStyle = Number(data.listStyle) || 4;
   const cols = listStyle === 6 ? 5 : listStyle === 7 ? 6 : 4;
   const demoList = ((group.productList || []) as PreviewProduct[]).filter((p) => p.picThumb || p.picUrl || p.productName);
@@ -2198,7 +2208,7 @@ function GroupProductsList({ group, itemWidth, data }: { group: Record<string, a
                 )}
                 {Number(data.showSales ?? 1) !== 0 && (
                   <div style={{ marginTop: 10 }}>
-                    <div style={{ height: 18, fontSize: 14, color: '#888b94', lineHeight: '18px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>已售 {(p as any).virtualSales ?? 0}</div>
+                    <div style={{ height: 18, fontSize: 14, color: '#888b94', lineHeight: '18px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t('已售')} {(p as any).virtualSales ?? 0}</div>
                   </div>
                 )}
                 <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: 32 }}>
@@ -2240,7 +2250,7 @@ function GroupProductsList({ group, itemWidth, data }: { group: Record<string, a
                 </div>
                 {Number(data.showShopTag ?? 1) !== 0 && (
                   <div style={{ fontSize: 14, color: '#269636', fontWeight: 600, lineHeight: '18px', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {(p as any).shopTitle || '官方自营'}
+                    {(p as any).shopTitle || t('官方自营')}
                   </div>
                 )}
               </div>
@@ -2254,6 +2264,7 @@ function GroupProductsList({ group, itemWidth, data }: { group: Record<string, a
 
 /** 分类导航预览（对齐原版 dec-pc-category-nav：外层 frame 留白、内层背景/圆角/固定高、一屏 displayNum 个、圆形箭头） */
 function CategoryNavPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const rows = useHotCategories();
   const f = (data.frame || {}) as Record<string, any>;
   const displayNum = Math.min(10, Math.max(1, Number(data.displayNum) || 6));
@@ -2270,12 +2281,12 @@ function CategoryNavPreview({ data }: { data: Record<string, any> }) {
     >
       <div style={{ backgroundColor: data.backgroundColor || '#f7f7f7', borderRadius: 8, height: Number(f.boxHeight ?? 328), display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
         {Number(data.showTitle) === 1 && (
-          <div style={{ padding: '20px 24px', fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>{data.titleName || '热门分类'}</div>
+          <div style={{ padding: '20px 24px', fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>{data.titleName || t('热门分类')}</div>
         )}
         <div style={{ position: 'relative', flex: 1, width: '100%', minHeight: 0 }}>
           {display.length === 0 ? (
             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px', color: '#999', fontSize: 14 }}>
-              暂无热门分类（请在分类管理中勾选"热门"）
+              {t('暂无热门分类（请在分类管理中勾选"热门"）')}
             </div>
           ) : (
             <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -2309,6 +2320,7 @@ function CategoryNavPreview({ data }: { data: Record<string, any> }) {
 
 /** 快捷导航预览（对齐原版 dec-pc-home-quick-nav：frame 留白/背景 + nav_container fs_mod 图左文右横排） */
 function QuickNavPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const f = (data.frame || {}) as Record<string, any>;
   const s = (data.style || {}) as Record<string, any>;
   const items = (data.items || []) as PicItem[];
@@ -2337,7 +2349,7 @@ function QuickNavPreview({ data }: { data: Record<string, any> }) {
         }}
       >
         {items.length === 0 ? (
-          <div style={{ padding: '16px 0', textAlign: 'center', color: '#999', fontSize: 14, width: '100%' }}>请在设置中添加导航项</div>
+          <div style={{ padding: '16px 0', textAlign: 'center', color: '#999', fontSize: 14, width: '100%' }}>{t('请在设置中添加导航项')}</div>
         ) : (
           items.map((item, i) => (
             <a
@@ -2374,6 +2386,7 @@ function QuickNavPreview({ data }: { data: Record<string, any> }) {
 
 /** 分类导航3预览（对齐原版 dec-pc-category-nav3：顶栏 24px 标题+更多、一屏 6 卡、图片背景色、火苗描述行） */
 function CategoryNav3Preview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const f = (data.frame || {}) as Record<string, any>;
   const picList = (Array.isArray(data.picList) ? data.picList : []) as PicItem[];
   const bgColor = data.backgroundColor || f.backgroundColor || 'rgba(0, 0, 0, 0.02)';
@@ -2393,10 +2406,10 @@ function CategoryNav3Preview({ data }: { data: Record<string, any> }) {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px' }}>
-        <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>{data.titleText || '热门推荐'}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, color: '#1a1a1a' }}>{data.titleText || t('热门推荐')}</div>
         {Number(data.showMore) === 1 && (
           <span style={{ display: 'flex', alignItems: 'center', fontSize: 16, color: '#1a1a1a' }}>
-            <span style={{ lineHeight: '20px' }}>{data.showMoreText || '更多'}</span>
+            <span style={{ lineHeight: '20px' }}>{data.showMoreText || t('更多')}</span>
             <span style={{ marginLeft: 6, fontSize: 18, lineHeight: '18px' }}>&gt;</span>
           </span>
         )}
@@ -2405,7 +2418,7 @@ function CategoryNav3Preview({ data }: { data: Record<string, any> }) {
         {picList.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 120, borderRadius: 6, padding: '30px 0 50px', textAlign: 'center', backgroundColor: '#f2f4f6', color: '#666', fontSize: 14 }}>
             <div style={{ width: 100, height: 100, margin: '0 auto 10px', background: '#e5e9f0', borderRadius: 8 }} />
-            请在设置中添加内容
+            {t('请在设置中添加内容')}
           </div>
         ) : (
           <div style={{ display: 'flex', width: '100%', height: '100%', overflowX: 'auto', overflowY: 'hidden', boxSizing: 'border-box', padding: '0 12px', scrollbarWidth: 'none' }}>
@@ -2438,6 +2451,7 @@ function CategoryNav3Preview({ data }: { data: Record<string, any> }) {
 
 /** 公告预览（对齐原版 dec-pc-notice：frame 留白/容器底 + itemHeight 圆角条 + 图标 16px） */
 function NoticePreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const f = (data.frame || {}) as Record<string, any>;
   const displayText = String(data.text ?? '').trim();
   const icon = (data.icoPic || {}) as PicItem;
@@ -2454,7 +2468,7 @@ function NoticePreview({ data }: { data: Record<string, any> }) {
       <div style={{ width: '100%' }}>
         {!displayText ? (
           <div style={{ width: '100%', height: 80, border: '1px dashed #dcdfe6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa' }}>
-            <span style={{ color: '#909399', fontSize: 14 }}>点击添加通知公告</span>
+            <span style={{ color: '#909399', fontSize: 14 }}>{t('点击添加通知公告')}</span>
           </div>
         ) : (
           <div
@@ -2481,13 +2495,14 @@ function NoticePreview({ data }: { data: Record<string, any> }) {
 
 /** 文本标题预览（对齐原版 dec-pc-title-ad：风格一/二、居左/居中、背景渐变、查看更多） */
 function TitleAdPreview({ data }: { data: Record<string, any> }) {
-  const t = (data.title || {}) as Record<string, any>;
+  const { t } = useI18n();
+  const titleData = (data.title || {}) as Record<string, any>;
   const f = (data.frame || {}) as Record<string, any>;
-  const align = Number(t.titleAlign ?? 1);
-  const style = Number(t.titleStyle ?? 1);
-  const hasTitleText = String(t.titleText ?? '').trim().length > 0;
-  const bg1 = String(t.titleBackground ?? '');
-  const bg2 = String(t.titleBackground2 ?? '');
+  const align = Number(titleData.titleAlign ?? 1);
+  const style = Number(titleData.titleStyle ?? 1);
+  const hasTitleText = String(titleData.titleText ?? '').trim().length > 0;
+  const bg1 = String(titleData.titleBackground ?? '');
+  const bg2 = String(titleData.titleBackground2 ?? '');
   const background = bg1 && bg2 ? `linear-gradient(to right, ${bg1}, ${bg2})` : bg1;
   const innerPadding = Number(f.leftAndRightPadding ?? 0);
   return (
@@ -2501,7 +2516,7 @@ function TitleAdPreview({ data }: { data: Record<string, any> }) {
     >
       <div style={{ paddingLeft: innerPadding, paddingRight: innerPadding }}>
         {!hasTitleText ? (
-          <div style={{ padding: '30px 0 50px', textAlign: 'center', backgroundColor: '#f2f4f6', borderRadius: 6, color: '#888', fontSize: 14 }}>点击添加标题</div>
+          <div style={{ padding: '30px 0 50px', textAlign: 'center', backgroundColor: '#f2f4f6', borderRadius: 6, color: '#888', fontSize: 14 }}>{t('点击添加标题')}</div>
         ) : (
           <div style={{ width: '100%' }}>
             <div
@@ -2514,40 +2529,40 @@ function TitleAdPreview({ data }: { data: Record<string, any> }) {
                 padding: `10px ${Number(f.leftAndRightPadding ?? f.innerPadding ?? 0)}px`,
                 boxSizing: 'border-box',
                 overflow: 'hidden',
-                borderRadius: Number(t.titleRadius) || 0,
+                borderRadius: Number(titleData.titleRadius) || 0,
                 background: background || undefined,
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: align === 2 ? 'none' : 1, overflow: 'hidden', alignItems: align === 2 ? 'center' : undefined, textAlign: align === 2 ? 'center' : undefined }}>
-                <div style={{ lineHeight: '20px', fontSize: 16, fontWeight: style === 2 ? 600 : 'bold', color: t.titleColor || '#2a3145', wordBreak: 'break-all' }}>{t.titleText}</div>
-                {t.descText ? (
+                <div style={{ lineHeight: '20px', fontSize: 16, fontWeight: style === 2 ? 600 : 'bold', color: titleData.titleColor || '#2a3145', wordBreak: 'break-all' }}>{titleData.titleText}</div>
+                {titleData.descText ? (
                   <div
                     style={{
                       lineHeight: '18px',
                       paddingTop: style === 2 ? 0 : 8,
                       fontSize: style === 2 ? 16 : 12,
                       fontWeight: style === 2 ? 600 : undefined,
-                      color: t.descColor || (style === 2 ? '#11bb55' : '#8c8c8c'),
+                      color: titleData.descColor || (style === 2 ? '#11bb55' : '#8c8c8c'),
                       wordBreak: 'break-all',
                     }}
                   >
-                    {t.descText}
+                    {titleData.descText}
                   </div>
                 ) : null}
               </div>
-              {Number(t.showMore) === 1 && (
+              {Number(titleData.showMore) === 1 && (
                 <span
                   style={{
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
-                    color: t.moreColor || '#969799',
+                    color: titleData.moreColor || '#969799',
                     whiteSpace: 'nowrap',
                     ...(align === 2 ? { position: 'absolute' as const, right: 0 } : {}),
                   }}
                 >
-                  <span>查看更多</span>
+                  <span>{t('查看更多')}</span>
                   <span style={{ fontSize: 12, lineHeight: '12px' }}>&gt;</span>
                 </span>
               )}
@@ -2750,6 +2765,7 @@ function TitleMoreArrow() {
 
 /** 标题右侧倒计时（深色数字方块，对齐前台 countdown-box） */
 function TitleCountdownBox({ label, targetTs, now, color }: { label: string; targetTs: number; now: number; color: string }) {
+  const { t } = useI18n();
   const remaining = targetTs ? Math.max(0, targetTs - now) : 0;
   const { days, hours, minutes, seconds } = parseCountdownParts(remaining);
   const boxStyle: Record<string, any> = {
@@ -2763,7 +2779,7 @@ function TitleCountdownBox({ label, targetTs, now, color }: { label: string; tar
         {days > 0 && (
           <>
             <span style={{ ...boxStyle, width: 'auto', minWidth: 32, padding: '2px 5px' }}>{days}</span>
-            <span style={{ fontSize: 18, margin: '0 2px' }}>天</span>
+            <span style={{ fontSize: 18, margin: '0 2px' }}>{t('天')}</span>
           </>
         )}
         <span style={boxStyle}>{formatNumTwo(hours)}</span>
@@ -2797,6 +2813,7 @@ function SeckillGrouponTitleBar({
   now: number;
   innerPaddingPx: number;
 }) {
+  const { t } = useI18n();
   if (!title || Number(title.showTitle) !== 1) return null;
   const showMore = Number(title.showMore) === 1;
   const moreTypeRaw = Number(title.moreType);
@@ -2808,8 +2825,8 @@ function SeckillGrouponTitleBar({
   const customLabel = String(title.countdownLabel || '').trim();
   let countdownLabel = customLabel || fallbackLabel;
   if (!customLabel && countdownTargetTs) {
-    if (activityStartTs && activityStartTs > now) countdownLabel = '距开始';
-    else if (countdownTargetTs - now <= 0) countdownLabel = '已结束';
+    if (activityStartTs && activityStartTs > now) countdownLabel = t('距开始');
+    else if (countdownTargetTs - now <= 0) countdownLabel = t('已结束');
   }
   const barStyle: Record<string, any> = {
     display: 'flex',
@@ -2837,7 +2854,7 @@ function SeckillGrouponTitleBar({
       {showMore && mode === 2 && <TitleCountdownBox label={countdownLabel} targetTs={countdownTargetTs} now={now} color={moreColor} />}
       {showMore && mode === 1 && (
         <div style={{ display: 'flex', alignItems: 'center', fontSize: 14, color: moreColor, cursor: 'pointer' }}>
-          <span>{String(title.moreLink?.title || '').trim() || '更多'}</span>
+          <span>{String(title.moreLink?.title || '').trim() || t('更多')}</span>
           <span style={{ marginLeft: 4, color: 'inherit' }}><TitleMoreArrow /></span>
         </div>
       )}
@@ -2858,6 +2875,7 @@ function SwiperArrowButton({ dir, left, right }: { dir: 'prev' | 'next'; left?: 
 }
 
 function SeckillPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const rows = useSeckillPreview();
   const now = useNowTick();
   const f = (data.frame || {}) as Record<string, any>;
@@ -2886,8 +2904,8 @@ function SeckillPreview({ data }: { data: Record<string, any> }) {
     >
       <SeckillGrouponTitleBar
         title={title}
-        fallbackText={data.seckillTitle || '限时秒杀'}
-        fallbackLabel="倒计时"
+        fallbackText={data.seckillTitle || t('限时秒杀')}
+        fallbackLabel={t('倒计时')}
         countdownTargetTs={countdownTargetTs}
         now={now}
         innerPaddingPx={innerPadding}
@@ -2925,7 +2943,7 @@ function SeckillPreview({ data }: { data: Record<string, any> }) {
                   </div>
                   {discount > 0 && (
                     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', margin: 5, width: 'fit-content', height: 24, lineHeight: '24px', padding: '0 6px', color: '#fff', fontSize: 14, borderRadius: 2, backgroundColor: '#ee0a24' }}>
-                      优惠{discount}%
+                      {t('优惠{percent}%', { percent: discount })}
                     </div>
                   )}
                   <div style={{ height: 20, marginTop: 5, marginBottom: 8, padding: '0 5px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', color: '#1a1a1a', fontSize: 16, fontWeight: 700, lineHeight: '18px' }}>
@@ -2938,7 +2956,7 @@ function SeckillPreview({ data }: { data: Record<string, any> }) {
                       <span style={{ fontSize: 16, fontWeight: 700 }}>.{parts.dec}</span>
                     </div>
                     <div style={{ marginLeft: 'auto' }}>
-                      <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: 32, height: 32, borderRadius: '50%', background: 'rgba(255, 63, 79, 0.12)', color: '#ff3f4f', flexShrink: 0, position: 'relative', cursor: 'pointer' }} title="添加购物车">
+                      <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: 32, height: 32, borderRadius: '50%', background: 'rgba(255, 63, 79, 0.12)', color: '#ff3f4f', flexShrink: 0, position: 'relative', cursor: 'pointer' }} title={t('添加购物车')}>
                         <span style={{ width: 18, height: 18, position: 'relative', display: 'block' }}>
                           <span style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: 'currentColor', borderRadius: 1, width: 14, height: 2 }} />
                           <span style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: 'currentColor', borderRadius: 1, width: 2, height: 14 }} />
@@ -3006,6 +3024,7 @@ function GrouponCard({
   countdownText: string;
   countdownLabel: string;
 }) {
+  const { t } = useI18n();
   const isCardStyle1 = cardStyle === 1;
   const groupNum = String((item as any).minGroupNum || '2');
   const groupPrice = String((item as any).minGroupPrice ?? item.productPrice ?? '0');
@@ -3024,7 +3043,7 @@ function GrouponCard({
         </div>
         {isCardStyle1 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(90deg, #f86e30, #e91817)', height: 34, padding: '0 10px', boxSizing: 'border-box', fontSize: 12, color: '#ffffff' }}>
-            <div style={{ flex: '0 0 auto', fontWeight: 'bold', fontSize: 16, color: '#ffffff' }}>拼团</div>
+            <div style={{ flex: '0 0 auto', fontWeight: 'bold', fontSize: 16, color: '#ffffff' }}>{t('拼团')}</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flex: 1, gap: 6, whiteSpace: 'nowrap' }}>
               <div style={{ fontSize: 12 }}>{countdownLabel}</div>
               {countdownText ? <div style={{ fontVariantNumeric: 'tabular-nums', fontSize: 12 }}>{countdownText}</div> : null}
@@ -3048,7 +3067,7 @@ function GrouponCard({
               whiteSpace: 'nowrap', boxSizing: 'border-box', marginRight: 4, flexShrink: 0, transform: 'translateY(-1px)',
             }}
           >
-            {groupNum}人团
+            {t('{count}人团', { count: groupNum })}
           </span>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{item.productName}</span>
         </div>
@@ -3060,7 +3079,7 @@ function GrouponCard({
               <span style={{ color: '#ee0a24', fontWeight: 500, fontSize: 22, paddingLeft: 9, height: 26, display: 'flex', alignItems: 'flex-end' }}>¥{groupPrice}</span>
               <div style={{ marginLeft: 7, display: 'flex', alignItems: 'flex-end', fontWeight: 500, fontSize: 12, color: '#9a9a9a', textDecorationLine: 'line-through' }}>¥{originPrice}</div>
             </div>
-            <div style={{ padding: '0 20px', height: 30, background: '#ee0a25', borderRadius: 3, fontWeight: 600, fontSize: 20, color: '#ffffff', lineHeight: '30px', marginLeft: 'auto', clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)', textAlign: 'center' }}>拼</div>
+            <div style={{ padding: '0 20px', height: 30, background: '#ee0a25', borderRadius: 3, fontWeight: 600, fontSize: 20, color: '#ffffff', lineHeight: '30px', marginLeft: 'auto', clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%)', textAlign: 'center' }}>{t('拼')}</div>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', flexDirection: textAlign === 1 ? 'row' : 'column' }}>
@@ -3071,7 +3090,7 @@ function GrouponCard({
             <div style={{ marginLeft: 'auto' }}>
               {buyBtnStyle > 0 ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 13, background: '#ee0a24', color: '#fff', fontSize: 12 }}>
-                  {buyBtnStyle === 5 || buyBtnStyle === 6 ? '购买' : buyBtnStyle === 7 || buyBtnStyle === 8 ? '马上抢' : buyBtnStyle === 3 || buyBtnStyle === 4 ? <IconPlus size="small" /> : <IconCart size="small" />}
+                  {buyBtnStyle === 5 || buyBtnStyle === 6 ? t('购买') : buyBtnStyle === 7 || buyBtnStyle === 8 ? t('马上抢') : buyBtnStyle === 3 || buyBtnStyle === 4 ? <IconPlus size="small" /> : <IconCart size="small" />}
                 </span>
               ) : (
                 <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: 32, height: 32, borderRadius: '50%', background: '#ecf5ff', color: '#409eff', cursor: 'pointer' }}>
@@ -3088,6 +3107,7 @@ function GrouponCard({
 
 /** 拼团预览（对齐原版 dec-pc-home-groupon：root 边距/内边距 + 标题倒计时 + 2/3/4 栅格、6 横滚 + 双卡片样式 + mock 商品） */
 function GrouponPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const activity = (data.grouponActivityItem || null) as Record<string, any> | null;
   const activityId = Number(activity?.grouponPromotionId ?? activity?.grouponId) || undefined;
   const fetched = useGrouponItems(activityId);
@@ -3121,12 +3141,12 @@ function GrouponPreview({ data }: { data: Record<string, any> }) {
     const endTs = dateStringToTimestamp((item as any).endTime || '');
     const started = !startTs || startTs < now;
     const ended = !!endTs && endTs < now;
-    if (ended) return { label: '已结束', text: '' };
+    if (ended) return { label: t('已结束'), text: '' };
     const target = !started ? startTs : endTs;
     const remaining = target ? Math.max(0, target - now) : 0;
-    if (!remaining) return { label: started ? '距结束' : '距开始', text: '' };
+    if (!remaining) return { label: started ? t('距结束') : t('距开始'), text: '' };
     const { days, hours, minutes, seconds } = parseCountdownParts(remaining);
-    return { label: started ? '距结束' : '距开始', text: days > 0 ? `${days}天${formatNumTwo(hours)}:${formatNumTwo(minutes)}:${formatNumTwo(seconds)}` : `${formatNumTwo(hours)}:${formatNumTwo(minutes)}:${formatNumTwo(seconds)}` };
+    return { label: started ? t('距结束') : t('距开始'), text: days > 0 ? `${days}${t('天')}${formatNumTwo(hours)}:${formatNumTwo(minutes)}:${formatNumTwo(seconds)}` : `${formatNumTwo(hours)}:${formatNumTwo(minutes)}:${formatNumTwo(seconds)}` };
   };
 
   // 列宽（原版 itemWidth/scrollItemWidth：gap 参与宽度补偿）
@@ -3152,8 +3172,8 @@ function GrouponPreview({ data }: { data: Record<string, any> }) {
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
         <SeckillGrouponTitleBar
           title={data.title}
-          fallbackText="拼团"
-          fallbackLabel="距结束"
+          fallbackText={t('拼团')}
+          fallbackLabel={t('距结束')}
           countdownTargetTs={activityEndTs}
           activityStartTs={activityStartTs}
           now={now}
@@ -3216,9 +3236,10 @@ function GrouponPreview({ data }: { data: Record<string, any> }) {
 
 
 function HeaderColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t } = useI18n();
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => onChange('')}>重置</a>
+      <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => onChange('')}>{t('重置')}</a>
       <input
         type="color"
         value={value || '#ffffff'}
@@ -3315,6 +3336,7 @@ function useHeroGroupProducts(cards: Array<Record<string, any>>) {
 }
 
 function HeroPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const m = data || {};
   const frame = m.frame || {};
   const style = m.style || {};
@@ -3376,7 +3398,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
       <div style={{ ...cardStyle, width: '100%', height: '100%', padding: 8, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
           <span style={{ fontSize: titleSize, fontWeight: 700, color: titleColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {card.moduleTitle || '推荐'}
+            {card.moduleTitle || t('推荐')}
           </span>
           {card.moduleSubTitle ? (
             <span style={{ fontSize: 10, color: '#fff', background: subtitleBg(card), borderRadius: 3, padding: '1px 4px', flexShrink: 0 }}>
@@ -3411,7 +3433,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
                   </div>
                 );
               })
-            : <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: mutedColor, fontSize: 12 }}>配置商品</div>}
+            : <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: mutedColor, fontSize: 12 }}>{t('配置商品')}</div>}
         </div>
       </div>
     );
@@ -3429,11 +3451,11 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
             categories.map((c, i) => (
               <div key={c.picId ?? i} style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 28, padding: '4px 8px 4px 16px', fontSize: 12 }}>
                 {c.picUrl ? <img src={c.picUrl} alt="" style={{ width: 18, height: 18, flexShrink: 0 }} /> : <span style={{ width: 12, color: 'inherit' }}>-</span>}
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.picTitle || '类目'}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.picTitle || t('类目')}</span>
               </div>
             ))
           ) : (
-            <div style={{ padding: 30, textAlign: 'center', color: mutedColor, fontSize: 12 }}>点击配置左侧类目</div>
+            <div style={{ padding: 30, textAlign: 'center', color: mutedColor, fontSize: 12 }}>{t('点击配置左侧类目')}</div>
           )}
         </section>
 
@@ -3444,7 +3466,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
               {banners.length ? (
                 <img src={banners[0]?.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               ) : (
-                <div style={{ padding: 20, textAlign: 'center', color: mutedColor, fontSize: 12 }}>点击添加轮播</div>
+                <div style={{ padding: 20, textAlign: 'center', color: mutedColor, fontSize: 12 }}>{t('点击添加轮播')}</div>
               )}
             </div>
             <div style={{ flex: 1, display: 'flex', gap, minWidth: 0 }}>
@@ -3471,7 +3493,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
             {/* 付费会员入口：绝对定位右上角 */}
             {right.premiumMember?.show === true && (
               <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 2, width: 86, height: 41, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1a1a1a', color: '#ffd700', borderRadius: '0 0 0 12px', fontSize: 12, fontWeight: 700 }}>
-                {right.premiumMember.title || '会员'}
+                {right.premiumMember.title || t('会员')}
                 {right.premiumMember.description ? <span style={{ fontWeight: 400, fontSize: 9 }}>{right.premiumMember.description}</span> : null}
               </div>
             )}
@@ -3480,30 +3502,30 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
               <img src={getPath(right, 'user.avatar.picUrl') || ''} alt="" style={{ width: 36, height: 36, borderRadius: '50%', background: '#ececec', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#333', paddingBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-                  {getPath(right, 'user.nickname') || '欢迎来商城'}
+                  {getPath(right, 'user.nickname') || t('欢迎来商城')}
                 </div>
                 <div style={{ fontSize: 12, color: '#666', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span>注册</span>
+                  <span>{t('注册')}</span>
                   <span style={{ width: 1, height: 10, background: '#ddd' }} />
-                  <span>入驻</span>
+                  <span>{t('入驻')}</span>
                 </div>
               </div>
             </div>
             {/* 欢迎语 */}
             <div style={{ width: '100%', textAlign: 'center', marginBottom: 8 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#333', marginBottom: 4 }}>{getPath(right, 'user.welcomeText') || '登录后更多精彩'}</div>
-              <div style={{ fontSize: 12, color: '#999' }}>一键登录，福利好物全拥有</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#333', marginBottom: 4 }}>{getPath(right, 'user.welcomeText') || t('登录后更多精彩')}</div>
+              <div style={{ fontSize: 12, color: '#999' }}>{t('一键登录，福利好物全拥有')}</div>
             </div>
             {/* 立即登录按钮 */}
             <div style={{ display: 'block', width: '100%', height: 36, lineHeight: '36px', background: '#ff4141', color: '#fff', fontSize: 14, borderRadius: 4, textAlign: 'center', flexShrink: 0 }}>
-              立即登录
+              {t('立即登录')}
             </div>
             {/* 四宫格动作 */}
             <div style={{ width: '100%', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, marginTop: 10, flexShrink: 0 }}>
-              {['我的订单', '浏览记录', '商品收藏', '关注店铺'].map((t) => (
-                <div key={t} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 11, color: '#333' }}>
+              {[t('我的订单'), t('浏览记录'), t('商品收藏'), t('关注店铺')].map((label) => (
+                <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 11, color: '#333' }}>
                   <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#f2f3f5', display: 'inline-block' }} />
-                  <span>{t}</span>
+                  <span>{label}</span>
                 </div>
               ))}
             </div>
@@ -3512,7 +3534,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
           <div style={{ ...panelStyle, flex: 1, padding: '0 12px 10px', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '10px 0', flexShrink: 0 }}>
               <div style={{ fontWeight: 700, fontSize: titleSize, color: titleColor, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {getPath(right, 'shopsTitle') || '店铺街'}
+                {getPath(right, 'shopsTitle') || t('店铺街')}
                 {getPath(right, 'shopsSubTitle') ? (
                   <span style={{ fontSize: 10, color: '#fff', background: getPath(right, 'shopsSubTitleBg') || '#FF4E4E', borderRadius: 3, padding: '1px 4px' }}>
                     {getPath(right, 'shopsSubTitle')}
@@ -3520,7 +3542,7 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
                 ) : null}
               </div>
               <a style={{ fontSize: 11, color: mutedColor }}>
-                {getPath(right, 'shopsMoreText') || '查看全部'} <span style={{ fontSize: 9 }}>▾</span>
+                {getPath(right, 'shopsMoreText') || t('查看全部')} <span style={{ fontSize: 9 }}>▾</span>
               </a>
             </div>
             {shortcuts.length ? (
@@ -3531,13 +3553,13 @@ function HeroPreview({ data }: { data: Record<string, any> }) {
                       {sc.picUrl ? <img src={sc.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : null}
                     </div>
                     <span style={{ fontSize: 11, color: getPath(right, 'shopsTextColor') || '#a06a38', display: 'block', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {sc.picTitle || '进入店铺'}
+                      {sc.picTitle || t('进入店铺')}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: mutedColor, fontSize: 12 }}>点击配置店铺</div>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: mutedColor, fontSize: 12 }}>{t('点击配置店铺')}</div>
             )}
           </div>
         </section>
@@ -3593,6 +3615,7 @@ const PC_HEADER_DEFAULTS: Record<string, any> = {
 };
 
 function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>; onOpen: () => void }) {
+  const { t } = useI18n();
   const h = { ...PC_HEADER_DEFAULTS, ...header };
   const styleType = Number(h.styleType ?? 1) === 2 ? 2 : 1;
   const simple = styleType === 1;
@@ -3612,7 +3635,7 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
   const showTopMenuCart = Number(h.topMenuCartShow ?? 1) !== 0;
   const divider = [1, 2].includes(Number(h.bottomDividerType)) ? Number(h.bottomDividerType) : simple ? 2 : 1;
   const navTitles = useHeaderNavTitles();
-  const navItems = navTitles.length ? navTitles : ['首页', '导航1', '导航2'];
+  const navItems = navTitles.length ? navTitles : [t('首页'), t('导航1'), t('导航2')];
 
   const topMenuTextStyle: Record<string, any> = {};
   if (h.topMenuTextColor) topMenuTextStyle.color = h.topMenuTextColor;
@@ -3630,26 +3653,26 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
   const searchAccent = Number(h.searchColorType ?? 1) === 2 && h.searchColor ? h.searchColor : '#1a1a1a';
 
   return (
-    <div className="dec-pc-header-preview" onClick={onOpen} title="点击配置 PC 头部装修">
+    <div className="dec-pc-header-preview" onClick={onOpen} title={t('点击配置 PC 头部装修')}>
       {/* 顶部提示条（showBenefitBar 总开关，两种风格共用） */}
       {showBenefitBar && (
         <div className="dec-pc-header-preview__strip" style={h.benefitBarBackgroundColor ? { background: h.benefitBarBackgroundColor } : undefined}>
           <div className="dec-pc-header-preview__strip-inner">
             <div className="pchead-strip">
               <div className="pchead-strip__left" style={topMenuTextStyle}>
-                {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || '北京市'}</span>}
-                {simple && showTopMemberName && <a className="pchead-strip__link">会员信息</a>}
+                {simple && showTopRegion && <span className="pchead-strip__region">{h.topRegionText || t('北京市')}</span>}
+                {simple && showTopMemberName && <a className="pchead-strip__link">{t('会员信息')}</a>}
               </div>
               <div className="pchead-strip__right" style={topMenuTextStyle}>
-                {showTopMenuCart && <a className="pchead-strip__link">🛒 购物车</a>}
+                {showTopMenuCart && <a className="pchead-strip__link">🛒 {t('购物车')}</a>}
                 {simple && showTopMenuBar && showTopUserMenu && (
                   <span className="pchead-strip__menus">
-                    {showTopMemberCenter && <a className="pchead-strip__link">会员中心 ▾</a>}
-                    {showTopMessage && <a className="pchead-strip__link">站内消息</a>}
-                    {showTopOrders && <a className="pchead-strip__link">我的订单</a>}
+                    {showTopMemberCenter && <a className="pchead-strip__link">{t('会员中心')} ▾</a>}
+                    {showTopMessage && <a className="pchead-strip__link">{t('站内消息')}</a>}
+                    {showTopOrders && <a className="pchead-strip__link">{t('我的订单')}</a>}
                   </span>
                 )}
-                {showTopSiteNav && <a className="pchead-strip__link">站点导航 ▾</a>}
+                {showTopSiteNav && <a className="pchead-strip__link">{t('站点导航')} ▾</a>}
               </div>
             </div>
           </div>
@@ -3668,7 +3691,7 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
               {showCategory && (
                 <div className="dec-pchead-cate" style={{ marginTop: Number(h.categoryMarginTop) || 0 }}>
                   <span className="dec-pchead-cate__icon">☰</span>
-                  <span className="dec-pchead-cate__txt">分类</span>
+                  <span className="dec-pchead-cate__txt">{t('分类')}</span>
                   <span className="dec-pchead-cate__arrow">▾</span>
                 </div>
               )}
@@ -3676,13 +3699,13 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
             <div className="dec-pchead-body__center">
               <div className="dec-pchead-search">
                 <div className="dec-pchead-search__box" style={{ borderColor: searchAccent }}>
-                  <span className="dec-pchead-search__type">商品 <i>▾</i></span>
-                  <input className="dec-pchead-search__input" placeholder="请输入关键词" disabled />
-                  <span className="dec-pchead-search__submit" style={{ background: searchAccent }}>搜索</span>
+                  <span className="dec-pchead-search__type">{t('商品')} <i>▾</i></span>
+                  <input className="dec-pchead-search__input" placeholder={t('请输入关键词')} disabled />
+                  <span className="dec-pchead-search__submit" style={{ background: searchAccent }}>{t('搜索')}</span>
                 </div>
                 {showMainNav && (
                   <ul className="dec-pchead-nav" style={{ marginTop: Number(h.mainNavPaddingTop) || 0, marginBottom: Number(h.mainNavPaddingBottom) || 0 }}>
-                    {navItems.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                    {navItems.map((label: string, i: number) => <li key={i}>{label}</li>)}
                   </ul>
                 )}
               </div>
@@ -3691,13 +3714,13 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
               {showRightCart && (
                 cartStyle === 2 ? (
                   <div className={`dec-pchead-cartpic${h.cartPic?.picUrl ? '' : ' dec-pchead-cartpic--empty'}`}>
-                    {h.cartPic?.picUrl ? <img src={h.cartPic.picUrl} alt="" /> : <span>购物车图</span>}
+                    {h.cartPic?.picUrl ? <img src={h.cartPic.picUrl} alt="" /> : <span>{t('购物车图')}</span>}
                   </div>
                 ) : (
                   <div className="dec-pchead-cart">
                     <span className="dec-pchead-cart__icon">🛒</span>
                     <span className="dec-pchead-cart__count">18</span>
-                    <span className="dec-pchead-cart__text">购物车</span>
+                    <span className="dec-pchead-cart__text">{t('购物车')}</span>
                   </div>
                 )
               )}
@@ -3707,7 +3730,7 @@ function PcHeaderPreviewStrip({ header, onOpen }: { header: Record<string, any>;
       )}
       {!simple && (
         <div className="dec-pchead-body dec-pchead-body--white dec-pchead-body--divider-0" style={{ padding: '20px 24px', fontSize: 13, color: '#999' }}>
-          跨境风头部（由跨境风专属字段驱动，画布预览以简约风结构为准）
+          {t('跨境风头部（由跨境风专属字段驱动，画布预览以简约风结构为准）')}
         </div>
       )}
     </div>
@@ -3728,33 +3751,34 @@ function PageSettingsPanel({
   onChange: (next: Record<string, any>) => void;
   onSwitchVersion: (target: 'new' | 'old') => void;
 }) {
+  const { t } = useI18n();
   const currentVersion = pageModule.homeStyleVersion === 'old' ? 'old' : 'new';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Text strong>页面设置</Text>
+      <Text strong>{t('页面设置')}</Text>
 
       <div>
-        <Text type="tertiary" size="small">页面标题（可不填，默认为页面名称）</Text>
-        <Input value={pageModule.title || ''} onChange={(v) => onChange({ ...pageModule, title: v })} placeholder="请输入页面标题" />
+        <Text type="tertiary" size="small">{t('页面标题（可不填，默认为页面名称）')}</Text>
+        <Input value={pageModule.title || ''} onChange={(v) => onChange({ ...pageModule, title: v })} placeholder={t('请输入页面标题')} />
       </div>
 
       {/* 头部风格仅服务旧版头部；新版 PC 首页走 pcHeader，故新版时隐藏（原版同逻辑） */}
       {currentVersion === 'old' && (
         <div>
-          <Text type="tertiary" size="small">头部风格</Text>
+          <Text type="tertiary" size="small">{t('头部风格')}</Text>
           <RadioGroup
             value={Number(pageModule.headerStyle) === 2 ? 2 : 1}
             onChange={(e: any) => onChange({ ...pageModule, headerStyle: Number(e.target.value) })}
             type="button"
           >
-            <Radio value={1}>默认风格</Radio>
-            <Radio value={2}>简约风格</Radio>
+            <Radio value={1}>{t('默认风格')}</Radio>
+            <Radio value={2}>{t('简约风格')}</Radio>
           </RadioGroup>
         </div>
       )}
 
       <div>
-        <Text type="tertiary" size="small">标题栏背景颜色</Text>
+        <Text type="tertiary" size="small">{t('标题栏背景颜色')}</Text>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             type="color"
@@ -3762,12 +3786,12 @@ function PageSettingsPanel({
             onChange={(e) => onChange({ ...pageModule, titleBackgroundColor: e.target.value })}
             style={{ width: 46, height: 30, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
           />
-          <Button size="small" onClick={() => onChange({ ...pageModule, titleBackgroundColor: '' })}>重置</Button>
+          <Button size="small" onClick={() => onChange({ ...pageModule, titleBackgroundColor: '' })}>{t('重置')}</Button>
         </div>
       </div>
 
       <div>
-        <Text type="tertiary" size="small">页面背景颜色</Text>
+        <Text type="tertiary" size="small">{t('页面背景颜色')}</Text>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             type="color"
@@ -3775,12 +3799,12 @@ function PageSettingsPanel({
             onChange={(e) => onChange({ ...pageModule, backgroundColor: e.target.value })}
             style={{ width: 46, height: 30, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
           />
-          <Button size="small" onClick={() => onChange({ ...pageModule, backgroundColor: '' })}>重置</Button>
+          <Button size="small" onClick={() => onChange({ ...pageModule, backgroundColor: '' })}>{t('重置')}</Button>
         </div>
       </div>
 
       <div>
-        <Text type="tertiary" size="small">背景图</Text>
+        <Text type="tertiary" size="small">{t('背景图')}</Text>
         <Input
           value={typeof pageModule.backgroundImage === 'string' ? pageModule.backgroundImage : pageModule.backgroundImage?.picUrl || ''}
           onChange={(v) => onChange({ ...pageModule, backgroundImage: v ? { picUrl: v, picThumb: v } : { picUrl: '', picThumb: '' } })}
@@ -3789,46 +3813,46 @@ function PageSettingsPanel({
       </div>
 
       <div>
-        <Text type="tertiary" size="small">背景图显示</Text>
+        <Text type="tertiary" size="small">{t('背景图显示')}</Text>
         <RadioGroup
           value={Number(pageModule.backgroundRepeat) || 1}
           onChange={(e: any) => onChange({ ...pageModule, backgroundRepeat: Number(e.target.value) })}
           type="button"
         >
-          <Radio value={1}>不平铺</Radio>
-          <Radio value={2}>平铺</Radio>
-          <Radio value={3}>纵向平铺</Radio>
-          <Radio value={4}>横向平铺</Radio>
+          <Radio value={1}>{t('不平铺')}</Radio>
+          <Radio value={2}>{t('平铺')}</Radio>
+          <Radio value={3}>{t('纵向平铺')}</Radio>
+          <Radio value={4}>{t('横向平铺')}</Radio>
         </RadioGroup>
       </div>
 
       <div>
-        <Text type="tertiary" size="small">背景图填充大小</Text>
+        <Text type="tertiary" size="small">{t('背景图填充大小')}</Text>
         <RadioGroup
           value={Number(pageModule.backgroundSize) || 1}
           onChange={(e: any) => onChange({ ...pageModule, backgroundSize: Number(e.target.value) })}
           type="button"
         >
-          <Radio value={1}>横向100%</Radio>
-          <Radio value={2}>纵向100%</Radio>
-          <Radio value={3}>100%填充</Radio>
+          <Radio value={1}>{t('横向100%')}</Radio>
+          <Radio value={2}>{t('纵向100%')}</Radio>
+          <Radio value={3}>{t('100%填充')}</Radio>
         </RadioGroup>
       </div>
 
       <div style={{ borderTop: '1px solid var(--semi-color-border)', paddingTop: 12 }}>
-        <Text type="tertiary" size="small">首页装修版本</Text>
+        <Text type="tertiary" size="small">{t('首页装修版本')}</Text>
         <RadioGroup
           value={currentVersion}
           onChange={(e: any) => onSwitchVersion(e.target.value as 'new' | 'old')}
           type="button"
           style={{ marginTop: 4 }}
         >
-          <Radio value="new">新版首页</Radio>
-          <Radio value="old">旧版首页</Radio>
+          <Radio value="new">{t('新版首页')}</Radio>
+          <Radio value="old">{t('旧版首页')}</Radio>
         </RadioGroup>
         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Text type="tertiary" size="small"><b>新版首页：</b>支持可视化网格、高级轮播等新模块，顶部带 PC 头部实时预览，排版更现代。当前 {newCount} 个模块。</Text>
-          <Text type="tertiary" size="small"><b>旧版首页：</b>使用传统全宽占位模块，无头部预览，适合维护旧有页面。当前 {legacyCount} 个模块。</Text>
+          <Text type="tertiary" size="small"><b>{t('新版首页：')}</b>{t('支持可视化网格、高级轮播等新模块，顶部带 PC 头部实时预览，排版更现代。当前 {count} 个模块。', { count: newCount })}</Text>
+          <Text type="tertiary" size="small"><b>{t('旧版首页：')}</b>{t('使用传统全宽占位模块，无头部预览，适合维护旧有页面。当前 {count} 个模块。', { count: legacyCount })}</Text>
         </div>
       </div>
     </div>
@@ -3837,9 +3861,10 @@ function PageSettingsPanel({
 
 
 function HeaderSection({ title, children }: { title: string; children: ReactNode }) {
+  const { t } = useI18n();
   return (
     <div style={{ marginTop: 14, borderTop: '1px solid #eef0f3', paddingTop: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2329', marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#1f2329', marginBottom: 8 }}>{t(title)}</div>
       {children}
     </div>
   );
@@ -3856,13 +3881,14 @@ function HeaderField({
   showIf?: boolean;
   children?: ReactNode;
 }) {
+  const { t } = useI18n();
   if (!showIf) return null;
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '7px 0' }}>
-      <div style={{ width: 98, flexShrink: 0, color: '#646a73', fontSize: 13, lineHeight: '28px' }}>{label}</div>
+      <div style={{ width: 98, flexShrink: 0, color: '#646a73', fontSize: 13, lineHeight: '28px' }}>{t(label)}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         {children}
-        {value ? <div style={{ color: '#98a2b3', fontSize: 12, lineHeight: '20px', marginTop: 2 }}>{value}</div> : null}
+        {value ? <div style={{ color: '#98a2b3', fontSize: 12, lineHeight: '20px', marginTop: 2 }}>{typeof value === 'string' ? t(value) : value}</div> : null}
       </div>
     </div>
   );
@@ -3897,6 +3923,7 @@ function PcHeaderPanel({
   header: Record<string, any>;
   onChange: (next: Record<string, any>) => void;
 }) {
+  const { t } = useI18n();
   const set = (key: string, value: unknown) => onChange({ ...header, [key]: value });
   const simple = Number(header.styleType ?? 1) === 1;
 
@@ -3905,40 +3932,40 @@ function PcHeaderPanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 20 }}>
-      <Text strong>PC头部装修</Text>
+      <Text strong>{t('PC头部装修')}</Text>
 
       <HeaderField label="头部风格">
         <RadioGroup value={Number(header.styleType ?? 1) === 2 ? 2 : 1} onChange={(e: any) => set('styleType', Number(e.target.value) === 2 ? 2 : 1)} type="button">
-          <Radio value={1}>简约风</Radio>
-          <Radio value={2}>跨境风</Radio>
+          <Radio value={1}>{t('简约风')}</Radio>
+          <Radio value={2}>{t('跨境风')}</Radio>
         </RadioGroup>
       </HeaderField>
       <HeaderField label="底部样式">
         <RadioGroup value={Number(header.bottomDividerType ?? 1)} onChange={(e: any) => set('bottomDividerType', Number(e.target.value))} type="button">
-          <Radio value={1}>阴影</Radio>
-          <Radio value={2}>边框</Radio>
-          <Radio value={0}>不展示</Radio>
+          <Radio value={1}>{t('阴影')}</Radio>
+          <Radio value={2}>{t('边框')}</Radio>
+          <Radio value={0}>{t('不展示')}</Radio>
         </RadioGroup>
       </HeaderField>
 
       <HeaderSection title="LOGO">
         <div style={{ width: '100%' }}>
           <HeaderField label="LOGO图片" value="建议 320*120 PNG 透明底">
-            <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('logoPic', { picUrl: '', picThumb: '' })}>默认logo</a>
+            <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('logoPic', { picUrl: '', picThumb: '' })}>{t('默认logo')}</a>
           </HeaderField>
           <Input
             value={header.logoPic?.picUrl || ''}
             onChange={(v) => set('logoPic', { picUrl: v, picThumb: v })}
-            placeholder="LOGO 图片 URL"
+            placeholder={t('LOGO 图片 URL')}
             size="small"
             style={{ marginTop: 4 }}
           />
         </div>
         <HeaderField label="logo位置">
           <RadioGroup value={Number(header.logoAlign ?? 1)} onChange={(e: any) => set('logoAlign', Number(e.target.value))} type="button">
-            <Radio value={1}>居左</Radio>
-            <Radio value={2}>居中</Radio>
-            <Radio value={3}>居右</Radio>
+            <Radio value={1}>{t('居左')}</Radio>
+            <Radio value={2}>{t('居中')}</Radio>
+            <Radio value={3}>{t('居右')}</Radio>
           </RadioGroup>
         </HeaderField>
         <HeaderField label="LOGO宽度">
@@ -3952,28 +3979,28 @@ function PcHeaderPanel({
       <HeaderSection title="购物车">
         <HeaderField label="右侧购物车" value={Number(header.rightCartShow ?? 1) === 0 ? '隐藏' : '显示'}>
           <RadioGroup value={Number(header.rightCartShow ?? 1)} onChange={(e: any) => set('rightCartShow', Number(e.target.value))} type="button">
-            <Radio value={1}>显示</Radio>
-            <Radio value={0}>隐藏</Radio>
+            <Radio value={1}>{t('显示')}</Radio>
+            <Radio value={0}>{t('隐藏')}</Radio>
           </RadioGroup>
         </HeaderField>
         <HeaderField label="购物车样式">
           <RadioGroup value={Number(header.cartStyle ?? 1)} onChange={(e: any) => set('cartStyle', Number(e.target.value))} type="button">
-            <Radio value={1}>购物车</Radio>
-            <Radio value={2}>图片</Radio>
+            <Radio value={1}>{t('购物车')}</Radio>
+            <Radio value={2}>{t('图片')}</Radio>
           </RadioGroup>
         </HeaderField>
         {Number(header.rightCartShow ?? 1) !== 0 && Number(header.cartStyle ?? 1) === 2 && (
           <div style={{ width: '100%' }}>
             <HeaderField label="添加图片">
-              <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('cartPic', { picUrl: '', picThumb: '' })}>重置</a>
+              <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('cartPic', { picUrl: '', picThumb: '' })}>{t('重置')}</a>
             </HeaderField>
-            <Input value={header.cartPic?.picUrl || ''} onChange={(v) => set('cartPic', { picUrl: v, picThumb: v })} placeholder="购物车图片 URL" size="small" />
+            <Input value={header.cartPic?.picUrl || ''} onChange={(v) => set('cartPic', { picUrl: v, picThumb: v })} placeholder={t('购物车图片 URL')} size="small" />
           </div>
         )}
         <HeaderField label="顶部菜单购物车" value={Number(header.topMenuCartShow ?? 1) === 0 ? '隐藏' : '显示'}>
           <RadioGroup value={Number(header.topMenuCartShow ?? 1)} onChange={(e: any) => set('topMenuCartShow', Number(e.target.value))} type="button">
-            <Radio value={1}>显示</Radio>
-            <Radio value={0}>隐藏</Radio>
+            <Radio value={1}>{t('显示')}</Radio>
+            <Radio value={0}>{t('隐藏')}</Radio>
           </RadioGroup>
         </HeaderField>
       </HeaderSection>
@@ -3981,8 +4008,8 @@ function PcHeaderPanel({
       <HeaderSection title="搜索条">
         <HeaderField label="搜索条颜色" value={Number(header.searchColorType ?? 1) === 2 ? '自定义' : '跟随系统'}>
           <RadioGroup value={Number(header.searchColorType ?? 1)} onChange={(e: any) => set('searchColorType', Number(e.target.value))} type="button">
-            <Radio value={1}>系统</Radio>
-            <Radio value={2}>自定义</Radio>
+            <Radio value={1}>{t('系统')}</Radio>
+            <Radio value={2}>{t('自定义')}</Radio>
           </RadioGroup>
         </HeaderField>
         {Number(header.searchColorType ?? 1) === 2 && (
@@ -3992,14 +4019,14 @@ function PcHeaderPanel({
         )}
         <HeaderField label="所有商品分类" value={Number(header.showCategory ?? 1) === 0 ? '关闭' : '开启'}>
           <RadioGroup value={Number(header.showCategory ?? 1)} onChange={(e: any) => set('showCategory', Number(e.target.value))} type="button">
-            <Radio value={1}>开启</Radio>
-            <Radio value={0}>关闭</Radio>
+            <Radio value={1}>{t('开启')}</Radio>
+            <Radio value={0}>{t('关闭')}</Radio>
           </RadioGroup>
         </HeaderField>
         <HeaderField label="首页分类" value={Number(header.showHomeCategory ?? 1) === 0 ? '隐藏' : '显示'}>
           <RadioGroup value={Number(header.showHomeCategory ?? 1)} onChange={(e: any) => set('showHomeCategory', Number(e.target.value))} type="button">
-            <Radio value={1}>显示</Radio>
-            <Radio value={0}>隐藏</Radio>
+            <Radio value={1}>{t('显示')}</Radio>
+            <Radio value={0}>{t('隐藏')}</Radio>
           </RadioGroup>
         </HeaderField>
         <HeaderField label="分类上间距">
@@ -4010,8 +4037,8 @@ function PcHeaderPanel({
       <HeaderSection title="导航栏">
         <HeaderField label="主导航" value={Number(header.showMainNav ?? 1) === 0 ? '隐藏' : '显示'}>
           <RadioGroup value={Number(header.showMainNav ?? 1)} onChange={(e: any) => set('showMainNav', Number(e.target.value))} type="button">
-            <Radio value={1}>显示</Radio>
-            <Radio value={0}>隐藏</Radio>
+            <Radio value={1}>{t('显示')}</Radio>
+            <Radio value={0}>{t('隐藏')}</Radio>
           </RadioGroup>
         </HeaderField>
         <HeaderField label="导航栏上间距">
@@ -4051,20 +4078,20 @@ function PcHeaderPanel({
           </HeaderField>
           <HeaderField label="站点导航" value={Number(header.showTopSiteNav ?? 1) === 0 ? '隐藏' : '显示'}>
             <RadioGroup value={Number(header.showTopSiteNav ?? 1)} onChange={(e: any) => set('showTopSiteNav', Number(e.target.value))} type="button">
-              <Radio value={1}>显示</Radio>
-              <Radio value={0}>隐藏</Radio>
+              <Radio value={1}>{t('显示')}</Radio>
+              <Radio value={0}>{t('隐藏')}</Radio>
             </RadioGroup>
           </HeaderField>
           <HeaderField label="会员信息" value={Number(header.showTopMemberName ?? 1) === 0 ? '隐藏' : '显示'}>
             <RadioGroup value={Number(header.showTopMemberName ?? 1)} onChange={(e: any) => set('showTopMemberName', Number(e.target.value))} type="button">
-              <Radio value={1}>显示</Radio>
-              <Radio value={0}>隐藏</Radio>
+              <Radio value={1}>{t('显示')}</Radio>
+              <Radio value={0}>{t('隐藏')}</Radio>
             </RadioGroup>
           </HeaderField>
           <HeaderField label="地区选择" value={Number(header.showTopRegion ?? 1) === 0 ? '隐藏' : '显示'}>
             <RadioGroup value={Number(header.showTopRegion ?? 1)} onChange={(e: any) => set('showTopRegion', Number(e.target.value))} type="button">
-              <Radio value={1}>显示</Radio>
-              <Radio value={0}>隐藏</Radio>
+              <Radio value={1}>{t('显示')}</Radio>
+              <Radio value={0}>{t('隐藏')}</Radio>
             </RadioGroup>
           </HeaderField>
           <HeaderField label="地区文字" showIf={Number(header.showTopRegion ?? 1) === 1}>
@@ -4077,52 +4104,52 @@ function PcHeaderPanel({
             <>
               <HeaderField label="右侧菜单" value={Number(header.showTopUserMenu ?? 1) === 0 ? '隐藏' : '显示'}>
                 <RadioGroup value={Number(header.showTopUserMenu ?? 1)} onChange={(e: any) => set('showTopUserMenu', Number(e.target.value))} type="button">
-                  <Radio value={1}>显示</Radio>
-                  <Radio value={0}>隐藏</Radio>
+                  <Radio value={1}>{t('显示')}</Radio>
+                  <Radio value={0}>{t('隐藏')}</Radio>
                 </RadioGroup>
               </HeaderField>
               {Number(header.showTopUserMenu ?? 1) !== 0 && (
                 <>
                   <HeaderField label="站内消息" value={Number(header.showTopMessage ?? 1) === 0 ? '隐藏' : '显示'}>
                     <RadioGroup value={Number(header.showTopMessage ?? 1)} onChange={(e: any) => set('showTopMessage', Number(e.target.value))} type="button">
-                      <Radio value={1}>显示</Radio>
-                      <Radio value={0}>隐藏</Radio>
+                      <Radio value={1}>{t('显示')}</Radio>
+                      <Radio value={0}>{t('隐藏')}</Radio>
                     </RadioGroup>
                   </HeaderField>
                   <HeaderField label="我的订单" value={Number(header.showTopOrders ?? 1) === 0 ? '隐藏' : '显示'}>
                     <RadioGroup value={Number(header.showTopOrders ?? 1)} onChange={(e: any) => set('showTopOrders', Number(e.target.value))} type="button">
-                      <Radio value={1}>显示</Radio>
-                      <Radio value={0}>隐藏</Radio>
+                      <Radio value={1}>{t('显示')}</Radio>
+                      <Radio value={0}>{t('隐藏')}</Radio>
                     </RadioGroup>
                   </HeaderField>
                   <HeaderField label="会员中心" value={Number(header.showTopMemberCenter ?? 1) === 0 ? '隐藏' : '显示'}>
                     <RadioGroup value={Number(header.showTopMemberCenter ?? 1)} onChange={(e: any) => set('showTopMemberCenter', Number(e.target.value))} type="button">
-                      <Radio value={1}>显示</Radio>
-                      <Radio value={0}>隐藏</Radio>
+                      <Radio value={1}>{t('显示')}</Radio>
+                      <Radio value={0}>{t('隐藏')}</Radio>
                     </RadioGroup>
                   </HeaderField>
                   {Number(header.showTopMemberCenter ?? 1) !== 0 && (
                     <div style={{ width: '100%' }}>
-                      <Text type="tertiary" size="small">会员中心菜单</Text>
+                      <Text type="tertiary" size="small">{t('会员中心菜单')}</Text>
                       {((header.memberCenterItems || []) as Array<Record<string, any>>).map((it, index) => (
                         <div key={index} style={{ display: 'flex', gap: 4, marginTop: 4, alignItems: 'center' }}>
                           <Input
                             value={it.picTitle || ''}
                             onChange={(v) => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picTitle: v, picLink: { ...(x.picLink || {}), name: v, label: v } } : x)))}
-                            placeholder="菜单名"
+                            placeholder={t('菜单名')}
                             size="small"
                           />
                           <Input
                             value={it.picLink?.link || ''}
                             onChange={(v) => updateMemberItems((header.memberCenterItems || []).map((x: any, i: number) => (i === index ? { ...x, picLink: { ...(x.picLink || {}), link: v } } : x)))}
-                            placeholder="链接"
+                            placeholder={t('链接')}
                             size="small"
                           />
                           <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateMemberItems((header.memberCenterItems || []).filter((_: any, i: number) => i !== index))} />
                         </div>
                       ))}
                       <Button size="small" icon={<IconPlus />} style={{ marginTop: 4 }} onClick={() => updateMemberItems([...(header.memberCenterItems || []), { picTitle: '新菜单', picDesc: '', picLink: { link: '', name: '新菜单', label: '新菜单' } }])}>
-                        添加菜单
+                        {t('添加菜单')}
                       </Button>
                     </div>
                   )}
@@ -4132,22 +4159,22 @@ function PcHeaderPanel({
           )}
           {Number(header.showBenefitBar ?? 1) === 1 && (
             <div style={{ width: '100%' }}>
-              <Text type="tertiary" size="small">顶部提示内容（分组）</Text>
+              <Text type="tertiary" size="small">{t('顶部提示内容（分组）')}</Text>
               {((header.benefitNoticeGroups || []) as Array<Record<string, any>>).map((g, gi) => (
                 <div key={gi} style={{ border: '1px dashed var(--semi-color-border)', borderRadius: 6, padding: 8, marginTop: 6 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text strong size="small">提示组 {gi + 1}</Text>
+                    <Text strong size="small">{t('提示组 {index}', { index: gi + 1 })}</Text>
                     <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateBenefitGroups((header.benefitNoticeGroups || []).filter((_: any, i: number) => i !== gi))} />
                   </div>
                   {((g.notices || []) as Array<Record<string, any>>).map((n, ni) => (
                     <div key={ni} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6, borderTop: '1px dashed var(--semi-color-border)', paddingTop: 6 }}>
-                      <Input value={n.picTitle || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picTitle: v } : x)) } : grp)))} placeholder="主标题" size="small" />
-                      <Input value={n.picDesc || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picDesc: v } : x)) } : grp)))} placeholder="副标题" size="small" />
-                      <Input value={n.picLink?.link || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picLink: { ...(x.picLink || {}), link: v } } : x)) } : grp)))} placeholder="链接(可选)" size="small" />
+                      <Input value={n.picTitle || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picTitle: v } : x)) } : grp)))} placeholder={t('主标题')} size="small" />
+                      <Input value={n.picDesc || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picDesc: v } : x)) } : grp)))} placeholder={t('副标题')} size="small" />
+                      <Input value={n.picLink?.link || ''} onChange={(v) => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).map((x: any, xi: number) => (xi === ni ? { ...x, picLink: { ...(x.picLink || {}), link: v } } : x)) } : grp)))} placeholder={t('链接(可选)')} size="small" />
                       <div style={{ display: 'flex', gap: 6 }}>
                         <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: (grp.notices || []).filter((_: any, xi: number) => xi !== ni) } : grp)))} />
                         <Button size="small" icon={<IconPlus />} onClick={() => updateBenefitGroups((header.benefitNoticeGroups || []).map((grp: any, i: number) => (i === gi ? { ...grp, notices: [...(grp.notices || []), { picId: '0', picThumb: '', picUrl: '', picName: '', picTitle: '', picDesc: '', picLink: { link: '', name: '' } }] } : grp)))}>
-                          添加提示
+                          {t('添加提示')}
                         </Button>
                       </div>
                     </div>
@@ -4155,7 +4182,7 @@ function PcHeaderPanel({
                 </div>
               ))}
               <Button size="small" icon={<IconPlus />} style={{ marginTop: 6 }} onClick={() => updateBenefitGroups([...(header.benefitNoticeGroups || []), { notices: [{ picId: '0', picThumb: '', picUrl: '', picName: '', picTitle: '', picDesc: '', picLink: { link: '', name: '' } }] }])}>
-                添加提示组
+                {t('添加提示组')}
               </Button>
             </div>
           )}
@@ -4176,19 +4203,20 @@ function ModuleSettingsPanel({
   moduleData: Record<string, any>;
   onChange: (next: Record<string, any>) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Text strong>{def.label}设置</Text>
-      {def.note && <Text type="tertiary" size="small">{def.note}</Text>}
-      {def.settings.length === 0 && <Text type="tertiary">该模块无可配置项</Text>}
+      <Text strong>{t(def.label)}{t('设置')}</Text>
+      {def.note && <Text type="tertiary" size="small">{t(def.note)}</Text>}
+      {def.settings.length === 0 && <Text type="tertiary">{t('该模块无可配置项')}</Text>}
       {def.settings.map((field) => {
         if (field.showIf && !field.showIf(moduleData)) return null;
         return (
           <div key={field.key}>
             {field.kind !== 'title' && field.kind !== 'container' && (
               <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>
-                {field.label}
-                {field.hint ? `（${field.hint}）` : ''}
+                {t(field.label)}
+                {field.hint ? `（${t(field.hint)}）` : ''}
               </Text>
             )}
             <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
@@ -4247,6 +4275,7 @@ function ProductPickerModal({
   onOk: (ids: number[], rows: ProductRow[]) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [keyword, setKeyword] = useState('');
   const [rows, setRows] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -4285,22 +4314,22 @@ function ProductPickerModal({
 
   return (
     <Modal
-      title="选择商品"
+      title={t('选择商品')}
       visible={visible}
       width={720}
       onOk={() => onOk(picked, [])}
       onCancel={onCancel}
-      okText="确定"
-      cancelText="取消"
+      okText={t('确定')}
+      cancelText={t('取消')}
     >
       <Space style={{ marginBottom: 12, width: '100%' }}>
-        <Input value={keyword} onChange={setKeyword} onEnterPress={load} placeholder="输入商品名称搜索" style={{ width: 260 }} showClear onClear={() => setKeyword('')} />
-        <Button onClick={load}>搜索</Button>
-        <Text type="tertiary" size="small">已选 {picked.length} 个</Text>
+        <Input value={keyword} onChange={setKeyword} onEnterPress={load} placeholder={t('输入商品名称搜索')} style={{ width: 260 }} showClear onClear={() => setKeyword('')} />
+        <Button onClick={load}>{t('搜索')}</Button>
+        <Text type="tertiary" size="small">{t('已选 {count} 个', { count: picked.length })}</Text>
       </Space>
       <div style={{ maxHeight: 380, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading && <Spin />}
-        {!loading && rows.length === 0 && <Text type="tertiary">暂无数据</Text>}
+        {!loading && rows.length === 0 && <Text type="tertiary">{t('暂无数据')}</Text>}
         {rows.map((row) => (
           <div
             key={row.productId}
@@ -4313,10 +4342,10 @@ function ProductPickerModal({
           >
             {(row.picThumb || row.picUrl) && <img src={row.picThumb || row.picUrl} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />}
             <div style={{ flex: 1 }}>
-              <div>{row.productName || `商品#${row.productId}`}</div>
+              <div>{row.productName || t('商品#{id}', { id: row.productId })}</div>
               <Text type="tertiary" size="small">¥{row.productPrice ?? '-'}</Text>
             </div>
-            {picked.includes(row.productId) && <Tag color="blue">已选</Tag>}
+            {picked.includes(row.productId) && <Tag color="blue">{t('已选')}</Tag>}
           </div>
         ))}
       </div>
@@ -4335,6 +4364,7 @@ function GrouponPickerModal({
   onOk: (item: Record<string, any> | null) => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const [rows, setRows] = useState<Array<Record<string, any>>>([]);
   const [loading, setLoading] = useState(false);
   const [picked, setPicked] = useState<Record<string, any> | null>(current || null);
@@ -4349,13 +4379,13 @@ function GrouponPickerModal({
   }, [visible]);
 
   return (
-    <Modal title="选择拼团活动" visible={visible} width={640} onOk={() => onOk(picked)} onCancel={onCancel} okText="确定" cancelText="取消">
+    <Modal title={t('选择拼团活动')} visible={visible} width={640} onOk={() => onOk(picked)} onCancel={onCancel} okText={t('确定')} cancelText={t('取消')}>
       <div style={{ maxHeight: 380, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading && <Spin />}
-        {!loading && rows.length === 0 && <Text type="tertiary">暂无拼团活动</Text>}
+        {!loading && rows.length === 0 && <Text type="tertiary">{t('暂无拼团活动')}</Text>}
         {rows.map((row) => {
           const id = row.grouponPromotionId ?? row.grouponId ?? row.id;
-          const name = row.name || row.title || `活动#${id}`;
+          const name = row.name || row.title || t('活动#{id}', { id });
           const isPicked = picked && (picked.grouponPromotionId ?? picked.grouponId ?? picked.id) === id;
           return (
             <div
@@ -4367,7 +4397,7 @@ function GrouponPickerModal({
               }}
             >
               <div>{name}</div>
-              <Text type="tertiary" size="small">{Number(row.groupType) === 2 ? '阶梯拼团' : '普通拼团'}</Text>
+              <Text type="tertiary" size="small">{Number(row.groupType) === 2 ? t('阶梯拼团') : t('普通拼团')}</Text>
             </div>
           );
         })}
@@ -4377,6 +4407,7 @@ function GrouponPickerModal({
 }
 
 function PicListEditor({ value, onChange, showDesc = false }: { value: PicItem[]; onChange: (next: PicItem[]) => void; showDesc?: boolean }) {
+  const { t } = useI18n();
   const list = Array.isArray(value) ? value : [];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -4388,15 +4419,15 @@ function PicListEditor({ value, onChange, showDesc = false }: { value: PicItem[]
             <div style={{ width: 48, height: 48, borderRadius: 4, background: 'var(--semi-color-fill-0)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--semi-color-text-2)', fontSize: 16 }}>?</div>
           )}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Input value={item.picUrl} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picUrl: v, picThumb: v } : it)))} placeholder="图片 URL" size="small" />
-            <Input value={item.picTitle || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picTitle: v } : it)))} placeholder="文字标题(可选)" size="small" />
+            <Input value={item.picUrl} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picUrl: v, picThumb: v } : it)))} placeholder={t('图片 URL')} size="small" />
+            <Input value={item.picTitle || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picTitle: v } : it)))} placeholder={t('文字标题(可选)')} size="small" />
             {showDesc && (
-              <Input value={item.picDesc || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picDesc: v } : it)))} placeholder="描述(可选)" size="small" />
+              <Input value={item.picDesc || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picDesc: v } : it)))} placeholder={t('描述(可选)')} size="small" />
             )}
             <Input
               value={item.picLink?.link || ''}
               onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picLink: { ...it.picLink, link: v, name: it.picLink?.name || '' } } : it)))}
-              placeholder="跳转链接(可选)"
+              placeholder={t('跳转链接(可选)')}
               size="small"
             />
           </div>
@@ -4416,7 +4447,7 @@ function PicListEditor({ value, onChange, showDesc = false }: { value: PicItem[]
         </div>
       ))}
       <Button size="small" icon={<IconPlus />} onClick={() => onChange([...list, { picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } }])}>
-        添加图片
+        {t('添加图片')}
       </Button>
     </div>
   );
@@ -4474,6 +4505,7 @@ function FieldControl({
   moduleData: Record<string, any>;
   onChange: (next: Record<string, any>) => void;
 }) {
+  const { t } = useI18n();
   const categoryOptions = useCategoryOptions();
   const [pickerVisible, setPickerVisible] = useState(false);
   const [grouponVisible, setGrouponVisible] = useState(false);
@@ -4490,7 +4522,7 @@ function FieldControl({
       return (
         <RadioGroup value={(value ?? field.options?.[0]?.value) as string | number | undefined} onChange={(e: any) => set(Number(e.target.value))}>
           {(field.options || []).map((o) => (
-            <Radio key={String(o.value)} value={o.value}>{o.label}</Radio>
+            <Radio key={String(o.value)} value={o.value}>{t(o.label)}</Radio>
           ))}
         </RadioGroup>
       );
@@ -4500,7 +4532,7 @@ function FieldControl({
       return (
         <Select
           value={(value ?? field.options?.[0]?.value) as string | number | undefined}
-          optionList={(field.options || []).map((o) => ({ label: o.label, value: o.value }))}
+          optionList={(field.options || []).map((o) => ({ label: t(o.label), value: o.value }))}
           style={{ width: 160 }}
           onChange={(v) => set(v)}
         />
@@ -4538,8 +4570,8 @@ function FieldControl({
             onChange={(e) => set(e.target.value)}
             style={{ width: 46, height: 30, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
           />
-          <Button size="small" onClick={() => set(field.resetValue ?? '')}>重置</Button>
-          <Text type="tertiary" size="small">{String(value || '未设置')}</Text>
+          <Button size="small" onClick={() => set(field.resetValue ?? '')}>{t('重置')}</Button>
+          <Text type="tertiary" size="small">{value ? String(value) : t('未设置')}</Text>
         </div>
       );
     case 'picList':
@@ -4548,15 +4580,15 @@ function FieldControl({
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <PicListEditor value={value && (value as PicItem).picUrl ? [value as PicItem] : []} onChange={(v) => set(v[0] || { picUrl: '', picThumb: '' })} />
-          <Button size="small" onClick={() => set((field.resetValue as PicItem) || { picUrl: '', picThumb: '' })}>重置</Button>
+          <Button size="small" onClick={() => set((field.resetValue as PicItem) || { picUrl: '', picThumb: '' })}>{t('重置')}</Button>
         </div>
       );
     case 'link': {
       const link = (value && typeof value === 'object' ? value : { link: '', title: '' }) as Record<string, any>;
       return (
         <div style={{ display: 'flex', gap: 6 }}>
-          <Input value={link.link || ''} onChange={(v) => set({ ...link, link: v })} placeholder="链接地址" />
-          <Input value={link.name || ''} onChange={(v) => set({ ...link, name: v })} placeholder="名称" style={{ width: 110 }} />
+          <Input value={link.link || ''} onChange={(v) => set({ ...link, link: v })} placeholder={t('链接地址')} />
+          <Input value={link.name || ''} onChange={(v) => set({ ...link, name: v })} placeholder={t('名称')} style={{ width: 110 }} />
         </div>
       );
     }
@@ -4566,13 +4598,13 @@ function FieldControl({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {list.map((item, index) => (
             <div key={index} style={{ display: 'flex', gap: 6 }}>
-              <Input value={item.link?.link || ''} onChange={(v) => set(list.map((it, i) => (i === index ? { ...it, link: { ...it.link, link: v } } : it)))} placeholder="链接地址" />
-              <Input value={item.linkTitle || ''} onChange={(v) => set(list.map((it, i) => (i === index ? { ...it, linkTitle: v } : it)))} placeholder="名称" style={{ width: 110 }} />
+              <Input value={item.link?.link || ''} onChange={(v) => set(list.map((it, i) => (i === index ? { ...it, link: { ...it.link, link: v } } : it)))} placeholder={t('链接地址')} />
+              <Input value={item.linkTitle || ''} onChange={(v) => set(list.map((it, i) => (i === index ? { ...it, linkTitle: v } : it)))} placeholder={t('名称')} style={{ width: 110 }} />
               <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => set(list.filter((_, i) => i !== index))} />
             </div>
           ))}
           <Button size="small" icon={<IconPlus />} onClick={() => set([...list, { link: { link: '', title: '' }, linkTitle: '' }])}>
-            添加链接
+            {t('添加链接')}
           </Button>
         </div>
       );
@@ -4585,7 +4617,7 @@ function FieldControl({
           showClear
           filter
           style={{ width: '100%' }}
-          placeholder="选择商品分类"
+          placeholder={t('选择商品分类')}
           onChange={(v) => set(v ? Number(v) : 0)}
         />
       );
@@ -4599,7 +4631,7 @@ function FieldControl({
           showClear
           filter
           style={{ width: '100%' }}
-          placeholder="选择商品分类(可多选)"
+          placeholder={t('选择商品分类(可多选)')}
           onChange={(v) => set(((v as unknown as number[]) || []).map(Number))}
         />
       );
@@ -4608,7 +4640,7 @@ function FieldControl({
       const ids = (Array.isArray(value) ? value : []) as number[];
       return (
         <div>
-          <Button icon={<IconPlus />} onClick={() => setPickerVisible(true)}>选择商品（已选 {ids.length}）</Button>
+          <Button icon={<IconPlus />} onClick={() => setPickerVisible(true)}>{t('选择商品（已选 {count}）', { count: ids.length })}</Button>
           {ids.length > 0 && (
             <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {ids.map((id) => <Tag key={id} size="small">#{id}</Tag>)}
@@ -4626,30 +4658,30 @@ function FieldControl({
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
-            <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>选品方式</Text>
+            <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t('选品方式')}</Text>
             <RadioGroup value={products.productSelectType ?? 1} onChange={(e: any) => setProducts({ ...products, productSelectType: Number(e.target.value) })}>
-              <Radio value={1}>选商品</Radio>
-              <Radio value={2}>按分类</Radio>
-              <Radio value={3}>按标签</Radio>
+              <Radio value={1}>{t('选商品')}</Radio>
+              <Radio value={2}>{t('按分类')}</Radio>
+              <Radio value={3}>{t('按标签')}</Radio>
             </RadioGroup>
           </div>
           {Number(products.productSelectType) === 1 && (
             <div>
-              <Button icon={<IconPlus />} onClick={() => setPickerVisible(true)}>选择商品（已选 {((products.productIds || []) as number[]).length}）</Button>
+              <Button icon={<IconPlus />} onClick={() => setPickerVisible(true)}>{t('选择商品（已选 {count}）', { count: ((products.productIds || []) as number[]).length })}</Button>
               {pickerVisible && (
                 <ProductPickerModal visible selectedIds={(products.productIds || []) as number[]} onOk={(nextIds) => { setProducts({ ...products, productIds: nextIds }); setPickerVisible(false); }} onCancel={() => setPickerVisible(false)} />
               )}
             </div>
           )}
           {Number(products.productSelectType) === 2 && (
-            <Select value={products.productCategoryId || undefined} optionList={categoryOptions} showClear filter placeholder="选择分类" onChange={(v) => setProducts({ ...products, productCategoryId: v ? Number(v) : 0 })} />
+            <Select value={products.productCategoryId || undefined} optionList={categoryOptions} showClear filter placeholder={t('选择分类')} onChange={(v) => setProducts({ ...products, productCategoryId: v ? Number(v) : 0 })} />
           )}
           {Number(products.productSelectType) === 3 && (
-            <Input value={products.productTag || ''} onChange={(v) => setProducts({ ...products, productTag: v })} placeholder="商品标签" />
+            <Input value={products.productTag || ''} onChange={(v) => setProducts({ ...products, productTag: v })} placeholder={t('商品标签')} />
           )}
           {[2, 3].includes(Number(products.productSelectType)) && (
             <div>
-              <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>商品数量</Text>
+              <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t('商品数量')}</Text>
               <InputNumber
                 value={products.productNumber ?? 10}
                 onChange={(v) => setProducts({ ...products, productNumber: v ?? 10 })}
@@ -4668,13 +4700,13 @@ function FieldControl({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {item ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Tag color="blue">{item.name || `活动#${item.grouponPromotionId}`}</Tag>
-              <Button size="small" theme="borderless" type="danger" onClick={() => set(null)}>移除</Button>
+              <Tag color="blue">{item.name || t('活动#{id}', { id: item.grouponPromotionId })}</Tag>
+              <Button size="small" theme="borderless" type="danger" onClick={() => set(null)}>{t('移除')}</Button>
             </div>
           ) : (
-            <Text type="tertiary" size="small">未选择活动</Text>
+            <Text type="tertiary" size="small">{t('未选择活动')}</Text>
           )}
-          <Button icon={<IconPlus />} onClick={() => setGrouponVisible(true)}>选择拼团活动</Button>
+          <Button icon={<IconPlus />} onClick={() => setGrouponVisible(true)}>{t('选择拼团活动')}</Button>
           {grouponVisible && (
             <GrouponPickerModal visible current={item || null} onOk={(next) => { set(next); setGrouponVisible(false); }} onCancel={() => setGrouponVisible(false)} />
           )}
@@ -4685,7 +4717,7 @@ function FieldControl({
       const titleData = (value && typeof value === 'object' ? value : standardTitle()) as Record<string, any>;
       return (
         <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Text strong size="small">{field.label}</Text>
+          <Text strong size="small">{t(field.label)}</Text>
           {titleFields({
             moreType: !field.titleHideMoreType,
             verticalPadding: !field.titleHideVerticalPadding && Object.prototype.hasOwnProperty.call(titleData, 'titlePaddingTop'),
@@ -4694,7 +4726,7 @@ function FieldControl({
             if (f.showIf && !f.showIf({ title: titleData })) return null;
             return (
               <div key={f.key}>
-                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{f.label}{f.hint ? `（${f.hint}）` : ''}</Text>
+                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t(f.label)}{f.hint ? `（${t(f.hint)}）` : ''}</Text>
                 <FieldControl field={{ ...f, key: f.key.replace('title.', '') }} moduleData={titleData} onChange={(next) => set(next)} />
               </div>
             );
@@ -4707,12 +4739,12 @@ function FieldControl({
         const group = (value && typeof value === 'object' ? value : {}) as Record<string, any>;
         return (
           <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Text strong size="small">{field.label}</Text>
+            <Text strong size="small">{t(field.label)}</Text>
             {(CONTAINER_VARIANTS[field.containerType] || []).map((f) => {
               if (f.showIf && !f.showIf(group)) return null;
               return (
                 <div key={f.key}>
-                  <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{f.label}</Text>
+                  <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t(f.label)}</Text>
                   <FieldControl field={f} moduleData={group} onChange={(next) => set(next)} />
                 </div>
               );
@@ -4723,10 +4755,10 @@ function FieldControl({
       const frame = (getPath(moduleData, field.key) && typeof getPath(moduleData, field.key) === 'object' ? getPath(moduleData, field.key) : standardFrame()) as Record<string, any>;
       return (
         <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Text strong size="small">{field.label || '容器设置'}</Text>
+          <Text strong size="small">{field.label ? t(field.label) : t('容器设置')}</Text>
           {containerFields().map((f) => (
             <div key={f.key}>
-              <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{f.label}</Text>
+              <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t(f.label)}</Text>
               <FieldControl field={{ ...f, key: f.key.replace('frame.', '') }} moduleData={frame} onChange={(next) => set(next)} />
             </div>
           ))}
@@ -4739,71 +4771,71 @@ function FieldControl({
         set(cards.map((c, i) => (i === index ? updater(c) : c)));
       };
       const labelColors = (prefix: string, label: string) => [
-        { kind: 'color' as const, key: `${prefix}BgColorA`, label: `${label}色A` },
-        { kind: 'color' as const, key: `${prefix}BgColorB`, label: `${label}色B` },
+        { kind: 'color' as const, key: `${prefix}BgColorA`, label: t('{name}色A', { name: t(label) }) },
+        { kind: 'color' as const, key: `${prefix}BgColorB`, label: t('{name}色B', { name: t(label) }) },
       ];
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {cards.map((card, ci) => (
             <div key={ci} style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Tag size="small" color="blue">卡位 {ci + 1}</Tag>
+                <Tag size="small" color="blue">{t('卡位 {index}', { index: ci + 1 })}</Tag>
                 <Input
                   value={card.moduleTitle || ''}
                   onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleTitle: v }))}
-                  placeholder="卡片标题"
+                  placeholder={t('卡片标题')}
                   size="small"
                 />
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <Input value={card.moduleSubTitle || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitle: v }))} placeholder="子标题" size="small" />
+                <Input value={card.moduleSubTitle || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitle: v }))} placeholder={t('子标题')} size="small" />
                 <input
                   type="color"
                   value={card.moduleSubTitleBgColorA || '#ff4e4e'}
                   onChange={(e) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorA: e.target.value }))}
                   style={{ width: 34, height: 28, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-                  title="子标题背景色A"
+                  title={t('子标题背景色A')}
                 />
                 <input
                   type="color"
                   value={card.moduleSubTitleBgColorB || '#e1251b'}
                   onChange={(e) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorB: e.target.value }))}
                   style={{ width: 34, height: 28, border: '1px solid var(--semi-color-border)', borderRadius: 4, cursor: 'pointer' }}
-                  title="子标题背景色B"
+                  title={t('子标题背景色B')}
                 />
                 <Select
                   value={card.moduleSubTitleBgType || 'leftRight'}
-                  optionList={[{ label: '左右渐变', value: 'leftRight' }, { label: '上下渐变', value: 'upDown' }, { label: '对角渐变', value: 'diagonal' }]}
+                  optionList={[{ label: t('左右渐变'), value: 'leftRight' }, { label: t('上下渐变'), value: 'upDown' }, { label: t('对角渐变'), value: 'diagonal' }]}
                   style={{ width: 110 }}
                   onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgType: v }))}
                 />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Text type="tertiary" size="small">显示价格</Text>
+                <Text type="tertiary" size="small">{t('显示价格')}</Text>
                 <Switch checked={Number(card.showPrice) === 1} onChange={(v) => updateCard(ci, (c) => ({ ...c, showPrice: v ? 1 : 0 }))} />
                 <Input
                   value={card.link?.link || ''}
                   onChange={(v) => updateCard(ci, (c) => ({ ...c, link: { ...c.link, link: v, name: c.link?.name || '' } }))}
-                  placeholder="跳转链接(可选)"
+                  placeholder={t('跳转链接(可选)')}
                   size="small"
                   style={{ flex: 1 }}
                 />
               </div>
               {((card.products || []) as Array<Record<string, any>>).map((p, pi) => (
                 <div key={pi} style={{ borderTop: '1px dashed var(--semi-color-border)', paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <Text type="tertiary" size="small">商品槽 {pi + 1}</Text>
+                  <Text type="tertiary" size="small">{t('商品槽 {index}', { index: pi + 1 })}</Text>
                   <Input
                     value={p.pic?.picUrl || ''}
                     onChange={(v) => updateCard(ci, (c) => ({
                       ...c,
                       products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, pic: { ...(x.pic || {}), picUrl: v, picThumb: v } } : x)),
                     }))}
-                    placeholder="商品图 URL"
+                    placeholder={t('商品图 URL')}
                     size="small"
                   />
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <Input value={p.price || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, price: v } : x)) }))} placeholder="价格如 ¥88.8" size="small" />
-                    <Input value={p.label || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, label: v } : x)) }))} placeholder="角标文字(可选)" size="small" />
+                    <Input value={p.price || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, price: v } : x)) }))} placeholder={t('价格如 ¥88.8')} size="small" />
+                    <Input value={p.label || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, label: v } : x)) }))} placeholder={t('角标文字(可选)')} size="small" />
                   </div>
                   {p.label ? (
                     <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
@@ -4836,7 +4868,7 @@ function FieldControl({
       };
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {pics.length === 0 && <Text type="tertiary" size="small">请先在上方添加热图</Text>}
+          {pics.length === 0 && <Text type="tertiary" size="small">{t('请先在上方添加热图')}</Text>}
           {pics.map((pic, pi) => {
             const hotareas = pic.hotarea || [];
             const updateHotareas = (next: Array<Record<string, any>>) => {
@@ -4844,20 +4876,20 @@ function FieldControl({
             };
             return (
               <div key={pi} style={{ border: '1px solid var(--semi-color-border)', borderRadius: 6, padding: 8 }}>
-                <Text strong size="small">图 {pi + 1} 的热区</Text>
+                <Text strong size="small">{t('图 {index} 的热区', { index: pi + 1 })}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
                   {hotareas.map((h, index) => (
                     <div key={index} style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <InputNumber value={h.width} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, width: v ?? 0 } : x)))} placeholder="宽" style={{ width: 70 }} />
-                      <InputNumber value={h.height} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, height: v ?? 0 } : x)))} placeholder="高" style={{ width: 70 }} />
-                      <InputNumber value={h.top} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, top: v ?? 0 } : x)))} placeholder="上" style={{ width: 70 }} />
-                      <InputNumber value={h.left} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, left: v ?? 0 } : x)))} placeholder="左" style={{ width: 70 }} />
-                      <Input value={h.link?.link || ''} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, link: { ...x.link, link: v } } : x)))} placeholder="链接" style={{ flex: 1, minWidth: 100 }} />
+                      <InputNumber value={h.width} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, width: v ?? 0 } : x)))} placeholder={t('宽')} style={{ width: 70 }} />
+                      <InputNumber value={h.height} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, height: v ?? 0 } : x)))} placeholder={t('高')} style={{ width: 70 }} />
+                      <InputNumber value={h.top} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, top: v ?? 0 } : x)))} placeholder={t('上')} style={{ width: 70 }} />
+                      <InputNumber value={h.left} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, left: v ?? 0 } : x)))} placeholder={t('左')} style={{ width: 70 }} />
+                      <Input value={h.link?.link || ''} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, link: { ...x.link, link: v } } : x)))} placeholder={t('链接')} style={{ flex: 1, minWidth: 100 }} />
                       <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateHotareas(hotareas.filter((_, i) => i !== index))} />
                     </div>
                   ))}
                   <Button size="small" icon={<IconPlus />} onClick={() => updateHotareas([...hotareas, { width: 100, height: 60, top: 0, left: 0, link: { link: '', name: '' } }])}>
-                    添加热区
+                    {t('添加热区')}
                   </Button>
                 </div>
               </div>
@@ -4872,13 +4904,13 @@ function FieldControl({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {groups.map((g, index) => (
             <div key={index} style={{ border: '1px solid var(--semi-color-border)', borderRadius: 6, padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <Text strong size="small">第【{index + 1}】组{index === 0 ? '（固定，不可删除/拖动）' : ''}</Text>
+              <Text strong size="small">{t('第【{index}】组', { index: index + 1 })}{index === 0 ? t('（固定，不可删除/拖动）') : ''}</Text>
               <div>
-                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>标题</Text>
-                <Input value={g.title || ''} onChange={(v) => set(groups.map((x, i) => (i === index ? { ...x, title: v } : x)))} placeholder="请输入标题内容" />
+                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t('标题')}</Text>
+                <Input value={g.title || ''} onChange={(v) => set(groups.map((x, i) => (i === index ? { ...x, title: v } : x)))} placeholder={t('请输入标题内容')} />
               </div>
               <div>
-                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>标题图片</Text>
+                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t('标题图片')}</Text>
                 <FieldControl
                   field={{ kind: 'pic', key: 'titlePic', label: '标题图片' }}
                   moduleData={g}
@@ -4895,8 +4927,8 @@ function FieldControl({
                     : { ...x, sourceType: type, productList: [] })
                   : x)));
               }}>
-                <Radio value="products">选择商品</Radio>
-                <Radio value="productGroup">商品分组</Radio>
+                <Radio value="products">{t('选择商品')}</Radio>
+                <Radio value="productGroup">{t('商品分组')}</Radio>
               </RadioGroup>
               {(g.sourceType || 'products') === 'products' ? (
                 <div>
@@ -4905,7 +4937,7 @@ function FieldControl({
                     icon={<IconPlus />}
                     onClick={() => setPickerVisible(true)}
                   >
-                    选择商品（已选 {((g.productIds || []) as number[]).length}）
+                    {t('选择商品（已选 {count}）', { count: ((g.productIds || []) as number[]).length })}
                   </Button>
                   {pickerVisible && (
                     <ProductPickerModal visible selectedIds={(g.productIds || []) as number[]} onOk={(nextIds) => { set(groups.map((x, i) => (i === index ? { ...x, productIds: nextIds } : x))); setPickerVisible(false); }} onCancel={() => setPickerVisible(false)} />
@@ -4913,19 +4945,19 @@ function FieldControl({
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <InputNumber value={g.productGroupId} onChange={(v) => set(groups.map((x, i) => (i === index ? { ...x, productGroupId: v ?? undefined } : x)))} placeholder="商品分组 ID" style={{ width: 160 }} />
-                  {g.productGroupName ? <Text type="tertiary" size="small">已选分组：{g.productGroupName}</Text> : null}
+                  <InputNumber value={g.productGroupId} onChange={(v) => set(groups.map((x, i) => (i === index ? { ...x, productGroupId: v ?? undefined } : x)))} placeholder={t('商品分组 ID')} style={{ width: 160 }} />
+                  {g.productGroupName ? <Text type="tertiary" size="small">{t('已选分组：')}{g.productGroupName}</Text> : null}
                 </div>
               )}
               {index > 0 && (
                 <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => set(groups.filter((_, i) => i !== index))}>
-                  删除该组
+                  {t('删除该组')}
                 </Button>
               )}
             </div>
           ))}
           <Button size="small" icon={<IconPlus />} onClick={() => set([...groups, { sourceType: 'products', title: '', titlePic: { picUrl: '', picThumb: '' }, titleLink: { link: '', name: '' }, bannerPic: { picUrl: '', picThumb: '' }, bannerLink: { link: '', name: '' }, productIds: [], productList: [] }])}>
-            添加一组
+            {t('添加一组')}
           </Button>
         </div>
       );

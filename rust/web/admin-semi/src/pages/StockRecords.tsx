@@ -17,6 +17,7 @@ import { apiGet, apiPost, apiUpload } from '../api';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import ProductPicker from '../components/ProductPicker';
+import { useI18n } from '../i18n';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -51,6 +52,7 @@ const OUT_TYPES = [
 
 /** 商品入库/出库：对应旧版 product/goodsArePutIntoStorage|goodsArePutOutOfStorage（inOrOut 1/2 共用）。 */
 export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
+  const { t } = useI18n();
   const typeList = inOrOut === 1 ? IN_TYPES : OUT_TYPES;
   const typeLabel = inOrOut === 1 ? '入库' : '出库';
   const [reloadKey, setReloadKey] = useState(0);
@@ -80,7 +82,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
       });
       setDetailRows(result?.productStockRecordDetailList || result?.records || result?.list || []);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setDetailLoading(false);
     }
@@ -95,11 +97,13 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
         file,
       );
       const fail = result?.failCount ?? 0;
-      Toast.success({ content: fail ? `导入完成，失败 ${fail} 条` : '导入成功' });
+      Toast.success({
+        content: fail ? t('导入完成，失败 {count} 条', { count: fail }) : t('导入成功'),
+      });
       setImportOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导入失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
     } finally {
       setImporting(false);
     }
@@ -118,7 +122,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      Toast.error({ content: '模板下载失败' });
+      Toast.error({ content: t('模板下载失败') });
     }
   };
 
@@ -135,7 +139,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
       width: 120,
       render: (value: number | string) => {
         const hit = typeList.find((item) => String(item.value) === String(value));
-        return <span>{hit?.label ?? String(value ?? '-')}</span>;
+        return <span>{hit ? t(hit.label) : String(value ?? '-')}</span>;
       },
     },
     { title: inOrOut === 1 ? '入库时间' : '出库时间', dataIndex: 'addTime', width: 170 },
@@ -171,14 +175,14 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
         fields: [
           {
             field: 'type',
-            label: `${typeLabel}类型`,
+            label: inOrOut === 1 ? t('入库类型') : t('出库类型'),
             type: 'radio',
-            options: typeList,
+            options: typeList.map((item) => ({ ...item, label: t(item.label) })),
           },
-          { field: 'comment', label: '备注', type: 'textarea' },
+          { field: 'comment', label: t('备注'), type: 'textarea' },
           {
             field: 'productStockRecordDetailList',
-            label: '选择商品',
+            label: t('选择商品'),
             type: 'custom',
             render: ({ formApi, values }) => {
               const picked: PickedProduct[] = values.productStockRecordDetailList || [];
@@ -200,7 +204,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
                   {picked.map((item, index) => (
                     <div className="stock-record-row" key={item.productId}>
                       <span className="stock-record-name">
-                        {item.productName || `商品#${item.productId}`}
+                        {item.productName || t('商品#{id}', { id: String(item.productId ?? '') })}
                       </span>
                       <InputNumber
                         size="small"
@@ -225,7 +229,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
                           )
                         }
                       >
-                        移除
+                        {t('移除')}
                       </Button>
                     </div>
                   ))}
@@ -238,7 +242,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
     ],
     toPayload: (values) => {
       const rows: PickedProduct[] = values.productStockRecordDetailList || [];
-      if (!rows.length) throw new Error('请选择商品!');
+      if (!rows.length) throw new Error(t('请选择商品!'));
       return {
         type: values.type,
         comment: values.comment || '',
@@ -266,15 +270,15 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
         columns={columns}
         rowActions={(row) => (
           <Button theme="borderless" size="small" onClick={() => openDetail(row)}>
-            详情
+            {t('详情')}
           </Button>
         )}
         toolbarExtra={
           <Space>
             <Button theme="solid" type="primary" onClick={openCreate}>
-              商品{typeLabel}
+              {inOrOut === 1 ? t('商品入库') : t('商品出库')}
             </Button>
-            <Button onClick={() => setImportOpen(true)}>批量导入</Button>
+            <Button onClick={() => setImportOpen(true)}>{t('批量导入')}</Button>
           </Space>
         }
       />
@@ -293,11 +297,11 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
               inOrOut === 1 ? '/product/stock/stockIn' : '/product/stock/stockOut',
               payload,
             );
-            Toast.success({ content: '操作成功' });
+            Toast.success({ content: t('操作成功') });
             setDrawerOpen(false);
             reload();
           } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+            Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
           } finally {
             setSaving(false);
           }
@@ -305,7 +309,7 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
       />
 
       <Modal
-        title="详情"
+        title={t('详情')}
         visible={detailOpen}
         footer={null}
         onCancel={() => setDetailOpen(false)}
@@ -318,17 +322,17 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
             rowKey={(record: any, index?: number) => String(record.productId ?? index)}
             dataSource={detailRows}
             columns={[
-              { title: '商品名称', dataIndex: 'productName', render: (v: any, r: any) => v || r.productName || '-' },
-              { title: '规格', dataIndex: 'productSkuName', render: (v: any) => v || '-' },
-              { title: '数量', dataIndex: 'quantity' },
+              { title: t('商品名称'), dataIndex: 'productName', render: (v: any, r: any) => v || r.productName || '-' },
+              { title: t('规格'), dataIndex: 'productSkuName', render: (v: any) => v || '-' },
+              { title: t('数量'), dataIndex: 'quantity' },
             ]}
           />
-          {!detailRows.length && !detailLoading ? <Text type="tertiary">暂无数据</Text> : null}
+          {!detailRows.length && !detailLoading ? <Text type="tertiary">{t('暂无数据')}</Text> : null}
         </Spin>
       </Modal>
 
       <Modal
-        title={`${typeLabel}批量导入`}
+        title={inOrOut === 1 ? t('入库批量导入') : t('出库批量导入')}
         visible={importOpen}
         footer={null}
         onCancel={() => setImportOpen(false)}
@@ -346,13 +350,13 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
                 }}
               />
               <Button theme="solid" type="primary" loading={importing}>
-                选择 Excel 文件
+                {t('选择 Excel 文件')}
               </Button>
             </label>
-            <Button onClick={downloadTemplate}>下载导入模板</Button>
+            <Button onClick={downloadTemplate}>{t('下载导入模板')}</Button>
           </Space>
           <Text type="tertiary" size="small">
-            按模板填写后导入；若存在错误数据，可使用错误数据下载接口核对（getImportErrorData）。
+            {t('按模板填写后导入；若存在错误数据，可使用错误数据下载接口核对（getImportErrorData）。')}
           </Text>
         </div>
       </Modal>

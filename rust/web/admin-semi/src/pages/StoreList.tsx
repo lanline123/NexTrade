@@ -18,6 +18,7 @@ import { IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -67,6 +68,7 @@ const statusMap: Record<number, { text: string; type: 'success' | 'danger' | 'wa
 };
 
 export default function StoreList() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   // 商户详情弹窗
@@ -80,10 +82,10 @@ export default function StoreList() {
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/shop/shop/del', { id });
-      Toast.success({ content: '删除门店成功' });
+      Toast.success({ content: t('删除门店成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -106,60 +108,60 @@ export default function StoreList() {
         fields: [
           {
             field: 'shopTitle',
-            label: '门店名称',
+            label: t('门店名称'),
             type: 'input',
             required: true,
-            placeholder: '请输入门店名称',
+            placeholder: t('请输入门店名称'),
             width: 360,
           },
           {
             field: 'merchantId',
-            label: '所属商户',
+            label: t('所属商户'),
             type: 'number',
             required: true,
-            placeholder: '输入商户ID',
-            extraText: '门店所属商户，关联个人或企业商户',
+            placeholder: t('输入商户ID'),
+            extraText: t('门店所属商户，关联个人或企业商户'),
             width: 200,
           },
           {
             field: 'shopLogo',
-            label: '门店LOGO',
+            label: t('门店LOGO'),
             type: 'input',
             required: true,
-            placeholder: '输入图片URL (建议尺寸300x300)',
+            placeholder: t('输入图片URL (建议尺寸300x300)'),
             width: 360,
           },
           {
             field: 'shopCoverPicture',
-            label: '门头封面',
+            label: t('门头封面'),
             type: 'input',
-            placeholder: '输入图片URL',
+            placeholder: t('输入图片URL'),
             width: 360,
           },
           {
             field: 'shopDetailedAddress',
-            label: '门店地址',
+            label: t('门店地址'),
             type: 'input',
             required: true,
-            placeholder: '详细地址',
+            placeholder: t('详细地址'),
             width: 360,
           },
           {
             field: 'description',
-            label: '门店公告',
+            label: t('门店公告'),
             type: 'textarea',
-            placeholder: '请填写门店公告，该简介会显示在用户门店详细中',
+            placeholder: t('请填写门店公告，该简介会显示在用户门店详细中'),
             width: 360,
           },
           {
             field: 'status',
-            label: '营业状态',
+            label: t('营业状态'),
             type: 'radio',
             required: true,
             initValue: 1,
             options: [
-              { label: '开业', value: 1 },
-              { label: '停业', value: 4 },
+              { label: t('开业'), value: 1 },
+              { label: t('停业'), value: 4 },
             ],
           },
         ],
@@ -189,7 +191,7 @@ export default function StoreList() {
               color: 'var(--semi-color-text-2)',
             }}
           >
-            无LOGO
+            {t('无LOGO')}
           </div>
         ),
     },
@@ -226,7 +228,7 @@ export default function StoreList() {
           <Space>
             <span>{name}</span>
             <Tag color={isAuthed ? 'green' : 'amber'} size="small">
-              {isAuthed ? '(已认证)' : '(未认证)'}
+              {isAuthed ? t('(已认证)') : t('(未认证)')}
             </Tag>
             {record.merchant && (
               <Button
@@ -238,7 +240,7 @@ export default function StoreList() {
                   setMerchantModalVisible(true);
                 }}
               >
-                商户详情
+                {t('商户详情')}
               </Button>
             )}
           </Space>
@@ -250,11 +252,11 @@ export default function StoreList() {
       dataIndex: 'status',
       width: 110,
       render: (val: number) => {
-        const s = statusMap[val] || { text: '开业', type: 'success' };
+        const s = statusMap[val] || { text: t('开业'), type: 'success' };
         return (
           <Space>
             <Badge dot type={s.type} style={{ marginRight: 4 }} />
-            <span>{s.text}</span>
+            <span>{t(s.text)}</span>
           </Space>
         );
       },
@@ -275,7 +277,7 @@ export default function StoreList() {
               setAccountModalVisible(true);
             }}
           >
-            主账号管理
+            {t('主账号管理')}
           </Button>
         </Space>
       ),
@@ -326,11 +328,11 @@ export default function StoreList() {
         rowActions={(record) => (
           <Space spacing={4}>
             <Popconfirm
-              title="删除后门店信息将无法恢复，请确认是否删除该门店？"
+              title={t('删除后门店信息将无法恢复，请确认是否删除该门店？')}
               onConfirm={() => handleDelete(record.shopId)}
             >
               <Button theme="borderless" size="small" type="danger">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -339,12 +341,12 @@ export default function StoreList() {
 
       {/* 商户详情弹窗 */}
       <Modal
-        title="商户详情"
+        title={t('商户详情')}
         visible={merchantModalVisible}
         onCancel={() => setMerchantModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setMerchantModalVisible(false)}>
-            确定
+            {t('确定')}
           </Button>
         }
         width={500}
@@ -353,19 +355,21 @@ export default function StoreList() {
           <Descriptions
             data={[
               {
-                key: '商户类型',
-                value: selectedMerchant.type === 1 ? '个人' : '企业',
+                key: t('商户类型'),
+                value: selectedMerchant.type === 1 ? t('个人') : t('企业'),
               },
               {
-                key: '商户所属单位',
+                key: t('商户所属单位'),
                 value:
                   selectedMerchant.type === 1
                     ? selectedMerchant.corporateName
                     : selectedMerchant.merchantData?.merchantName,
               },
               {
-                key: '认证状态',
-                value: selectedMerchant.statusText || (selectedMerchant.status === 1 ? '认证通过' : '待审核'),
+                key: t('认证状态'),
+                value:
+                  selectedMerchant.statusText ||
+                  (selectedMerchant.status === 1 ? t('认证通过') : t('待审核')),
               },
             ]}
           />
@@ -374,11 +378,11 @@ export default function StoreList() {
 
       {/* 主账号管理弹窗 */}
       <Modal
-        title="主账号管理"
+        title={t('主账号管理')}
         visible={accountModalVisible}
         onCancel={() => setAccountModalVisible(false)}
         onOk={() => {
-          Toast.success({ content: '主账号更新成功' });
+          Toast.success({ content: t('主账号更新成功') });
           setAccountModalVisible(false);
         }}
         width={480}
@@ -386,8 +390,8 @@ export default function StoreList() {
         <div style={{ padding: '12px 0' }}>
           <Descriptions
             data={[
-              { key: '门店名称', value: currentStore?.shopTitle || '--' },
-              { key: '当前主账号', value: currentStore?.mainAccount || '未绑定主账号' },
+              { key: t('门店名称'), value: currentStore?.shopTitle || '--' },
+              { key: t('当前主账号'), value: currentStore?.mainAccount || t('未绑定主账号') },
             ]}
           />
         </div>

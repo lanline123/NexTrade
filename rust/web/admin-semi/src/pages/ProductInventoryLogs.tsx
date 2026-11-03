@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Tabs, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
 import ListPage from '../framework/ListPage';
+import { useI18n } from '../i18n';
 import type { ColumnConfig } from '../framework/types';
 
 interface InventoryLogRow {
@@ -23,6 +24,7 @@ const LOG_TABS = [
 
 /** 库存日志：对应旧版 product/productInventoryLog/List.vue。 */
 export default function ProductInventoryLogs() {
+  const { t } = useI18n();
   const [logType, setLogType] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -87,7 +89,7 @@ export default function ProductInventoryLogs() {
             setLogType(Number(key));
             reload();
           }}
-          tabList={LOG_TABS.map((tab) => ({ tab: tab.label, itemKey: String(tab.value) }))}
+          tabList={LOG_TABS.map((tab) => ({ tab: t(tab.label), itemKey: String(tab.value) }))}
         />
       }
       rowActions={(row) => (
@@ -97,14 +99,14 @@ export default function ProductInventoryLogs() {
           onClick={async () => {
             try {
               await apiPost('/product/productInventoryLog/batch', { ids: [row.logId], type: 'del' });
-              Toast.success({ content: '删除成功' });
+              Toast.success({ content: t('删除成功') });
               reload();
             } catch (error) {
-              Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+              Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
             }
           }}
         >
-          删除
+          {t('删除')}
         </Button>
       )}
     />

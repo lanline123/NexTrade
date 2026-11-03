@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -30,6 +31,7 @@ interface PickupSettingData {
 }
 
 export function StorePickupSetting() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formState, setFormState] = useState<PickupSettingData>({
@@ -50,7 +52,7 @@ export function StorePickupSetting() {
         setFormState((prev) => ({ ...prev, ...res }));
       }
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载配置失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载配置失败') });
     } finally {
       setLoading(false);
     }
@@ -64,9 +66,9 @@ export function StorePickupSetting() {
     setSaving(true);
     try {
       await apiPost('/o2o/shopPickupConfig/saveShopPickupTpl', formState);
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
@@ -82,10 +84,10 @@ export function StorePickupSetting() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Card title="基础设置">
+      <Card title={t('基础设置')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <Text strong style={{ width: 140 }}>到店自提</Text>
+            <Text strong style={{ width: 140 }}>{t('到店自提')}</Text>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Switch
                 checked={formState.pickupEnabled === 1}
@@ -93,17 +95,17 @@ export function StorePickupSetting() {
                   setFormState({ ...formState, pickupEnabled: checked ? 1 : 0 })
                 }
               />
-              <Text>{formState.pickupEnabled === 1 ? '已启用' : '已关闭'}</Text>
+              <Text>{formState.pickupEnabled === 1 ? t('已启用') : t('已关闭')}</Text>
             </div>
           </div>
           <div style={{ marginLeft: 156 }}>
             <Text type="tertiary" size="small">
-              启用后，买家下单可选择到店自提，可选择自提点进行提货。
+              {t('启用后，买家下单可选择到店自提，可选择自提点进行提货。')}
             </Text>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 12 }}>
-            <Text strong style={{ width: 140 }}>完成备货</Text>
+            <Text strong style={{ width: 140 }}>{t('完成备货')}</Text>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Switch
                 checked={formState.stockingStatus === 1}
@@ -111,36 +113,36 @@ export function StorePickupSetting() {
                   setFormState({ ...formState, stockingStatus: checked ? 1 : 0 })
                 }
               />
-              <Text>开启系统自动完成备货</Text>
+              <Text>{t('开启系统自动完成备货')}</Text>
             </div>
           </div>
           <div style={{ marginLeft: 156 }}>
             <Text type="tertiary" size="small">
-              针对预售自提订单，实际完成自动备货的时间为预售开始发货时间和自动备货时间中较晚的时间。
+              {t('针对预售自提订单，实际完成自动备货的时间为预售开始发货时间和自动备货时间中较晚的时间。')}
             </Text>
           </div>
         </div>
       </Card>
 
-      <Card title="自提时间">
+      <Card title={t('自提时间')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Text strong style={{ width: 140 }}>自提时间</Text>
+              <Text strong style={{ width: 140 }}>{t('自提时间')}</Text>
               <RadioGroup
                 value={formState.pickupTimeStatus}
                 onChange={(e) =>
                   setFormState({ ...formState, pickupTimeStatus: Number(e.target.value) })
                 }
               >
-                <Radio value={0}>不开启</Radio>
-                <Radio value={1}>需要买家选择自提时间</Radio>
-                <Radio value={2}>不展示提货时间</Radio>
+                <Radio value={0}>{t('不开启')}</Radio>
+                <Radio value={1}>{t('需要买家选择自提时间')}</Radio>
+                <Radio value={2}>{t('不展示提货时间')}</Radio>
               </RadioGroup>
             </div>
             <div style={{ marginLeft: 156, marginTop: 6 }}>
               <Text type="tertiary" size="small">
-                买家下单选择到店自提，必须要选择自提时间，卖家需要按约定时间备货。
+                {t('买家下单选择到店自提，必须要选择自提时间，卖家需要按约定时间备货。')}
               </Text>
             </div>
           </div>
@@ -148,19 +150,19 @@ export function StorePickupSetting() {
           {formState.pickupTimeStatus === 1 && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <Text strong style={{ width: 140 }}>自提时间段</Text>
+                <Text strong style={{ width: 140 }}>{t('自提时间段')}</Text>
                 <Space align="center">
-                  <Text>每天</Text>
+                  <Text>{t('每天')}</Text>
                   <Input
                     style={{ width: 120 }}
-                    placeholder="开始时间"
+                    placeholder={t('开始时间')}
                     value={formState.pickupTimeSlotStart}
                     onChange={(val) => setFormState({ ...formState, pickupTimeSlotStart: val })}
                   />
-                  <Text>至</Text>
+                  <Text>{t('至')}</Text>
                   <Input
                     style={{ width: 120 }}
-                    placeholder="结束时间"
+                    placeholder={t('结束时间')}
                     value={formState.pickupTimeSlotEnd}
                     onChange={(val) => setFormState({ ...formState, pickupTimeSlotEnd: val })}
                   />
@@ -171,18 +173,18 @@ export function StorePickupSetting() {
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Text strong style={{ width: 140 }}>提货有效期</Text>
+              <Text strong style={{ width: 140 }}>{t('提货有效期')}</Text>
               <Space align="center">
                 <InputNumber
                   style={{ width: 140 }}
                   min={1}
-                  placeholder="请输入提货有效期"
+                  placeholder={t('请输入提货有效期')}
                   value={formState.pickupValidHours}
                   onChange={(val) =>
                     setFormState({ ...formState, pickupValidHours: Number(val) || 24 })
                   }
                 />
-                <Text>小时</Text>
+                <Text>{t('小时')}</Text>
               </Space>
             </div>
           </div>
@@ -198,7 +200,7 @@ export function StorePickupSetting() {
           onClick={handleSubmit}
           style={{ width: 140 }}
         >
-          提 交
+          {t('提 交')}
         </Button>
       </div>
     </div>

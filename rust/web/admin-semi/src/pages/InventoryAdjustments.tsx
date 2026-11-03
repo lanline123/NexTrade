@@ -13,6 +13,7 @@ import {
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
+import { useI18n } from '../i18n';
 import type { ColumnConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -45,6 +46,7 @@ const adjustTypeLabel = (value?: number) =>
 
 /** 库存调整：对应旧版 product/inventoryAdjustment/List.vue + Adjustment.vue + Logs.vue。 */
 export default function InventoryAdjustments() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [adjustTarget, setAdjustTarget] = useState<StockRow | null>(null);
   const [adjustForm, setAdjustForm] = useState<{ adjustType: number; quantity: number }>({
@@ -55,14 +57,14 @@ export default function InventoryAdjustments() {
   const [logOpen, setLogOpen] = useState(false);
   const [logLoading, setLogLoading] = useState(false);
   const [logRows, setLogRows] = useState<AdjustLogRow[]>([]);
-  const [logTitle, setLogTitle] = useState('记录');
+  const [logProductName, setLogProductName] = useState('');
 
   const reload = () => setReloadKey((key) => key + 1);
 
   const submitAdjust = async () => {
     if (!adjustTarget) return;
     if (adjustForm.adjustType === 1 && adjustForm.quantity === 0) {
-      Toast.error({ content: '请输入变更库存数量' });
+      Toast.error({ content: t('请输入变更库存数量') });
       return;
     }
     setAdjustSaving(true);
@@ -73,18 +75,18 @@ export default function InventoryAdjustments() {
         productId: adjustTarget.productId,
         skuId: adjustTarget.skuId,
       });
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setAdjustTarget(null);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '调整失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('调整失败') });
     } finally {
       setAdjustSaving(false);
     }
   };
 
   const openLogs = async (row: StockRow) => {
-    setLogTitle(`记录：${row.productName || ''}`);
+    setLogProductName(row.productName || '');
     setLogOpen(true);
     setLogLoading(true);
     try {
@@ -96,7 +98,7 @@ export default function InventoryAdjustments() {
       });
       setLogRows(result?.records || result?.list || []);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setLogLoading(false);
     }
@@ -157,23 +159,23 @@ export default function InventoryAdjustments() {
               setAdjustTarget(row);
             }}
           >
-            库存调整
+            {t('库存调整')}
           </Button>
           <Button theme="borderless" size="small" onClick={() => openLogs(row)}>
-            记录
+            {t('记录')}
           </Button>
         </Space>
       )}
       />
       <Modal
-        title="库存调整"
+        title={t('库存调整')}
         visible={Boolean(adjustTarget)}
         confirmLoading={adjustSaving}
         onOk={submitAdjust}
         onCancel={() => setAdjustTarget(null)}
       >
         <div className="stock-adjust-form">
-          <label>入库类型</label>
+          <label>{t('入库类型')}</label>
           <RadioGroup
             value={adjustForm.adjustType}
             onChange={(event) => setAdjustForm((c) => ({ ...c, adjustType: Number(event.target.value) }))}
@@ -181,15 +183,15 @@ export default function InventoryAdjustments() {
             {ADJUST_TYPES.map((item) => (
               <Radio key={item.value} value={item.value}>
                 <div>
-                  <div>{item.label}</div>
+                  <div>{t(item.label)}</div>
                   <Text type="tertiary" size="small">
-                    {item.tip}
+                    {t(item.tip)}
                   </Text>
                 </div>
               </Radio>
             ))}
           </RadioGroup>
-          <label>调整数量</label>
+          <label>{t('调整数量')}</label>
           {adjustForm.adjustType === 1 ? (
             <InputNumber
               style={{ width: 180 }}
@@ -210,7 +212,7 @@ export default function InventoryAdjustments() {
       </Modal>
 
       <Modal
-        title={logTitle}
+        title={logProductName ? t('记录：{name}', { name: logProductName }) : t('记录')}
         visible={logOpen}
         footer={null}
         onCancel={() => setLogOpen(false)}
@@ -224,37 +226,37 @@ export default function InventoryAdjustments() {
             dataSource={logRows.map((row, index) => ({ ...row, __logKey: `${row.addTime ?? ''}-${index}` }))}
             columns={[
               {
-                title: '调整类型',
+                title: t('调整类型'),
                 dataIndex: 'adjustType',
                 width: 110,
-                render: (value: number) => <span>{adjustTypeLabel(value)}</span>,
+                render: (value: number) => <span>{t(adjustTypeLabel(value))}</span>,
               },
               {
-                title: '调整前数量',
+                title: t('调整前数量'),
                 dataIndex: 'changeBeforeQuantity',
                 width: 110,
                 render: (value: number) => <span>{value === 0 ? 0 : value ?? '--'}</span>,
               },
               {
-                title: '调整后数量',
+                title: t('调整后数量'),
                 dataIndex: 'changeAfterQuantity',
                 width: 110,
                 render: (value: number) => <span>{value === 0 ? 0 : value ?? '--'}</span>,
               },
               {
-                title: '操作账号',
+                title: t('操作账号'),
                 dataIndex: 'addBy',
                 width: 110,
                 render: (value: string) => <span>{value || '--'}</span>,
               },
               {
-                title: '创建时间',
+                title: t('创建时间'),
                 dataIndex: 'addTime',
                 render: (value: string) => <span>{value || '--'}</span>,
               },
             ]}
           />
-          {!logRows.length && !logLoading ? <Text type="tertiary">暂无数据</Text> : null}
+          {!logRows.length && !logLoading ? <Text type="tertiary">{t('暂无数据')}</Text> : null}
         </Spin>
       </Modal>
     </>

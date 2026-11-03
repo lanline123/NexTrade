@@ -17,6 +17,7 @@ import {
 import { IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import ListPage from '../framework/ListPage';
+import { useI18n } from '../i18n';
 import type { ColumnConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -32,6 +33,7 @@ interface AppointmentTplRow {
 }
 
 export function StoreAppointmentTemplates() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [formVisible, setFormVisible] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -75,16 +77,16 @@ export function StoreAppointmentTemplates() {
       } else {
         await apiPost('/o2o/reservationTpl/batch', { type: 'del', ids });
       }
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
   const handleFormSubmit = async () => {
     if (!formState.templateName.trim()) {
-      Toast.warning({ content: '请输入模板名称' });
+      Toast.warning({ content: t('请输入模板名称') });
       return;
     }
     setFormLoading(true);
@@ -103,11 +105,11 @@ export function StoreAppointmentTemplates() {
       } else {
         await apiPost('/o2o/reservationTpl/create', payload);
       }
-      Toast.success({ content: '保存成功' });
+      Toast.success({ content: t('保存成功') });
       setFormVisible(false);
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setFormLoading(false);
     }
@@ -125,7 +127,7 @@ export function StoreAppointmentTemplates() {
             <Text strong>{String(v || '--')}</Text>
             {Number(record.isDefault) === 1 && (
               <Tag size="small" color="blue">
-                默认
+                {t('默认')}
               </Tag>
             )}
           </Space>
@@ -139,17 +141,26 @@ export function StoreAppointmentTemplates() {
       render: (_: unknown, row: unknown) => {
         const record = row as AppointmentTplRow;
         if (record.reservationType === 0) {
-          return <Text type="tertiary">无需预约</Text>;
+          return <Text type="tertiary">{t('无需预约')}</Text>;
         }
-        const unitText = record.advanceUnit === 'd' ? '天' : '小时';
-        return <span>提前 {record.advanceNumber ?? 1} {unitText}预约</span>;
+        const unitText = record.advanceUnit === 'd' ? t('天') : t('小时');
+        return (
+          <span>
+            {t('提前 {number} {unit}预约', {
+              number: record.advanceNumber ?? 1,
+              unit: unitText,
+            })}
+          </span>
+        );
       },
     },
     {
       title: '最长预约',
       dataIndex: 'maxDays',
       width: 200,
-      render: (v: unknown) => <span>最长允许预约 {String(v ?? 7)} 天内的订单</span>,
+      render: (v: unknown) => (
+        <span>{t('最长允许预约 {days} 天内的订单', { days: String(v ?? 7) })}</span>
+      ),
     },
     {
       title: '操作',
@@ -165,15 +176,15 @@ export function StoreAppointmentTemplates() {
               size="small"
               onClick={() => openForm(record)}
             >
-              编辑
+              {t('编辑')}
             </Button>
             <Popconfirm
-              title="您确认要删除所选数据吗？"
+              title={t('您确认要删除所选数据吗？')}
               okType="danger"
               onConfirm={() => handleDelete([record.reservationTplId])}
             >
               <Button theme="borderless" type="danger" size="small">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -192,7 +203,7 @@ export function StoreAppointmentTemplates() {
         selectable
         batchActions={(rows: AppointmentTplRow[], clear) => (
           <Popconfirm
-            title="您确认要批量删除所选数据吗？"
+            title={t('您确认要批量删除所选数据吗？')}
             okType="danger"
             onConfirm={async () => {
               await handleDelete(rows.map((r) => r.reservationTplId));
@@ -200,13 +211,13 @@ export function StoreAppointmentTemplates() {
             }}
           >
             <Button type="danger" size="small">
-              批量删除 ({rows.length})
+              {t('批量删除 ({count})', { count: rows.length })}
             </Button>
           </Popconfirm>
         )}
         toolbarExtra={
           <Button icon={<IconPlus />} type="primary" onClick={() => openForm()}>
-            添加预约模板
+            {t('添加预约模板')}
           </Button>
         }
         filters={[
@@ -220,43 +231,43 @@ export function StoreAppointmentTemplates() {
       />
 
       <Modal
-        title={editingRow ? '编辑预约模板' : '添加预约模板'}
+        title={editingRow ? t('编辑预约模板') : t('添加预约模板')}
         visible={formVisible}
         onCancel={() => setFormVisible(false)}
         onOk={handleFormSubmit}
         confirmLoading={formLoading}
         width={500}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>模板名称</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('模板名称')}</div>
             <Input
-              placeholder="输入模板名称"
+              placeholder={t('输入模板名称')}
               value={formState.templateName}
               onChange={(val) => setFormState({ ...formState, templateName: val })}
             />
           </div>
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>预约时间</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('预约时间')}</div>
             <RadioGroup
               value={formState.reservationType}
               onChange={(e) =>
                 setFormState({ ...formState, reservationType: Number(e.target.value) })
               }
             >
-              <Radio value={0}>无需预约</Radio>
-              <Radio value={1}>提前预约</Radio>
+              <Radio value={0}>{t('无需预约')}</Radio>
+              <Radio value={1}>{t('提前预约')}</Radio>
             </RadioGroup>
           </div>
 
           {formState.reservationType === 1 && (
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 500 }}>提前预约时间</div>
+              <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('提前预约时间')}</div>
               <Space align="center">
-                <Text>提前</Text>
+                <Text>{t('提前')}</Text>
                 <InputNumber
                   style={{ width: 120 }}
                   min={1}
@@ -270,18 +281,18 @@ export function StoreAppointmentTemplates() {
                   value={formState.advanceUnit}
                   onChange={(val) => setFormState({ ...formState, advanceUnit: String(val) })}
                 >
-                  <Select.Option value="h">小时</Select.Option>
-                  <Select.Option value="d">天</Select.Option>
+                  <Select.Option value="h">{t('小时')}</Select.Option>
+                  <Select.Option value="d">{t('天')}</Select.Option>
                 </Select>
-                <Text>预约</Text>
+                <Text>{t('预约')}</Text>
               </Space>
             </div>
           )}
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>最长预约</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('最长预约')}</div>
             <Space align="center">
-              <Text>最长允许预约</Text>
+              <Text>{t('最长允许预约')}</Text>
               <InputNumber
                 style={{ width: 120 }}
                 min={1}
@@ -291,7 +302,7 @@ export function StoreAppointmentTemplates() {
                   setFormState({ ...formState, maxDays: Number(val) || 7 })
                 }
               />
-              <Text>天内的订单</Text>
+              <Text>{t('天内的订单')}</Text>
             </Space>
           </div>
         </div>

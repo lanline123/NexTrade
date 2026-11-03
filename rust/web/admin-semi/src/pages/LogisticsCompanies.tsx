@@ -3,6 +3,7 @@ import { Button, Modal, Space, Switch, Toast, Typography } from '@douyinfe/semi-
 import { apiPost, isDemo } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -19,10 +20,11 @@ interface LogisticsRow {
 }
 
 function EnabledSwitch({ row, value }: { row: LogisticsRow; value?: number }) {
+  const { t } = useI18n();
   const [checked, setChecked] = useState(value === 1);
   const toggle = async (next: boolean) => {
     if (isDemo()) {
-      Toast.warning({ content: '演示模式不支持操作' });
+      Toast.warning({ content: t('演示模式不支持操作') });
       return;
     }
     try {
@@ -33,7 +35,7 @@ function EnabledSwitch({ row, value }: { row: LogisticsRow; value?: number }) {
       });
       setChecked(next);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '更新失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('更新失败') });
     }
   };
   return <Switch checked={checked} onChange={toggle} size="small" />;
@@ -63,20 +65,21 @@ const columns: ColumnConfig<LogisticsRow>[] = [
 ];
 
 export default function LogisticsCompanies() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   const batchDelete = (ids: number[], clear: () => void) => {
     Modal.confirm({
-      title: '批量删除物流公司',
-      content: `确定删除选中的 ${ids.length} 个物流公司？`,
+      title: t('批量删除物流公司'),
+      content: t('确定删除选中的 {count} 个物流公司？', { count: ids.length }),
       onOk: async () => {
         try {
           await apiPost('/setting/logisticsCompany/batch', { ids, type: 'del' });
-          Toast.success({ content: '批量删除成功' });
+          Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
         }
       },
     });
@@ -84,8 +87,8 @@ export default function LogisticsCompanies() {
 
   const sync = (provider: 'kdn' | 'kuaidi100') => {
     Modal.confirm({
-      title: provider === 'kdn' ? '同步快递鸟数据' : '同步快递100数据',
-      content: '同步会覆盖当前物流公司基础数据，是否继续？',
+      title: provider === 'kdn' ? t('同步快递鸟数据') : t('同步快递100数据'),
+      content: t('同步会覆盖当前物流公司基础数据，是否继续？'),
       onOk: async () => {
         try {
           await apiPost(
@@ -94,10 +97,10 @@ export default function LogisticsCompanies() {
               : '/setting/logisticsCompany/syncKuaidi100',
             {},
           );
-          Toast.success({ content: '同步完成' });
+          Toast.success({ content: t('同步完成') });
           setReloadKey((key) => key + 1);
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '同步失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('同步失败') });
         }
       },
     });
@@ -123,14 +126,14 @@ export default function LogisticsCompanies() {
       columns={columns}
       toolbarExtra={
         <Space>
-          <Button onClick={() => sync('kdn')}>同步快递鸟</Button>
-          <Button onClick={() => sync('kuaidi100')}>同步快递100</Button>
+          <Button onClick={() => sync('kdn')}>{t('同步快递鸟')}</Button>
+          <Button onClick={() => sync('kuaidi100')}>{t('同步快递100')}</Button>
         </Space>
       }
       batchActions={(rows, clear) => (
         <Space>
           <Button size="small" onClick={() => batchDelete(rows.map((row) => row.logisticsId), clear)}>
-            批量删除
+            {t('批量删除')}
           </Button>
         </Space>
       )}
@@ -152,33 +155,33 @@ export default function LogisticsCompanies() {
             fields: [
               {
                 field: 'logisticsName',
-                label: '物流公司名称',
+                label: t('物流公司名称'),
                 required: true,
-                placeholder: '请输入物流公司名称',
+                placeholder: t('请输入物流公司名称'),
               },
               {
                 field: 'logisticsCode',
-                label: '快递鸟编号',
-                placeholder: '如 SF',
+                label: t('快递鸟编号'),
+                placeholder: t('如 SF'),
               },
               {
                 field: 'kuaidi100Code',
-                label: '快递100编号',
-                placeholder: '小写字母，如 shunfeng',
+                label: t('快递100编号'),
+                placeholder: t('小写字母，如 shunfeng'),
               },
               {
                 field: 'logisticsDesc',
-                label: '物流公司描述',
+                label: t('物流公司描述'),
                 type: 'textarea',
               },
-              { field: 'sortOrder', label: '排序', type: 'number', initValue: 50 },
+              { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 50 },
               {
                 field: 'isEnabled',
-                label: '是否启用',
+                label: t('是否启用'),
                 type: 'switch',
                 initValue: 1,
-                checkedText: '启用',
-                uncheckedText: '禁用',
+                checkedText: t('启用'),
+                uncheckedText: t('禁用'),
               },
             ],
           },

@@ -18,6 +18,7 @@ import { IconArrowLeft, IconDelete, IconPlus } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
 import ImageUploader from '../components/ImageUploader';
 import ProductPicker from '../components/ProductPicker';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -305,6 +306,7 @@ function ImageListField({
   onChange: (next: any[]) => void;
   withTitle?: boolean;
 }) {
+  const { t } = useI18n();
   const list = Array.isArray(value) ? value : [];
   const update = (index: number, patch: Record<string, any>) => {
     onChange(list.map((item: any, i: number) => (i === index ? { ...item, ...patch } : item)));
@@ -321,11 +323,11 @@ function ImageListField({
             )}
             <Input
               value={item?.picUrl || ''}
-              placeholder="图片 URL"
+              placeholder={t('图片 URL')}
               onChange={(next: string) => update(index, { picUrl: next, picThumb: next })}
               style={{ width: 150 }}
             />
-            <Button theme="borderless" type="danger" size="small" onClick={() => onChange(list.filter((_: any, i: number) => i !== index))}>删除</Button>
+            <Button theme="borderless" type="danger" size="small" onClick={() => onChange(list.filter((_: any, i: number) => i !== index))}>{t('删除')}</Button>
           </div>
           <div style={{ marginTop: 6 }}>
             <ImageUploader
@@ -337,14 +339,14 @@ function ImageListField({
           {withTitle ? (
             <Input
               value={item?.picTitle || ''}
-              placeholder="标题"
+              placeholder={t('标题')}
               onChange={(next: string) => update(index, { picTitle: next })}
               style={{ marginTop: 6 }}
             />
           ) : null}
         </div>
       ))}
-      <Button icon={<IconPlus />} size="small" onClick={() => onChange([...list, { picUrl: '', picThumb: '', picTitle: '' }])}>添加图片</Button>
+      <Button icon={<IconPlus />} size="small" onClick={() => onChange([...list, { picUrl: '', picThumb: '', picTitle: '' }])}>{t('添加图片')}</Button>
     </div>
   );
 }
@@ -358,6 +360,7 @@ function CategoryPickerField({
   categories: Array<{ label: string; value: number; picUrl?: string }>;
   onChange: (next: any[]) => void;
 }) {
+  const { t } = useI18n();
   const list = Array.isArray(value) ? value : [];
   const selected = list.map((item: any) => Number(item.categoryId)).filter(Boolean);
   return (
@@ -365,7 +368,7 @@ function CategoryPickerField({
       <Select
         multiple
         value={selected}
-        placeholder="从分类树选择"
+        placeholder={t('从分类树选择')}
         filter
         maxTagCount={5}
         style={{ width: '100%' }}
@@ -385,7 +388,7 @@ function CategoryPickerField({
           }));
         }}
       />
-      <div style={{ color: '#98a2b3', fontSize: 12 }}>已选 {selected.length} 个分类，可在下方继续调整图标和标题</div>
+      <div style={{ color: '#98a2b3', fontSize: 12 }}>{t('已选 {count} 个分类，可在下方继续调整图标和标题', { count: selected.length })}</div>
     </div>
   );
 }
@@ -397,6 +400,7 @@ function ProductObjectsField({
   value: any;
   onChange: (next: any[]) => void;
 }) {
+  const { t } = useI18n();
   const list = Array.isArray(value) ? value : [];
   const ids = list.map((item: any) => Number(item.productId)).filter(Boolean);
   const [loading, setLoading] = useState(false);
@@ -427,8 +431,8 @@ function ProductObjectsField({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <ProductPicker value={ids} max={50} onChange={pick} />
-      {loading ? <span style={{ color: '#98a2b3', fontSize: 12 }}>加载商品信息...</span> : null}
-      <span style={{ color: '#98a2b3', fontSize: 12 }}>已选 {list.length} 个商品</span>
+      {loading ? <span style={{ color: '#98a2b3', fontSize: 12 }}>{t('加载商品信息...')}</span> : null}
+      <span style={{ color: '#98a2b3', fontSize: 12 }}>{t('已选 {count} 个商品', { count: list.length })}</span>
     </div>
   );
 }
@@ -442,15 +446,16 @@ function ProductSourceField({
   categories: Array<{ label: string; value: number }>;
   onChange: (next: Record<string, any>) => void;
 }) {
+  const { t } = useI18n();
   const products = value || {};
   const type = Number(products.productSelectType || 1);
   const set = (patch: Record<string, any>) => onChange({ ...products, ...patch });
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <RadioGroup value={type} onChange={(e: any) => set({ productSelectType: Number(e.target.value) })}>
-        <Radio value={1}>选商品</Radio>
-        <Radio value={2}>按分类</Radio>
-        <Radio value={3}>按标签</Radio>
+        <Radio value={1}>{t('选商品')}</Radio>
+        <Radio value={2}>{t('按分类')}</Radio>
+        <Radio value={3}>{t('按标签')}</Radio>
       </RadioGroup>
       {type === 1 ? (
         <ProductPicker
@@ -463,7 +468,7 @@ function ProductSourceField({
         <>
           <Select
             value={products.productCategoryId ? Number(products.productCategoryId) : undefined}
-            placeholder="选择分类"
+            placeholder={t('选择分类')}
             showClear
             filter
             style={{ width: '100%' }}
@@ -471,16 +476,16 @@ function ProductSourceField({
             onChange={(next) => set({ productCategoryId: Number(next) || 0 })}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#646a73', fontSize: 12 }}>商品数量</span>
+            <span style={{ color: '#646a73', fontSize: 12 }}>{t('商品数量')}</span>
             <InputNumber value={Number(products.productNumber) || 10} min={1} max={100} onChange={(next) => set({ productNumber: Number(next ?? 10) })} />
           </div>
         </>
       ) : null}
       {type === 3 ? (
         <>
-          <Input value={String(products.productTag || '')} placeholder="商品标签" onChange={(next: string) => set({ productTag: next })} />
+          <Input value={String(products.productTag || '')} placeholder={t('商品标签')} onChange={(next: string) => set({ productTag: next })} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#646a73', fontSize: 12 }}>商品数量</span>
+            <span style={{ color: '#646a73', fontSize: 12 }}>{t('商品数量')}</span>
             <InputNumber value={Number(products.productNumber) || 10} min={1} max={100} onChange={(next) => set({ productNumber: Number(next ?? 10) })} />
           </div>
         </>
@@ -498,13 +503,14 @@ function ModuleFields({
   categories: Array<{ label: string; value: number }>;
   onChange: (module: Record<string, any>) => void;
 }) {
+  const { t } = useI18n();
   const specs = MODULE_FIELDS[item.type] || [];
   const isCategoryModule = item.type === 'categoryNav' || item.type === 'catNav' || item.type === 'imageNav';
   return (
     <>
       {isCategoryModule ? (
         <div style={{ marginBottom: 12 }}>
-          <div style={{ color: '#646a73', fontSize: 12, marginBottom: 6 }}>选择分类</div>
+          <div style={{ color: '#646a73', fontSize: 12, marginBottom: 6 }}>{t('选择分类')}</div>
           <CategoryPickerField
             value={getPath(item.module, 'categoryList')}
             categories={categories}
@@ -516,7 +522,7 @@ function ModuleFields({
         const value = getPath(item.module, spec.path);
         return (
           <div key={spec.path} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 12 }}>
-            <span style={{ width: 90, color: '#646a73', fontSize: 12, lineHeight: '30px', flexShrink: 0 }}>{spec.label}</span>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12, lineHeight: '30px', flexShrink: 0 }}>{t(spec.label)}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               {spec.kind === 'images' ? (
                 <ImageListField
@@ -527,7 +533,7 @@ function ModuleFields({
               ) : spec.kind === 'image' ? (
                 <Input
                   value={String(value || '')}
-                  placeholder="图片 URL"
+                  placeholder={t('图片 URL')}
                   onChange={(next: string) => onChange(setPath(item.module, spec.path, next))}
                 />
               ) : spec.kind === 'products' ? (
@@ -568,9 +574,9 @@ function ModuleFields({
       })}
       {item.module?.frame ? (
         <div style={{ borderTop: '1px solid #eef0f3', marginTop: 12, paddingTop: 10 }}>
-          <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>通用容器</div>
+          <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>{t('通用容器')}</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>背景色</span>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>{t('背景色')}</span>
             <input
               type="color"
               value={item.module.frame.backgroundColor || '#ffffff'}
@@ -584,7 +590,7 @@ function ModuleFields({
             { key: 'boxRadius', label: '圆角' },
           ].map((field) => (
             <div key={field.key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-              <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>{field.label}</span>
+              <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>{t(field.label)}</span>
               <InputNumber
                 value={Number(getPath(item.module, `frame.${field.key}`)) || 0}
                 min={0}
@@ -598,9 +604,9 @@ function ModuleFields({
       ) : null}
       {item.module?.moduleStyle ? (
         <div style={{ borderTop: '1px solid #eef0f3', marginTop: 12, paddingTop: 10 }}>
-          <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>模块样式</div>
+          <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>{t('模块样式')}</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>背景色</span>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>{t('背景色')}</span>
             <input
               type="color"
               value={item.module.moduleStyle.backgroundColor || '#ffffff'}
@@ -608,7 +614,7 @@ function ModuleFields({
             />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>上边距</span>
+            <span style={{ width: 90, color: '#646a73', fontSize: 12 }}>{t('上边距')}</span>
             <InputNumber
               value={Number(getPath(item.module, 'moduleStyle.bannerMarginTop')) || 0}
               min={0}
@@ -624,6 +630,7 @@ function ModuleFields({
 }
 
 function MobileModulePreview({ item }: { item: MobileModule }) {
+  const { t } = useI18n();
   const m = item.module || {};
   const images = pickImages(m);
   const title = m.title?.titleText || m.name || m.liveTitle || item.label;
@@ -631,7 +638,7 @@ function MobileModulePreview({ item }: { item: MobileModule }) {
     return (
       <div style={{ padding: '6px 8px' }}>
         <img src={images[0]} alt="" style={{ width: '100%', maxHeight: 150, objectFit: 'cover', borderRadius: 6 }} />
-        {images.length > 1 ? <div style={{ fontSize: 10, color: '#98a2b3', marginTop: 4 }}>{images.length} 张图</div> : null}
+        {images.length > 1 ? <div style={{ fontSize: 10, color: '#98a2b3', marginTop: 4 }}>{t('{count} 张图', { count: images.length })}</div> : null}
       </div>
     );
   }
@@ -644,7 +651,7 @@ function MobileModulePreview({ item }: { item: MobileModule }) {
             <div style={{ width: 34, height: 34, margin: '0 auto 4px', borderRadius: 17, background: cat?.picUrl ? 'transparent' : '#eef1f5', overflow: 'hidden' }}>
               {cat?.picUrl ? <img src={cat.picUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
             </div>
-            <div>{cat?.picTitle || '分类'}</div>
+            <div>{cat?.picTitle || t('分类')}</div>
           </div>
         ))}
       </div>
@@ -661,12 +668,13 @@ function MobileModulePreview({ item }: { item: MobileModule }) {
   }
   return (
     <div style={{ padding: '14px 10px', background: '#f7f8fa', borderRadius: 6, color: '#646a73', textAlign: 'center', fontSize: 12 }}>
-      {item.label || title}{item.type === 'productSlide' || item.type === 'productA1' ? ' · 商品模块' : ''}
+      {t(item.label || title)}{item.type === 'productSlide' || item.type === 'productA1' ? ` · ${t('商品模块')}` : ''}
     </div>
   );
 }
 
 export default function MobileDecorateEditor({ decorateId, onExit }: { decorateId: number; onExit: () => void }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [pageModule, setPageModule] = useState<Record<string, any>>({});
   const [pageType, setPageType] = useState(1);
@@ -716,7 +724,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
           module: item.module || {},
         })) : []);
       })
-      .catch((error) => Toast.error(error instanceof Error ? error.message : '加载失败'))
+      .catch((error) => Toast.error(error instanceof Error ? error.message : t('加载失败')))
       .finally(() => setLoading(false));
   }, [decorateId]);
 
@@ -785,7 +793,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
 
   const save = async (mode: 'draft' | 'publish') => {
     if (!decorateId) {
-      Toast.warning('缺少装修页面 ID');
+      Toast.warning(t('缺少装修页面 ID'));
       return;
     }
     setSaving(mode);
@@ -803,9 +811,9 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
         field: 'decorateTitle',
         val: title,
       }).catch(() => undefined);
-      Toast.success(mode === 'draft' ? '草稿已保存' : '发布成功');
+      Toast.success(mode === 'draft' ? t('草稿已保存') : t('发布成功'));
     } catch (error) {
-      Toast.error(error instanceof Error ? error.message : '保存失败');
+      Toast.error(error instanceof Error ? error.message : t('保存失败'));
     } finally {
       setSaving(null);
     }
@@ -814,18 +822,18 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f5f7fa' }}>
       <div style={{ height: 60, background: '#fff', display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px', borderBottom: '1px solid #e5e6eb' }}>
-        <Button icon={<IconArrowLeft />} onClick={onExit}>返回列表</Button>
+        <Button icon={<IconArrowLeft />} onClick={onExit}>{t('返回列表')}</Button>
         <Input value={title} onChange={setTitle} style={{ width: 200 }} />
-        <Tag color="blue">移动端装修</Tag>
-        {hasDraft && <Tag color="cyan">草稿</Tag>}
+        <Tag color="blue">{t('移动端装修')}</Tag>
+        {hasDraft && <Tag color="cyan">{t('草稿')}</Tag>}
         <div style={{ flex: 1 }} />
-        <Button loading={saving === 'draft'} onClick={() => save('draft')}>保存草稿</Button>
-        <Button theme="solid" type="primary" loading={saving === 'publish'} onClick={() => save('publish')}>保存并发布</Button>
+        <Button loading={saving === 'draft'} onClick={() => save('draft')}>{t('保存草稿')}</Button>
+        <Button theme="solid" type="primary" loading={saving === 'publish'} onClick={() => save('publish')}>{t('保存并发布')}</Button>
       </div>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <div style={{ width: 220, background: '#fff', borderRight: '1px solid #e5e6eb', overflow: 'auto', padding: 12 }}>
-          <div style={{ fontWeight: 600, marginBottom: 10 }}>移动端模块</div>
+          <div style={{ fontWeight: 600, marginBottom: 10 }}>{t('移动端模块')}</div>
           {MOBILE_LIBRARY.map((item) => (
             <div
               key={item.type}
@@ -837,17 +845,17 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
               }}
               style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', marginBottom: 6, borderRadius: 6, background: '#f7f8fa', cursor: 'grab', fontSize: 13 }}
             >
-              <span>{item.label}</span>
-              <span style={{ color: '#98a2b3' }}>{item.group}</span>
+              <span>{t(item.label)}</span>
+              <span style={{ color: '#98a2b3' }}>{t(item.group)}</span>
             </div>
           ))}
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
           <div style={{ width: 375, background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,.08)', overflow: 'hidden' }}>
-            <div style={{ height: 44, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #f0f0f0', fontWeight: 600 }}>{title || '移动端页面'}</div>
+            <div style={{ height: 44, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #f0f0f0', fontWeight: 600 }}>{title || t('移动端页面')}</div>
             <div style={{ minHeight: 600, background: pageModule.backgroundColor || '#fff' }}>
-              {loading ? <div style={{ padding: 20, color: '#98a2b3' }}>加载中...</div> : moduleList.map((item, index) => (
+              {loading ? <div style={{ padding: 20, color: '#98a2b3' }}>{t('加载中...')}</div> : moduleList.map((item, index) => (
                 <div
                   key={item.moduleIndex}
                   onClick={() => setActiveIndex(index)}
@@ -880,7 +888,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2, background: '#1456f0', color: '#fff', fontSize: 10, padding: '1px 6px', borderRadius: '0 0 4px 0' }}>{item.label}</div>
+                  <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 2, background: '#1456f0', color: '#fff', fontSize: 10, padding: '1px 6px', borderRadius: '0 0 4px 0' }}>{t(item.label)}</div>
                   <MobileModulePreview item={item} />
                 </div>
               ))}
@@ -892,7 +900,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
           {active ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <b>{active.label}</b>
+                <b>{t(active.label)}</b>
                 <Space>
                   <Button size="small" disabled={activeIndex <= 0} onClick={() => {
                     setModuleList((prev) => {
@@ -901,7 +909,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                       return next;
                     });
                     setActiveIndex(activeIndex - 1);
-                  }}>上移</Button>
+                  }}>{t('上移')}</Button>
                   <Button size="small" disabled={activeIndex >= moduleList.length - 1} onClick={() => {
                     setModuleList((prev) => {
                       const next = [...prev];
@@ -909,7 +917,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                       return next;
                     });
                     setActiveIndex(activeIndex + 1);
-                  }}>下移</Button>
+                  }}>{t('下移')}</Button>
                   <Button size="small" onClick={() => {
                     if (!active) return;
                     const copy = { ...active, moduleIndex: Date.now(), label: `${active.label}-副本`, module: JSON.parse(JSON.stringify(active.module || {})) };
@@ -919,21 +927,21 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                       return next;
                     });
                     setActiveIndex(activeIndex + 1);
-                  }}>复制</Button>
+                  }}>{t('复制')}</Button>
                   <Button icon={<IconDelete />} theme="borderless" type="danger" size="small" onClick={() => { setModuleList((prev) => prev.filter((_, i) => i !== activeIndex)); setActiveIndex(-1); }} />
                 </Space>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ width: 80, color: '#646a73' }}>显示</span>
+                <span style={{ width: 80, color: '#646a73' }}>{t('显示')}</span>
                 <Switch checked={active.isShow} onChange={(checked) => updateActive({ isShow: checked })} />
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ width: 80, color: '#646a73' }}>模块名称</span>
+                <span style={{ width: 80, color: '#646a73' }}>{t('模块名称')}</span>
                 <Input value={active.label} onChange={(value: string) => updateActive({ label: value })} />
               </div>
               <ModuleFields item={active} categories={categories} onChange={(module) => updateActive({ module })} />
               <div style={{ borderTop: '1px solid #eef0f3', marginTop: 14, paddingTop: 10 }}>
-                <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>更多字段</div>
+                <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 8 }}>{t('更多字段')}</div>
                 {Object.entries(active.module || {})
                   .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
                   .slice(0, 20)
@@ -955,17 +963,17 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
             </>
           ) : (
             <>
-              <b>页面设置</b>
+              <b>{t('页面设置')}</b>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '12px 0' }}>
-                <span style={{ width: 80, color: '#646a73' }}>页面标题</span>
+                <span style={{ width: 80, color: '#646a73' }}>{t('页面标题')}</span>
                 <Input value={title} onChange={setTitle} />
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ width: 80, color: '#646a73' }}>背景色</span>
+                <span style={{ width: 80, color: '#646a73' }}>{t('背景色')}</span>
                 <input type="color" value={pageModule.backgroundColor || '#ffffff'} onChange={(e) => setPageModule({ ...pageModule, backgroundColor: e.target.value })} />
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 12 }}>
-                <span style={{ width: 80, color: '#646a73', lineHeight: '30px' }}>背景图</span>
+                <span style={{ width: 80, color: '#646a73', lineHeight: '30px' }}>{t('背景图')}</span>
                 <div style={{ flex: 1 }}>
                   <ImageUploader
                     value={pageModule.backgroundImage?.picUrl ? [pageModule.backgroundImage.picUrl] : []}
@@ -974,7 +982,7 @@ export default function MobileDecorateEditor({ decorateId, onExit }: { decorateI
                   />
                 </div>
               </div>
-              <div style={{ color: '#98a2b3', fontSize: 12 }}>点击画布中的模块编辑属性</div>
+              <div style={{ color: '#98a2b3', fontSize: 12 }}>{t('点击画布中的模块编辑属性')}</div>
             </>
           )}
         </div>

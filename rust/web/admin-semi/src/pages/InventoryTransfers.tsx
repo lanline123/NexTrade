@@ -17,6 +17,7 @@ import { apiGet, apiPost, apiUpload } from '../api';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import ProductPicker from '../components/ProductPicker';
+import { useI18n } from '../i18n';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -59,6 +60,7 @@ const statusName = (status?: number) => STATUS_NAMES[Number(status)] || '-';
 
 /** 库存调拨：对应旧版 product/inventoryTransfer/*（列表/新建/审核/调出/作废/导入导出）。 */
 export default function InventoryTransfers() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerInitial, setDrawerInitial] = useState<Record<string, any>>({});
@@ -106,7 +108,7 @@ export default function InventoryTransfers() {
       });
       setDetailRows(result?.productStockAllocateRecordDetailList || result?.records || result?.list || []);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setDetailLoading(false);
     }
@@ -122,10 +124,10 @@ export default function InventoryTransfers() {
       onOk: async () => {
         try {
           await apiPost(`/product/stock/${action}`, { id: row.allocateId });
-          Toast.success({ content: '操作成功' });
+          Toast.success({ content: t('操作成功') });
           reload();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
         }
       },
     });
@@ -147,7 +149,7 @@ export default function InventoryTransfers() {
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      Toast.error({ content: '导出失败' });
+      Toast.error({ content: t('导出失败') });
     } finally {
       setExporting(false);
     }
@@ -158,11 +160,11 @@ export default function InventoryTransfers() {
     setImporting(true);
     try {
       await apiUpload('/product/stock/batchImportAllocate', file);
-      Toast.success({ content: '导入成功' });
+      Toast.success({ content: t('导入成功') });
       setImportOpen(false);
       reload();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '导入失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
     } finally {
       setImporting(false);
     }
@@ -192,7 +194,7 @@ export default function InventoryTransfers() {
       dataIndex: 'status',
       width: 110,
       render: (value: number) => {
-        const text = statusName(value);
+        const text = t(statusName(value));
         const color = Number(value) === 4 ? 'green' : Number(value) === 5 || Number(value) === 6 ? 'red' : 'orange';
         return <Tag color={color as never}>{text}</Tag>;
       },
@@ -218,13 +220,13 @@ export default function InventoryTransfers() {
         fields: [
           {
             field: 'outboundOrganizationId',
-            label: '出库组织',
+            label: t('出库组织'),
             type: 'custom',
             render: ({ formApi, values }) => (
               <Select
                 style={{ width: 240 }}
                 filter
-                placeholder="请选择出库组织"
+                placeholder={t('请选择出库组织')}
                 optionList={orgOptions}
                 value={values.outboundOrganizationId}
                 onChange={(next) => formApi?.setValue('outboundOrganizationId', Number(next))}
@@ -233,23 +235,23 @@ export default function InventoryTransfers() {
           },
           {
             field: 'warehousingOrganizationId',
-            label: '入库组织',
+            label: t('入库组织'),
             type: 'custom',
             render: ({ formApi, values }) => (
               <Select
                 style={{ width: 240 }}
                 filter
-                placeholder="请选择入库组织"
+                placeholder={t('请选择入库组织')}
                 optionList={orgOptions}
                 value={values.warehousingOrganizationId}
                 onChange={(next) => formApi?.setValue('warehousingOrganizationId', Number(next))}
               />
             ),
           },
-          { field: 'comment', label: '备注', type: 'textarea' },
+          { field: 'comment', label: t('备注'), type: 'textarea' },
           {
             field: 'productStockAllocateRecordDetailList',
-            label: '选择商品',
+            label: t('选择商品'),
             type: 'custom',
             render: ({ formApi, values }) => {
               const picked: PickedProduct[] = values.productStockAllocateRecordDetailList || [];
@@ -269,7 +271,7 @@ export default function InventoryTransfers() {
                   {picked.map((item, index) => (
                     <div className="stock-record-row" key={item.productId}>
                       <span className="stock-record-name">
-                        {item.productName || `商品#${item.productId}`}
+                        {item.productName || t('商品#{id}', { id: String(item.productId ?? '') })}
                       </span>
                       <InputNumber
                         size="small"
@@ -294,7 +296,7 @@ export default function InventoryTransfers() {
                           )
                         }
                       >
-                        移除
+                        {t('移除')}
                       </Button>
                     </div>
                   ))}
@@ -306,10 +308,10 @@ export default function InventoryTransfers() {
       },
     ],
     toPayload: (values) => {
-      if (!values.outboundOrganizationId) throw new Error('请选择出库组织');
-      if (!values.warehousingOrganizationId) throw new Error('请选择入库组织');
+      if (!values.outboundOrganizationId) throw new Error(t('请选择出库组织'));
+      if (!values.warehousingOrganizationId) throw new Error(t('请选择入库组织'));
       const rows: PickedProduct[] = values.productStockAllocateRecordDetailList || [];
-      if (!rows.length) throw new Error('请选择商品!');
+      if (!rows.length) throw new Error(t('请选择商品!'));
       return {
         outboundOrganizationId: Number(values.outboundOrganizationId),
         warehousingOrganizationId: Number(values.warehousingOrganizationId),
@@ -340,38 +342,38 @@ export default function InventoryTransfers() {
             size="small"
             onClick={() => {
               Modal.confirm({
-                title: `确认作废所选 ${rows.length} 张调拨单吗？`,
+                title: t('确认作废所选 {count} 张调拨单吗？', { count: rows.length }),
                 onOk: async () => {
                   try {
                     await apiPost('/product/stock/cancelAllocate', {
                       ids: rows.map((row) => row.allocateId),
                     });
-                    Toast.success({ content: '作废成功' });
+                    Toast.success({ content: t('作废成功') });
                     clear();
                     reload();
                   } catch (error) {
-                    Toast.error({ content: error instanceof Error ? error.message : '作废失败' });
+                    Toast.error({ content: error instanceof Error ? error.message : t('作废失败') });
                   }
                 },
               });
             }}
           >
-            作废
+            {t('作废')}
           </Button>
         )}
         rowActions={(row) => (
           <Space spacing={2}>
             <Button theme="borderless" size="small" onClick={() => openDetail(row)}>
-              详情
+              {t('详情')}
             </Button>
             {Number(row.status) === 1 ? (
               <Button
                 theme="borderless"
                 type="danger"
                 size="small"
-                onClick={() => operate(row, 'auditAllocate', '确认审核通过该调拨单？')}
+                onClick={() => operate(row, 'auditAllocate', t('确认审核通过该调拨单？'))}
               >
-                审核
+                {t('审核')}
               </Button>
             ) : null}
             {Number(row.status) === 2 ? (
@@ -379,9 +381,9 @@ export default function InventoryTransfers() {
                 theme="borderless"
                 type="danger"
                 size="small"
-                onClick={() => operate(row, 'stockOutAllocate', '确认调拨出库？')}
+                onClick={() => operate(row, 'stockOutAllocate', t('确认调拨出库？'))}
               >
-                调拨出库
+                {t('调拨出库')}
               </Button>
             ) : null}
           </Space>
@@ -389,11 +391,11 @@ export default function InventoryTransfers() {
         toolbarExtra={
           <Space>
             <Button theme="solid" type="primary" onClick={openCreate}>
-              新建调拨单
+              {t('新建调拨单')}
             </Button>
-            <Button onClick={() => setImportOpen(true)}>导入调拨单</Button>
+            <Button onClick={() => setImportOpen(true)}>{t('导入调拨单')}</Button>
             <Button loading={exporting} onClick={() => exportAllocate([])}>
-              全部导出
+              {t('全部导出')}
             </Button>
           </Space>
         }
@@ -410,11 +412,11 @@ export default function InventoryTransfers() {
           setSaving(true);
           try {
             await apiPost('/product/stock/createAllocate', payload);
-            Toast.success({ content: '操作成功' });
+            Toast.success({ content: t('操作成功') });
             setDrawerOpen(false);
             reload();
           } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '保存失败' });
+            Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
           } finally {
             setSaving(false);
           }
@@ -422,7 +424,7 @@ export default function InventoryTransfers() {
       />
 
       <Modal
-        title="详情"
+        title={t('详情')}
         visible={detailOpen}
         footer={null}
         onCancel={() => setDetailOpen(false)}
@@ -435,17 +437,17 @@ export default function InventoryTransfers() {
             rowKey={(record: any, index?: number) => String(record.productId ?? index)}
             dataSource={detailRows}
             columns={[
-              { title: '商品名称', dataIndex: 'productName', render: (v: any) => v || '-' },
-              { title: '规格', dataIndex: 'productSkuName', render: (v: any) => v || '-' },
-              { title: '数量', dataIndex: 'quantity' },
+              { title: t('商品名称'), dataIndex: 'productName', render: (v: any) => v || '-' },
+              { title: t('规格'), dataIndex: 'productSkuName', render: (v: any) => v || '-' },
+              { title: t('数量'), dataIndex: 'quantity' },
             ]}
           />
-          {!detailRows.length && !detailLoading ? <Text type="tertiary">暂无数据</Text> : null}
+          {!detailRows.length && !detailLoading ? <Text type="tertiary">{t('暂无数据')}</Text> : null}
         </Spin>
       </Modal>
 
       <Modal
-        title="导入调拨单"
+        title={t('导入调拨单')}
         visible={importOpen}
         footer={null}
         onCancel={() => setImportOpen(false)}
@@ -463,7 +465,7 @@ export default function InventoryTransfers() {
                 }}
               />
               <Button theme="solid" type="primary" loading={importing}>
-                选择 Excel 文件
+                {t('选择 Excel 文件')}
               </Button>
             </label>
             <Button
@@ -480,11 +482,11 @@ export default function InventoryTransfers() {
                   link.click();
                   URL.revokeObjectURL(url);
                 } catch {
-                  Toast.error({ content: '模板下载失败' });
+                  Toast.error({ content: t('模板下载失败') });
                 }
               }}
             >
-              下载导入模板
+              {t('下载导入模板')}
             </Button>
           </Space>
         </div>

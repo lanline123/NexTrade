@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Modal, Spin, Table, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet } from '../api';
 import ListPage from '../framework/ListPage';
+import { useI18n } from '../i18n';
 import type { ColumnConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -26,16 +27,17 @@ interface StockLogRow {
 
 /** 库存查询：对应旧版 product/inventoryQuery/List.vue + Logs.vue（出入库明细弹窗）。 */
 export default function InventoryQuery() {
+  const { t } = useI18n();
   const [logOpen, setLogOpen] = useState(false);
   const [logLoading, setLogLoading] = useState(false);
   const [logRows, setLogRows] = useState<StockLogRow[]>([]);
-  const [logTitle, setLogTitle] = useState('出入库明细');
+  const [logProductName, setLogProductName] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = () => setReloadKey((key) => key + 1);
 
   const openLogs = async (row: InventoryRow) => {
-    setLogTitle(`出入库明细：${row.productName || ''}`);
+    setLogProductName(row.productName || '');
     setLogOpen(true);
     setLogLoading(true);
     try {
@@ -47,7 +49,7 @@ export default function InventoryQuery() {
       });
       setLogRows(result?.records || result?.list || []);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('加载失败') });
     } finally {
       setLogLoading(false);
     }
@@ -105,13 +107,17 @@ export default function InventoryQuery() {
             size="small"
             onClick={() => openLogs(row)}
           >
-            出入库明细
+            {t('出入库明细')}
           </Button>
         )}
       />
 
       <Modal
-        title={logTitle}
+        title={
+          logProductName
+            ? t('出入库明细：{name}', { name: logProductName })
+            : t('出入库明细')
+        }
         visible={logOpen}
         footer={null}
         onCancel={() => setLogOpen(false)}
@@ -125,35 +131,35 @@ export default function InventoryQuery() {
             dataSource={logRows.map((row, index) => ({ ...row, __logKey: `${row.createTime ?? ''}-${index}` }))}
             columns={[
               {
-                title: '商品名称',
+                title: t('商品名称'),
                 dataIndex: 'productName',
                 width: 240,
                 render: (value: string) => <span>{value || '-'}</span>,
               },
               {
-                title: '出入库类型',
+                title: t('出入库类型'),
                 dataIndex: 'desc',
                 width: 140,
                 render: (value: string) => <span>{value || '--'}</span>,
               },
               {
-                title: '商品规格',
+                title: t('商品规格'),
                 dataIndex: 'productSkuName',
                 width: 140,
                 render: (value: string) => <span>{value || '--'}</span>,
               },
               {
-                title: '出入库数量',
+                title: t('出入库数量'),
                 dataIndex: 'quantity',
                 width: 120,
                 render: (value: number) => (
                   <Text type={Number(value) >= 0 ? 'success' : 'danger'}>{Number(value) >= 0 ? `+${value}` : value}</Text>
                 ),
               },
-              { title: '时间', dataIndex: 'createTime' },
+              { title: t('时间'), dataIndex: 'createTime' },
             ]}
           />
-          {!logRows.length && !logLoading ? <Text type="tertiary">暂无数据</Text> : null}
+          {!logRows.length && !logLoading ? <Text type="tertiary">{t('暂无数据')}</Text> : null}
         </Spin>
       </Modal>
     </div>

@@ -43,6 +43,7 @@ import {
   IconMore,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
+import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import { MobileDecoratePages } from './DecorateMobilePages';
 import type { ColumnConfig } from '../framework/types';
@@ -81,6 +82,7 @@ interface DecorateRow {
 }
 
 export function PcDecorateHome() {
+  const { t } = useI18n();
   // 列表状态（接口 /decorate/decorate/list，decorateType=2 对齐原版 pcDecorate/List.vue）
   const [rows, setRows] = useState<DecorateRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -131,7 +133,7 @@ export function PcDecorateHome() {
       setRows(res.records || res.list || []);
       setTotal(res.total ?? 0);
     } catch (e: any) {
-      Toast.error(e?.message || '加载装修页面列表失败');
+      Toast.error(e?.message || t('加载装修页面列表失败'));
     } finally {
       setLoading(false);
     }
@@ -154,14 +156,14 @@ export function PcDecorateHome() {
       await navigator.clipboard.writeText(text);
       Toast.success(tip);
     } catch {
-      Toast.warning('复制失败，请手动复制');
+      Toast.warning(t('复制失败，请手动复制'));
     }
   };
 
   // —— 操作 ——
   const handleAdd = async () => {
     if (!addTitle.trim()) {
-      Toast.warning('页面名称不能为空');
+      Toast.warning(t('页面名称不能为空'));
       return;
     }
     setAddSaving(true);
@@ -171,14 +173,14 @@ export function PcDecorateHome() {
         sortOrder: Number(addSort) || 0,
         decorateType: 2,
       });
-      Toast.success('添加成功');
+      Toast.success(t('添加成功'));
       setAddVisible(false);
       setAddTitle('');
       setAddSort(0);
       setPage(1);
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '添加失败');
+      Toast.error(e?.message || t('添加失败'));
     } finally {
       setAddSaving(false);
     }
@@ -187,41 +189,41 @@ export function PcDecorateHome() {
   const handleRename = async (id: number, val: string) => {
     try {
       await apiPost('/decorate/decorate/updateField', { id, field: 'decorateTitle', val });
-      Toast.success('修改成功');
+      Toast.success(t('修改成功'));
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '修改失败');
+      Toast.error(e?.message || t('修改失败'));
     }
   };
 
   const handleCopy = async (row: DecorateRow) => {
     try {
       await apiPost('/decorate/decorate/copy', { id: row.decorateId });
-      Toast.success('操作成功');
+      Toast.success(t('操作成功'));
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '复制失败');
+      Toast.error(e?.message || t('复制失败'));
     }
   };
 
   const handleDelete = async (row: DecorateRow) => {
     try {
       await apiPost('/decorate/decorate/del', { id: row.decorateId });
-      Toast.success('操作成功');
+      Toast.success(t('操作成功'));
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '删除失败');
+      Toast.error(e?.message || t('删除失败'));
     }
   };
 
   const handleBatchDelete = async () => {
     try {
       await apiPost('/decorate/decorate/batch', { ids: selectedKeys.map(Number), type: 'del' });
-      Toast.success('操作成功');
+      Toast.success(t('操作成功'));
       setSelectedKeys([]);
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '批量删除失败');
+      Toast.error(e?.message || t('批量删除失败'));
     }
   };
 
@@ -237,7 +239,7 @@ export function PcDecorateHome() {
       });
       setSwitchCandidates((res.records || res.list || []).filter((r) => r.decorateId !== row.decorateId));
     } catch (e: any) {
-      Toast.error(e?.message || '加载候选页面失败');
+      Toast.error(e?.message || t('加载候选页面失败'));
       setSwitchCandidates([]);
     } finally {
       setSwitchLoading(false);
@@ -246,16 +248,16 @@ export function PcDecorateHome() {
 
   const handleSwitchHome = async () => {
     if (!switchChoice) {
-      Toast.warning('请选择要设为首页的页面');
+      Toast.warning(t('请选择要设为首页的页面'));
       return;
     }
     try {
       await apiPost('/decorate/decorate/setHome', { id: switchChoice, pageType: switchTarget?.pageType ?? 1 });
-      Toast.success('更换成功');
+      Toast.success(t('更换成功'));
       setSwitchTarget(null);
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '更换失败');
+      Toast.error(e?.message || t('更换失败'));
     }
   };
 
@@ -264,38 +266,38 @@ export function PcDecorateHome() {
       const res = await apiGet<{ apiUrl?: string }>('/decorate/decorateShare/share', { decorateId: row.decorateId });
       if (res?.apiUrl) {
         const link = `${window.location.protocol}//${window.location.host.split(':')[0]}${res.apiUrl}`;
-        copyText(link, '分享链接已经复制到剪贴板, 导入时可直接粘贴使用');
+        copyText(link, t('分享链接已经复制到剪贴板, 导入时可直接粘贴使用'));
       } else {
-        Toast.warning('未获取到分享链接');
+        Toast.warning(t('未获取到分享链接'));
       }
     } catch (e: any) {
-      Toast.error(e?.message || '分享失败');
+      Toast.error(e?.message || t('分享失败'));
     }
   };
 
   const handleExport = async (row: DecorateRow) => {
     try {
       const res = await apiGet<unknown>('/decorate/decorate/detail', { id: row.decorateId, decorateType: 2 });
-      copyText(JSON.stringify(res, null, 2), '模板详情JSON已复制到剪贴板');
+      copyText(JSON.stringify(res, null, 2), t('模板详情JSON已复制到剪贴板'));
     } catch (e: any) {
-      Toast.error(e?.message || '导出失败');
+      Toast.error(e?.message || t('导出失败'));
     }
   };
 
   const handleImport = async () => {
     if (!importLink.trim()) {
-      Toast.warning('请粘贴分享链接');
+      Toast.warning(t('请粘贴分享链接'));
       return;
     }
     setImportSaving(true);
     try {
       await apiGet('/decorate/decorateShare/import', { url: importLink.trim() });
-      Toast.success('操作成功');
+      Toast.success(t('操作成功'));
       setImportVisible(false);
       setImportLink('');
       loadList();
     } catch (e: any) {
-      Toast.error(e?.message || '导入失败');
+      Toast.error(e?.message || t('导入失败'));
     } finally {
       setImportSaving(false);
     }
@@ -306,13 +308,13 @@ export function PcDecorateHome() {
 
   const columns: (ColumnConfig<DecorateRow> & { sorter?: boolean; sortOrder?: 'ascend' | 'descend' })[] = [
     {
-      title: '页面名称',
+      title: t('页面名称'),
       dataIndex: 'decorateTitle',
       width: 320,
       render: (_: unknown, row: DecorateRow) => (
         <Space>
           {row.isHome === 1 && (
-            <Tooltip content="首页" position="top">
+            <Tooltip content={t('首页')} position="top">
               <span
                 style={{
                   display: 'inline-flex',
@@ -326,7 +328,7 @@ export function PcDecorateHome() {
                   fontSize: 12,
                 }}
               >
-                首
+                {t('首')}
               </span>
             </Tooltip>
           )}
@@ -336,14 +338,14 @@ export function PcDecorateHome() {
           />
           {row.decorateType === 2 && row.pageType === 1 && row.homeStyleVersion === 'old' && (
             <Tag size="small" color="grey">
-              旧版
+              {t('旧版')}
             </Tag>
           )}
         </Space>
       ),
     },
     {
-      title: '发布状态',
+      title: t('发布状态'),
       dataIndex: 'status',
       width: 140,
       sorter: true,
@@ -359,12 +361,12 @@ export function PcDecorateHome() {
               display: 'inline-block',
             }}
           />
-          {status === 1 ? '已发布' : '未发布'}
+          {status === 1 ? t('已发布') : t('未发布')}
         </span>
       ),
     },
     {
-      title: '更新时间',
+      title: t('更新时间'),
       dataIndex: 'updateTime',
       width: 190,
       sorter: true,
@@ -372,7 +374,7 @@ export function PcDecorateHome() {
       render: (v: number) => <span>{formatTime(v)}</span>,
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       width: 230,
       render: (_: unknown, row: DecorateRow) => (
@@ -387,11 +389,11 @@ export function PcDecorateHome() {
               )
             }
           >
-            编辑
+            {t('编辑')}
           </Button>
           {row.isHome === 1 && (row.pageType ?? 1) !== 3 && (
             <Button theme="borderless" size="small" onClick={() => openSwitch(row)}>
-              更换
+              {t('更换')}
             </Button>
           )}
           <Dropdown
@@ -399,21 +401,21 @@ export function PcDecorateHome() {
             position="bottomRight"
             render={
               <Dropdown.Menu>
-                <Dropdown.Item onClick={() => handleCopy(row)}>复制</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleCopy(row)}>{t('复制')}</Dropdown.Item>
                 {row.isHome === 0 && (
-                  <Popconfirm title="确定删除该页面？" onConfirm={() => handleDelete(row)}>
-                    <Dropdown.Item>删除</Dropdown.Item>
+                  <Popconfirm title={t('确定删除该页面？')} onConfirm={() => handleDelete(row)}>
+                    <Dropdown.Item>{t('删除')}</Dropdown.Item>
                   </Popconfirm>
                 )}
-                <Dropdown.Item onClick={() => handleShare(row)}>分享</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleExport(row)}>导出</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleShare(row)}>{t('分享')}</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleExport(row)}>{t('导出')}</Dropdown.Item>
                 {canPromote(row) && (
-                  <Dropdown.Item onClick={() => setPromoteRow(row)}>推广</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setPromoteRow(row)}>{t('推广')}</Dropdown.Item>
                 )}
               </Dropdown.Menu>
             }
           >
-            <Button theme="borderless" size="small" icon={<IconMore />} aria-label="更多操作" />
+            <Button theme="borderless" size="small" icon={<IconMore />} aria-label={t('更多操作')} />
           </Dropdown>
         </Space>
       ),
@@ -426,7 +428,7 @@ export function PcDecorateHome() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
           <Space>
             <Input
-              placeholder="输入页面名称"
+              placeholder={t('输入页面名称')}
               value={keyword}
               onChange={(v) => setKeyword(v)}
               onEnterPress={() => {
@@ -447,20 +449,20 @@ export function PcDecorateHome() {
                 setAppliedKeyword(keyword);
               }}
             >
-              搜索
+              {t('搜索')}
             </Button>
           </Space>
           <Space>
             <Button theme="solid" type="primary" onClick={() => setAddVisible(true)}>
-              添加页面
+              {t('添加页面')}
             </Button>
-            <Button onClick={() => setImportVisible(true)}>导入装修模板</Button>
-            <Popconfirm title="您确认要批量删除所选数据吗？" onConfirm={handleBatchDelete}>
-              <Button disabled={selectedKeys.length === 0}>批量删除</Button>
+            <Button onClick={() => setImportVisible(true)}>{t('导入装修模板')}</Button>
+            <Popconfirm title={t('您确认要批量删除所选数据吗？')} onConfirm={handleBatchDelete}>
+              <Button disabled={selectedKeys.length === 0}>{t('批量删除')}</Button>
             </Popconfirm>
             {selectedKeys.length > 0 && (
               <Text type="tertiary" size="small">
-                已选择：<b>{selectedKeys.length}</b> 项
+                {t('已选择：')}<b>{selectedKeys.length}</b> {t('项')}
               </Text>
             )}
           </Space>
@@ -504,15 +506,15 @@ export function PcDecorateHome() {
 
       {/* 添加页面抽屉（原版 DialogForm isDrawer 600px：页面名称 + 排序） */}
       <SideSheet
-        title="添加页面"
+        title={t('添加页面')}
         visible={addVisible}
         width={600}
         onCancel={() => setAddVisible(false)}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button onClick={() => setAddVisible(false)}>取消</Button>
+            <Button onClick={() => setAddVisible(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={addSaving} onClick={handleAdd}>
-              确定
+              {t('确定')}
             </Button>
           </div>
         }
@@ -520,10 +522,10 @@ export function PcDecorateHome() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '8px 4px' }}>
           <div>
             <Text strong style={{ display: 'block', marginBottom: 6 }}>
-              <span style={{ color: 'var(--semi-color-danger)' }}>* </span>页面名称
+              <span style={{ color: 'var(--semi-color-danger)' }}>* </span>{t('页面名称')}
             </Text>
             <Input
-              placeholder="请输入页面名称"
+              placeholder={t('请输入页面名称')}
               value={addTitle}
               onChange={(v) => setAddTitle(v)}
               maxLength={50}
@@ -531,7 +533,7 @@ export function PcDecorateHome() {
           </div>
           <div>
             <Text strong style={{ display: 'block', marginBottom: 6 }}>
-              排序
+              {t('排序')}
             </Text>
             <InputNumber value={addSort as number} onChange={(v) => setAddSort(v ?? 0)} style={{ width: 200 }} />
           </div>
@@ -540,20 +542,20 @@ export function PcDecorateHome() {
 
       {/* 更换首页弹窗（原版 SwitchDefaultPage 800px） */}
       <Modal
-        title="更换首页"
+        title={t('更换首页')}
         visible={!!switchTarget}
         width={620}
         onOk={handleSwitchHome}
         onCancel={() => setSwitchTarget(null)}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
       >
         {switchLoading ? (
           <div style={{ padding: 32, textAlign: 'center' }}>
             <Spin />
           </div>
         ) : switchCandidates.length === 0 ? (
-          <Text type="tertiary">暂无其他可更换的同类型页面</Text>
+          <Text type="tertiary">{t('暂无其他可更换的同类型页面')}</Text>
         ) : (
           <RadioGroup
             value={switchChoice ?? undefined}
@@ -563,7 +565,7 @@ export function PcDecorateHome() {
             {switchCandidates.map((c) => (
               <Radio key={c.decorateId} value={c.decorateId}>
                 {c.decorateTitle}
-                {Number(c.status) === 1 ? '（已发布）' : '（未发布）'}
+                {Number(c.status) === 1 ? t('（已发布）') : t('（未发布）')}
               </Radio>
             ))}
           </RadioGroup>
@@ -572,16 +574,16 @@ export function PcDecorateHome() {
 
       {/* 导入装修模板弹窗（原版 ElMessageBox.prompt，接口 /decorate/decorateShare/import） */}
       <Modal
-        title="导入装修链接"
+        title={t('导入装修链接')}
         visible={importVisible}
         onOk={handleImport}
         onCancel={() => setImportVisible(false)}
-        okText="确定"
-        cancelText="取消"
+        okText={t('确定')}
+        cancelText={t('取消')}
         okButtonProps={{ loading: importSaving }}
       >
         <Input
-          placeholder="请把分享链接粘贴在此处"
+          placeholder={t('请把分享链接粘贴在此处')}
           value={importLink}
           onChange={(v) => setImportLink(v)}
         />
@@ -589,7 +591,7 @@ export function PcDecorateHome() {
 
       {/* 推广弹窗（原版 Advertise 900px，展示 C 端路径） */}
       <Modal
-        title="推广"
+        title={t('推广')}
         visible={!!promoteRow}
         width={520}
         footer={null}
@@ -606,14 +608,14 @@ export function PcDecorateHome() {
               />
               <Button
                 onClick={() =>
-                  copyText(promoteRow.pageType === 3 ? '/activity' : '/', '链接已复制到剪贴板')
+                  copyText(promoteRow.pageType === 3 ? '/activity' : '/', t('链接已复制到剪贴板'))
                 }
               >
-                复制路径
+                {t('复制路径')}
               </Button>
             </div>
             <Text type="tertiary" size="small">
-              页面路径为商城 PC 端（decorateType=2）对应页面类型的访问地址。
+              {t('页面路径为商城 PC 端（decorateType=2）对应页面类型的访问地址。')}
             </Text>
           </div>
         )}
@@ -624,6 +626,7 @@ export function PcDecorateHome() {
 
 /** 页面名称行内编辑（对应原版 PopForm，回车或确定提交 updateField） */
 function EditableTitle({ value, onConfirm }: { value: string; onConfirm: (val: string) => void }) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -648,7 +651,7 @@ function EditableTitle({ value, onConfirm }: { value: string; onConfirm: (val: s
         <div style={{ display: 'flex', gap: 6, padding: 6 }}>
           <Input value={draft} onChange={(v) => setDraft(v)} onEnterPress={submit} maxLength={50} style={{ width: 200 }} />
           <Button size="small" theme="solid" type="primary" onClick={submit}>
-            确定
+            {t('确定')}
           </Button>
         </div>
       }
@@ -659,7 +662,7 @@ function EditableTitle({ value, onConfirm }: { value: string; onConfirm: (val: s
           e.stopPropagation();
           setVisible(true);
         }}
-        title="点击修改名称"
+        title={t('点击修改名称')}
       >
         {value || '-'}
       </span>
@@ -698,6 +701,7 @@ interface PcNavRecord {
 }
 
 export function PcNavigation() {
+  const { t } = useI18n();
   const [activeKey, setActiveKey] = useState<number>(1);
   const [keyword, setKeyword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -725,14 +729,15 @@ export function PcNavigation() {
     isBlank: 0,
   });
 
-  const typeName =
+  const typeName = t(
     activeKey === 1
       ? '主导航'
       : activeKey === 2
       ? '顶部小导航'
       : activeKey === 3
       ? '底部导航'
-      : '侧边导航';
+      : '侧边导航',
+  );
 
   const loadData = async () => {
     setLoading(true);
@@ -776,7 +781,7 @@ export function PcNavigation() {
       }
       setTotal(totalCount);
     } catch (e: any) {
-      Toast.error(e.message || '加载导航栏数据失败');
+      Toast.error(e.message || t('加载导航栏数据失败'));
     } finally {
       setLoading(false);
     }
@@ -796,10 +801,10 @@ export function PcNavigation() {
             label: item.title,
             value: item.id,
           }));
-          setParentOptions([{ label: '顶级导航', value: 0 }, ...opts]);
+          setParentOptions([{ label: t('顶级导航'), value: 0 }, ...opts]);
         })
         .catch(() => {
-          setParentOptions([{ label: '顶级导航', value: 0 }]);
+          setParentOptions([{ label: t('顶级导航'), value: 0 }]);
         });
     }
   }, [activeKey]);
@@ -814,20 +819,20 @@ export function PcNavigation() {
   const handleUpdateField = async (id: number, field: string, val: any) => {
     try {
       await apiPost('/decorate/pcNavigation/updateField', { id, field, val });
-      Toast.success('修改成功');
+      Toast.success(t('修改成功'));
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '修改失败');
+      Toast.error(e.message || t('修改失败'));
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/decorate/pcNavigation/del', { id });
-      Toast.success('删除成功');
+      Toast.success(t('删除成功'));
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '删除失败');
+      Toast.error(e.message || t('删除失败'));
     }
   };
 
@@ -835,11 +840,11 @@ export function PcNavigation() {
     if (selectedKeys.length === 0) return;
     try {
       await apiPost('/decorate/pcNavigation/batch', { type: 'del', ids: selectedKeys });
-      Toast.success('批量删除成功');
+      Toast.success(t('批量删除成功'));
       setSelectedKeys([]);
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '批量删除失败');
+      Toast.error(e.message || t('批量删除失败'));
     }
   };
 
@@ -881,7 +886,7 @@ export function PcNavigation() {
 
   const handleDrawerSubmit = async () => {
     if (!formState.title.trim()) {
-      Toast.warning('名称不能为空!');
+      Toast.warning(t('名称不能为空!'));
       return;
     }
     setSubmitting(true);
@@ -900,15 +905,15 @@ export function PcNavigation() {
       }
       if (drawerMode === 'add') {
         await apiPost('/decorate/pcNavigation/create', payload);
-        Toast.success('添加成功');
+        Toast.success(t('添加成功'));
       } else {
         await apiPost('/decorate/pcNavigation/update', { id: editingId, ...payload });
-        Toast.success('修改成功');
+        Toast.success(t('修改成功'));
       }
       setDrawerVisible(false);
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '提交失败');
+      Toast.error(e.message || t('提交失败'));
     } finally {
       setSubmitting(false);
     }
@@ -916,7 +921,7 @@ export function PcNavigation() {
 
   const columns = [
     {
-      title: '名称',
+      title: t('名称'),
       dataIndex: 'title',
       width: 220,
       render: (text: string, row: PcNavRecord) => (
@@ -924,13 +929,13 @@ export function PcNavigation() {
       ),
     },
     {
-      title: '位置',
+      title: t('位置'),
       dataIndex: 'typeName',
       width: 140,
       render: (v: string) => <Tag color="blue">{v || typeName}</Tag>,
     },
     {
-      title: '是否显示',
+      title: t('是否显示'),
       dataIndex: 'isShow',
       width: 110,
       render: (_: any, row: PcNavRecord) => (
@@ -941,7 +946,7 @@ export function PcNavigation() {
       ),
     },
     {
-      title: '是否新窗口',
+      title: t('是否新窗口'),
       dataIndex: 'isBlank',
       width: 120,
       render: (_: any, row: PcNavRecord) => (
@@ -952,7 +957,7 @@ export function PcNavigation() {
       ),
     },
     {
-      title: '排序',
+      title: t('排序'),
       dataIndex: 'sortOrder',
       width: 110,
       render: (val: number, row: PcNavRecord) => (
@@ -970,17 +975,17 @@ export function PcNavigation() {
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       width: 160,
       render: (_: any, row: PcNavRecord) => (
         <Space spacing={6}>
           <Button theme="borderless" type="primary" onClick={() => openEditDrawer(row)}>
-            编辑
+            {t('编辑')}
           </Button>
-          <Popconfirm title="确定删除此导航？" onConfirm={() => handleDelete(row.id)}>
+          <Popconfirm title={t('确定删除此导航？')} onConfirm={() => handleDelete(row.id)}>
             <Button theme="borderless" type="danger">
-              删除
+              {t('删除')}
             </Button>
           </Popconfirm>
         </Space>
@@ -999,10 +1004,10 @@ export function PcNavigation() {
             activeKey={String(activeKey)}
             onChange={onTabChange}
           >
-            <TabPane tab="主导航" itemKey="1" />
-            <TabPane tab="顶部小导航" itemKey="2" />
-            <TabPane tab="底部导航" itemKey="3" />
-            <TabPane tab="侧边导航" itemKey="4" />
+            <TabPane tab={t('主导航')} itemKey="1" />
+            <TabPane tab={t('顶部小导航')} itemKey="2" />
+            <TabPane tab={t('底部导航')} itemKey="3" />
+            <TabPane tab={t('侧边导航')} itemKey="4" />
           </Tabs>
         </div>
 
@@ -1021,7 +1026,7 @@ export function PcNavigation() {
             <Space>
               <Input
                 prefix={<IconSearch />}
-                placeholder="输入导航栏名称"
+                placeholder={t('输入导航栏名称')}
                 value={keyword}
                 onChange={(v) => setKeyword(v)}
                 onEnterPress={loadData}
@@ -1029,7 +1034,7 @@ export function PcNavigation() {
                 showClear
               />
               <Button theme="solid" type="primary" icon={<IconSearch />} onClick={loadData}>
-                搜索
+                {t('搜索')}
               </Button>
               <Button
                 icon={<IconRefresh />}
@@ -1039,26 +1044,26 @@ export function PcNavigation() {
                   loadData();
                 }}
               >
-                重置
+                {t('重置')}
               </Button>
             </Space>
 
             <Space spacing={12}>
               <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openAddDrawer}>
-                添加{typeName}
+                {t('添加')}{typeName}
               </Button>
               <Popconfirm
-                title="您确认要批量删除所选数据吗？"
+                title={t('您确认要批量删除所选数据吗？')}
                 onConfirm={handleBatchDelete}
                 disabled={selectedKeys.length === 0}
               >
                 <Button type="danger" disabled={selectedKeys.length === 0}>
-                  批量删除
+                  {t('批量删除')}
                 </Button>
               </Popconfirm>
               {selectedKeys.length > 0 && (
                 <span style={{ fontSize: 13, color: '#666' }}>
-                  已选择：<b style={{ color: '#165dff' }}>{selectedKeys.length}</b> 项
+                  {t('已选择：')}<b style={{ color: '#165dff' }}>{selectedKeys.length}</b> {t('项')}
                 </span>
               )}
             </Space>
@@ -1088,15 +1093,19 @@ export function PcNavigation() {
 
       {/* 导航栏配置 Drawer (宽度600px，对齐旧版 Info.vue 规范) */}
       <SideSheet
-        title={drawerMode === 'add' ? `添加${typeName}` : `编辑商城${typeName}导航栏`}
+        title={
+          drawerMode === 'add'
+            ? `${t('添加')}${typeName}`
+            : `${t('编辑商城')}${typeName}${t('导航栏')}`
+        }
         visible={drawerVisible}
         onCancel={() => setDrawerVisible(false)}
         width={600}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '12px 24px' }}>
-            <Button onClick={() => setDrawerVisible(false)}>取消</Button>
+            <Button onClick={() => setDrawerVisible(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={submitting} onClick={handleDrawerSubmit}>
-              提交
+              {t('提交')}
             </Button>
           </div>
         }
@@ -1104,39 +1113,39 @@ export function PcNavigation() {
         <div style={{ padding: '8px 8px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
             <div style={{ marginBottom: 6, fontWeight: 500 }}>
-              <span style={{ color: '#f53f3f' }}>* </span>名称：
+              <span style={{ color: '#f53f3f' }}>* </span>{t('名称：')}
             </div>
             <Input
               value={formState.title}
               onChange={(v) => setFormState({ ...formState, title: v })}
-              placeholder="请输入导航名称"
+              placeholder={t('请输入导航名称')}
             />
           </div>
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>链接地址：</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('链接地址：')}</div>
             <Input
               value={formState.linkUrl}
               onChange={(v) => setFormState({ ...formState, linkUrl: v })}
-              placeholder="例如: /product/list 或 http://..."
+              placeholder={t('例如: /product/list 或 http://...')}
             />
           </div>
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>ICO编码：</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('ICO编码：')}</div>
             <Input
               value={formState.icon}
               onChange={(v) => setFormState({ ...formState, icon: v })}
-              placeholder="图标类名，例如: icon-home"
+              placeholder={t('图标类名，例如: icon-home')}
             />
             <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-              请先在本系统设置中的"接口设置"中设置"ico图标库地址"
+              {t('请先在本系统设置中的"接口设置"中设置"ico图标库地址"')}
             </div>
           </div>
 
           {activeKey === 2 && (
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 500 }}>上级导航：</div>
+              <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('上级导航：')}</div>
               <Select
                 value={formState.parentId}
                 onChange={(v) => setFormState({ ...formState, parentId: Number(v) })}
@@ -1144,46 +1153,46 @@ export function PcNavigation() {
                 style={{ width: '100%' }}
               />
               <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-                请选择相对应位置的导航，如果父导航为中间导航，那该导航必须同样设置为中间导航才会生效；默认不选则表示为顶级导航
+                {t('请选择相对应位置的导航，如果父导航为中间导航，那该导航必须同样设置为中间导航才会生效；默认不选则表示为顶级导航')}
               </div>
             </div>
           )}
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>位置：</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('位置：')}</div>
             <Input value={formState.typeName} disabled />
           </div>
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>排序：</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('排序：')}</div>
             <Input
               value={String(formState.sortOrder)}
               onChange={(v) => setFormState({ ...formState, sortOrder: Number(v) || 0 })}
             />
             <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-              默认值为50，数值越小，排序越靠前
+              {t('默认值为50，数值越小，排序越靠前')}
             </div>
           </div>
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>是否显示：</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('是否显示：')}</div>
             <RadioGroup
               value={formState.isShow}
               onChange={(e) => setFormState({ ...formState, isShow: Number(e.target.value) })}
             >
-              <Radio value={1}>是</Radio>
-              <Radio value={0}>否</Radio>
+              <Radio value={1}>{t('是')}</Radio>
+              <Radio value={0}>{t('否')}</Radio>
             </RadioGroup>
           </div>
 
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>是否新窗口：</div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('是否新窗口：')}</div>
             <RadioGroup
               value={formState.isBlank}
               onChange={(e) => setFormState({ ...formState, isBlank: Number(e.target.value) })}
             >
-              <Radio value={1}>是</Radio>
-              <Radio value={0}>否</Radio>
+              <Radio value={1}>{t('是')}</Radio>
+              <Radio value={0}>{t('否')}</Radio>
             </RadioGroup>
           </div>
         </div>
@@ -1217,6 +1226,7 @@ export interface PcCatFloorRecord {
 }
 
 export function PcCatFloor() {
+  const { t } = useI18n();
   const [rows, setRows] = useState<PcCatFloorRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -1309,7 +1319,7 @@ export function PcCatFloor() {
       setRows(list);
       setTotal(res?.total || list.length);
     } catch (e: any) {
-      Toast.error(e.message || '加载分类楼层数据失败');
+      Toast.error(e.message || t('加载分类楼层数据失败'));
     } finally {
       setLoading(false);
     }
@@ -1323,10 +1333,10 @@ export function PcCatFloor() {
   const handleUpdateField = async (id: number, field: string, val: any) => {
     try {
       await apiPost('/decorate/pcCatFloor/updateField', { id, field, val });
-      Toast.success('修改成功');
+      Toast.success(t('修改成功'));
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '修改失败');
+      Toast.error(e.message || t('修改失败'));
     }
   };
 
@@ -1334,10 +1344,10 @@ export function PcCatFloor() {
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/decorate/pcCatFloor/del', { id });
-      Toast.success('删除成功');
+      Toast.success(t('删除成功'));
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '删除失败');
+      Toast.error(e.message || t('删除失败'));
     }
   };
 
@@ -1349,11 +1359,11 @@ export function PcCatFloor() {
         type: 'del',
         ids: selectedKeys.map(Number),
       });
-      Toast.success('批量删除成功');
+      Toast.success(t('批量删除成功'));
       setSelectedKeys([]);
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '批量删除失败');
+      Toast.error(e.message || t('批量删除失败'));
     }
   };
 
@@ -1361,10 +1371,10 @@ export function PcCatFloor() {
   const handleClearCache = async () => {
     try {
       await apiPost('/decorate/pcCatFloor/clearCache', {});
-      Toast.success('分类抽屉缓存已清除');
+      Toast.success(t('分类抽屉缓存已清除'));
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '清除缓存失败');
+      Toast.error(e.message || t('清除缓存失败'));
     }
   };
 
@@ -1410,7 +1420,7 @@ export function PcCatFloor() {
         isShow: detail?.isShow ?? row.isShow ?? 1,
       });
     } catch (e: any) {
-      Toast.error(e.message || '获取抽屉楼层详情失败');
+      Toast.error(e.message || t('获取抽屉楼层详情失败'));
     } finally {
       setDrawerLoading(false);
     }
@@ -1420,7 +1430,7 @@ export function PcCatFloor() {
   const handleDrawerSubmit = async () => {
     const validCategories = formState.categoryList.filter((item) => item.categoryId != null);
     if (validCategories.length === 0) {
-      Toast.warning('请至少添加并选择一个商品分类');
+      Toast.warning(t('请至少添加并选择一个商品分类'));
       return;
     }
 
@@ -1437,18 +1447,18 @@ export function PcCatFloor() {
 
       if (drawerMode === 'add') {
         await apiPost('/decorate/pcCatFloor/create', payload);
-        Toast.success('添加抽屉楼层成功');
+        Toast.success(t('添加抽屉楼层成功'));
       } else {
         await apiPost('/decorate/pcCatFloor/update', {
           catFloorId: editingId,
           ...payload,
         });
-        Toast.success('修改抽屉楼层成功');
+        Toast.success(t('修改抽屉楼层成功'));
       }
       setDrawerVisible(false);
       loadData();
     } catch (e: any) {
-      Toast.error(e.message || '保存失败');
+      Toast.error(e.message || t('保存失败'));
     } finally {
       setSubmitting(false);
     }
@@ -1464,7 +1474,7 @@ export function PcCatFloor() {
 
   const removeCategoryRow = (index: number) => {
     if (formState.categoryList.length <= 1) {
-      Toast.warning('至少需要保留一行分类设置');
+      Toast.warning(t('至少需要保留一行分类设置'));
       return;
     }
     const nextList = [...formState.categoryList];
@@ -1480,7 +1490,7 @@ export function PcCatFloor() {
 
   const columns = [
     {
-      title: '楼层图标',
+      title: t('楼层图标'),
       dataIndex: 'floorIcoFont',
       width: 110,
       render: (_: any, row: PcCatFloorRecord) => {
@@ -1505,17 +1515,17 @@ export function PcCatFloor() {
         if (row.floorIco) {
           return <Avatar src={row.floorIco} size="small" shape="square" />;
         }
-        return <span style={{ color: '#bbb', fontSize: 12 }}>无图标</span>;
+        return <span style={{ color: '#bbb', fontSize: 12 }}>{t('无图标')}</span>;
       },
     },
     {
-      title: '楼层名称',
+      title: t('楼层名称'),
       dataIndex: 'catFloorName',
       width: 240,
       render: (v: string) => <span style={{ fontWeight: 600 }}>{v || '--'}</span>,
     },
     {
-      title: '是否显示',
+      title: t('是否显示'),
       dataIndex: 'isShow',
       width: 120,
       render: (_: any, row: PcCatFloorRecord) => (
@@ -1526,7 +1536,7 @@ export function PcCatFloor() {
       ),
     },
     {
-      title: '排序',
+      title: t('排序'),
       dataIndex: 'sortOrder',
       width: 130,
       sorter: (a: PcCatFloorRecord, b: PcCatFloorRecord) => (a.sortOrder || 0) - (b.sortOrder || 0),
@@ -1552,17 +1562,17 @@ export function PcCatFloor() {
       ),
     },
     {
-      title: '操作',
+      title: t('操作'),
       dataIndex: 'actions',
       width: 160,
       render: (_: any, row: PcCatFloorRecord) => (
         <Space spacing={6}>
           <Button theme="borderless" type="primary" onClick={() => openEditDrawer(row)}>
-            编辑
+            {t('编辑')}
           </Button>
-          <Popconfirm title="确定删除此分类楼层？" onConfirm={() => handleDelete(row.catFloorId)}>
+          <Popconfirm title={t('确定删除此分类楼层？')} onConfirm={() => handleDelete(row.catFloorId)}>
             <Button theme="borderless" type="danger">
-              删除
+              {t('删除')}
             </Button>
           </Popconfirm>
         </Space>
@@ -1587,7 +1597,7 @@ export function PcCatFloor() {
           <Space>
             <Input
               prefix={<IconSearch />}
-              placeholder="输入楼层名称"
+              placeholder={t('输入楼层名称')}
               value={keyword}
               onChange={(v) => setKeyword(v)}
               onEnterPress={() => {
@@ -1611,7 +1621,7 @@ export function PcCatFloor() {
                 loadData(keyword, 1);
               }}
             >
-              搜索
+              {t('搜索')}
             </Button>
             <Button
               icon={<IconRefresh />}
@@ -1621,29 +1631,29 @@ export function PcCatFloor() {
                 loadData('', 1);
               }}
             >
-              重置
+              {t('重置')}
             </Button>
           </Space>
 
           <Space spacing={10}>
             <Button icon={<IconRefresh />} onClick={handleClearCache}>
-              清除分类抽屉缓存
+              {t('清除分类抽屉缓存')}
             </Button>
             <Button theme="solid" type="primary" icon={<IconPlus />} onClick={openAddDrawer}>
-              添加抽屉楼层
+              {t('添加抽屉楼层')}
             </Button>
             <Popconfirm
-              title="您确认要批量删除所选数据吗？"
+              title={t('您确认要批量删除所选数据吗？')}
               onConfirm={handleBatchDelete}
               disabled={selectedKeys.length === 0}
             >
               <Button type="danger" disabled={selectedKeys.length === 0}>
-                批量删除
+                {t('批量删除')}
               </Button>
             </Popconfirm>
             {selectedKeys.length > 0 && (
               <span style={{ fontSize: 13, color: '#666' }}>
-                已选择：<b style={{ color: '#165dff' }}>{selectedKeys.length}</b> 项
+                {t('已选择：')}<b style={{ color: '#165dff' }}>{selectedKeys.length}</b> {t('项')}
               </span>
             )}
           </Space>
@@ -1672,15 +1682,15 @@ export function PcCatFloor() {
 
       {/* 楼层配置 Drawer (对齐 Info.vue 规范，宽度 600px) */}
       <SideSheet
-        title={drawerMode === 'add' ? '添加抽屉楼层' : '编辑抽屉楼层'}
+        title={drawerMode === 'add' ? t('添加抽屉楼层') : t('编辑抽屉楼层')}
         visible={drawerVisible}
         onCancel={() => setDrawerVisible(false)}
         width={600}
         footer={
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '12px 24px' }}>
-            <Button onClick={() => setDrawerVisible(false)}>取消</Button>
+            <Button onClick={() => setDrawerVisible(false)}>{t('取消')}</Button>
             <Button theme="solid" type="primary" loading={submitting} onClick={handleDrawerSubmit}>
-              提交
+              {t('提交')}
             </Button>
           </div>
         }
@@ -1691,10 +1701,10 @@ export function PcCatFloor() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div style={{ fontWeight: 600 }}>
-                  <span style={{ color: '#f53f3f' }}>* </span>添加分类：
+                  <span style={{ color: '#f53f3f' }}>* </span>{t('添加分类：')}
                 </div>
                 <Button size="small" icon={<IconPlus />} theme="solid" type="primary" onClick={addCategoryRow}>
-                  增加分类
+                  {t('增加分类')}
                 </Button>
               </div>
 
@@ -1714,7 +1724,7 @@ export function PcCatFloor() {
                   >
                     <div style={{ flex: 1.2 }}>
                       <Select
-                        placeholder="选择商品分类"
+                        placeholder={t('选择商品分类')}
                         value={item.categoryId ?? undefined}
                         onChange={(val) => updateCategoryRow(index, { categoryId: Number(val) })}
                         optionList={categoryOptions}
@@ -1723,9 +1733,9 @@ export function PcCatFloor() {
                       />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
-                      <span style={{ fontSize: 13, color: '#666', whiteSpace: 'nowrap' }}>重命名:</span>
+                      <span style={{ fontSize: 13, color: '#666', whiteSpace: 'nowrap' }}>{t('重命名:')}</span>
                       <Input
-                        placeholder="原名显示或填'-'隐藏"
+                        placeholder={t("原名显示或填'-'隐藏")}
                         value={item.categoryName}
                         onChange={(val) => updateCategoryRow(index, { categoryName: val })}
                       />
@@ -1741,17 +1751,17 @@ export function PcCatFloor() {
               </div>
 
               <div style={{ fontSize: 12, color: '#888', marginTop: 8, lineHeight: 1.6 }}>
-                <div>• 提示：只能设置为一级或二级分类，且必须含有一个一级分类；如果存在二级分类，则必须存在该二级分类的上一级分类；</div>
-                <div>• 重命名为空则显示原分类名称，重命名为"-"符号则不会显示。</div>
+                <div>• {t('提示：只能设置为一级或二级分类，且必须含有一个一级分类；如果存在二级分类，则必须存在该二级分类的上一级分类；')}</div>
+                <div>• {t('重命名为空则显示原分类名称，重命名为"-"符号则不会显示。')}</div>
               </div>
             </div>
 
             {/* 热门品牌 (Brand List) */}
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 600 }}>热门品牌：</div>
+              <div style={{ marginBottom: 6, fontWeight: 600 }}>{t('热门品牌：')}</div>
               <Select
                 multiple
-                placeholder="请选择推荐的热门品牌"
+                placeholder={t('请选择推荐的热门品牌')}
                 value={formState.brandIds}
                 onChange={(vals) => setFormState({ ...formState, brandIds: (vals as number[]) || [] })}
                 optionList={brandOptions}
@@ -1762,39 +1772,39 @@ export function PcCatFloor() {
 
             {/* ICO编码 (floorIcoFont) */}
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 600 }}>ICO编码：</div>
+              <div style={{ marginBottom: 6, fontWeight: 600 }}>{t('ICO编码：')}</div>
               <Input
                 value={formState.floorIcoFont}
                 onChange={(v) => setFormState({ ...formState, floorIcoFont: v })}
-                placeholder="例如: iconfont-tig icon-yingxiaoguanli 或 lyecs-defined-iconfont lyecs-defined-icon-baipishu"
+                placeholder={t('例如: iconfont-tig icon-yingxiaoguanli 或 lyecs-defined-iconfont lyecs-defined-icon-baipishu')}
               />
               <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-                请先在本系统设置中的"接口设置"中设置"ico图标库地址"
+                {t('请先在本系统设置中的"接口设置"中设置"ico图标库地址"')}
               </div>
             </div>
 
             {/* 排序 */}
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 600 }}>排序：</div>
+              <div style={{ marginBottom: 6, fontWeight: 600 }}>{t('排序：')}</div>
               <Input
                 value={String(formState.sortOrder)}
                 onChange={(v) => setFormState({ ...formState, sortOrder: Number(v) || 0 })}
                 placeholder="50"
               />
               <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
-                默认值为50，数值越小，排序越靠前
+                {t('默认值为50，数值越小，排序越靠前')}
               </div>
             </div>
 
             {/* 是否显示 */}
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 600 }}>是否显示：</div>
+              <div style={{ marginBottom: 6, fontWeight: 600 }}>{t('是否显示：')}</div>
               <RadioGroup
                 value={formState.isShow}
                 onChange={(e) => setFormState({ ...formState, isShow: Number(e.target.value) })}
               >
-                <Radio value={1}>是</Radio>
-                <Radio value={0}>否</Radio>
+                <Radio value={1}>{t('是')}</Radio>
+                <Radio value={0}>{t('否')}</Radio>
               </RadioGroup>
             </div>
           </div>
@@ -1811,22 +1821,23 @@ export function PcCatFloor() {
  * props: decorateId, status, updateTime, bingdingH5Name, sortOrder
  * ========================================================================= */
 export function PcCustomPage() {
+  const { t } = useI18n();
   const columns: ColumnConfig<any>[] = [
     { title: 'ID', dataIndex: 'decorateId', width: 80 },
     {
-      title: '页面名称',
+      title: t('页面名称'),
       dataIndex: 'decorateName',
       width: 180,
-      render: (v: any, row: any) => v || row?.bingdingH5Name || 'PC自定义微页面',
+      render: (v: any, row: any) => v || row?.bingdingH5Name || t('PC自定义微页面'),
     },
     {
-      title: '发布状态',
+      title: t('发布状态'),
       dataIndex: 'status',
       width: 110,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? '已发布' : '草稿'}</Tag>,
+      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('已发布') : t('草稿')}</Tag>,
     },
-    { title: '更新时间', dataIndex: 'updateTime', width: 170, render: (v: number) => <span>{formatDecorateTime(v)}</span> },
-    { title: '排序', dataIndex: 'sortOrder', width: 90 },
+    { title: t('更新时间'), dataIndex: 'updateTime', width: 170, render: (v: number) => <span>{formatDecorateTime(v)}</span> },
+    { title: t('排序'), dataIndex: 'sortOrder', width: 90 },
   ];
 
   return (
@@ -1845,13 +1856,13 @@ export function PcCustomPage() {
               window.open(`${window.location.origin}/?page=pcDecorateEditor&id=${row.decorateId}&from=pcDecorateCustomManage`, '_blank');
             }}
           >
-            装修
+            {t('装修')}
           </Button>
         )}
-        filters={[{ field: 'decorateName', label: '页面名称', type: 'input' }]}
+        filters={[{ field: 'decorateName', label: t('页面名称'), type: 'input' }]}
         drawer={{
-          title: '新建PC微页面',
-          addText: '新建页面',
+          title: t('新建PC微页面'),
+          addText: t('新建页面'),
           width: 600,
           createApi: '/decorate/decorate/create',
           updateApi: '/decorate/decorate/update',
@@ -1859,10 +1870,10 @@ export function PcCustomPage() {
           sections: [
             {
               key: 'basic',
-              title: '基础配置',
+              title: t('基础配置'),
               fields: [
-                { field: 'decorateName', label: '页面名称', type: 'input', required: true },
-                { field: 'sortOrder', label: '排序', type: 'input' },
+                { field: 'decorateName', label: t('页面名称'), type: 'input', required: true },
+                { field: 'sortOrder', label: t('排序'), type: 'input' },
               ],
             },
           ],
@@ -1879,10 +1890,11 @@ export function PcCustomPage() {
  * props: type
  * ========================================================================= */
 export function PcProductStyle() {
+  const { t } = useI18n();
   const styles = [
-    { type: 1, title: '经典版', img: 'https://oss.tigshop.com/img/gallery/202606/1781513292MtmcDCoVzXOJw2sZOz.jpeg' },
-    { type: 2, title: '国内标准版', img: 'https://oss.tigshop.com/img/gallery/202606/1781513292tAqsibp0zeM6sYNmQK.jpeg' },
-    { type: 3, title: '跨境简约版', img: 'https://oss.tigshop.com/img/gallery/202607/1783574567CDREPpLfzfMd4RYqqx.jpeg' },
+    { type: 1, title: t('经典版'), img: 'https://oss.tigshop.com/img/gallery/202606/1781513292MtmcDCoVzXOJw2sZOz.jpeg' },
+    { type: 2, title: t('国内标准版'), img: 'https://oss.tigshop.com/img/gallery/202606/1781513292tAqsibp0zeM6sYNmQK.jpeg' },
+    { type: 3, title: t('跨境简约版'), img: 'https://oss.tigshop.com/img/gallery/202607/1783574567CDREPpLfzfMd4RYqqx.jpeg' },
   ];
   const [styleType, setStyleType] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -1900,16 +1912,16 @@ export function PcProductStyle() {
   const save = async () => {
     try {
       await apiPost('/setting/config/saveProductDetailStyle', { productDetailStyleType: styleType });
-      Toast.success('操作成功');
+      Toast.success(t('操作成功'));
       load();
     } catch (error) {
-      Toast.error(error instanceof Error ? error.message : '保存失败');
+      Toast.error(error instanceof Error ? error.message : t('保存失败'));
     }
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="PC端商品详情页风格" loading={loading}>
+      <Card title={t('PC端商品详情页风格')} loading={loading}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
           {styles.map((item) => (
             <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>
@@ -1929,8 +1941,8 @@ export function PcProductStyle() {
           ))}
         </div>
         <Space style={{ marginTop: 20 }}>
-          <Button theme="solid" type="primary" onClick={save}>保 存</Button>
-          <Button onClick={() => { setStyleType(1); save(); }}>重 置</Button>
+          <Button theme="solid" type="primary" onClick={save}>{t('保 存')}</Button>
+          <Button onClick={() => { setStyleType(1); save(); }}>{t('重 置')}</Button>
         </Space>
       </Card>
     </div>
@@ -1942,9 +1954,10 @@ export function PcProductStyle() {
  * 契约对齐: java/view/admin/src/views/decorate/pcDecorate/SearchStyle.vue
  * ========================================================================= */
 export function PcSearchStyle() {
+  const { t } = useI18n();
   const styles = [
-    { type: 1, title: '样式一（经典版）', img: 'https://oss.tigshop.com/img/gallery/202606/1782373674JqSs1sxbDajftKgthu.jpeg' },
-    { type: 2, title: '样式二（新版）', img: 'https://oss.tigshop.com/img/gallery/202606/1782373674PUhO83DhgZKLxbXOuQ.jpeg' },
+    { type: 1, title: t('样式一（经典版）'), img: 'https://oss.tigshop.com/img/gallery/202606/1782373674JqSs1sxbDajftKgthu.jpeg' },
+    { type: 2, title: t('样式二（新版）'), img: 'https://oss.tigshop.com/img/gallery/202606/1782373674PUhO83DhgZKLxbXOuQ.jpeg' },
   ];
   const [styleType, setStyleType] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -1962,16 +1975,16 @@ export function PcSearchStyle() {
   const save = async () => {
     try {
       await apiPost('/setting/config/saveSearchStyle', { searchStyleType: styleType });
-      Toast.success('操作成功');
+      Toast.success(t('操作成功'));
       load();
     } catch (error) {
-      Toast.error(error instanceof Error ? error.message : '保存失败');
+      Toast.error(error instanceof Error ? error.message : t('保存失败'));
     }
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title="PC端搜索页风格" loading={loading}>
+      <Card title={t('PC端搜索页风格')} loading={loading}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
           {styles.map((item) => (
             <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>
@@ -1991,8 +2004,8 @@ export function PcSearchStyle() {
           ))}
         </div>
         <Space style={{ marginTop: 20 }}>
-          <Button theme="solid" type="primary" onClick={save}>保 存</Button>
-          <Button onClick={() => { setStyleType(1); save(); }}>重 置</Button>
+          <Button theme="solid" type="primary" onClick={save}>{t('保 存')}</Button>
+          <Button onClick={() => { setStyleType(1); save(); }}>{t('重 置')}</Button>
         </Space>
       </Card>
     </div>
@@ -2004,10 +2017,11 @@ export function PcSearchStyle() {
  * 原版该页登录背景已迁移到登录页装修，页面仅保留兼容空壳。
  * ========================================================================= */
 export function PcDecorateOther() {
+  const { t } = useI18n();
   return (
     <div style={{ padding: 20 }}>
-      <Card title="其它页面">
-        <Text type="secondary">会员登录背景已迁移至「登录页装修」，此页暂无可配置项。</Text>
+      <Card title={t('其它页面')}>
+        <Text type="secondary">{t('会员登录背景已迁移至「登录页装修」，此页暂无可配置项。')}</Text>
       </Card>
     </div>
   );

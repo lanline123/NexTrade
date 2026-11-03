@@ -13,6 +13,7 @@ import {
 import { apiPost } from '../api';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
+import { useI18n } from '../i18n';
 
 const { Text } = Typography;
 
@@ -46,6 +47,7 @@ interface AreaShopRow {
 }
 
 export default function StoreAreas() {
+  const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
 
   // 门店列表弹窗
@@ -57,10 +59,10 @@ export default function StoreAreas() {
   const handleDelete = async (id: number) => {
     try {
       await apiPost('/o2o/areaStoreManager/del', { id });
-      Toast.success({ content: '删除成功' });
+      Toast.success({ content: t('删除成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
     }
   };
 
@@ -70,11 +72,11 @@ export default function StoreAreas() {
         type: 'del',
         ids: rows.map((r) => r.areaStoreManagerId),
       });
-      Toast.success({ content: '批量删除成功' });
+      Toast.success({ content: t('批量删除成功') });
       clear();
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '批量删除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('批量删除失败') });
     }
   };
 
@@ -108,11 +110,11 @@ export default function StoreAreas() {
         areaStoreManagerId: currentArea.areaStoreManagerId,
         shopId,
       });
-      Toast.success({ content: '移除成功' });
+      Toast.success({ content: t('移除成功') });
       setAreaShops((prev) => prev.filter((s) => s.shopId !== shopId));
       setReloadKey((k) => k + 1);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '移除失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('移除失败') });
     }
   };
 
@@ -131,15 +133,15 @@ export default function StoreAreas() {
         fields: [
           {
             field: 'areaStoreName',
-            label: '区域名称',
+            label: t('区域名称'),
             type: 'input',
             required: true,
-            placeholder: '输入区域名称',
+            placeholder: t('输入区域名称'),
             width: 320,
           },
           {
             field: 'sortOrder',
-            label: '排序',
+            label: t('排序'),
             type: 'number',
             initValue: 50,
             required: true,
@@ -166,7 +168,7 @@ export default function StoreAreas() {
       title: '区域门店数量',
       dataIndex: 'storeCount',
       width: 140,
-      render: (val: number) => <Tag color="blue">{val || 0} 家门店</Tag>,
+      render: (val: number) => <Tag color="blue">{t('{count} 家门店', { count: val || 0 })}</Tag>,
     },
     {
       title: '排序',
@@ -200,11 +202,11 @@ export default function StoreAreas() {
         batchActions={(rows, clear) => (
           <Space>
             <Popconfirm
-              title="您确认要批量删除所选数据吗？"
+              title={t('您确认要批量删除所选数据吗？')}
               onConfirm={() => handleBatchDelete(rows, clear)}
             >
               <Button size="small" type="danger" disabled={rows.length === 0}>
-                批量删除
+                {t('批量删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -217,14 +219,14 @@ export default function StoreAreas() {
               type="secondary"
               onClick={() => openShopsModal(record)}
             >
-              门店列表
+              {t('门店列表')}
             </Button>
             <Popconfirm
-              title="确定删除该区域吗？"
+              title={t('确定删除该区域吗？')}
               onConfirm={() => handleDelete(record.areaStoreManagerId)}
             >
               <Button theme="borderless" size="small" type="danger">
-                删除
+                {t('删除')}
               </Button>
             </Popconfirm>
           </Space>
@@ -233,12 +235,12 @@ export default function StoreAreas() {
 
       {/* 区域门店列表弹窗 */}
       <Modal
-        title={`${currentArea?.areaStoreName || ''} - 门店列表`}
+        title={`${currentArea?.areaStoreName || ''} - ${t('门店列表')}`}
         visible={shopModalVisible}
         onCancel={() => setShopModalVisible(false)}
         footer={
           <Button type="primary" onClick={() => setShopModalVisible(false)}>
-            关闭
+            {t('关闭')}
           </Button>
         }
         width={750}
@@ -250,7 +252,7 @@ export default function StoreAreas() {
           pagination={{ pageSize: 5 }}
           columns={[
             {
-              title: '门店名称',
+              title: t('门店名称'),
               dataIndex: 'shopTitle',
               render: (val: string, r) => (
                 <Space>
@@ -260,19 +262,19 @@ export default function StoreAreas() {
               ),
             },
             {
-              title: '门店地址',
+              title: t('门店地址'),
               dataIndex: 'shopDetailedAddress',
               render: (val: string) => val || '--',
             },
             {
-              title: '操作',
+              title: t('操作'),
               render: (_: unknown, r) => (
                 <Popconfirm
-                  title="确定从该区域移除该门店吗？"
+                  title={t('确定从该区域移除该门店吗？')}
                   onConfirm={() => handleRemoveShop(r.shopId)}
                 >
                   <Button size="small" type="danger" theme="borderless">
-                    删除
+                    {t('删除')}
                   </Button>
                 </Popconfirm>
               ),

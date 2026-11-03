@@ -1,18 +1,33 @@
 import type { ReactNode } from 'react';
 import { Checkbox } from '@douyinfe/semi-ui';
+import { useI18n } from '../i18n';
 import AutoConfigPage, {
   type ConfigControlType,
   type ConfigFieldRule,
   type ConfigRendererContext,
 } from './AutoConfigPage';
 
+type Translate = (key: string) => string;
+
+type ConfigOption = { label: string; value: string | number; color?: string };
+
 // 勾选"商品默认审核通过"时 shopProductNeedCheck=0（免审核），不勾选=1（需审核）。
-const invertedCheckRenderer = (field: string, label: string) =>
-  ({ value, update }: ConfigRendererContext) => (
+function InvertedCheckbox({
+  field,
+  label,
+  value,
+  update,
+}: ConfigRendererContext & { field: string; label: string }) {
+  const { t } = useI18n();
+  return (
     <Checkbox checked={Number(value) === 0} onChange={(next) => update(field, next ? 0 : 1)}>
-      {label}
+      {t(label)}
     </Checkbox>
   );
+}
+
+const invertedCheckRenderer = (field: string, label: string) =>
+  (context: ConfigRendererContext) => <InvertedCheckbox {...context} field={field} label={label} />;
 
 /**
  * 满足 store/adminPages/storeSetting/settingStore.vue 契约：
@@ -166,10 +181,34 @@ const def: {
   },
 };
 
+function translateDef(source: typeof def, t: Translate): typeof def {
+  return {
+    ...source,
+    title: t(source.title),
+    sections: source.sections.map((section) => ({ ...section, title: t(section.title) })),
+    labels: Object.fromEntries(
+      Object.entries(source.labels).map(([key, value]): [string, string] => [key, t(value)]),
+    ),
+    options: Object.fromEntries(
+      Object.entries(source.options).map(
+        ([key, list]): [string, ConfigOption[]] => [
+          key,
+          list.map((item) => ({ ...item, label: t(item.label) })),
+        ],
+      ),
+    ),
+    fieldHelp: Object.fromEntries(
+      Object.entries(source.fieldHelp).map(([key, value]): [string, string] => [key, t(value)]),
+    ),
+  };
+}
+
 export default function StoreSettings() {
+  const { t } = useI18n();
+  const localized = translateDef(def, t);
   return (
     <>
-      <AutoConfigPage {...def} />
+      <AutoConfigPage {...localized} />
       {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
       <div style={{ display: 'none' }}>
         <span>允许门店自建商品</span>
