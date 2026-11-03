@@ -11948,5 +11948,11 @@
   "配置快递鸟或快递100查询接口。": "Configure the Kdniao or Kuaidi100 tracking API.",
   "发货人信息与默认发货地址。": "Sender information and default shipping address.",
   "退货收件人信息与默认退货地址。": "Return recipient information and default return address.",
-  "收货人信息与默认收货地址。": "Recipient information and default receiving address."
+  "收货人信息与默认收货地址。": "Recipient information and default receiving address.",
+  "配送半径": "Delivery radius",
+  "米": "m",
+  "订单商品优惠前金额低于起送价时，买家不能下单": "Buyers cannot order when the pre-discount amount is below the minimum.",
+  "未开启叠加溢价时，所有订单统一使用基础运费": "All orders use the base delivery fee when distance pricing is off.",
+  "配送区域以门店为中心设置服务半径，若要修改地址，请前往门店设置 → 门店信息编辑。": "The delivery area is centered on the store. Edit the address in Store settings → Store information.",
+  "发货方": "Sender"
 }

@@ -52,10 +52,48 @@ interface IntraCityPlatformConfig {
   intraCityThirdPartyDeliveryEnabled?: number;
 }
 
+interface LocalDeliveryRule {
+  distanceThreshold: number;
+  distanceUnit: number;
+  additionalFee: number;
+  sortOrder?: number;
+}
+
+interface LocalDeliveryConfig {
+  enabled?: number;
+  deliveryRadius?: number;
+  minOrderAmount?: number;
+  baseDeliveryFee?: number;
+  distancePricingEnabled?: number;
+  orderDispatchMode?: number;
+  pickupPhotoEnabled?: number;
+  deliveryCompletePhotoEnabled?: number;
+  distancePricingList?: LocalDeliveryRule[];
+}
+
+interface StoreSelfOperatedInfo {
+  storeSelfOperatedName?: string;
+  storeSelfOperatedRegion?: string;
+  storeSelfOperatedAddress?: string;
+  storeSelfOperatedPhone?: string;
+}
+
 const DEFAULT_INTRA_CITY: IntraCityPlatformConfig = {
   intraCityDeliveryEnabled: 1,
   intraCitySelfDeliveryEnabled: 1,
   intraCityThirdPartyDeliveryEnabled: 0,
+};
+
+const DEFAULT_LOCAL_DELIVERY: LocalDeliveryConfig = {
+  enabled: 0,
+  deliveryRadius: 1,
+  minOrderAmount: 0,
+  baseDeliveryFee: 0,
+  distancePricingEnabled: 0,
+  orderDispatchMode: 1,
+  pickupPhotoEnabled: 0,
+  deliveryCompletePhotoEnabled: 0,
+  distancePricingList: [],
 };
 
 export function IntraCityDelivery() {
@@ -63,13 +101,36 @@ export function IntraCityDelivery() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<IntraCityPlatformConfig>(DEFAULT_INTRA_CITY);
+  const [local, setLocal] = useState<LocalDeliveryConfig>(DEFAULT_LOCAL_DELIVERY);
+  const [store, setStore] = useState<StoreSelfOperatedInfo>({});
+
+  const toNumber = (value: unknown, fallback = 0) => {
+    const num = Number(value);
+    return Number.isNaN(num) ? fallback : num;
+  };
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    apiGet<IntraCityPlatformConfig>('/o2o/intraCityDelivery/platformConfig/getConfig')
-      .then((res) => {
-        if (alive && res) setConfig({ ...DEFAULT_INTRA_CITY, ...res });
+    Promise.all([
+      apiGet<IntraCityPlatformConfig>('/o2o/intraCityDelivery/platformConfig/getConfig'),
+      apiGet<LocalDeliveryConfig>('/o2o/localDelivery/getConfig'),
+      apiGet<StoreSelfOperatedInfo>('/setting/config/storeSelfOperatedSettings').catch(() => ({})),
+    ])
+      .then(([platformRes, localRes, storeRes]) => {
+        if (!alive) return;
+        setConfig({ ...DEFAULT_INTRA_CITY, ...(platformRes || {}) });
+        setLocal({
+          ...DEFAULT_LOCAL_DELIVERY,
+          ...(localRes || {}),
+          deliveryRadius: toNumber(localRes?.deliveryRadius, 1),
+          minOrderAmount: toNumber(localRes?.minOrderAmount, 0),
+          baseDeliveryFee: toNumber(localRes?.baseDeliveryFee, 0),
+          distancePricingList: Array.isArray(localRes?.distancePricingList)
+            ? localRes.distancePricingList
+            : [],
+        });
+        setStore(storeRes || {});
       })
       .catch((error) =>
         alive && Toast.error({ content: error instanceof Error ? error.message : t('加载配置失败') }),
@@ -82,10 +143,57 @@ export function IntraCityDelivery() {
     };
   }, []);
 
+  const updateLocal = (patch: Partial<LocalDeliveryConfig>) =>
+    setLocal((prev) => ({ ...prev, ...patch }));
+
+  const updateRule = (index: number, patch: Partial<LocalDeliveryRule>) => {
+    setLocal((prev) => {
+      const list = (prev.distancePricingList || []).slice();
+      list[index] = { ...list[index], ...patch };
+      return { ...prev, distancePricingList: list };
+    });
+  };
+
+  const addRule = () => {
+    setLocal((prev) => {
+      const list = prev.distancePricingList || [];
+      if (list.length >= 10) {
+        Toast.error({ content: t('最多只能添加10条收费规则') });
+        return prev;
+      }
+      return {
+        ...prev,
+        distancePricingList: [
+          ...list,
+          {
+            distanceThreshold: 0,
+            distanceUnit: 0,
+            additionalFee: 0,
+            sortOrder: list.length + 1,
+          },
+        ],
+      };
+    });
+  };
+
+  const removeRule = (index: number) => {
+    setLocal((prev) => {
+      const list = prev.distancePricingList || [];
+      if (list.length <= 1) {
+        Toast.warning({ content: t('最少需要添加一条收费规则') });
+        return prev;
+      }
+      return { ...prev, distancePricingList: list.filter((_, i) => i !== index) };
+    });
+  };
+
   const handleSave = async () => {
-    // 5.8.60 校验：商家自配送、第三方配送至少启用一项
     if (Number(config.intraCitySelfDeliveryEnabled) !== 1 && Number(config.intraCityThirdPartyDeliveryEnabled) !== 1) {
       Toast.error({ content: t('商家自配送、第三方配送至少启用一项') });
+      return;
+    }
+    if (Number(local.distancePricingEnabled) === 1 && (local.distancePricingList || []).length === 0) {
+      Toast.error({ content: t('开启叠加溢价时，至少需要添加一条溢价规则') });
       return;
     }
     setSaving(true);
@@ -95,6 +203,24 @@ export function IntraCityDelivery() {
         intraCitySelfDeliveryEnabled: Number(config.intraCitySelfDeliveryEnabled) === 1 ? 1 : 0,
         intraCityThirdPartyDeliveryEnabled: Number(config.intraCityThirdPartyDeliveryEnabled) === 1 ? 1 : 0,
       });
+      await apiPost('/o2o/localDelivery/saveConfig', {
+        ...local,
+        enabled: 1,
+        deliveryRadius: toNumber(local.deliveryRadius),
+        minOrderAmount: toNumber(local.minOrderAmount),
+        baseDeliveryFee: toNumber(local.baseDeliveryFee),
+        distancePricingEnabled: Number(local.distancePricingEnabled) === 1 ? 1 : 0,
+        orderDispatchMode: Number(local.orderDispatchMode) === 2 ? 2 : 1,
+        pickupPhotoEnabled: Number(local.pickupPhotoEnabled) === 1 ? 1 : 0,
+        deliveryCompletePhotoEnabled: Number(local.deliveryCompletePhotoEnabled) === 1 ? 1 : 0,
+        distancePricingList: (local.distancePricingList || []).map((rule, index) => ({
+          ...rule,
+          distanceThreshold: toNumber(rule.distanceThreshold),
+          distanceUnit: toNumber(rule.distanceUnit),
+          additionalFee: toNumber(rule.additionalFee),
+          sortOrder: index + 1,
+        })),
+      });
       Toast.success({ content: t('修改成功') });
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
@@ -102,6 +228,8 @@ export function IntraCityDelivery() {
       setSaving(false);
     }
   };
+
+  const selfEnabled = Number(config.intraCitySelfDeliveryEnabled) === 1;
 
   return (
     <div className="pmo-page">
@@ -128,7 +256,7 @@ export function IntraCityDelivery() {
               <div className="pmo-switch-row">
                 <Switch
                   aria-label={t('启用商家自配送')}
-                  checked={Number(config.intraCitySelfDeliveryEnabled) === 1}
+                  checked={selfEnabled}
                   onChange={(checked) => setConfig({ ...config, intraCitySelfDeliveryEnabled: checked ? 1 : 0 })}
                 />
                 <span className="pmo-option-name">{t('商家自配送')}</span>
@@ -149,18 +277,151 @@ export function IntraCityDelivery() {
               <div className="pmo-help">
                 {t('启用第三方配送：开启后，将由第三方物流进行配送，配送产生的费用，将在门店余额中进行扣除。')}
               </div>
-              <div className="pmo-help">
-                {t('第三方配送管理：请先在第三方配送管理中开启至少一个物流商；第三方配送管理中暂无已开启的物流商，已取消启用第三方配送。')}
-              </div>
             </div>
           </div>
 
-          <div className="pmo-section">
-            <div className="pmo-section-title">{t('自营门店配送')}</div>
-            <div className="pmo-help">
-              {t('平台自营门店信息与配送配置由「门店设置」（setting/config/storeSelfOperatedSettings）维护，门店级同城配送参数（配送半径/起送价/基础运费/距离溢价）在 /o2o/localDelivery/getConfig 按门店配置。')}
+          {selfEnabled && (
+            <div className="pmo-section">
+              <div className="pmo-section-title">{t('自营门店配送')}</div>
+              <div className="pmo-option-block">
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('发货方')}</span>
+                  <Text>{store.storeSelfOperatedName || '--'}</Text>
+                </div>
+                <div className="pmo-form-row">
+                  <span className="pmo-form-label">{t('门店地址')}</span>
+                  <Text>
+                    {(store.storeSelfOperatedRegion || '') + (store.storeSelfOperatedAddress || '') || '--'}
+                  </Text>
+                </div>
+                <div className="pmo-help">
+                  {t('配送区域以门店为中心设置服务半径，若要修改地址，请前往门店设置 → 门店信息编辑。')}
+                </div>
+              </div>
+
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('配送半径')}</span>
+                <InputNumber
+                  min={0}
+                  value={local.deliveryRadius}
+                  onChange={(value) => updateLocal({ deliveryRadius: toNumber(value) })}
+                  style={{ width: 160 }}
+                />
+                <span className="pmo-unit">{t('米')}</span>
+              </div>
+
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('发单模式')}</span>
+                <RadioGroup
+                  value={local.orderDispatchMode}
+                  onChange={(event) => updateLocal({ orderDispatchMode: Number(event.target.value) })}
+                >
+                  <Radio value={1}>{t('抢单模式')}</Radio>
+                  <Radio value={2}>{t('手动派单')}</Radio>
+                </RadioGroup>
+              </div>
+
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('取货时拍照')}</span>
+                <Switch
+                  checked={Number(local.pickupPhotoEnabled) === 1}
+                  onChange={(checked) => updateLocal({ pickupPhotoEnabled: checked ? 1 : 0 })}
+                />
+                <span className="pmo-help">{t('开启后配送员取货时需拍照上传取货照片')}</span>
+              </div>
+
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('配送完成拍照')}</span>
+                <Switch
+                  checked={Number(local.deliveryCompletePhotoEnabled) === 1}
+                  onChange={(checked) => updateLocal({ deliveryCompletePhotoEnabled: checked ? 1 : 0 })}
+                />
+                <span className="pmo-help">{t('开启后配送员完成订单需拍照上传送达照片')}</span>
+              </div>
+
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('起送价')}</span>
+                <InputNumber
+                  min={0}
+                  value={local.minOrderAmount}
+                  onChange={(value) => updateLocal({ minOrderAmount: toNumber(value) })}
+                  style={{ width: 160 }}
+                />
+                <span className="pmo-unit">{t('元')}</span>
+                <span className="pmo-help">
+                  {t('订单商品优惠前金额低于起送价时，买家不能下单')}
+                </span>
+              </div>
+
+              <div className="pmo-form-row">
+                <span className="pmo-form-label">{t('基础运费')}</span>
+                <InputNumber
+                  min={0}
+                  value={local.baseDeliveryFee}
+                  onChange={(value) => updateLocal({ baseDeliveryFee: toNumber(value) })}
+                  style={{ width: 160 }}
+                />
+                <span className="pmo-unit">{t('元')}</span>
+                <span className="pmo-help">
+                  {t('未开启叠加溢价时，所有订单统一使用基础运费')}
+                </span>
+              </div>
+
+              <div className="pmo-switch-row">
+                <Switch
+                  checked={Number(local.distancePricingEnabled) === 1}
+                  onChange={(checked) => updateLocal({ distancePricingEnabled: checked ? 1 : 0 })}
+                />
+                <span className="pmo-option-name">{t('叠加溢价')}</span>
+                <span className="pmo-help">{t('最终费用 = 基础运费 + 叠加溢价')}</span>
+              </div>
+
+              {Number(local.distancePricingEnabled) === 1 && (
+                <div className="pmo-pricing-block">
+                  {(local.distancePricingList || []).map((rule, index) => (
+                    <div className="pmo-form-row" key={index}>
+                      <span>{t('超过')}</span>
+                      <InputNumber
+                        min={0}
+                        value={rule.distanceThreshold}
+                        onChange={(value) => updateRule(index, { distanceThreshold: toNumber(value) })}
+                        style={{ width: 100 }}
+                      />
+                      <span>{t('km，每增加')}</span>
+                      <InputNumber
+                        min={0}
+                        value={rule.distanceUnit}
+                        onChange={(value) => updateRule(index, { distanceUnit: toNumber(value) })}
+                        style={{ width: 100 }}
+                      />
+                      <span>{t('km，配送费增加')}</span>
+                      <InputNumber
+                        min={0}
+                        value={rule.additionalFee}
+                        onChange={(value) => updateRule(index, { additionalFee: toNumber(value) })}
+                        style={{ width: 100 }}
+                      />
+                      <span>{t('元')}</span>
+                      <Button theme="borderless" type="danger" size="small" onClick={() => removeRule(index)}>
+                        {t('删除')}
+                      </Button>
+                    </div>
+                  ))}
+                  <div>
+                    <Button
+                      icon={<IconPlus />}
+                      theme="borderless"
+                      type="primary"
+                      disabled={(local.distancePricingList || []).length >= 10}
+                      onClick={addRule}
+                    >
+                      {t('添加收费规则')}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           <div>
             <Button theme="solid" type="primary" loading={saving} onClick={handleSave}>
