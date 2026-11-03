@@ -5217,13 +5217,12 @@ function FieldControl({
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Text type="tertiary" size="small">{t('显示价格')}</Text>
                 <Switch checked={Number(card.showPrice) === 1} onChange={(v) => updateCard(ci, (c) => ({ ...c, showPrice: v ? 1 : 0 }))} />
-                <Input
-                  value={card.link?.link || ''}
-                  onChange={(v) => updateCard(ci, (c) => ({ ...c, link: { ...c.link, link: v, name: c.link?.name || '' } }))}
-                  placeholder={t('跳转链接(可选)')}
-                  size="small"
-                  style={{ flex: 1 }}
-                />
+                <div style={{ flex: 1, minWidth: 220 }}>
+                  <LinkField
+                    value={card.link}
+                    onChange={(link) => updateCard(ci, (c) => ({ ...c, link }))}
+                  />
+                </div>
               </div>
               {((card.products || []) as Array<Record<string, any>>).map((p, pi) => (
                 <div key={pi} style={{ borderTop: '1px dashed var(--semi-color-border)', paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -5285,7 +5284,12 @@ function FieldControl({
                       <InputNumber value={h.height} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, height: v ?? 0 } : x)))} placeholder={t('高')} style={{ width: 70 }} />
                       <InputNumber value={h.top} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, top: v ?? 0 } : x)))} placeholder={t('上')} style={{ width: 70 }} />
                       <InputNumber value={h.left} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, left: v ?? 0 } : x)))} placeholder={t('左')} style={{ width: 70 }} />
-                      <Input value={h.link?.link || ''} onChange={(v) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, link: { ...x.link, link: v } } : x)))} placeholder={t('链接')} style={{ flex: 1, minWidth: 100 }} />
+                      <div style={{ flex: 1, minWidth: 220 }}>
+                        <LinkField
+                          value={h.link}
+                          onChange={(link) => updateHotareas(hotareas.map((x, i) => (i === index ? { ...x, link } : x)))}
+                        />
+                      </div>
                       <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => updateHotareas(hotareas.filter((_, i) => i !== index))} />
                     </div>
                   ))}
