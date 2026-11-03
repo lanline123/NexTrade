@@ -357,6 +357,7 @@ export default function AutoConfigPage({
   const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -628,74 +629,106 @@ export default function AutoConfigPage({
     return !fieldGroup || matchesCondition(fieldGroup.visibleWhen, values);
   });
 
-  return (
-    <Card className={`auto-config-card${modern ? ' is-modern' : ''}`} shadows="hover">
-      {modern ? (
-        <div className="auto-config-modern-hero">
-          <span className="auto-config-modern-hero__icon">⚙</span>
-          <div className="auto-config-modern-hero__main">
-            <h3>{t('商城基础信息')}</h3>
-            <p>{t('配置商城资料、备案信息与底部展示内容。')}</p>
-          </div>
-          <span className="auto-config-modern-hero__count">
-            {t('共 {count} 项配置', { count: visibleEntries.length })}
-          </span>
-        </div>
-      ) : (
-        <div className="auto-config-head">
-          <Text type="tertiary" size="small">
-            {t('共 {count} 项配置', { count: visibleEntries.length })}
-          </Text>
-        </div>
-      )}
-      {grouped.map((group) => {
-        const renderedGroups = new Set<string>();
-        return (
-          <div className="auto-config-section" key={group.title || 'all'}>
-            {group.title && <h4>{t(group.title)}</h4>}
-            <div className="auto-config-grid">
-              {group.items.map(([key, value]) => {
-                const fieldGroup = (fieldGroups || []).find((item) => item.fields.includes(key));
-                if (fieldGroup) {
-                  if (renderedGroups.has(fieldGroup.title)) return null;
-                  if (!matchesCondition(fieldGroup.visibleWhen, values)) return null;
-                  renderedGroups.add(fieldGroup.title);
-                  const items = fieldGroup.fields
-                    .map((itemKey) => group.items.find(([innerKey]) => innerKey === itemKey))
-                    .filter((item): item is [string, unknown] => Boolean(item))
-                    .filter(([itemKey]) => isFieldVisible(itemKey));
-                  if (!items.length) return null;
-                  return (
-                    <div className="auto-config-subgroup" key={fieldGroup.title}>
-                      <div className="auto-config-subgroup-head">
-                        {fieldGroup.icon && (
-                          <span className="auto-config-subgroup-icon">{fieldGroup.icon}</span>
-                        )}
-                        <div className="auto-config-subgroup-head-main">
-                          <h5>{t(fieldGroup.title)}</h5>
-                          {fieldGroup.description && (
-                            <p className="auto-config-subgroup-desc">{t(fieldGroup.description)}</p>
-                          )}
-                        </div>
-                        {fieldGroup.tag && (
-                          <span className="auto-config-subgroup-tag">{t(fieldGroup.tag)}</span>
-                        )}
-                      </div>
-                      <div className="auto-config-subgroup-body">
-                        <div className="auto-config-grid">
-                          {items.map((item) => renderField(item, isFieldDisabled(item[0])))}
-                        </div>
-                      </div>
+  const renderSection = (group: (typeof grouped)[number], sectionIndex = 0) => {
+    const renderedGroups = new Set<string>();
+    return (
+      <div className="auto-config-section" key={group.title || 'all'} id={`settings-section-${sectionIndex}`}>
+        {group.title && <h4>{t(group.title)}</h4>}
+        <div className="auto-config-grid">
+          {group.items.map(([key, value]) => {
+            const fieldGroup = (fieldGroups || []).find((item) => item.fields.includes(key));
+            if (fieldGroup) {
+              if (renderedGroups.has(fieldGroup.title)) return null;
+              if (!matchesCondition(fieldGroup.visibleWhen, values)) return null;
+              renderedGroups.add(fieldGroup.title);
+              const items = fieldGroup.fields
+                .map((itemKey) => group.items.find(([innerKey]) => innerKey === itemKey))
+                .filter((item): item is [string, unknown] => Boolean(item))
+                .filter(([itemKey]) => isFieldVisible(itemKey));
+              if (!items.length) return null;
+              return (
+                <div className="auto-config-subgroup" key={fieldGroup.title}>
+                  <div className="auto-config-subgroup-head">
+                    {fieldGroup.icon && (
+                      <span className="auto-config-subgroup-icon">{fieldGroup.icon}</span>
+                    )}
+                    <div className="auto-config-subgroup-head-main">
+                      <h5>{t(fieldGroup.title)}</h5>
+                      {fieldGroup.description && (
+                        <p className="auto-config-subgroup-desc">{t(fieldGroup.description)}</p>
+                      )}
                     </div>
-                  );
-                }
-                if (!isFieldVisible(key)) return null;
-                return renderField([key, value], isFieldDisabled(key));
-              })}
+                    {fieldGroup.tag && (
+                      <span className="auto-config-subgroup-tag">{t(fieldGroup.tag)}</span>
+                    )}
+                  </div>
+                  <div className="auto-config-subgroup-body">
+                    <div className="auto-config-grid">
+                      {items.map((item) => renderField(item, isFieldDisabled(item[0])))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            if (!isFieldVisible(key)) return null;
+            return renderField([key, value], isFieldDisabled(key));
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  if (modern) {
+    return (
+      <div className="settings-redesign">
+        <aside className="settings-redesign__nav">
+          <div className="settings-redesign__nav-head">
+            <span className="settings-redesign__nav-icon">⚙</span>
+            <div>
+              <strong>{t(title)}</strong>
+              <small>{t('管理商城标识、备案信息与全局展示状态。')}</small>
             </div>
           </div>
-        );
-      })}
+          <div className="settings-redesign__nav-list">
+            {grouped.map((group, index) => (
+              <button
+                type="button"
+                key={group.title || index}
+                className={`settings-redesign__nav-item${activeSection === index ? ' is-active' : ''}`}
+                onClick={() => {
+                  setActiveSection(index);
+                  document.getElementById(`settings-section-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+              >
+                <span className="settings-redesign__nav-index">{String(index + 1).padStart(2, '0')}</span>
+                <span className="settings-redesign__nav-label">{t(group.title || '其他')}</span>
+                <span className="settings-redesign__nav-count">{group.items.length}</span>
+              </button>
+            ))}
+          </div>
+          <Button theme="solid" type="primary" loading={saving || loading} onClick={save} className="settings-redesign__save">
+            {t('保存')}
+          </Button>
+        </aside>
+        <main className="settings-redesign__main">
+          <div className="settings-redesign__summary">
+            <span>{t('共 {count} 项配置', { count: visibleEntries.length })}</span>
+            <span>{t('修改后点击保存生效')}</span>
+          </div>
+          {grouped.map((group, index) => renderSection(group, index))}
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <Card className="auto-config-card" shadows="hover">
+      <div className="auto-config-head">
+        <Text type="tertiary" size="small">
+          {t('共 {count} 项配置', { count: visibleEntries.length })}
+        </Text>
+      </div>
+      {grouped.map((group, index) => renderSection(group, index))}
       <div className="auto-config-actions">
         <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
           {t('保存')}
