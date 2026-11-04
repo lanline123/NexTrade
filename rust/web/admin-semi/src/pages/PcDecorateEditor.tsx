@@ -4865,6 +4865,14 @@ function ModuleSettingsPanel({
                 </div>
               );
             }
+            if (field.kind === 'heroCards') {
+              return (
+                <div key={field.key}>
+                  <div className="dec-edit-title-box"><div className="title">{t(field.section || field.label)}</div></div>
+                  <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
+                </div>
+              );
+            }
             const block = blockKinds.has(field.kind);
             return (
               <div key={field.key}>
