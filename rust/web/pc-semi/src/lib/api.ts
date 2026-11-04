@@ -267,3 +267,45 @@ export async function getSeckill(params: { page?: number; size?: number } = {}):
     total: Number(data?.total || (Array.isArray(data) ? data.length : 0)),
   };
 }
+
+
+export interface ShopListingProduct {
+  productId?: number;
+  productSn?: string;
+  productName?: string;
+  productPrice?: number | string;
+  picThumb?: string;
+  picUrl?: string;
+  seoLink?: string;
+}
+
+export interface ShopListItem {
+  shopId: number;
+  shopTitle?: string;
+  shopLogo?: string;
+  shopStar?: number;
+  collectCount?: number;
+  seoLink?: string;
+  listingProduct?: ShopListingProduct[];
+  [key: string]: unknown;
+}
+
+export interface ShopListResponse {
+  records: ShopListItem[];
+  total: number;
+}
+
+/** 店铺街列表：服务端 SSR 拉取。 */
+export async function getShopList(params: { page?: number; size?: number; keyword?: string; sortField?: string } = {}): Promise<ShopListResponse> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 10));
+  if (params.keyword) query.set('keyword', params.keyword);
+  if (params.sortField) query.set('sortField', params.sortField);
+  const response = await fetch(`${SERVER_API_BASE}/api/shop/shop/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : Array.isArray(data) ? data : [],
+    total: Number(data?.total || (Array.isArray(data) ? data.length : 0)),
+  };
+}

@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: '限时秒杀 · 万物新生',
   description: '限时秒杀，抢先提醒，低价好物限时抢购。',
+  alternates: { canonical: '/seckill/list' },
 };
 
 interface PageProps {
