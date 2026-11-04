@@ -4533,3 +4533,8 @@ img {
 .exchange-detail-btn { display: block; width: 180px; height: 44px; margin-top: 24px; border: 0; border-radius: 4px; background: #e1251b; color: #fff; font-size: 16px; cursor: pointer; }
 .exchange-detail-btn:disabled { background: #ccc; cursor: not-allowed; }
 @media (max-width: 900px) { .exchange-detail-card { flex-direction: column; } .exchange-detail-pic { width: 100%; } }
+
+
+/* ===== 活动专题 /activity（对齐 view/pc/pages/activity/index.vue） ===== */
+.pc-activity-page { background: #fff; padding: 12px 0 40px; }
+.pc-activity-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }

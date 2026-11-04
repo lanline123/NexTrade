@@ -432,3 +432,13 @@ export async function getExchangeDetail(id: number): Promise<Record<string, any>
   const data = await readData<any>(response);
   return data || null;
 }
+
+
+export async function getActivityDecorate(params: { id?: number; previewId?: number } = {}): Promise<HomeDecorateResponse> {
+  const query = new URLSearchParams();
+  if (params.id) query.set('id', String(params.id));
+  if (params.previewId) query.set('previewId', String(params.previewId));
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  const response = await fetch(`${SERVER_API_BASE}/api/home/home/pcIndex${suffix}`, { cache: 'no-store' });
+  return readData<HomeDecorateResponse>(response);
+}
