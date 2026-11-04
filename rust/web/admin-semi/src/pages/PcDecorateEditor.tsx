@@ -4924,6 +4924,56 @@ interface ProductRow {
   picThumb?: string;
 }
 
+function ProductGroupPickerModal({
+  visible,
+  current,
+  onOk,
+  onCancel,
+}: {
+  visible: boolean;
+  current?: Record<string, any>;
+  onOk: (group: { productGroupId: number; productGroupName: string }) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useI18n();
+  const [keyword, setKeyword] = useState('');
+  const [rows, setRows] = useState<Array<{ productGroupId: number; productGroupName: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const load = () => {
+    setLoading(true);
+    apiGet<{ records?: any[]; list?: any[] }>('/product/productGroup/list', { page: 1, size: 50, keyword: keyword || undefined })
+      .then((res) => setRows((res.records || res.list || []).map((row: any) => ({ productGroupId: Number(row.productGroupId), productGroupName: String(row.productGroupName || '') }))))
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => {
+    if (visible) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+  return (
+    <Modal title={t('选择商品分组')} visible={visible} onCancel={onCancel} footer={null} width={560}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <Input value={keyword} onChange={setKeyword} placeholder={t('输入分组名称')} onEnterPress={load} />
+        <Button onClick={load} loading={loading}>{t('搜索')}</Button>
+      </div>
+      <div style={{ maxHeight: 420, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {rows.map((row) => (
+          <Button
+            key={row.productGroupId}
+            theme={current?.productGroupId === row.productGroupId ? 'solid' : 'borderless'}
+            onClick={() => onOk(row)}
+            style={{ justifyContent: 'space-between', width: '100%' }}
+          >
+            <span>{row.productGroupName}</span>
+            <span>{row.productGroupId}</span>
+          </Button>
+        ))}
+        {!rows.length && !loading && <Text type="tertiary">{t('暂无商品分组')}</Text>}
+      </div>
+    </Modal>
+  );
+}
+
 function ProductPickerModal({
   visible,
   selectedIds,
@@ -5252,6 +5302,8 @@ function FieldControl({
   const [pickerVisible, setPickerVisible] = useState(false);
   const [grouponVisible, setGrouponVisible] = useState(false);
   const [heroPicker, setHeroPicker] = useState<{ cardIndex: number; productIndex: number } | null>(null);
+  const [groupPickerIndex, setGroupPickerIndex] = useState<number | null>(null);
+  const [heroGroupPicker, setHeroGroupPicker] = useState<number | null>(null);
   const value = getPath(moduleData, field.key);
 
   const set = (v: unknown) => {
@@ -5530,13 +5582,9 @@ function FieldControl({
               </div>
               {(card.productSource || 'custom') === 'productGroup' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Text type="tertiary" size="small">{t('商品分组')}</Text>
-                  <InputNumber
-                    value={card.productGroupId ? Number(card.productGroupId) : undefined}
-                    onChange={(v) => updateCard(ci, (c) => ({ ...c, productGroupId: v ?? undefined }))}
-                    placeholder={t('商品分组 ID')}
-                    style={{ width: 180 }}
-                  />
+                  <Button size="small" icon={<IconPlus />} onClick={() => setHeroGroupPicker(ci)}>
+                    {card.productGroupName ? t('更换商品分组') : t('添加商品分组')}
+                  </Button>
                   {card.productGroupName ? <Text type="tertiary" size="small">{String(card.productGroupName)}</Text> : null}
                 </div>
               ) : null}
@@ -5588,6 +5636,17 @@ function FieldControl({
               ))}
             </div>
           ))}
+          {heroGroupPicker !== null && (
+            <ProductGroupPickerModal
+              visible
+              current={{ productGroupId: cards[heroGroupPicker]?.productGroupId, productGroupName: cards[heroGroupPicker]?.productGroupName } as any}
+              onOk={(group) => {
+                updateCard(heroGroupPicker, (c) => ({ ...c, productGroupId: group.productGroupId, productGroupName: group.productGroupName }));
+                setHeroGroupPicker(null);
+              }}
+              onCancel={() => setHeroGroupPicker(null)}
+            />
+          )}
           {heroPicker && (
             <ProductPickerModal
               visible
@@ -5703,9 +5762,16 @@ function FieldControl({
                   )}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <InputNumber value={g.productGroupId} onChange={(v) => set(groups.map((x, i) => (i === index ? { ...x, productGroupId: v ?? undefined } : x)))} placeholder={t('商品分组 ID')} style={{ width: 160 }} />
-                  {g.productGroupName ? <Text type="tertiary" size="small">{t('已选分组：')}{g.productGroupName}</Text> : null}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <Button size="small" icon={<IconPlus />} onClick={() => setGroupPickerIndex(index)}>
+                    {g.productGroupName ? t('更换商品分组') : t('添加商品分组')}
+                  </Button>
+                  {g.productGroupName ? (
+                    <div className="dec-edit-group dec-edit-group-block" style={{ padding: 0 }}>
+                      <div className="dec-edit-group-title"><div className="label">{t('已选分组')}</div></div>
+                      <div className="dec-edit-group-con"><span className="selected-group-name">{g.productGroupName}</span></div>
+                    </div>
+                  ) : null}
                 </div>
               )}
               {index > 0 && (
@@ -5718,6 +5784,17 @@ function FieldControl({
           <Button size="small" icon={<IconPlus />} onClick={() => set([...groups, { sourceType: 'products', title: '', titlePic: { picUrl: '', picThumb: '' }, titleLink: { link: '', name: '' }, bannerPic: { picUrl: '', picThumb: '' }, bannerLink: { link: '', name: '' }, productIds: [], productList: [] }])}>
             {t('添加一组')}
           </Button>
+          {groupPickerIndex !== null && (
+            <ProductGroupPickerModal
+              visible
+              current={groups[groupPickerIndex]}
+              onOk={(group) => {
+                set(groups.map((x, i) => (i === groupPickerIndex ? { ...x, productGroupId: group.productGroupId, productGroupName: group.productGroupName, sourceType: 'productGroup' } : x)));
+                setGroupPickerIndex(null);
+              }}
+              onCancel={() => setGroupPickerIndex(null)}
+            />
+          )}
         </div>
       );
     }
