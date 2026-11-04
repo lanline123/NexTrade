@@ -460,3 +460,40 @@ export async function getJoinSection(decorateSn: string): Promise<JoinNavItem[]>
   const list = data?.data || data;
   return Array.isArray(list) ? list : [];
 }
+
+
+export interface GiftCardProduct {
+  productId: number;
+  productName?: string;
+  picUrl?: string;
+  skuPrice?: number | string;
+  productPrice?: number | string;
+  seoLink?: string;
+}
+
+export interface GiftCardInfo {
+  giftCardSn?: string;
+  cardNumber?: string;
+  cardGroupName?: string;
+  cardGroupsId?: number;
+  shopTitle?: string;
+  shopId?: number;
+  imageUrl?: string;
+  expiredTime?: number | string;
+  status?: number;
+  isExchange?: string;
+  giftCardProducts?: GiftCardProduct[];
+  giftCardGroups?: {
+    cardGroupsId?: number;
+    cardGroupName?: string;
+    imageUrl?: string;
+    giftCardProducts?: GiftCardProduct[];
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export async function getGiftCardDetail(giftCardSn: string): Promise<GiftCardInfo | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/promotion/giftCardGroups/detail?giftCardSn=${encodeURIComponent(giftCardSn)}`, { cache: 'no-store' });
+  return readData<GiftCardInfo>(response);
+}

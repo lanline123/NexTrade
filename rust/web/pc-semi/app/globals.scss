@@ -4629,3 +4629,36 @@ img {
 .pc-error-actions button { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 24px; border: 1px solid #dcdfe6; border-radius: 20px; background: #fff; color: #333; font-size: 14px; cursor: pointer; }
 .pc-error-actions a.is-primary,
 .pc-error-actions button.is-primary { border-color: #e1251b; background: #e1251b; color: #fff; }
+
+
+/* ===== 礼品卡兑换 /giftCard/transfer/[id] ===== */
+.giftcard-page { background: #fbf7ef; }
+.giftcard-main { padding: 30px 0 60px; }
+.giftcard-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.giftcard-hero { display: flex; gap: 36px; padding: 32px; border: 1px solid #ead7b0; border-radius: 16px; background: #fffdf8; }
+.giftcard-visual { display: flex; align-items: center; justify-content: center; width: 420px; height: 250px; flex-shrink: 0; overflow: hidden; border-radius: 12px; background: #f6ead3; }
+.giftcard-visual img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.giftcard-info { flex: 1; min-width: 0; }
+.giftcard-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; background: #a9781b; color: #fff; font-size: 12px; }
+.giftcard-info h1 { margin: 14px 0; color: #3b2a10; font-size: 26px; }
+.giftcard-info p { margin: 8px 0; color: #8a6d3b; font-size: 14px; }
+.giftcard-claim { display: flex; align-items: center; gap: 14px; margin-top: 22px; }
+.giftcard-claim span { color: #a9781b; font-size: 12px; }
+.giftcard-steps { margin-top: 30px; padding: 28px; border: 1px solid #ead7b0; border-radius: 16px; background: #fff; }
+.giftcard-steps h2,
+.giftcard-products h2 { margin: 0 0 20px; color: #3b2a10; font-size: 22px; text-align: center; }
+.giftcard-steps__row { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.giftcard-steps__row div { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid #a9781b; border-radius: 10px; color: #a9781b; }
+.giftcard-steps__row b { font-size: 18px; }
+.giftcard-products { margin-top: 30px; padding: 28px; border: 1px solid #ead7b0; border-radius: 16px; background: #fff; }
+.giftcard-products__sub { margin: -10px 0 20px; color: #8a6d3b; font-size: 13px; text-align: center; }
+.giftcard-products__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.giftcard-product__img { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; background: #faf7f1; }
+.giftcard-product__img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.giftcard-product__name { margin-top: 8px; overflow: hidden; color: #3b2a10; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.giftcard-product__price { margin-top: 6px; color: #a9781b; font-size: 16px; }
+@media (max-width: 900px) {
+  .giftcard-hero { flex-direction: column; }
+  .giftcard-visual { width: 100%; }
+  .giftcard-products__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
