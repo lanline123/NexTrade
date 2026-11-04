@@ -280,6 +280,14 @@ interface SettingFieldDef {
   titleHideAlign?: boolean;
   /** picList 字段是否显示描述输入（原版 ModulePicList show-desc） */
   picDesc?: boolean;
+  /** picList 添加按钮文案（原版 ModulePicList title） */
+  picAddText?: string;
+  /** picList 是否隐藏链接（原版 ModulePicList show-link=false） */
+  picNoLink?: boolean;
+  /** picList 是否隐藏标题输入（原版 ModulePicList show-text=false） */
+  picNoText?: boolean;
+  /** 该字段属于原版「扩展设置」而非「内容设置」 */
+  extend?: boolean;
   /** 字段写入后的附加行为（如切换拼团类型时清空活动） */
   onChangeExtra?: (moduleData: Record<string, any>, newValue: unknown) => Record<string, any>;
   showIf?: (m: Record<string, any>) => boolean;
@@ -423,7 +431,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'slider', key: 'imgPadding', label: '图片边距', max: 30 },
       { kind: 'radio', key: 'picRadioStyle', label: '图片边角', options: [{ label: '直角', value: 1 }, { label: '圆角', value: 2 }] },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
-      { kind: 'radio', key: 'isFluxWidth', label: '是否通宽排版', options: [{ label: '是', value: 1 }, { label: '否', value: 0 }] },
+      { kind: 'radio', key: 'isFluxWidth', label: '是否通宽排版', options: [{ label: '是', value: 1 }, { label: '否', value: 0 }], extend: true },
       // 原版 ModuleContainerSettings hide-horizontal-spacing：通宽排版时隐藏"左右边距"
       ...containerFields().map((f) => (f.key === 'frame.boxPadding' ? { ...f, showIf: (m: Record<string, any>) => Number(m.isFluxWidth) !== 1 } : f)),
     ],
@@ -495,7 +503,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       items: QUICK_NAV_ITEMS,
     }),
     settings: [
-      { kind: 'picList', key: 'items', label: '导航项', hint: '图标+文字+链接，可拖拽排序' },
+      { kind: 'picList', key: 'items', label: '导航项', hint: '图标+文字+链接，可拖拽排序', picAddText: '添加导航项' },
       { kind: 'slider', key: 'style.fontSize', label: '字号', min: 12, max: 24 },
       { kind: 'radio', key: 'style.fontWeight', label: '文字粗细', options: [{ label: '常规体', value: 400 }, { label: '加粗体', value: 700 }] },
       { kind: 'slider', key: 'style.lineHeight', label: '行高', min: 12, max: 40 },
@@ -534,7 +542,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       imageBackgroundColor: '', picList: [], backgroundColor: 'rgba(0, 0, 0, 0.02)',
     }),
     settings: [
-      { kind: 'picList', key: 'picList', label: '图片卡片', hint: '可拖拽排序，建议 180*180 像素', picDesc: true },
+      { kind: 'picList', key: 'picList', label: '图片卡片', hint: '可拖拽排序，建议 180*180 像素', picDesc: true, picAddText: '添加一组' },
       { kind: 'color', key: 'imageBackgroundColor', label: '图片背景色', resetValue: '' },
       { kind: 'input', key: 'titleText', label: '标题内容' },
       { kind: 'radio', key: 'showMore', label: '显示查看更多', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
@@ -661,11 +669,11 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'switch', key: 'showTitle', label: '显示标题栏' },
       { kind: 'input', key: 'title', label: '标题内容', showIf: (m) => Number(m.showTitle) === 1 },
       { kind: 'textarea', key: 'desc', label: '描述内容', showIf: (m) => Number(m.showTitle) === 1 },
-      { kind: 'slider', key: 'itemPadding', label: '组件边距', max: 30 },
-      { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30 },
-      { kind: 'slider', key: 'boxPadding', label: '左右边距', max: 30 },
-      { kind: 'slider', key: 'boxPaddingTop', label: '上边距', max: 30 },
-      { kind: 'slider', key: 'boxPaddingBottom', label: '下边距', max: 30 },
+      { kind: 'slider', key: 'itemPadding', label: '组件边距', max: 30, extend: true },
+      { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30, extend: true },
+      { kind: 'slider', key: 'boxPadding', label: '左右边距', max: 30, extend: true },
+      { kind: 'slider', key: 'boxPaddingTop', label: '上边距', max: 30, extend: true },
+      { kind: 'slider', key: 'boxPaddingBottom', label: '下边距', max: 30, extend: true },
     ],
     summary: () => '展示"首页显示"的优惠券',
   },
@@ -706,12 +714,12 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'showPrice', label: '显示商品价格', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'slider', key: 'goodsPadding', label: '商品边距', max: 50 },
       { kind: 'title', key: 'title', label: '标题设置', titleHideAlign: true },
-      { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#ffffff' },
-      { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30 },
-      { kind: 'slider', key: 'innerPadding', label: '内边距', max: 30 },
-      { kind: 'slider', key: 'boxPadding', label: '左右边距', max: 30 },
-      { kind: 'slider', key: 'boxPaddingTop', label: '上边距', max: 30 },
-      { kind: 'slider', key: 'boxPaddingBottom', label: '下边距', max: 30 },
+      { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#ffffff', extend: true },
+      { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30, extend: true },
+      { kind: 'slider', key: 'innerPadding', label: '内边距', max: 30, extend: true },
+      { kind: 'slider', key: 'boxPadding', label: '左右边距', max: 30, extend: true },
+      { kind: 'slider', key: 'boxPaddingTop', label: '上边距', max: 30, extend: true },
+      { kind: 'slider', key: 'boxPaddingBottom', label: '下边距', max: 30, extend: true },
     ],
     summary: (m) => (m.grouponActivityItem ? m.grouponActivityItem.name : '未选择活动'),
   },
@@ -4753,7 +4761,7 @@ function ModuleSettingsPanel({
   const { t } = useI18n();
   const isQuickNav = def.type === 'pc-home-quick-nav';
   const hasExtend = def.settings.some((field) => (
-    field.key.startsWith('frame.') || field.kind === 'title' || field.kind === 'container'
+    field.extend || field.key.startsWith('frame.') || field.kind === 'container'
   ));
   const tabbed = isQuickNav || hasExtend;
   const [activeTab, setActiveTab] = useState<'content' | 'extend'>('content');
@@ -4761,13 +4769,47 @@ function ModuleSettingsPanel({
     setActiveTab('content');
   }, [def.type]);
   const isExtendField = (field: ModuleDef['settings'][number]) => (
-    field.key.startsWith('frame.') || field.kind === 'title' || field.kind === 'container'
+    field.extend || field.key.startsWith('frame.') || field.kind === 'container'
   );
   const visibleSettings = tabbed
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
   const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
   const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
+  const EXTEND_TITLES: Record<string, string> = {
+    'pc-banner2': '外边距',
+    'pc-group-banner': '外边距',
+    'pc-category-nav': '外边距',
+    'pc-divider': '容器设置',
+    'pc-home-coupon': '容器设置',
+    'pc-home-groupon': '容器设置',
+    'pc-home-hero': '外边距',
+    'pc-home-quick-nav': '容器设置',
+    'pc-home-seckill': '外边距',
+    'pc-image-ad': '容器设置',
+    'pc-image-hotarea': '容器设置',
+    'pc-image-nav': '容器设置',
+    'pc-image-square-ad': '容器设置',
+    'pc-notice': '容器设置',
+    'pc-product': '容器设置',
+    'pc-recommend-product': '外边距',
+    'pc-spacer': '外边距',
+    'pc-title-ad': '容器设置',
+  };
+  const extendTitle = EXTEND_TITLES[def.type];
+  const CONTENT_TITLES: Record<string, string> = {
+    'pc-banner2': '添加轮播图片',
+    'pc-group-banner': '添加分组Banner轮播大图',
+    'pc-home-quick-nav': '内容设置',
+    'pc-home-groupon': '标题设置',
+    'pc-home-seckill': '标题设置',
+    'pc-image-hotarea': '标题设置',
+    'pc-product': '商品设置',
+    'pc-product-group': '商品设置',
+    'pc-recommend-product': '商品设置',
+    'pc-title-ad': '标题设置',
+  };
+  const contentTitle = CONTENT_TITLES[def.type];
 
   return (
     <div className="pc-module-settings">
@@ -4792,6 +4834,12 @@ function ModuleSettingsPanel({
         </div>
       )}
       <div className="pc-module-settings__body">
+        {tabbed && activeTab === 'extend' && extendTitle && (
+          <div className="dec-edit-title-box"><div className="title">{t(extendTitle)}</div></div>
+        )}
+        {tabbed && activeTab === 'content' && contentTitle && (
+          <div className="dec-edit-title-box"><div className="title">{t(contentTitle)}</div></div>
+        )}
         {def.note && <div className="dec-edit-group-desc" style={{ padding: '0 16px 8px' }}>{t(def.note)}</div>}
         {visibleSettings.length === 0 && <div className="dec-edit-group-desc" style={{ padding: '12px 16px' }}>{t('该模块无可配置项')}</div>}
         {(() => {
@@ -4801,6 +4849,15 @@ function ModuleSettingsPanel({
             const section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : null;
             const showSection = Boolean(section && section !== lastSection);
             if (section) lastSection = section;
+            const isSection = field.kind === 'title' || field.kind === 'container';
+            if (isSection) {
+              return (
+                <div key={field.key}>
+                  <div className="dec-edit-title-box"><div className="title">{t(field.label)}</div></div>
+                  <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
+                </div>
+              );
+            }
             const block = blockKinds.has(field.kind);
             return (
               <div key={field.key}>
@@ -5004,47 +5061,89 @@ function GrouponPickerModal({
   );
 }
 
-function PicListEditor({ value, onChange, showDesc = false }: { value: PicItem[]; onChange: (next: PicItem[]) => void; showDesc?: boolean }) {
+function PicListEditor({
+  value,
+  onChange,
+  showDesc = false,
+  addText,
+  showLink = true,
+  showText = true,
+}: {
+  value: PicItem[];
+  onChange: (next: PicItem[]) => void;
+  showDesc?: boolean;
+  addText?: string;
+  showLink?: boolean;
+  showText?: boolean;
+}) {
   const { t } = useI18n();
   const list = Array.isArray(value) ? value : [];
+  const updateItem = (index: number, patch: Record<string, any>) => {
+    onChange(list.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+  };
+  const move = (index: number, delta: number) => {
+    const next = [...list];
+    const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div className="dec-pic-list">
       {list.map((item, index) => (
-        <div key={index} style={{ border: '1px solid var(--semi-color-border)', borderRadius: 6, padding: 8, display: 'flex', gap: 8 }}>
-          {item.picUrl ? (
-            <img src={item.picUrl} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
-          ) : (
-            <div style={{ width: 48, height: 48, borderRadius: 4, background: 'var(--semi-color-fill-0)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--semi-color-text-2)', fontSize: 16 }}>?</div>
-          )}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Input value={item.picUrl} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picUrl: v, picThumb: v } : it)))} placeholder={t('图片 URL')} size="small" />
-            <Input value={item.picTitle || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picTitle: v } : it)))} placeholder={t('文字标题(可选)')} size="small" />
-            {showDesc && (
-              <Input value={item.picDesc || ''} onChange={(v) => onChange(list.map((it, i) => (i === index ? { ...it, picDesc: v } : it)))} placeholder={t('描述(可选)')} size="small" />
-            )}
-            <LinkField
-              value={item.picLink}
-              onChange={(link) => onChange(list.map((it, i) => (i === index ? { ...it, picLink: link } : it)))}
+        <div className="dec-pic-list__item" key={String(item.picId || index)}>
+          <div className="dec-pic-list__image">
+            <ImageUploader
+              single
+              value={item.picUrl || item.picThumb ? [String(item.picUrl || item.picThumb)] : []}
+              onChange={(urls) => updateItem(index, { picUrl: urls[0] || '', picThumb: urls[0] || '' })}
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Button size="small" theme="borderless" icon={<IconChevronUp />} disabled={index === 0} onClick={() => {
-              const next = [...list];
-              [next[index - 1], next[index]] = [next[index], next[index - 1]];
-              onChange(next);
-            }} />
-            <Button size="small" theme="borderless" icon={<IconChevronDown />} disabled={index === list.length - 1} onClick={() => {
-              const next = [...list];
-              [next[index + 1], next[index]] = [next[index], next[index + 1]];
-              onChange(next);
-            }} />
+          <div className="dec-pic-list__info">
+            {showText && (
+              <div className="dec-pic-list__row">
+                <span className="dec-pic-list__label">{t('标题')}</span>
+                <Input
+                  size="small"
+                  value={item.picTitle || ''}
+                  placeholder={t('建议10个字以内，可不填')}
+                  onChange={(v) => updateItem(index, { picTitle: v })}
+                />
+              </div>
+            )}
+            {showDesc && (
+              <div className="dec-pic-list__row">
+                <span className="dec-pic-list__label">{t('描述')}</span>
+                <Input
+                  size="small"
+                  value={item.picDesc || ''}
+                  placeholder={t('可不填')}
+                  onChange={(v) => updateItem(index, { picDesc: v })}
+                />
+              </div>
+            )}
+            {showLink && (
+              <div className="dec-pic-list__row">
+                <span className="dec-pic-list__label">{t('链接')}</span>
+                <LinkField
+                  value={item.picLink}
+                  onChange={(link) => updateItem(index, { picLink: link })}
+                />
+              </div>
+            )}
+          </div>
+          <div className="dec-pic-list__actions">
+            <Button size="small" theme="borderless" icon={<IconChevronUp />} disabled={index === 0} onClick={() => move(index, -1)} />
+            <Button size="small" theme="borderless" icon={<IconChevronDown />} disabled={index === list.length - 1} onClick={() => move(index, 1)} />
             <Button size="small" theme="borderless" type="danger" icon={<IconClose />} onClick={() => onChange(list.filter((_, i) => i !== index))} />
           </div>
         </div>
       ))}
-      <Button size="small" icon={<IconPlus />} onClick={() => onChange([...list, { picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } }])}>
-        {t('添加图片')}
-      </Button>
+      <div className="dec-pic-list__add">
+        <Button size="small" icon={<IconPlus />} onClick={() => onChange([...list, { picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } } as PicItem])}>
+          {t(addText || '添加图片')}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -5091,6 +5190,42 @@ const CONTAINER_VARIANTS: Record<string, SettingFieldDef[]> = {
     { kind: 'color', key: 'backgroundColor', label: '内容区背景颜色', resetValue: '#ffffff' },
   ],
 };
+
+function SettingsFieldRows({
+  fields,
+  data,
+  onChange,
+}: {
+  fields: SettingFieldDef[];
+  data: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+}) {
+  const { t } = useI18n();
+  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
+  return (
+    <>
+      {fields.map((field) => {
+        if (field.showIf && !field.showIf(data)) return null;
+        const block = blockKinds.has(field.kind);
+        return (
+          <div className={`dec-edit-group${block ? ' dec-edit-group-block' : ''}`} key={field.key}>
+            <div className="dec-edit-group-title">
+              <div className="label">{t(field.label)}</div>
+            </div>
+            <div className="dec-edit-group-con">
+              <FieldControl
+                field={{ ...field, key: field.key }}
+                moduleData={data}
+                onChange={(next) => onChange(next)}
+              />
+            </div>
+            {field.hint && <div className="dec-edit-group-desc">{t(field.hint)}</div>}
+          </div>
+        );
+      })}
+    </>
+  );
+}
 
 function FieldControl({
   field,
@@ -5165,7 +5300,7 @@ function FieldControl({
         </div>
       );
     case 'picList':
-      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} />;
+      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} />;
     case 'pic':
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -5308,53 +5443,29 @@ function FieldControl({
     case 'title': {
       const titleData = (value && typeof value === 'object' ? value : standardTitle()) as Record<string, any>;
       return (
-        <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Text strong size="small">{t(field.label)}</Text>
-          {titleFields({
+        <SettingsFieldRows
+          fields={titleFields({
             moreType: !field.titleHideMoreType,
             verticalPadding: !field.titleHideVerticalPadding && Object.prototype.hasOwnProperty.call(titleData, 'titlePaddingTop'),
             hideAlign: field.titleHideAlign,
-          }).map((f) => {
-            if (f.showIf && !f.showIf({ title: titleData })) return null;
-            return (
-              <div key={f.key}>
-                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t(f.label)}{f.hint ? `（${t(f.hint)}）` : ''}</Text>
-                <FieldControl field={{ ...f, key: f.key.replace('title.', '') }} moduleData={titleData} onChange={(next) => set(next)} />
-              </div>
-            );
-          })}
-        </div>
+          }).map((f) => ({ ...f, key: f.key.replace('title.', '') }))}
+          data={titleData}
+          onChange={(next) => set(next)}
+        />
       );
     }
     case 'container': {
       if (field.containerType && field.containerType !== 'frame') {
         const group = (value && typeof value === 'object' ? value : {}) as Record<string, any>;
-        return (
-          <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Text strong size="small">{t(field.label)}</Text>
-            {(CONTAINER_VARIANTS[field.containerType] || []).map((f) => {
-              if (f.showIf && !f.showIf(group)) return null;
-              return (
-                <div key={f.key}>
-                  <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t(f.label)}</Text>
-                  <FieldControl field={f} moduleData={group} onChange={(next) => set(next)} />
-                </div>
-              );
-            })}
-          </div>
-        );
+        return <SettingsFieldRows fields={CONTAINER_VARIANTS[field.containerType] || []} data={group} onChange={(next) => set(next)} />;
       }
       const frame = (getPath(moduleData, field.key) && typeof getPath(moduleData, field.key) === 'object' ? getPath(moduleData, field.key) : standardFrame()) as Record<string, any>;
       return (
-        <div style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Text strong size="small">{field.label ? t(field.label) : t('容器设置')}</Text>
-          {containerFields().map((f) => (
-            <div key={f.key}>
-              <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t(f.label)}</Text>
-              <FieldControl field={{ ...f, key: f.key.replace('frame.', '') }} moduleData={frame} onChange={(next) => set(next)} />
-            </div>
-          ))}
-        </div>
+        <SettingsFieldRows
+          fields={containerFields().map((f) => ({ ...f, key: f.key.replace('frame.', '') }))}
+          data={frame}
+          onChange={(next) => set(next)}
+        />
       );
     }
     case 'heroCards': {
@@ -5547,5 +5658,6 @@ function FieldControl({
       return null;
   }
 }
+
 
 
