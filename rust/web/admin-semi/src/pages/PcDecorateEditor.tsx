@@ -4929,6 +4929,22 @@ function ModuleSettingsPanel({
     : def.settings;
   const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
   const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
+  const SECTION_LEVELS: Record<string, 1 | 2> = {
+    '内容设置': 1,
+    '左侧分类导航': 1,
+    '中间焦点区': 1,
+    '右侧会员卡': 1,
+    '快捷入口区': 1,
+    '整体样式': 1,
+    '轮播广告': 2,
+    '推荐卡位': 2,
+    '入口列表': 2,
+    '商品参数设置': 2,
+    '参数设置': 2,
+  };
+  const sectionClass = (name: string) => (
+    `dec-edit-title-box${SECTION_LEVELS[name] === 1 ? ' dec-edit-title-box--primary' : ' dec-edit-title-box--secondary'}`
+  );
   const EXTEND_TITLES: Record<string, string> = {
     'pc-banner2': '外边距',
     'pc-group-banner': '外边距',
@@ -4986,10 +5002,10 @@ function ModuleSettingsPanel({
       )}
       <div className="pc-module-settings__body">
         {tabbed && activeTab === 'extend' && extendTitle && (
-          <div className="dec-edit-title-box"><div className="title">{t(extendTitle)}</div></div>
+          <div className={sectionClass(extendTitle)}><div className="title">{t(extendTitle)}</div></div>
         )}
         {((tabbed && activeTab === 'content') || !tabbed) && contentTitle && (
-          <div className="dec-edit-title-box"><div className="title">{t(contentTitle)}</div></div>
+          <div className={sectionClass(contentTitle)}><div className="title">{t(contentTitle)}</div></div>
         )}
         {def.note && <div className="dec-edit-group-desc" style={{ padding: '0 16px 8px' }}>{t(def.note)}</div>}
         {visibleSettings.length === 0 && <div className="dec-edit-group-desc" style={{ padding: '12px 16px' }}>{t('该模块无可配置项')}</div>}
@@ -5009,7 +5025,7 @@ function ModuleSettingsPanel({
             if (isSection) {
               return (
                 <div key={field.key}>
-                  <div className="dec-edit-title-box"><div className="title">{t(field.label)}</div></div>
+                  <div className="dec-edit-title-box dec-edit-title-box--secondary"><div className="title">{t(field.label)}</div></div>
                   <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
                 </div>
               );
@@ -5017,7 +5033,7 @@ function ModuleSettingsPanel({
             if (field.kind === 'heroCards') {
               return (
                 <div key={field.key}>
-                  <div className="dec-edit-title-box"><div className="title">{t(field.section || field.label)}</div></div>
+                  <div className={sectionClass(field.section || field.label)}><div className="title">{t(field.section || field.label)}</div></div>
                   <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
                 </div>
               );
@@ -5026,7 +5042,7 @@ function ModuleSettingsPanel({
             return (
               <div key={field.key}>
                 {sectionList.map((item) => (
-                  <div className="dec-edit-title-box" key={item}><div className="title">{t(item)}</div></div>
+                  <div className={sectionClass(item)} key={item}><div className="title">{t(item)}</div></div>
                 ))}
                 <div className={`dec-edit-group${block ? ' dec-edit-group-block' : ''}`}>
                   <div className="dec-edit-group-title">
