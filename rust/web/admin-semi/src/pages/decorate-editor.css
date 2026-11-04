@@ -2430,3 +2430,19 @@
   width: 2px;
   background: #98a2b3;
 }
+
+/* 设置面板贴边：去掉左侧/上侧灰色间隔和整体圆角 */
+.pc-module-settings {
+  background: #fff;
+}
+.pc-module-settings__body {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: #fff;
+}
+.pc-module-settings .dec-edit-title-box,
+.pc-module-settings .dec-edit-title-box--primary,
+.pc-module-settings .dec-edit-title-box--secondary {
+  border-radius: 0;
+}
