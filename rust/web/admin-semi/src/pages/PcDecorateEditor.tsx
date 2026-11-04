@@ -435,7 +435,10 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       { kind: 'radio', key: 'isFluxWidth', label: '是否通宽排版', options: [{ label: '是', value: 1 }, { label: '否', value: 0 }], extend: true },
       // 原版 ModuleContainerSettings hide-horizontal-spacing：通宽排版时隐藏"左右边距"
-      ...containerFields().map((f) => (f.key === 'frame.boxPadding' ? { ...f, showIf: (m: Record<string, any>) => Number(m.isFluxWidth) !== 1 } : f)),
+      ...containerFields().map((f, index) => ({
+        ...(f.key === 'frame.boxPadding' ? { ...f, showIf: (m: Record<string, any>) => Number(m.isFluxWidth) !== 1 } : f),
+        ...(index === 0 ? { section: '容器设置' } : {}),
+      })),
     ],
     summary: (m) => `模板${m.picType} · ${((m.picList || []) as PicItem[]).length} 图`,
   },
@@ -4781,7 +4784,6 @@ function ModuleSettingsPanel({
     'pc-home-hero': '外边距',
     'pc-home-quick-nav': '容器设置',
     'pc-home-seckill': '外边距',
-    'pc-image-ad': '容器设置',
     'pc-image-hotarea': '容器设置',
     'pc-image-nav': '容器设置',
     'pc-image-square-ad': '容器设置',
@@ -5682,6 +5684,8 @@ function FieldControl({
       return null;
   }
 }
+
+
 
 
 
