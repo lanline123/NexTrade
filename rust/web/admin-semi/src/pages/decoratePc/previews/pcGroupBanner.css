@@ -1,0 +1,165 @@
+/**
+ * PC 分组轮播 Banner 模块 - 预览样式
+ *
+ * 逐行迁移自旧版：
+ * java-b2b2c-overseas-v5.8.61/view/admin/src/views/decorate/decorate/editor/modules/pcHome/pc-group-banner/preview.less
+ *
+ * 说明：
+ * - Less 语法已展开为原生 CSS；`@dec-pc-group-banner-arrow-mask` 内联 data URI 原样保留；
+ * - 旧版轮播布局由 swiper 提供，React 等价实现补充了 track / 箭头定位规则，
+ *   其余选择器、类名与旧版保持一致。
+ */
+
+.dec-pc-group-banner {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding-left: var(--dec-box-padding, 10px);
+  padding-right: var(--dec-box-padding, 10px);
+  padding-top: var(--dec-box-padding-top, 0);
+  padding-bottom: var(--dec-box-padding-bottom, 0);
+  background-color: var(--dec-bg-color, transparent);
+  border-radius: var(--dec-box-radius, 8px);
+}
+
+.dec-pc-group-banner__inner {
+  width: 100%;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+
+  height: var(--dec-slide-height, 195px);
+  border-radius: var(--dec-box-radius, 8px);
+}
+
+.dec-pc-group-banner__inner .swiper-pagination {
+  display: none !important;
+}
+
+/* React 等价轮播的结构定位（旧版由 swiper 提供） */
+.dec-pc-group-banner__carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.dec-pc-group-banner__track {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  transition: transform 0.35s ease;
+  will-change: transform;
+}
+
+.dec-pc-group-banner__slide {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  user-select: none;
+  box-sizing: border-box;
+
+  height: var(--dec-slide-height, 195px);
+  flex: 0 0 auto;
+}
+
+.dec-pc-group-banner__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  border-radius: 8px;
+}
+
+.dec-pc-group-banner__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: transparent;
+  pointer-events: none;
+}
+
+.dec-pc-group-banner__empty {
+  width: 100%;
+  height: 140px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.dec-pc-group-banner__empty-text {
+  color: #909399;
+  font-size: 14px;
+}
+
+.dec-pc-group-banner__inner .swiper-button-prev,
+.dec-pc-group-banner__inner .swiper-button-next {
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.122);
+  width: 40px;
+  height: 48px;
+  z-index: 2;
+  outline: none;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dec-pc-group-banner__inner .swiper-button-prev:hover,
+.dec-pc-group-banner__inner .swiper-button-next:hover {
+  background-color: rgba(0, 0, 0, 0.239);
+}
+
+.dec-pc-group-banner__inner .swiper-button-prev > svg,
+.dec-pc-group-banner__inner .swiper-button-next > svg {
+  display: none;
+}
+
+.dec-pc-group-banner__inner .swiper-button-prev {
+  left: 0;
+  padding-right: 7px;
+  border-radius: 0 24px 24px 0 !important;
+}
+
+.dec-pc-group-banner__inner .swiper-button-next {
+  right: 0;
+  padding-left: 7px;
+  border-radius: 24px 0 0 24px !important;
+}
+
+.dec-pc-group-banner__inner .swiper-button-prev:after,
+.dec-pc-group-banner__inner .swiper-button-next:after {
+  content: '' !important;
+  display: block;
+  width: 14px;
+  height: 14px;
+  background-color: #fff;
+  font-family: initial !important;
+  font-size: 0 !important;
+  color: transparent !important;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='currentColor' d='M238.016 179.008C227.776 168.832 220.16 157.312 215.04 144.64c-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.808 5.12-13.12 12.736-24.768 22.912-34.944C258.368 10.176 282.752 0 311.104 0c28.352 0 52.736 10.176 73.152 30.528l404.928 408.192c10.176 8.704 17.472 19.84 21.824 33.28 4.352 13.44 6.208 27.456 5.44 42.048-0.704 14.528-4.032 28.928-9.792 43.136-5.824 14.208-13.824 26.368-24 36.544l-398.336 401.664c-20.352 21.12-44.736 31.68-73.152 31.68-28.352 0-52.736-10.56-73.088-31.68-10.176-10.176-17.856-21.632-22.912-34.368-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.872 5.12-13.12 12.736-24.768 22.912-34.944l329.6-333.952L238.016 179.008 238.016 179.008zM238.016 179.008'/%3E%3C/svg%3E")
+    no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='currentColor' d='M238.016 179.008C227.776 168.832 220.16 157.312 215.04 144.64c-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.808 5.12-13.12 12.736-24.768 22.912-34.944C258.368 10.176 282.752 0 311.104 0c28.352 0 52.736 10.176 73.152 30.528l404.928 408.192c10.176 8.704 17.472 19.84 21.824 33.28 4.352 13.44 6.208 27.456 5.44 42.048-0.704 14.528-4.032 28.928-9.792 43.136-5.824 14.208-13.824 26.368-24 36.544l-398.336 401.664c-20.352 21.12-44.736 31.68-73.152 31.68-28.352 0-52.736-10.56-73.088-31.68-10.176-10.176-17.856-21.632-22.912-34.368-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.872 5.12-13.12 12.736-24.768 22.912-34.944l329.6-333.952L238.016 179.008 238.016 179.008zM238.016 179.008'/%3E%3C/svg%3E")
+    no-repeat center / contain;
+  transform-origin: center;
+}
+
+.dec-pc-group-banner__inner .swiper-button-prev:after {
+  transform: rotate(180deg);
+}
+
+/* —— React 等价轮播补充定位（swiper 原本提供的定位规则） —— */
+.dec-pc-group-banner__inner .swiper-button-prev,
+.dec-pc-group-banner__inner .swiper-button-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}

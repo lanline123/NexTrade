@@ -1,0 +1,165 @@
+/**
+ * PC 文本标题模块 - 预览样式（React 迁移自 5.8.61 旧版 preview.less，已展开 LESS 嵌套）
+ *
+ * 末尾 `.dec-pc-title-ad__countdown` / `.countdown-*` 为倒计时补充样式：
+ * 5.8.61 旧版 Preview.vue 只有「查看更多」，倒计时来自共享标题设置
+ * （moreType=2）；这里按首页拼团/秒杀模块的 `.countdown-box` 视觉复刻。
+ */
+
+.dec-pc-title-ad {
+  background: var(--dec-bg-color);
+  border-radius: var(--dec-box-radius);
+  padding: var(--dec-box-padding-top) var(--dec-box-padding) var(--dec-box-padding-bottom);
+  box-sizing: border-box;
+}
+
+.dec-pc-title-ad__content {
+  padding-left: var(--dec-left-right-padding);
+  padding-right: var(--dec-left-right-padding);
+}
+
+.dec-pc-title-ad__empty {
+  padding: 30px 0 50px;
+  text-align: center;
+  background-color: #f2f4f6;
+  border-radius: 6px;
+}
+
+.dec-pc-title-ad__empty-text {
+  color: #888;
+  font-size: 14px;
+}
+
+.dec-pc-title-ad__wrap {
+  width: 100%;
+}
+
+.dec-pc-title-ad__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px var(--dec-inner-padding);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.dec-pc-title-ad__left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.dec-pc-title-ad__title {
+  line-height: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #2a3145;
+  word-break: break-all;
+}
+
+.dec-pc-title-ad__desc {
+  line-height: 18px;
+  padding-top: 8px;
+  color: #8c8c8c;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.dec-pc-title-ad__more {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: #969799;
+  white-space: nowrap;
+}
+
+.dec-pc-title-ad__more-arrow {
+  font-size: 12px;
+  line-height: 12px;
+}
+
+/* 标题位置：居中 */
+.dec-pc-title-ad--align-2 .dec-pc-title-ad__inner {
+  justify-content: center;
+}
+
+.dec-pc-title-ad--align-2 .dec-pc-title-ad__left {
+  flex: none;
+  align-items: center;
+  text-align: center;
+}
+
+.dec-pc-title-ad--align-2 .dec-pc-title-ad__more {
+  position: absolute;
+  right: 0;
+}
+
+/* 标题风格二：描述更突出 */
+.dec-pc-title-ad--style-2 .dec-pc-title-ad__title {
+  font-weight: 600;
+}
+
+.dec-pc-title-ad--style-2 .dec-pc-title-ad__desc {
+  font-size: 16px;
+  font-weight: 600;
+  color: #11bb55;
+  padding-top: 0;
+}
+
+/* ===== 倒计时（共享标题设置 moreType=2；对齐首页拼团/秒杀 .countdown-box） ===== */
+
+.dec-pc-title-ad__countdown {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  color: #969799;
+  white-space: nowrap;
+}
+
+.dec-pc-title-ad__countdown .countdown-box {
+  display: flex;
+  align-items: center;
+  color: var(--countdownTextColor, #1a1a1a);
+}
+
+.dec-pc-title-ad__countdown .countdown-text {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--countdownTextColor, #1a1a1a);
+  text-transform: capitalize;
+}
+
+.dec-pc-title-ad__countdown .countdown-separator-text {
+  font-size: 18px;
+  margin: 0 2px;
+}
+
+.dec-pc-title-ad__countdown .countdown-separator {
+  color: var(--countdownTextColor, #1a1a1a);
+  margin: 0 2px;
+}
+
+.dec-pc-title-ad__countdown .countdown-item {
+  display: inline-block;
+  padding: 2px 0;
+  width: 32px;
+  text-align: center;
+  background-color: #1a1a1a;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.dec-pc-title-ad__countdown .countdown-item.days {
+  padding: 2px 5px;
+  width: auto;
+  min-width: 32px;
+}

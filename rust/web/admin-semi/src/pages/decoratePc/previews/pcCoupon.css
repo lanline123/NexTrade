@@ -1,0 +1,274 @@
+/* PC 优惠券模块预览样式（迁移自旧版 _shared/coupon/preview.less，类名改为 pc-coupon-* 前缀） */
+
+.pc-coupon {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.pc-coupon__box {
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: var(--pc-coupon-radius, 0px);
+  overflow: hidden;
+}
+
+.pc-coupon__header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 10px 0;
+  box-sizing: border-box;
+}
+
+.pc-coupon__header-title {
+  line-height: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #2a3145;
+  word-break: break-all;
+}
+
+.pc-coupon__header-desc {
+  margin-left: 5px;
+  line-height: 18px;
+  color: #8c8c8c;
+  font-size: 12px;
+  word-break: break-all;
+  position: relative;
+  top: 1px;
+}
+
+.pc-coupon__main {
+  display: flex;
+  height: 106px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pc-coupon__tit {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.pc-coupon__tit-main {
+  width: 153px;
+  padding: 12px 0 0 18px;
+  border-radius: 2px 0 0 2px;
+  background-color: #ec3639;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.pc-coupon__tit-zh {
+  height: 30px;
+  line-height: 30px;
+  font-size: 22px;
+  margin: 0;
+}
+
+.pc-coupon__tit-en {
+  font-size: 14px;
+  line-height: 28px;
+  color: #f7afb0;
+  margin: 0;
+}
+
+.pc-coupon__tit-go {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.pc-coupon__tit-go em {
+  font-style: normal;
+}
+
+.pc-coupon__tit-edge {
+  width: 15px;
+  height: 106px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #ec3639 50%, transparent 50%);
+  opacity: 0.9;
+}
+
+.pc-coupon__list {
+  display: flex;
+  flex: 1;
+  height: 106px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.pc-coupon__item {
+  display: flex;
+  flex: none;
+  width: 246px;
+  max-width: 246px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.pc-coupon__item-card {
+  display: block;
+  height: 106px;
+  padding: 0 5px;
+  box-shadow: 1px 0 2px #ccc;
+  color: #999;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+}
+
+.pc-coupon__item-notch {
+  width: 15px;
+  height: 106px;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 0 53px, transparent 5px, #fff 5px), #fff;
+  box-shadow: -1px 0 2px #eee;
+}
+
+.pc-coupon__detail {
+  padding-top: 15px;
+  display: flex;
+  box-sizing: border-box;
+}
+
+.pc-coupon__price {
+  min-width: 95px;
+  margin-top: 3px;
+  color: #ff7070;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.pc-coupon__price-cash {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  line-height: 32px;
+  height: 32px;
+}
+
+.pc-coupon__currency {
+  font-size: 18px;
+  position: relative;
+  bottom: -7px;
+  line-height: 32px;
+}
+
+.pc-coupon__integer {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 32px;
+}
+
+.pc-coupon__decimals {
+  font-size: 16px;
+  position: relative;
+  bottom: -5px;
+  line-height: 32px;
+}
+
+.pc-coupon__discount {
+  font-weight: bold;
+  text-align: center;
+  line-height: 32px;
+}
+
+.pc-coupon__discount span {
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.pc-coupon__direction {
+  color: #999;
+  line-height: 20px;
+  flex: 1;
+  overflow: hidden;
+  padding-right: 10px;
+  box-sizing: border-box;
+}
+
+.pc-coupon__sort {
+  height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ff7070;
+}
+
+.pc-coupon__desc {
+  height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  margin: 0;
+  font-size: 12px;
+}
+
+.pc-coupon__use-btn {
+  border-top: 1px solid #f3f3f3;
+  text-align: center;
+  line-height: 30px;
+  margin-top: 15px;
+  margin-bottom: 0;
+  color: #999;
+}
+
+.pc-coupon__use-btn em {
+  font-style: normal;
+}
+
+.pc-coupon__more {
+  position: relative;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.pc-coupon__more-text {
+  height: 100%;
+  position: absolute;
+  top: -5px;
+  left: -9px;
+  overflow: hidden;
+  padding: 30px 10px 0;
+  text-align: left;
+  line-height: 14px;
+  color: #ccc;
+  writing-mode: vertical-lr;
+  background: linear-gradient(180deg, #f5f5f5, #e8e8e8);
+  font-size: 12px;
+}
+
+/* 空状态：模块数据为空时展示的占位（对齐旧版 dec-pc-coupon__empty） */
+.pc-coupon__empty {
+  height: 180px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f7f8fa;
+  box-sizing: border-box;
+  border: 1px dashed #e5e6eb;
+}
+
+.pc-coupon__empty-bg {
+  width: 82px;
+  height: 58px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #eceff3 0%, #f7f8fa 100%);
+  border: 1px solid #e5e6eb;
+  box-sizing: border-box;
+}
+
+.pc-coupon__empty-text {
+  color: #909399;
+  font-size: 14px;
+}

@@ -1,0 +1,289 @@
+/**
+ * PC 图文导航模块 - 预览样式
+ * 迁移自旧版 preview.less（class 名 / CSS 变量逐行保留），
+ * 并内联旧版 `_shared/ModuleTitle.vue` 的标题样式与 Swiper 最小基础样式。
+ */
+
+.dec-pc-image-nav {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10px);
+    padding-right: var(--dec-box-padding, 10px);
+    padding-top: var(--dec-box-padding-top, 5px);
+    padding-bottom: var(--dec-box-padding-bottom, 5px);
+    /* 容器背景色（扩展设置 → 容器设置）作用在外层 */
+    background-color: var(--dec-outer-bg, transparent);
+}
+
+.dec-pc-image-nav__content {
+    /* 内容背景色（内容设置 → 背景颜色）作用在内容区 */
+    background-color: var(--dec-bg-color, #ffffff);
+    border-radius: var(--dec-box-radius, 0);
+    overflow: hidden;
+}
+
+.dec-pc-image-nav__empty {
+    padding: 40px 20px;
+    text-align: center;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.dec-pc-image-nav__empty-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 12px;
+    background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' rx='6' fill='%23e5e7eb'/%3E%3Cpath d='M16 42l9-11 7 8 5-6 7 9z' fill='%23c4c9d1'/%3E%3Ccircle cx='22' cy='21' r='4' fill='%23c4c9d1'/%3E%3C/svg%3E")
+        no-repeat center;
+    background-size: contain;
+}
+
+.dec-pc-image-nav__empty-text {
+    color: #999;
+    font-size: 12px;
+}
+
+.dec-pc-image-nav__grid,
+.dec-pc-image-nav__swiper-page {
+    display: grid;
+    grid-template-columns: repeat(var(--dec-row-num, 4), minmax(0, 1fr));
+    gap: var(--dec-item-gap, 8px);
+    padding: var(--dec-item-gap, 8px);
+    box-sizing: border-box;
+}
+
+.dec-pc-image-nav__item {
+    min-width: 0;
+}
+
+.dec-pc-image-nav__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    gap: 8px;
+}
+
+.dec-pc-image-nav__icon {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.dec-pc-image-nav__image {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--dec-item-radius, 0);
+    background: #f0f0f0;
+}
+
+.dec-pc-image-nav__text {
+    font-size: 12px;
+    color: #333;
+    line-height: 1.2;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* 旧版 Swiper 基础布局（等价 swiper/css 的最小实现） */
+.dec-pc-image-nav__swiper {
+    position: relative;
+}
+
+.dec-pc-image-nav__swiper-track {
+    display: flex;
+    transition: transform 0.3s ease;
+}
+
+.dec-pc-image-nav__swiper-slide {
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.dec-pc-image-nav__swiper .swiper-pagination {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.dec-pc-image-nav__swiper .swiper-pagination-bullet {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 4px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: #000;
+    opacity: 0.2;
+    transition: background 0.2s ease;
+}
+
+.dec-pc-image-nav__swiper .swiper-pagination-bullet-active {
+    background: var(--dec-indicator-color, #333333) !important;
+}
+
+/* 指示器颜色 */
+.dec-pc-image-nav .swiper-pagination-bullet-active {
+    background: var(--dec-indicator-color, #333333) !important;
+}
+
+/* 指示器样式一：短条 */
+.dec-pc-image-nav--indicator-1 .swiper-pagination-bullet {
+    width: 12px;
+    height: 4px;
+    border-radius: 999px;
+    opacity: 0.35;
+}
+
+.dec-pc-image-nav--indicator-1 .swiper-pagination-bullet-active {
+    opacity: 1;
+}
+
+/* 指示器样式二：圆点 */
+.dec-pc-image-nav--indicator-2 .swiper-pagination-bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    opacity: 0.35;
+}
+
+.dec-pc-image-nav--indicator-2 .swiper-pagination-bullet-active {
+    opacity: 1;
+}
+
+/* ===== 模块标题（旧版 _shared/ModuleTitle.vue，scoped 样式平铺） ===== */
+.dec-module-title {
+    display: flex;
+    justify-content: space-between;
+    line-height: 30px;
+    align-items: center;
+    padding: 5px 10px 3px;
+    position: relative;
+}
+
+.dec-module-title__left {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.dec-module-title__icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.dec-module-title__text {
+    font-weight: 700;
+    color: #2a3145;
+    font-size: 16px;
+    position: relative;
+}
+
+.dec-module-title__desc {
+    color: #aaa;
+    font-size: 12px;
+    margin-left: 5px;
+    position: relative;
+    top: 1px;
+}
+
+.dec-module-title__right {
+    display: flex;
+    font-size: 12px;
+}
+
+.dec-module-title__more {
+    color: #969799;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    line-height: 10px;
+}
+
+.dec-module-title__arrow {
+    margin-left: 2px;
+    font-size: 12px;
+    font-style: normal;
+}
+
+.dec-module-title.dec-module-title--align-1 {
+    justify-content: space-between;
+}
+
+.dec-module-title.dec-module-title--align-2 {
+    justify-content: center;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__left {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__desc {
+    margin-left: 0;
+    margin-top: 2px;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__right {
+    position: absolute;
+    right: 10px;
+}
+
+.dec-module-title.dec-module-title--align-3 {
+    flex-direction: row-reverse;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__left {
+    flex-direction: row-reverse;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__icon {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__desc {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__right {
+    margin-right: auto;
+}
+
+.dec-module-title.dec-module-title--style-2 .dec-module-title__text {
+    padding-left: 10px;
+}
+
+.dec-module-title.dec-module-title--style-2 .dec-module-title__text::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, #155bd4 0%, #64b5f6 100%);
+    border-radius: 2px;
+}
+
+.dec-module-title.dec-module-title--style-3 .dec-module-title__text::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #155bd4 0%, transparent 100%);
+    border-radius: 1px;
+}

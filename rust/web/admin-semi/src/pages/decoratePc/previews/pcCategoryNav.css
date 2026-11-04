@@ -1,0 +1,188 @@
+/**
+ * PC 分类导航模块 - 预览样式（React 迁移自 5.8.61 旧版 preview.less，已展开 LESS 嵌套）
+ *
+ * 与旧版差异（顶部注释说明）：旧版使用 Swiper，箭头为 `.swiper-button-prev/next`；
+ * admin-semi 无 swiper 依赖，改为「横向滚动容器 + 圆形箭头按钮」，视觉参数
+ * （尺寸/圆角/透明度/hover/白色箭头 mask）逐字段复刻旧版 swiper 按钮样式。
+ */
+
+.dec-pc-category-nav {
+  box-sizing: border-box;
+  width: 100%;
+  transition: padding 0.25s ease;
+}
+
+.dec-pc-category-nav__inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.dec-pc-category-nav__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+}
+
+.dec-pc-category-nav__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.dec-pc-category-nav__list-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+}
+
+.dec-pc-category-nav__list {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+}
+
+.dec-pc-category-nav__empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+}
+
+.dec-pc-category-nav__empty-text {
+  color: #999;
+  font-size: 14px;
+}
+
+.dec-pc-category-nav__item {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.dec-pc-category-nav__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dec-pc-category-nav__image {
+  width: min(180px, 100%);
+  aspect-ratio: 1;
+  background: var(--primary-light-9);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dec-pc-category-nav__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.dec-pc-category-nav__name {
+  max-width: 180px;
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.dec-pc-category-nav__item:hover .dec-pc-category-nav__img {
+  transform: scale(1.02);
+}
+
+.dec-pc-category-nav__item:hover .dec-pc-category-nav__name {
+  color: var(--main-bg);
+}
+
+/* ===== React 迁移补充：无 Swiper 依赖，横向滚动 + 圆形箭头（复刻 swiper 按钮视觉） ===== */
+
+.dec-pc-category-nav__scroll {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  padding: 0 12px;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dec-pc-category-nav__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.dec-pc-category-nav__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.122);
+  width: 40px;
+  height: 48px;
+  z-index: 2;
+  outline: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dec-pc-category-nav__arrow--prev {
+  left: 0;
+  padding-right: 7px;
+  border-radius: 0 24px 24px 0;
+}
+
+.dec-pc-category-nav__arrow--next {
+  right: 0;
+  padding-left: 7px;
+  border-radius: 24px 0 0 24px;
+}
+
+.dec-pc-category-nav__arrow:hover {
+  background-color: rgba(0, 0, 0, 0.239);
+}
+
+.dec-pc-category-nav__arrow::after {
+  content: "";
+  display: block;
+  width: 14px;
+  height: 14px;
+  background-color: #fff;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath d='M238.016%20179.008C227.776%20168.832%20220.16%20157.312%20215.04%20144.64c-5.12-12.736-7.616-25.856-7.616-39.296%200-13.44%202.56-26.752%207.616-39.808%205.12-13.12%2012.736-24.768%2022.912-34.944C258.368%2010.176%20282.752%200%20311.104%200c28.352%200%2052.736%2010.176%2073.152%2030.528l404.928%20408.192c10.176%208.704%2017.472%2019.84%2021.824%2033.28%204.352%2013.44%206.208%2027.456%205.44%2042.048-0.704%2014.528-4.032%2028.928-9.792%2043.136-5.824%2014.208-13.824%2026.368-24%2036.544l-398.336%20401.664c-20.352%2021.12-44.736%2031.68-73.152%2031.68-28.352%200-52.736-10.56-73.088-31.68-10.176-10.176-17.856-21.632-22.912-34.368-5.12-12.736-7.616-25.856-7.616-39.296%200-13.44%202.56-26.752%207.616-39.872%205.12-13.12%2012.736-24.768%2022.912-34.944l329.6-333.952L238.016%20179.008%20238.016%20179.008zM238.016%20179.008'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath d='M238.016%20179.008C227.776%20168.832%20220.16%20157.312%20215.04%20144.64c-5.12-12.736-7.616-25.856-7.616-39.296%200-13.44%202.56-26.752%207.616-39.808%205.12-13.12%2012.736-24.768%2022.912-34.944C258.368%2010.176%20282.752%200%20311.104%200c28.352%200%2052.736%2010.176%2073.152%2030.528l404.928%20408.192c10.176%208.704%2017.472%2019.84%2021.824%2033.28%204.352%2013.44%206.208%2027.456%205.44%2042.048-0.704%2014.528-4.032%2028.928-9.792%2043.136-5.824%2014.208-13.824%2026.368-24%2036.544l-398.336%20401.664c-20.352%2021.12-44.736%2031.68-73.152%2031.68-28.352%200-52.736-10.56-73.088-31.68-10.176-10.176-17.856-21.632-22.912-34.368-5.12-12.736-7.616-25.856-7.616-39.296%200-13.44%202.56-26.752%207.616-39.872%205.12-13.12%2012.736-24.768%2022.912-34.944l329.6-333.952L238.016%20179.008%20238.016%20179.008zM238.016%20179.008'/%3E%3C/svg%3E") no-repeat center / contain;
+  transform-origin: center;
+}
+
+.dec-pc-category-nav__arrow--prev::after {
+  transform: rotate(180deg);
+}

@@ -1,0 +1,223 @@
+/**
+ * PC 热图绘制模块 - 预览样式
+ * 迁移自旧版 preview.less（BEM：dec-image-hotarea，class 名逐行保留），
+ * 并内联旧版 `_shared/ModuleTitle.vue` 的标题样式。
+ */
+
+.dec-image-hotarea {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10px);
+    padding-right: var(--dec-box-padding, 10px);
+    padding-top: var(--dec-box-padding-top, 5px);
+    padding-bottom: var(--dec-box-padding-bottom, 5px);
+}
+
+.dec-image-hotarea__content {
+    background-color: var(--dec-bg-color, #ffffff);
+    border-radius: var(--dec-box-radius, 0);
+    overflow: hidden;
+    padding: var(--dec-inner-padding, 0);
+}
+
+.dec-image-hotarea__wrapper {
+    overflow: hidden;
+}
+
+.dec-image-hotarea__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dec-item-gap, 0);
+}
+
+.dec-image-hotarea__item {
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.dec-image-hotarea__pic-wrap {
+    position: relative;
+    overflow: hidden;
+}
+
+.dec-image-hotarea__image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+.dec-image-hotarea__area {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(21, 91, 212, 0.6);
+    color: #fff;
+    text-decoration: none;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.dec-image-hotarea__area:hover {
+    background: rgba(21, 91, 212, 0.8);
+    border-color: #155bd4;
+}
+
+.dec-image-hotarea__area-text {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 4px;
+}
+
+.dec-image-hotarea__empty {
+    padding-top: 30px;
+    text-align: center;
+    background-color: #f2f4f6;
+}
+
+.dec-image-hotarea__empty-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 10px;
+    background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' rx='8' fill='%23e5e7eb'/%3E%3Cpath d='M26 70l15-18 12 13 8-10 13 15z' fill='%23c4c9d1'/%3E%3Ccircle cx='36' cy='35' r='7' fill='%23c4c9d1'/%3E%3C/svg%3E")
+        no-repeat center center;
+    background-size: 100% auto;
+}
+
+.dec-image-hotarea__empty-text {
+    padding-bottom: 50px;
+}
+
+/* ===== 模块标题（旧版 _shared/ModuleTitle.vue，scoped 样式平铺） ===== */
+.dec-module-title {
+    display: flex;
+    justify-content: space-between;
+    line-height: 30px;
+    align-items: center;
+    padding: 5px 10px 3px;
+    position: relative;
+}
+
+.dec-module-title__left {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.dec-module-title__icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.dec-module-title__text {
+    font-weight: 700;
+    color: #2a3145;
+    font-size: 16px;
+    position: relative;
+}
+
+.dec-module-title__desc {
+    color: #aaa;
+    font-size: 12px;
+    margin-left: 5px;
+    position: relative;
+    top: 1px;
+}
+
+.dec-module-title__right {
+    display: flex;
+    font-size: 12px;
+}
+
+.dec-module-title__more {
+    color: #969799;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    line-height: 10px;
+}
+
+.dec-module-title__arrow {
+    margin-left: 2px;
+    font-size: 12px;
+    font-style: normal;
+}
+
+.dec-module-title.dec-module-title--align-1 {
+    justify-content: space-between;
+}
+
+.dec-module-title.dec-module-title--align-2 {
+    justify-content: center;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__left {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__desc {
+    margin-left: 0;
+    margin-top: 2px;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__right {
+    position: absolute;
+    right: 10px;
+}
+
+.dec-module-title.dec-module-title--align-3 {
+    flex-direction: row-reverse;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__left {
+    flex-direction: row-reverse;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__icon {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__desc {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__right {
+    margin-right: auto;
+}
+
+.dec-module-title.dec-module-title--style-2 .dec-module-title__text {
+    padding-left: 10px;
+}
+
+.dec-module-title.dec-module-title--style-2 .dec-module-title__text::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, #155bd4 0%, #64b5f6 100%);
+    border-radius: 2px;
+}
+
+.dec-module-title.dec-module-title--style-3 .dec-module-title__text::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #155bd4 0%, transparent 100%);
+    border-radius: 1px;
+}

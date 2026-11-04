@@ -48,6 +48,26 @@ import {
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import DecorateLoading from './components/DecorateLoading';
+import PcBanner2Preview from './decoratePc/previews/PcBanner2Preview';
+import PcGroupBannerPreview from './decoratePc/previews/PcGroupBannerPreview';
+import PcDividerPreview from './decoratePc/previews/PcDividerPreview';
+import PcSpacerPreview from './decoratePc/previews/PcSpacerPreview';
+import PcImageAdPreview from './decoratePc/previews/PcImageAdPreview';
+import PcImageNavPreview from './decoratePc/previews/PcImageNavPreview';
+import PcImageSquareAdPreview from './decoratePc/previews/PcImageSquareAdPreview';
+import PcImageHotareaPreview from './decoratePc/previews/PcImageHotareaPreview';
+import PcCategoryNavPreview from './decoratePc/previews/PcCategoryNavPreview';
+import PcCategoryNav3Preview from './decoratePc/previews/PcCategoryNav3Preview';
+import PcHomeQuickNavPreview from './decoratePc/previews/PcHomeQuickNavPreview';
+import PcTitleAdPreview from './decoratePc/previews/PcTitleAdPreview';
+import PcProductPreview from './decoratePc/previews/PcProductPreview';
+import PcProductGroupPreview from './decoratePc/previews/PcProductGroupPreview';
+import PcRecommendProductPreview from './decoratePc/previews/PcRecommendProductPreview';
+import PcCouponPreview from './decoratePc/previews/PcCouponPreview';
+import PcSeckillPreview from './decoratePc/previews/PcSeckillPreview';
+import PcGrouponPreview from './decoratePc/previews/PcGrouponPreview';
+import PcHomeHeroPreview from './decoratePc/previews/PcHomeHeroPreview';
+import PcNoticePreview from './decoratePc/previews/PcNoticePreview';
 import ImageUploader from '../components/ImageUploader';
 import { LinkField } from '../components/LinkPicker';
 import type { Icon as IconParkIcon } from '@icon-park/react/es/runtime';
@@ -2012,251 +2032,48 @@ function ModulePreview({ type, data }: { type: string; data: Record<string, any>
   const { t } = useI18n();
   const m = data || {};
   switch (type) {
-    case 'pcLogin': {
+    case 'pcLogin':
       return <PcLoginModulePreview data={m} />;
-    }
-    case 'pc-banner2': {
-      // 对齐原版 dec-pc-banner2：frame 内边距在外层，背景色/圆角在内层，一屏 1~3 张、间距 12
-      const pics = (m.picList || []) as PicItem[];
-      const f = (m.frame || {}) as Record<string, any>;
-      const num = Math.min(3, Math.max(1, Number(m.number) || 1));
-      if (!pics.length) {
-        return (
-          <div style={{ height: 280, border: '1px dashed #dcdfe6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', color: '#909399', fontSize: 14 }}>
-            {t('点击添加轮播Banner2')}
-          </div>
-        );
-      }
-      return (
-        <div style={{ padding: `${Number(f.boxPaddingTop) || 0}px ${Number(f.boxPadding) || 0}px ${Number(f.boxPaddingBottom) || 0}px` }}>
-          <div style={{ width: '100%', overflow: 'hidden', borderRadius: Number(f.boxRadius) || 8, background: f.backgroundColor || '#eeeeee' }}>
-            <div style={{ display: 'flex', gap: num > 1 ? 12 : 0 }}>
-              {pics.slice(0, num).map((p, i) => (
-                <div key={i} style={{ flex: 1, minWidth: 0 }}>
-                  {p.picUrl ? (
-                    <img src={p.picUrl} alt="" style={{ display: 'block', width: '100%', height: 'auto', objectFit: 'contain', objectPosition: 'center', backgroundColor: '#eeeeee' }} />
-                  ) : (
-                    <div style={{ width: '100%', aspectRatio: '1264 / 280', background: '#eeeeee' }} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    case 'pc-group-banner': {
-      // 对齐原版 dec-pc-group-banner：外层 frame 背景/圆角，内层固定高 slideHeight，图片 cover、间隙 30
-      const pics = (m.picList || []) as PicItem[];
-      const f = (m.frame || {}) as Record<string, any>;
-      const num = Math.min(3, Math.max(1, Number(m.number) || 3));
-      const slideHeight = Number(f.slideHeight) || 195;
-      if (!pics.length) {
-        return (
-          <div style={{ height: 140, border: '1px dashed #dcdfe6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', color: '#909399', fontSize: 14 }}>
-            {t('点击添加分组轮播Banner')}
-          </div>
-        );
-      }
-      return (
-        <div style={{ padding: `${Number(f.boxPaddingTop) || 0}px ${Number(f.boxPadding ?? 10)}px ${Number(f.boxPaddingBottom) || 0}px`, backgroundColor: f.backgroundColor || 'transparent', borderRadius: Number(f.boxRadius) || 8 }}>
-          <div style={{ height: slideHeight, borderRadius: Number(f.boxRadius) || 8, overflow: 'hidden', display: 'flex', gap: 30 }}>
-            {pics.slice(0, num).map((p, i) => (
-              <div key={i} style={{ flex: 1, minWidth: 0, height: '100%', overflow: 'hidden', borderRadius: 8 }}>
-                {p.picUrl ? <img src={p.picUrl} alt="" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    case 'pc-image-ad': {
-      // 对齐原版 dec-image-ad：通宽时左右 padding 为 0，背景/圆角内外双层，图片高度自适应，间距=图片边距
-      const picType = Number(m.picType) || 1;
-      const pics = (m.picList || []) as PicItem[];
-      const radius = Number(m.picRadioStyle) === 2 ? 8 : 0;
-      const f = (m.frame || {}) as Record<string, any>;
-      const flux = Number(m.isFluxWidth) === 1;
-      const pad = Number(m.imgPadding) || 0;
-      const boxBg = f.backgroundColor || '#ffffff';
-      const boxRadius = Number(f.boxRadius) || 0;
-      const cols = picType === 5 ? 2 : picType === 6 ? 3 : picType === 7 ? 4 : 1;
-      let grid: JSX.Element;
-      if (picType === 2) {
-        const perView = Math.max(1, Number(m.swiperPreView) || 1);
-        grid = (
-          <div style={{ borderRadius: radius, overflow: 'hidden', display: 'flex', gap: pad }}>
-            {pics.slice(0, perView).map((p, i) => (
-              <div key={i} style={{ flex: 1, minWidth: 0, padding: pad, boxSizing: 'border-box', borderRadius: radius, overflow: 'hidden' }}>
-                {p.picUrl ? <img src={p.picUrl} alt="" style={{ display: 'block', width: '100%', height: 'auto', objectFit: 'cover', borderRadius: radius }} /> : <div style={{ width: '100%', aspectRatio: '1500 / 350', background: '#f5f5f5', borderRadius: radius }} />}
-              </div>
-            ))}
-          </div>
-        );
-      } else {
-        grid = (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: pad }}>
-            {pics.map((p, i) => (
-              <div key={i} style={{ boxSizing: 'border-box', padding: pad, width: `calc((100% - ${pad * (cols - 1)}px) / ${cols})`, borderRadius: radius, overflow: 'hidden' }}>
-                {p.picUrl ? <img src={p.picUrl} alt="" style={{ display: 'block', width: '100%', height: 'auto', objectFit: 'cover', borderRadius: radius }} /> : <div style={{ width: '100%', aspectRatio: cols === 1 ? '1500 / 350' : '1 / 1', background: '#f5f5f5', borderRadius: radius }} />}
-              </div>
-            ))}
-          </div>
-        );
-      }
-      return (
-        <div style={{ padding: `${Number(f.boxPaddingTop ?? 5)}px ${flux ? 0 : Number(f.boxPadding ?? 10)}px ${Number(f.boxPaddingBottom ?? 5)}px`, backgroundColor: boxBg, borderRadius: boxRadius }}>
-          <div style={{ backgroundColor: boxBg, borderRadius: boxRadius, overflow: 'hidden' }}>
-            <PreviewTitle title={m.title} />
-            {pics.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>{t('点击添加图片广告')}</div>
-            ) : (
-              grid
-            )}
-          </div>
-        </div>
-      );
-    }
-    case 'pc-image-nav': {
-      // 对齐原版 dec-pc-image-nav：内容背景/容器背景分层，rowNum 列栅格，图片宽度 100% 高度自适应，仅图片/仅文字按 navStyle 裁剪
-      const pics = (m.picList || []) as PicItem[];
-      const navStyle = Number(m.navStyle) || 1;
-      const navType = Number(m.navType) || 1;
-      const rowNum = Math.min(6, Math.max(3, Number(m.rowNum) || 4));
-      const colNum = Math.min(3, Math.max(1, Number(m.colNum) || 2));
-      const f = (m.frame || {}) as Record<string, any>;
-      const pad = Number(m.imgPadding ?? 8);
-      const radius = Number(m.radioStyle) === 2 ? 8 : 0;
-      const items = navType === 1 ? pics.slice(0, rowNum * colNum) : pics;
-      return (
-        <div style={{ padding: `${Number(f.boxPaddingTop ?? 5)}px ${Number(f.boxPadding ?? 10)}px ${Number(f.boxPaddingBottom ?? 5)}px`, backgroundColor: f.backgroundColor || '#ffffff' }}>
-          <div style={{ backgroundColor: m.backgroundColor || '#ffffff', borderRadius: Number(f.boxRadius) || 0, overflow: 'hidden' }}>
-            {items.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>{t('点击添加图文导航')}</div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${rowNum}, minmax(0, 1fr))`, gap: pad, padding: pad, boxSizing: 'border-box' }}>
-                {items.map((p, i) => (
-                  <div key={i} style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                    {navStyle !== 3 && (p.picUrl ? (
-                      <img src={p.picUrl} alt={p.picTitle || ''} style={{ display: 'block', width: '100%', height: 'auto', borderRadius: radius, background: '#f0f0f0', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: radius, background: '#f0f0f0' }} />
-                    ))}
-                    {navStyle !== 2 && <div style={{ fontSize: 12, color: '#333', lineHeight: 1.2, textAlign: 'center', wordBreak: 'break-all' }}>{p.picTitle}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-    case 'pc-image-square-ad': {
-      // 对齐原版 dec-image-cube：布局 4/5/6/7 为特殊拼版，1/2/3 为等分栅格；间距=图片边距，内容区带左右内边距
-      const pics = ((m.picList || []) as PicItem[]).map((p) => p || ({} as PicItem));
-      const picType = Number(m.picType) || 1;
-      const f = (m.frame || {}) as Record<string, any>;
-      const pad = Number(m.imgPadding) || 0;
-      const boxBg = f.backgroundColor || '#ffffff';
-      const boxRadius = Number(f.boxRadius) || 0;
-      const inner = Number(f.leftAndRightPadding) || 0;
-      const cubeImg = (p?: PicItem, fill?: boolean) => (
-        <div style={{ overflow: 'hidden', ...(fill ? { height: '100%' } : {}) }}>
-          {p?.picUrl ? <img src={p.picUrl} alt="" style={{ display: 'block', width: '100%', height: fill ? '100%' : 'auto', objectFit: 'cover' }} /> : <div style={{ width: '100%', aspectRatio: fill ? undefined : '1 / 1', height: fill ? '100%' : undefined, minHeight: fill ? 80 : undefined, background: '#f5f5f5' }} />}
-        </div>
-      );
-      let body: JSX.Element;
-      if (picType === 5) {
-        // 左一右二
-        body = (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad, alignItems: 'stretch' }}>
-            <div style={{ minHeight: 120 }}>{cubeImg(pics[0], true)}</div>
-            <div style={{ display: 'grid', gridTemplateRows: 'repeat(2, 1fr)', gap: pad }}>{cubeImg(pics[1], true)}{cubeImg(pics[2], true)}</div>
-          </div>
-        );
-      } else if (picType === 7) {
-        // 上一下二
-        body = (
-          <div style={{ display: 'grid', gridTemplateRows: 'auto auto', gap: pad }}>
-            {cubeImg(pics[0])}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad }}>{cubeImg(pics[1])}{cubeImg(pics[2])}</div>
-          </div>
-        );
-      } else if (picType === 6) {
-        // 左一右三
-        body = (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad, alignItems: 'stretch' }}>
-            <div style={{ minHeight: 120 }}>{cubeImg(pics[0], true)}</div>
-            <div style={{ display: 'grid', gridTemplateRows: 'repeat(2, 1fr)', gap: pad }}>
-              {cubeImg(pics[1], true)}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: pad }}>{cubeImg(pics[2], true)}{cubeImg(pics[3], true)}</div>
-            </div>
-          </div>
-        );
-      } else if (picType === 4) {
-        // 左二右二：列优先排布（左列 1/2，右列 3/4）
-        body = (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gridAutoFlow: 'column', gap: pad }}>
-            {cubeImg(pics[0], true)}{cubeImg(pics[1], true)}{cubeImg(pics[2], true)}{cubeImg(pics[3], true)}
-          </div>
-        );
-      } else {
-        const cols = picType === 2 ? 3 : picType === 3 ? 4 : 2;
-        body = (
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: pad }}>
-            {pics.map((p, i) => (
-              <div key={i}>{cubeImg(p)}</div>
-            ))}
-          </div>
-        );
-      }
-      return (
-        <div style={{ padding: `${Number(f.boxPaddingTop ?? 5)}px ${Number(f.boxPadding ?? 10)}px ${Number(f.boxPaddingBottom ?? 5)}px` }}>
-          <div style={{ backgroundColor: boxBg, borderRadius: boxRadius, overflow: 'hidden', padding: inner }}>
-            <PreviewTitle title={m.title} />
-            {pics.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 4, color: '#999', fontSize: 12 }}>{t('点击添加图片魔方')}</div>
-            ) : (
-              <div style={{ overflow: 'hidden' }}>{body}</div>
-            )}
-          </div>
-        </div>
-      );
-    }
+    case 'pc-banner2':
+      return <PcBanner2Preview data={m} />;
+    case 'pc-group-banner':
+      return <PcGroupBannerPreview data={m} />;
+    case 'pc-image-ad':
+      return <PcImageAdPreview data={m} />;
+    case 'pc-image-nav':
+      return <PcImageNavPreview data={m} />;
+    case 'pc-image-square-ad':
+      return <PcImageSquareAdPreview data={m} />;
     case 'pc-image-hotarea':
-      return <HotareaPreview data={m} />;
+      return <PcImageHotareaPreview data={m} />;
     case 'pc-home-quick-nav':
-      return <QuickNavPreview data={m} />;
+      return <PcHomeQuickNavPreview data={m} />;
     case 'pc-category-nav':
-      return <CategoryNavPreview data={m} />;
+      return <PcCategoryNavPreview data={m} />;
     case 'pc-category-nav3':
-      return <CategoryNav3Preview data={m} />;
-    case 'pc-product': {
-      return <ProductPreview data={m} />;
-    }
-    case 'pc-product-group': {
-      return <ProductGroupPreview data={m} />;
-    }
-    case 'pc-recommend-product': {
-      return <RecommendPreview data={m} />;
-    }
+      return <PcCategoryNav3Preview data={m} />;
+    case 'pc-product':
+      return <PcProductPreview data={m} />;
+    case 'pc-product-group':
+      return <PcProductGroupPreview data={m} />;
+    case 'pc-recommend-product':
+      return <PcRecommendProductPreview data={m} />;
     case 'pc-divider':
-      return <DividerPreview data={m} />;
+      return <PcDividerPreview data={m} />;
     case 'pc-spacer':
-      return <SpacerPreview data={m} />;
+      return <PcSpacerPreview data={m} />;
     case 'pc-notice':
-      return <NoticePreview data={m} />;
+      return <PcNoticePreview data={m} />;
     case 'pc-title-ad':
-      return <TitleAdPreview data={m} />;
+      return <PcTitleAdPreview data={m} />;
     case 'pc-home-coupon':
-      return <CouponPreview data={m} />;
+      return <PcCouponPreview data={m} />;
     case 'pc-home-seckill':
-      return <SeckillPreview data={m} />;
+      return <PcSeckillPreview data={m} />;
     case 'pc-home-groupon':
-      return <GrouponPreview data={m} />;
+      return <PcGrouponPreview data={m} />;
     case 'pc-home-hero':
-      return <HeroPreview data={m} />;
-
+      return <PcHomeHeroPreview data={m} />;
     default:
       return <span>{MODULE_DEF_MAP.get(type)?.summary ? MODULE_DEF_MAP.get(type)!.summary!(data) : type}</span>;
   }

@@ -1,0 +1,359 @@
+/* PC 秒杀模块预览样式（迁移自旧版 pc-home-seckill/preview.less，类名改为 pc-seckill-* 前缀） */
+
+.pc-seckill {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+.pc-seckill__titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.pc-seckill__title-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pc-seckill__title-line {
+  width: 4px;
+  height: 16px;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.pc-seckill__title-bg-pic {
+  width: 30px;
+  height: 30px;
+  margin-left: 10px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.pc-seckill__title {
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.pc-seckill__desc {
+  font-size: 12px;
+}
+
+.pc-seckill__desc--big {
+  font-size: 16px;
+}
+
+/* 顶部倒计时：无箭头、不跳转 */
+.pc-seckill__countdown {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.pc-seckill__countdown-box {
+  display: flex;
+  align-items: center;
+}
+
+.pc-seckill__countdown-label {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.pc-seckill__countdown-item {
+  display: inline-block;
+  padding: 2px 0;
+  width: 32px;
+  text-align: center;
+  background-color: #1a1a1a;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.pc-seckill__countdown-item--days {
+  width: auto;
+  min-width: 32px;
+  padding: 2px 5px;
+}
+
+.pc-seckill__countdown-sep {
+  margin: 0 2px;
+  font-size: 16px;
+}
+
+.pc-seckill__countdown-daytext {
+  font-size: 16px;
+  margin: 0 2px;
+}
+
+/* 更多链接：文字 + 箭头 */
+.pc-seckill__more {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pc-seckill__arrow {
+  display: block;
+  margin-left: 4px;
+}
+
+.pc-seckill__list-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  width: 100%;
+}
+
+.pc-seckill__list {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  gap: var(--pc-seckill-gap, 10px);
+  scrollbar-width: none;
+}
+
+.pc-seckill__list::-webkit-scrollbar {
+  display: none;
+}
+
+.pc-seckill__item {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  width: calc((100% - var(--pc-seckill-gap, 10px) * 5) / 6);
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+.pc-seckill__img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.pc-seckill__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pc-seckill__discount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+  width: fit-content;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 6px;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 2px;
+  background-color: #ee0a24;
+}
+
+.pc-seckill__name {
+  height: 20px;
+  margin-top: 5px;
+  margin-bottom: 8px;
+  padding: 0 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.pc-seckill__price-row {
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+}
+
+.pc-seckill__price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-right: 8px;
+  color: #1a1a1a;
+  line-height: 28px;
+}
+
+.pc-seckill__price-currency {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.pc-seckill__price-int {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.pc-seckill__price-dec {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.pc-seckill__buy {
+  margin-left: auto;
+}
+
+/* 圆形加购按钮（原版为圆形加号图标，纯 CSS 绘制，避免图标库依赖） */
+.pc-seckill__add-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 63, 79, 0.12);
+  color: #ff3f4f;
+  flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.pc-seckill__add-icon {
+  width: 18px;
+  height: 18px;
+  position: relative;
+  display: block;
+}
+
+.pc-seckill__add-icon::before,
+.pc-seckill__add-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.pc-seckill__add-icon::before {
+  width: 14px;
+  height: 2px;
+}
+
+.pc-seckill__add-icon::after {
+  width: 2px;
+  height: 14px;
+}
+
+.pc-seckill__price-origin {
+  margin-bottom: 10px;
+  padding: 0 5px;
+  height: 19px;
+  color: #888b94;
+  font-size: 16px;
+  text-decoration: line-through;
+  line-height: 22px;
+  box-sizing: border-box;
+}
+
+/* 空状态：6 个骨架卡片（原版 skeleton） */
+.pc-seckill__list--skeleton {
+  overflow: hidden;
+}
+
+.pc-seckill__skeleton-img,
+.pc-seckill__skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: pc-seckill-shimmer 1.4s infinite;
+}
+
+.pc-seckill__skeleton-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.pc-seckill__skeleton-line {
+  height: 30px;
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+@keyframes pc-seckill-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 左右切换按钮（原版 swiper-button-prev/next） */
+.pc-seckill__switch {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 48px;
+  background-color: rgba(0, 0, 0, 0.122);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.pc-seckill__switch:hover {
+  background-color: rgba(0, 0, 0, 0.239);
+}
+
+.pc-seckill__switch span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background-color: #fff;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath d='M238.016 179.008C227.776 168.832 220.16 157.312 215.04 144.64c-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.808 5.12-13.12 12.736-24.768 22.912-34.944C258.368 10.176 282.752 0 311.104 0c28.352 0 52.736 10.176 73.152 30.528l404.928 408.192c10.176 8.704 17.472 19.84 21.824 33.28 4.352 13.44 6.208 27.456 5.44 42.048-0.704 14.528-4.032 28.928-9.792 43.136-5.824 14.208-13.824 26.368-24 36.544l-398.336 401.664c-20.352 21.12-44.736 31.68-73.152 31.68-28.352 0-52.736-10.56-73.088-31.68-10.176-10.176-17.856-21.632-22.912-34.368-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.872 5.12-13.12 12.736-24.768 22.912-34.944l329.6-333.952L238.016 179.008 238.016 179.008z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath d='M238.016 179.008C227.776 168.832 220.16 157.312 215.04 144.64c-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.808 5.12-13.12 12.736-24.768 22.912-34.944C258.368 10.176 282.752 0 311.104 0c28.352 0 52.736 10.176 73.152 30.528l404.928 408.192c10.176 8.704 17.472 19.84 21.824 33.28 4.352 13.44 6.208 27.456 5.44 42.048-0.704 14.528-4.032 28.928-9.792 43.136-5.824 14.208-13.824 26.368-24 36.544l-398.336 401.664c-20.352 21.12-44.736 31.68-73.152 31.68-28.352 0-52.736-10.56-73.088-31.68-10.176-10.176-17.856-21.632-22.912-34.368-5.12-12.736-7.616-25.856-7.616-39.296 0-13.44 2.56-26.752 7.616-39.872 5.12-13.12 12.736-24.768 22.912-34.944l329.6-333.952L238.016 179.008 238.016 179.008z'/%3E%3C/svg%3E") no-repeat center / contain;
+  transform-origin: center;
+}
+
+.pc-seckill__switch--prev {
+  left: 0;
+  padding-right: 7px;
+  border-radius: 0 24px 24px 0;
+}
+
+.pc-seckill__switch--prev span {
+  transform: rotate(180deg);
+}
+
+.pc-seckill__switch--next {
+  right: 0;
+  padding-left: 7px;
+  border-radius: 24px 0 0 24px;
+}

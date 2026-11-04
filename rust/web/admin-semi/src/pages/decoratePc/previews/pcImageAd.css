@@ -1,0 +1,339 @@
+/**
+ * PC 图片广告模块 - 预览样式
+ * 迁移自旧版 preview.less（class 名 / CSS 变量逐行保留），
+ * 并内联旧版 `_shared/ModuleTitle.vue` 的标题样式与 Swiper 最小基础样式。
+ */
+
+.dec-image-ad {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10px);
+    padding-right: var(--dec-box-padding, 10px);
+    padding-top: var(--dec-box-padding-top, 5px);
+    padding-bottom: var(--dec-box-padding-bottom, 5px);
+    background-color: var(--dec-bg-color, transparent);
+    border-radius: var(--dec-box-radius, 0);
+}
+
+.dec-image-ad__content {
+    background-color: var(--dec-bg-color, #ffffff);
+    border-radius: var(--dec-box-radius, 0);
+    overflow: hidden;
+}
+
+.dec-image-ad__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--dec-item-gap, 0);
+}
+
+.dec-image-ad__item {
+    box-sizing: border-box;
+    padding: var(--dec-inner-padding, 0);
+    flex-shrink: 0;
+}
+
+.dec-image-ad__swiper {
+    border-radius: var(--dec-item-radius, 0);
+    overflow: hidden;
+    position: relative;
+}
+
+/* 旧版 Swiper 基础布局（等价 swiper/css 的最小实现） */
+.dec-image-ad__swiper-track {
+    display: flex;
+    transition: transform 0.3s ease;
+}
+
+.dec-image-ad__swiper-slide {
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.dec-image-ad__swiper .swiper-pagination {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.dec-image-ad__swiper .swiper-pagination-bullet {
+    position: relative;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin: 0 3px;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: background 0.2s ease;
+    background-color: #ffffff;
+}
+
+.dec-image-ad__swiper .swiper-pagination-bullet-active {
+    opacity: 1;
+    background: var(--dec-indicator-color, #333333) !important;
+}
+
+.dec-image-ad__link {
+    display: block;
+    border-radius: var(--dec-item-radius, 0);
+    overflow: hidden;
+}
+
+.dec-image-ad__image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    border-radius: var(--dec-item-radius, 0);
+}
+
+.dec-image-ad__empty {
+    padding: 40px 20px;
+    text-align: center;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.dec-image-ad__empty-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 12px;
+    background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' rx='6' fill='%23e5e7eb'/%3E%3Cpath d='M16 42l9-11 7 8 5-6 7 9z' fill='%23c4c9d1'/%3E%3Ccircle cx='22' cy='21' r='4' fill='%23c4c9d1'/%3E%3C/svg%3E")
+        no-repeat center;
+    background-size: contain;
+}
+
+.dec-image-ad__empty-text {
+    color: #999;
+    font-size: 12px;
+}
+
+/* 一行一个 */
+.dec-image-ad--layout-1 .dec-image-ad__list {
+    flex-direction: column;
+}
+
+.dec-image-ad--layout-1 .dec-image-ad__item {
+    width: 100%;
+}
+
+/* 轮播 */
+.dec-image-ad--layout-2 .dec-image-ad__item {
+    width: 100%;
+}
+
+/* 一行两个/三个/四个（gap 参与分宽计算） */
+.dec-image-ad--layout-5 .dec-image-ad__item {
+    width: calc((100% - var(--dec-item-gap, 0px)) / 2);
+}
+
+.dec-image-ad--layout-6 .dec-image-ad__item {
+    width: calc((100% - var(--dec-item-gap, 0px) * 2) / 3);
+}
+
+.dec-image-ad--layout-7 .dec-image-ad__item {
+    width: calc((100% - var(--dec-item-gap, 0px) * 3) / 4);
+}
+
+/* 指示器样式一：短条（对齐 vortmall Carousel carousel-list-bt-1） */
+.dec-image-ad--indicator-1 .dec-image-ad__swiper .swiper-pagination {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    left: 0;
+    right: auto;
+    bottom: 25px;
+    z-index: 10;
+    background: transparent;
+}
+
+.dec-image-ad--indicator-1 .dec-image-ad__swiper .swiper-pagination-bullet,
+.dec-image-ad--indicator-1 .dec-image-ad__swiper .swiper-pagination-bullet-active {
+    width: 12px;
+    height: 6px;
+    border-radius: 2px;
+    margin: 0 4px;
+}
+
+/* 指示器样式二：圆点（对齐 vortmall Carousel carousel-list-bt-2） */
+.dec-image-ad--indicator-2 .dec-image-ad__swiper .swiper-pagination {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    left: 0;
+    right: auto;
+    bottom: 25px;
+    z-index: 10;
+    background: transparent;
+}
+
+.dec-image-ad--indicator-2 .dec-image-ad__swiper .swiper-pagination-bullet,
+.dec-image-ad--indicator-2 .dec-image-ad__swiper .swiper-pagination-bullet-active {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 3px;
+}
+
+/* 指示器样式三：右下角半透明胶囊（勿用 width:100%，避免背景条撑满父级） */
+.dec-image-ad--indicator-3 .dec-image-ad__swiper .swiper-pagination {
+    left: auto !important;
+    right: 8px;
+    bottom: 15px;
+    width: auto !important;
+    max-width: none;
+    transform: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 5px;
+    height: 15px;
+    border-radius: 100px;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.dec-image-ad--indicator-3 .dec-image-ad__swiper .swiper-pagination-bullet,
+.dec-image-ad--indicator-3 .dec-image-ad__swiper .swiper-pagination-bullet-active {
+    width: 12px;
+    height: 12px;
+    margin: 0 3px;
+    border-radius: 50%;
+    opacity: 1;
+}
+
+/* ===== 模块标题（旧版 _shared/ModuleTitle.vue，scoped 样式平铺） ===== */
+.dec-module-title {
+    display: flex;
+    justify-content: space-between;
+    line-height: 30px;
+    align-items: center;
+    padding: 5px 10px 3px;
+    position: relative;
+}
+
+.dec-module-title__left {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.dec-module-title__icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.dec-module-title__text {
+    font-weight: 700;
+    color: #2a3145;
+    font-size: 16px;
+    position: relative;
+}
+
+.dec-module-title__desc {
+    color: #aaa;
+    font-size: 12px;
+    margin-left: 5px;
+    position: relative;
+    top: 1px;
+}
+
+.dec-module-title__right {
+    display: flex;
+    font-size: 12px;
+}
+
+.dec-module-title__more {
+    color: #969799;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    line-height: 10px;
+}
+
+.dec-module-title__arrow {
+    margin-left: 2px;
+    font-size: 12px;
+    font-style: normal;
+}
+
+.dec-module-title.dec-module-title--align-1 {
+    justify-content: space-between;
+}
+
+.dec-module-title.dec-module-title--align-2 {
+    justify-content: center;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__left {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__desc {
+    margin-left: 0;
+    margin-top: 2px;
+}
+
+.dec-module-title.dec-module-title--align-2 .dec-module-title__right {
+    position: absolute;
+    right: 10px;
+}
+
+.dec-module-title.dec-module-title--align-3 {
+    flex-direction: row-reverse;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__left {
+    flex-direction: row-reverse;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__icon {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__desc {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+.dec-module-title.dec-module-title--align-3 .dec-module-title__right {
+    margin-right: auto;
+}
+
+.dec-module-title.dec-module-title--style-2 .dec-module-title__text {
+    padding-left: 10px;
+}
+
+.dec-module-title.dec-module-title--style-2 .dec-module-title__text::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, #155bd4 0%, #64b5f6 100%);
+    border-radius: 2px;
+}
+
+.dec-module-title.dec-module-title--style-3 .dec-module-title__text::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #155bd4 0%, transparent 100%);
+    border-radius: 1px;
+}

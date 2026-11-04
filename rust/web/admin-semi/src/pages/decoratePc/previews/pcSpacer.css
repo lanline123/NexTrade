@@ -1,0 +1,23 @@
+/**
+ * PC 空白辅助模块 - 预览样式
+ *
+ * 逐行迁移自旧版：
+ * java-b2b2c-overseas-v5.8.61/view/admin/src/views/decorate/decorate/editor/modules/pcHome/pc-spacer/preview.less
+ *
+ * 说明：Less 嵌套已展开为原生 CSS，选择器、属性与旧版一致。
+ */
+
+.dec-pc-spacer {
+  box-sizing: border-box;
+  padding-left: var(--dec-box-padding, 0);
+  padding-right: var(--dec-box-padding, 0);
+  padding-top: var(--dec-box-padding-top, 0);
+  padding-bottom: var(--dec-box-padding-bottom, 0);
+}
+
+.dec-pc-spacer__content {
+  height: var(--dec-pc-spacer-height);
+  background: var(--dec-pc-spacer-bg);
+  border-radius: var(--dec-box-radius, 0);
+  box-sizing: border-box;
+}

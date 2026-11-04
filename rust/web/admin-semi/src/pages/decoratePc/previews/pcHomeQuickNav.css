@@ -1,0 +1,71 @@
+/**
+ * PC 首页快捷导航模块 - 预览样式（React 迁移自 5.8.61 旧版 preview.less，已展开 LESS 嵌套）
+ * 图左文右布局，动态值通过 CSS 变量传递。
+ */
+
+.dec-pc-home-quick-nav {
+  box-sizing: border-box;
+  padding-left: var(--dec-box-padding, 0);
+  padding-right: var(--dec-box-padding, 0);
+  padding-top: var(--dec-box-padding-top, 0);
+  padding-bottom: var(--dec-box-padding-bottom, 0);
+  background-color: var(--dec-bg-color, transparent);
+  border-radius: var(--dec-box-radius, 0);
+}
+
+.dec-pc-home-quick-nav .nav_container.fs_mod {
+  display: flex;
+  flex-wrap: var(--dec-single-line, nowrap);
+  align-items: center;
+  justify-content: var(--dec-container-justify, flex-start);
+  gap: var(--dec-item-gap, 20px);
+  overflow: hidden;
+  line-height: var(--dec-line-height, 20px);
+  font-weight: var(--dec-font-weight, 400);
+}
+
+.dec-pc-home-quick-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dec-icon-gap, 4px);
+  font-size: var(--dec-font-size, 14px);
+  font-weight: var(--dec-font-weight, 400);
+  line-height: var(--dec-line-height, 20px);
+  color: var(--dec-text-color, #333333);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+
+.dec-pc-home-quick-nav__item:hover {
+  color: var(--dec-hover-color, #e1251b);
+}
+
+.dec-pc-home-quick-nav__item:hover .dec-pc-home-quick-nav__icon {
+  filter: brightness(1.1);
+}
+
+.dec-pc-home-quick-nav__item:active {
+  transform: scale(0.98);
+}
+
+.dec-pc-home-quick-nav__icon {
+  flex-shrink: 0;
+  width: var(--dec-icon-size, 16px);
+  height: var(--dec-icon-size, 16px);
+  object-fit: contain;
+  transition: filter 0.2s ease;
+}
+
+.dec-pc-home-quick-nav__text {
+  flex-shrink: 0;
+}
+
+.dec-pc-home-quick-nav__empty {
+  padding: 16px 0;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  width: 100%;
+}

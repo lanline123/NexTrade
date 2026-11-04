@@ -1,0 +1,61 @@
+/**
+ * PC 分割线模块 - 预览样式
+ *
+ * 逐行迁移自旧版：
+ * java-b2b2c-overseas-v5.8.61/view/admin/src/views/decorate/decorate/editor/modules/pcHome/pc-divider/preview.less
+ *
+ * 说明：Less 嵌套（`&__` / `&--`）已展开为原生 CSS，选择器、属性与旧版一致。
+ */
+
+.dec-divider {
+  box-sizing: border-box;
+  padding-left: var(--dec-box-padding, 10px);
+  padding-right: var(--dec-box-padding, 10px);
+  padding-top: var(--dec-box-padding-top, 5px);
+  padding-bottom: var(--dec-box-padding-bottom, 5px);
+}
+
+.dec-divider__content {
+  background-color: var(--dec-bg-color, #ffffff);
+  border-radius: var(--dec-box-radius, 0);
+  overflow: hidden;
+}
+
+.dec-divider__wrapper {
+  height: var(--dec-item-height, 10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dec-divider__line {
+  width: 100%;
+  height: 1px;
+  background-color: #e5e5e5;
+}
+
+.dec-divider--type-1 .dec-divider__line {
+  display: none;
+}
+
+.dec-divider--type-2 .dec-divider__line {
+  display: block;
+}
+
+.dec-divider--style-1 .dec-divider__line {
+  border: none;
+  background-color: #e5e5e5;
+  height: 1px;
+}
+
+.dec-divider--style-2 .dec-divider__line {
+  background: none;
+  height: 0;
+  border-top: 1px dashed #e5e5e5;
+}
+
+.dec-divider--style-3 .dec-divider__line {
+  background: none;
+  height: 0;
+  border-top: 1px dotted #e5e5e5;
+}
