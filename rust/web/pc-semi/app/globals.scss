@@ -4711,3 +4711,21 @@ img {
 .account-empty { padding: 60px 0 !important; color: #999; text-align: center; }
 .account-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 16px; font-size: 14px; }
 .account-pagination .is-disabled { color: #bbb; }
+
+
+/* 余额充值 */
+.deposit-card h2 { margin: 10px 0 14px; color: #1a1a1a; font-size: 16px; }
+.deposit-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.deposit-grid button { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 78px; padding: 10px; border: 1px solid #dcdfe6; border-radius: 8px; background: #fff; color: #333; cursor: pointer; }
+.deposit-grid button.is-active { border-color: #e1251b; background: #fff7f6; color: #e1251b; }
+.deposit-grid button b { font-size: 20px; }
+.deposit-grid button span { margin-top: 4px; color: #999; font-size: 12px; }
+.deposit-grid button input { width: 100%; height: 30px; border: 0; outline: none; text-align: center; font-size: 18px; }
+.deposit-pay-list { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.deposit-pay-list label { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1px solid #dcdfe6; border-radius: 8px; color: #333; font-size: 14px; cursor: pointer; }
+.deposit-pay-list label.is-active { border-color: #e1251b; color: #e1251b; }
+.deposit-agreement { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; color: #666; font-size: 13px; }
+.deposit-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.deposit-actions b { color: #e1251b; font-size: 24px; }
+.deposit-qr { margin-top: 24px; padding: 20px; border: 1px solid #eee; border-radius: 12px; text-align: center; }
+.deposit-qr p { color: #666; font-size: 13px; }
