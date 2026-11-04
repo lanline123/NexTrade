@@ -7438,3 +7438,70 @@ body {
 .wx-reply-page .semi-page {
   margin-top: 16px;
 }
+
+/* 关键字回复：轻量现代列头 */
+.wx-reply-page .semi-table-thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head {
+  height: 50px;
+  padding: 0 16px;
+  border-right: 0;
+  border-bottom: 1px solid #eaecf0;
+  background: #fff;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:hover {
+  color: #344054;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:first-child {
+  padding-left: 20px;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:last-child {
+  padding-right: 20px;
+}
+
+/* 关键字回复：列头最终样式 */
+.wx-reply-page .semi-table-thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head {
+  height: 50px;
+  padding: 0 16px;
+  border-right: 0 !important;
+  border-bottom: 1px solid #e4e7ec !important;
+  background: #f8fafc !important;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:hover {
+  color: #1d2939;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:first-child {
+  padding-left: 22px;
+  border-top-left-radius: 10px;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:last-child {
+  padding-right: 22px;
+  border-top-right-radius: 10px;
+}
+
+.wx-reply-page .semi-table-thead {
+  background: #f2f4f7;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head {
+  border-left: 0 !important;
+  background: #f2f4f7 !important;
+  color: #344054;
+}
