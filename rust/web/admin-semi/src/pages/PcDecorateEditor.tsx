@@ -764,37 +764,32 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
         panelBackgroundColor: '#ffffff', panelRadius: 8, panelShadow: 1,
         titleFontSize: 14, titleColor: '#333333', mutedColor: '#999999',
         priceColor: '#e1251b', bannerRadius: 12, cardRadius: 12,
+        innerPadding: 0,
       },
     }),
     settings: [
-      { kind: 'color', key: 'left.backgroundColor', label: '左侧分类背景', section: '左侧分类导航' },
-      { kind: 'color', key: 'left.textColor', label: '左侧分类文字色' },
-      { kind: 'number', key: 'left.showCount', label: '分类显示条数', min: 1, max: 20 },
+      { kind: 'color', key: 'left.backgroundColor', label: '背景颜色', section: '左侧分类导航' },
+      { kind: 'color', key: 'left.textColor', label: '文字颜色' },
       { kind: 'picList', key: 'center.banners', label: '中间轮播图', section: '轮播广告' },
       { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)', section: '推荐卡位' },
-      { kind: 'input', key: 'right.user.nickname', label: '未登录欢迎语', section: '右侧会员卡' },
-      { kind: 'input', key: 'right.user.welcomeText', label: '未登录提示语' },
-      { kind: 'switch', key: 'right.premiumMember.show', label: '显示付费会员卡' },
-      { kind: 'input', key: 'right.premiumMember.title', label: '会员卡标题', showIf: (m) => m.right?.premiumMember?.show === true },
-      { kind: 'input', key: 'right.premiumMember.description', label: '会员卡描述', showIf: (m) => m.right?.premiumMember?.show === true },
-      { kind: 'link', key: 'right.premiumMember.link', label: '会员卡链接', showIf: (m) => m.right?.premiumMember?.show === true },
-      { kind: 'input', key: 'right.shopsTitle', label: '店铺街标题' },
-      { kind: 'input', key: 'right.shopsSubTitle', label: '店铺街角标文字' },
+      { kind: 'input', key: 'right.user.nickname', label: '未登录标题文字', section: '右侧会员卡' },
+      { kind: 'color', key: 'right.userCardGradientColorA', label: '背景渐变色', resetValue: '#FFEDE1' },
+      { kind: 'color', key: 'right.userCardGradientColorB', label: '背景渐变色', resetValue: '#FCF9F8' },
+      { kind: 'radio', key: 'right.userCardGradientType', label: '渐变方向', options: [{ label: '上下', value: 'upDown' }, { label: '左右', value: 'leftRight' }, { label: '斜向', value: 'diagonal' }] },
+      { kind: 'switch', key: 'right.premiumMember.show', label: '付费会员' },
+      { kind: 'input', key: 'right.premiumMember.title', label: '标题', showIf: (m) => m.right?.premiumMember?.show === true },
+      { kind: 'input', key: 'right.premiumMember.description', label: '描述', showIf: (m) => m.right?.premiumMember?.show === true },
+      { kind: 'link', key: 'right.premiumMember.link', label: '跳转链接', showIf: (m) => m.right?.premiumMember?.show === true },
+      { kind: 'input', key: 'right.shopsTitle', label: '区块标题', section: '快捷入口区' },
+      { kind: 'input', key: 'right.shopsSubTitle', label: '角标文字' },
       { kind: 'color', key: 'right.shopsSubTitleBg', label: '角标背景色' },
-      { kind: 'picList', key: 'right.shortcuts', label: '快捷入口(≤4)', section: '快捷入口区' },
-      { kind: 'input', key: 'right.shopsMoreText', label: '查看全部文字' },
-      { kind: 'link', key: 'right.shopsMoreLink', label: '查看全部链接' },
-      { kind: 'color', key: 'right.shopsTextColor', label: '店铺街文字色' },
-      { kind: 'number', key: 'style.height', label: '整体高度', min: 200, max: 600, section: '整体样式' },
-      { kind: 'slider', key: 'style.panelRadius', label: '面板圆角', max: 30 },
-      { kind: 'color', key: 'style.panelBackgroundColor', label: '面板背景色' },
-      { kind: 'slider', key: 'style.gap', label: '列间距', max: 30 },
-      { kind: 'slider', key: 'style.titleFontSize', label: '标题字号', min: 12, max: 20 },
-      { kind: 'color', key: 'style.titleColor', label: '标题颜色' },
-      { kind: 'color', key: 'style.mutedColor', label: '弱化文字色' },
-      { kind: 'color', key: 'style.priceColor', label: '价格颜色' },
-      { kind: 'slider', key: 'style.bannerRadius', label: '轮播圆角', max: 30 },
-      { kind: 'slider', key: 'style.cardRadius', label: '卡片圆角', max: 30 },
+      { kind: 'input', key: 'right.shopsMoreText', label: '查看更多文字' },
+      { kind: 'link', key: 'right.shopsMoreLink', label: '查看更多链接' },
+      { kind: 'color', key: 'right.shopsTextColor', label: '入口文字颜色' },
+      { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表' },
+      { kind: 'slider', key: 'style.panelRadius', label: '圆角', max: 30, section: '整体样式' },
+      { kind: 'color', key: 'style.panelBackgroundColor', label: '背景色' },
+      { kind: 'slider', key: 'style.innerPadding', label: '内间距', max: 30 },
     ],
     summary: (m) => `三列通栏 · ${((m.center?.banners || []) as PicItem[]).length} 轮播`,
   },
@@ -4836,7 +4831,7 @@ function ModuleSettingsPanel({
         {tabbed && activeTab === 'extend' && extendTitle && (
           <div className="dec-edit-title-box"><div className="title">{t(extendTitle)}</div></div>
         )}
-        {tabbed && activeTab === 'content' && contentTitle && (
+        {((tabbed && activeTab === 'content') || !tabbed) && contentTitle && (
           <div className="dec-edit-title-box"><div className="title">{t(contentTitle)}</div></div>
         )}
         {def.note && <div className="dec-edit-group-desc" style={{ padding: '0 16px 8px' }}>{t(def.note)}</div>}
@@ -5503,6 +5498,33 @@ function FieldControl({
                   onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgType: v }))}
                 />
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Text type="tertiary" size="small">{t('商品来源')}</Text>
+                <RadioGroup
+                  value={card.productSource || 'custom'}
+                  onChange={(e: any) => updateCard(ci, (c) => ({
+                    ...c,
+                    productSource: e.target.value,
+                    productGroupId: e.target.value === 'custom' ? undefined : c.productGroupId,
+                    productGroupName: e.target.value === 'custom' ? undefined : c.productGroupName,
+                  }))}
+                >
+                  <Radio value="custom">{t('自定义商品')}</Radio>
+                  <Radio value="productGroup">{t('商品分组')}</Radio>
+                </RadioGroup>
+              </div>
+              {(card.productSource || 'custom') === 'productGroup' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Text type="tertiary" size="small">{t('商品分组')}</Text>
+                  <InputNumber
+                    value={card.productGroupId ? Number(card.productGroupId) : undefined}
+                    onChange={(v) => updateCard(ci, (c) => ({ ...c, productGroupId: v ?? undefined }))}
+                    placeholder={t('商品分组 ID')}
+                    style={{ width: 180 }}
+                  />
+                  {card.productGroupName ? <Text type="tertiary" size="small">{String(card.productGroupName)}</Text> : null}
+                </div>
+              ) : null}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Text type="tertiary" size="small">{t('显示价格')}</Text>
                 <Switch checked={Number(card.showPrice) === 1} onChange={(v) => updateCard(ci, (c) => ({ ...c, showPrice: v ? 1 : 0 }))} />
@@ -5660,6 +5682,9 @@ function FieldControl({
       return null;
   }
 }
+
+
+
 
 
 
