@@ -5239,6 +5239,7 @@ function FieldControl({
   const categoryOptions = useCategoryOptions();
   const [pickerVisible, setPickerVisible] = useState(false);
   const [grouponVisible, setGrouponVisible] = useState(false);
+  const [heroPicker, setHeroPicker] = useState<{ cardIndex: number; productIndex: number } | null>(null);
   const value = getPath(moduleData, field.key);
 
   const set = (v: unknown) => {
@@ -5540,15 +5541,19 @@ function FieldControl({
               {((card.products || []) as Array<Record<string, any>>).map((p, pi) => (
                 <div key={pi} style={{ borderTop: '1px dashed var(--semi-color-border)', paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <Text type="tertiary" size="small">{t('商品槽 {index}', { index: pi + 1 })}</Text>
-                  <Input
-                    value={p.pic?.picUrl || ''}
-                    onChange={(v) => updateCard(ci, (c) => ({
-                      ...c,
-                      products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, pic: { ...(x.pic || {}), picUrl: v, picThumb: v } } : x)),
-                    }))}
-                    placeholder={t('商品图 URL')}
-                    size="small"
-                  />
+                  <div
+                    className="hero-product-pick"
+                    onClick={() => setHeroPicker({ cardIndex: ci, productIndex: pi })}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    {p.pic?.picUrl ? (
+                      <img src={String(p.pic.picUrl)} alt="" className="hero-product-pick__img" />
+                    ) : (
+                      <span className="hero-product-pick__empty">{t('点击选择商品')}</span>
+                    )}
+                    {p.productName ? <span className="hero-product-pick__name">{String(p.productName)}</span> : null}
+                  </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <Input value={p.price || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, price: v } : x)) }))} placeholder={t('价格如 ¥88.8')} size="small" />
                     <Input value={p.label || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, label: v } : x)) }))} placeholder={t('角标文字(可选)')} size="small" />
@@ -5571,6 +5576,30 @@ function FieldControl({
               ))}
             </div>
           ))}
+          {heroPicker && (
+            <ProductPickerModal
+              visible
+              multiple={false}
+              selectedIds={[]}
+              onOk={(ids, rows) => {
+                const row = rows.find((item) => item.productId === ids[0]) || rows[0];
+                if (row) {
+                  updateCard(heroPicker.cardIndex, (c) => ({
+                    ...c,
+                    products: (c.products || []).map((x: any, xi: number) => (xi === heroPicker.productIndex ? {
+                      ...x,
+                      productId: row.productId,
+                      productName: row.productName,
+                      pic: { picUrl: row.picUrl || row.picThumb || '', picThumb: row.picThumb || row.picUrl || '' },
+                      price: row.productPrice !== undefined ? `¥${row.productPrice}` : x.price,
+                    } : x)),
+                  }));
+                }
+                setHeroPicker(null);
+              }}
+              onCancel={() => setHeroPicker(null)}
+            />
+          )}
         </div>
       );
     }
@@ -5684,6 +5713,7 @@ function FieldControl({
       return null;
   }
 }
+
 
 
 

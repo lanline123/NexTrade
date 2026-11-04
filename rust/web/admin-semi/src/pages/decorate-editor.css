@@ -1923,3 +1923,36 @@
 .dec-pic-list__actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
 .dec-pic-list__add { display: flex; justify-content: center; padding-top: 4px; }
 
+
+
+/* 营销通栏卡位商品选择 */
+.hero-product-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 4px 8px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 4px;
+  background: #fafafa;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.hero-product-pick__img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  background: #fff;
+}
+.hero-product-pick__empty {
+  color: #909399;
+  font-size: 12px;
+}
+.hero-product-pick__name {
+  flex: 1;
+  overflow: hidden;
+  color: #333;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
