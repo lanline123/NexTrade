@@ -4762,47 +4762,59 @@ function ModuleSettingsPanel({
   const visibleSettings = tabbed
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
+  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Text strong>{t(def.label)}{t('设置')}</Text>
-      {def.note && <Text type="tertiary" size="small">{t(def.note)}</Text>}
+    <div className="pc-module-settings">
+      <div className="dec-edit-title">
+        <h3>{t(def.label)}</h3>
+      </div>
       {tabbed && (
-        <RadioGroup
-          value={activeTab}
-          onChange={(e: any) => setActiveTab(e.target.value === 'extend' ? 'extend' : 'content')}
-          type="button"
-        >
-          <Radio value="content">{t('内容设置')}</Radio>
-          <Radio value="extend">{t('扩展设置')}</Radio>
-        </RadioGroup>
+        <div className="settings-tabs-nav">
+          <div
+            className={`settings-tabs-item${activeTab === 'content' ? ' active' : ''}`}
+            onClick={() => setActiveTab('content')}
+          >
+            {t('内容设置')}
+          </div>
+          <div
+            className={`settings-tabs-item${activeTab === 'extend' ? ' active' : ''}`}
+            onClick={() => setActiveTab('extend')}
+          >
+            {t('扩展设置')}
+          </div>
+        </div>
       )}
-      {tabbed && (
-        <Text strong size="small">{activeTab === 'content' ? t('内容设置') : t('扩展设置')}</Text>
-      )}
-      {visibleSettings.length === 0 && <Text type="tertiary">{t('该模块无可配置项')}</Text>}
-      {(() => {
-        let lastSection: string | null = null;
-        return visibleSettings.map((field) => {
-          if (field.showIf && !field.showIf(moduleData)) return null;
-          const section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : null;
-          const showSection = Boolean(section && section !== lastSection);
-          if (section) lastSection = section;
-          return (
-            <div key={field.key}>
-              {showSection && (
-                <Text strong size="small" style={{ display: 'block', margin: '4px 0 6px' }}>{t(section!)}</Text>
-              )}
-              {field.kind !== 'title' && field.kind !== 'container' && (
-                <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>
-                  {t(field.label)}
-                  {field.hint ? `（${t(field.hint)}）` : ''}
-                </Text>
-              )}
-              <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
-            </div>
-          );
-        });
-      })()}
+      <div className="pc-module-settings__body">
+        {def.note && <div className="dec-edit-group-desc" style={{ padding: '0 16px 8px' }}>{t(def.note)}</div>}
+        {visibleSettings.length === 0 && <div className="dec-edit-group-desc" style={{ padding: '12px 16px' }}>{t('该模块无可配置项')}</div>}
+        {(() => {
+          let lastSection: string | null = null;
+          return visibleSettings.map((field) => {
+            if (field.showIf && !field.showIf(moduleData)) return null;
+            const section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : null;
+            const showSection = Boolean(section && section !== lastSection);
+            if (section) lastSection = section;
+            const block = blockKinds.has(field.kind);
+            return (
+              <div key={field.key}>
+                {showSection && (
+                  <div className="dec-spread-title"><div className="title">{t(section!)}</div></div>
+                )}
+                <div className={`dec-edit-group${block ? ' dec-edit-group-block' : ''}`}>
+                  <div className="dec-edit-group-title">
+                    <div className="label">{t(field.label)}</div>
+                  </div>
+                  <div className="dec-edit-group-con">
+                    <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
+                  </div>
+                  {field.hint && <div className="dec-edit-group-desc">{t(field.hint)}</div>}
+                </div>
+              </div>
+            );
+          });
+        })()}
+      </div>
     </div>
   );
 }

@@ -1781,3 +1781,117 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+/* 右侧模块设置：复刻原版 dec-edit-title / SettingsTabs / dec-edit-group 面板 */
+.pc-module-settings {
+  width: 100%;
+  background: #fff;
+}
+.pc-module-settings .dec-edit-title {
+  padding: 24px 16px;
+  border-bottom: 1px solid #f2f4f6;
+  margin-bottom: 0;
+}
+.pc-module-settings .dec-edit-title h3 {
+  margin: 0;
+  color: #323233;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  text-align: left;
+}
+.pc-module-settings .settings-tabs-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-bottom: 1px solid #dcdee0;
+  background: #fff;
+  box-shadow: rgba(93, 113, 127, 0.08) 0 5px 10px 0;
+  margin-bottom: 10px;
+}
+.pc-module-settings .settings-tabs-item {
+  width: 100%;
+  max-width: 48%;
+  height: 47px;
+  border-bottom: 2px solid transparent;
+  color: #333;
+  font-size: 14px;
+  line-height: 47px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pc-module-settings .settings-tabs-item:hover {
+  color: #155bd4;
+}
+.pc-module-settings .settings-tabs-item.active {
+  color: #155bd4;
+  font-weight: 500;
+  border-bottom-color: #155bd4;
+}
+.pc-module-settings__body {
+  padding-bottom: 40px;
+}
+.pc-module-settings .dec-edit-group {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+.pc-module-settings .dec-edit-group.dec-edit-group-block {
+  flex-direction: column;
+  align-items: stretch;
+}
+.pc-module-settings .dec-edit-group-title {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  flex-shrink: 0;
+}
+.pc-module-settings .dec-edit-group.dec-edit-group-block .dec-edit-group-title {
+  padding-top: 0;
+}
+.pc-module-settings .dec-edit-group-title .label {
+  margin-right: 16px;
+  color: #969799;
+  font-size: 14px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.pc-module-settings .dec-edit-group-con {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.pc-module-settings .dec-edit-group.dec-edit-group-block .dec-edit-group-con {
+  display: block;
+  margin-top: 10px;
+}
+.pc-module-settings .dec-edit-group-desc {
+  width: 100%;
+  margin-top: 10px;
+  color: #999;
+  font-size: 12px;
+  line-height: 18px;
+}
+.pc-module-settings .dec-spread-title {
+  padding: 12px 16px;
+}
+.pc-module-settings .dec-spread-title .title {
+  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 20px;
+}
+
+/* 面板外层仍有 16px padding，模块设置需要整宽贴边 */
+.pc-module-settings {
+  margin: -16px;
+  width: calc(100% + 32px);
+}
