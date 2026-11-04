@@ -5559,7 +5559,7 @@ function FieldControl({
     }
     case 'color':
       return (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', justifyContent: 'flex-end' }}>
           <AlphaColorInput value={String(value || '')} onChange={(v) => set(v)} />
           <Button size="small" onClick={() => set(field.resetValue ?? '')}>{t('重置')}</Button>
         </div>
@@ -6078,6 +6078,7 @@ function FieldControl({
       return null;
   }
 }
+
 
 
 
