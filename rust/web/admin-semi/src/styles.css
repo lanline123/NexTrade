@@ -7375,3 +7375,66 @@ body {
 .wx-reply-page .semi-table-thead .semi-table-row-head:last-child {
   padding-right: 20px;
 }
+
+/* 关键字回复：完整现代化表格 */
+.wx-reply-page .table-card {
+  overflow: hidden;
+  border: 1px solid #edf1f5;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.04);
+}
+.wx-reply-page .semi-card-body {
+  padding: 16px 20px 20px;
+}
+.wx-reply-page .table-toolbar {
+  margin-bottom: 12px;
+}
+.wx-reply-page .semi-table-container {
+  overflow: hidden;
+  border: 1px solid #f1f4f7;
+  border-radius: 10px;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head {
+  height: 46px;
+  padding: 0 14px;
+  border-right: 0;
+  border-bottom: 1px solid #eaecf0;
+  background: #f9fafb;
+  color: #667085;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:first-child {
+  padding-left: 20px;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:last-child {
+  padding-right: 20px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row-cell {
+  padding: 14px;
+  border-bottom: 1px solid #f2f4f7;
+  color: #475467;
+  font-size: 13px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row-cell:first-child {
+  padding-left: 20px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row-cell:last-child {
+  padding-right: 20px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row:hover .semi-table-row-cell {
+  background: #f8fafc;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row:last-child .semi-table-row-cell {
+  border-bottom: 0;
+}
+.wx-reply-page .semi-table-placeholder {
+  padding: 48px 0;
+  background: #fbfcfd;
+  color: #98a2b3;
+  font-size: 13px;
+}
+.wx-reply-page .semi-page {
+  margin-top: 16px;
+}
