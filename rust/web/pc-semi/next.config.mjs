@@ -19,6 +19,15 @@ const nextConfig = {
       // 旧 Nuxt 文件路由兼容：大小写与旧页面文件名映射到新版路由
       { source: '/seckill/List', destination: '/seckill' },
       { source: '/exchange/List', destination: '/exchange' },
+      { source: '/order/alipay', destination: '/order/pay' },
+      { source: '/order/wechat', destination: '/order/pay' },
+      { source: '/order/paypal', destination: '/order/pay' },
+      { source: '/order/stripe', destination: '/order/pay' },
+      { source: '/order/huifu', destination: '/order/pay' },
+      { source: '/order/lakala', destination: '/order/pay' },
+      { source: '/order/yeepay', destination: '/order/pay' },
+      { source: '/order/yunpay', destination: '/order/pay' },
+      { source: '/order/yabanpay', destination: '/order/pay' },
       { source: '/shop/List', destination: '/shop' },
       { source: '/search.v1', destination: '/search' },
       { source: '/item/:id', destination: '/product/:id' },
@@ -32,4 +41,5 @@ const nextConfig = {
 };
 
 export default nextConfig;
+
 
