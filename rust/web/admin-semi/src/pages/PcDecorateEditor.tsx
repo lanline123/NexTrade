@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Button,
+  ColorPicker,
   Input,
   InputNumber,
   Modal,
@@ -864,6 +865,29 @@ const LEGACY_MODULE_DEFS: ModuleDef[] = [
 
 const ALL_MODULE_DEFS = [...NEW_MODULE_DEFS, ...LEGACY_MODULE_DEFS];
 const MODULE_DEF_MAP = new Map(ALL_MODULE_DEFS.map((d) => [d.type, d]));
+
+const PC_LOGIN_DEFAULTS: Record<string, any> = {
+  loginMode: 2,
+  headerHeight: 80,
+  logoWidth: 100,
+  logoHeight: 25,
+  headerShadow: false,
+  showWelcome: true,
+  backgroundPic: { picUrl: '', picThumb: '' },
+  backgroundColor: '',
+  warpHeight: 620,
+};
+
+const PC_LOGIN_MODULE_DEF: ModuleDef = {
+  type: 'pcLogin',
+  label: '登录页',
+  group: 'pcLogin',
+  hiddenInLibrary: false,
+  defaults: () => ({ ...PC_LOGIN_DEFAULTS }),
+  settings: [],
+};
+
+MODULE_DEF_MAP.set('pcLogin', PC_LOGIN_MODULE_DEF);
 const LEGACY_TYPES = new Set(LEGACY_MODULE_DEFS.map((d) => d.type));
 
 const LIB_GROUPS = ['轮播横幅', '导航分类', '图片展示', '商品', '营销活动', '辅助元素'];
@@ -885,6 +909,7 @@ const LIB_GROUPS = ['轮播横幅', '导航分类', '图片展示', '商品', '�
  *   营销通栏原版复用 icon-category_nav，语义宽条幅 → LayoutOne
  */
 const LIB_META: Record<string, { order: number; Icon: IconParkIcon }> = {
+  pcLogin: { order: 1, Icon: ViewGridList },
   'pc-banner2': { order: 1, Icon: Carousel },
   'pc-group-banner': { order: 2, Icon: MultiPictureCarousel },
   'pc-home-hero': { order: 4, Icon: LayoutOne },
@@ -948,6 +973,8 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
     dirtyRef.current = true;
   };
 
+  const isLoginPage = pageType === 5;
+
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -962,7 +989,8 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         if (!alive) return;
         if (res?.decorateId) decorateIdRef.current = res.decorateId;
         setTitle(res?.decorateTitle || '');
-        setPageType(Number(res?.pageType) || 1);
+        const currentPageType = Number(res?.pageType) || 1;
+        setPageType(currentPageType);
         setHasDraft(Boolean(res?.draftData));
         const source = res?.draftData || res?.data || {};
         const pm: Record<string, any> = {
@@ -978,7 +1006,22 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         pm.pcHeader = { ...PC_HEADER_DEFAULTS, ...(pm.pcHeader || {}) };
         if (!pm.homeStyleVersion) pm.homeStyleVersion = 'new';
         setPageModule(pm);
-        const list = Array.isArray(source.moduleList) ? source.moduleList : [];
+        let list = Array.isArray(source.moduleList) ? source.moduleList : [];
+        if (currentPageType === 5) {
+          list = list.filter((item: any) => item.type === 'pcLogin');
+          if (!list.some((item: any) => item.type === 'pcLogin')) {
+            list = [
+              {
+                moduleIndex: Date.now(),
+                type: 'pcLogin',
+                url: 'pcLogin',
+                label: '登录页',
+                isShow: true,
+                module: { ...PC_LOGIN_DEFAULTS },
+              },
+            ];
+          }
+        }
         setModuleList(list.map((item, idx) => ({
           moduleIndex: item.moduleIndex ?? Date.now() + idx,
           type: item.type,
@@ -1117,6 +1160,14 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   };
 
   const addModule = (def: ModuleDef) => {
+    if (isLoginPage) {
+      const existing = moduleList.findIndex((m) => m.type === 'pcLogin');
+      if (existing >= 0) {
+        setActiveIndex(existing);
+        setPanelTab('module');
+        return;
+      }
+    }
     const item: EditorModule = {
       moduleIndex: Date.now(),
       type: def.type,
@@ -1134,6 +1185,10 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
   /** 拖拽入画布：插入到目标位置（原版 vuedraggable clone 行为） */
   const addModuleAt = (def: ModuleDef, index: number) => {
+    if (isLoginPage) {
+      addModule(def);
+      return;
+    }
     const item: EditorModule = {
       moduleIndex: Date.now(),
       type: def.type,
@@ -1202,7 +1257,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f2f3f5', overflow: 'hidden' }}>
+    <div className={`pc-decorate-editor${isLoginPage ? ' pc-decorate-editor--login' : ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#f2f3f5', overflow: 'hidden' }}>
       <div
         style={{
           display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px',
@@ -1248,12 +1303,12 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
         <div className="pc-decorate-lib">
           <div className="pc-decorate-lib__inside">
             <div className="pc-decorate-lib__head" onClick={() => setLibOpen((v) => !v)}>
-              <span>{t('PC首页模块')}</span>
+              <span>{isLoginPage ? t('登录页模块') : t('PC首页模块')}</span>
               <span className={`pc-decorate-lib__arrow${libOpen ? ' pc-decorate-lib__arrow--open' : ''}`}><IconChevronDown /></span>
             </div>
             {libOpen && (
               <div className="pc-decorate-lib__list">
-                {NEW_MODULE_DEFS.filter((d) => !d.hiddenInLibrary)
+                {(isLoginPage ? [PC_LOGIN_MODULE_DEF] : NEW_MODULE_DEFS.filter((d) => !d.hiddenInLibrary))
                   .slice()
                   .sort((a, b) => (LIB_META[a.type]?.order ?? 999) - (LIB_META[b.type]?.order ?? 999))
                   .map((def) => {
@@ -1285,7 +1340,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
         {/* 中间画布：1600px 整页无缝渲染（对齐原版 CanvasViewport，与 C 端一致） */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#eef1f6' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fff', borderBottom: '1px solid var(--semi-color-border)' }}>
+          <div className="pc-decorate-canvas-tools" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#fff', borderBottom: '1px solid var(--semi-color-border)' }}>
             <Button size="small" onClick={() => { setPanelTab('page'); setActiveIndex(-1); }}>{t('页面设置')}</Button>
             <Button size="small" onClick={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}>{t('PC头部装修')}</Button>
             <Text type="tertiary" size="small">{t('画布按窗口宽度等比缩放，与前台首页渲染一致')}</Text>
@@ -1320,10 +1375,12 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                   }
                 }}
               >
-                <PcHeaderPreviewStrip
-                  header={pageModule.pcHeader || {}}
-                  onOpen={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}
-                />
+                {!isLoginPage && (
+                  <PcHeaderPreviewStrip
+                    header={pageModule.pcHeader || {}}
+                    onOpen={() => { setPanelTab('pcHeader'); setActiveIndex(-1); }}
+                  />
+                )}
                 {moduleList.length === 0 && (
                   <div style={{ padding: 100, textAlign: 'center', color: '#c0c4cc' }}>{t('暂无模块，请从左侧模块库拖入或点击添加')}</div>
                 )}
@@ -1414,7 +1471,18 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
 
         {/* 右侧设置面板 */}
         <div style={{ width: 380, background: '#fff', borderLeft: '1px solid var(--semi-color-border)', overflowY: 'auto', padding: 16, flexShrink: 0 }}>
-          {panelTab === 'page' && (
+          {isLoginPage && (
+            <PcLoginSettingsPanel
+              data={activeModule?.type === 'pcLogin' ? activeModule.module : (moduleList.find((m) => m.type === 'pcLogin')?.module || PC_LOGIN_DEFAULTS)}
+              onChange={(patch) => {
+                const index = moduleList.findIndex((m) => m.type === 'pcLogin');
+                if (index < 0) return;
+                setModuleList((prev) => prev.map((m, i) => (i === index ? { ...m, module: { ...m.module, ...patch } } : m)));
+                markDirty();
+              }}
+            />
+          )}
+          {!isLoginPage && panelTab === 'page' && (
             <PageSettingsPanel
               pageModule={pageModule}
               legacyCount={moduleList.filter((m) => LEGACY_TYPES.has(m.type)).length}
@@ -1423,10 +1491,10 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
               onSwitchVersion={(target) => switchHomeVersion(target)}
             />
           )}
-          {panelTab === 'pcHeader' && (
+          {!isLoginPage && panelTab === 'pcHeader' && (
             <PcHeaderPanel header={pageModule.pcHeader || {}} onChange={(next) => { setPageModule({ ...pageModule, pcHeader: next }); markDirty(); }} />
           )}
-          {panelTab === 'module' && (
+          {!isLoginPage && panelTab === 'module' && (
             activeModule && activeDef ? (
               <ModuleSettingsPanel
                 def={activeDef}
@@ -1675,10 +1743,165 @@ function ProductCards({
   );
 }
 
+function PcLoginSettingsPanel({
+  data,
+  onChange,
+}: {
+  data: Record<string, any>;
+  onChange: (patch: Record<string, any>) => void;
+}) {
+  const { t } = useI18n();
+  const d = { ...PC_LOGIN_DEFAULTS, ...(data || {}) };
+  const sliderValue = (value: unknown, fallback: number) => (Array.isArray(value) ? Number(value[0]) : Number(value) || fallback);
+  return (
+    <div className="pc-login-settings">
+      <div className="pc-login-settings__title">
+        <h3>{t('登录页')}</h3>
+        <p>{t('选择 PC 登录页模式并配置背景，保存发布后前台按此渲染')}</p>
+      </div>
+
+      <div className="pc-login-field">
+        <label>{t('登录模式')}</label>
+        <RadioGroup
+          type="button"
+          value={Number(d.loginMode) || 2}
+          onChange={(e) => onChange({ loginMode: Number(e.target.value) })}
+        >
+          <Radio value={1}>{t('经典版')}</Radio>
+          <Radio value={2}>{t('简约版')}</Radio>
+        </RadioGroup>
+      </div>
+
+      <div className="pc-login-field">
+        <label>{t('头部高度')}</label>
+        <Slider
+          min={50}
+          max={120}
+          value={sliderValue(d.headerHeight, 80)}
+          onChange={(v) => onChange({ headerHeight: sliderValue(v, 80) })}
+        />
+      </div>
+
+      <div className="pc-login-field">
+        <label>{t('logo宽度')}</label>
+        <Slider
+          min={10}
+          max={160}
+          value={sliderValue(d.logoWidth, 100)}
+          onChange={(v) => onChange({ logoWidth: sliderValue(v, 100) })}
+        />
+      </div>
+
+      <div className="pc-login-field">
+        <label>{t('logo高度')}</label>
+        <Slider
+          min={10}
+          max={60}
+          value={sliderValue(d.logoHeight, 25)}
+          onChange={(v) => onChange({ logoHeight: sliderValue(v, 25) })}
+        />
+      </div>
+
+      <div className="pc-login-field pc-login-field--switch">
+        <label>{t('头部阴影')}</label>
+        <Switch checked={Boolean(d.headerShadow)} onChange={(checked) => onChange({ headerShadow: checked })} />
+      </div>
+
+      <div className="pc-login-field pc-login-field--switch">
+        <label>{t('头部欢迎语')}</label>
+        <Switch checked={Boolean(d.showWelcome)} onChange={(checked) => onChange({ showWelcome: checked })} />
+      </div>
+
+      <div className="pc-login-settings__section">{t('背景设置')}</div>
+
+      <div className="pc-login-field pc-login-field--block">
+        <label>{t('背景图')}</label>
+        <ImageUploader
+          single
+          value={d.backgroundPic?.picUrl ? [d.backgroundPic.picUrl] : []}
+          onChange={(next) => onChange({ backgroundPic: { ...(d.backgroundPic || {}), picUrl: next[0] || '' } })}
+        />
+        <p className="pc-login-field__help">{t('建议高度不超过 580px、宽度不超过 1700px，可配合下方背景色使用')}</p>
+      </div>
+
+      <div className="pc-login-field">
+        <label>{t('背景色')}</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="color"
+            className="pc-login-color-input"
+            value={d.backgroundColor || '#ffffff'}
+            onChange={(e) => onChange({ backgroundColor: e.target.value })}
+          />
+          <Input
+            value={d.backgroundColor || ''}
+            placeholder="#FFFFFF"
+            onChange={(value) => onChange({ backgroundColor: value })}
+          />
+          <Button size="small" theme="borderless" onClick={() => onChange({ backgroundColor: '' })}>{t('重置')}</Button>
+        </div>
+      </div>
+
+      <div className="pc-login-field">
+        <label>{t('登录区高度')}</label>
+        <Slider
+          min={620}
+          max={800}
+          value={Math.max(620, sliderValue(d.warpHeight, 620))}
+          onChange={(v) => onChange({ warpHeight: sliderValue(v, 620) })}
+        />
+      </div>
+    </div>
+  );
+}
+
+function PcLoginModulePreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
+  const d = { ...PC_LOGIN_DEFAULTS, ...(data || {}) };
+  const headerHeight = Number(d.headerHeight) || 80;
+  const logoWidth = Number(d.logoWidth) || 100;
+  const logoHeight = Number(d.logoHeight) || 25;
+  const warpHeight = Math.max(620, Number(d.warpHeight) || 620);
+  const backgroundImage = d.backgroundPic?.picUrl;
+  return (
+    <div className="pc-login-preview">
+      <div
+        className="pc-login-preview__header"
+        style={{ height: headerHeight, boxShadow: d.headerShadow ? '0 2px 10px rgba(0,0,0,.12)' : 'none' }}
+      >
+        <div className="pc-login-preview__logo" style={{ width: logoWidth, height: logoHeight }}>
+          LOGO
+        </div>
+        {d.showWelcome ? <span className="pc-login-preview__welcome">{t('欢迎登录')}</span> : null}
+      </div>
+      <div
+        className="pc-login-preview__body"
+        style={{
+          minHeight: warpHeight,
+          backgroundColor: d.backgroundColor || '#f4f7fb',
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className={`pc-login-preview__card pc-login-preview__card--${Number(d.loginMode) === 1 ? 'classic' : 'simple'}`}>
+          <div className="pc-login-preview__title">{t('账号登录')}</div>
+          <div className="pc-login-preview__input" />
+          <div className="pc-login-preview__input" />
+          <div className="pc-login-preview__button">{t('登录')}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ModulePreview({ type, data }: { type: string; data: Record<string, any> }) {
   const { t } = useI18n();
   const m = data || {};
   switch (type) {
+    case 'pcLogin': {
+      return <PcLoginModulePreview data={m} />;
+    }
     case 'pc-banner2': {
       // 对齐原版 dec-pc-banner2：frame 内边距在外层，背景色/圆角在内层，一屏 1~3 张、间距 12
       const pics = (m.picList || []) as PicItem[];

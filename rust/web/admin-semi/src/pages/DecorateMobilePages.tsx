@@ -336,7 +336,7 @@ export function MobileDecoratePages({
               size="small"
               onClick={() => {
                 const idKey = (editPage === 'pcDecorateEditor' || editPage === 'mobileDecorateEditor') ? 'id' : 'decorateId';
-                window.location.href = `${window.location.origin}/?page=${editPage}&${idKey}=${row.decorateId}${returnPage ? `&from=${returnPage}` : ''}`;
+                window.location.href = `${window.location.origin}/?page=${editPage}&${idKey}=${row.decorateId}${pageType ? `&pageType=${pageType}` : ''}${returnPage ? `&from=${returnPage}` : ''}`;
               }}
             >
               {t('装修')}

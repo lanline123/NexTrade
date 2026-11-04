@@ -7774,3 +7774,135 @@ body {
   padding: 14px 24px;
   border-top: 1px solid #f1f4f7;
 }
+
+
+/* 登录页装修编辑器 */
+.pc-decorate-editor--login .pc-decorate-canvas-tools {
+  display: none !important;
+}
+.pc-login-settings__title h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 650;
+}
+.pc-login-settings__title p {
+  margin: 4px 0 18px;
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 18px;
+}
+.pc-login-settings__section {
+  margin: 20px 0 14px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f4f7;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pc-login-field {
+  margin-bottom: 18px;
+}
+.pc-login-field > label {
+  display: block;
+  margin-bottom: 8px;
+  color: #667085;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.pc-login-field--switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pc-login-field--switch > label {
+  margin-bottom: 0;
+}
+.pc-login-field--block .image-uploader {
+  width: 100%;
+}
+.pc-login-field__help {
+  margin: 6px 0 0;
+  color: #98a2b3;
+  font-size: 11.5px;
+  line-height: 17px;
+}
+.pc-login-preview {
+  width: 1600px;
+  background: #fff;
+}
+.pc-login-preview__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 80px;
+  background: #fff;
+}
+.pc-login-preview__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  color: #98a2b3;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pc-login-preview__welcome {
+  color: #475467;
+  font-size: 14px;
+}
+.pc-login-preview__body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+.pc-login-preview__card {
+  width: 380px;
+  padding: 28px;
+  border: 1px solid #e9edf2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(16, 24, 40, 0.1);
+}
+.pc-login-preview__card--classic {
+  width: 420px;
+}
+.pc-login-preview__title {
+  margin-bottom: 20px;
+  color: #1d2939;
+  font-size: 20px;
+  font-weight: 650;
+  text-align: center;
+}
+.pc-login-preview__input {
+  height: 42px;
+  margin-bottom: 12px;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #fcfcfd;
+}
+.pc-login-preview__button {
+  height: 42px;
+  margin-top: 18px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 42px;
+  text-align: center;
+}
+
+
+.pc-login-color-input {
+  width: 36px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
