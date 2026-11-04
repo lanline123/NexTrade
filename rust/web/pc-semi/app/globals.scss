@@ -4485,3 +4485,13 @@ img {
 .pc-reset-code-row input { flex: 1; }
 .pc-reset-code-row button { flex-shrink: 0; width: 108px; border: 1px solid #dcdfe6; background: #fff; color: #333; font-size: 13px; cursor: pointer; }
 .pc-reset-code-row button:disabled { color: #bbb; cursor: not-allowed; }
+
+
+/* 浏览历史 / 旧收藏路由 */
+.member-history__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.member-history__card img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: #fafafa; }
+.member-history__name { margin-top: 8px; overflow: hidden; color: #333; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.member-history__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.member-history__foot b { color: #e1251b; font-size: 16px; }
+.member-history__foot button { border: 0; background: none; color: #999; font-size: 12px; cursor: pointer; }
+@media (max-width: 900px) { .member-history__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
