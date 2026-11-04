@@ -12,7 +12,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } 
 import { CSS } from "@dnd-kit/utilities";
 import { Toast } from "@douyinfe/semi-ui";
 import { IconPlus, IconMinus, IconCopy, IconDelete, IconEyeOpened, IconEyeClosed } from "@douyinfe/semi-icons";
-import { editorStore } from "../store/editorStore";
+import { editorStore, useEditorState } from "../store/editorStore";
 import { getPreviewComponent, getModuleDefinition } from "../contract/moduleRegistry";
 import type { DecorateModuleBase } from "../contract/types";
 
@@ -122,8 +122,7 @@ function tryMove(from: number, to: number) {
 }
 
 export default function Canvas() {
-    const state = editorStore.getState();
-    const s = useEditorSnapshot();
+    const s = useEditorState();
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
     const items = s.moduleList;
@@ -159,8 +158,3 @@ export default function Canvas() {
     );
 }
 
-function useEditorSnapshot() {
-    return useEditorState();
-}
-
-import { useEditorState } from "../store/editorStore";

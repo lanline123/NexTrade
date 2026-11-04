@@ -257,7 +257,7 @@ const heroDemoModules = (): Array<Record<string, any>> => {
 interface SettingFieldDef {
   kind:
     | 'radio' | 'switch' | 'select' | 'input' | 'textarea' | 'number' | 'slider'
-    | 'color' | 'picList' | 'pic' | 'link' | 'linkList'
+    | 'color' | 'colorPair' | 'picList' | 'pic' | 'link' | 'linkList'
     | 'category' | 'categoryMulti' | 'products' | 'productIds' | 'groupon'
     | 'title' | 'container' | 'hotarea' | 'groupList' | 'heroCards';
   key: string;
@@ -297,6 +297,10 @@ interface SettingFieldDef {
   sections?: string[];
   /** 图片列表最大数量（原版 ModulePicList max-count） */
   picMax?: number;
+  /** colorPair 的第二个颜色 key */
+  secondKey?: string;
+  /** colorPair 第二个颜色的重置值 */
+  resetValueSecond?: unknown;
   /** 字段写入后的附加行为（如切换拼团类型时清空活动） */
   onChangeExtra?: (moduleData: Record<string, any>, newValue: unknown) => Record<string, any>;
   showIf?: (m: Record<string, any>) => boolean;
@@ -783,8 +787,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'picList', key: 'center.banners', label: '中间轮播图', sections: ['中间焦点区', '轮播广告'] },
       { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)', section: '推荐卡位' },
       { kind: 'input', key: 'right.user.nickname', label: '未登录标题文字', section: '右侧会员卡' },
-      { kind: 'color', key: 'right.userCardGradientColorA', label: '背景渐变色', resetValue: '#FFEDE1' },
-      { kind: 'color', key: 'right.userCardGradientColorB', label: '背景渐变色', resetValue: '#FCF9F8' },
+      { kind: 'colorPair', key: 'right.userCardGradientColorA', secondKey: 'right.userCardGradientColorB', label: '背景渐变色', resetValue: '#FFEDE1', resetValueSecond: '#FCF9F8' },
       { kind: 'radio', key: 'right.userCardGradientType', label: '渐变方向', options: [{ label: '上下', value: 'upDown' }, { label: '左右', value: 'leftRight' }, { label: '斜向', value: 'diagonal' }] },
       { kind: 'switch', key: 'right.premiumMember.show', label: '付费会员' },
       { kind: 'input', key: 'right.premiumMember.title', label: '标题', showIf: (m) => m.right?.premiumMember?.show === true },
@@ -5529,6 +5532,31 @@ function FieldControl({
           onChange={(v) => set(v)}
         />
       );
+    case 'colorPair': {
+      const secondValue = field.secondKey ? getPath(moduleData, field.secondKey) : '';
+      const setSecond = (v: unknown) => {
+        if (!field.secondKey) return;
+        onChange(setPath(moduleData, field.secondKey, v));
+      };
+      return (
+        <div className="dec-color-group dec-color-group--dual">
+          <div className="dec-color-button">
+            <a
+              className="dec-color-reset"
+              onClick={() => {
+                set(field.resetValue ?? '');
+                setSecond(field.resetValueSecond ?? '');
+              }}
+            >
+              {t('重置')}
+            </a>
+            <AlphaColorInput value={String(value || '')} onChange={(v) => set(v)} />
+            <span className="dec-color-sep">-</span>
+            <AlphaColorInput value={String(secondValue || '')} onChange={(v) => setSecond(v)} />
+          </div>
+        </div>
+      );
+    }
     case 'color':
       return (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%' }}>

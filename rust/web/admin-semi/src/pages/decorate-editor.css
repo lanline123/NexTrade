@@ -2446,3 +2446,24 @@
 .pc-module-settings .dec-edit-title-box--secondary {
   border-radius: 0;
 }
+
+
+/* 双色字段：重置 + A - B 同一行 */
+.pc-module-settings .dec-color-group--dual {
+  width: 100%;
+}
+.pc-module-settings .dec-color-group--dual .dec-color-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.pc-module-settings .dec-color-group--dual .dec-color-reset {
+  color: var(--semi-color-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.pc-module-settings .dec-color-group--dual .dec-color-sep {
+  color: #98a2b3;
+  font-size: 12px;
+}
