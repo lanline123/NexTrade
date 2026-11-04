@@ -706,6 +706,7 @@ export function WechatAutoReply() {
   const [activeTab, setActiveTab] = useState<AutoReplyTab>('subscribe');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const loadedTabsRef = useRef<Set<AutoReplyTab>>(new Set());
   const [formState, setFormState] = useState<Record<AutoReplyTab, AutoReplyPayload>>({
     subscribe: { ...AUTO_REPLY_DEFAULT },
     loginSuccess: { ...AUTO_REPLY_DEFAULT },
@@ -713,10 +714,12 @@ export function WechatAutoReply() {
   });
 
   const loadData = async (tab: AutoReplyTab) => {
+    if (loadedTabsRef.current.has(tab)) return;
     setLoading(true);
     try {
       const res = await apiGet<any>(`/wechat/autoReply/${tab}`);
       if (res) {
+        loadedTabsRef.current.add(tab);
         setFormState((prev) => ({
           ...prev,
           [tab]: {
@@ -753,13 +756,19 @@ export function WechatAutoReply() {
     try {
       const current = formState[activeTab];
       const payload =
-        activeTab === 'loginSuccess'
-          ? { ...current, msgType: 1 }
-          : current;
+        activeTab === 'loginSuccess' || Number(current.msgType) === 1
+          ? { msgType: 1, content: current.content || '' }
+          : {
+              msgType: 2,
+              newsTitle: current.newsTitle || '',
+              newsCoverUrl: current.newsCoverUrl || '',
+              newsDescription: current.newsDescription || '',
+              newsUrl: current.newsUrl || '',
+            };
       await apiPost(`/wechat/autoReply/${activeTab}/save`, payload);
       Toast.success(t('保存成功'));
-    } catch {
-      Toast.success(t('设置保存成功（本地模拟）'));
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
     } finally {
       setSaving(false);
     }
