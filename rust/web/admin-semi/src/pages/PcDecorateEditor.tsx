@@ -257,7 +257,7 @@ const heroDemoModules = (): Array<Record<string, any>> => {
 interface SettingFieldDef {
   kind:
     | 'radio' | 'switch' | 'select' | 'input' | 'textarea' | 'number' | 'slider'
-    | 'color' | 'colorPair' | 'picList' | 'pic' | 'link' | 'linkList'
+    | 'color' | 'colorPair' | 'squareTemplate' | 'picList' | 'pic' | 'link' | 'linkList'
     | 'category' | 'categoryMulti' | 'products' | 'productIds' | 'groupon'
     | 'title' | 'container' | 'hotarea' | 'groupList' | 'heroCards';
   key: string;
@@ -486,7 +486,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       title: standardTitle(),
     }),
     settings: [
-      { kind: 'radio', key: 'picType', label: '选择模板', options: [{ label: '一行两个', value: 1 }, { label: '一行三个', value: 2 }, { label: '一行四个', value: 3 }, { label: '左二右二', value: 4 }, { label: '左一右二', value: 5 }, { label: '左一右三', value: 6 }, { label: '上一下二', value: 7 }], section: '选择布局' },
+      { kind: 'squareTemplate', key: 'picType', label: '选择模板', section: '选择布局' },
       { kind: 'picList', key: 'picList', label: '添加图片', hint: '先选模板确定格子数量（固定张数）', section: '添加图片' },
       { kind: 'slider', key: 'imgPadding', label: '图片边距', max: 30 },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
@@ -4930,7 +4930,7 @@ function ModuleSettingsPanel({
   const visibleSettings = tabbed
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
-  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon']);
+  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'squareTemplate']);
   const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
   const SECTION_LEVELS: Record<string, 1 | 2> = {
     // 模块级 / 内容级 / 扩展级
@@ -5458,7 +5458,7 @@ function SettingsFieldRows({
   onChange: (next: Record<string, any>) => void;
 }) {
   const { t } = useI18n();
-  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon']);
+  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'squareTemplate']);
   return (
     <>
       {fields.map((field) => {
@@ -5552,6 +5552,50 @@ function FieldControl({
           onChange={(v) => set(v)}
         />
       );
+    case 'squareTemplate': {
+      const current = Number(value) || 1;
+      const options = [
+        { value: 1, label: '一行两个' },
+        { value: 2, label: '一行三个' },
+        { value: 3, label: '一行四个' },
+        { value: 4, label: '左二右二' },
+        { value: 5, label: '左一右二' },
+        { value: 6, label: '左一右三' },
+        { value: 7, label: '上一下二' },
+      ];
+      const picCount: Record<number, number> = { 1: 2, 2: 3, 3: 4, 4: 4, 5: 3, 6: 4, 7: 3 };
+      const changeType = (nextType: number) => {
+        let next = setPath(moduleData, field.key, nextType);
+        const list = [...((getPath(next, 'picList') || []) as PicItem[])];
+        const count = picCount[nextType] ?? 2;
+        while (list.length < count) {
+          list.push({ picId: '0', picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } });
+        }
+        if (list.length > count) list.length = count;
+        next = setPath(next, 'picList', list);
+        onChange(next);
+      };
+      return (
+        <div className="square-template">
+          <div className="square-template__value">{t(options.find((item) => item.value === current)?.label || '一行两个')}</div>
+          <div className="square-template__options">
+            {options.map((item) => (
+              <Tooltip key={item.value} content={t(item.label)} position="top">
+                <button
+                  type="button"
+                  className={`square-template__option${current === item.value ? ' is-active' : ''}`}
+                  onClick={() => changeType(item.value)}
+                >
+                  <span className={`square-thumb square-thumb--${item.value}`}>
+                    <i /><i /><i /><i />
+                  </span>
+                </button>
+              </Tooltip>
+            ))}
+          </div>
+        </div>
+      );
+    }
     case 'colorPair': {
       const secondValue = field.secondKey ? getPath(moduleData, field.secondKey) : '';
       const setSecond = (v: unknown) => {
