@@ -367,7 +367,7 @@ export function WechatMenu() {
                   >
                     <Text ellipsis={{ showTooltip: true }}>{item.name || t('菜单')}</Text>
 
-                    {selectedId.startsWith(item.id) && (
+                    {(selectedId === item.id || selectedId.startsWith(`${item.id}-`)) && (
                       <div className="wx-submenu">
                         {(item.sub_button || []).map((sub) => (
                           <div
@@ -924,6 +924,7 @@ export function VoiceBroadcast() {
     </div>
   );
 }
+
 
 
 
