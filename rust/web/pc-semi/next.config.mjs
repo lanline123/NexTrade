@@ -44,7 +44,7 @@ const nextConfig = {
       { source: '/member/return/LogInfo', destination: '/member/aftersales/detail' },
       { source: '/member/account/Deposit', destination: '/member/balance' },
       { source: '/member/account/Detail', destination: '/member/account/detail' },
-      { source: '/member/account/Log', destination: '/member/balance' },
+      { source: '/member/account/Log', destination: '/member/account/log' },
     ];
   },
 };

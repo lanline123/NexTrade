@@ -553,3 +553,25 @@ export async function getUserDetail(): Promise<Record<string, any> | null> {
   const response = await fetch(`${SERVER_API_BASE}/api/user/user/detail`, { cache: 'no-store' });
   return readData<Record<string, any>>(response);
 }
+
+
+export interface RechargeOrderItem {
+  addTime?: string;
+  amount?: number | string;
+  type?: string;
+  postscript?: string;
+  statusType?: string;
+  [key: string]: unknown;
+}
+
+export async function getRechargeOrders(params: { page?: number; size?: number } = {}): Promise<{ records: RechargeOrderItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 15));
+  const response = await fetch(`${SERVER_API_BASE}/api/user/rechargeOrder/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : [],
+    total: Number(data?.total || 0),
+  };
+}
