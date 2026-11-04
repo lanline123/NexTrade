@@ -4478,3 +4478,10 @@ img {
 .license-empty { padding: 60px 0; border: 1px dashed #dcdfe6; color: #999; text-align: center; }
 .license-notes { margin-top: 28px; color: #999; font-size: 12px; line-height: 22px; }
 .license-notes p { margin: 0; }
+
+
+/* 找回密码 */
+.pc-reset-code-row { display: flex; gap: 8px; }
+.pc-reset-code-row input { flex: 1; }
+.pc-reset-code-row button { flex-shrink: 0; width: 108px; border: 1px solid #dcdfe6; background: #fff; color: #333; font-size: 13px; cursor: pointer; }
+.pc-reset-code-row button:disabled { color: #bbb; cursor: not-allowed; }
