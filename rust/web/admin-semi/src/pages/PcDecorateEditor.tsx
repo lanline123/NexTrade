@@ -17,6 +17,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  Popover,
   Radio,
   RadioGroup,
   Select,
@@ -3480,38 +3481,93 @@ function formatColorValue(hex: string, alpha: number): string {
 }
 
 function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
   const parsed = parseColorValue(value);
   const emit = (hex: string, alpha: number) => onChange(formatColorValue(hex, alpha));
-  return (
-    <div className="pchead-alpha-color">
-      <label className="pchead-alpha-color__swatch" title={value || 'transparent'}>
-        <span style={{ background: formatColorValue(parsed.hex, parsed.alpha) }} />
-        <input
-          type="color"
-          value={parsed.hex}
-          onChange={(e) => emit(e.target.value, parsed.alpha)}
+  const presetColors = [
+    '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585',
+    'rgba(255, 69, 0, 0.68)', 'rgb(255, 120, 0)', '#ff7800', '#ffff00',
+    'rgba(120, 240, 90, 0.5)', 'rgba(0, 224, 224, 0.73)', '#c7158577',
+  ];
+  const content = (
+    <div className="pchead-color-popover">
+      <div className="pchead-color-popover__preview-row">
+        <span className="pchead-color-popover__preview">
+          <span style={{ background: formatColorValue(parsed.hex, parsed.alpha) }} />
+        </span>
+        <Input
+          size="small"
+          value={value}
+          placeholder="#ffffff / rgba(0,0,0,.5)"
+          onChange={(next) => onChange(next)}
         />
-      </label>
-      <Slider
-        value={parsed.alpha}
-        min={0}
-        max={100}
-        step={1}
-        style={{ flex: 1, minWidth: 60 }}
-        onChange={(v) => emit(parsed.hex, typeof v === 'number' ? v : (v as number[])[0])}
-      />
-      <input
-        className="pchead-alpha-color__number"
-        type="number"
-        min={0}
-        max={100}
-        step={1}
-        value={parsed.alpha}
-        onChange={(e) => emit(parsed.hex, Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
-        aria-label="Alpha"
-      />
-      <span className="pchead-alpha-color__unit">%</span>
+      </div>
+
+      <div className="pchead-color-popover__label">{t('透明度')}</div>
+      <div className="pchead-color-popover__alpha">
+        <Slider
+          value={parsed.alpha}
+          min={0}
+          max={100}
+          step={1}
+          style={{ flex: 1 }}
+          onChange={(v) => emit(parsed.hex, typeof v === 'number' ? v : (v as number[])[0])}
+        />
+        <input
+          className="pchead-alpha-color__number"
+          type="number"
+          min={0}
+          max={100}
+          step={1}
+          value={parsed.alpha}
+          onChange={(e) => emit(parsed.hex, Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+          aria-label="Alpha"
+        />
+        <span className="pchead-alpha-color__unit">%</span>
+      </div>
+
+      <div className="pchead-color-popover__label">{t('预置颜色')}</div>
+      <div className="pchead-color-popover__presets">
+        {presetColors.map((preset) => (
+          <button
+            type="button"
+            key={preset}
+            className="pchead-color-popover__preset"
+            title={preset}
+            style={{ background: preset }}
+            onClick={() => {
+              const next = parseColorValue(preset);
+              emit(next.hex, next.alpha);
+            }}
+          />
+        ))}
+      </div>
     </div>
+  );
+
+  return (
+    <Popover
+      trigger="custom"
+      visible={open}
+      onClickOutSide={() => setOpen(false)}
+      position="bottomLeft"
+      showArrow
+      content={content}
+    >
+      <button
+        type="button"
+        className="pchead-alpha-color__trigger"
+        onClick={() => setOpen((v) => !v)}
+        title={value || 'transparent'}
+      >
+        <span className="pchead-alpha-color__checker">
+          <span style={{ background: formatColorValue(parsed.hex, parsed.alpha) }} />
+        </span>
+        <span className="pchead-alpha-color__text">{value || t('透明')}</span>
+        <IconChevronDown size="small" />
+      </button>
+    </Popover>
   );
 }
 
