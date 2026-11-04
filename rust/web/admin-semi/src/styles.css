@@ -7347,3 +7347,11 @@ body {
   outline: 2px dashed var(--primary);
   outline-offset: -2px;
 }
+
+/* 子菜单浮层宽度与一级菜单格一致 */
+.wx-submenu {
+  left: 0;
+  right: 0;
+  min-width: 0;
+  transform: none;
+}
