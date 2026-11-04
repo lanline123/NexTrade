@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Card,
   Row,
@@ -142,6 +142,74 @@ export function WechatMenu() {
     setMenuList(updateRecursive(menuList));
   };
 
+  const [dragId, setDragId] = useState<string>('');
+  const [dragOverId, setDragOverId] = useState<string>('');
+  const pressTimerRef = useRef<number | null>(null);
+  const suppressClickRef = useRef(false);
+
+  const clearPressTimer = () => {
+    if (pressTimerRef.current !== null) {
+      window.clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+  };
+
+  const beginLongPress = (id: string) => {
+    clearPressTimer();
+    pressTimerRef.current = window.setTimeout(() => {
+      suppressClickRef.current = true;
+      setDragId(id);
+    }, 350);
+  };
+
+  const reorderNode = (fromId: string, toId: string) => {
+    if (!fromId || !toId || fromId === toId) return;
+    setMenuList((prev) => {
+      const fromRoot = prev.findIndex((item) => item.id === fromId);
+      const toRoot = prev.findIndex((item) => item.id === toId);
+      if (fromRoot >= 0 && toRoot >= 0) {
+        const next = prev.slice();
+        const [moved] = next.splice(fromRoot, 1);
+        next.splice(toRoot, 0, moved);
+        return next;
+      }
+      let fromParent = '';
+      let toParent = '';
+      prev.forEach((item) => {
+        if ((item.sub_button || []).some((child) => child.id === fromId)) fromParent = item.id;
+        if ((item.sub_button || []).some((child) => child.id === toId)) toParent = item.id;
+      });
+      if (!fromParent || fromParent !== toParent) return prev;
+      return prev.map((item) => {
+        if (item.id !== fromParent) return item;
+        const children = (item.sub_button || []).slice();
+        const fromIndex = children.findIndex((child) => child.id === fromId);
+        const toIndex = children.findIndex((child) => child.id === toId);
+        if (fromIndex < 0 || toIndex < 0) return item;
+        const [moved] = children.splice(fromIndex, 1);
+        children.splice(toIndex, 0, moved);
+        return { ...item, sub_button: children };
+      });
+    });
+  };
+
+  useEffect(() => {
+    const finishDrag = () => {
+      clearPressTimer();
+      setDragId((current) => {
+        if (current && dragOverId) reorderNode(current, dragOverId);
+        return '';
+      });
+      setDragOverId('');
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+    };
+    window.addEventListener('mouseup', finishDrag);
+    return () => window.removeEventListener('mouseup', finishDrag);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragOverId]);
+
   const addRootMenu = () => {
     if (menuList.length >= 3) {
       Toast.warning(t('一级菜单最多添加 3 个'));
@@ -268,7 +336,7 @@ export function WechatMenu() {
           <div className="wx-panel-head">
             <div>
               <h3>{t('手机模拟预览')}</h3>
-              <p>{t('菜单实时预览，点击菜单进行配置')}</p>
+              <p>{t('点击菜单进行配置，长按拖拽可排序')}</p>
             </div>
           </div>
 
@@ -285,8 +353,17 @@ export function WechatMenu() {
                 {menuList.map((item) => (
                   <div
                     key={item.id}
-                    className={`wx-menu-cell${selectedId === item.id ? ' is-selected' : ''}`}
-                    onClick={() => setSelectedId(item.id)}
+                    className={`wx-menu-cell${selectedId === item.id ? ' is-selected' : ''}${dragId === item.id ? ' is-dragging' : ''}${dragOverId === item.id ? ' is-drag-over' : ''}`}
+                    onMouseDown={(e) => {
+                      if (e.button === 0) beginLongPress(item.id);
+                    }}
+                    onMouseEnter={() => {
+                      if (dragId && !dragId.includes('-') && !item.id.includes('-')) setDragOverId(item.id);
+                    }}
+                    onClick={() => {
+                      if (suppressClickRef.current) return;
+                      setSelectedId(item.id);
+                    }}
                   >
                     <Text ellipsis={{ showTooltip: true }}>{item.name || t('菜单')}</Text>
 
@@ -295,9 +372,18 @@ export function WechatMenu() {
                         {item.sub_button.map((sub) => (
                           <div
                             key={sub.id}
-                            className={`wx-submenu__item${selectedId === sub.id ? ' is-selected' : ''}`}
+                            className={`wx-submenu__item${selectedId === sub.id ? ' is-selected' : ''}${dragId === sub.id ? ' is-dragging' : ''}${dragOverId === sub.id ? ' is-drag-over' : ''}`}
+                            onMouseDown={(e) => {
+                              if (e.button === 0) beginLongPress(sub.id);
+                            }}
+                            onMouseEnter={() => {
+                              if (dragId && dragId.includes('-') && sub.id.includes('-') && dragId.split('-')[0] === sub.id.split('-')[0]) {
+                                setDragOverId(sub.id);
+                              }
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (suppressClickRef.current) return;
                               setSelectedId(sub.id);
                             }}
                           >
@@ -330,40 +416,6 @@ export function WechatMenu() {
             </div>
           </div>
 
-          <div className="wx-preview-actions">
-            <Button icon={<IconPlus />} onClick={addRootMenu} disabled={menuList.length >= 3}>
-              {t('添加主菜单')}
-            </Button>
-            {activeNode && (
-              <div className="wx-preview-actions__group">
-                <Button
-                  size="small"
-                  theme="borderless"
-                  icon={activeNode.id.includes('-') ? <IconArrowUp /> : <IconArrowLeft />}
-                  onClick={() => moveNode(activeNode.id, -1)}
-                >
-                  {activeNode.id.includes('-') ? t('上移') : t('左移')}
-                </Button>
-                <Button
-                  size="small"
-                  theme="borderless"
-                  icon={activeNode.id.includes('-') ? <IconArrowDown /> : <IconArrowRight />}
-                  onClick={() => moveNode(activeNode.id, 1)}
-                >
-                  {activeNode.id.includes('-') ? t('下移') : t('右移')}
-                </Button>
-                <Button
-                  size="small"
-                  theme="borderless"
-                  type="danger"
-                  icon={<IconDelete />}
-                  onClick={() => confirmRemoveNode(activeNode.id)}
-                >
-                  {t('删除')}
-                </Button>
-              </div>
-            )}
-          </div>
         </section>
 
         <section className="wx-config-panel">

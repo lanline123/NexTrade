@@ -7318,3 +7318,32 @@ body {
     margin: 0 auto;
   }
 }
+
+/* 手机预览去边框 + 拖拽排序 */
+.wx-phone-frame {
+  width: 100%;
+  margin: 16px 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.wx-phone-status {
+  border: 1px solid #eef1f5;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+}
+.wx-phone-screen {
+  border: 1px solid #eef1f5;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+.wx-menu-cell.is-dragging,
+.wx-submenu__item.is-dragging {
+  opacity: 0.45;
+}
+.wx-menu-cell.is-drag-over,
+.wx-submenu__item.is-drag-over {
+  outline: 2px dashed var(--primary);
+  outline-offset: -2px;
+}
