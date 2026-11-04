@@ -4729,3 +4729,11 @@ img {
 .deposit-actions b { color: #e1251b; font-size: 24px; }
 .deposit-qr { margin-top: 24px; padding: 20px; border: 1px solid #eee; border-radius: 12px; text-align: center; }
 .deposit-qr p { color: #666; font-size: 13px; }
+
+
+/* 卡管理 */
+.card-tabs { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.card-tabs button { height: 34px; padding: 0 20px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+.card-tabs button.is-active { border-color: #e1251b; background: #e1251b; color: #fff; }
+.card-tabs .semi-button { margin-left: auto; }
+.link-danger { border: 0; background: none; color: #e1251b; cursor: pointer; }
