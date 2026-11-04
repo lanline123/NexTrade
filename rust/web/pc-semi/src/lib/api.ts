@@ -364,3 +364,36 @@ export async function getShopProducts(params: {
     total: Number(data?.total || 0),
   };
 }
+
+
+export interface ShopHeadConfig {
+  pcDefaultStyle?: string | number;
+  [key: string]: unknown;
+}
+
+export async function getShopHead(shopId: number): Promise<ShopHeadConfig | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/shop/shop/head?shopId=${shopId}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return data || null;
+}
+
+export interface ShopDecorateData {
+  decorateId?: number;
+  moduleList?: Array<{
+    type: string;
+    moduleIndex?: number | string;
+    isShow?: boolean;
+    module?: Record<string, any>;
+  }>;
+  pageModule?: Record<string, any>;
+  [key: string]: unknown;
+}
+
+export async function getShopDecorate(shopId: number): Promise<ShopDecorateData | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/shop/shop/decorate?shopId=${shopId}`, { cache: 'no-store' });
+  return readData<ShopDecorateData>(response);
+}
+
+export async function getShopModuleProducts(shopId: number, size = 8): Promise<ProductListResponse> {
+  return getShopProducts({ shopId, page: 1, size });
+}

@@ -4414,3 +4414,32 @@ img {
   .shop-category-menu { width: 100%; }
   .shop-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* ===== 店铺装修首页 ===== */
+.shop-decoration-page { background: #fff; padding: 16px 0 40px; }
+.shop-decoration-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.shop-decoration__info { display: flex; align-items: center; gap: 20px; }
+.shop-decoration__logo { width: 92px; height: 92px; flex-shrink: 0; border: 1px solid #eee; border-radius: 6px; object-fit: contain; }
+.shop-decoration__meta h1 { margin: 0 0 10px; color: #1a1a1a; font-size: 22px; }
+.shop-decoration__rating { display: flex; gap: 20px; color: #999; font-size: 13px; }
+.shop-decoration__meta p { margin: 10px 0 0; color: #666; font-size: 13px; }
+.shop-decoration__notice { display: flex; align-items: center; gap: 10px; }
+.shop-decoration__notice-tag { flex-shrink: 0; padding: 2px 8px; background: #e1251b; color: #fff; font-size: 12px; }
+.shop-decoration__notice-list { display: flex; gap: 20px; overflow: hidden; color: #666; font-size: 13px; white-space: nowrap; }
+.shop-decoration__gallery { display: grid; gap: 10px; }
+.shop-decoration__gallery--grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.shop-decoration__gallery--ad { grid-template-columns: 1fr; }
+.shop-decoration__gallery a { display: block; overflow: hidden; border-radius: 4px; }
+.shop-decoration__gallery img { display: block; width: 100%; height: auto; object-fit: cover; }
+.shop-decoration__line { height: 1px; background: #eee; }
+.shop-decoration__title { color: #1a1a1a; font-size: 18px; font-weight: 700; }
+.shop-decoration__product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.shop-decoration__product-img { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; background: #fafafa; }
+.shop-decoration__product-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.shop-decoration__product-name { margin-top: 8px; overflow: hidden; color: #333; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.shop-decoration__product-price { margin-top: 6px; color: #e1251b; font-size: 16px; }
+@media (max-width: 900px) {
+  .shop-decoration__gallery--grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shop-decoration__product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
