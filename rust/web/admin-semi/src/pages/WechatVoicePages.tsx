@@ -600,7 +600,7 @@ export function WechatKeywordReply() {
   ];
 
   return (
-    <div>
+    <div className="wx-reply-page">
       <ListPage
         api="/wechat/keywordRule/list"
         rowKey="id"
