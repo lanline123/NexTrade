@@ -27,8 +27,7 @@ export async function getHomeDecorate(options: RequestOptions = {}): Promise<Hom
   if (options.previewId) params.set('previewId', String(options.previewId));
   const query = params.toString() ? `?${params.toString()}` : '';
   const response = await fetch(`${SERVER_API_BASE}/api/home/home/pcIndex${query}`, {
-    cache: options.previewId ? 'no-store' : 'force-cache',
-    next: options.previewId ? undefined : { revalidate: options.revalidate ?? 60 },
+    ...(options.previewId ? { cache: 'no-store' as const } : { next: { revalidate: options.revalidate ?? 60 } }),
   });
   return readData<HomeDecorateResponse>(response);
 }
@@ -38,11 +37,9 @@ export async function getPcHeader(previewId?: number): Promise<Record<string, un
   const query = previewId ? `?previewId=${previewId}` : '';
   const [headerResponse, configResponse] = await Promise.all([
     fetch(`${SERVER_API_BASE}/api/home/home/pcHeader${query}`, {
-      cache: previewId ? 'no-store' : 'force-cache',
-      next: previewId ? undefined : { revalidate: 60 },
+      ...(previewId ? { cache: 'no-store' as const } : { next: { revalidate: 60 } }),
     }),
     fetch(`${SERVER_API_BASE}/api/common/config/base`, {
-      cache: 'force-cache',
       next: { revalidate: 300 },
     }).catch(() => null),
   ]);
@@ -156,7 +153,6 @@ export interface FooterData {
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   const response = await fetch(`${SERVER_API_BASE}/api/${path}`, {
-    cache: 'force-cache',
     next: { revalidate: 300 },
   }).catch(() => null);
   if (!response) return null;
@@ -185,7 +181,6 @@ export async function getFooterData(): Promise<FooterData> {
 
 export async function getArticleIssueInfo(articleId: number): Promise<Record<string, any> | null> {
   const response = await fetch(`${SERVER_API_BASE}/api/article/article/issueInfo?id=${articleId}`, {
-    cache: 'force-cache',
     next: { revalidate: 300 },
   }).catch(() => null);
   if (!response) return null;
