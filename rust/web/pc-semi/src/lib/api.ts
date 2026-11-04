@@ -397,3 +397,31 @@ export async function getShopDecorate(shopId: number): Promise<ShopDecorateData 
 export async function getShopModuleProducts(shopId: number, size = 8): Promise<ProductListResponse> {
   return getShopProducts({ shopId, page: 1, size });
 }
+
+
+export interface ExchangeItem {
+  id: number;
+  productId?: number;
+  productName?: string;
+  picThumb?: string;
+  picUrl?: string;
+  productPrice?: number | string;
+  discountsPrice?: number | string;
+  exchangeIntegral?: number;
+  [key: string]: unknown;
+}
+
+export async function getExchangeList(params: { page?: number; size?: number } = {}): Promise<{ records: ExchangeItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 20));
+  query.set('sortField', 'id');
+  query.set('sortOrder', 'desc');
+  query.set('isEnabled', '1');
+  const response = await fetch(`${SERVER_API_BASE}/api/product/exchange/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : Array.isArray(data) ? data : [],
+    total: Number(data?.total || 0),
+  };
+}

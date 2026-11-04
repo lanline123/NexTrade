@@ -18,6 +18,7 @@ const nextConfig = {
       { source: '/static/:path*', destination: `${apiBase}/static/:path*` },
       // 旧 Nuxt 文件路由兼容：大小写与旧页面文件名映射到新版路由
       { source: '/seckill/List', destination: '/seckill' },
+      { source: '/exchange/List', destination: '/exchange' },
       { source: '/shop/List', destination: '/shop' },
       { source: '/search.v1', destination: '/search' },
       { source: '/item/:id', destination: '/product/:id' },
@@ -31,3 +32,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

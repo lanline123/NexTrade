@@ -4495,3 +4495,23 @@ img {
 .member-history__foot b { color: #e1251b; font-size: 16px; }
 .member-history__foot button { border: 0; background: none; color: #999; font-size: 12px; cursor: pointer; }
 @media (max-width: 900px) { .member-history__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+
+/* ===== 积分换购 /exchange（对齐 view/pc/pages/exchange/List.vue） ===== */
+.exchange-page { background: #f9f9f9; }
+.exchange-main { padding: 20px 0 40px; }
+.exchange-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.exchange-title { margin: 0 0 20px; color: #1a1a1a; font-size: 24px; }
+.exchange-list { display: flex; flex-wrap: wrap; gap: 14px; padding: 0; margin: 0; list-style: none; }
+.exchange-card { width: 282px; padding: 15px; background: #fff; box-sizing: border-box; transition: box-shadow 0.3s; }
+.exchange-card:hover { box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.15); }
+.exchange-card__pic { display: flex; align-items: center; justify-content: center; width: 250px; height: 250px; margin: 0 auto 8px; }
+.exchange-card__pic img { max-width: 100%; max-height: 100%; object-fit: fill; }
+.exchange-card__name { display: block; overflow: hidden; color: #333; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.exchange-card__price { margin-top: 8px; color: #999; font-size: 13px; }
+.exchange-card__integral { margin-top: 6px; color: #e1251b; font-size: 13px; }
+.exchange-card__integral b { font-size: 16px; }
+.exchange-card__btn { display: block; height: 36px; margin-top: 12px; border-radius: 2px; background: #e1251b; color: #fff; font-size: 14px; line-height: 36px; text-align: center; }
+.exchange-empty { padding: 80px 0; color: #999; text-align: center; }
+.exchange-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 20px; color: #666; font-size: 14px; }
+.exchange-pagination .is-disabled { color: #bbb; }
