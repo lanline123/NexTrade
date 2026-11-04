@@ -4572,3 +4572,30 @@ img {
 .join-section h3 { margin: 20px 0 10px; padding: 10px; color: #333; font-size: 26px; font-weight: 400; text-align: center; }
 .join-section-body { padding: 35px 30px 40px; background: #fff; color: #333; font-size: 14px; line-height: 2.5; }
 .join-section-empty { padding: 80px 0; color: #999; text-align: center; }
+
+
+/* ===== 入驻流程 /join/process ===== */
+.join-process-wrap { display: flex; justify-content: center; background: #fff; }
+.join-process-stage { position: relative; width: 1200px; min-height: 4200px; flex-shrink: 0; }
+.join-process-bg { display: block; width: 100%; height: auto; }
+.join-process-part { position: absolute; display: flex; flex-direction: column; gap: 15px; }
+.join-process-part .part-title { box-sizing: border-box; color: #3d97f7; font-size: 20px; font-weight: 700; }
+.join-process-part .title-1 { padding-left: 50px; text-align: left; }
+.join-process-part .title-2 { text-align: left; }
+.join-process-content { overflow: hidden; color: #333; font-size: 13px; line-height: 24px; white-space: pre-wrap; word-break: break-all; }
+.size-0 { width: 260px; height: 145px; }
+.size-1 { width: 345px; height: 145px; }
+.size-2 { width: 367px; height: 255px; }
+.part-0 { left: 378px; top: 275px; }
+.part-1 { left: 457px; top: 611px; }
+.part-2 { left: 500px; top: 1230px; }
+.part-3 { left: 471px; top: 1625px; }
+.part-4 { left: 500px; top: 2047px; }
+.part-5 { left: 360px; top: 2560px; }
+.part-6 { left: 560px; top: 3074px; }
+.part-7 { left: 300px; top: 3672px; }
+.part-8 { left: 579px; top: 4125px; }
+.join-process-empty { position: absolute; top: 80px; left: 0; right: 0; color: #999; text-align: center; }
+@media (max-width: 1240px) {
+  .join-process-wrap { overflow-x: auto; justify-content: flex-start; }
+}
