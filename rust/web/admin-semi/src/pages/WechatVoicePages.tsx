@@ -374,6 +374,7 @@ export function WechatMenu() {
                             key={sub.id}
                             className={`wx-submenu__item${selectedId === sub.id ? ' is-selected' : ''}${dragId === sub.id ? ' is-dragging' : ''}${dragOverId === sub.id ? ' is-drag-over' : ''}`}
                             onMouseDown={(e) => {
+                              e.stopPropagation();
                               if (e.button === 0) beginLongPress(sub.id);
                             }}
                             onMouseEnter={() => {
