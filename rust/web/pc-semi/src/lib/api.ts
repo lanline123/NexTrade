@@ -309,3 +309,58 @@ export async function getShopList(params: { page?: number; size?: number; keywor
     total: Number(data?.total || (Array.isArray(data) ? data.length : 0)),
   };
 }
+
+
+export interface ShopDetail {
+  shopId?: number;
+  shopTitle?: string;
+  shopLogo?: string;
+  shopStar?: number;
+  collectCount?: number;
+  collectShop?: boolean;
+  description?: string;
+  seoLink?: string;
+  [key: string]: unknown;
+}
+
+export async function getShopDetail(shopId: number): Promise<ShopDetail> {
+  const response = await fetch(`${SERVER_API_BASE}/api/shop/shop/detail?shopId=${shopId}`, { cache: 'no-store' });
+  return readData<ShopDetail>(response);
+}
+
+export interface ShopCategoryNode {
+  categoryId: number;
+  categoryName?: string;
+  children?: ShopCategoryNode[];
+}
+
+export async function getShopCategories(shopId: number): Promise<ShopCategoryNode[]> {
+  const response = await fetch(`${SERVER_API_BASE}/api/shop/category/tree?shopId=${shopId}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return Array.isArray(data) ? data : Array.isArray(data?.records) ? data.records : [];
+}
+
+export async function getShopProducts(params: {
+  shopId: number;
+  page?: number;
+  size?: number;
+  categoryId?: number | string;
+  keyword?: string;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
+}): Promise<ProductListResponse> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 20));
+  query.set('shopId', String(params.shopId));
+  if (params.categoryId) query.set('categoryId', String(params.categoryId));
+  if (params.keyword) query.set('keyword', params.keyword);
+  if (params.sortField) query.set('sortField', params.sortField);
+  if (params.sortOrder) query.set('sortOrder', params.sortOrder);
+  const response = await fetch(`${SERVER_API_BASE}/api/product/product/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : Array.isArray(data) ? data : [],
+    total: Number(data?.total || 0),
+  };
+}
