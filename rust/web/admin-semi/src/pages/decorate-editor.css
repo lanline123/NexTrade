@@ -2081,13 +2081,14 @@
 
 /* 颜色选择器：旧版 SelectColor 弹层（show-alpha + 预置色） */
 .pchead-alpha-color__trigger {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
-  height: 32px;
-  padding: 0 8px;
+  justify-content: center;
+  gap: 0;
+  width: 36px;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 3px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   background: #fff;

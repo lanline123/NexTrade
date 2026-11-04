@@ -3659,8 +3659,6 @@ function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: str
         <span className="pchead-alpha-color__checker">
           <span style={{ background: formatColorValue(parsed.hex, parsed.alpha) }} />
         </span>
-        <span className="pchead-alpha-color__text">{value || t('透明')}</span>
-        <IconChevronDown size="small" />
       </button>
     </Popover>
   );
