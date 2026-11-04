@@ -282,6 +282,8 @@ interface SettingFieldDef {
   picDesc?: boolean;
   /** picList 添加按钮文案（原版 ModulePicList title） */
   picAddText?: string;
+  /** picList 动态添加按钮文案（图文导航随 navStyle 变化） */
+  picAddTextFor?: (m: Record<string, any>) => string;
   /** picList 是否隐藏链接（原版 ModulePicList show-link=false） */
   picNoLink?: boolean;
   /** picList 是否隐藏标题输入（原版 ModulePicList show-text=false） */
@@ -458,7 +460,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'navStyle', label: '样式', options: [{ label: '图文', value: 1 }, { label: '仅图片', value: 2 }, { label: '仅文字', value: 3 }] },
       { kind: 'select', key: 'rowNum', label: '一行显示', options: [3, 4, 5, 6].map((n) => ({ label: `${n}个`, value: n })) },
       { kind: 'select', key: 'colNum', label: '显示行数', options: [1, 2, 3].map((n) => ({ label: `${n}行`, value: n })) },
-      { kind: 'picList', key: 'picList', label: '导航项', hint: '可拖拽排序' },
+      { kind: 'picList', key: 'picList', label: '导航项', hint: '可拖拽排序', picAddTextFor: (m) => Number(m.navStyle) === 3 ? '添加导航项' : '添加图片' },
       { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#ffffff' },
       { kind: 'slider', key: 'imgPadding', label: '元素边距', max: 30 },
       // 原版 isNavStyleImage = navStyle !== 3：仅文字模式下不显示图片边角
@@ -5310,7 +5312,7 @@ function FieldControl({
         </div>
       );
     case 'picList':
-      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} max={field.picMax} />;
+      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddTextFor ? field.picAddTextFor(moduleData) : field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} max={field.picMax} />;
     case 'pic':
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
