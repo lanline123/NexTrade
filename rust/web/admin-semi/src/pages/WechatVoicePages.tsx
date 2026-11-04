@@ -794,11 +794,13 @@ export function WechatAutoReply() {
 
   return (
     <div className="base-settings-list wx-auto-page">
-      <Tabs type="line" activeKey={activeTab} onChange={(key) => setActiveTab(key as AutoReplyTab)}>
-        <TabPane tab={t('被关注回复')} itemKey="subscribe" />
-        <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
-        <TabPane tab={t('收到消息回复')} itemKey="default" />
-      </Tabs>
+      <div className="wx-auto-tabbar">
+        <Tabs type="line" activeKey={activeTab} onChange={(key) => setActiveTab(key as AutoReplyTab)}>
+          <TabPane tab={t('被关注回复')} itemKey="subscribe" />
+          <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
+          <TabPane tab={t('收到消息回复')} itemKey="default" />
+        </Tabs>
+      </div>
 
       <div className="wx-auto-layout">
         <SettingsCard

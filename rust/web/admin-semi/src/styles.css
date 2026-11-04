@@ -7695,3 +7695,41 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* 自动回复：复刻原版白色标签栏 + 新版卡片 */
+.wx-auto-tabbar {
+  margin-bottom: 0;
+  padding: 0 20px;
+  border: 1px solid #e9edf2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.04);
+}
+.wx-auto-tabbar .semi-tabs {
+  width: 100%;
+}
+.wx-auto-tabbar .semi-tabs-bar {
+  border-bottom: 0;
+}
+.wx-auto-tabbar .semi-tabs-tab {
+  padding: 14px 2px;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.wx-auto-tabbar .semi-tabs-tab:hover {
+  color: #344054;
+}
+.wx-auto-tabbar .semi-tabs-tab-active {
+  color: var(--primary);
+  font-weight: 600;
+}
+.wx-auto-tabbar .semi-tabs-tab + .semi-tabs-tab {
+  margin-left: 28px;
+}
+.wx-auto-tabbar .semi-tabs-bar-line .semi-tabs-tab-active::after {
+  background: var(--primary);
+  height: 2px;
+}
