@@ -550,7 +550,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'picList', key: 'picList', label: '图片卡片', hint: '可拖拽排序，建议 180*180 像素', picDesc: true, picAddText: '添加一组' },
-      { kind: 'color', key: 'imageBackgroundColor', label: '图片背景色', resetValue: '' },
+      { kind: 'color', key: 'imageBackgroundColor', label: '图片背景色', resetValue: '', section: '参数设置' },
       { kind: 'input', key: 'titleText', label: '标题内容' },
       { kind: 'radio', key: 'showMore', label: '显示查看更多', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'input', key: 'showMoreText', label: '查看更多文字', showIf: (m) => Number(m.showMore) === 1 },
@@ -5723,6 +5723,7 @@ function FieldControl({
       return null;
   }
 }
+
 
 
 
