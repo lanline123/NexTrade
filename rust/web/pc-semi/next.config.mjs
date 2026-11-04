@@ -19,6 +19,8 @@ const nextConfig = {
       // 旧 Nuxt 文件路由兼容：大小写与旧页面文件名映射到新版路由
       { source: '/seckill/List', destination: '/seckill' },
       { source: '/exchange/List', destination: '/exchange' },
+      { source: '/article/news/List', destination: '/article/news/list' },
+      { source: '/article/news/Info', destination: '/article/news/list' },
       { source: '/order/alipay', destination: '/order/pay' },
       { source: '/order/wechat', destination: '/order/pay' },
       { source: '/order/paypal', destination: '/order/pay' },

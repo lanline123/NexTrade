@@ -4662,3 +4662,34 @@ img {
   .giftcard-visual { width: 100%; }
   .giftcard-products__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* ===== 资讯中心 /article/news/list ===== */
+.article-page { background: #f7f8fa; }
+.article-main { padding: 20px 0 50px; }
+.article-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.article-layout { display: flex; gap: 20px; align-items: flex-start; }
+.article-list { flex: 1; min-width: 0; padding: 24px; background: #fff; }
+.article-row { display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid #f0f0f0; }
+.article-row img { width: 160px; height: 106px; flex-shrink: 0; object-fit: cover; }
+.article-row__body { flex: 1; min-width: 0; }
+.article-row h2 { margin: 0 0 8px; font-size: 16px; }
+.article-row h2 a { color: #1a1a1a; }
+.article-row p { margin: 0; color: #8a919f; font-size: 13px; line-height: 22px; }
+.article-row__meta { margin-top: 8px; color: #b0b6c0; font-size: 12px; }
+.article-tag { display: inline-block; margin-bottom: 6px; padding: 1px 6px; border-radius: 2px; background: #fff1f0; color: #e1251b; font-size: 11px; }
+.article-side { width: 260px; flex-shrink: 0; padding: 24px; background: #fff; }
+.article-side h3 { margin: 0 0 14px; color: #1a1a1a; font-size: 16px; }
+.article-side a { display: block; padding: 9px 0; color: #666; font-size: 13px; }
+.article-side a:hover { color: #e1251b; }
+.article-detail { flex: 1; min-width: 0; padding: 28px; background: #fff; }
+.article-detail h1 { margin: 14px 0 10px; color: #1a1a1a; font-size: 28px; }
+.article-meta { margin-bottom: 20px; color: #999; font-size: 12px; }
+.article-cover { max-width: 100%; margin-bottom: 20px; }
+.article-content { color: #333; font-size: 15px; line-height: 1.9; overflow-wrap: anywhere; }
+.article-content img { max-width: 100%; height: auto; }
+.article-nav { display: flex; justify-content: space-between; gap: 20px; margin-top: 30px; padding-top: 18px; border-top: 1px solid #eee; font-size: 13px; }
+.article-empty { padding: 60px 0; color: #999; text-align: center; }
+.article-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 20px; font-size: 14px; }
+.article-pagination .is-disabled { color: #bbb; }
+@media (max-width: 900px) { .article-layout { flex-direction: column; } .article-side { width: 100%; } .article-row { flex-direction: column; } .article-row img { width: 100%; height: auto; } }

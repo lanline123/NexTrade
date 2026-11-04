@@ -497,3 +497,32 @@ export async function getGiftCardDetail(giftCardSn: string): Promise<GiftCardInf
   const response = await fetch(`${SERVER_API_BASE}/api/promotion/giftCardGroups/detail?giftCardSn=${encodeURIComponent(giftCardSn)}`, { cache: 'no-store' });
   return readData<GiftCardInfo>(response);
 }
+
+
+export interface ArticleListItem {
+  articleId: number;
+  articleTitle?: string;
+  articleThumb?: string;
+  description?: string;
+  articleTag?: string;
+  addTime?: string;
+  [key: string]: unknown;
+}
+
+export async function getArticleNewsList(params: { page?: number; size?: number; categorySn?: string } = {}): Promise<{ records: ArticleListItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 20));
+  if (params.categorySn) query.set('categorySn', params.categorySn);
+  const response = await fetch(`${SERVER_API_BASE}/api/article/article/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : [],
+    total: Number(data?.total || 0),
+  };
+}
+
+export async function getArticleNewsDetail(articleId: number): Promise<Record<string, any> | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/article/article/newsInfo?id=${articleId}`, { cache: 'no-store' });
+  return readData<Record<string, any>>(response);
+}
