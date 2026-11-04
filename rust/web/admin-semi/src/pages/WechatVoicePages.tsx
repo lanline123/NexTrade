@@ -794,15 +794,17 @@ export function WechatAutoReply() {
 
   return (
     <div className="base-settings-list wx-auto-page">
-      <div className="wx-auto-tabbar">
-        <Tabs type="line" activeKey={activeTab} onChange={(key) => setActiveTab(key as AutoReplyTab)}>
-          <TabPane tab={t('被关注回复')} itemKey="subscribe" />
-          <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
-          <TabPane tab={t('收到消息回复')} itemKey="default" />
-        </Tabs>
-      </div>
+      <div className="wx-auto-shell">
+        <div className="wx-auto-tabbar">
+          <Tabs type="line" activeKey={activeTab} onChange={(key) => setActiveTab(key as AutoReplyTab)}>
+            <TabPane tab={t('被关注回复')} itemKey="subscribe" />
+            <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
+            <TabPane tab={t('收到消息回复')} itemKey="default" />
+          </Tabs>
+        </div>
 
-      <div className="wx-auto-layout">
+        <div className="wx-auto-shell__body">
+          <div className="wx-auto-layout">
         <SettingsCard
           icon={<IconSend />}
           title={t(
@@ -927,13 +929,15 @@ export function WechatAutoReply() {
               )}
             </div>
           </div>
-        </SettingsCard>
-      </div>
+            </SettingsCard>
+          </div>
+        </div>
 
-      <div className="config-actions">
-        <Button type="primary" icon={<IconSave />} loading={saving} onClick={onSave}>
-          {t('保存')}
-        </Button>
+        <div className="wx-auto-shell__footer">
+          <Button type="primary" icon={<IconSave />} loading={saving} onClick={onSave}>
+            {t('保存')}
+          </Button>
+        </div>
       </div>
     </div>
   );
