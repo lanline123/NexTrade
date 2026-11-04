@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { DecorateModule, PageModule } from '../types';
 import { Frame, imageUrl, linkUrl, ModuleHeading, ModuleTitle, SafeImage } from './common';
@@ -673,6 +673,138 @@ function RecommendProduct({ module }: ModuleProps) {
   return <Product module={{ ...module, products: { ...(module.products || {}), productSelectType: 3 } }} />;
 }
 
+function Banner2({ module }: ModuleProps) {
+  const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
+  const perView = Math.min(3, Math.max(1, Number(module.number) || 1));
+  const gap = Number.isFinite(Number(module.slideGap)) ? Math.max(0, Number(module.slideGap)) : 12;
+  const frame = module.frame || {};
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [index, setIndex] = useState(0);
+  const maxIndex = Math.max(0, pics.length - perView);
+  const style = {
+    '--dec-box-padding': `${Number(frame.boxPadding) || 0}px`,
+    '--dec-box-padding-top': `${Number(frame.boxPaddingTop) || 0}px`,
+    '--dec-box-padding-bottom': `${Number(frame.boxPaddingBottom) || 0}px`,
+    '--dec-box-radius': `${Number(frame.boxRadius) || 0}px`,
+    '--dec-bg-color': frame.backgroundColor || 'transparent',
+    '--dec-inner-padding': `${Number(frame.leftAndRightPadding) || 0}px`,
+    '--dec-slide-gap': `${gap}px`,
+  } as React.CSSProperties;
+
+  const goTo = (next: number) => {
+    const target = Math.max(0, Math.min(maxIndex, next));
+    setIndex(target);
+    const track = trackRef.current;
+    const child = track?.children[target] as HTMLElement | undefined;
+    if (track && child) {
+      track.scrollTo({ left: child.offsetLeft - track.offsetLeft, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (pics.length <= perView) return undefined;
+    const timer = window.setInterval(() => {
+      setIndex((current) => {
+        const next = current >= maxIndex ? 0 : current + 1;
+        const track = trackRef.current;
+        const child = track?.children[next] as HTMLElement | undefined;
+        if (track && child) track.scrollTo({ left: child.offsetLeft - track.offsetLeft, behavior: 'smooth' });
+        return next;
+      });
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [pics.length, perView, maxIndex]);
+
+  if (!pics.length) return null;
+  return (
+    <div className="dec-banner2" style={style}>
+      <div className="dec-banner2__inner">
+        <div
+          className="dec-banner2__track"
+          ref={trackRef}
+          style={{ gridAutoColumns: `calc((100% - ${(perView - 1) * gap}px) / ${perView})`, gap }}
+          onScroll={(event) => {
+            const el = event.currentTarget;
+            const child = el.children[0] as HTMLElement | undefined;
+            if (child && child.offsetWidth + gap > 0) {
+              setIndex(Math.round(el.scrollLeft / (child.offsetWidth + gap)));
+            }
+          }}
+        >
+          {pics.map((pic: any, i: number) => (
+            <a key={i} className="dec-banner2__item" href={linkUrl(pic.picLink)} target="_blank" rel="noreferrer">
+              <SafeImage src={imageUrl(pic)} alt={pic.picTitle || pic.picName || ''} className="dec-banner2__image" />
+            </a>
+          ))}
+        </div>
+        {pics.length > perView ? (
+          <>
+            <button type="button" className="dec-banner2__arrow dec-banner2__arrow--prev" onClick={() => goTo(index - 1)} aria-label="上一张">‹</button>
+            <button type="button" className="dec-banner2__arrow dec-banner2__arrow--next" onClick={() => goTo(index + 1)} aria-label="下一张">›</button>
+            <div className="dec-banner2__dots">
+              {Array.from({ length: maxIndex + 1 }).map((_, dot) => (
+                <button key={dot} type="button" className={dot === index ? 'is-active' : ''} onClick={() => goTo(dot)} aria-label={`第 ${dot + 1} 张`} />
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CategoryNav3({ module }: ModuleProps) {
+  const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
+  const frame = module.frame || {};
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const style = {
+    '--dec-box-padding': `${Number(frame.boxPadding) || 0}px`,
+    '--dec-box-padding-top': `${Number(frame.boxPaddingTop) || 0}px`,
+    '--dec-box-padding-bottom': `${Number(frame.boxPaddingBottom) || 0}px`,
+    '--dec-box-radius': `${Number(frame.boxRadius) || 0}px`,
+    '--dec-bg-color': module.backgroundColor || frame.backgroundColor || 'rgba(0, 0, 0, 0.02)',
+    '--dec-box-height': `${Number(frame.boxHeight) > 0 ? Number(frame.boxHeight) : 352}px`,
+  } as React.CSSProperties;
+  const scroll = (delta: number) => {
+    listRef.current?.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+  return (
+    <div className="dec-category-nav3" style={style}>
+      <div className="dec-category-nav3__top">
+        <div className="dec-category-nav3__title">{module.titleText || ''}</div>
+        {Number(module.showMore) === 1 ? (
+          <a className="dec-category-nav3__more" href={linkUrl(module.moreLink)}>
+            {module.showMoreText || '更多'}<span aria-hidden>›</span>
+          </a>
+        ) : null}
+      </div>
+      {pics.length ? (
+        <div className="dec-category-nav3__list-wrap">
+          <div className="dec-category-nav3__list" ref={listRef}>
+            {pics.map((pic: any, i: number) => (
+              <div className="dec-category-nav3__item" key={i}>
+                <a href={linkUrl(pic.picLink)} target="_blank" rel="noreferrer">
+                  <div className="dec-category-nav3__image" style={{ backgroundColor: pic.imageBackgroundColor || module.imageBackgroundColor || undefined }}>
+                    <SafeImage src={imageUrl(pic)} alt={pic.picTitle || ''} className="dec-category-nav3__img" />
+                  </div>
+                  <div className="dec-category-nav3__name">{pic.picTitle}</div>
+                  {pic.picDesc ? <div className="dec-category-nav3__desc"><span className="dec-category-nav3__hot">HOT</span><span className="dec-category-nav3__desc-text">{pic.picDesc}</span></div> : null}
+                </a>
+              </div>
+            ))}
+          </div>
+          {pics.length > 6 ? (
+            <>
+              <button type="button" className="dec-category-nav3__arrow dec-category-nav3__arrow--prev" onClick={() => scroll(-1488)} aria-label="上一页">‹</button>
+              <button type="button" className="dec-category-nav3__arrow dec-category-nav3__arrow--next" onClick={() => scroll(1488)} aria-label="下一页">›</button>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function GroupBanner({ module }: ModuleProps) {
   const pics = module.banners || module.picList || [];
   return (
@@ -924,6 +1056,8 @@ export const PC_MODULE_REGISTRY: Record<string, (props: ModuleProps) => JSX.Elem
   'pc-home-seckill': Seckill,
   'pc-home-groupon': Groupon,
   'pc-group-banner': GroupBanner,
+  'pc-banner2': Banner2,
+  'pc-category-nav3': CategoryNav3,
 };
 
 export function DecorateRenderer({ modules }: { modules: DecorateModule[] }) {
@@ -962,3 +1096,4 @@ export function DecorateRenderer({ modules }: { modules: DecorateModule[] }) {
 }
 
 export type { PageModule };
+
