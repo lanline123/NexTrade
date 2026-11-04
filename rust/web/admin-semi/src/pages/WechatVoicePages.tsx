@@ -24,6 +24,8 @@ import {
 import {
   IconArrowDown,
   IconArrowLeft,
+  IconComment,
+  IconSend,
   IconArrowRight,
   IconArrowUp,
   IconPlus,
@@ -37,6 +39,7 @@ import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import ImageUploader from '../components/ImageUploader';
+import SettingsCard from '../components/SettingsCard';
 import type { ColumnConfig } from '../framework/types';
 
 const { Text, Title } = Typography;
@@ -781,79 +784,96 @@ export function WechatAutoReply() {
   );
 
   return (
-    <div className="wx-auto-page">
+    <div className="base-settings-list wx-auto-page">
       <Tabs type="line" activeKey={activeTab} onChange={(key) => setActiveTab(key as AutoReplyTab)}>
         <TabPane tab={t('被关注回复')} itemKey="subscribe" />
         <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
         <TabPane tab={t('收到消息回复')} itemKey="default" />
       </Tabs>
 
-      <div className="wx-auto-card">
-        <div className="wx-auto-hint">{t(AUTO_REPLY_HINTS[activeTab])}</div>
-
-        <div className="wx-auto-body">
-          <div className="wx-auto-form">
-            <Spin spinning={loading}>
-              {!textOnly && (
-            <div className="wx-field">
+      <div className="wx-auto-layout">
+        <SettingsCard
+          icon={<IconSend />}
+          title={t(
+            activeTab === 'subscribe'
+              ? '被关注回复'
+              : activeTab === 'loginSuccess'
+                ? '登录成功回复'
+                : '收到消息回复',
+          )}
+          description={t(AUTO_REPLY_HINTS[activeTab])}
+          count={t('{count} 项', { count: !textOnly && Number(current.msgType) === 2 ? 6 : 3 })}
+        >
+          {!textOnly && (
+            <div className="config-field">
               <label>{t('消息类型')}</label>
-              <RadioGroup
-                value={current.msgType}
-                onChange={(e) => updateCurrent({ msgType: Number(e.target.value) })}
-              >
-                <Radio value={1}>{t('文字')}</Radio>
-                <Radio value={2}>{t('图文')}</Radio>
-              </RadioGroup>
+              <div>
+                <RadioGroup
+                  value={current.msgType}
+                  onChange={(e) => updateCurrent({ msgType: Number(e.target.value) })}
+                >
+                  <Radio value={1}>{t('文字')}</Radio>
+                  <Radio value={2}>{t('图文')}</Radio>
+                </RadioGroup>
+              </div>
             </div>
           )}
 
           {(textOnly || Number(current.msgType) === 1) && (
-            <div className="wx-field">
+            <div className="config-field">
               <label>{t('内容')}</label>
-              <TextArea
-                rows={6}
-                maxLength={600}
-                value={current.content}
-                onChange={(value) => updateCurrent({ content: value })}
-                placeholder={t('请输入文本内容')}
-              />
-              {variableToolbar('content')}
+              <div>
+                <TextArea
+                  rows={6}
+                  maxLength={600}
+                  value={current.content}
+                  onChange={(value) => updateCurrent({ content: value })}
+                  placeholder={t('请输入文本内容')}
+                />
+                {variableToolbar('content')}
+              </div>
             </div>
           )}
 
           {!textOnly && Number(current.msgType) === 2 && (
             <>
-              <div className="wx-field">
+              <div className="config-field">
                 <label>{t('图文标题')}</label>
-                <Input
-                  maxLength={64}
-                  value={current.newsTitle}
-                  onChange={(value) => updateCurrent({ newsTitle: value })}
-                  placeholder={t('请输入图文标题')}
-                />
-                {variableToolbar('newsTitle')}
+                <div>
+                  <Input
+                    maxLength={64}
+                    value={current.newsTitle}
+                    onChange={(value) => updateCurrent({ newsTitle: value })}
+                    placeholder={t('请输入图文标题')}
+                  />
+                  {variableToolbar('newsTitle')}
+                </div>
               </div>
-              <div className="wx-field">
+              <div className="config-field">
                 <label>{t('图文摘要')}</label>
-                <TextArea
-                  rows={3}
-                  maxLength={120}
-                  value={current.newsDescription}
-                  onChange={(value) => updateCurrent({ newsDescription: value })}
-                  placeholder={t('请输入图文摘要')}
-                />
-                {variableToolbar('newsDescription')}
+                <div>
+                  <TextArea
+                    rows={3}
+                    maxLength={120}
+                    value={current.newsDescription}
+                    onChange={(value) => updateCurrent({ newsDescription: value })}
+                    placeholder={t('请输入图文摘要')}
+                  />
+                  {variableToolbar('newsDescription')}
+                </div>
               </div>
-              <div className="wx-field">
+              <div className="config-field">
                 <label>{t('封面图')}</label>
-                <ImageUploader
-                  single
-                  value={current.newsCoverUrl ? [current.newsCoverUrl] : []}
-                  onChange={(next) => updateCurrent({ newsCoverUrl: next[0] || '' })}
-                />
-                <p className="wx-field-help">{t('建议比例 2.35 : 1（如 900 × 383）')}</p>
+                <div>
+                  <ImageUploader
+                    single
+                    value={current.newsCoverUrl ? [current.newsCoverUrl] : []}
+                    onChange={(next) => updateCurrent({ newsCoverUrl: next[0] || '' })}
+                  />
+                  <p className="config-field__help">{t('建议比例 2.35 : 1（如 900 × 383）')}</p>
+                </div>
               </div>
-              <div className="wx-field">
+              <div className="config-field">
                 <label>{t('跳转链接')}</label>
                 <Input
                   value={current.newsUrl}
@@ -862,44 +882,47 @@ export function WechatAutoReply() {
                 />
               </div>
             </>
+          )}
+        </SettingsCard>
+
+        <SettingsCard
+          icon={<IconComment />}
+          title={t('效果预览')}
+          description={t('公众号消息发送后的展示效果。')}
+          count={t('{count} 项', { count: 1 })}
+        >
+          <div className="wx-auto-phone">
+            <div className="wx-auto-phone__head">{t('公众号')}</div>
+            <div className="wx-auto-phone__body">
+              {Number(current.msgType) === 2 && !textOnly ? (
+                <div className="wx-auto-news">
+                  {current.newsCoverUrl ? (
+                    <img src={current.newsCoverUrl} alt="" />
+                  ) : (
+                    <div className="wx-auto-news__cover-empty">{t('封面图')}</div>
+                  )}
+                  <strong>{current.newsTitle || t('图文标题')}</strong>
+                  <p>{current.newsDescription || t('图文摘要')}</p>
+                </div>
+              ) : (
+                <div className="wx-auto-bubble">
+                  {current.content
+                    ? current.content
+                        .replace(/\{nickname\}/g, t('微信用户'))
+                        .replace(/\{shopName\}/g, t('公众号'))
+                        .replace(/\{date\}/g, new Date().toLocaleDateString())
+                    : t('回复内容将在这里预览')}
+                </div>
               )}
-            </Spin>
-          </div>
-
-          <aside className="wx-auto-preview">
-            <div className="wx-auto-phone">
-              <div className="wx-auto-phone__head">公众号</div>
-              <div className="wx-auto-phone__body">
-                {Number(current.msgType) === 2 && !textOnly ? (
-                  <div className="wx-auto-news">
-                    {current.newsCoverUrl ? (
-                      <img src={current.newsCoverUrl} alt="" />
-                    ) : (
-                      <div className="wx-auto-news__cover-empty">{t('封面图')}</div>
-                    )}
-                    <strong>{current.newsTitle || t('图文标题')}</strong>
-                    <p>{current.newsDescription || t('图文摘要')}</p>
-                  </div>
-                ) : (
-                  <div className="wx-auto-bubble">
-                    {current.content
-                      ? current.content
-                          .replace(/\{nickname\}/g, t('微信用户'))
-                          .replace(/\{shopName\}/g, t('公众号'))
-                          .replace(/\{date\}/g, new Date().toLocaleDateString())
-                      : t('回复内容将在这里预览')}
-                  </div>
-                )}
-              </div>
             </div>
-          </aside>
-        </div>
+          </div>
+        </SettingsCard>
+      </div>
 
-        <div className="wx-auto-footer">
-          <Button type="primary" icon={<IconSave />} loading={saving} onClick={onSave}>
-            {t('保存')}
-          </Button>
-        </div>
+      <div className="config-actions">
+        <Button type="primary" icon={<IconSave />} loading={saving} onClick={onSave}>
+          {t('保存')}
+        </Button>
       </div>
     </div>
   );

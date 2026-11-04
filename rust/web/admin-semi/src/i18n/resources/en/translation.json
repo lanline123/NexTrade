@@ -11979,5 +11979,7 @@
   "未命名菜单": "Untitled menu",
   "点击菜单进行配置，长按拖拽可排序": "Click a menu to configure it. Long-press and drag to reorder.",
   "微信用户": "WeChat user",
-  "回复内容将在这里预览": "The reply preview appears here."
+  "回复内容将在这里预览": "The reply preview appears here.",
+  "效果预览": "Preview",
+  "公众号消息发送后的展示效果。": "Preview of the official account message."
 }

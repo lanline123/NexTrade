@@ -7665,3 +7665,33 @@ body {
     display: none;
   }
 }
+
+/* 自动回复：按基础信息页卡片规范重排 */
+.wx-auto-page {
+  max-width: none;
+}
+.wx-auto-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.wx-auto-layout .base-settings-card .config-field {
+  grid-template-columns: 120px minmax(0, 1fr);
+}
+.wx-auto-layout .config-field .semi-input-textarea-wrapper {
+  width: 100%;
+}
+.wx-auto-layout .wx-auto-phone {
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+}
+.wx-auto-layout .wx-auto-phone__body {
+  min-height: 220px;
+}
+@media (max-width: 1000px) {
+  .wx-auto-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
