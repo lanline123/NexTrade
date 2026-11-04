@@ -7356,3 +7356,69 @@ body {
   transform: none;
 }
 
+
+
+/* 关键字回复：现代表格头部 */
+.wx-reply-page .table-card {
+  overflow: hidden;
+  border: 1px solid #edf1f5;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.04);
+}
+.wx-reply-page .semi-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f4f7;
+}
+.wx-reply-page .semi-card-header .semi-typography {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 650;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head {
+  height: 44px;
+  padding: 0 12px;
+  border-top: 1px solid #f2f4f7;
+  border-bottom: 1px solid #eaecf0;
+  background: #fff;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:first-child {
+  padding-left: 20px;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head:last-child {
+  padding-right: 20px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row-cell {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f2f4f7;
+  color: #475467;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row-cell:first-child {
+  padding-left: 20px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row-cell:last-child {
+  padding-right: 20px;
+}
+.wx-reply-page .semi-table-tbody .semi-table-row:hover .semi-table-row-cell {
+  background: #f8fafc;
+}
+.wx-reply-page .table-toolbar {
+  margin-bottom: 12px;
+}
+
+.wx-reply-page .semi-table-thead {
+  background: #fff;
+}
+.wx-reply-page .semi-table-thead .semi-table-row-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-right: 0;
+}
+.wx-reply-page .semi-table-container {
+  overflow: hidden;
+  border-radius: 10px;
+}
