@@ -457,3 +457,11 @@ export async function getJoinData(): Promise<JoinNavItem[]> {
   const list = data?.data || data;
   return Array.isArray(list) ? list : [];
 }
+
+
+export async function getJoinSection(decorateSn: string): Promise<JoinNavItem[]> {
+  const response = await fetch(`${SERVER_API_BASE}/api/home/home/mobileNav?decorateSn=${encodeURIComponent(decorateSn)}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  const list = data?.data || data;
+  return Array.isArray(list) ? list : [];
+}

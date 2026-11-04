@@ -4564,3 +4564,11 @@ img {
   .join-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .join-mode-grid { grid-template-columns: 1fr; }
 }
+
+
+/* 招商计划 / 招商标准 */
+.join-section-wrap { padding: 10px 0 30px; background: #f5f5f5; }
+.join-section { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.join-section h3 { margin: 20px 0 10px; padding: 10px; color: #333; font-size: 26px; font-weight: 400; text-align: center; }
+.join-section-body { padding: 35px 30px 40px; background: #fff; color: #333; font-size: 14px; line-height: 2.5; }
+.join-section-empty { padding: 80px 0; color: #999; text-align: center; }
