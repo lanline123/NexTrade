@@ -796,7 +796,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表', picMax: 4 },
       { kind: 'slider', key: 'style.panelRadius', label: '圆角', max: 30, section: '整体样式' },
       { kind: 'color', key: 'style.panelBackgroundColor', label: '背景色', resetValue: '#ffffff' },
-      { kind: 'slider', key: 'style.innerPadding', label: '内间距', max: 30 },
+      { kind: 'slider', key: 'style.gap', label: '内间距', max: 30 },
     ],
     summary: (m) => `三列通栏 · ${((m.center?.banners || []) as PicItem[]).length} 轮播`,
   },
@@ -5723,6 +5723,7 @@ function FieldControl({
       return null;
   }
 }
+
 
 
 

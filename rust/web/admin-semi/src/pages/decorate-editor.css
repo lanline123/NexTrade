@@ -1956,3 +1956,18 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+/* 图片列表缩略图：对齐旧版 PicList 60x60 图片框，不展示上传组件说明 */
+.dec-pic-list__image .image-uploader-tip { display: none; }
+.dec-pic-list__image .image-uploader-list { display: block; }
+.dec-pic-list__image .image-uploader-item,
+.dec-pic-list__image .image-uploader-add {
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  padding: 0;
+  border-radius: 2px;
+}
+.dec-pic-list__image .image-uploader-item img { width: 60px; height: 60px; object-fit: cover; }
+.dec-pic-list__image .image-uploader-add span { display: none; }
+.dec-pic-list__image .image-uploader-actions { display: none; }
