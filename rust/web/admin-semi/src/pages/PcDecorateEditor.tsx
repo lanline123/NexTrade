@@ -288,6 +288,8 @@ interface SettingFieldDef {
   picNoText?: boolean;
   /** 该字段属于原版「扩展设置」而非「内容设置」 */
   extend?: boolean;
+  /** 字段前的分组标题（原版 dec-edit-title-box） */
+  section?: string;
   /** 字段写入后的附加行为（如切换拼团类型时清空活动） */
   onChangeExtra?: (moduleData: Record<string, any>, newValue: unknown) => Record<string, any>;
   showIf?: (m: Record<string, any>) => boolean;
@@ -424,7 +426,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'radio', key: 'picType', label: '选择模板', options: [{ label: '一行一个', value: 1 }, { label: '轮播', value: 2 }, { label: '一行两个', value: 5 }, { label: '一行三个', value: 6 }, { label: '一行四个', value: 7 }] },
-      { kind: 'picList', key: 'picList', label: '广告图', hint: '可拖拽排序，建议宽1500px' },
+      { kind: 'picList', key: 'picList', label: '添加图片', hint: '可拖拽排序，建议宽1500px', section: '添加图片' },
       { kind: 'radio', key: 'picPageType', label: '指示器样式', options: [{ label: '样式一', value: 1 }, { label: '样式二', value: 2 }, { label: '样式三', value: 3 }], showIf: (m) => Number(m.picType) === 2 },
       { kind: 'color', key: 'swiperPageColor', label: '指示器颜色', resetValue: '#333333', showIf: (m) => Number(m.picType) === 2 },
       { kind: 'select', key: 'swiperPreView', label: '轮播一行显示', options: [1, 2, 3, 4].map((n) => ({ label: `${n}个`, value: n })), showIf: (m) => Number(m.picType) === 2 },
@@ -470,8 +472,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       title: standardTitle(),
     }),
     settings: [
-      { kind: 'radio', key: 'picType', label: '选择布局', options: [{ label: '一行两个', value: 1 }, { label: '一行三个', value: 2 }, { label: '一行四个', value: 3 }, { label: '左二右二', value: 4 }, { label: '左一右二', value: 5 }, { label: '左一右三', value: 6 }, { label: '上一下二', value: 7 }] },
-      { kind: 'picList', key: 'picList', label: '魔方图', hint: '先选模板确定格子数量（固定张数）' },
+      { kind: 'radio', key: 'picType', label: '选择模板', options: [{ label: '一行两个', value: 1 }, { label: '一行三个', value: 2 }, { label: '一行四个', value: 3 }, { label: '左二右二', value: 4 }, { label: '左一右二', value: 5 }, { label: '左一右三', value: 6 }, { label: '上一下二', value: 7 }], section: '选择布局' },
+      { kind: 'picList', key: 'picList', label: '添加图片', hint: '先选模板确定格子数量（固定张数）', section: '添加图片' },
       { kind: 'slider', key: 'imgPadding', label: '图片边距', max: 30 },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       ...containerFields({ showInnerPadding: true }),
@@ -487,8 +489,6 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       title: standardTitle(),
     }),
     settings: [
-      { kind: 'picList', key: 'picList', label: '热图', hint: '添加图片后在每张图下绘制热区（宽/高/上/左 为像素，基准 500px 宽）' },
-      { kind: 'hotarea', key: 'hotarea', label: '热区' },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       ...containerFields({ showInnerPadding: true }),
     ],
@@ -566,7 +566,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     settings: [
       { kind: 'radio', key: 'style', label: '展示样式', options: [{ label: '一行四个', value: 1 }, { label: '一行五个', value: 2 }] },
       { kind: 'slider', key: 'goodsPadding', label: '商品边距', max: 30 },
-      { kind: 'products', key: 'products', label: '商品设置' },
+      { kind: 'products', key: 'products', label: '选择商品', section: '商品设置' },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       ...containerFields({ showInnerPadding: true }),
     ],
@@ -623,7 +623,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     },
     settings: [
       { kind: 'groupList', key: 'productGroups', label: '分组列表' },
-      { kind: 'radio', key: 'productCardStyle', label: '商品样式', options: [{ label: '扁平', value: 1 }, { label: '卡片', value: 2 }, { label: '描边', value: 3 }] },
+      { kind: 'radio', key: 'productCardStyle', label: '商品样式', options: [{ label: '扁平', value: 1 }, { label: '卡片', value: 2 }, { label: '描边', value: 3 }], section: '商品参数设置' },
       { kind: 'radio', key: 'listStyle', label: '展示样式', options: [{ label: '一行四个', value: 4 }, { label: '一行五个', value: 6 }, { label: '一行六个', value: 7 }] },
       { kind: 'slider', key: 'cardPadding', label: '商品内部边距', max: 10 },
       { kind: 'slider', key: 'cardRadius', label: '商品圆角半径', max: 20 },
@@ -635,7 +635,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'crossedOutPrice', label: '商品划线价', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'radio', key: 'showSales', label: '已售', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'radio', key: 'showShopTag', label: '商品店铺', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
-      { kind: 'container', key: 'buyBtnStyle', label: '购买按钮', containerType: 'buyBtn' },
+      { kind: 'container', key: 'buyBtnStyle', label: '购买按钮', containerType: 'buyBtn', extend: false },
       { kind: 'container', key: 'productColor', label: '商品颜色设置', containerType: 'productColor' },
       { kind: 'container', key: 'groupTitle', label: '分组标题设置', containerType: 'groupTitle' },
       { kind: 'container', key: 'moduleStyle', label: '模块样式设置', containerType: 'moduleStyle' },
@@ -652,7 +652,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'input', key: 'titleName', label: '标题', hint: '可不填' },
-      { kind: 'products', key: 'products', label: '商品设置', numberMax: 50 },
+      { kind: 'products', key: 'products', label: '选择商品', section: '商品设置', numberMax: 50 },
       ...containerFields(),
     ],
     summary: (m) => `${m.titleName || ''} · ${((m.products?.productIds || []) as number[]).length} 商品`,
@@ -686,8 +686,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       goodsGap: 10,
     }),
     settings: [
-      { kind: 'slider', key: 'goodsGap', label: '商品间距', max: 40 },
       { kind: 'title', key: 'title', label: '标题设置', hint: '秒杀商品由营销-秒杀决定', titleHideAlign: true },
+      { kind: 'slider', key: 'goodsGap', label: '商品间距', max: 40 },
       ...containerFields({ showInnerPadding: true }),
     ],
     summary: (m) => String(getPath(m, 'title.titleText') || m.seckillTitle || ''),
@@ -702,6 +702,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       grouponActivityItem: null as unknown as Record<string, any>,
     }),
     settings: [
+      { kind: 'title', key: 'title', label: '标题设置', titleHideAlign: true },
       { kind: 'radio', key: 'style', label: '选择模板', options: [{ label: '一行四个', value: 2 }, { label: '一行五个', value: 3 }, { label: '一行六个', value: 4 }, { label: '横向滑动', value: 6 }] },
       {
         kind: 'radio', key: 'groupType', label: '拼团类型', options: [{ label: '普通拼团', value: 1 }, { label: '阶梯拼团', value: 2 }],
@@ -713,7 +714,6 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'showName', label: '显示商品名称', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'radio', key: 'showPrice', label: '显示商品价格', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'slider', key: 'goodsPadding', label: '商品边距', max: 50 },
-      { kind: 'title', key: 'title', label: '标题设置', titleHideAlign: true },
       { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#ffffff', extend: true },
       { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30, extend: true },
       { kind: 'slider', key: 'innerPadding', label: '内边距', max: 30, extend: true },
@@ -767,12 +767,12 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       },
     }),
     settings: [
-      { kind: 'color', key: 'left.backgroundColor', label: '左侧分类背景' },
+      { kind: 'color', key: 'left.backgroundColor', label: '左侧分类背景', section: '左侧分类导航' },
       { kind: 'color', key: 'left.textColor', label: '左侧分类文字色' },
       { kind: 'number', key: 'left.showCount', label: '分类显示条数', min: 1, max: 20 },
-      { kind: 'picList', key: 'center.banners', label: '中间轮播图' },
-      { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)' },
-      { kind: 'input', key: 'right.user.nickname', label: '未登录欢迎语' },
+      { kind: 'picList', key: 'center.banners', label: '中间轮播图', section: '轮播广告' },
+      { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)', section: '推荐卡位' },
+      { kind: 'input', key: 'right.user.nickname', label: '未登录欢迎语', section: '右侧会员卡' },
       { kind: 'input', key: 'right.user.welcomeText', label: '未登录提示语' },
       { kind: 'switch', key: 'right.premiumMember.show', label: '显示付费会员卡' },
       { kind: 'input', key: 'right.premiumMember.title', label: '会员卡标题', showIf: (m) => m.right?.premiumMember?.show === true },
@@ -781,11 +781,11 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'input', key: 'right.shopsTitle', label: '店铺街标题' },
       { kind: 'input', key: 'right.shopsSubTitle', label: '店铺街角标文字' },
       { kind: 'color', key: 'right.shopsSubTitleBg', label: '角标背景色' },
-      { kind: 'picList', key: 'right.shortcuts', label: '快捷入口(≤4)' },
+      { kind: 'picList', key: 'right.shortcuts', label: '快捷入口(≤4)', section: '快捷入口区' },
       { kind: 'input', key: 'right.shopsMoreText', label: '查看全部文字' },
       { kind: 'link', key: 'right.shopsMoreLink', label: '查看全部链接' },
       { kind: 'color', key: 'right.shopsTextColor', label: '店铺街文字色' },
-      { kind: 'number', key: 'style.height', label: '整体高度', min: 200, max: 600 },
+      { kind: 'number', key: 'style.height', label: '整体高度', min: 200, max: 600, section: '整体样式' },
       { kind: 'slider', key: 'style.panelRadius', label: '面板圆角', max: 30 },
       { kind: 'color', key: 'style.panelBackgroundColor', label: '面板背景色' },
       { kind: 'slider', key: 'style.gap', label: '列间距', max: 30 },
@@ -4801,12 +4801,11 @@ function ModuleSettingsPanel({
     'pc-banner2': '添加轮播图片',
     'pc-group-banner': '添加分组Banner轮播大图',
     'pc-home-quick-nav': '内容设置',
+    'pc-category-nav3': '内容设置',
     'pc-home-groupon': '标题设置',
     'pc-home-seckill': '标题设置',
     'pc-image-hotarea': '标题设置',
-    'pc-product': '商品设置',
-    'pc-product-group': '商品设置',
-    'pc-recommend-product': '商品设置',
+    'pc-product-group': '内容设置',
     'pc-title-ad': '标题设置',
   };
   const contentTitle = CONTENT_TITLES[def.type];
@@ -4846,7 +4845,10 @@ function ModuleSettingsPanel({
           let lastSection: string | null = null;
           return visibleSettings.map((field) => {
             if (field.showIf && !field.showIf(moduleData)) return null;
-            const section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : null;
+            let section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : field.section;
+            if (def.type === 'pc-image-nav' && field.key === 'picList') {
+              section = Number(moduleData.navStyle) === 3 ? '添加导航项' : '添加图片';
+            }
             const showSection = Boolean(section && section !== lastSection);
             if (section) lastSection = section;
             const isSection = field.kind === 'title' || field.kind === 'container';
@@ -5658,6 +5660,8 @@ function FieldControl({
       return null;
   }
 }
+
+
 
 
 
