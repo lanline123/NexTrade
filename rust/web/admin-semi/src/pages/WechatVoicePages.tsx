@@ -262,105 +262,51 @@ export function WechatMenu() {
   const activeNode = findNode(menuList, selectedId);
 
   return (
-    <div style={{ padding: 20 }}>
-      <Spin spinning={loading}>
-        <Row gutter={24}>
-          {/* 左侧公众号模拟器 */}
-          <Col span={9}>
-            <Card
-              title={t('手机模拟预览')}
-              style={{
-                width: 340,
-                minHeight: 560,
-                background: '#f7f8fa',
-                borderRadius: 16,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div style={{ textAlign: 'center', padding: '10px 0', borderBottom: '1px solid #eef0f3' }}>
-                <Text strong>{t('公众号名称')}</Text>
-              </div>
+    <div className="wx-menu-page">
+      <div className="wx-menu-layout">
+        <section className="wx-preview-panel">
+          <div className="wx-panel-head">
+            <div>
+              <h3>{t('手机模拟预览')}</h3>
+              <p>{t('菜单实时预览，点击菜单进行配置')}</p>
+            </div>
+          </div>
 
-              <div style={{ flex: 1, padding: 20, color: '#888', textAlign: 'center', marginTop: 80 }}>
-                {t('点击下方菜单按钮进行选择与配置')}
-              </div>
+          <div className="wx-phone-frame">
+            <div className="wx-phone-status">
+              <span>9:41</span>
+              <span className="wx-phone-status__signal">●●● ▰</span>
+            </div>
+            <div className="wx-phone-screen">
+              <div className="wx-phone-account">{t('公众号名称')}</div>
+              <div className="wx-phone-hint">{t('点击下方菜单按钮进行选择与配置')}</div>
 
-              {/* 模拟微信底部菜单栏 */}
-              <div
-                style={{
-                  display: 'flex',
-                  borderTop: '1px solid #d9d9d9',
-                  background: '#fff',
-                  borderRadius: '0 0 12px 12px',
-                  position: 'relative',
-                }}
-              >
+              <div className="wx-phone-menu">
                 {menuList.map((item) => (
                   <div
                     key={item.id}
-                    style={{
-                      flex: 1,
-                      textAlign: 'center',
-                      padding: '12px 4px',
-                      cursor: 'pointer',
-                      borderRight: '1px solid #eee',
-                      background: selectedId === item.id ? '#e8f3ff' : 'transparent',
-                      position: 'relative',
-                    }}
+                    className={`wx-menu-cell${selectedId === item.id ? ' is-selected' : ''}`}
                     onClick={() => setSelectedId(item.id)}
                   >
-                    <Text ellipsis={{ showTooltip: true }} style={{ fontSize: 13, fontWeight: selectedId === item.id ? 'bold' : 'normal' }}>
-                      {item.name || t('菜单')}
-                    </Text>
+                    <Text ellipsis={{ showTooltip: true }}>{item.name || t('菜单')}</Text>
 
-                    {/* 二级菜单浮层 */}
                     {item.sub_button && item.sub_button.length > 0 && selectedId.startsWith(item.id) && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: 52,
-                          left: 0,
-                          right: 0,
-                          background: '#fff',
-                          border: '1px solid #eee',
-                          borderRadius: 6,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                          zIndex: 10,
-                        }}
-                      >
+                      <div className="wx-submenu">
                         {item.sub_button.map((sub) => (
                           <div
                             key={sub.id}
-                            style={{
-                              padding: '10px 4px',
-                              borderBottom: '1px solid #f0f0f0',
-                              background: selectedId === sub.id ? '#e8f3ff' : 'transparent',
-                            }}
+                            className={`wx-submenu__item${selectedId === sub.id ? ' is-selected' : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedId(sub.id);
                             }}
                           >
-                            <Text ellipsis={{ showTooltip: true }} style={{ fontSize: 12 }}>
-                              {sub.name || t('子菜单')}
-                            </Text>
+                            <Text ellipsis={{ showTooltip: true }}>{sub.name || t('子菜单')}</Text>
                           </div>
                         ))}
                         {(item.sub_button || []).length < 5 && (
                           <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 4,
-                              padding: '10px 4px',
-                              color: '#07c160',
-                              cursor: 'pointer',
-                              fontSize: 12,
-                            }}
+                            className="wx-submenu__item wx-submenu__item--add"
                             onClick={(e) => {
                               e.stopPropagation();
                               addChildMenu(item.id);
@@ -376,185 +322,177 @@ export function WechatMenu() {
                 ))}
 
                 {menuList.length < 3 && (
-                  <div
-                    style={{
-                      flex: 1,
-                      textAlign: 'center',
-                      padding: '12px 0',
-                      cursor: 'pointer',
-                      color: 'var(--semi-color-primary)',
-                    }}
-                    onClick={addRootMenu}
-                  >
-                    <IconPlus /> {t('添加')}
+                  <div className="wx-menu-cell wx-menu-cell--add" onClick={addRootMenu}>
+                    <IconPlus />
                   </div>
                 )}
               </div>
-            </Card>
-
-            <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <Button icon={<IconPlus />} onClick={addRootMenu} disabled={menuList.length >= 3}>
-                {t('添加主菜单')}
-              </Button>
-              {activeNode && (
-                <>
-                  <Button
-                    size="small"
-                    icon={activeNode.id.includes('-') ? <IconArrowUp /> : <IconArrowLeft />}
-                    onClick={() => moveNode(activeNode.id, -1)}
-                  >
-                    {activeNode.id.includes('-') ? t('上移') : t('左移')}
-                  </Button>
-                  <Button
-                    size="small"
-                    icon={activeNode.id.includes('-') ? <IconArrowDown /> : <IconArrowRight />}
-                    onClick={() => moveNode(activeNode.id, 1)}
-                  >
-                    {activeNode.id.includes('-') ? t('下移') : t('右移')}
-                  </Button>
-                  <Button
-                    size="small"
-                    theme="borderless"
-                    type="danger"
-                    icon={<IconDelete />}
-                    onClick={() => confirmRemoveNode(activeNode.id)}
-                  >
-                    {t('删除')}
-                  </Button>
-                </>
-              )}
             </div>
-          </Col>
+          </div>
 
-          {/* 右侧节点属性编辑表单 */}
-          <Col span={15}>
-            <Card title={t('菜单内容配置')}>
-              {activeNode ? (
-                <div style={{ maxWidth: 500 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <Title heading={5}>{t('配置项：')}{activeNode.name}</Title>
-                    <Button
-                      theme="borderless"
-                      type="danger"
-                      icon={<IconDelete />}
-                      onClick={() => confirmRemoveNode(activeNode.id)}
-                    >
-                      {t('删除菜单')}
-                    </Button>
-                  </div>
+          <div className="wx-preview-actions">
+            <Button icon={<IconPlus />} onClick={addRootMenu} disabled={menuList.length >= 3}>
+              {t('添加主菜单')}
+            </Button>
+            {activeNode && (
+              <div className="wx-preview-actions__group">
+                <Button
+                  size="small"
+                  theme="borderless"
+                  icon={activeNode.id.includes('-') ? <IconArrowUp /> : <IconArrowLeft />}
+                  onClick={() => moveNode(activeNode.id, -1)}
+                >
+                  {activeNode.id.includes('-') ? t('上移') : t('左移')}
+                </Button>
+                <Button
+                  size="small"
+                  theme="borderless"
+                  icon={activeNode.id.includes('-') ? <IconArrowDown /> : <IconArrowRight />}
+                  onClick={() => moveNode(activeNode.id, 1)}
+                >
+                  {activeNode.id.includes('-') ? t('下移') : t('右移')}
+                </Button>
+                <Button
+                  size="small"
+                  theme="borderless"
+                  type="danger"
+                  icon={<IconDelete />}
+                  onClick={() => confirmRemoveNode(activeNode.id)}
+                >
+                  {t('删除')}
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
 
-                  <div style={{ marginBottom: 16 }}>
-                    <Text strong>{t('菜单名称')}</Text>
-                    <Input
-                      value={activeNode.name}
-                      maxLength={20}
-                      placeholder={t('仅支持中英文和数字')}
-                      onChange={(val) => updateNode(activeNode.id, { name: val })}
-                      style={{ marginTop: 6 }}
-                    />
-                    <div className="wechat-menu-help">
-                      {!activeNode.id.includes('-')
-                        ? t('仅支持中英文和数字，字数不超过 4 个汉字或 8 个字母')
-                        : t('仅支持中英文和数字，字数不超过 8 个汉字或 16 个字母')}
-                    </div>
-                  </div>
+        <section className="wx-config-panel">
+          <div className="wx-panel-head wx-config-head">
+            <div>
+              <h3>{t('菜单内容配置')}</h3>
+              <p>
+                {activeNode
+                  ? `${t('配置项')}：${activeNode.name || t('未命名菜单')}`
+                  : t('请在左侧选择或新建一个菜单项')}
+              </p>
+            </div>
+            {activeNode && (
+              <Button
+                theme="borderless"
+                type="danger"
+                icon={<IconDelete />}
+                onClick={() => confirmRemoveNode(activeNode.id)}
+              >
+                {t('删除菜单')}
+              </Button>
+            )}
+          </div>
 
-                  {activeNode.sub_button && activeNode.sub_button.length > 0 && (
-                    <div style={{ marginBottom: 16, color: '#98a2b3', fontSize: 12 }}>
-                      {t('已添加子菜单，仅可设置菜单名称')}
-                    </div>
-                  )}
-
-                  {(!activeNode.sub_button || activeNode.sub_button.length === 0) && (
-                    <>
-                      <div style={{ marginBottom: 16 }}>
-                        <Text strong>{t('消息类型')}</Text>
-                        <RadioGroup
-                          value={activeNode.type}
-                          onChange={(e) => updateNode(activeNode.id, { type: e.target.value })}
-                          style={{ display: 'flex', gap: 16, marginTop: 8 }}
-                        >
-                          <Radio value="view">{t('跳转网页')}</Radio>
-                          <Radio value="click">{t('发送消息')}</Radio>
-                          <Radio value="miniprogram">{t('小程序')}</Radio>
-                        </RadioGroup>
-                      </div>
-
-                      {activeNode.type === 'view' && (
-                        <div style={{ marginBottom: 16 }}>
-                          <Text strong>{t('跳转链接')}</Text>
-                          <Input
-                            placeholder="https://..."
-                            value={activeNode.url || ''}
-                            onChange={(val) => updateNode(activeNode.id, { url: val })}
-                            style={{ marginTop: 6 }}
-                          />
-                        </div>
-                      )}
-
-                      {activeNode.type === 'click' && (
-                        <div style={{ marginBottom: 16 }}>
-                          <Text strong>{t('触发关键字')}</Text>
-                          <Input
-                            placeholder={t('请输入绑定的消息Key')}
-                            value={activeNode.key || ''}
-                            onChange={(val) => updateNode(activeNode.id, { key: val })}
-                            style={{ marginTop: 6 }}
-                          />
-                        </div>
-                      )}
-
-                      {activeNode.type === 'miniprogram' && (
-                        <>
-                          <div style={{ marginBottom: 16 }}>
-                            <Text strong>{t('小程序 AppId')}</Text>
-                            <Input
-                              placeholder="wx..."
-                              value={activeNode.appid || ''}
-                              onChange={(val) => updateNode(activeNode.id, { appid: val })}
-                              style={{ marginTop: 6 }}
-                            />
-                          </div>
-                          <div style={{ marginBottom: 16 }}>
-                            <Text strong>{t('小程序路径')}</Text>
-                            <Input
-                              placeholder="pages/index/index"
-                              value={activeNode.pagepath || ''}
-                              onChange={(val) => updateNode(activeNode.id, { pagepath: val })}
-                              style={{ marginTop: 6 }}
-                            />
-                          </div>
-                          <div style={{ marginBottom: 16 }}>
-                            <Text strong>{t('备用网页')}</Text>
-                            <Input
-                              placeholder={t('请输入备用网页链接')}
-                              value={activeNode.miniprogramUrl || ''}
-                              onChange={(val) => updateNode(activeNode.id, { miniprogramUrl: val })}
-                              style={{ marginTop: 6 }}
-                            />
-                            <div className="wechat-menu-help">
-                              {t('老版本微信不支持小程序时跳转的 http(s) 链接')}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-
+          <div className="wx-config-body">
+            {activeNode ? (
+              <>
+                <div className="wx-field">
+                  <label>{t('菜单名称')}</label>
+                  <Input
+                    value={activeNode.name}
+                    maxLength={20}
+                    placeholder={t('仅支持中英文和数字')}
+                    onChange={(val) => updateNode(activeNode.id, { name: val })}
+                  />
+                  <p className="wx-field-help">
+                    {!activeNode.id.includes('-')
+                      ? t('仅支持中英文和数字，字数不超过 4 个汉字或 8 个字母')
+                      : t('仅支持中英文和数字，字数不超过 8 个汉字或 16 个字母')}
+                  </p>
                 </div>
-              ) : (
-                <Empty description={t('请在左侧选择或新建一个菜单项')} />
-              )}
-            </Card>
 
-            <div style={{ marginTop: 24 }}>
-              <Button type="primary" size="large" icon={<IconSave />} loading={saving} onClick={onSave}>
-                {t('保存并发布')}
-              </Button>
-            </div>
-          </Col>
-        </Row>
-      </Spin>
+                {activeNode.sub_button && activeNode.sub_button.length > 0 && (
+                  <div className="wx-note">{t('已添加子菜单，仅可设置菜单名称')}</div>
+                )}
+
+                {(!activeNode.sub_button || activeNode.sub_button.length === 0) && (
+                  <>
+                    <div className="wx-field">
+                      <label>{t('消息类型')}</label>
+                      <RadioGroup
+                        type="button"
+                        value={activeNode.type}
+                        onChange={(e) => updateNode(activeNode.id, { type: e.target.value })}
+                      >
+                        <Radio value="click">{t('发送消息')}</Radio>
+                        <Radio value="view">{t('跳转网页')}</Radio>
+                        <Radio value="miniprogram">{t('小程序')}</Radio>
+                      </RadioGroup>
+                    </div>
+
+                    {activeNode.type === 'view' && (
+                      <div className="wx-field">
+                        <label>{t('跳转链接')}</label>
+                        <Input
+                          placeholder="https://..."
+                          value={activeNode.url || ''}
+                          onChange={(val) => updateNode(activeNode.id, { url: val })}
+                        />
+                      </div>
+                    )}
+
+                    {activeNode.type === 'click' && (
+                      <div className="wx-field">
+                        <label>{t('触发关键字')}</label>
+                        <Input
+                          placeholder={t('请输入绑定的消息Key')}
+                          value={activeNode.key || ''}
+                          onChange={(val) => updateNode(activeNode.id, { key: val })}
+                        />
+                      </div>
+                    )}
+
+                    {activeNode.type === 'miniprogram' && (
+                      <>
+                        <div className="wx-field">
+                          <label>{t('小程序 AppId')}</label>
+                          <Input
+                            placeholder="wx..."
+                            value={activeNode.appid || ''}
+                            onChange={(val) => updateNode(activeNode.id, { appid: val })}
+                          />
+                        </div>
+                        <div className="wx-field">
+                          <label>{t('小程序路径')}</label>
+                          <Input
+                            placeholder="pages/index/index"
+                            value={activeNode.pagepath || ''}
+                            onChange={(val) => updateNode(activeNode.id, { pagepath: val })}
+                          />
+                        </div>
+                        <div className="wx-field">
+                          <label>{t('备用网页')}</label>
+                          <Input
+                            placeholder={t('请输入备用网页链接')}
+                            value={activeNode.miniprogramUrl || ''}
+                            onChange={(val) => updateNode(activeNode.id, { miniprogramUrl: val })}
+                          />
+                          <p className="wx-field-help">
+                            {t('老版本微信不支持小程序时跳转的 http(s) 链接')}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <Empty description={t('你未添加自定义菜单，点击左侧添加菜单为公众号创建菜单栏')} />
+            )}
+          </div>
+
+          <div className="wx-config-footer">
+            <Button type="primary" icon={<IconSave />} loading={saving} onClick={onSave}>
+              {t('保存并发布')}
+            </Button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
