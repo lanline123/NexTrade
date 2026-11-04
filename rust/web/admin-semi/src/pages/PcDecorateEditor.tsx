@@ -4930,7 +4930,7 @@ function ModuleSettingsPanel({
   const visibleSettings = tabbed
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
-  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
+  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon']);
   const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
   const SECTION_LEVELS: Record<string, 1 | 2> = {
     '内容设置': 1,
@@ -5438,7 +5438,7 @@ function SettingsFieldRows({
   onChange: (next: Record<string, any>) => void;
 }) {
   const { t } = useI18n();
-  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
+  const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon']);
   return (
     <>
       {fields.map((field) => {
