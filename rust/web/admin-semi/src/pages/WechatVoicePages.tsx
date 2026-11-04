@@ -468,7 +468,6 @@ export function WechatMenu() {
                     <div className="wx-field">
                       <label>{t('消息类型')}</label>
                       <RadioGroup
-                        type="button"
                         value={activeNode.type}
                         onChange={(e) => updateNode(activeNode.id, { type: e.target.value })}
                       >
@@ -924,6 +923,7 @@ export function VoiceBroadcast() {
     </div>
   );
 }
+
 
 
 
