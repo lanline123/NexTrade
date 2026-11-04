@@ -228,3 +228,42 @@ export async function getArticleList(
   });
   return readData<ArticleListResponse>(response);
 }
+
+
+export interface SeckillRecord {
+  productId: number;
+  productName?: string;
+  productSn?: string;
+  skuSn?: string;
+  seoLink?: string;
+  picThumb?: string;
+  picUrl?: string;
+  productPrice?: number | string;
+  seckillPrice?: number | string;
+  seckillSales?: number;
+  seckillStock?: number;
+  canJoin?: boolean;
+  restrictTip?: string;
+  shopId?: number;
+  [key: string]: unknown;
+}
+
+export interface SeckillListResponse {
+  records: SeckillRecord[];
+  total: number;
+}
+
+/** 限时秒杀列表：服务端 SSR 拉取。 */
+export async function getSeckill(params: { page?: number; size?: number } = {}): Promise<SeckillListResponse> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 20));
+  const response = await fetch(`${SERVER_API_BASE}/api/home/home/getSeckill?${query.toString()}`, {
+    cache: 'no-store',
+  });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : Array.isArray(data) ? data : [],
+    total: Number(data?.total || (Array.isArray(data) ? data.length : 0)),
+  };
+}
