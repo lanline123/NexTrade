@@ -2136,3 +2136,10 @@
   cursor: pointer;
 }
 .pchead-color-popover__preset:hover { border-color: var(--semi-color-primary); }
+
+/* 编辑器画布内的链接只作为预览，点击交给模块选中，不执行真实跳转 */
+.pc-decorate-window a,
+.pc-decorate-window a:hover {
+  pointer-events: none !important;
+  cursor: inherit;
+}
