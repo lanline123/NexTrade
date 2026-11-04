@@ -290,6 +290,10 @@ interface SettingFieldDef {
   extend?: boolean;
   /** 字段前的分组标题（原版 dec-edit-title-box） */
   section?: string;
+  /** 同一字段前连续多个分组标题（如营销通栏 中间焦点区 → 轮播广告） */
+  sections?: string[];
+  /** 图片列表最大数量（原版 ModulePicList max-count） */
+  picMax?: number;
   /** 字段写入后的附加行为（如切换拼团类型时清空活动） */
   onChangeExtra?: (moduleData: Record<string, any>, newValue: unknown) => Record<string, any>;
   showIf?: (m: Record<string, any>) => boolean;
@@ -773,7 +777,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     settings: [
       { kind: 'color', key: 'left.backgroundColor', label: '背景颜色', resetValue: '#ffffff', section: '左侧分类导航' },
       { kind: 'color', key: 'left.textColor', label: '文字颜色', resetValue: '#333333' },
-      { kind: 'picList', key: 'center.banners', label: '中间轮播图', section: '轮播广告' },
+      { kind: 'picList', key: 'center.banners', label: '中间轮播图', sections: ['中间焦点区', '轮播广告'] },
       { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)', section: '推荐卡位' },
       { kind: 'input', key: 'right.user.nickname', label: '未登录标题文字', section: '右侧会员卡' },
       { kind: 'color', key: 'right.userCardGradientColorA', label: '背景渐变色', resetValue: '#FFEDE1' },
@@ -789,7 +793,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'input', key: 'right.shopsMoreText', label: '查看更多文字' },
       { kind: 'link', key: 'right.shopsMoreLink', label: '查看更多链接' },
       { kind: 'color', key: 'right.shopsTextColor', label: '入口文字颜色', resetValue: '#a06a38' },
-      { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表' },
+      { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表', picMax: 4 },
       { kind: 'slider', key: 'style.panelRadius', label: '圆角', max: 30, section: '整体样式' },
       { kind: 'color', key: 'style.panelBackgroundColor', label: '背景色', resetValue: '#ffffff' },
       { kind: 'slider', key: 'style.innerPadding', label: '内间距', max: 30 },
@@ -4846,8 +4850,10 @@ function ModuleSettingsPanel({
             if (def.type === 'pc-image-nav' && field.key === 'picList') {
               section = Number(moduleData.navStyle) === 3 ? '添加导航项' : '添加图片';
             }
-            const showSection = Boolean(section && section !== lastSection);
-            if (section) lastSection = section;
+            const sectionList = (field.sections?.length ? field.sections : section ? [section] : [])
+              .filter((item) => item !== lastSection);
+            if (sectionList.length) lastSection = sectionList[sectionList.length - 1];
+            const showSection = sectionList.length > 0;
             const isSection = field.kind === 'title' || field.kind === 'container';
             if (isSection) {
               return (
@@ -4860,9 +4866,9 @@ function ModuleSettingsPanel({
             const block = blockKinds.has(field.kind);
             return (
               <div key={field.key}>
-                {showSection && (
-                  <div className="dec-edit-title-box"><div className="title">{t(section!)}</div></div>
-                )}
+                {sectionList.map((item) => (
+                  <div className="dec-edit-title-box" key={item}><div className="title">{t(item)}</div></div>
+                ))}
                 <div className={`dec-edit-group${block ? ' dec-edit-group-block' : ''}`}>
                   <div className="dec-edit-group-title">
                     <div className="label">{t(field.label)}</div>
@@ -5067,6 +5073,7 @@ function PicListEditor({
   addText,
   showLink = true,
   showText = true,
+  max,
 }: {
   value: PicItem[];
   onChange: (next: PicItem[]) => void;
@@ -5074,6 +5081,7 @@ function PicListEditor({
   addText?: string;
   showLink?: boolean;
   showText?: boolean;
+  max?: number;
 }) {
   const { t } = useI18n();
   const list = Array.isArray(value) ? value : [];
@@ -5138,11 +5146,13 @@ function PicListEditor({
           </div>
         </div>
       ))}
-      <div className="dec-pic-list__add">
-        <Button size="small" icon={<IconPlus />} onClick={() => onChange([...list, { picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } } as PicItem])}>
-          {t(addText || '添加图片')}
-        </Button>
-      </div>
+      {(!max || list.length < max) && (
+        <div className="dec-pic-list__add">
+          <Button size="small" icon={<IconPlus />} onClick={() => onChange([...list, { picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } } as PicItem])}>
+            {t(addText || '添加图片')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -5300,7 +5310,7 @@ function FieldControl({
         </div>
       );
     case 'picList':
-      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} />;
+      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} max={field.picMax} />;
     case 'pic':
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
