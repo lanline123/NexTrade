@@ -5537,105 +5537,180 @@ function FieldControl({
       const updateCard = (index: number, updater: (c: Record<string, any>) => Record<string, any>) => {
         set(cards.map((c, i) => (i === index ? updater(c) : c)));
       };
-      const labelColors = (prefix: string, label: string) => [
-        { kind: 'color' as const, key: `${prefix}BgColorA`, label: t('{name}色A', { name: t(label) }) },
-        { kind: 'color' as const, key: `${prefix}BgColorB`, label: t('{name}色B', { name: t(label) }) },
-      ];
+      const updateProduct = (cardIndex: number, productIndex: number, patch: Record<string, any>) => {
+        updateCard(cardIndex, (c) => ({
+          ...c,
+          products: ((c.products || []) as Array<Record<string, any>>).map((p, i) => (i === productIndex ? { ...p, ...patch } : p)),
+        }));
+      };
+      const removeProduct = (cardIndex: number, productIndex: number) => {
+        updateCard(cardIndex, (c) => ({
+          ...c,
+          products: ((c.products || []) as Array<Record<string, any>>).filter((_, i) => i !== productIndex),
+        }));
+      };
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {cards.map((card, ci) => (
-            <div key={ci} style={{ border: '1px solid var(--semi-color-border)', borderRadius: 8, padding: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Tag size="small" color="blue">{t('卡位 {index}', { index: ci + 1 })}</Tag>
-                <Input
-                  value={card.moduleTitle || ''}
-                  onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleTitle: v }))}
-                  placeholder={t('卡片标题')}
-                  size="small"
-                />
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <Input value={card.moduleSubTitle || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitle: v }))} placeholder={t('子标题')} size="small" />
-                <AlphaColorInput value={card.moduleSubTitleBgColorA || '#ff4e4e'} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorA: v }))} />
-                <AlphaColorInput value={card.moduleSubTitleBgColorB || '#e1251b'} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorB: v }))} />
-                <Select
-                  value={card.moduleSubTitleBgType || 'leftRight'}
-                  optionList={[{ label: t('左右渐变'), value: 'leftRight' }, { label: t('上下渐变'), value: 'upDown' }, { label: t('对角渐变'), value: 'diagonal' }]}
-                  style={{ width: 110 }}
-                  onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgType: v }))}
-                />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Text type="tertiary" size="small">{t('商品来源')}</Text>
-                <RadioGroup
-                  value={card.productSource || 'custom'}
-                  onChange={(e: any) => updateCard(ci, (c) => ({
-                    ...c,
-                    productSource: e.target.value,
-                    productGroupId: e.target.value === 'custom' ? undefined : c.productGroupId,
-                    productGroupName: e.target.value === 'custom' ? undefined : c.productGroupName,
-                  }))}
-                >
-                  <Radio value="custom">{t('自定义商品')}</Radio>
-                  <Radio value="productGroup">{t('商品分组')}</Radio>
-                </RadioGroup>
-              </div>
-              {(card.productSource || 'custom') === 'productGroup' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Button size="small" icon={<IconPlus />} onClick={() => setHeroGroupPicker(ci)}>
-                    {card.productGroupName ? t('更换商品分组') : t('添加商品分组')}
-                  </Button>
-                  {card.productGroupName ? <Text type="tertiary" size="small">{String(card.productGroupName)}</Text> : null}
-                </div>
-              ) : null}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Text type="tertiary" size="small">{t('显示价格')}</Text>
-                <Switch checked={Number(card.showPrice) === 1} onChange={(v) => updateCard(ci, (c) => ({ ...c, showPrice: v ? 1 : 0 }))} />
-                <div style={{ flex: 1, minWidth: 220 }}>
-                  <LinkField
-                    value={card.link}
-                    onChange={(link) => updateCard(ci, (c) => ({ ...c, link }))}
-                  />
-                </div>
-              </div>
-              {((card.products || []) as Array<Record<string, any>>).map((p, pi) => (
-                <div key={pi} style={{ borderTop: '1px dashed var(--semi-color-border)', paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <Text type="tertiary" size="small">{t('商品槽 {index}', { index: pi + 1 })}</Text>
-                  <div
-                    className="hero-product-pick"
-                    onClick={() => setHeroPicker({ cardIndex: ci, productIndex: pi })}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    {p.pic?.picUrl ? (
-                      <img src={String(p.pic.picUrl)} alt="" className="hero-product-pick__img" />
-                    ) : (
-                      <span className="hero-product-pick__empty">{t('点击选择商品')}</span>
-                    )}
-                    {p.productName ? <span className="hero-product-pick__name">{String(p.productName)}</span> : null}
+        <div>
+          {cards.map((card, ci) => {
+            const source = card.productSource || 'custom';
+            return (
+              <div className="dec-hero-card-editor" key={ci}>
+                <div className="dec-hero-card-editor__header">{t('卡位 {index}', { index: ci + 1 })}</div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('标题')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <Input
+                      value={card.moduleTitle || ''}
+                      placeholder={t('请输入标题')}
+                      onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleTitle: v }))}
+                    />
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <Input value={p.price || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, price: v } : x)) }))} placeholder={t('价格如 ¥88.8')} size="small" />
-                    <Input value={p.label || ''} onChange={(v) => updateCard(ci, (c) => ({ ...c, products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, label: v } : x)) }))} placeholder={t('角标文字(可选)')} size="small" />
+                </div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('子标题')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <Input
+                      value={card.moduleSubTitle || ''}
+                      placeholder={t('文案')}
+                      onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitle: v }))}
+                    />
                   </div>
-                  {p.label ? (
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      {labelColors('label', '角标').map((lc) => (
-                        <AlphaColorInput
-                          key={lc.key}
-                          value={String((p as Record<string, any>)[lc.key] || '#ff9000')}
-                          onChange={(v) => updateCard(ci, (c) => ({
-                            ...c,
-                            products: (c.products || []).map((x: any, xi: number) => (xi === pi ? { ...x, [lc.key]: v } : x)),
-                          }))}
-                        />
+                </div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('子标题背景')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <div className="dec-color-group dec-color-group--dual">
+                      <div className="dec-color-button">
+                        <a
+                          className="dec-color-reset"
+                          onClick={() => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorA: '#ff4e4e', moduleSubTitleBgColorB: '#e1251b' }))}
+                        >
+                          {t('重置')}
+                        </a>
+                        <AlphaColorInput value={card.moduleSubTitleBgColorA || '#ff4e4e'} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorA: v }))} />
+                        <span className="dec-color-sep">-</span>
+                        <AlphaColorInput value={card.moduleSubTitleBgColorB || '#e1251b'} onChange={(v) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgColorB: v }))} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('渐变方向')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <RadioGroup
+                      type="button"
+                      value={card.moduleSubTitleBgType || 'leftRight'}
+                      onChange={(e: any) => updateCard(ci, (c) => ({ ...c, moduleSubTitleBgType: e.target.value }))}
+                    >
+                      <Radio value="leftRight">{t('左右')}</Radio>
+                      <Radio value="upDown">{t('上下')}</Radio>
+                      <Radio value="diagonal">{t('斜向')}</Radio>
+                    </RadioGroup>
+                  </div>
+                </div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('链接')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <LinkField value={card.link} onChange={(link) => updateCard(ci, (c) => ({ ...c, link }))} />
+                  </div>
+                </div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('显示价格')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <Switch checked={String(card.showPrice) !== '0'} onChange={(v) => updateCard(ci, (c) => ({ ...c, showPrice: v ? 1 : 0 }))} />
+                  </div>
+                </div>
+
+                <div className="dec-hero-card-editor__row">
+                  <div className="dec-hero-card-editor__label">{t('商品来源')}</div>
+                  <div className="dec-hero-card-editor__con">
+                    <RadioGroup
+                      type="button"
+                      value={source}
+                      onChange={(e: any) => updateCard(ci, (c) => ({
+                        ...c,
+                        productSource: e.target.value,
+                        productGroupId: e.target.value === 'custom' ? undefined : c.productGroupId,
+                        productGroupName: e.target.value === 'custom' ? undefined : c.productGroupName,
+                      }))}
+                    >
+                      <Radio value="custom">{t('自定义商品')}</Radio>
+                      <Radio value="productGroup">{t('商品分组')}</Radio>
+                    </RadioGroup>
+                  </div>
+                </div>
+
+                {source === 'custom' ? (
+                  <div className="dec-hero-products-edit">
+                    <div className="dec-hero-products-title">{t('选择商品')}</div>
+                    <div className="dec-hero-products-list">
+                      {((card.products || []) as Array<Record<string, any>>).slice(0, 2).map((prod, pi) => (
+                        <div className="dec-hero-product-item" key={pi}>
+                          <div className="dec-hero-product-item__left">
+                            <div className="dec-hero-product-img-box" title={prod.productName || t('点击选择商品')} onClick={() => setHeroPicker({ cardIndex: ci, productIndex: pi })}>
+                              {prod.pic?.picThumb || prod.pic?.picUrl ? (
+                                <img className="dec-hero-product-img" src={String(prod.pic?.picThumb || prod.pic?.picUrl)} alt="" />
+                              ) : (
+                                <div className="dec-hero-product-img-empty"><IconPlus /></div>
+                              )}
+                              {(prod.productId || prod.productName || prod.pic?.picUrl) ? (
+                                <span
+                                  className="dec-hero-product-delete"
+                                  onClick={(event) => { event.stopPropagation(); removeProduct(ci, pi); }}
+                                >
+                                  <IconClose size="small" />
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="dec-hero-product-item__right">
+                            <div className="dec-hero-product-row">
+                              <Input
+                                value={prod.label || ''}
+                                placeholder={t('标签文案')}
+                                size="small"
+                                onChange={(v) => updateProduct(ci, pi, { label: v })}
+                              />
+                            </div>
+                            <div className="dec-hero-product-row dec-hero-product-row-bg-color">
+                              <span className="dec-hero-product-label">{t('标签背景')}</span>
+                              <AlphaColorInput value={prod.labelBgColorA || '#ff9000'} onChange={(v) => updateProduct(ci, pi, { labelBgColorA: v })} />
+                              <AlphaColorInput value={prod.labelBgColorB || '#ff4e4e'} onChange={(v) => updateProduct(ci, pi, { labelBgColorB: v })} />
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          ))}
+                    <div className="dec-hero-products-tip">{t('提示：点击图片选择商品，可自定义标签文案和价格')}</div>
+                  </div>
+                ) : (
+                  <div className="dec-hero-products-edit">
+                    <div className="dec-hero-products-title">{t('选择商品分组')}</div>
+                    <div className="dec-hero-group-select">
+                      <Button size="small" icon={<IconPlus />} onClick={() => setHeroGroupPicker(ci)}>
+                        {card.productGroupName ? t('更换商品分组') : t('添加商品分组')}
+                      </Button>
+                      {card.productGroupName ? (
+                        <div className="dec-hero-group-info">
+                          <div className="dec-hero-group-info__row">
+                            <span className="dec-hero-group-info__name">{String(card.productGroupName)}</span>
+                            <a className="dec-hero-group-info__clear" onClick={() => updateCard(ci, (c) => ({ ...c, productGroupId: undefined, productGroupName: undefined }))}>{t('清除')}</a>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="dec-hero-products-tip">{t('提示：选择商品分组后，将自动获取该分组前 2 个商品展示')}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {heroGroupPicker !== null && (
             <ProductGroupPickerModal
               visible
