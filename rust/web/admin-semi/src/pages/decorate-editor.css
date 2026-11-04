@@ -2219,3 +2219,180 @@
   cursor: pointer;
 }
 .pchead-color-popover__preset:hover { border-color: var(--semi-color-primary); }
+
+
+/* ===== PC 模块设置：现代化布局（字段/行为不变） ===== */
+.pc-module-settings {
+  margin: -16px;
+  width: calc(100% + 32px);
+  background: #f7f8fa;
+}
+.pc-module-settings .dec-edit-title {
+  padding: 20px 16px 12px;
+  border-bottom: none;
+  margin-bottom: 0;
+  background: #fff;
+}
+.pc-module-settings .dec-edit-title h3 {
+  color: #101828;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 24px;
+}
+.pc-module-settings .dec-edit-title .dec-edit-desc {
+  margin-top: 4px;
+  color: #667085;
+  font-size: 12.5px;
+  line-height: 18px;
+}
+.pc-module-settings .settings-tabs-nav {
+  height: auto;
+  padding: 0 16px 14px;
+  margin-bottom: 0;
+  border-bottom: none;
+  box-shadow: none;
+  background: #fff;
+  justify-content: flex-start;
+  gap: 6px;
+}
+.pc-module-settings .settings-tabs-item {
+  width: auto;
+  max-width: none;
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 7px;
+  background: #f2f4f7;
+  color: #475467;
+  font-size: 13px;
+  line-height: 32px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.pc-module-settings .settings-tabs-item:hover {
+  background: #e9edf3;
+  color: #101828;
+}
+.pc-module-settings .settings-tabs-item.active {
+  background: var(--semi-color-primary);
+  color: #fff;
+  border-bottom-color: transparent;
+  font-weight: 600;
+}
+.pc-module-settings__body {
+  margin: 12px;
+  padding: 0;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+.pc-module-settings .dec-edit-title-box {
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f0f2f5;
+}
+.pc-module-settings .dec-edit-title-box .title {
+  position: relative;
+  padding-left: 10px;
+  border-left: none;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+}
+.pc-module-settings .dec-edit-title-box .title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--semi-color-primary);
+}
+.pc-module-settings .dec-edit-group {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f2f4f6;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+.pc-module-settings .dec-edit-group:last-child { border-bottom: none; }
+.pc-module-settings .dec-edit-group:hover { background: #fafbfc; }
+.pc-module-settings .dec-edit-group-title {
+  min-width: 84px;
+  padding-top: 0;
+}
+.pc-module-settings .dec-edit-group-title .label {
+  margin-right: 12px;
+  color: #475467;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: normal;
+}
+.pc-module-settings .dec-edit-group-con {
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+}
+.pc-module-settings .dec-edit-group-con > .semi-slider,
+.pc-module-settings .dec-edit-group-con > .pchead-slider-with-input { width: 100%; }
+.pc-module-settings .dec-edit-group-desc {
+  margin-top: 6px;
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 17px;
+}
+.pc-module-settings .dec-edit-group.dec-edit-group-block {
+  align-items: stretch;
+}
+.pc-module-settings .dec-edit-group.dec-edit-group-block .dec-edit-group-con {
+  margin-top: 10px;
+}
+.pc-module-settings .dec-edit-group.dec-edit-group-block:hover { background: #fff; }
+.pc-module-settings .semi-input-wrapper,
+.pc-module-settings .semi-input-number,
+.pc-module-settings .semi-select { border-radius: 7px; }
+
+/* 卡位编辑卡现代化 */
+.pc-module-settings .dec-hero-card-editor {
+  margin: 0 0 10px;
+  padding: 0;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+.pc-module-settings .dec-hero-card-editor:last-child { margin-bottom: 0; }
+.pc-module-settings .dec-hero-card-editor__header {
+  margin: 0;
+  padding: 11px 14px;
+  border-bottom: 1px solid #f2f4f6;
+  background: #f8fafc;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+}
+.pc-module-settings .dec-hero-card-editor__row {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f7f8fa;
+}
+.pc-module-settings .dec-hero-card-editor__row:last-child { border-bottom: none; }
+.pc-module-settings .dec-hero-card-editor__label {
+  width: 76px;
+  color: #475467;
+  font-size: 13px;
+}
+.pc-module-settings .dec-hero-products-edit { margin: 0; padding: 0 14px 12px; }
+.pc-module-settings .dec-hero-products-title {
+  margin: 4px 0 10px;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pc-module-settings .dec-hero-product-item {
+  border-color: #eaecf0;
+  background: #fafbfc;
+  border-radius: 8px;
+}
+.pc-module-settings .dec-hero-products-tip { margin-top: 8px; }
+.pc-module-settings .dec-hero-group-info { background: #f8fafc; border-color: #eaecf0; border-radius: 8px; }
