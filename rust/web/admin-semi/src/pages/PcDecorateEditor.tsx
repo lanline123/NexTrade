@@ -4933,17 +4933,37 @@ function ModuleSettingsPanel({
   const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon']);
   const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
   const SECTION_LEVELS: Record<string, 1 | 2> = {
+    // 模块级 / 内容级 / 扩展级
     '内容设置': 1,
+    '标题设置': 1,
+    '商品设置': 1,
+    '选择布局': 1,
+    '添加图片': 1,
+    '添加导航项': 1,
+    '添加轮播图片': 1,
+    '添加分组Banner轮播大图': 1,
+    '外边距': 1,
+    '容器设置': 1,
+    '商品颜色设置': 1,
+    '分组标题设置': 1,
+    '模块样式设置': 1,
+    '内容区样式设置': 1,
+    // 营销通栏一级区
     '左侧分类导航': 1,
     '中间焦点区': 1,
     '右侧会员卡': 1,
     '快捷入口区': 1,
     '整体样式': 1,
+    // 二级子分组
     '轮播广告': 2,
     '推荐卡位': 2,
     '入口列表': 2,
     '商品参数设置': 2,
     '参数设置': 2,
+    '样式设置': 2,
+    '图标设置': 2,
+    '布局设置': 2,
+    '购买按钮': 2,
   };
   const sectionClass = (name: string) => (
     `dec-edit-title-box${SECTION_LEVELS[name] === 1 ? ' dec-edit-title-box--primary' : ' dec-edit-title-box--secondary'}`
@@ -5028,7 +5048,7 @@ function ModuleSettingsPanel({
             if (isSection) {
               return (
                 <div key={field.key}>
-                  <div className="dec-edit-title-box dec-edit-title-box--secondary"><div className="title">{t(field.label)}</div></div>
+                  <div className={sectionClass(field.label)}><div className="title">{t(field.label)}</div></div>
                   <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
                 </div>
               );
@@ -5995,10 +6015,10 @@ function FieldControl({
     case 'groupList': {
       const groups = (Array.isArray(value) ? value : []) as Array<Record<string, any>>;
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="dec-group-list">
           {groups.map((g, index) => (
-            <div key={index} style={{ border: '1px solid var(--semi-color-border)', borderRadius: 6, padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <Text strong size="small">{t('第【{index}】组', { index: index + 1 })}{index === 0 ? t('（固定，不可删除/拖动）') : ''}</Text>
+            <div key={index} className="dec-group-list__item">
+              <div className="dec-group-list__title">{t('第【{index}】组', { index: index + 1 })}{index === 0 ? t('（固定，不可删除/拖动）') : ''}</div>
               <div>
                 <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 4 }}>{t('标题')}</Text>
                 <Input value={g.title || ''} onChange={(v) => set(groups.map((x, i) => (i === index ? { ...x, title: v } : x)))} placeholder={t('请输入标题内容')} />

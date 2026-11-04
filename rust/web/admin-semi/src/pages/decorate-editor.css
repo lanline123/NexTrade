@@ -2467,3 +2467,21 @@
   color: #98a2b3;
   font-size: 12px;
 }
+
+/* 商品分组列表现代化 */
+.dec-group-list { display: flex; flex-direction: column; gap: 10px; }
+.dec-group-list__item {
+  padding: 12px;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dec-group-list__title {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 20px;
+}
