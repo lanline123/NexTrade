@@ -1345,7 +1345,7 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
                         }}
                       >
                         <span className="pc-decorate-lib__pic">
-                          <LibIcon size={34} strokeWidth={3} />
+                          <LibIcon size={28} strokeWidth={3} />
                         </span>
                         <span className="pc-decorate-lib__content" title={t(def.label)}>{t(def.label)}</span>
                       </div>
@@ -4799,7 +4799,7 @@ function ModuleSettingsPanel({
             return (
               <div key={field.key}>
                 {showSection && (
-                  <div className="dec-spread-title"><div className="title">{t(section!)}</div></div>
+                  <div className="dec-edit-title-box"><div className="title">{t(section!)}</div></div>
                 )}
                 <div className={`dec-edit-group${block ? ' dec-edit-group-block' : ''}`}>
                   <div className="dec-edit-group-title">
@@ -5541,3 +5541,5 @@ function FieldControl({
       return null;
   }
 }
+
+
