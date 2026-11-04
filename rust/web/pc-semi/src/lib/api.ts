@@ -526,3 +526,30 @@ export async function getArticleNewsDetail(articleId: number): Promise<Record<st
   const response = await fetch(`${SERVER_API_BASE}/api/article/article/newsInfo?id=${articleId}`, { cache: 'no-store' });
   return readData<Record<string, any>>(response);
 }
+
+
+export interface AccountChangeItem {
+  changeTime?: string;
+  balance?: number | string;
+  frozenBalance?: number | string;
+  changeTypeName?: string;
+  changeDesc?: string;
+}
+
+export async function getAccountChanges(params: { page?: number; size?: number } = {}): Promise<{ records: AccountChangeItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 15));
+  const response = await fetch(`${SERVER_API_BASE}/api/user/account/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return {
+    records: Array.isArray(data?.records) ? data.records : [],
+    total: Number(data?.total || 0),
+  };
+}
+
+
+export async function getUserDetail(): Promise<Record<string, any> | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/user/user/detail`, { cache: 'no-store' });
+  return readData<Record<string, any>>(response);
+}

@@ -4693,3 +4693,21 @@ img {
 .article-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 20px; font-size: 14px; }
 .article-pagination .is-disabled { color: #bbb; }
 @media (max-width: 900px) { .article-layout { flex-direction: column; } .article-side { width: 100%; } .article-row { flex-direction: column; } .article-row img { width: 100%; height: auto; } }
+
+
+/* 账户明细 */
+.account-summary { display: flex; gap: 20px; align-items: center; padding: 22px; border-radius: 12px; background: #fff; margin-bottom: 14px; }
+.account-summary > div { display: flex; flex-direction: column; gap: 6px; }
+.account-summary span { color: #8a919f; font-size: 12px; }
+.account-summary b { color: #e1251b; font-size: 22px; }
+.account-summary__links { margin-left: auto; flex-direction: row !important; gap: 16px; }
+.account-summary__links a { color: #e1251b; font-size: 13px; }
+.account-table-wrap { padding: 18px; border-radius: 12px; background: #fff; }
+.account-table { width: 100%; border-collapse: collapse; color: #333; font-size: 13px; }
+.account-table th { padding: 12px; background: #f7f8fa; color: #666; font-weight: 500; text-align: left; }
+.account-table td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+.account-table td.is-income { color: #e1251b; }
+.account-table td.is-expense { color: #2f9e44; }
+.account-empty { padding: 60px 0 !important; color: #999; text-align: center; }
+.account-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 16px; font-size: 14px; }
+.account-pagination .is-disabled { color: #bbb; }
