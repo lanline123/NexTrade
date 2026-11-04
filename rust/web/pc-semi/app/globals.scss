@@ -4538,3 +4538,29 @@ img {
 /* ===== 活动专题 /activity（对齐 view/pc/pages/activity/index.vue） ===== */
 .pc-activity-page { background: #fff; padding: 12px 0 40px; }
 .pc-activity-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+
+
+/* ===== 招商入驻 /join ===== */
+.join-page { background: #fff; }
+.join-banner img { display: block; width: 100%; max-height: 420px; object-fit: cover; }
+.join-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.join-title { margin: 0; padding: 44px 0; color: #333; font-size: 26px; font-weight: 400; text-align: center; }
+.join-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.join-card { min-height: 210px; padding: 28px 20px; border: 1px solid #eee; text-align: center; box-sizing: border-box; }
+.join-card h3 { margin: 20px 0 8px; color: #333; font-size: 18px; }
+.join-card p { min-height: 40px; margin: 0 0 20px; color: #999; font-size: 13px; line-height: 20px; }
+.join-card a { display: inline-block; padding: 7px 18px; border: 1px solid #333; color: #333; font-size: 13px; }
+.join-card a.is-primary { border-color: #e1251b; background: #e1251b; color: #fff; }
+.join-mode { padding-bottom: 50px; }
+.join-mode-tabs { display: flex; justify-content: center; gap: 0; border-bottom: 1px solid #eee; }
+.join-mode-tabs span { padding: 12px 50px; color: #666; font-size: 15px; }
+.join-mode-tabs span.is-active { border-bottom: 2px solid #e1251b; color: #e1251b; }
+.join-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; padding-top: 30px; }
+.join-mode-card { text-align: center; }
+.join-mode-card img { max-width: 100%; height: auto; }
+.join-mode-card h3 { margin: 18px 0 10px; color: #333; font-size: 18px; }
+.join-mode-content { color: #666; font-size: 14px; line-height: 1.8; text-align: left; }
+@media (max-width: 900px) {
+  .join-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .join-mode-grid { grid-template-columns: 1fr; }
+}

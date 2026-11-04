@@ -442,3 +442,18 @@ export async function getActivityDecorate(params: { id?: number; previewId?: num
   const response = await fetch(`${SERVER_API_BASE}/api/home/home/pcIndex${suffix}`, { cache: 'no-store' });
   return readData<HomeDecorateResponse>(response);
 }
+
+
+export interface JoinNavItem {
+  title?: string;
+  content?: string;
+  image?: string;
+  images?: Array<{ picUrl?: string; picThumb?: string; picLink?: string }>;
+}
+
+export async function getJoinData(): Promise<JoinNavItem[]> {
+  const response = await fetch(`${SERVER_API_BASE}/api/home/home/mobileNav?decorateSn=investmentPromotionHomepage`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  const list = data?.data || data;
+  return Array.isArray(list) ? list : [];
+}
