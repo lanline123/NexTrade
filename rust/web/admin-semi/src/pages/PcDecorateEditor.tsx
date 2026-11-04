@@ -3480,39 +3480,134 @@ function formatColorValue(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${(alpha / 100).toFixed(2)})`;
 }
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const rgb = String(hex || '#ffffff').replace('#', '');
+  return {
+    r: parseInt(rgb.slice(0, 2), 16) || 0,
+    g: parseInt(rgb.slice(2, 4), 16) || 0,
+    b: parseInt(rgb.slice(4, 6), 16) || 0,
+  };
+}
+
+function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === rn) h = ((gn - bn) / d) % 6;
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s: max === 0 ? 0 : d / max, v: max };
+}
+
+function hsvToHex(h: number, s: number, v: number): string {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (h < 60) [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const to = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
+  return `#${to(r)}${to(g)}${to(b)}`;
+}
+
 function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const parsed = parseColorValue(value);
-  const emit = (hex: string, alpha: number) => onChange(formatColorValue(hex, alpha));
+  const { r, g, b } = hexToRgb(parsed.hex);
+  const hsv = rgbToHsv(r, g, b);
+  const hue = Number.isFinite(hsv.h) ? hsv.h : 0;
+  const alpha = parsed.alpha;
+  const emit = (nextHsv: { h: number; s: number; v: number }, nextAlpha: number) => {
+    onChange(formatColorValue(hsvToHex(nextHsv.h, nextHsv.s, nextHsv.v), nextAlpha));
+  };
+  const clamp = (n: number, min = 0, max = 100) => Math.max(min, Math.min(max, n));
+
+  const handleSv = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.buttons !== 1) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const sPercent = clamp(((event.clientX - rect.left) / rect.width) * 100);
+    const vPercent = clamp(100 - ((event.clientY - rect.top) / rect.height) * 100);
+    emit({ h: hue, s: sPercent / 100, v: vPercent / 100 }, alpha);
+  };
+
+  const handleHue = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.buttons !== 1) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const nextHue = clamp(((event.clientX - rect.left) / rect.width) * 360, 0, 360);
+    emit({ h: nextHue, s: hsv.s, v: hsv.v }, alpha);
+  };
+
+  const handleAlpha = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.buttons !== 1) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const nextAlpha = clamp(((event.clientX - rect.left) / rect.width) * 100);
+    onChange(formatColorValue(parsed.hex, nextAlpha));
+  };
+
   const presetColors = [
     '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585',
     'rgba(255, 69, 0, 0.68)', 'rgb(255, 120, 0)', '#ff7800', '#ffff00',
     'rgba(120, 240, 90, 0.5)', 'rgba(0, 224, 224, 0.73)', '#c7158577',
   ];
+  const solidHex = `#${[r, g, b].map((n) => n.toString(16).padStart(2, '0')).join('')}`;
   const content = (
     <div className="pchead-color-popover">
-      <div className="pchead-color-popover__preview-row">
-        <span className="pchead-color-popover__preview">
-          <span style={{ background: formatColorValue(parsed.hex, parsed.alpha) }} />
-        </span>
+      <div
+        className="pchead-color-sv"
+        style={{ backgroundColor: `hsl(${hue} 100% 50%)` }}
+        onPointerDown={handleSv}
+        onPointerMove={(event) => event.buttons === 1 && handleSv(event)}
+        onPointerUp={(event) => handleSv(event)}
+      >
+        <div className="pchead-color-sv__white" />
+        <div className="pchead-color-sv__black" />
+        <span className="pchead-color-sv__handle" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }} />
+      </div>
+
+      <div
+        className="pchead-color-slider pchead-color-hue"
+        onPointerDown={handleHue}
+        onPointerMove={(event) => event.buttons === 1 && handleHue(event)}
+        onPointerUp={(event) => handleHue(event)}
+      >
+        <span className="pchead-color-slider__handle" style={{ left: `${(hue / 360) * 100}%`, background: `hsl(${hue} 100% 50%)` }} />
+      </div>
+
+      <div
+        className="pchead-color-slider pchead-color-alpha"
+        style={{
+          backgroundImage: `linear-gradient(to right, transparent, ${solidHex}), linear-gradient(45deg, #e5e5e5 25%, transparent 25%), linear-gradient(-45deg, #e5e5e5 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e5e5 75%), linear-gradient(-45deg, transparent 75%, #e5e5e5 75%)`,
+          backgroundSize: '100% 100%, 8px 8px, 8px 8px, 8px 8px, 8px 8px',
+          backgroundPosition: '0 0, 0 0, 0 4px, 4px -4px, -4px 0',
+        }}
+        onPointerDown={handleAlpha}
+        onPointerMove={(event) => event.buttons === 1 && handleAlpha(event)}
+        onPointerUp={(event) => handleAlpha(event)}
+      >
+        <span className="pchead-color-slider__handle" style={{ left: `${alpha}%`, background: formatColorValue(parsed.hex, alpha) }} />
+      </div>
+
+      <div className="pchead-color-popover__inputs">
         <Input
           size="small"
           value={value}
-          placeholder="#ffffff / rgba(0,0,0,.5)"
+          placeholder="#ffffff 或 rgba(...)"
           onChange={(next) => onChange(next)}
-        />
-      </div>
-
-      <div className="pchead-color-popover__label">{t('透明度')}</div>
-      <div className="pchead-color-popover__alpha">
-        <Slider
-          value={parsed.alpha}
-          min={0}
-          max={100}
-          step={1}
-          style={{ flex: 1 }}
-          onChange={(v) => emit(parsed.hex, typeof v === 'number' ? v : (v as number[])[0])}
         />
         <input
           className="pchead-alpha-color__number"
@@ -3520,8 +3615,8 @@ function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: str
           min={0}
           max={100}
           step={1}
-          value={parsed.alpha}
-          onChange={(e) => emit(parsed.hex, Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+          value={alpha}
+          onChange={(e) => onChange(formatColorValue(parsed.hex, Math.max(0, Math.min(100, Number(e.target.value) || 0))))}
           aria-label="Alpha"
         />
         <span className="pchead-alpha-color__unit">%</span>
@@ -3538,7 +3633,7 @@ function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: str
             style={{ background: preset }}
             onClick={() => {
               const next = parseColorValue(preset);
-              emit(next.hex, next.alpha);
+              onChange(formatColorValue(next.hex, next.alpha));
             }}
           />
         ))}
