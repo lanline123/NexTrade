@@ -36,6 +36,7 @@ import {
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
+import ImageUploader from '../components/ImageUploader';
 import type { ColumnConfig } from '../framework/types';
 
 const { Text, Title } = Typography;
@@ -669,19 +670,46 @@ export function WechatKeywordReply() {
  * 契约对齐: java/view/admin/src/views/setting/wechat/autoReply/Index.vue
  * labels: 被关注回复, 登录成功回复, 收到消息回复
  * ========================================================================= */
+type AutoReplyTab = 'subscribe' | 'loginSuccess' | 'default';
+
+interface AutoReplyPayload {
+  msgType: number;
+  content: string;
+  newsTitle: string;
+  newsCoverUrl: string;
+  newsDescription: string;
+  newsUrl: string;
+}
+
+const AUTO_REPLY_HINTS: Record<AutoReplyTab, string> = {
+  subscribe: '当用户关注此公众号时，可自动回复一条消息',
+  loginSuccess: '当用户公众号登录时，可自动回复一条消息',
+  default: '当用户发送消息时，自动回复固定内容',
+};
+
+const AUTO_REPLY_DEFAULT: AutoReplyPayload = {
+  msgType: 1,
+  content: '',
+  newsTitle: '',
+  newsCoverUrl: '',
+  newsDescription: '',
+  newsUrl: '',
+};
+
+const AUTO_REPLY_VARIABLES = ['{nickname}', '{shopName}', '{date}'];
+
 export function WechatAutoReply() {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'subscribe' | 'loginSuccess' | 'default'>('subscribe');
+  const [activeTab, setActiveTab] = useState<AutoReplyTab>('subscribe');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const [formState, setFormState] = useState({
-    subscribe: { enabled: true, replyType: 'text', content: '感谢关注我们的公众号！我们将竭诚为您服务。' },
-    loginSuccess: { enabled: true, replyType: 'text', content: '您已成功登录系统！' },
-    default: { enabled: true, replyType: 'text', content: '您好，我们已收到您的留言，稍后将由专属客服为您解答。' },
+  const [formState, setFormState] = useState<Record<AutoReplyTab, AutoReplyPayload>>({
+    subscribe: { ...AUTO_REPLY_DEFAULT },
+    loginSuccess: { ...AUTO_REPLY_DEFAULT },
+    default: { ...AUTO_REPLY_DEFAULT },
   });
 
-  const loadData = async (tab: 'subscribe' | 'loginSuccess' | 'default') => {
+  const loadData = async (tab: AutoReplyTab) => {
     setLoading(true);
     try {
       const res = await apiGet<any>(`/wechat/autoReply/${tab}`);
@@ -689,14 +717,17 @@ export function WechatAutoReply() {
         setFormState((prev) => ({
           ...prev,
           [tab]: {
-            enabled: res.enabled !== false,
-            replyType: res.replyType || 'text',
-            content: res.content || prev[tab].content,
+            msgType: Number(res.msgType) === 2 ? 2 : 1,
+            content: res.content || '',
+            newsTitle: res.newsTitle || '',
+            newsCoverUrl: res.newsCoverUrl || '',
+            newsDescription: res.newsDescription || '',
+            newsUrl: res.newsUrl || '',
           },
         }));
       }
     } catch {
-      // 保持兜底状态
+      // 保持默认空状态
     } finally {
       setLoading(false);
     }
@@ -706,11 +737,23 @@ export function WechatAutoReply() {
     loadData(activeTab);
   }, [activeTab]);
 
+  const updateCurrent = (patch: Partial<AutoReplyPayload>) =>
+    setFormState((prev) => ({ ...prev, [activeTab]: { ...prev[activeTab], ...patch } }));
+
+  const insertVariable = (field: 'content' | 'newsTitle' | 'newsDescription', token: string) => {
+    const current = formState[activeTab][field] || '';
+    updateCurrent({ [field]: `${current}${token}` } as Partial<AutoReplyPayload>);
+  };
+
   const onSave = async () => {
     setSaving(true);
     try {
       const current = formState[activeTab];
-      await apiPost(`/wechat/autoReply/${activeTab}/save`, current);
+      const payload =
+        activeTab === 'loginSuccess'
+          ? { ...current, msgType: 1 }
+          : current;
+      await apiPost(`/wechat/autoReply/${activeTab}/save`, payload);
       Toast.success(t('保存成功'));
     } catch {
       Toast.success(t('设置保存成功（本地模拟）'));
@@ -719,70 +762,145 @@ export function WechatAutoReply() {
     }
   };
 
-  const currentConfig = formState[activeTab];
+  const current = formState[activeTab];
+  const textOnly = activeTab === 'loginSuccess';
+
+  const variableToolbar = (field: 'content' | 'newsTitle' | 'newsDescription') => (
+    <div className="wx-var-toolbar">
+      <div className="wx-var-toolbar__buttons">
+        {AUTO_REPLY_VARIABLES.map((token) => (
+          <button type="button" key={token} className="wx-var-btn" onClick={() => insertVariable(field, token)}>
+            {token}
+          </button>
+        ))}
+      </div>
+      <p className="wx-var-tip">
+        {t('已插入的变量将在发送时自动替换为真实内容，请勿改动大括号内字符，否则会被原样发送给用户。')}
+      </p>
+    </div>
+  );
 
   return (
-    <div style={{ padding: 20 }}>
-      <Card>
-        <Tabs activeKey={activeTab} onChange={(k: any) => setActiveTab(k)}>
-          <TabPane tab={t('被关注回复')} itemKey="subscribe" />
-          <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
-          <TabPane tab={t('收到消息回复')} itemKey="default" />
-        </Tabs>
+    <div className="wx-auto-page">
+      <Tabs type="line" activeKey={activeTab} onChange={(key) => setActiveTab(key as AutoReplyTab)}>
+        <TabPane tab={t('被关注回复')} itemKey="subscribe" />
+        <TabPane tab={t('登录成功回复')} itemKey="loginSuccess" />
+        <TabPane tab={t('收到消息回复')} itemKey="default" />
+      </Tabs>
 
-        <Spin spinning={loading}>
-          <div style={{ maxWidth: 600, marginTop: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-              <Text strong style={{ width: 100 }}>{t('启用开关：')}</Text>
-              <Switch
-                checked={currentConfig.enabled}
-                onChange={(checked) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    [activeTab]: { ...prev[activeTab], enabled: checked },
-                  }))
-                }
-              />
-            </div>
+      <div className="wx-auto-card">
+        <div className="wx-auto-hint">{t(AUTO_REPLY_HINTS[activeTab])}</div>
 
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-              <Text strong style={{ width: 100 }}>{t('回复类型：')}</Text>
+        <div className="wx-auto-body">
+          <div className="wx-auto-form">
+            <Spin spinning={loading}>
+              {!textOnly && (
+            <div className="wx-field">
+              <label>{t('消息类型')}</label>
               <RadioGroup
-                value={currentConfig.replyType}
-                onChange={(e) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    [activeTab]: { ...prev[activeTab], replyType: e.target.value },
-                  }))
-                }
+                value={current.msgType}
+                onChange={(e) => updateCurrent({ msgType: Number(e.target.value) })}
               >
-                <Radio value="text">{t('文字回复')}</Radio>
-                <Radio value="image">{t('图片回复')}</Radio>
-                <Radio value="news">{t('图文回复')}</Radio>
+                <Radio value={1}>{t('文字')}</Radio>
+                <Radio value={2}>{t('图文')}</Radio>
               </RadioGroup>
             </div>
+          )}
 
-            <div style={{ marginBottom: 24 }}>
-              <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('回复内容：')}</Text>
+          {(textOnly || Number(current.msgType) === 1) && (
+            <div className="wx-field">
+              <label>{t('内容')}</label>
               <TextArea
-                rows={5}
-                value={currentConfig.content}
-                onChange={(val: string) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    [activeTab]: { ...prev[activeTab], content: val },
-                  }))
-                }
-                placeholder={t('请输入自动回复的内容...')}
+                rows={6}
+                maxLength={600}
+                value={current.content}
+                onChange={(value) => updateCurrent({ content: value })}
+                placeholder={t('请输入文本内容')}
               />
+              {variableToolbar('content')}
             </div>
+          )}
 
-            <Button type="primary" size="large" icon={<IconSave />} loading={saving} onClick={onSave}>
-              {t('保存设置')}
-            </Button>
+          {!textOnly && Number(current.msgType) === 2 && (
+            <>
+              <div className="wx-field">
+                <label>{t('图文标题')}</label>
+                <Input
+                  maxLength={64}
+                  value={current.newsTitle}
+                  onChange={(value) => updateCurrent({ newsTitle: value })}
+                  placeholder={t('请输入图文标题')}
+                />
+                {variableToolbar('newsTitle')}
+              </div>
+              <div className="wx-field">
+                <label>{t('图文摘要')}</label>
+                <TextArea
+                  rows={3}
+                  maxLength={120}
+                  value={current.newsDescription}
+                  onChange={(value) => updateCurrent({ newsDescription: value })}
+                  placeholder={t('请输入图文摘要')}
+                />
+                {variableToolbar('newsDescription')}
+              </div>
+              <div className="wx-field">
+                <label>{t('封面图')}</label>
+                <ImageUploader
+                  single
+                  value={current.newsCoverUrl ? [current.newsCoverUrl] : []}
+                  onChange={(next) => updateCurrent({ newsCoverUrl: next[0] || '' })}
+                />
+                <p className="wx-field-help">{t('建议比例 2.35 : 1（如 900 × 383）')}</p>
+              </div>
+              <div className="wx-field">
+                <label>{t('跳转链接')}</label>
+                <Input
+                  value={current.newsUrl}
+                  onChange={(value) => updateCurrent({ newsUrl: value })}
+                  placeholder="https://..."
+                />
+              </div>
+            </>
+              )}
+            </Spin>
           </div>
-        </Spin>
-      </Card>
+
+          <aside className="wx-auto-preview">
+            <div className="wx-auto-phone">
+              <div className="wx-auto-phone__head">公众号</div>
+              <div className="wx-auto-phone__body">
+                {Number(current.msgType) === 2 && !textOnly ? (
+                  <div className="wx-auto-news">
+                    {current.newsCoverUrl ? (
+                      <img src={current.newsCoverUrl} alt="" />
+                    ) : (
+                      <div className="wx-auto-news__cover-empty">{t('封面图')}</div>
+                    )}
+                    <strong>{current.newsTitle || t('图文标题')}</strong>
+                    <p>{current.newsDescription || t('图文摘要')}</p>
+                  </div>
+                ) : (
+                  <div className="wx-auto-bubble">
+                    {current.content
+                      ? current.content
+                          .replace(/\{nickname\}/g, t('微信用户'))
+                          .replace(/\{shopName\}/g, t('公众号'))
+                          .replace(/\{date\}/g, new Date().toLocaleDateString())
+                      : t('回复内容将在这里预览')}
+                  </div>
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="wx-auto-footer">
+          <Button type="primary" icon={<IconSave />} loading={saving} onClick={onSave}>
+            {t('保存')}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
