@@ -4599,3 +4599,20 @@ img {
 @media (max-width: 1240px) {
   .join-process-wrap { overflow-x: auto; justify-content: flex-start; }
 }
+
+
+/* 账户安全 */
+.security-card { padding: 10px 20px 24px; }
+.security-list { padding: 0; margin: 0; list-style: none; }
+.security-list li { display: flex; align-items: center; height: 64px; margin-bottom: 10px; padding: 0 16px; border-radius: 8px; background: #f7f8fc; }
+.security-list__label { width: 120px; color: #1a1a1a; font-size: 14px; }
+.security-list__value { flex: 1; color: #8a919f; font-size: 14px; }
+.security-list__action { border: 0; background: none; color: #e1251b; font-size: 14px; font-weight: 700; cursor: pointer; }
+.security-tips { margin-top: 20px; padding: 20px; border: 1px solid #eee; border-radius: 8px; color: #666; font-size: 13px; line-height: 24px; }
+.security-tips b { color: #1a1a1a; }
+.security-tips p { margin: 8px 0 0; }
+.security-form { display: flex; flex-direction: column; gap: 10px; }
+.security-form label { color: #333; font-size: 13px; }
+.security-form input { height: 38px; padding: 0 10px; border: 1px solid #dcdfe6; border-radius: 4px; }
+.security-form__row { display: flex; gap: 8px; }
+.security-form__row input { flex: 1; }
