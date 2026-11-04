@@ -1803,6 +1803,11 @@
   line-height: 24px;
   text-align: left;
 }
+.pc-module-settings .dec-edit-title .dec-edit-desc {
+  color: #666;
+  text-align: left;
+  margin-top: 10px;
+}
 .pc-module-settings .settings-tabs-nav {
   display: flex;
   align-items: center;

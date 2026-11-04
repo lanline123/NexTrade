@@ -293,6 +293,7 @@ interface ModuleDef {
   hiddenInLibrary?: boolean;
   legacy?: boolean;
   note?: string;
+  desc?: string;
   defaults: () => Record<string, any>;
   settings: SettingFieldDef[];
   summary?: (m: Record<string, any>) => string;
@@ -487,6 +488,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
   },
   {
     type: 'pc-home-quick-nav', label: '快捷导航', group: '导航分类',
+    desc: '横向图文导航条，支持图标+文字+链接配置',
     defaults: () => ({
       frame: { boxPadding: 0, boxPaddingTop: 0, boxPaddingBottom: 0, backgroundColor: '' },
       style: { fontSize: 14, textColor: '#333333', hoverColor: '#e1251b', containerAlign: 2, itemGap: 16, singleLine: 1, fontWeight: 700, lineHeight: 36, iconSize: 18, iconGap: 6 },
@@ -525,6 +527,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
   },
   {
     type: 'pc-category-nav3', label: '分类导航3', group: '导航分类', overseasOnly: true,
+    desc: '选择图片和链接，可编辑文字，方便轻松设置',
     defaults: () => ({
       frame: { boxPadding: 0, boxPaddingTop: 0, boxPaddingBottom: 0, boxRadius: 8, backgroundColor: 'rgba(0, 0, 0, 0.02)', boxHeight: 352 },
       titleText: '热门推荐', showMore: 1, showMoreText: '更多', moreLink: { link: '', name: '' },
@@ -714,6 +717,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
   },
   {
     type: 'pc-home-hero', label: '营销通栏', group: '营销活动',
+    desc: '左侧分类导航 / 中间焦点区 / 右侧用户区',
     defaults: () => ({
       frame: { boxPadding: 0, boxPaddingTop: 0, boxPaddingBottom: 0, backgroundColor: '' },
       left: {
@@ -4763,11 +4767,13 @@ function ModuleSettingsPanel({
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
   const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'color']);
+  const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
 
   return (
     <div className="pc-module-settings">
       <div className="dec-edit-title">
         <h3>{t(def.label)}</h3>
+        {def.desc && <div className="dec-edit-desc">{t(def.desc)}</div>}
       </div>
       {tabbed && (
         <div className="settings-tabs-nav">
@@ -4775,7 +4781,7 @@ function ModuleSettingsPanel({
             className={`settings-tabs-item${activeTab === 'content' ? ' active' : ''}`}
             onClick={() => setActiveTab('content')}
           >
-            {t('内容设置')}
+            {t(contentTabLabel)}
           </div>
           <div
             className={`settings-tabs-item${activeTab === 'extend' ? ' active' : ''}`}
