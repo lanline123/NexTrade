@@ -39,16 +39,16 @@ export default async function ExchangePage({ searchParams }: PageProps) {
             <ul className="exchange-list">
               {data.records.map((item) => (
                 <li className="exchange-card" key={item.id}>
-                  <Link href={`/product/${item.productId || item.id}`} className="exchange-card__pic" target="_blank">
+                  <Link href={`/exchange/${item.id}`} className="exchange-card__pic" target="_blank">
                     <img src={item.picThumb || item.picUrl || ''} alt={item.productName || ''} loading="lazy" />
                   </Link>
                   <div className="exchange-card__info">
-                    <Link href={`/product/${item.productId || item.id}`} className="exchange-card__name" target="_blank">{item.productName}</Link>
+                    <Link href={`/exchange/${item.id}`} className="exchange-card__name" target="_blank">{item.productName}</Link>
                     <div className="exchange-card__price">原价：¥ {Number(item.productPrice || 0).toFixed(2)}</div>
                     <div className="exchange-card__integral">
                       积分价：¥ {Number(item.discountsPrice || 0).toFixed(2)} + <b>{Number(item.exchangeIntegral || 0)}</b> 积分
                     </div>
-                    <Link className="exchange-card__btn" href={`/product/${item.productId || item.id}`} target="_blank">立即兑换</Link>
+                    <Link className="exchange-card__btn" href={`/exchange/${item.id}`} target="_blank">立即兑换</Link>
                   </div>
                 </li>
               ))}

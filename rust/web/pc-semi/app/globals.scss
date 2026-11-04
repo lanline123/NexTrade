@@ -4515,3 +4515,21 @@ img {
 .exchange-empty { padding: 80px 0; color: #999; text-align: center; }
 .exchange-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 20px; color: #666; font-size: 14px; }
 .exchange-pagination .is-disabled { color: #bbb; }
+
+
+/* 积分兑换详情 */
+.exchange-detail-page { background: #f9f9f9; }
+.exchange-detail-main { padding: 20px 0 40px; }
+.exchange-detail-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
+.exchange-detail-card { display: flex; gap: 30px; padding: 24px; background: #fff; }
+.exchange-detail-pic { display: flex; align-items: center; justify-content: center; width: 420px; height: 420px; flex-shrink: 0; background: #fafafa; }
+.exchange-detail-pic img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.exchange-detail-info { flex: 1; min-width: 0; }
+.exchange-detail-info h1 { margin: 0 0 18px; color: #1a1a1a; font-size: 22px; }
+.exchange-detail-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; color: #e1251b; }
+.exchange-detail-price b { font-size: 26px; }
+.exchange-detail-meta { margin-top: 10px; color: #666; font-size: 14px; }
+.exchange-detail-link { display: inline-block; margin-top: 16px; color: #2563eb; font-size: 13px; }
+.exchange-detail-btn { display: block; width: 180px; height: 44px; margin-top: 24px; border: 0; border-radius: 4px; background: #e1251b; color: #fff; font-size: 16px; cursor: pointer; }
+.exchange-detail-btn:disabled { background: #ccc; cursor: not-allowed; }
+@media (max-width: 900px) { .exchange-detail-card { flex-direction: column; } .exchange-detail-pic { width: 100%; } }

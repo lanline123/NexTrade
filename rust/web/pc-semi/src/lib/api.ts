@@ -425,3 +425,10 @@ export async function getExchangeList(params: { page?: number; size?: number } =
     total: Number(data?.total || 0),
   };
 }
+
+
+export async function getExchangeDetail(id: number): Promise<Record<string, any> | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/product/exchange/detail?id=${id}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return data || null;
+}
