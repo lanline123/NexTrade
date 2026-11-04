@@ -288,6 +288,19 @@ export function WechatMenu() {
                 {t('点击下方菜单按钮进行选择与配置')}
               </div>
 
+              {activeNode && !activeNode.id.includes('-') && (
+                <div style={{ padding: '10px 12px', borderTop: '1px dashed #e5e7eb', background: '#fff' }}>
+                  <Button
+                    block
+                    icon={<IconPlus />}
+                    disabled={(activeNode.sub_button || []).length >= 5}
+                    onClick={() => addChildMenu(activeNode.id)}
+                  >
+                    {t('添加子菜单')}
+                  </Button>
+                </div>
+              )}
+
               {/* 模拟微信底部菜单栏 */}
               <div
                 style={{
@@ -520,17 +533,6 @@ export function WechatMenu() {
                     </>
                   )}
 
-                  {!activeNode.id.includes('-') && (
-                    <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
-                      <Button
-                        icon={<IconPlus />}
-                        onClick={() => addChildMenu(activeNode.id)}
-                        disabled={(activeNode.sub_button || []).length >= 5}
-                      >
-                        {t('添加子菜单')}
-                      </Button>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <Empty description={t('请在左侧选择或新建一个菜单项')} />
