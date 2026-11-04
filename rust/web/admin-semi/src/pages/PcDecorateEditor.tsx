@@ -711,7 +711,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
         kind: 'radio', key: 'groupType', label: '拼团类型', options: [{ label: '普通拼团', value: 1 }, { label: '阶梯拼团', value: 2 }],
         onChangeExtra: (m) => ({ ...m, grouponActivityItem: null }), // 原版：切换类型清空已选活动
       },
-      { kind: 'groupon', key: 'grouponActivityItem', label: '拼团活动' },
+      { kind: 'groupon', key: 'grouponActivityItem', label: '选择活动' },
       { kind: 'radio', key: 'cardStyle', label: '商品卡片样式', options: [{ label: '样式一', value: 1 }, { label: '样式二', value: 2 }] },
       { kind: 'radio', key: 'textAlign', label: '文本对齐', options: [{ label: '左对齐', value: 1 }, { label: '居中对齐', value: 2 }] },
       { kind: 'radio', key: 'showName', label: '显示商品名称', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
@@ -771,8 +771,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       },
     }),
     settings: [
-      { kind: 'color', key: 'left.backgroundColor', label: '背景颜色', section: '左侧分类导航' },
-      { kind: 'color', key: 'left.textColor', label: '文字颜色' },
+      { kind: 'color', key: 'left.backgroundColor', label: '背景颜色', resetValue: '#ffffff', section: '左侧分类导航' },
+      { kind: 'color', key: 'left.textColor', label: '文字颜色', resetValue: '#333333' },
       { kind: 'picList', key: 'center.banners', label: '中间轮播图', section: '轮播广告' },
       { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)', section: '推荐卡位' },
       { kind: 'input', key: 'right.user.nickname', label: '未登录标题文字', section: '右侧会员卡' },
@@ -785,13 +785,13 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'link', key: 'right.premiumMember.link', label: '跳转链接', showIf: (m) => m.right?.premiumMember?.show === true },
       { kind: 'input', key: 'right.shopsTitle', label: '区块标题', section: '快捷入口区' },
       { kind: 'input', key: 'right.shopsSubTitle', label: '角标文字' },
-      { kind: 'color', key: 'right.shopsSubTitleBg', label: '角标背景色' },
+      { kind: 'color', key: 'right.shopsSubTitleBg', label: '角标背景色', resetValue: '#FF4E4E' },
       { kind: 'input', key: 'right.shopsMoreText', label: '查看更多文字' },
       { kind: 'link', key: 'right.shopsMoreLink', label: '查看更多链接' },
-      { kind: 'color', key: 'right.shopsTextColor', label: '入口文字颜色' },
+      { kind: 'color', key: 'right.shopsTextColor', label: '入口文字颜色', resetValue: '#a06a38' },
       { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表' },
       { kind: 'slider', key: 'style.panelRadius', label: '圆角', max: 30, section: '整体样式' },
-      { kind: 'color', key: 'style.panelBackgroundColor', label: '背景色' },
+      { kind: 'color', key: 'style.panelBackgroundColor', label: '背景色', resetValue: '#ffffff' },
       { kind: 'slider', key: 'style.innerPadding', label: '内间距', max: 30 },
     ],
     summary: (m) => `三列通栏 · ${((m.center?.banners || []) as PicItem[]).length} 轮播`,
@@ -887,7 +887,7 @@ const LEGACY_MODULE_DEFS: ModuleDef[] = [
   { type: 'pcRecommendProduct', label: '推荐商品-瀑布流', group: '旧版', legacy: true, defaults: () => ({ titleName: '', products: { productNumber: 50, productIds: [] } }), settings: [{ kind: 'input', key: 'titleName', label: '标题' }, { kind: 'products', key: 'products', label: '商品设置', numberMin: 20, numberStep: 10 }, { kind: 'switch', key: 'showTitle', label: '显示标题' }], summary: (m) => String(m.titleName || '') },
   { type: 'pcSeckill', label: '秒杀模块', group: '旧版', legacy: true, defaults: () => ({ seckillTitle: '全场优惠限时9折起' }), settings: [{ kind: 'input', key: 'seckillTitle', label: '活动标题' }], summary: (m) => String(m.seckillTitle || '') },
   { type: 'pcCoupon', label: '优惠券模块', group: '旧版', legacy: true, note: '内容由营销-优惠券"首页显示"决定', defaults: () => ({}), settings: [], summary: () => '优惠券' },
-  { type: 'pcGroupon', label: '拼团', group: '旧版', legacy: true, defaults: () => ({ style: 2, goodsStyle: 1, goodsRadioStyle: 1, textAlign: 1, textWeight: 1, goodsNameRow: 2, goodsNamePadding: 1, showName: 1, showBrief: 1, showPrice: 1, goodsPadding: 5, buyBtnStyle: 1, backgroundColor: '', boxRadius: 0, innerPadding: 0, boxPadding: 10, boxPaddingTop: 5, boxPaddingBottom: 5, frame: { textColor: '', itemBackgroundColor: '', backgroundColor: '#ffffff', innerPadding: 0, itemHeight: 35, itemRadius: 3, boxRadius: 0, boxPadding: 10, leftAndRightPadding: 0, boxPaddingTop: 5, boxPaddingBottom: 5 }, title: { showTitle: 0, titleStyle: 1, titleAlign: 1, titleBackground: '', titleBackground2: '', titleBackgroundPic: { picUrl: '', picThumb: '' }, titleRadius: 0, titleText: '标题内容', titleColor: '', titleWeight: 'normal', descText: '', descColor: '#aaaaaa', showMore: 0, moreType: 1, countdownLabel: '', moreLink: [], moreColor: '#aaaaaa', format: { titleBackground: '', titleRadius: '' } }, groupType: 1, grouponActivityItem: undefined as unknown as Record<string, any>, cardStyle: 1 }), settings: [{ kind: 'radio', key: 'style', label: '模板', options: [{ label: '一行四个', value: 2 }, { label: '一行五个', value: 3 }, { label: '横向滑动', value: 6 }] }, { kind: 'radio', key: 'groupType', label: '拼团类型', options: [{ label: '普通拼团', value: 1 }, { label: '阶梯拼团', value: 2 }] }, { kind: 'radio', key: 'goodsStyle', label: '商品样式', options: [{ label: '标准', value: 1 }, { label: '投影', value: 2 }, { label: '描边', value: 3 }, { label: '透明底', value: 4 }] }, { kind: 'radio', key: 'goodsRadioStyle', label: '商品圆角', options: [{ label: '直角', value: 1 }, { label: '圆角', value: 2 }] }, { kind: 'radio', key: 'textAlign', label: '文本对齐', options: [{ label: '左对齐', value: 1 }, { label: '居中对齐', value: 2 }] }, { kind: 'radio', key: 'textWeight', label: '文本字重', options: [{ label: '常规体', value: 1 }, { label: '加粗体', value: 2 }] }, { kind: 'number', key: 'goodsNameRow', label: '商品名称行数', min: 1, max: 3 }, { kind: 'switch', key: 'showName', label: '显示商品名称' }, { kind: 'switch', key: 'showPrice', label: '显示商品价格' }, { kind: 'slider', key: 'goodsPadding', label: '商品间距', max: 50 }, { kind: 'slider', key: 'boxRadius', label: '模块圆角', max: 30 }, { kind: 'slider', key: 'boxPadding', label: '模块内边距', max: 30 }, { kind: 'groupon', key: 'grouponActivityItem', label: '拼团活动' }, { kind: 'color', key: 'backgroundColor', label: '背景颜色' }], summary: (m) => (m.grouponActivityItem ? m.grouponActivityItem.name : '未选择活动') },
+  { type: 'pcGroupon', label: '拼团', group: '旧版', legacy: true, defaults: () => ({ style: 2, goodsStyle: 1, goodsRadioStyle: 1, textAlign: 1, textWeight: 1, goodsNameRow: 2, goodsNamePadding: 1, showName: 1, showBrief: 1, showPrice: 1, goodsPadding: 5, buyBtnStyle: 1, backgroundColor: '', boxRadius: 0, innerPadding: 0, boxPadding: 10, boxPaddingTop: 5, boxPaddingBottom: 5, frame: { textColor: '', itemBackgroundColor: '', backgroundColor: '#ffffff', innerPadding: 0, itemHeight: 35, itemRadius: 3, boxRadius: 0, boxPadding: 10, leftAndRightPadding: 0, boxPaddingTop: 5, boxPaddingBottom: 5 }, title: { showTitle: 0, titleStyle: 1, titleAlign: 1, titleBackground: '', titleBackground2: '', titleBackgroundPic: { picUrl: '', picThumb: '' }, titleRadius: 0, titleText: '标题内容', titleColor: '', titleWeight: 'normal', descText: '', descColor: '#aaaaaa', showMore: 0, moreType: 1, countdownLabel: '', moreLink: [], moreColor: '#aaaaaa', format: { titleBackground: '', titleRadius: '' } }, groupType: 1, grouponActivityItem: undefined as unknown as Record<string, any>, cardStyle: 1 }), settings: [{ kind: 'radio', key: 'style', label: '模板', options: [{ label: '一行四个', value: 2 }, { label: '一行五个', value: 3 }, { label: '横向滑动', value: 6 }] }, { kind: 'radio', key: 'groupType', label: '拼团类型', options: [{ label: '普通拼团', value: 1 }, { label: '阶梯拼团', value: 2 }] }, { kind: 'radio', key: 'goodsStyle', label: '商品样式', options: [{ label: '标准', value: 1 }, { label: '投影', value: 2 }, { label: '描边', value: 3 }, { label: '透明底', value: 4 }] }, { kind: 'radio', key: 'goodsRadioStyle', label: '商品圆角', options: [{ label: '直角', value: 1 }, { label: '圆角', value: 2 }] }, { kind: 'radio', key: 'textAlign', label: '文本对齐', options: [{ label: '左对齐', value: 1 }, { label: '居中对齐', value: 2 }] }, { kind: 'radio', key: 'textWeight', label: '文本字重', options: [{ label: '常规体', value: 1 }, { label: '加粗体', value: 2 }] }, { kind: 'number', key: 'goodsNameRow', label: '商品名称行数', min: 1, max: 3 }, { kind: 'switch', key: 'showName', label: '显示商品名称' }, { kind: 'switch', key: 'showPrice', label: '显示商品价格' }, { kind: 'slider', key: 'goodsPadding', label: '商品间距', max: 50 }, { kind: 'slider', key: 'boxRadius', label: '模块圆角', max: 30 }, { kind: 'slider', key: 'boxPadding', label: '模块内边距', max: 30 }, { kind: 'groupon', key: 'grouponActivityItem', label: '选择活动' }, { kind: 'color', key: 'backgroundColor', label: '背景颜色' }], summary: (m) => (m.grouponActivityItem ? m.grouponActivityItem.name : '未选择活动') },
   { type: 'pcCategoryNav', label: '分类导航', group: '旧版', legacy: true, defaults: () => ({ rowNum: 5, categoryList: [] as number[] }), settings: [{ kind: 'radio', key: 'rowNum', label: '每屏显示数量', options: [2, 3, 4, 5, 6].map((n) => ({ label: `${n}个`, value: n })) }, { kind: 'categoryMulti', key: 'categoryList', label: '已选分类' }], summary: (m) => `${((m.categoryList || []) as number[]).length} 分类` },
   { type: 'pcCategoryNav3', label: '分类导航3', group: '旧版', legacy: true, defaults: () => ({ bannerStyle: 1, showCat: 1, logo: { picUrl: '', picThumb: '' }, picList: [], picList2: [], picList3: [], imageBackgroundColor: undefined as unknown as string, titleText: undefined as unknown as string, showMore: undefined as unknown as number, showMoreText: undefined as unknown as string, moreLink: undefined as unknown as Record<string, any> }), settings: [{ kind: 'picList', key: 'picList', label: '图片卡片' }, { kind: 'color', key: 'imageBackgroundColor', label: '图片背景色' }, { kind: 'input', key: 'titleText', label: '标题内容' }, { kind: 'switch', key: 'showMore', label: '查看更多' }], summary: (m) => String(m.titleText || '') },
   { type: 'pcCatWide', label: '分类模块-宽', group: '旧版', legacy: true, defaults: () => ({ catIds: [] as number[] }), settings: [{ kind: 'categoryMulti', key: 'catIds', label: '已选分类' }], summary: (m) => `${((m.catIds || []) as number[]).length} 分类` },
@@ -5713,6 +5713,7 @@ function FieldControl({
       return null;
   }
 }
+
 
 
 
