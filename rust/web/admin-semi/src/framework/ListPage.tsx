@@ -308,7 +308,7 @@ export default function ListPage<T extends Record<string, any>>({
   return (
     <>
       <div ref={cardRef}>
-        <Card className="table-card" shadows="hover" title={cardTitle}>
+        <Card className="table-card" shadows="hover">
         <div className={`table-toolbar ${filterLayout === 'popover' ? 'is-popover' : ''}`}>
           <Space>
             {filters[0] && (

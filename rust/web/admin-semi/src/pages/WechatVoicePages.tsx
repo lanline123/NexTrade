@@ -600,11 +600,10 @@ export function WechatKeywordReply() {
   ];
 
   return (
-    <div className="wx-reply-page">
+    <div>
       <ListPage
         api="/wechat/keywordRule/list"
         rowKey="id"
-        cardTitle={t('关键字回复规则')}
         columns={columns}
         filters={[
           { field: 'ruleName', label: '规则名称', type: 'input' },
