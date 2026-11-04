@@ -4930,15 +4930,20 @@ function ModuleSettingsPanel({
   onChange: (next: Record<string, any>) => void;
 }) {
   const { t } = useI18n();
-  const tabbed = def.type === 'pc-home-quick-nav';
+  const isQuickNav = def.type === 'pc-home-quick-nav';
+  const hasExtend = def.settings.some((field) => (
+    field.key.startsWith('frame.') || field.kind === 'title' || field.kind === 'container'
+  ));
+  const tabbed = isQuickNav || hasExtend;
   const [activeTab, setActiveTab] = useState<'content' | 'extend'>('content');
   useEffect(() => {
     setActiveTab('content');
   }, [def.type]);
+  const isExtendField = (field: ModuleDef['settings'][number]) => (
+    field.key.startsWith('frame.') || field.kind === 'title' || field.kind === 'container'
+  );
   const visibleSettings = tabbed
-    ? def.settings.filter((field) => (
-        activeTab === 'extend' ? field.key.startsWith('frame.') : !field.key.startsWith('frame.')
-      ))
+    ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -4955,14 +4960,14 @@ function ModuleSettingsPanel({
         </RadioGroup>
       )}
       {tabbed && (
-        <Text strong size="small">{activeTab === 'content' ? t('内容设置') : t('容器设置')}</Text>
+        <Text strong size="small">{activeTab === 'content' ? t('内容设置') : t('扩展设置')}</Text>
       )}
       {visibleSettings.length === 0 && <Text type="tertiary">{t('该模块无可配置项')}</Text>}
       {(() => {
         let lastSection: string | null = null;
         return visibleSettings.map((field) => {
           if (field.showIf && !field.showIf(moduleData)) return null;
-          const section = tabbed && activeTab === 'content' ? quickNavSection(field) : null;
+          const section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : null;
           const showSection = Boolean(section && section !== lastSection);
           if (section) lastSection = section;
           return (
