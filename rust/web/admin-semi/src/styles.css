@@ -7067,3 +7067,10 @@ body {
   padding-top: 7px;
 }
 
+
+.wechat-menu-help {
+  margin-top: 4px;
+  color: #98a2b3;
+  font-size: 12px;
+  line-height: 18px;
+}

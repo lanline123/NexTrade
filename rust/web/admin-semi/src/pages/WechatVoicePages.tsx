@@ -22,6 +22,10 @@ import {
   TextArea,
 } from '@douyinfe/semi-ui';
 import {
+  IconArrowDown,
+  IconArrowLeft,
+  IconArrowRight,
+  IconArrowUp,
   IconPlus,
   IconDelete,
   IconSave,
@@ -49,6 +53,7 @@ interface WxMenuItem {
   url?: string;
   appid?: string;
   pagepath?: string;
+  miniprogramUrl?: string;
   key?: string;
   sub_button?: WxMenuItem[];
 }
@@ -90,6 +95,7 @@ export function WechatMenu() {
             url: btn.url || '',
             appid: btn.appid || '',
             pagepath: btn.pagepath || '',
+            miniprogramUrl: btn.miniprogramUrl || '',
             key: btn.key || '',
             sub_button: (btn.sub_button || []).map((sub: any, sIdx: number) => ({
               id: `${idx + 1}-${sIdx + 1}`,
@@ -98,6 +104,7 @@ export function WechatMenu() {
               url: sub.url || '',
               appid: sub.appid || '',
               pagepath: sub.pagepath || '',
+              miniprogramUrl: sub.miniprogramUrl || '',
               key: sub.key || '',
             })),
           }));
@@ -185,6 +192,41 @@ export function WechatMenu() {
     else setSelectedId('');
   };
 
+  const moveNode = (id: string, direction: -1 | 1) => {
+    setMenuList((prev) => {
+      const rootIndex = prev.findIndex((item) => item.id === id);
+      if (rootIndex >= 0) {
+        const target = rootIndex + direction;
+        if (target < 0 || target >= prev.length) return prev;
+        const next = prev.slice();
+        [next[rootIndex], next[target]] = [next[target], next[rootIndex]];
+        return next;
+      }
+      return prev.map((item) => {
+        const children = item.sub_button || [];
+        const childIndex = children.findIndex((child) => child.id === id);
+        if (childIndex < 0) return item;
+        const target = childIndex + direction;
+        if (target < 0 || target >= children.length) return item;
+        const nextChildren = children.slice();
+        [nextChildren[childIndex], nextChildren[target]] = [nextChildren[target], nextChildren[childIndex]];
+        return { ...item, sub_button: nextChildren };
+      });
+    });
+  };
+
+  const confirmRemoveNode = (id: string) => {
+    const node = findNode(menuList, id);
+    Modal.confirm({
+      title: t('删除后，{displayName}菜单下设置的内容全部将被删除', {
+        displayName: node?.name?.trim() || t('该菜单'),
+      }),
+      okText: t('确定'),
+      cancelText: t('取消'),
+      onOk: () => removeNode(id),
+    });
+  };
+
   const onSave = async () => {
     setSaving(true);
     try {
@@ -195,6 +237,7 @@ export function WechatMenu() {
           url: m.url,
           appid: m.appid,
           pagepath: m.pagepath,
+          miniprogramUrl: m.miniprogramUrl,
           key: m.key,
           sub_button: (m.sub_button || []).map((sub) => ({
             name: sub.name,
@@ -202,6 +245,7 @@ export function WechatMenu() {
             url: sub.url,
             appid: sub.appid,
             pagepath: sub.pagepath,
+            miniprogramUrl: sub.miniprogramUrl,
             key: sub.key,
           })),
         })),
@@ -327,10 +371,37 @@ export function WechatMenu() {
               </div>
             </Card>
 
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <Button icon={<IconPlus />} onClick={addRootMenu} disabled={menuList.length >= 3}>
                 {t('添加主菜单')}
               </Button>
+              {activeNode && (
+                <>
+                  <Button
+                    size="small"
+                    icon={activeNode.id.includes('-') ? <IconArrowUp /> : <IconArrowLeft />}
+                    onClick={() => moveNode(activeNode.id, -1)}
+                  >
+                    {activeNode.id.includes('-') ? t('上移') : t('左移')}
+                  </Button>
+                  <Button
+                    size="small"
+                    icon={activeNode.id.includes('-') ? <IconArrowDown /> : <IconArrowRight />}
+                    onClick={() => moveNode(activeNode.id, 1)}
+                  >
+                    {activeNode.id.includes('-') ? t('下移') : t('右移')}
+                  </Button>
+                  <Button
+                    size="small"
+                    theme="borderless"
+                    type="danger"
+                    icon={<IconDelete />}
+                    onClick={() => confirmRemoveNode(activeNode.id)}
+                  >
+                    {t('删除')}
+                  </Button>
+                </>
+              )}
             </div>
           </Col>
 
@@ -345,7 +416,7 @@ export function WechatMenu() {
                       theme="borderless"
                       type="danger"
                       icon={<IconDelete />}
-                      onClick={() => removeNode(activeNode.id)}
+                      onClick={() => confirmRemoveNode(activeNode.id)}
                     >
                       {t('删除菜单')}
                     </Button>
@@ -355,20 +426,32 @@ export function WechatMenu() {
                     <Text strong>{t('菜单名称')}</Text>
                     <Input
                       value={activeNode.name}
-                      maxLength={16}
+                      maxLength={20}
+                      placeholder={t('仅支持中英文和数字')}
                       onChange={(val) => updateNode(activeNode.id, { name: val })}
                       style={{ marginTop: 6 }}
                     />
+                    <div className="wechat-menu-help">
+                      {!activeNode.id.includes('-')
+                        ? t('仅支持中英文和数字，字数不超过 4 个汉字或 8 个字母')
+                        : t('仅支持中英文和数字，字数不超过 8 个汉字或 16 个字母')}
+                    </div>
                   </div>
+
+                  {activeNode.sub_button && activeNode.sub_button.length > 0 && (
+                    <div style={{ marginBottom: 16, color: '#98a2b3', fontSize: 12 }}>
+                      {t('已添加子菜单，仅可设置菜单名称')}
+                    </div>
+                  )}
 
                   {(!activeNode.sub_button || activeNode.sub_button.length === 0) && (
                     <>
                       <div style={{ marginBottom: 16 }}>
-                        <Text strong>{t('菜单内容')}</Text>
+                        <Text strong>{t('消息类型')}</Text>
                         <RadioGroup
                           value={activeNode.type}
                           onChange={(e) => updateNode(activeNode.id, { type: e.target.value })}
-                          style={{ display: 'block', marginTop: 8 }}
+                          style={{ display: 'flex', gap: 16, marginTop: 8 }}
                         >
                           <Radio value="view">{t('跳转网页')}</Radio>
                           <Radio value="click">{t('发送消息')}</Radio>
@@ -378,9 +461,9 @@ export function WechatMenu() {
 
                       {activeNode.type === 'view' && (
                         <div style={{ marginBottom: 16 }}>
-                          <Text strong>{t('页面地址')}</Text>
+                          <Text strong>{t('跳转链接')}</Text>
                           <Input
-                            placeholder={t('请输入网址，如 https://...')}
+                            placeholder="https://..."
                             value={activeNode.url || ''}
                             onChange={(val) => updateNode(activeNode.id, { url: val })}
                             style={{ marginTop: 6 }}
@@ -403,7 +486,7 @@ export function WechatMenu() {
                       {activeNode.type === 'miniprogram' && (
                         <>
                           <div style={{ marginBottom: 16 }}>
-                            <Text strong>{t('小程序 AppID')}</Text>
+                            <Text strong>{t('小程序 AppId')}</Text>
                             <Input
                               placeholder="wx..."
                               value={activeNode.appid || ''}
@@ -412,13 +495,25 @@ export function WechatMenu() {
                             />
                           </div>
                           <div style={{ marginBottom: 16 }}>
-                            <Text strong>{t('小程序页面路径')}</Text>
+                            <Text strong>{t('小程序路径')}</Text>
                             <Input
                               placeholder="pages/index/index"
                               value={activeNode.pagepath || ''}
                               onChange={(val) => updateNode(activeNode.id, { pagepath: val })}
                               style={{ marginTop: 6 }}
                             />
+                          </div>
+                          <div style={{ marginBottom: 16 }}>
+                            <Text strong>{t('备用网页')}</Text>
+                            <Input
+                              placeholder={t('请输入备用网页链接')}
+                              value={activeNode.miniprogramUrl || ''}
+                              onChange={(val) => updateNode(activeNode.id, { miniprogramUrl: val })}
+                              style={{ marginTop: 6 }}
+                            />
+                            <div className="wechat-menu-help">
+                              {t('老版本微信不支持小程序时跳转的 http(s) 链接')}
+                            </div>
                           </div>
                         </>
                       )}
@@ -828,3 +923,5 @@ export function VoiceBroadcast() {
     </div>
   );
 }
+
+
