@@ -4972,3 +4972,17 @@ img {
 .invite-actions { display: flex; gap: 14px; margin-top: 28px; }
 .invite-actions a { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 24px; border: 1px solid #dcdfe6; border-radius: 20px; color: #333; font-size: 14px; }
 .invite-actions a.is-primary { border-color: #e1251b; background: #e1251b; color: #fff; }
+
+
+/* 余额提现 */
+.withdraw-types { display: flex; gap: 8px; margin-bottom: 18px; }
+.withdraw-types button { height: 34px; padding: 0 20px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+.withdraw-types button.is-active { border-color: #e1251b; background: #e1251b; color: #fff; }
+.withdraw-accounts { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.withdraw-account { display: flex; flex-direction: column; gap: 6px; min-width: 220px; padding: 14px 16px; border: 1px solid #dcdfe6; border-radius: 10px; background: #fff; text-align: left; cursor: pointer; }
+.withdraw-account.is-active { border-color: #e1251b; background: #fff7f6; }
+.withdraw-account b { color: #1a1a1a; font-size: 14px; }
+.withdraw-account span { color: #666; font-size: 13px; }
+.withdraw-account small { color: #999; font-size: 12px; }
+.withdraw-empty { padding: 30px 0; color: #999; text-align: center; }
+.withdraw-form { max-width: 560px; }
