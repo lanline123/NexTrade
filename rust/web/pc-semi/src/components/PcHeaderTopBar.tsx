@@ -74,17 +74,27 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
       .then((json) => setSiteNav(Array.isArray(json?.data?.topBarNav) ? json.data.topBarNav : []))
       .catch(() => undefined);
 
-    Promise.all([
-      fetch('/api/sys/region/getProvinceList').then((response) => response.json()),
-      fetch('/api/sys/region/getUserRegion').then((response) => response.json()),
-    ])
-      .then(([regionJson, userRegionJson]) => {
-        setRegions(Array.isArray(regionJson?.data) ? regionJson.data : []);
-        const cookieId = Number(document.cookie.match(/(?:^|; )userProvinceId=([^;]+)/)?.[1]);
-        setRegionId(Number(userRegionJson?.data?.regionId) || (Number.isFinite(cookieId) ? cookieId : null));
-      })
-      .catch(() => undefined)
-      .finally(() => setRegionReady(true));
+    const cookieId = Number(document.cookie.match(/(?:^|; )userProvinceId=([^;]+)/)?.[1]);
+    const regionListRequest = fetch('/api/sys/region/getProvinceList').then((response) => response.json());
+    if (Number.isFinite(cookieId) && cookieId > 0) {
+      // 旧版 HeaderRegion：cookie 已存在时不请求 getUserRegion，直接使用用户选择的地区。
+      setRegionId(cookieId);
+      regionListRequest
+        .then((regionJson) => setRegions(Array.isArray(regionJson?.data) ? regionJson.data : []))
+        .catch(() => undefined)
+        .finally(() => setRegionReady(true));
+    } else {
+      Promise.all([
+        regionListRequest,
+        fetch('/api/sys/region/getUserRegion').then((response) => response.json()),
+      ])
+        .then(([regionJson, userRegionJson]) => {
+          setRegions(Array.isArray(regionJson?.data) ? regionJson.data : []);
+          setRegionId(Number(userRegionJson?.data?.regionId) || null);
+        })
+        .catch(() => undefined)
+        .finally(() => setRegionReady(true));
+    }
 
     const token = localStorage.getItem('accessToken');
     if (token) {
@@ -121,7 +131,7 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
 
   if (!showBar) return null;
 
-  const regionName = regions.find((item) => item.regionId === regionId)?.regionName || config.topRegionText || '全国';
+  const regionName = regions.find((item) => item.regionId === regionId)?.regionName || '';
 
   const changeLocale = (code: string) => {
     if (!code || code === localeCode) return;
@@ -145,7 +155,7 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
                 <path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z" />
               </svg>
-              <span>{regionName || config.topRegionText || '中国江西'}</span>
+              <span>{regionName}</span>
               {regionOpen && regions.length ? (
                 <div className="pc-topbar__dropdown pc-topbar__region-dropdown">
                   {regions.map((region) => (
