@@ -1,17 +1,87 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+/**
+ * PC 头部顶部条（源码：PcHeaderTopBarRuntime.vue）
+ *
+ * 结构与源码逐段对齐：
+ * .benefit-bar-wrap > .pc-header-container > .benefit-bar(--simple/--only-right)
+ *   ├ .benefit-bar__left：地区选择 / 会员入口（简约风）
+ *   ├ .benefit-bar__content：跨境风优惠提示（benefitNoticeGroups，静态每组首条）
+ *   └ .benefit-bar__right：购物车 / 会员中心 / 消息与订单 / 站点导航
+ *
+ * 源码使用 el-popover 与图标字体；React 版用 hover 状态 + 绝对定位卡片、
+ * IconPark 图标渲染，保留源码类名与开关口径（showBenefitBar/showTopMenuBar/...）。
+ */
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { normalizeLocale, writeLocaleCookie } from '@/i18n';
+import Down from '@icon-park/react/es/icons/Down';
+import Local from '@icon-park/react/es/icons/Local';
+import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
+import Message from '@icon-park/react/es/icons/Message';
+import FileText from '@icon-park/react/es/icons/FileText';
+import Check from '@icon-park/react/es/icons/Check';
 
-type Region = { regionId: number; regionName: string };
-type LocaleItem = { localeCode: string; language: string; isDefault?: number };
-type NavItem = { id?: number; title?: string; link?: any; children?: NavItem[] };
+interface Region {
+  regionId: number | string;
+  regionName: string;
+}
+
+interface NavItem {
+  id?: number;
+  title?: string;
+  link?: any;
+  children?: NavItem[];
+}
+
+interface NoticeItem {
+  picId?: number | string;
+  picThumb?: string;
+  picUrl?: string;
+  picTitle?: string;
+  picDesc?: string;
+  picLink?: { link?: string };
+}
+
+interface NoticeGroup {
+  notices?: NoticeItem[];
+}
+
+interface MemberCenterItem {
+  picTitle?: string;
+  title?: string;
+  picLink?: { link?: string };
+  link?: string;
+}
 
 function readNumber(value: unknown, fallback: number): number {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
+}
+
+function readString(value: unknown, fallback: string): string {
+  const text = String(value ?? '');
+  return text ? text : fallback;
+}
+
+function noticePic(notice?: NoticeItem | null): string {
+  return notice?.picUrl || notice?.picThumb || '';
+}
+
+function noticeTitle(notice?: NoticeItem | null): string {
+  return String(notice?.picTitle || '');
+}
+
+function noticeDesc(notice?: NoticeItem | null): string {
+  return String(notice?.picDesc || '');
+}
+
+function noticeLink(notice?: NoticeItem | null): string {
+  return String(notice?.picLink?.link || '');
+}
+
+function hasNoticeContent(notice?: NoticeItem | null): boolean {
+  return Boolean(noticePic(notice) || noticeTitle(notice) || noticeDesc(notice));
 }
 
 function navHref(link: any): string {
@@ -20,80 +90,100 @@ function navHref(link: any): string {
   return link.link || link.appLink || '';
 }
 
-export default function PcHeaderTopBar({ config, showLocale = true, styleType = 1 }: { config: Record<string, any>; showLocale?: boolean; styleType?: number }) {
-  const { i18n } = useTranslation();
+/** 站内链接用 next/link，站外/锚点用原生 a（对齐源码 CommonLink/NuxtLink 行为） */
+function SmartLink({
+  href,
+  className,
+  children,
+  onClick,
+  target,
+}: {
+  href: string;
+  className?: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+  target?: string;
+}) {
+  if (!href || href === '#') {
+    return (
+      <a className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
+  if (/^(?:https?:)?\/\//i.test(href) || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+    return (
+      <a className={className} href={href} target={target || '_blank'} rel="noreferrer" onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link className={className} href={href} onClick={onClick}>
+      {children}
+    </Link>
+  );
+}
+
+export default function PcHeaderTopBar({
+  config = {},
+  styleType = 2,
+  isWhite = true,
+  wide = false,
+}: {
+  config?: Record<string, any>;
+  styleType?: 1 | 2;
+  isWhite?: boolean;
+  wide?: boolean;
+}) {
+  const { t } = useTranslation();
   const [regions, setRegions] = useState<Region[]>([]);
-  const [localeList, setLocaleList] = useState<LocaleItem[]>([]);
-  const [localeCode, setLocaleCode] = useState('');
-  const [regionId, setRegionId] = useState<number | null>(null);
-  const [regionReady, setRegionReady] = useState(false);
+  const [regionId, setRegionId] = useState<string>('');
   const [regionOpen, setRegionOpen] = useState(false);
   const [user, setUser] = useState<Record<string, any> | null>(null);
   const [siteNav, setSiteNav] = useState<NavItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
+  const [shopRegClosed, setShopRegClosed] = useState(0);
   const [openMenu, setOpenMenu] = useState<'user' | 'member' | 'site' | null>(null);
-  const regionTimer = useRef<number | null>(null);
+  const hoverTimer = useRef<number | null>(null);
 
-  const showBar = readNumber(config.showBenefitBar, 1) !== 0 && readNumber(config.showTopMenuBar, 1) !== 0;
-  const showRegion = readNumber(config.showTopRegion, 1) !== 0;
-  const showMemberName = readNumber(config.showTopMemberName, 1) !== 0;
-  const showMessage = readNumber(config.showTopMessage, 1) !== 0;
-  const showOrders = readNumber(config.showTopOrders, 1) !== 0;
-  const showSiteNav = readNumber(config.showTopSiteNav, 1) !== 0;
-  const showCart = readNumber(config.topMenuCartShow, 1) !== 0;
-  const showMemberCenter = readNumber(config.showTopMemberCenter, 1) !== 0;
-
-  const memberCenterItems: Array<{ title: string; link: string }> = Array.isArray(config.memberCenterItems)
-    ? config.memberCenterItems
-        .map((item: any) => ({
-          title: item?.picTitle || item?.title || '',
-          link: item?.picLink?.link || item?.link || '',
-        }))
-        .filter((item: any) => item.title)
-    : [
-        { title: '我的足迹', link: '/member/browsingHistory/list' },
-        { title: '我的优惠券', link: '/member/coupon/list' },
-      ];
+  const showBenefitBar = readNumber(config.showBenefitBar, 1) !== 0;
+  const showTopMenuBar = readNumber(config.showTopMenuBar, 1) !== 0;
+  const showTopRegion = readNumber(config.showTopRegion, 1) !== 0;
+  const showTopUserMenu = readNumber(config.showTopUserMenu, 1) !== 0;
+  const showTopMemberCenterEnabled = readNumber(config.showTopMemberCenter, 1) !== 0;
+  const showTopMemberName = readNumber(config.showTopMemberName, 1) !== 0;
+  const showTopMessage = readNumber(config.showTopMessage, 1) !== 0;
+  const showTopOrders = readNumber(config.showTopOrders, 1) !== 0;
+  const showTopSiteNav = readNumber(config.showTopSiteNav, 1) !== 0;
+  const showTopMenuCart = readNumber(config.topMenuCartShow, 1) !== 0;
 
   useEffect(() => {
-    fetch('/api/common/i18n/getLocales')
-      .then((response) => response.json())
-      .then((json) => {
-        const list: LocaleItem[] = Array.isArray(json?.data) ? json.data : [];
-        setLocaleList(list);
-        const fromCookie = document.cookie.match(/(?:^|; )locale=([^;]+)/)?.[1] || '';
-        const current = list.find((item) => item.localeCode === fromCookie)
-          || list.find((item) => item.isDefault === 1)
-          || list[0];
-        if (current) setLocaleCode(current.localeCode);
-      })
-      .catch(() => undefined);
-
     fetch('/api/common/pc/getNav')
       .then((response) => response.json())
       .then((json) => setSiteNav(Array.isArray(json?.data?.topBarNav) ? json.data.topBarNav : []))
       .catch(() => undefined);
 
-    const cookieId = Number(document.cookie.match(/(?:^|; )userProvinceId=([^;]+)/)?.[1]);
-    const regionListRequest = fetch('/api/sys/region/getProvinceList').then((response) => response.json());
-    if (Number.isFinite(cookieId) && cookieId > 0) {
-      // 旧版 HeaderRegion：cookie 已存在时不请求 getUserRegion，直接使用用户选择的地区。
+    fetch('/api/common/config/base')
+      .then((response) => response.json())
+      .then((json) => setShopRegClosed(Number(json?.data?.shopRegClosed ?? 0)))
+      .catch(() => undefined);
+
+    const cookieId = document.cookie.match(/(?:^|; )userProvinceId=([^;]+)/)?.[1] || '';
+    const listRequest = fetch('/api/sys/region/getProvinceList').then((response) => response.json());
+    if (cookieId) {
       setRegionId(cookieId);
-      regionListRequest
-        .then((regionJson) => setRegions(Array.isArray(regionJson?.data) ? regionJson.data : []))
-        .catch(() => undefined)
-        .finally(() => setRegionReady(true));
+      listRequest
+        .then((json) => setRegions(Array.isArray(json?.data) ? json.data : []))
+        .catch(() => undefined);
     } else {
-      Promise.all([
-        regionListRequest,
-        fetch('/api/sys/region/getUserRegion').then((response) => response.json()),
-      ])
+      Promise.all([listRequest, fetch('/api/sys/region/getUserRegion').then((response) => response.json())])
         .then(([regionJson, userRegionJson]) => {
           setRegions(Array.isArray(regionJson?.data) ? regionJson.data : []);
-          setRegionId(Number(userRegionJson?.data?.regionId) || null);
+          const id = userRegionJson?.data?.regionId ?? userRegionJson?.regionId;
+          if (id !== undefined && id !== null) setRegionId(String(id));
         })
-        .catch(() => undefined)
-        .finally(() => setRegionReady(true));
+        .catch(() => undefined);
     }
 
     const token = localStorage.getItem('accessToken');
@@ -109,8 +199,86 @@ export default function PcHeaderTopBar({ config, showLocale = true, styleType = 
     }
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+    };
+  }, []);
+
+  const regionDisplayText = useMemo(() => {
+    const selected = regions.find((item) => String(item.regionId) === regionId);
+    return String(selected?.regionName || config.topRegionText || t('全国'));
+  }, [regions, regionId, config.topRegionText, t]);
+
+  const memberCenterItems: Array<{ title: string; link: string }> = useMemo(() => {
+    const configured = config.memberCenterItems;
+    if (Array.isArray(configured)) {
+      const mapped = configured
+        .map((item: MemberCenterItem) => {
+          const link = item?.picLink?.link || item?.link || '';
+          const isCouponLink = String(link).replace(/\/$/, '') === '/member/coupon/list';
+          return {
+            title: isCouponLink ? t('我的优惠券') : item?.picTitle || item?.title || '',
+            link,
+          };
+        })
+        .filter((item) => item.title);
+      if (mapped.length) return mapped;
+    }
+    return [
+      { title: t('我的足迹'), link: '/member/browsingHistory/list' },
+      { title: t('我的优惠券'), link: '/member/coupon/list' },
+    ];
+  }, [config.memberCenterItems, t]);
+
+  const effectiveShowTopSiteNav = showTopSiteNav && siteNav.length > 0;
+  const userDisplayName = String(user?.nickname || user?.dimUsername || t('会员'));
+  const userAvatar = String(user?.avatar || '');
+
+  const benefitNoticeGroups: NoticeGroup[] = useMemo(() => {
+    const raw = Array.isArray(config.benefitNoticeGroups) ? (config.benefitNoticeGroups as NoticeGroup[]) : [];
+    return raw
+      .map((group) => ({ ...group, notices: (Array.isArray(group?.notices) ? group.notices : []).filter(hasNoticeContent) }))
+      .filter((group) => (group.notices?.length ?? 0) > 0);
+  }, [config.benefitNoticeGroups]);
+
+  const showBenefitContent = styleType === 2 && showBenefitBar && benefitNoticeGroups.length > 0;
+  const showTopMemberEntry = styleType === 1 && showTopMemberName;
+  const showTopUserLinks =
+    styleType === 1 && showTopMenuBar && showTopUserMenu && (showTopMessage || showTopOrders);
+  const showTopMemberCenter = styleType === 1 && showTopMenuBar && showTopUserMenu && showTopMemberCenterEnabled;
+  const showStripLeft = styleType === 1 && (showTopRegion || showTopMemberEntry);
+  const showStripRight =
+    styleType === 2
+      ? effectiveShowTopSiteNav || showTopMenuCart
+      : effectiveShowTopSiteNav || showTopMenuCart || showTopMemberCenter || showTopUserLinks;
+  const showTopBar = showBenefitBar && (showStripLeft || showStripRight || showBenefitContent);
+  const isBenefitBarOnlyRight = showStripRight && !showStripLeft && !showBenefitContent;
+
+  const containerStyle: React.CSSProperties = {
+    maxWidth: wide ? '1760px' : 'var(--pc-home-max-width, 1600px)',
+    minWidth: wide ? '1056px' : 'var(--pc-home-min-width, 1264px)',
+    width: '100%',
+    margin: '0 auto',
+    paddingLeft: wide ? '80px' : 'var(--pc-home-padding-x, 38px)',
+    paddingRight: wide ? '80px' : 'var(--pc-home-padding-x, 38px)',
+  };
+  const wrapStyle: React.CSSProperties = config.benefitBarBackgroundColor
+    ? { backgroundColor: String(config.benefitBarBackgroundColor) }
+    : {};
+  const topMenuTextStyle: React.CSSProperties = {
+    color: readString(config.topMenuTextColor, '#ffffffd6'),
+    ['--pc-header-top-menu-hover-color' as string]: readString(config.topMenuTextHoverColor, '#ffffff'),
+  };
+  const benefitTitleStyle: React.CSSProperties = {
+    color: readString(config.benefitTitleColor || config.topMenuTextColor, '#ffffff'),
+  };
+  const benefitDescStyle: React.CSSProperties = {
+    color: readString(config.benefitDescColor || config.topMenuTextColor, '#ffffffcc'),
+  };
+
   const selectRegion = (region: Region) => {
-    setRegionId(region.regionId);
+    setRegionId(String(region.regionId));
     document.cookie = `userProvinceId=${region.regionId}; path=/; max-age=31536000; SameSite=Lax`;
     setRegionOpen(false);
   };
@@ -121,130 +289,255 @@ export default function PcHeaderTopBar({ config, showLocale = true, styleType = 
     window.location.href = '/';
   };
 
-  const enterRegion = () => {
-    if (regionTimer.current) window.clearTimeout(regionTimer.current);
-    setRegionOpen(true);
+  const scheduleClose = () => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => setOpenMenu(null), 120);
   };
-  const leaveRegion = () => {
-    regionTimer.current = window.setTimeout(() => setRegionOpen(false), 120);
+  const cancelClose = () => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
   };
 
-  if (!showBar) return null;
-
-  const regionName = regions.find((item) => item.regionId === regionId)?.regionName || '';
-
-  const changeLocale = (code: string) => {
-    if (!code || code === localeCode) return;
-    const next = normalizeLocale(code);
-    writeLocaleCookie(next);
-    setLocaleCode(code);
-    void i18n.changeLanguage(next);
-  };
-  const userDisplayName = String(user?.nickname || user?.dimUsername || '会员');
-  const backgroundColor = String(config.benefitBarBackgroundColor || '#1a1a1a');
-  const textColor = String(config.topMenuTextColor || '#ffffffd6');
-  const hoverColor = String(config.topMenuTextHoverColor || '#ffffff');
-  const hasValue = (value: unknown) => value !== undefined && value !== null && String(value).trim() !== '';
+  if (!showTopBar) return null;
 
   return (
-    <div className={`pc-topbar pc-topbar--style-${styleType}`} style={{ background: backgroundColor, color: textColor, ['--pc-topbar-hover' as string]: hoverColor }}>
-      <div className="pc-topbar__inner">
-        {styleType === 1 ? (
-        <div className="pc-topbar__left">
-          {showRegion ? regionReady ? (
-            <div className="pc-topbar__region" onMouseEnter={enterRegion} onMouseLeave={leaveRegion}>
-              <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-                <path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z" />
-              </svg>
-              <span>{regionName}</span>
-              {regionOpen && regions.length ? (
-                <div className="pc-topbar__dropdown pc-topbar__region-dropdown">
-                  {regions.map((region) => (
-                    <button key={region.regionId} type="button" className={region.regionId === regionId ? 'is-active' : ''} onClick={() => selectRegion(region)}>
-                      {region.regionName}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="pc-topbar__region is-placeholder" aria-hidden="true"><span>全国</span></div>
-          ) : null}
-
-          {showMemberName ? (
-            <div className="pc-topbar__member">
-              {user ? (
-                <div className="pc-topbar__user" onMouseEnter={() => setOpenMenu('user')} onMouseLeave={() => setOpenMenu(null)}>
-                  <Link href="/member" className="pc-topbar__user-name">{userDisplayName} ▾</Link>
-                  {openMenu === 'user' ? (
-                    <div className="pc-topbar__dropdown pc-topbar__member-dropdown">
-                      <div className="pc-topbar__member-head">
-                        <span className="pc-topbar__avatar">{user.avatar ? <img src={user.avatar} alt="" /> : userDisplayName.slice(0, 1)}</span>
-                        <b>{userDisplayName}</b>
+    <div
+      className={`benefit-bar-wrap${styleType === 1 ? ' benefit-bar-wrap--simple' : ''}`}
+      style={wrapStyle}
+    >
+      <div className="pc-header-container" style={containerStyle}>
+        <div
+          className={`benefit-bar${styleType === 1 ? ' benefit-bar--simple' : ''}${
+            isBenefitBarOnlyRight ? ' benefit-bar--only-right' : ''
+          }`}
+        >
+          {/* 左侧：地区 / 会员入口（简约风） */}
+          {showStripLeft ? (
+            <div className="benefit-bar__left" style={topMenuTextStyle}>
+              {showTopRegion ? (
+                <div
+                  className={`benefit-bar__location${regionOpen ? ' is-active' : ''}${wide ? ' wide' : ''}`}
+                  style={topMenuTextStyle}
+                  onMouseEnter={() => setRegionOpen(true)}
+                  onMouseLeave={() => setRegionOpen(false)}
+                >
+                  <span className="iconfont-pc icon-dizhi benefit-bar__location-ico">
+                    <Local size={14} />
+                  </span>
+                  <span className="benefit-bar__region">{regionDisplayText}</span>
+                  {regionOpen && regions.length > 0 ? (
+                    <div
+                      className="region-dropdown"
+                      onMouseEnter={() => setRegionOpen(true)}
+                      onMouseLeave={() => setRegionOpen(false)}
+                    >
+                      <div className="region-dropdown__list">
+                        {regions.map((region) => (
+                          <a
+                            key={region.regionId}
+                            className={`region-dropdown__item${String(region.regionId) === regionId ? ' selected' : ''}`}
+                            onClick={() => selectRegion(region)}
+                          >
+                            {region.regionName}
+                          </a>
+                        ))}
                       </div>
-                      <Link href="/member">账号管理</Link>
-                      <button type="button" onClick={logout}>退出</button>
                     </div>
                   ) : null}
                 </div>
-              ) : (
-                <div className="pc-topbar__auth">
-                  <Link href="/login">你好，请登录</Link>
-                  <span className="pc-topbar__sep" />
-                  <Link href="/register">注册</Link>
-                </div>
-              )}
-            </div>
-          ) : null}
-        </div>
-        ) : null}
+              ) : null}
 
-        <div className="pc-topbar__right">
-          {showLocale && localeList.length > 1 ? (
-            <select
-              className="pc-topbar__locale"
-              value={localeCode}
-              onChange={(event) => changeLocale(event.target.value)}
-              aria-label="切换语言"
-            >
-              {localeList.map((item) => (
-                <option key={item.localeCode} value={item.localeCode}>{item.language}</option>
-              ))}
-            </select>
-          ) : null}
-          {showCart ? (
-            <Link href="/cart" className="pc-topbar__link">
-              购物车{cartCount > 0 ? ` ${cartCount}` : ''}
-            </Link>
-          ) : null}
-
-          {styleType === 1 && showMemberCenter ? (
-            <div className="pc-topbar__menu" onMouseEnter={() => setOpenMenu('member')} onMouseLeave={() => setOpenMenu(null)}>
-              <button type="button" className="pc-topbar__link">会员中心 ▾</button>
-              {openMenu === 'member' ? (
-                <div className="pc-topbar__dropdown">
-                  {memberCenterItems.map((item) => <Link key={item.title} href={item.link || '/member'}>{item.title}</Link>)}
-                </div>
+              {showTopMemberEntry ? (
+                user ? (
+                  <div
+                    className="top-link-item top-link-item--menu"
+                    onMouseEnter={() => {
+                      cancelClose();
+                      setOpenMenu('user');
+                    }}
+                    onMouseLeave={scheduleClose}
+                  >
+                    <div className="top-link top-link--nav" style={topMenuTextStyle}>
+                      <Link className="top-link__name" href="/member/">
+                        {userDisplayName}
+                      </Link>
+                      <span className="pc-icon pc-icon--arrow top-bar-nav__arrow">
+                        <Down size={12} />
+                      </span>
+                    </div>
+                    {openMenu === 'user' ? (
+                      <div className="pc-header-popover pc-header-popover--member">
+                        <div className="top-member-dropdown">
+                          <div className="top-member-dropdown__profile">
+                            <div className="top-member-dropdown__avatar-wrap">
+                              {userAvatar ? (
+                                <img className="top-member-dropdown__avatar" src={userAvatar} alt="" />
+                              ) : (
+                                <span className="top-member-dropdown__avatar top-member-dropdown__avatar--placeholder">
+                                  {userDisplayName.slice(0, 1)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="top-member-dropdown__main">
+                              <div className="top-member-dropdown__name" title={userDisplayName}>
+                                {userDisplayName}
+                              </div>
+                              <div className="top-member-dropdown__actions">
+                                <Link href="/member">{t('账号管理')}</Link>
+                                <span className="top-member-dropdown__divider" />
+                                <a onClick={logout}>{t('退出')}</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="top-link-item top-link-item--auth">
+                    <Link className="top-link" href="/member/login">
+                      {t('你好,请登录')}
+                    </Link>
+                    {shopRegClosed === 0 ? (
+                      <>
+                        <span className="top-link-sep" />
+                        <Link className="top-link" href="/member/register">
+                          {t('注册')}
+                        </Link>
+                      </>
+                    ) : null}
+                  </div>
+                )
               ) : null}
             </div>
           ) : null}
 
-          {styleType === 1 && showMessage ? <Link href="/member/userMessage/list" className="pc-topbar__link">站内消息</Link> : null}
-          {styleType === 1 && showOrders ? <Link href="/member/order/list" className="pc-topbar__link">我的订单</Link> : null}
-
-          {showSiteNav && siteNav.length ? (
-            <div className="pc-topbar__menu" onMouseEnter={() => setOpenMenu('site')} onMouseLeave={() => setOpenMenu(null)}>
-              <button type="button" className="pc-topbar__link">站点导航 ▾</button>
-              {openMenu === 'site' ? (
-                <div className="pc-topbar__dropdown pc-topbar__site-dropdown">
-                  {siteNav.map((nav) => (
-                    <div key={nav.id || nav.title} className="pc-topbar__site-group">
-                      {hasValue(navHref(nav.link)) ? <Link href={navHref(nav.link)}>{nav.title}</Link> : <b>{nav.title}</b>}
-                      {(nav.children || []).map((child) => (
-                        <Link key={child.id || child.title} href={navHref(child.link) || '/'} className="pc-topbar__site-child">{child.title}</Link>
-                      ))}
+          {/* 中间：跨境风优惠提示（静态展示每组首条） */}
+          {showBenefitContent ? (
+            <div className="benefit-bar__content" style={topMenuTextStyle}>
+              {benefitNoticeGroups.map((group, groupIndex) => {
+                const notice = group.notices?.[0];
+                const href = noticeLink(notice);
+                const content = (
+                  <>
+                    {noticePic(notice) ? (
+                      <img className="img" src={noticePic(notice)} alt="" />
+                    ) : (
+                      <span className="pc-icon pc-icon--check img">
+                        <Check size={14} />
+                      </span>
+                    )}
+                    <div className="txt">
+                      <div className="title" style={benefitTitleStyle}>
+                        {noticeTitle(notice)}
+                      </div>
+                      <div className="sub-title" style={benefitDescStyle}>
+                        {noticeDesc(notice)}
+                      </div>
                     </div>
-                  ))}
+                  </>
+                );
+                return href ? (
+                  <a key={groupIndex} className="tag-wrap" href={href} target="_blank" rel="noreferrer">
+                    {content}
+                  </a>
+                ) : (
+                  <div key={groupIndex} className="tag-wrap">
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {/* 右侧：购物车 / 消息与订单 / 站点导航 */}
+          {showStripRight ? (
+            <div className="benefit-bar__right" style={topMenuTextStyle}>
+              {showTopMenuCart ? (
+                <Link href="/cart/" className="top-link top-link--cart">
+                  <span className="iconfont-pc icon-shiwu-gouwuche">
+                    <ShoppingCart size={16} />
+                  </span>
+                  <span>
+                    {t('购物车')}
+                    {cartCount > 0 ? ` ${cartCount}` : ''}
+                  </span>
+                </Link>
+              ) : null}
+
+              {showTopMemberCenter ? (
+                <div
+                  className="top-site-nav-wrap top-member-center"
+                  onMouseEnter={() => {
+                    cancelClose();
+                    setOpenMenu('member');
+                  }}
+                  onMouseLeave={scheduleClose}
+                >
+                  <a className="top-link top-link--nav">
+                    <span className="top-bar-nav__name">{t('会员中心')}</span>
+                    <span className="pc-icon pc-icon--arrow top-bar-nav__arrow">
+                      <Down size={12} />
+                    </span>
+                  </a>
+                  {openMenu === 'member' ? (
+                    <div className="pc-header-popover">
+                      <div className="top-site-nav__dropdown">
+                        {memberCenterItems.map((item, itemIndex) => (
+                          <Link key={itemIndex} href={item.link || '#'}>
+                            {item.title}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {showTopUserLinks ? (
+                <div className="top-links">
+                  {showTopMessage ? (
+                    <Link className="top-link top-link--icon" href="/member/userMessage/list/">
+                      <span className="iconfont-pc icon-xiaoxi">
+                        <Message size={15} />
+                      </span>
+                      <span>{t('站内消息')}</span>
+                    </Link>
+                  ) : null}
+                  {showTopOrders ? (
+                    <Link className="top-link top-link--icon" href="/member/order/list/">
+                      <span className="iconfont-pc icon-dingdan">
+                        <FileText size={15} />
+                      </span>
+                      <span>{t('我的订单')}</span>
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {effectiveShowTopSiteNav ? (
+                <div
+                  className="top-site-nav-wrap"
+                  onMouseEnter={() => {
+                    cancelClose();
+                    setOpenMenu('site');
+                  }}
+                  onMouseLeave={scheduleClose}
+                >
+                  <a className="top-link top-link--nav">
+                    <span className="top-bar-nav__name">{t('站点导航')}</span>
+                    <span className="pc-icon pc-icon--arrow top-bar-nav__arrow">
+                      <Down size={12} />
+                    </span>
+                  </a>
+                  {openMenu === 'site' ? (
+                    <div className="pc-header-popover">
+                      <div className="top-site-nav__dropdown">
+                        {siteNav.map((nav) => (
+                          <SiteNavNode key={nav.id ?? nav.title} nav={nav} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -254,3 +547,21 @@ export default function PcHeaderTopBar({ config, showLocale = true, styleType = 
     </div>
   );
 }
+
+/** 站点导航节点：有子级时平铺子级链接（对齐源码 CommonLink 列表） */
+function SiteNavNode({ nav }: { nav: NavItem }) {
+  const children = Array.isArray(nav.children) ? nav.children : [];
+  if (children.length) {
+    return (
+      <>
+        {children.map((child) => (
+          <SmartLink key={child.id ?? child.title} href={navHref(child.link)}>
+            {child.title}
+          </SmartLink>
+        ))}
+      </>
+    );
+  }
+  return <SmartLink href={navHref(nav.link)}>{nav.title}</SmartLink>;
+}
+

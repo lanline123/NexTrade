@@ -1,2 +1,495 @@
 /* PC page source-parity styles (teammate scope) */
 
+/* ===== /member/return/LogInfo 申请详情（源码对照 member/return/LogInfo.vue） ===== */
+.return-loginfo-tabs {
+  display: flex;
+  gap: 24px;
+  margin: 0 0 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.return-loginfo-tabs a {
+  padding: 10px 0;
+  color: #666;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+.return-loginfo-tabs a.is-active {
+  color: #cc0c1c;
+  border-bottom-color: #cc0c1c;
+  font-weight: 600;
+}
+
+.member-return-loginfo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 340px;
+}
+
+.member-return-loginfo .return-goods-tip {
+  padding: 10px 14px;
+  background: #fff7e6;
+  border: 1px solid #ffe1a8;
+  color: #b25c00;
+  font-size: 13px;
+  border-radius: 4px;
+}
+
+.member-return-loginfo .return-status-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 20px;
+  row-gap: 8px;
+}
+
+.member-return-loginfo .return-status-title {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.member-return-loginfo .return-status-actions {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-return-loginfo .return-status-sub {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 13px;
+  color: #8b8e97;
+}
+
+.member-return-loginfo .return-countdown {
+  color: #cc0c1c;
+  font-weight: 600;
+}
+
+.member-return-loginfo .return-form-card {
+  padding: 20px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.member-return-loginfo .return-form-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.member-return-loginfo .return-form-field > label {
+  flex: 0 0 100px;
+  line-height: 30px;
+  color: #333;
+  text-align: right;
+}
+
+.member-return-loginfo .return-form-field .required {
+  color: #cc0c1c;
+  font-style: normal;
+  margin-left: 2px;
+}
+
+.member-return-loginfo .return-form-field input,
+.member-return-loginfo .return-form-field textarea {
+  flex: 1;
+  max-width: 600px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 22px;
+  color: #333;
+  background: #fff;
+}
+
+.member-return-loginfo .return-form-field textarea {
+  resize: vertical;
+}
+
+.member-return-loginfo .return-form-actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 112px;
+}
+
+.member-return-loginfo .return-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-return-loginfo .return-upload-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.member-return-loginfo .return-upload-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.member-return-loginfo .return-upload-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  cursor: zoom-in;
+  display: block;
+}
+
+.member-return-loginfo .return-upload-item button {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 4px;
+  cursor: pointer;
+}
+
+.member-return-loginfo .return-info-card {
+  border: 0;
+}
+
+.member-return-loginfo .return-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.member-return-loginfo .return-table th {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+}
+
+.member-return-loginfo .return-table td {
+  border: 1px solid #e8e8e8;
+  padding: 10px;
+  color: #333;
+  vertical-align: top;
+}
+
+.member-return-loginfo .return-table--detail td:first-child {
+  width: 120px;
+  color: #666;
+}
+
+.member-return-loginfo .return-product {
+  display: flex;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.member-return-loginfo .return-product img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.member-return-loginfo .return-product__sn {
+  font-size: 12px;
+  color: #999;
+}
+
+.member-return-loginfo .return-product__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 20px;
+  max-height: 40px;
+  word-break: break-word;
+}
+
+.member-return-loginfo .return-product__sku {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #999;
+}
+
+.member-return-loginfo .return-pics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.member-return-loginfo .return-log-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-return-loginfo .return-empty {
+  text-align: center;
+  color: #999;
+  padding: 18px 0;
+}
+
+.member-return-loginfo .return-loginfo-links {
+  display: flex;
+  gap: 20px;
+}
+
+.member-return-loginfo .return-loginfo-links a {
+  color: #005ea7;
+  text-decoration: none;
+}
+
+/* ===== /search 搜索页筛选/排序（源码对照 pages/search/components/Filter.vue+SortFilter.vue） ===== */
+.pc-search-filter-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed #eee;
+  font-size: 13px;
+}
+
+.pc-search-filter-row__label {
+  flex: 0 0 56px;
+  color: #666;
+  line-height: 24px;
+}
+
+.pc-search-filter-row__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  flex: 1;
+}
+
+.pc-search-filter-row__values a {
+  color: #333;
+  text-decoration: none;
+  line-height: 24px;
+  padding: 0 2px;
+}
+
+.pc-search-filter-row__values a.is-active {
+  color: #cc0c1c;
+  font-weight: 600;
+}
+
+.pc-search-price-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pc-search-price-input {
+  width: 90px;
+  padding: 4px 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.pc-search-price-form button {
+  padding: 4px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* ===== /member/order/detail 订单状态步骤/操作（源码对照 member/order/src/OrderStatusSteps.vue） ===== */
+.member-order-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed #eee;
+}
+
+.member-order-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #999;
+  font-size: 13px;
+}
+
+.member-order-steps__item:not(:last-child)::after {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: #e5e5e5;
+  margin: 0 6px;
+}
+
+.member-order-steps__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #d9d9d9;
+  color: #999;
+  font-size: 12px;
+  background: #fff;
+}
+
+.member-order-steps__item.is-active {
+  color: #1a1a1a;
+}
+
+.member-order-steps__item.is-active .member-order-steps__dot {
+  border-color: #cc0c1c;
+  background: #cc0c1c;
+  color: #fff;
+}
+
+.member-order-detail__tip {
+  color: #cc0c1c;
+}
+
+.member-order-detail__links {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+}
+
+.member-order-detail__links a {
+  color: #005ea7;
+  text-decoration: none;
+}
+
+.member-order__sn {
+  display: block;
+  color: #999;
+  font-size: 12px;
+}
+
+.member-order-shipping__trace {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
+  font-size: 13px;
+}
+
+.member-order-shipping__trace > span {
+  flex: 0 0 150px;
+  color: #999;
+}
+
+/* ===== /member/comment 评价晒单（源码对照 pages/member/comment/List.vue） ===== */
+.comment-tabs__count {
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #cc0c1c;
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.comment-order__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #666;
+  font-size: 13px;
+}
+
+.comment-order__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.comment-order__action a {
+  color: #005ea7;
+  text-decoration: none;
+}
+
+.comment-order__action a.is-primary {
+  color: #cc0c1c;
+  font-weight: 600;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment-list__item {
+  padding: 12px 14px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.comment-list__product {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comment-list__product img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.comment-list__product a {
+  color: #333;
+  text-decoration: none;
+}
+
+.comment-list__rank {
+  margin-top: 8px;
+  color: #ff7a00;
+  font-size: 13px;
+}
+
+.comment-list__content {
+  margin-top: 6px;
+  color: #333;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.comment-list__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  color: #999;
+  font-size: 12px;
+}

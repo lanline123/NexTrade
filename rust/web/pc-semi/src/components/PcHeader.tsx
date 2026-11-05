@@ -1,16 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+/**
+ * PC 头部主体（源码：PcHeaderOverseasRuntime.vue / PcHeaderSimpleRuntime.vue）
+ *
+ * 结构对齐源码：
+ * .pc-header-runtime > PcHeaderTopBar
+ *   ├ 购物车页：PcHeaderCartContent（仅 logo + 购物车标题 + 搜索）
+ *   └ 其它页面：.page-container(.pc-header-divider--*) > .page-header-inner > .page-c-warap
+ *       ├ .page-header-home__left：.logo-slot(.logo-slot--wide) + .logo(.logo--left/center/right) + .category-nav
+ *       ├ .page-header-home__center：.search-nav-box > .search-bar + .sub-nav.sub-nav--stacked(.sub-nav--home)
+ *       └ .page-header-home__right：.language-bar + .mine-bar + .car-bar
+ *
+ * styleType：1=简约风，2=跨境风（跨境站点默认 2，与源码 isOverseas 口径一致）。
+ * isWhite：源码 PageHeader 固定传 true（全站白色头部）。
+ */
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Search from '@icon-park/react/es/icons/Search';
-import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
-import Close from '@icon-park/react/es/icons/Close';
 import PcHeaderTopBar from '@/components/PcHeaderTopBar';
+import PcHeaderCartContent from '@/components/PcHeaderCartContent';
+import PcHeaderSimple from '@/components/PcHeaderSimple';
 import PcLocaleSelect from '@/components/PcLocaleSelect';
 import PcMine from '@/components/PcMine';
 import PcCartEntry from '@/components/PcCartEntry';
 import PcAllCategory from '@/components/PcAllCategory';
+import PcSearchBox from '@/components/PcSearchBox';
+import PcShopSearchInput from '@/components/PcShopSearchInput';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
 
@@ -22,177 +37,309 @@ const FALLBACK_NAV = [
   { title: '资讯中心', link: '/article' },
 ];
 
-export default function PcHeader({ config }: { config?: PcHeaderConfig | null }) {
+type DividerStyle = 'shadow' | 'border' | 'none';
+type HeaderConfig = Record<string, any>;
+
+function normalizeBottomDividerStyle(value: unknown, fallback: DividerStyle): DividerStyle {
+  if (value == null) return fallback;
+  if (typeof value === 'number') {
+    if (value === 1) return 'shadow';
+    if (value === 2) return 'border';
+    if (value === 0) return 'none';
+    return fallback;
+  }
+  const raw = String(value).trim().toLowerCase();
+  if (['1', 'shadow', '阴影'].includes(raw)) return 'shadow';
+  if (['2', 'border', 'line', '边框'].includes(raw)) return 'border';
+  if (['3', 'none', 'hidden', 'no', '不显示', '无'].includes(raw)) return 'none';
+  return fallback;
+}
+
+function resolveFiniteNonNegativePx(value: unknown): number | null {
+  if (value == null) return null;
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.max(0, number);
+}
+
+function resolveMainNavSpacingPx(config: HeaderConfig, dir: 'top' | 'bottom'): number | null {
+  const keys =
+    dir === 'top'
+      ? ['mainNavMarginTop', 'mainNavTopMargin', 'mainNavPaddingTop']
+      : ['mainNavMarginBottom', 'mainNavBottomMargin', 'mainNavPaddingBottom', 'componentMarginBottom'];
+  for (const key of keys) {
+    const value = resolveFiniteNonNegativePx(config[key]);
+    if (value != null) return value;
+  }
+  return null;
+}
+
+function navHrefOf(item: Record<string, any>): string {
+  const link = item?.link;
+  if (!link) return '/';
+  if (typeof link === 'string') return link;
+  return link.link || link.appLink || '/';
+}
+
+function navTitleOf(item: Record<string, any>): string {
+  return String(item?.title ?? item?.name ?? item?.label ?? '');
+}
+
+export default function PcHeader({
+  config,
+  isWhite = true,
+  page = '',
+  shopSearch,
+}: {
+  config?: PcHeaderConfig | null;
+  isWhite?: boolean;
+  page?: string;
+  shopSearch?: boolean;
+}) {
   const pathname = usePathname();
-  const [keyword, setKeyword] = useState('');
+  const header = (config || {}) as HeaderConfig;
+
   const [siteLogo, setSiteLogo] = useState('');
-  const [logoReady, setLogoReady] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const header = config || {};
+  const [mainNav, setMainNav] = useState<Array<Record<string, any>> | null>(null);
+  const [logoAreaHeight, setLogoAreaHeight] = useState(60);
+  const [logoAreaShiftY, setLogoAreaShiftY] = useState(0);
+  const [navOffsetLeft, setNavOffsetLeft] = useState<number | null>(null);
+  const [navOffsetRight, setNavOffsetRight] = useState<number | null>(null);
+
+  const searchWrapRef = useRef<HTMLDivElement>(null);
+  const headerWrapperRef = useRef<HTMLDivElement>(null);
+
   const logo = imageUrl(header.logoPic);
   const logoWidth = Number(header.logoWidth) || 110;
   const logoHeight = Number(header.logoHeight) || 40;
-  // 旧版 PcHeaderRuntime：styleType 1=简约风，2=跨境风；跨境站点默认 2。
-  const styleType = Number(header.styleType) === 1 ? 1 : 2;
-  const showCategory = Number(header.showCategory ?? 1) !== 0
-    && (pathname !== '/' || Number(header.showHomeCategory ?? 1) !== 0);
+  const logoAlign = Number(header.logoAlign) || 1;
+  const logoAlignClass = logoAlign === 2 ? 'logo--center' : logoAlign === 3 ? 'logo--right' : 'logo--left';
+
+  // 源码：styleType 缺省时跨境版为 2；本站为跨境站点。
+  const styleType: 1 | 2 = Number(header.styleType) === 1 ? 1 : 2;
+  const isHome = pathname === '/';
+  const isCartPage = pathname === '/cart' || pathname.startsWith('/cart/');
+  const resolvedShopSearch = shopSearch ?? pathname.startsWith('/shop/search');
+
+  const showMainNav = Number(header.showMainNav ?? 1) !== 0;
+  const showCategory =
+    Number(header.showCategory ?? 1) !== 0 && (!isHome || Number(header.showHomeCategory ?? 1) !== 0);
   const showRightCart = Number(header.rightCartShow ?? 1) !== 0;
   const cartStyle = Number(header.cartStyle) || 1;
   const cartPic = imageUrl(header.cartPic as any);
-  const logoAlign = Number(header.logoAlign) || 1;
-  const rawDivider = header.bottomDividerType ?? header.bottomDividerStyle ?? 1;
-  const dividerStyle = rawDivider === 2 || rawDivider === 'border'
-    ? 'border'
-    : rawDivider === 0 || rawDivider === 3 || rawDivider === 'none'
-      ? 'none'
-      : 'shadow';
-  const searchAccentColor = Number(header.searchColorType ?? 1) === 2 ? String(header.searchColor || '#1a1a1a') : '';
-  const searchStyle = searchAccentColor ? ({ '--pc-header-search-accent': searchAccentColor } as React.CSSProperties) : undefined;
+
+  const searchAccentColor =
+    Number(header.searchColorType ?? 1) === 2 ? String(header.searchColor || '#1a1a1a') : '';
+
+  const dividerClass = useMemo(() => {
+    const keys = [
+      'bottomDividerType',
+      'bottomDividerStyle',
+      'headerBottomDividerStyle',
+      'headerDividerStyle',
+      'bottomLineStyle',
+      'headerBottomLineStyle',
+      'splitLineStyle',
+    ];
+    const key = keys.find((item) => header[item] != null);
+    const style = normalizeBottomDividerStyle(key ? header[key] : undefined, 'shadow');
+    return `pc-header-divider--${style}`;
+  }, [header]);
 
   useEffect(() => {
-    if (logo) {
-      setLogoReady(true);
-      return;
-    }
+    if (logo) return;
+    let cancelled = false;
     fetch('/api/common/config/base')
       .then((response) => response.json())
       .then((json) => {
         const url = json?.data?.shopLogo;
-        if (typeof url === 'string' && url) setSiteLogo(url);
+        if (!cancelled && typeof url === 'string' && url) setSiteLogo(url);
       })
-      .catch(() => undefined)
-      .finally(() => setLogoReady(true));
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, [logo]);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
+    let cancelled = false;
+    fetch('/api/common/pc/getNav')
+      .then((response) => response.json())
+      .then((json) => {
+        if (cancelled) return;
+        const list = Array.isArray(json?.data?.mainNav) ? json.data.mainNav : [];
+        setMainNav(list);
+      })
+      .catch(() => undefined);
     return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener('keydown', onKeyDown);
+      cancelled = true;
     };
-  }, [menuOpen]);
-  const showNav = Number(header.showMainNav ?? 1) === 1;
-  const navItems: Array<{ title?: string; link?: string; name?: string; label?: string }> = Array.isArray(header.mainNav) && header.mainNav.length ? header.mainNav : FALLBACK_NAV;
+  }, []);
 
-  const goSearch = () => {
-    if (keyword.trim()) window.location.href = `/search?keyword=${encodeURIComponent(keyword.trim())}`;
+  const navItems = useMemo<Array<Record<string, any>>>(() => {
+    if (mainNav && mainNav.length) return mainNav;
+    if (Array.isArray(header.mainNav) && header.mainNav.length) return header.mainNav as Array<Record<string, any>>;
+    return FALLBACK_NAV as Array<Record<string, any>>;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainNav, header.mainNav]);
+
+  // 源码 measureSearchBlockHeight：logo 高度/垂直偏移与导航左右缩进按搜索框实际尺寸计算。
+  useEffect(() => {
+    if (isCartPage) return;
+    if (typeof window === 'undefined') return;
+    let frame = 0;
+    const measure = () => {
+      const root = searchWrapRef.current;
+      if (!root) return;
+      const searchRect = root.getBoundingClientRect();
+      const wrapper = headerWrapperRef.current;
+      const wrapperRect = wrapper?.getBoundingClientRect();
+      if (wrapper && wrapperRect && Number.isFinite(searchRect.left) && Number.isFinite(searchRect.right) && searchRect.right > searchRect.left) {
+        const style = window.getComputedStyle(wrapper);
+        const contentLeft = wrapperRect.left + (Number.parseFloat(style.paddingLeft) || 0);
+        const contentRight = wrapperRect.right - (Number.parseFloat(style.paddingRight) || 0);
+        setNavOffsetLeft(Math.max(0, Math.round(searchRect.left - contentLeft)));
+        setNavOffsetRight(Math.max(0, Math.round(contentRight - searchRect.right)));
+      } else {
+        setNavOffsetLeft(null);
+        setNavOffsetRight(null);
+      }
+      const input = root.querySelector<HTMLElement>('.top-search') || root;
+      const rect = input.getBoundingClientRect();
+      if (Number.isFinite(rect.top) && Number.isFinite(rect.bottom) && rect.bottom > rect.top) {
+        setLogoAreaHeight(Math.max(40, Math.ceil(rect.bottom - rect.top)));
+        if (wrapperRect && Number.isFinite(wrapperRect.top) && wrapperRect.height > 0) {
+          const searchCenterY = (rect.top + rect.bottom) / 2;
+          const firstRowHeight = Math.min(wrapperRect.height, 60);
+          const wrapperCenterY = wrapperRect.top + firstRowHeight / 2;
+          setLogoAreaShiftY(Math.round(searchCenterY - wrapperCenterY));
+        }
+      }
+    };
+    const schedule = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        measure();
+      });
+    };
+    schedule();
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(schedule);
+      if (searchWrapRef.current) observer.observe(searchWrapRef.current);
+      if (headerWrapperRef.current) observer.observe(headerWrapperRef.current);
+    } else {
+      window.addEventListener('resize', schedule, { passive: true });
+    }
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', schedule);
+    };
+  }, [isCartPage, resolvedShopSearch, isHome, showCategory, showRightCart]);
+
+  const headerVars: React.CSSProperties = {
+    ['--pc-header-logo-area-h' as string]: `${logoAreaHeight}px`,
+    ['--pc-header-logo-area-shift-y' as string]: `${logoAreaShiftY}px`,
+    ['--pc-header-search-extra-bottom' as string]: '0px',
+    ['--pc-header-padding-bottom' as string]: '0px',
+  };
+  const categoryNavStyle: React.CSSProperties = {
+    ['--pc-header-category-mt' as string]: `${resolveFiniteNonNegativePx(header.categoryMarginTop) ?? 0}px`,
+  };
+  const searchAccentStyle: React.CSSProperties = searchAccentColor
+    ? ({ ['--pc-header-search-accent' as string]: searchAccentColor } as React.CSSProperties)
+    : {};
+  const mainNavSpacingVars: React.CSSProperties = {
+    ['--pc-header-main-nav-mt' as string]: `${resolveMainNavSpacingPx(header, 'top') ?? 0}px`,
+    ...(resolveMainNavSpacingPx(header, 'bottom') != null
+      ? { ['--pc-header-main-nav-mb' as string]: `${resolveMainNavSpacingPx(header, 'bottom')}px` }
+      : {}),
+    ...(navOffsetLeft != null ? { ['--pc-header-nav-offset-left' as string]: `${navOffsetLeft}px` } : {}),
+    ...(navOffsetRight != null ? { ['--pc-header-nav-offset-right' as string]: `${navOffsetRight}px` } : {}),
   };
 
+  if (styleType === 1) {
+    return <PcHeaderSimple config={header} isWhite={isWhite} page={page} shopSearch={resolvedShopSearch} />;
+  }
+
+  const logoSrc = logo || siteLogo;
+
   return (
-    <header className={`pc-header-runtime pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
-      <PcHeaderTopBar config={header as Record<string, any>} showLocale={styleType !== 2} styleType={styleType} />
+    <div className="pc-header-runtime">
+      <PcHeaderTopBar config={header} styleType={styleType} isWhite={isWhite} />
 
-      <div className={`page-container pc-header-divider--${dividerStyle}`}>
-        <div className="page-header-inner">
-          <div className="page-c-warap">
-            <div className="page-header-home__left">
-              <div className={`logo-slot${showCategory ? '' : ' logo-slot--wide'}`}>
-                <div className={`logo logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
-                  <div className="logo-area">
-                    <Link href="/" className={`logo-link pc-header__brand pc-header__brand--align-${logoAlign}`}>
-                      {logo || siteLogo ? <img src={logo || siteLogo} alt="" style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth, height: logoHeight }} /> : null}
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              {showCategory ? (
-                <div className="category-nav">
-                  <PcAllCategory />
-                </div>
-              ) : null}
-            </div>
-
-            <div className="page-header-home__center">
-              <div className="search-nav-box">
-                <div className="search-bar">
-                  <div className={`top-search${header.isWhite === 0 ? '' : ' white'}`} style={searchStyle}>
-                    <div className="search-form">
-                      <div className="acea-row row-middle">
-                        <input
-                          className="search-input"
-                          value={keyword}
-                          onChange={(event) => setKeyword(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') goSearch();
-                          }}
-                          placeholder="请输入关键词"
-                          autoComplete="off"
-                          name="keywords"
-                        />
-                        <button type="button" className="search-submit" onClick={goSearch}>
-                          <Search size={18} />
-                        </button>
-                      </div>
+      {isCartPage ? (
+        <PcHeaderCartContent config={header} isWhite={isWhite} page={page} shopSearch={resolvedShopSearch} />
+      ) : (
+        <div className={`page-container ${dividerClass}`}>
+          <div className="page-header-inner" style={headerVars}>
+            <div className="page-c-warap" ref={headerWrapperRef}>
+              <div className="page-header-home__left">
+                <div className={`logo-slot${showCategory ? '' : ' logo-slot--wide'}`}>
+                  <div className={`logo ${logoAlignClass}`}>
+                    <div className="logo-area">
+                      <Link href="/" className="alv1 logo-link">
+                        {logoSrc ? (
+                          <img src={logoSrc} style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} alt="" />
+                        ) : null}
+                      </Link>
                     </div>
                   </div>
                 </div>
+                {showCategory ? (
+                  <div className="category-nav" style={categoryNavStyle}>
+                    <PcAllCategory isWhite={isWhite} />
+                  </div>
+                ) : null}
+              </div>
 
-                {showNav ? (
-                  <ul className={`sub-nav sub-nav--stacked${pathname === '/' ? ' sub-nav--home' : ''}`}>
-                    {navItems.map((item, index) => (
-                      <li key={index}>
-                        <Link href={item.link || '/'}>{item.title || item.name || item.label}</Link>
-                      </li>
-                    ))}
-                  </ul>
+              <div className="page-header-home__center">
+                <div className="search-nav-box">
+                  <div
+                    className={`search-bar${searchAccentColor ? ' search-bar--accent' : ''}`}
+                    ref={searchWrapRef}
+                    style={searchAccentStyle}
+                  >
+                    {resolvedShopSearch ? (
+                      <PcShopSearchInput page={page} />
+                    ) : (
+                      <PcSearchBox isWhite={isWhite} accentColor={searchAccentColor} />
+                    )}
+                  </div>
+                  {showMainNav ? (
+                    <ul className={`sub-nav sub-nav--stacked${isHome ? ' sub-nav--home' : ''}`} style={mainNavSpacingVars}>
+                      {navItems.map((item, index) => (
+                        <li key={index}>
+                          <Link className="alv1" href={navHrefOf(item)}>
+                            {navTitleOf(item)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="page-header-home__right">
+                <div className="language-bar">
+                  <PcLocaleSelect isWhite={isWhite} langLabelMode="localeCode" className="item" />
+                </div>
+                <div className="mine-bar">
+                  <PcMine isWhite={isWhite} />
+                </div>
+                {showRightCart ? (
+                  <div className="car-bar">
+                    <PcCartEntry cartStyle={cartStyle} cartPic={cartPic} />
+                  </div>
                 ) : null}
               </div>
             </div>
-
-            <div className="page-header-home__right">
-              {styleType === 2 ? (
-                <div className="language-bar">
-                  <PcLocaleSelect className="pc-header__locale" />
-                </div>
-              ) : null}
-              {styleType === 2 ? (
-                <div className="mine-bar">
-                  <PcMine />
-                </div>
-              ) : null}
-              {showRightCart ? (
-                <div className="car-bar">
-                  <PcCartEntry cartStyle={cartStyle} cartPic={cartPic} />
-                </div>
-              ) : null}
-              <button
-                type="button"
-                className="pc-header__menu-btn"
-                aria-label="打开菜单"
-                aria-expanded={menuOpen}
-                onClick={() => setMenuOpen((open) => !open)}
-              >
-                <HamburgerButton size={20} />
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-
-      {menuOpen ? (
-        <div className="pc-mobile-nav">
-          <button type="button" className="pc-mobile-nav__overlay" aria-label="关闭菜单" onClick={() => setMenuOpen(false)} />
-          <div className="pc-mobile-nav__panel">
-            <div className="pc-mobile-nav__head">
-              <b>菜单</b>
-              <button type="button" aria-label="关闭菜单" onClick={() => setMenuOpen(false)}><Close size={20} /></button>
-            </div>
-            {navItems.map((item, index) => (
-              <Link key={index} href={item.link || '/'} onClick={() => setMenuOpen(false)}>
-                {item.title || item.name || item.label}
-              </Link>
-            ))}
-            <Link href="/member" onClick={() => setMenuOpen(false)}>我的账户</Link>
-            <Link href="/cart" onClick={() => setMenuOpen(false)}>购物车</Link>
-          </div>
-        </div>
-      ) : null}
-    </header>
+      )}
+    </div>
   );
 }
+

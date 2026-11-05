@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * 头部「我的」入口（源码：view/pc/components/common/components/Mine.vue）
+ *
+ * - 未登录：.category-wrap > .bar-wrap > .content（登录）
+ * - 已登录：hover 弹层 .popover-mine-content（会员信息 + 菜单）
+ * - 评价入口受后台 productCommentEnabled 控制（D1146）
+ * - 头像空时回退 defaultAvatar（config/base）
+ */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import User from '@icon-park/react/es/icons/User';
@@ -12,17 +20,38 @@ interface MineUser {
   [key: string]: unknown;
 }
 
-export default function PcMine() {
+export default function PcMine({ isWhite = false }: { isWhite?: boolean }) {
   const [user, setUser] = useState<MineUser | null>(null);
   const [open, setOpen] = useState(false);
+  const [defaultAvatar, setDefaultAvatar] = useState('');
+  const [commentEnabled, setCommentEnabled] = useState(1);
+
+  useEffect(() => {
+    fetch('/api/common/config/base')
+      .then((response) => response.json())
+      .then((json) => {
+        setDefaultAvatar(String(json?.data?.defaultAvatar || ''));
+        setCommentEnabled(Number(json?.data?.productCommentEnabled ?? 1));
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    if (!token) return;
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    let cancelled = false;
     fetch('/api/user/user/detail', { headers: { Authorization: `Bearer ${token}` }, credentials: 'include' })
       .then((response) => response.json())
-      .then((json) => setUser(json?.data || null))
+      .then((json) => {
+        if (!cancelled) setUser(json?.data || null);
+      })
       .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const logout = () => {
@@ -31,47 +60,77 @@ export default function PcMine() {
     window.location.href = '/';
   };
 
+  const avatarSrc = String(user?.avatar || defaultAvatar || '');
   const name = String(user?.nickname || user?.dimUsername || '我的');
 
   if (!user) {
     return (
-      <div className="category-wrap">
+      <div className={`category-wrap${isWhite ? ' white' : ''}`}>
         <div className="bar-wrap">
-          <Link href="/login" className="content">
-            <div className="icon"><User size={18} /></div>
-            <div className="txt">登录</div>
-          </Link>
+          <div className="content">
+            <Link href="/member/login" className="content">
+              <div className="icon">
+                <User size={18} />
+              </div>
+              <div className="txt">登录</div>
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="category-wrap" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+    <div
+      className={`category-wrap${isWhite ? ' white' : ''}`}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <div className="bar-wrap">
         <div className="content">
           <Link href="/member" className="content">
-            <div className="icon"><User size={18} /></div>
+            <div className="icon">
+              <User size={18} />
+            </div>
             <div className="txt">我的</div>
-            <div className="icon ml"><Down className={`arrow${open ? ' rotate' : ''}`} size={14} /></div>
+            <div className="icon ml">
+              <Down className={`arrow${open ? ' rotate' : ''}`} size={14} />
+            </div>
           </Link>
         </div>
       </div>
+
       {open ? (
         <div className="popover-mine-content">
-          <Link href="/member" className="member-info">
-            <div className="avatar">
-              {user.avatar ? <img src={String(user.avatar)} alt="" referrerPolicy="no-referrer" /> : null}
-            </div>
-            <div className="name">{name}</div>
-          </Link>
+          <div>
+            <Link href="/member" className="member-info">
+              <div className="avatar">
+                {avatarSrc ? <img src={avatarSrc} alt="" referrerPolicy="no-referrer" /> : null}
+              </div>
+              <div className="name">{name}</div>
+            </Link>
+          </div>
           <div className="menu-wrap">
-            <Link href="/member/order/list" className="item-wrap">我的订单</Link>
-            <Link href="/member/comment/list" className="item-wrap">我的评价</Link>
-            <Link href="/member/collectProduct/list" className="item-wrap">心愿单</Link>
-            <Link href="/member/address/list" className="item-wrap">收货地址</Link>
-            <Link href="/member/browsingHistory/list" className="item-wrap">浏览记录</Link>
-            <button type="button" className="item-wrap logout" onClick={logout}>退出登录</button>
+            <Link href="/member/order/list" className="item-wrap">
+              我的订单
+            </Link>
+            {commentEnabled === 1 ? (
+              <Link href="/member/comment/list" className="item-wrap">
+                我的评价
+              </Link>
+            ) : null}
+            <Link href="/member/collectProduct/list" className="item-wrap">
+              心愿单
+            </Link>
+            <Link href="/member/address/list" className="item-wrap">
+              收货地址
+            </Link>
+            <Link href="/member/browsingHistory/list" className="item-wrap">
+              浏览记录
+            </Link>
+            <a className="item-wrap logout" onClick={logout}>
+              退出登录
+            </a>
           </div>
         </div>
       ) : null}
