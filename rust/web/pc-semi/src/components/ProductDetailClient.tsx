@@ -28,15 +28,27 @@ export default function ProductDetailClient({ detail }: { detail: ProductDetailR
     return selected?.productPrice ?? item.productPrice;
   }, [detail.skuList, skuId, item.productPrice]);
 
-  const add = async () => {
+  const requireLogin = () => {
+    if (typeof window === 'undefined') return true;
+    if (localStorage.getItem('accessToken')) return true;
+    window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    return false;
+  };
+
+  const add = async (next?: 'cart' | 'checkout') => {
+    if (!requireLogin()) return;
     setAdding(true);
     try {
       await addToCart({ id: Number(item.productId), number: quantity, skuId, isQuick: 0 });
+      if (next === 'checkout') {
+        window.location.href = '/order/check';
+        return;
+      }
       Toast.success({ content: '已加入购物车' });
     } catch (error) {
       const message = error instanceof Error ? error.message : '加入购物车失败';
       if (message.includes('登录') || message.includes('401')) {
-        Toast.warning({ content: '请先登录后再加入购物车' });
+        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
       } else {
         Toast.error({ content: message });
       }
@@ -46,6 +58,7 @@ export default function ProductDetailClient({ detail }: { detail: ProductDetailR
   };
 
   const collect = async () => {
+    if (!requireLogin()) return;
     try {
       await apiPost('user/collectProduct/save', { productId: Number(item.productId) });
       Toast.success({ content: '已收藏商品' });
@@ -131,10 +144,10 @@ export default function ProductDetailClient({ detail }: { detail: ProductDetailR
           </div>
 
           <div className="pc-product-detail__actions">
-            <Button size="large" theme="solid" type="primary" icon={<IconCart />} loading={adding} onClick={add}>
+            <Button size="large" theme="solid" type="primary" icon={<IconCart />} loading={adding} onClick={() => void add()}>
               加入购物车
             </Button>
-            <Button size="large" theme="light" type="primary" icon={<IconCreditCard />} onClick={add}>
+            <Button size="large" theme="light" type="primary" icon={<IconCreditCard />} onClick={() => void add('checkout')}>
               立即购买
             </Button>
             <Button size="large" onClick={collect}>收藏</Button>
