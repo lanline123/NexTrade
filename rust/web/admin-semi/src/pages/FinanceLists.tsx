@@ -98,9 +98,24 @@ export function OrderInvoiceList() {
   const columns: ColumnConfig<FinanceRow>[] = [
     { title: '申请会员', dataIndex: 'username', width: 150 },
     { title: '公司名称/抬头', dataIndex: 'companyName' },
+    {
+      title: '发票类型',
+      dataIndex: 'invoiceType',
+      width: 130,
+      render: (val: any) => (Number(val) === 2 ? '增值发票' : '普通发票'),
+    },
+    { title: '申请订单', dataIndex: 'orderSn', width: 180 },
     { title: '金额', dataIndex: 'amount', width: 110 },
     { title: '申请日期', dataIndex: 'addTime', width: 180 },
-    { title: '申请状态', dataIndex: 'statusName', width: 120 },
+    {
+      title: '申请状态',
+      dataIndex: 'statusName',
+      width: 120,
+      render: (val: any, row: FinanceRow) => {
+        const text = val || (Number(row.status) === 0 ? '待处理' : Number(row.status) === 1 ? '已开' : '失败/作废');
+        return text;
+      },
+    },
   ];
   return (
     <ListPage<FinanceRow>
