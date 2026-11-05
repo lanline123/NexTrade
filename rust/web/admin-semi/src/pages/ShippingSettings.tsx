@@ -82,6 +82,11 @@ export default function ShippingSettingsPage() {
 
   return (
     <div className="config-page">
+      <div style={{ display: 'flex', gap: 8, padding: '0 0 12px' }}>
+        <Button theme="solid" type="primary">{t('配送设置')}</Button>
+        <Button onClick={() => { window.location.href = '?page=logisticsCompanyManage'; }}>{t('物流公司')}</Button>
+        <Button onClick={() => { window.location.href = '?page=shippingTplManage'; }}>{t('运费模板')}</Button>
+      </div>
       <SettingsCard
         icon={<IconSend />}
         title={t('快递发货设置')}
