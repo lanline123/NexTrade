@@ -4737,3 +4737,24 @@ img {
 .card-tabs button.is-active { border-color: #e1251b; background: #e1251b; color: #fff; }
 .card-tabs .semi-button { margin-left: auto; }
 .link-danger { border: 0; background: none; color: #e1251b; cursor: pointer; }
+
+
+/* 评价中心 */
+.comment-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.comment-tabs button { height: 34px; padding: 0 20px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+.comment-tabs button.is-active { border-color: #e1251b; background: #e1251b; color: #fff; }
+.comment-orders { display: flex; flex-direction: column; gap: 14px; }
+.comment-order { border: 1px solid #eee; border-radius: 10px; overflow: hidden; }
+.comment-order header { display: flex; justify-content: space-between; padding: 12px 16px; background: #f7f8fa; color: #666; font-size: 13px; }
+.comment-order__body { display: flex; align-items: center; gap: 20px; padding: 16px; }
+.comment-order__products { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.comment-product { display: flex; align-items: center; gap: 12px; }
+.comment-product img { width: 64px; height: 64px; object-fit: contain; background: #fafafa; }
+.comment-product p { margin: 0 0 4px; color: #333; font-size: 13px; }
+.comment-product small { color: #999; }
+.comment-order__action a { display: inline-flex; align-items: center; justify-content: center; min-width: 88px; height: 34px; padding: 0 14px; border: 1px solid #dcdfe6; border-radius: 17px; color: #333; font-size: 13px; }
+.comment-order__action a.is-primary { border-color: #e1251b; background: #e1251b; color: #fff; }
+.comment-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 14px; padding-top: 10px; color: #666; font-size: 14px; }
+.comment-pagination button { border: 0; background: none; color: #333; cursor: pointer; }
+.comment-pagination button:disabled { color: #bbb; cursor: not-allowed; }
+.comment-empty { padding: 60px 0; color: #999; text-align: center; }
