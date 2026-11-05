@@ -631,3 +631,28 @@ export async function getCreditDetail(): Promise<CreditDetail | null> {
   const response = await fetch(`${SERVER_API_BASE}/api/user/user/creditDetail`, { cache: 'no-store' });
   return readData<CreditDetail>(response);
 }
+
+
+export interface GrouponRecordDetail {
+  grouponPromotionRecordId?: number;
+  productId?: number;
+  productName?: string;
+  picThumb?: string;
+  grouponImage?: string;
+  productPrice?: number | string;
+  minGrouponPrice?: number | string;
+  minGroupNum?: number;
+  joinNumCount?: number;
+  joinStatus?: number;
+  joinStatusDesc?: string;
+  endTime?: string;
+  orderId?: number;
+  shopTitle?: string;
+  joinUsers?: Array<{ userId?: number; nickname?: string; avatar?: string }>;
+  [key: string]: unknown;
+}
+
+export async function getGrouponRecordDetail(recordId: number): Promise<GrouponRecordDetail | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/promotion/groupon/record/details?grouponPromotionRecordId=${recordId}`, { cache: 'no-store' });
+  return readData<GrouponRecordDetail>(response);
+}

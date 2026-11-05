@@ -4912,3 +4912,29 @@ img {
 .groupon-card__meta { display: flex; gap: 20px; color: #8a919f; font-size: 13px; }
 .groupon-card__actions { display: flex; gap: 14px; margin-top: auto; }
 .groupon-card__actions a { color: #e1251b; font-size: 13px; }
+
+
+/* 拼团详情 */
+.groupon-detail { padding: 24px; border-radius: 12px; background: #fff; }
+.groupon-detail__head { display: flex; gap: 24px; }
+.groupon-detail__head img { width: 180px; height: 180px; object-fit: contain; background: #fafafa; border-radius: 10px; }
+.groupon-detail__info h2 { margin: 0 0 12px; color: #1a1a1a; font-size: 20px; }
+.groupon-detail__status { display: inline-block; padding: 2px 10px; border-radius: 10px; background: #fff1f0; color: #e1251b; font-size: 12px; }
+.groupon-detail__price { margin-top: 10px; color: #666; font-size: 14px; }
+.groupon-detail__price b { color: #e1251b; font-size: 20px; }
+.groupon-detail__shop { margin-top: 8px; color: #8a919f; font-size: 13px; }
+.groupon-detail__progress { margin-top: 24px; }
+.groupon-detail__count { color: #1a1a1a; font-weight: 600; }
+.groupon-progress { height: 8px; margin: 8px 0; overflow: hidden; border-radius: 4px; background: #f0f0f0; }
+.groupon-progress i { display: block; height: 100%; border-radius: 4px; background: #e1251b; }
+.groupon-detail__remain { color: #e1251b; font-size: 13px; }
+.groupon-detail__users { margin-top: 24px; }
+.groupon-detail__users h3 { margin: 0 0 12px; color: #1a1a1a; font-size: 16px; }
+.groupon-users { display: flex; flex-wrap: wrap; gap: 14px; }
+.groupon-user { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 72px; }
+.groupon-user img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #f0f0f0; }
+.groupon-user span { overflow: hidden; width: 100%; color: #666; font-size: 12px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.groupon-detail__empty { color: #999; font-size: 13px; }
+.groupon-detail__actions { display: flex; gap: 14px; margin-top: 26px; }
+.groupon-detail__actions a { display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 20px; border: 1px solid #dcdfe6; border-radius: 18px; color: #333; font-size: 13px; }
+.groupon-detail__actions a.is-primary { border-color: #e1251b; background: #e1251b; color: #fff; }
