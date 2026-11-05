@@ -5346,3 +5346,17 @@ img {
 .pc-header-runtime .top-search .search-input { flex: 1; height: 26px; padding: 6px 10px; border: 0; border-radius: 8px; background: #fff; color: #bbbbbb; font-size: 14px; line-height: 26px; outline: none; }
 .pc-header-runtime .top-search .search-input::placeholder { color: #9ca3af; font-size: 14px; }
 .pc-header-runtime .top-search .search-submit { display: flex; align-items: center; justify-content: center; width: 58px; height: 32px; margin-right: 3px; border: 0; border-radius: 4px; background: var(--pc-header-search-accent, #1a1a1a); color: #fff; cursor: pointer; font-size: 22px; }
+
+/* 按 LanguageChangeNew.vue 重建语言切换 */
+.pc-header-runtime .lang-change { position: relative; }
+.pc-header-runtime .lang-box { display: flex; align-items: center; padding: 0; border: 0; background: transparent; color: #1a1a1a; cursor: pointer; font-size: 14px; }
+.pc-header-runtime .lang-box:hover { color: var(--primary-dark-2, #165dff); }
+.pc-header-runtime .lang-box .lang-text { margin-left: 6px; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-header-runtime .lang-box .arrow { align-self: self-end; margin-left: 3px; margin-bottom: 2px; transition: all .2s; }
+.pc-header-runtime .lang-box .arrow.rotate { transform: rotate(180deg); }
+.pc-header-runtime .lang-popover { position: absolute; top: calc(100% + 10px); left: 50%; z-index: 50; width: 254px; padding: 16px; border-radius: 8px; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.12); transform: translateX(-50%); }
+.pc-header-runtime .lang-popover .common-title { color: #1a1a1a; font-size: 14px; font-weight: bold; text-transform: capitalize; }
+.pc-header-runtime .lang-popover .lang-list { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 15px; margin-bottom: 10px; padding-bottom: 0; }
+.pc-header-runtime .lang-popover .lang-item { display: flex; align-items: center; width: 100%; height: 30px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #333; font-size: 14px; text-align: left; cursor: pointer; }
+.pc-header-runtime .lang-popover .lang-item:hover { background: #f5f7fa; }
+.pc-header-runtime .lang-popover .lang-item.is-active { color: var(--primary-dark-2, #165dff); font-weight: 600; }

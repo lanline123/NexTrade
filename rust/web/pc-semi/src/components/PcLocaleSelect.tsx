@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Translate from '@icon-park/react/es/icons/Translate';
+import Down from '@icon-park/react/es/icons/Down';
 import { normalizeLocale, writeLocaleCookie } from '@/i18n';
 
 type LocaleItem = { localeCode: string; language: string; isDefault?: number };
@@ -10,6 +12,7 @@ export default function PcLocaleSelect({ className = '' }: { className?: string 
   const { i18n } = useTranslation();
   const [locales, setLocales] = useState<LocaleItem[]>([]);
   const [code, setCode] = useState('');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/common/i18n/getLocales')
@@ -28,21 +31,37 @@ export default function PcLocaleSelect({ className = '' }: { className?: string 
 
   if (locales.length <= 1) return null;
 
+  const label = code ? code.toUpperCase() : '';
+
   return (
-    <select
-      className={`pc-locale-select ${className}`.trim()}
-      value={code}
-      aria-label="切换语言"
-      onChange={(event) => {
-        const next = event.target.value;
-        setCode(next);
-        writeLocaleCookie(next);
-        void i18n.changeLanguage(normalizeLocale(next));
-      }}
-    >
-      {locales.map((item) => (
-        <option key={item.localeCode} value={item.localeCode}>{item.language}</option>
-      ))}
-    </select>
+    <div className={`lang-change ${className}`.trim()} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button type="button" className="lang-box" aria-label="切换语言" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        <Translate className="language" size={20} />
+        <span className="lang-text">{label}</span>
+        <Down className={`arrow${open ? ' rotate' : ''}`} size={14} />
+      </button>
+      {open ? (
+        <div className="lang-popover">
+          <div className="common-title">语言</div>
+          <div className="lang-list show-lang">
+            {locales.map((item) => (
+              <button
+                key={item.localeCode}
+                type="button"
+                className={`lang-item${item.localeCode === code ? ' is-active' : ''}`}
+                onClick={() => {
+                  setCode(item.localeCode);
+                  writeLocaleCookie(item.localeCode);
+                  void i18n.changeLanguage(normalizeLocale(item.localeCode));
+                  window.location.reload();
+                }}
+              >
+                {item.language} - {item.localeCode.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
