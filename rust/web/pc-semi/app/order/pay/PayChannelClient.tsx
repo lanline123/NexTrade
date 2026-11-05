@@ -57,33 +57,45 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
   const [expired, setExpired] = useState(false);
   const [isAlipay, setIsAlipay] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<{ timer: ReturnType<typeof setInterval> | null; count: number; inFlight: boolean; finished: boolean }>({
+    timer: null,
+    count: 0,
+    inFlight: false,
+    finished: false,
+  });
   const brandLabel = BRAND_LABELS[brand];
 
   const stopPoll = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
+    const state = pollRef.current;
+    if (state.timer) clearInterval(state.timer);
+    pollRef.current = { timer: null, count: 0, inFlight: false, finished: false };
   }, []);
 
+  /** 支付状态轮询：2s × 50，带 in-flight / finished 去重（源码渠道页口径） */
   const startPoll = useCallback(() => {
     stopPoll();
-    let count = 0;
-    pollRef.current = setInterval(async () => {
-      count += 1;
+    const id = new URLSearchParams(window.location.search).get('id');
+    pollRef.current.timer = setInterval(async () => {
+      const state = pollRef.current;
+      if (state.inFlight || state.finished) return;
+      state.inFlight = true;
+      state.count += 1;
       try {
-        const status = await apiGet<number>('order/pay/checkStatus', { id: new URLSearchParams(window.location.search).get('id') });
+        const status = await apiGet<number>('order/pay/checkStatus', { id });
         if (Number(status) > 0) {
+          state.finished = true;
           stopPoll();
-          Toast.success({ content: '订单支付成功' });
+          Toast.success({ content: '支付完成' });
           window.location.href = '/member/order/list';
           return;
         }
       } catch {
         /* 忽略单次异常 */
+      } finally {
+        pollRef.current.inFlight = false;
       }
-      if (count >= 50) {
+      if (pollRef.current.count >= 50 && !pollRef.current.finished) {
+        pollRef.current.finished = true;
         stopPoll();
         setExpired(true);
         Toast.error({ content: '支付已超时，您可以刷新页面重新支付' });
@@ -92,6 +104,7 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
   }, [stopPoll]);
 
   const backToPay = useCallback(() => {
+    stopPoll();
     const id = new URLSearchParams(window.location.search).get('id') || '';
     if (window.opener) {
       window.close();
@@ -110,7 +123,8 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
       return;
     }
     if (!localStorage.getItem('accessToken')) {
-      window.location.replace(`/login?redirect=${encodeURIComponent(`/order/${brand}?id=${id}`)}`);
+      const redirect = `${window.location.pathname}${window.location.search}`;
+      window.location.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
       return;
     }
     const saleMode = query.get('type') === 'saleMode';

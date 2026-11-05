@@ -205,7 +205,8 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         setShippingData((shippingResult || {}) as Record<string, ShippingTypeOption[]>);
         setCouponIds(Array.isArray(checkResult.useCouponIds) ? checkResult.useCouponIds.map(Number) : []);
         setUserCouponIds(Array.isArray(checkResult.selectUserCouponIds) ? checkResult.selectUserCouponIds.map(Number) : []);
-        setInvoiceQualified(Boolean((invoiceStatus as any)?.item));
+        // 后端 getStatus 返回 data: 0/1（旧版接口类型写成 { item: boolean }）
+        setInvoiceQualified(Boolean(((invoiceStatus as any)?.item ?? (invoiceStatus as any)) === true || Number((invoiceStatus as any)?.item ?? (invoiceStatus as any)) === 1));
         const paymentList = (Array.isArray(paymentResult) ? paymentResult : []).filter((item) => item?.isShow !== false && !item?.disabled);
         setPayments(paymentList);
         setPayTypeId(Number(checkResult.item?.payTypeId || paymentList[0]?.typeId || 0));
@@ -238,6 +239,8 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const presale = data?.productPresale || null;
   const deliveryOption = data?.deliveryOption || null;
   const selfPickup = Number(deliveryOption?.deliveryType || 0) === 2;
+  // O2O：deliveryType=2 门店自提 / flowType=9 预约到店；普通快递（1/3）不显示该卡片
+  const showDeliveryOption = Boolean(deliveryOption) && (selfPickup || flowType === 9 || Number(deliveryOption?.deliveryType || 0) === 4);
   const needAddress = !selfPickup;
 
   const buildFormState = (overrides: Record<string, unknown> = {}) => ({
@@ -295,10 +298,39 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     if (next > 0) setUseCredit(0);
   };
 
-  const openInvoice = () => {
+  const openInvoice = async () => {
     if (giftCardMode) return;
-    setInvoiceForm({ ...EMPTY_INVOICE, ...invoiceData });
+    const base: InvoiceData = { ...EMPTY_INVOICE, ...invoiceData };
+    if (!base.email && selectedAddress?.email) base.email = selectedAddress.email;
+    if (!base.mobile && selectedAddress?.mobile) base.mobile = selectedAddress.mobile;
+    if (Number(base.titleType) === 1 && !base.companyName && selectedAddress?.consignee) {
+      base.companyName = selectedAddress.consignee;
+    }
+    setInvoiceForm(base);
     setInvoiceOpen(true);
+    // 旧版 fetcCheckInvoice：回填最近一次普通发票抬头（接口无数据时忽略）
+    try {
+      const last = await apiGet<Record<string, any> | null>('order/check/getInvoice', {
+        invoiceType: Number(base.invoiceType) || 1,
+        titleType: Number(base.titleType) || 1,
+      });
+      const row = last && typeof last === 'object' ? ((last as any).item ?? last) : null;
+      if (row && typeof row === 'object') {
+        setInvoiceForm((prev) => ({
+          ...prev,
+          companyName: String(row.companyName || prev.companyName || ''),
+          companyCode: String(row.companyCode || prev.companyCode || ''),
+          companyAddress: String(row.companyAddress || prev.companyAddress || ''),
+          companyPhone: String(row.companyPhone || prev.companyPhone || ''),
+          companyBank: String(row.companyBank || prev.companyBank || ''),
+          companyAccount: String(row.companyAccount || prev.companyAccount || ''),
+          email: String(row.email || prev.email || ''),
+          invoiceContent: String(row.invoiceContent || prev.invoiceContent || ''),
+        }));
+      }
+    } catch {
+      /* 预填失败不阻断开票 */
+    }
   };
 
   const confirmInvoice = () => {
@@ -433,7 +465,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         </Card>
       ) : null}
 
-      {deliveryOption ? (
+      {showDeliveryOption ? (
         <Card className="pc-checkout__card" title="配送方式">
           <p>
             {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? '门店自提' : '配送')}

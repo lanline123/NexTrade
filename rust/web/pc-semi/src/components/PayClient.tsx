@@ -3,18 +3,20 @@
 /**
  * PC 收银台（源码：view/pc/pages/order/pay.vue）
  *
- * 迁移要点：
- * - 支付方式图标/选择：paymentList → 渠道图标卡片（Icon 内联 SVG），默认选第一个可用渠道
- * - 线下支付：offlinePaymentList 四个 Tab（第三方转账/银行汇款/企业汇款/其他汇款）
- *   + 「填写付款确认」弹窗（转账时间/付款人/流水号/付款凭证 ≤5 张、单张 ≤2MB），
- *     提交 `user/order/offlinePaymentClaim/submit`，修改前读取 `.../detail`
- *   + 按钮文案按 order.offlinePaymentClaimStatus：2=修改申请 / 0=认款详情 / 其它=付款完成
- * - Apple Pay：能力检测（ApplePaySession.canMakePayments）+ 内联拉起
- *   （onvalidatemerchant → order/pay/applepay/validateMerchant，
- *     onpaymentauthorized → order/pay/applepay/confirm，成功后兜底轮询 checkStatus）；
- *   不支持时展示 Apple Pay 参数面板（countryCode/currencyCode/networks/capabilities/total）
- * - 支付状态轮询：每 2s，最多 50 次；成功提示后跳订单列表，超时提示刷新
- * - 预售定金（type=saleMode）走 `order/pay/createDepositPayment`
+ * 与源码对齐的实现：
+ * - 支付方式：按 paymentList 白名单（源码 PAYMENT_ICON_MAP）过滤出渠道图标卡片，
+ *   stripe/antom/xendit 仅跨境站展示，applepay 仅支持 Apple Pay 的 Safari 展示；
+ *   默认选中第一个可用渠道
+ * - 去付款：applepay 内联 ApplePaySession；stripe/antom/xendit 创建支付会话后按
+ *   payInfo.url / html 重定向；其余渠道打开 `/order/{channel}` 渠道页
+ *   （wechat/alipay/paypal/yabanpay/huifu/lakala/yeepay）；无独立渠道页的
+ *   yunpay* 走页内二维码兜底
+ * - 线下支付：offlinePaymentList 四个说明 Tab + 付款确认弹层
+ *   （转账时间/付款人/流水号/付款凭证 ≤5 张且单张 ≤2MB，上传 /user/user/uploadImg，
+ *    提交 user/order/offlinePaymentClaim/submit，修改前读取 .../detail；
+ *    按钮文案按 order.offlinePaymentClaimStatus：2=修改申请 / 0=认款详情 / 其它=付款完成）
+ * - 轮询：每 2s、最多 50 次，带 in-flight / finished 去重，成功后只跳转一次
+ * - 预售定金：type=saleMode 或 presaleInfo 判定时走 createDepositPayment
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -22,6 +24,11 @@ import { Button, Card, Input, Modal, Toast, Typography } from '@douyinfe/semi-ui
 import { apiGet, apiPost } from '@/lib/client-api';
 
 type PaymentMethod = string | { type?: string; name?: string; typeName?: string };
+
+interface PayPresaleInfo {
+  saleMode?: number;
+  presaleStatus?: number;
+}
 
 interface PayOrder {
   orderId?: number;
@@ -32,6 +39,7 @@ interface PayOrder {
   payTypeId?: number;
   offlinePaymentClaimStatus?: number;
   grouponPromotionRecordId?: number;
+  presaleInfo?: PayPresaleInfo;
 }
 
 interface PayInfo {
@@ -53,6 +61,34 @@ interface OfflineClaim {
   auditRemark?: string | null;
 }
 
+/** 源码重定向类支付：创建会话后直接跳转（stripe / antom / xendit） */
+const REDIRECT_PAY_TYPES = ['stripe', 'antom', 'xendit'];
+
+/** 本仓库为跨境版 PC（v5.8.61），源码 isOverseas() 在此恒为 true；可用环境变量覆盖调试 */
+const IS_OVERSEAS = process.env.NEXT_PUBLIC_PC_OVERSEAS !== '0';
+
+/** 源码 PAYMENT_ICON_MAP 白名单（小写） */
+const KNOWN_CHANNEL_TYPES = new Set([
+  'wechat',
+  'alipay',
+  'paypal',
+  'yabanpaywechat',
+  'yabanpayalipay',
+  'yunpaywechat',
+  'yunpayalipay',
+  'yunpayyunshanfu',
+  'stripe',
+  'antom',
+  'xendit',
+  'huifuwechat',
+  'huifualipay',
+  'lakalawechat',
+  'lakalaalipay',
+  'yeepaywechat',
+  'yeepayalipay',
+  'applepay',
+]);
+
 const CHANNEL_LABELS: Record<string, string> = {
   wechat: '微信支付',
   alipay: '支付宝',
@@ -66,11 +102,9 @@ const CHANNEL_LABELS: Record<string, string> = {
   huifu: '汇付天下',
   yabanpay: 'YabandPay',
   applepay: 'Apple Pay',
-  offline: '线下汇款',
-  balance: '余额支付',
 };
 
-/** 旧版线下支付 Tab 文案与 el-tabs name（源 pay.vue） */
+/** 旧版线下支付 Tab（源 pay.vue offlinePaymentList 键与 el-tabs name） */
 const OFFLINE_TABS: Array<{ key: string; label: string; name: number }> = [
   { key: 'thirdPartyPaymentTransfer', label: '第三方支付转账', name: 3 },
   { key: 'offlinePayBank', label: '银行汇款', name: 1 },
@@ -81,20 +115,9 @@ const OFFLINE_TABS: Array<{ key: string; label: string; name: number }> = [
 const OFFLINE_IMAGE_TYPES = /^image\/(png|jpe?g|gif|webp|tiff)$/i;
 const OFFLINE_MAX_FILES = 5;
 const OFFLINE_MAX_SIZE = 2 * 1024 * 1024;
+const POLL_INTERVAL = 2000;
+const POLL_MAX_ATTEMPTS = 50;
 
-const REDIRECT_PAY_TYPES = ['stripe', 'antom', 'xendit'];
-
-function normalizePaymentMethods(list: PaymentMethod[] | undefined): Array<{ type: string; label: string }> {
-  return (list || [])
-    .map((item) => {
-      if (typeof item === 'string') return { type: item, label: CHANNEL_LABELS[item.toLowerCase()] || item };
-      const type = String(item?.type || '');
-      return { type, label: item?.name || item?.typeName || CHANNEL_LABELS[type.toLowerCase()] || type };
-    })
-    .filter((item) => item.type);
-}
-
-/** Apple Pay 能力检测（仅 Safari + 支持 Apple Pay 的苹果设备） */
 function canUseApplePay(): boolean {
   try {
     const AP = typeof window !== 'undefined' ? (window as any).ApplePaySession : null;
@@ -105,44 +128,103 @@ function canUseApplePay(): boolean {
 }
 
 function formatAmount(value: number | string | undefined): string {
-  const amount = Number(value ?? 0);
-  return amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Number(value ?? 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-/** 秒级时间戳 → 「YYYY-MM-DD HH:mm」 */
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/** 秒级时间戳 → 「YYYY-MM-DD HH:mm」（源码 formatTransferTime） */
 function formatTransferTime(timestamp?: number | string): string {
   if (!timestamp) return '';
   const date = new Date(Number(timestamp) * 1000);
   if (Number.isNaN(date.getTime())) return '';
-  const pad = (value: number) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-/** 「YYYY-MM-DD HH:mm」→ 秒级时间戳；无效返回 0 */
+/** 「YYYY-MM-DD HH:mm」→ 秒级时间戳（源码 parseTransferTime） */
 function parseTransferTime(value?: string): number {
   if (!value) return 0;
   const time = new Date(`${value.replace(/-/g, '/')}:00`).getTime();
   return Number.isNaN(time) ? 0 : Math.floor(time / 1000);
 }
 
-/** 渠道路径片段 → paymentList 中的渠道 key（如 yabanpay/type=alipay → yabanpay_alipay） */
-function resolveChannelFromPath(): string {
-  if (typeof window === 'undefined') return '';
-  const segments = window.location.pathname.split('/').filter(Boolean);
-  const route = (segments[1] || '').toLowerCase();
-  const params = new URLSearchParams(window.location.search);
-  const payCode = (params.get('payCode') || '').toLowerCase();
-  const type = (params.get('type') || '').toLowerCase();
-  if (route === 'yabanpay' && type && type !== 'saleMode') return `yabanpay_${type}`;
-  if (payCode) return payCode;
-  if (route === 'huifu' || route === 'lakala' || route === 'yeepay') return `${route}${type === 'alipay' ? 'Alipay' : 'Wechat'}`.toLowerCase();
-  return route;
+/** datetime-local 用本地时间（toISOString 是 UTC，不能用于 max） */
+function localNowForInput(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
-/** 内置渠道图标（inline SVG，代替源码 assets/images/extra/payment_method_*.{jpg,png,svg}） */
+function channelLabel(type: string): string {
+  const lower = type.toLowerCase();
+  if (lower.includes('wechat')) return CHANNEL_LABELS.wechat;
+  if (lower.includes('alipay')) return CHANNEL_LABELS.alipay;
+  if (lower.includes('yunshanfu')) return '云闪付';
+  if (CHANNEL_LABELS[lower]) return CHANNEL_LABELS[lower];
+  const brand = lower.replace(/(wechat|alipay)$/, '');
+  return CHANNEL_LABELS[brand] || brand || type;
+}
+
+/** 渠道页链接（源码 payLink；无独立渠道页的 yunpay* 返回 null 走页内兜底） */
+function buildPayLink(payType: string, orderId: number, saleMode: boolean): string | null {
+  const typeParam = `&type=${saleMode ? 'saleMode' : ''}`;
+  switch (payType.toLowerCase()) {
+    case 'wechat':
+      return `/order/wechat?id=${orderId}${typeParam}`;
+    case 'alipay':
+      return `/order/alipay?id=${orderId}${typeParam}`;
+    case 'paypal':
+      return `/order/paypal?id=${orderId}${typeParam}`;
+    case 'yabanpaywechat':
+      return `/order/yabanpay?type=wechat&id=${orderId}`;
+    case 'yabanpayalipay':
+      return `/order/yabanpay?type=alipay&id=${orderId}`;
+    case 'huifuwechat':
+      return `/order/huifu?payCode=${payType}&id=${orderId}${typeParam}`;
+    case 'huifualipay':
+      return `/order/huifu?payCode=${payType}&id=${orderId}${typeParam}`;
+    case 'lakalawechat':
+      return `/order/lakala?payCode=${payType}&id=${orderId}${typeParam}`;
+    case 'lakalaalipay':
+      return `/order/lakala?payCode=${payType}&id=${orderId}${typeParam}`;
+    case 'yeepaywechat':
+      return `/order/yeepay?payCode=${payType}&id=${orderId}${typeParam}`;
+    case 'yeepayalipay':
+      return `/order/yeepay?payCode=${payType}&id=${orderId}${typeParam}`;
+    default:
+      return null;
+  }
+}
+
+/** paymentList → 白名单过滤后的可展示渠道（源码 paymentMethods computed） */
+function normalizePaymentMethods(
+  list: PaymentMethod[] | undefined,
+  applePayAvailable: boolean,
+): Array<{ type: string; label: string }> {
+  return (list || [])
+    .map((item) => {
+      if (typeof item === 'string') return { type: item, label: channelLabel(item) };
+      const type = String(item?.type || '');
+      return {
+        type,
+        label: item?.name || item?.typeName || channelLabel(type),
+      };
+    })
+    .filter((item) => {
+      if (!item.type) return false;
+      const lower = item.type.toLowerCase();
+      if (!KNOWN_CHANNEL_TYPES.has(lower)) return false;
+      if (REDIRECT_PAY_TYPES.includes(lower) && !IS_OVERSEAS) return false;
+      if (lower === 'applepay') return applePayAvailable;
+      return true;
+    });
+}
+
+/** 渠道图标（inline SVG，替代源码 assets/images/extra/payment_method_*） */
 function ChannelIcon({ type }: { type: string }) {
   const key = type.toLowerCase();
-  if (key.includes('wechat') || key.includes('wxpay')) {
+  if (key.includes('wechat')) {
     return (
       <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="#07c160" />
@@ -163,6 +245,22 @@ function ChannelIcon({ type }: { type: string }) {
       </svg>
     );
   }
+  if (key.includes('yunshanfu') || key.includes('yunpay')) {
+    return (
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#e1251b" />
+        <text x="16" y="23" textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff">云</text>
+      </svg>
+    );
+  }
+  if (key.includes('applepay')) {
+    return (
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#000" />
+        <text x="16" y="22" textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff">Pay</text>
+      </svg>
+    );
+  }
   if (key.includes('paypal')) {
     return (
       <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
@@ -179,42 +277,11 @@ function ChannelIcon({ type }: { type: string }) {
       </svg>
     );
   }
-  if (key.includes('applepay')) {
-    return (
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="#000" />
-        <text x="16" y="22" textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff">Pay</text>
-      </svg>
-    );
-  }
-  if (key.includes('yunshanfu') || key.includes('yunpay')) {
-    return (
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="#e1251b" />
-        <text x="16" y="23" textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff">云</text>
-      </svg>
-    );
-  }
-  if (key.includes('xendit')) {
-    return (
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="#4573ff" />
-        <text x="16" y="23" textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff">X</text>
-      </svg>
-    );
-  }
-  if (key.includes('antom')) {
-    return (
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="#ff6a00" />
-        <text x="16" y="23" textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff">A</text>
-      </svg>
-    );
-  }
+  const letter = (type || '?').slice(0, 1).toUpperCase();
   return (
     <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
       <rect width="32" height="32" rx="8" fill="#8a919f" />
-      <text x="16" y="23" textAnchor="middle" fontSize="16" fontWeight="700" fill="#fff">{(type || '?').slice(0, 1).toUpperCase()}</text>
+      <text x="16" y="23" textAnchor="middle" fontSize="16" fontWeight="700" fill="#fff">{letter}</text>
     </svg>
   );
 }
@@ -226,32 +293,82 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
   const [paying, setPaying] = useState(false);
   const [applePaying, setApplePaying] = useState(false);
   const [appleSupported, setAppleSupported] = useState(false);
+  const [saleMode, setSaleMode] = useState(false);
   const [qr, setQr] = useState('');
   const [qrTips, setQrTips] = useState('');
   const [offlineTab, setOfflineTab] = useState('');
   const [claimOpen, setClaimOpen] = useState(false);
   const [claimSubmitting, setClaimSubmitting] = useState(false);
+  const [claimUploading, setClaimUploading] = useState(false);
   const [claimDetail, setClaimDetail] = useState<OfflineClaim | null>(null);
   const [claimTransferTime, setClaimTransferTime] = useState('');
   const [claimPayerName, setClaimPayerName] = useState('');
   const [claimBankSerialNo, setClaimBankSerialNo] = useState('');
   const [claimVouchers, setClaimVouchers] = useState<string[]>([]);
-  const [claimUploading, setClaimUploading] = useState(false);
-  const [saleMode, setSaleMode] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const pollRef = useRef<{ timer: ReturnType<typeof setInterval> | null; count: number; inFlight: boolean; finished: boolean }>({
+    timer: null,
+    count: 0,
+    inFlight: false,
+    finished: false,
+  });
+  const vouchersRef = useRef<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    vouchersRef.current = claimVouchers;
+  }, [claimVouchers]);
 
   useEffect(() => {
     setAppleSupported(canUseApplePay());
     if (typeof window !== 'undefined') {
-      const type = new URLSearchParams(window.location.search).get('type') || '';
-      setSaleMode(type === 'saleMode');
+      setSaleMode(new URLSearchParams(window.location.search).get('type') === 'saleMode');
     }
   }, []);
 
+  const stopPoll = useCallback(() => {
+    const state = pollRef.current;
+    if (state.timer) clearInterval(state.timer);
+    pollRef.current = { timer: null, count: 0, inFlight: false, finished: false };
+  }, []);
+
+  /** 支付状态轮询：2s × 50，in-flight 与 finished 去重（源码渠道页口径） */
+  const startPoll = useCallback(() => {
+    stopPoll();
+    pollRef.current.timer = setInterval(async () => {
+      const state = pollRef.current;
+      if (state.inFlight || state.finished) return;
+      state.inFlight = true;
+      state.count += 1;
+      try {
+        const status = await apiGet<number>('order/pay/checkStatus', { id: orderId });
+        if (Number(status) > 0) {
+          state.finished = true;
+          stopPoll();
+          Toast.success({ content: '支付完成' });
+          window.location.href = '/member/order/list';
+          return;
+        }
+      } catch {
+        /* 单次查询失败继续下一轮 */
+      } finally {
+        pollRef.current.inFlight = false;
+      }
+      if (pollRef.current.count >= POLL_MAX_ATTEMPTS && !pollRef.current.finished) {
+        pollRef.current.finished = true;
+        stopPoll();
+        Toast.error({ content: '支付已超时，您可以刷新页面重新支付' });
+      }
+    }, POLL_INTERVAL);
+  }, [orderId, stopPoll]);
+
+  useEffect(() => () => stopPoll(), [stopPoll]);
+
   useEffect(() => {
-    if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
-      window.location.replace(`/login?redirect=${encodeURIComponent(`/order/pay?id=${orderId}`)}`);
+    if (typeof window === 'undefined') return;
+    if (!localStorage.getItem('accessToken')) {
+      const redirect = `${window.location.pathname}${window.location.search}`;
+      window.location.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
       return;
     }
     if (!orderId) {
@@ -262,70 +379,57 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
     apiGet<PayInfo>('order/pay/index', { id: orderId })
       .then((result) => {
         setInfo(result);
-        if (result.order?.grouponPromotionRecordId) {
-          window.location.replace(`/member/group/info?id=${result.order.grouponPromotionRecordId}`);
+        const order = result.order || {};
+        if (order.grouponPromotionRecordId) {
+          window.location.replace(`/member/group/info?id=${order.grouponPromotionRecordId}`);
           return;
         }
-        const methods = normalizePaymentMethods(result.paymentList)
-          .filter((method) => method.type.toLowerCase() !== 'applepay' || canUseApplePay());
-        const preferred = String(defaultChannel || resolveChannelFromPath() || '').toLowerCase();
+        // 定金预售：非尾款阶段按定金支付处理（源码 presaleInfo 判定）
+        if (Number(order.presaleInfo?.saleMode) === 2 && Number(order.presaleInfo?.presaleStatus) !== 1) {
+          setSaleMode(true);
+        }
+        const methods = normalizePaymentMethods(result.paymentList, canUseApplePay());
+        const preferred = String(defaultChannel || '').toLowerCase();
         const matched = methods.find((method) => method.type.toLowerCase() === preferred);
         setPayType(matched?.type || methods[0]?.type || '');
         const offlineKeys = result.offlinePaymentList || {};
         const firstTab = OFFLINE_TABS.find((tab) => typeof offlineKeys[tab.key] === 'string' && offlineKeys[tab.key]);
         setOfflineTab(firstTab?.key || '');
       })
-      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '订单支付信息加载失败' }))
+      .catch((error) => {
+        Toast.error({ content: error instanceof Error ? error.message : '订单支付信息加载失败' });
+        window.location.href = '/member/order/list/';
+      })
       .finally(() => setLoading(false));
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
   }, [orderId, defaultChannel]);
 
-  const stopPoll = useCallback(() => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-  }, []);
-
-  /** 支付状态轮询：每 2s、最多 50 次（源 wechat/huifu/lakala/yeepay 一致） */
-  const startPoll = useCallback(
-    (maxAttempts = 50) => {
-      stopPoll();
-      let count = 0;
-      pollRef.current = setInterval(async () => {
-        count += 1;
-        try {
-          const status = await apiGet<number>('order/pay/checkStatus', { id: orderId });
-          if (Number(status) > 0) {
-            stopPoll();
-            Toast.success({ content: '订单支付成功' });
-            window.location.href = '/member/order/list';
-            return;
-          }
-        } catch {
-          /* 单次轮询失败不打断 */
-        }
-        if (count >= maxAttempts) {
-          stopPoll();
-          Toast.error({ content: '支付已超时，您可以刷新页面重新支付' });
-        }
-      }, 2000);
-    },
-    [orderId, stopPoll],
+  const createPay = useCallback(
+    (type: string) =>
+      (saleMode
+        ? apiGet<Record<string, any>>('order/pay/createDepositPayment', { id: orderId, type })
+        : apiGet<Record<string, any>>('order/pay/create', { id: orderId, type, code: 'pc' })) as Promise<Record<string, any>>,
+    [orderId, saleMode],
   );
 
-  /** Apple Pay 授权成功后的兜底轮询（最多 5 次、每 2s） */
-  const pollPaidOnce = useCallback(
+  const stopPayAndReload = () => {
+    stopPoll();
+    setQr('');
+    setQrTips('');
+  };
+
+  /** Apple Pay 授权成功后兜底轮询（最多 5 次 × 2s） */
+  const pollApplePaid = useCallback(
     (maxAttempts = 5) =>
       new Promise<boolean>((resolve) => {
         let count = 0;
+        let finished = false;
         const timer = setInterval(async () => {
+          if (finished) return;
           count += 1;
           try {
             const status = await apiGet<number>('order/pay/checkStatus', { id: orderId });
             if (Number(status) > 0) {
+              finished = true;
               clearInterval(timer);
               resolve(true);
               return;
@@ -333,32 +437,17 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           } catch {
             /* ignore */
           }
-          if (count >= maxAttempts) {
+          if (count >= maxAttempts && !finished) {
+            finished = true;
             clearInterval(timer);
             resolve(false);
           }
-        }, 2000);
+        }, POLL_INTERVAL);
       }),
     [orderId],
   );
 
-  const createPay = useCallback(
-    (type: string) =>
-      saleMode
-        ? apiGet<Record<string, any>>('order/pay/createDepositPayment', { id: orderId, type })
-        : apiGet<Record<string, any>>('order/pay/create', { id: orderId, type, code: 'pc' }),
-    [orderId, saleMode],
-  );
-
-  const showQr = async (url: string, tips: string) => {
-    const QRCode = (await import('qrcode')).default;
-    const dataUrl = await QRCode.toDataURL(url, { width: 260, margin: 1 });
-    setQr(dataUrl);
-    setQrTips(tips);
-    startPoll();
-  };
-
-  /** 源码 useApplePay：ApplePaySession 内联拉起（不建中间页） */
+  /** Apple Pay 内联支付（源码 useApplePay + startApplePay） */
   const launchApplePay = useCallback(() => {
     if (applePaying) return;
     if (!canUseApplePay()) {
@@ -397,7 +486,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       try {
         await apiPost('order/pay/applepay/confirm', { id: orderId, token: JSON.stringify(event.payment?.token ?? event.payment) });
         session.completePayment(AP.STATUS_SUCCESS);
-        const paid = await pollPaidOnce();
+        const paid = await pollApplePaid();
         setApplePaying(false);
         if (paid) {
           Toast.success({ content: '支付完成' });
@@ -418,98 +507,110 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       setApplePaying(false);
       Toast.error({ content: 'Apple Pay 拉起失败' });
     }
-  }, [applePaying, createPay, info, orderId, pollPaidOnce]);
+  }, [applePaying, createPay, info, orderId, pollApplePaid]);
 
-  const openExternalPay = async (type: string) => {
-    setPaying(true);
-    try {
-      const result = await createPay(type);
-      const channel = (result?.payInfo || result || {}) as Record<string, any>;
-
-      if (typeof channel.html === 'string' && channel.html.includes('<form')) {
-        const win = window.open('', '_blank');
-        if (win) {
-          win.document.write(channel.html);
-          win.document.close();
-        } else {
-          Toast.error({ content: '浏览器拦截了支付窗口，请允许弹窗后重试' });
+  /** 重定向类支付（stripe / antom / xendit）：url 跳转，html 表单提交兜底 */
+  const handleRedirectPay = useCallback(
+    async (payTypeValue: string) => {
+      if (paying) return;
+      setPaying(true);
+      try {
+        const result = await createPay(payTypeValue);
+        const payInfo = (result?.payInfo || {}) as Record<string, any>;
+        if (typeof payInfo.url === 'string' && payInfo.url) {
+          window.location.href = payInfo.url;
+          return;
         }
-        startPoll();
-        return;
+        if (typeof payInfo.html === 'string' && payInfo.html) {
+          const container = document.createElement('div');
+          document.body.appendChild(container);
+          container.innerHTML = payInfo.html;
+          const forms = document.forms;
+          if (forms && forms[0]) forms[0].submit();
+          return;
+        }
+        Toast.error({ content: '支付信息获取失败，请重试' });
+      } catch (error) {
+        Toast.error({ content: error instanceof Error ? error.message : '该订单金额未满足该支付方式的最低金额要求,请选择其他支付' });
+      } finally {
+        setPaying(false);
       }
+    },
+    [createPay, paying],
+  );
 
-      const codeUrl = channel.codeUrl || channel.qrCode || channel.qr_code;
-      if (typeof codeUrl === 'string' && codeUrl) {
-        await showQr(codeUrl, type.toLowerCase().includes('wechat') ? '请使用微信扫码支付' : '请扫码支付');
-        return;
-      }
-
-      const redirectUrl = channel.h5Url || channel.url || channel.payUrl || channel.normalUrl;
-      if (typeof redirectUrl === 'string' && redirectUrl.startsWith('http')) {
-        window.location.href = redirectUrl;
-        return;
-      }
-
-      if (channel.appId && channel.paySign && channel.package) {
-        const invoke = () => {
-          const bridge = (window as any).WeixinJSBridge;
-          if (!bridge) {
-            Toast.error({ content: '请在微信客户端内打开后支付' });
-            return;
+  /** 无独立渠道页的兜底（yunpay*）：页内二维码/跳转 */
+  const handleInlinePay = useCallback(
+    async (payTypeValue: string) => {
+      setPaying(true);
+      try {
+        const result = await createPay(payTypeValue);
+        const payInfo = (result?.payInfo || result || {}) as Record<string, any>;
+        const codeUrl = payInfo.codeUrl || payInfo.qrCode || payInfo.qr_code;
+        if (typeof codeUrl === 'string' && codeUrl) {
+          const QRCode = (await import('qrcode')).default;
+          setQr(await QRCode.toDataURL(codeUrl, { width: 260, margin: 1 }));
+          setQrTips(payTypeValue.toLowerCase().includes('alipay') ? '请使用支付宝扫码支付' : '请使用微信扫码支付');
+          startPoll();
+          return;
+        }
+        if (typeof payInfo.url === 'string' && payInfo.url) {
+          window.open(payInfo.url, '_blank');
+          startPoll();
+          return;
+        }
+        if (typeof payInfo.html === 'string' && payInfo.html) {
+          const win = window.open('', '_blank');
+          if (win) {
+            win.document.write(payInfo.html);
+            win.document.close();
           }
-          bridge.invoke(
-            'getBrandWCPayRequest',
-            {
-              appId: channel.appId,
-              timeStamp: channel.timeStamp,
-              nonceStr: channel.nonceStr,
-              package: channel.package,
-              signType: channel.signType || 'RSA',
-              paySign: channel.paySign,
-            },
-            (res: any) => {
-              if (res?.err_msg === 'get_brand_wcpay_request:ok') {
-                Toast.success({ content: '支付成功' });
-                window.location.href = '/member/order/list';
-              } else {
-                Toast.error({ content: '支付未完成' });
-              }
-            },
-          );
-        };
-        if ((window as any).WeixinJSBridge) invoke();
-        else document.addEventListener('WeixinJSBridgeReady', invoke, { once: true });
-        return;
+          startPoll();
+          return;
+        }
+        Toast.error({ content: '支付信息获取失败，请重试' });
+      } catch (error) {
+        Toast.error({ content: error instanceof Error ? error.message : '发起支付失败' });
+      } finally {
+        setPaying(false);
       }
+    },
+    [createPay, startPoll],
+  );
 
-      Toast.info({ content: '支付通道已受理，请按页面提示完成支付' });
-      startPoll();
-    } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '发起支付失败' });
-    } finally {
-      setPaying(false);
-    }
-  };
-
-  const pay = async () => {
+  const pay = useCallback(() => {
     if (!payType) {
       Toast.error({ content: '请选择支付方式' });
       return;
     }
-    if (payType.toLowerCase() === 'applepay') {
+    const lower = payType.toLowerCase();
+    if (lower === 'applepay') {
       launchApplePay();
       return;
     }
-    await openExternalPay(payType);
-  };
+    const link = buildPayLink(payType, orderId, saleMode);
+    if (link) {
+      window.open(link, '_blank');
+      return;
+    }
+    if (REDIRECT_PAY_TYPES.includes(lower)) {
+      void handleRedirectPay(payType);
+      return;
+    }
+    void handleInlinePay(payType);
+  }, [payType, orderId, saleMode, launchApplePay, handleRedirectPay, handleInlinePay]);
 
   const loadOfflineClaimDetail = useCallback(async () => {
     try {
       const claim = await apiGet<OfflineClaim | null>('user/order/offlinePaymentClaim/detail', { orderId });
-      if (claim && typeof claim === 'object') setClaimDetail(claim);
+      if (claim && typeof claim === 'object') {
+        setClaimDetail(claim);
+        return claim;
+      }
     } catch {
-      /* 未提交认款时接口返回空值 */
+      /* 未提交认款 */
     }
+    return null;
   }, [orderId]);
 
   useEffect(() => {
@@ -535,17 +636,12 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
     }
     resetClaimForm();
     if (status === 2) {
-      try {
-        const claim = await apiGet<OfflineClaim | null>('user/order/offlinePaymentClaim/detail', { orderId });
-        if (claim && typeof claim === 'object') {
-          setClaimDetail(claim);
-          setClaimTransferTime(formatTransferTime(claim.transferTime));
-          setClaimPayerName(claim.payerName || '');
-          setClaimBankSerialNo(claim.bankSerialNo || '');
-          setClaimVouchers(Array.isArray(claim.voucherUrls) ? claim.voucherUrls : []);
-        }
-      } catch {
-        /* 继续展示空表单 */
+      const claim = await loadOfflineClaimDetail();
+      if (claim) {
+        setClaimTransferTime(formatTransferTime(claim.transferTime));
+        setClaimPayerName(claim.payerName || '');
+        setClaimBankSerialNo(claim.bankSerialNo || '');
+        setClaimVouchers(Array.isArray(claim.voucherUrls) ? claim.voucherUrls : []);
       }
     }
     setClaimOpen(true);
@@ -560,7 +656,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       Toast.error({ content: '只能上传2M以内的图片' });
       return;
     }
-    if (claimVouchers.length >= OFFLINE_MAX_FILES) {
+    if (vouchersRef.current.length >= OFFLINE_MAX_FILES) {
       Toast.warning({ content: '最多上传5张' });
       return;
     }
@@ -580,7 +676,11 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       if (!response.ok || (json.code !== undefined && json.code !== 0) || !picUrl) {
         throw new Error(json?.msg || json?.message || '图片上传失败');
       }
-      setClaimVouchers((list) => [...list, String(picUrl)]);
+      setClaimVouchers((list) => {
+        const next = list.length >= OFFLINE_MAX_FILES ? list : [...list, String(picUrl)];
+        vouchersRef.current = next;
+        return next;
+      });
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '图片上传失败' });
     } finally {
@@ -617,9 +717,11 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
 
   const order = info?.order || {};
   const offlineEntries = OFFLINE_TABS.filter((tab) => typeof (info?.offlinePaymentList || {})[tab.key] === 'string');
-  const offlineMode = Number(order.payTypeId || 0) >= 3 && offlineEntries.length > 0;
+  const payTypeId = Number(order.payTypeId || 0);
+  const onlineMode = payTypeId < 3;
+  const offlineMode = !onlineMode && offlineEntries.length > 0;
   const activeOffline = offlineEntries.find((tab) => tab.key === offlineTab) || offlineEntries[0];
-  const methods = normalizePaymentMethods(info?.paymentList).filter((method) => method.type.toLowerCase() !== 'applepay' || appleSupported);
+  const methods = normalizePaymentMethods(info?.paymentList, appleSupported);
   const selectedMethod = methods.find((method) => method.type === payType);
   const claimStatus = Number(order.offlinePaymentClaimStatus);
   const claimButtonText = claimStatus === 2 ? '修改申请' : claimStatus === 0 ? '认款详情' : '付款完成';
@@ -640,7 +742,6 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
 
         {offlineMode ? (
           <div className="pc-pay__offline">
-            <div className="pc-pay__label">线下汇款方式</div>
             <div className="pc-pay__offline-tabs">
               {offlineEntries.map((tab) => (
                 <button
@@ -656,7 +757,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
             {activeOffline ? (
               <div
                 className="pc-pay__offline-content"
-                // 源码：offlinePaymentList 内容为后台配置 HTML，直接 v-html
+                // 源码：offlinePaymentList 为后台配置 HTML，直接 v-html 渲染
                 dangerouslySetInnerHTML={{ __html: String((info?.offlinePaymentList || {})[activeOffline.key] || '') }}
               />
             ) : null}
@@ -669,7 +770,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
                 {claimDetail.rejectReason ? <div className="pc-pay__claim-reject">驳回原因：{claimDetail.rejectReason}</div> : null}
               </div>
             ) : null}
-            <div className="pc-pay__offline-claim-action" style={{ marginTop: 16 }}>
+            <div className="pc-pay__offline-claim-action">
               <Button theme="solid" type="primary" size="large" onClick={openOfflineClaim}>
                 {claimButtonText}
               </Button>
@@ -678,7 +779,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           </div>
         ) : null}
 
-        {!offlineMode && methods.length ? (
+        {onlineMode && methods.length ? (
           <div className="pc-pay__methods">
             <div className="pc-pay__methods-head">
               <h3>平台支付</h3>
@@ -721,19 +822,12 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
         ) : null}
 
         {qr ? (
-          <div className="pc-pay__qr" style={{ textAlign: 'center', marginTop: 16 }}>
+          <div className="pc-pay__qr">
             <Typography.Text type="tertiary">{qrTips}</Typography.Text>
-            <div style={{ marginTop: 10 }}>
+            <div className="pc-pay__qr-image">
               <img src={qr} alt="支付二维码" width={260} height={260} />
             </div>
-            <Button
-              size="small"
-              theme="borderless"
-              onClick={() => {
-                setQr('');
-                stopPoll();
-              }}
-            >
+            <Button size="small" theme="borderless" onClick={stopPayAndReload}>
               取消扫码
             </Button>
           </div>
@@ -757,7 +851,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
         width={520}
         onCancel={() => setClaimOpen(false)}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <div className="pc-pay__claim-footer">
             <Button onClick={() => setClaimOpen(false)}>取消</Button>
             <Button theme="solid" type="primary" loading={claimSubmitting} onClick={submitOfflineClaim}>
               确认
@@ -773,10 +867,10 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           <div className="pc-pay__claim-row">
             <span className="pc-pay__claim-label">转账时间</span>
             <input
-              className="semi-input pc-pay__claim-datetime"
+              className="pc-pay__claim-datetime"
               type="datetime-local"
               value={claimTransferTime.replace(' ', 'T')}
-              max={new Date().toISOString().slice(0, 16)}
+              max={localNowForInput()}
               onChange={(event) => setClaimTransferTime(String(event.target.value || '').replace('T', ' '))}
             />
           </div>
@@ -794,7 +888,16 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
               {claimVouchers.map((url) => (
                 <div key={url} className="pc-pay__claim-thumb">
                   <img src={url} alt="付款凭证" />
-                  <button type="button" onClick={() => setClaimVouchers((list) => list.filter((item) => item !== url))}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setClaimVouchers((list) => {
+                        const next = list.filter((item) => item !== url);
+                        vouchersRef.current = next;
+                        return next;
+                      })
+                    }
+                  >
                     ×
                   </button>
                 </div>
@@ -813,7 +916,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
                 onChange={(event) => {
                   const files = Array.from(event.target.files || []);
                   event.target.value = '';
-                  const remaining = Math.max(0, OFFLINE_MAX_FILES - claimVouchers.length);
+                  const remaining = Math.max(0, OFFLINE_MAX_FILES - vouchersRef.current.length);
                   files.slice(0, remaining).forEach((file) => void uploadVoucher(file));
                 }}
               />
@@ -824,7 +927,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       </Modal>
 
       <style>{`
-        /* 渠道图标选择 */
+        /* 图标渠道选择 */
         .pc-pay__methods-head h3 { margin: 0; font-size: 16px; color: #1a1a1a; }
         .pc-pay__methods-head p { margin: 4px 0 12px; font-size: 12px; color: #8a919f; }
         .pc-pay__method-grid { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -840,7 +943,20 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           font-size: 13px; color: #333; margin: 10px 0 14px; word-break: break-all;
         }
         .pc-pay__applepay-grid span { color: #8a919f; }
-        /* 线下认款表单 */
+        /* 线下汇款 */
+        .pc-pay__offline-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .pc-pay__offline-tabs button {
+          border: 1px solid #e5e7eb; border-radius: 6px; background: #fff;
+          padding: 8px 16px; font-size: 14px; color: #1a1a1a; cursor: pointer;
+        }
+        .pc-pay__offline-tabs button.is-active { border-color: #1677ff; color: #1677ff; background: #f5f8ff; }
+        .pc-pay__offline-content { padding: 12px; border: 1px solid #f0f0f0; border-radius: 8px; background: #fafbfc; font-size: 14px; line-height: 24px; color: #333; }
+        .pc-pay__offline-claim-action { margin-top: 16px; }
+        .pc-pay__offline-tips { margin-top: 10px; color: #8a919f; font-size: 12px; }
+        .pc-pay__qr { text-align: center; margin-top: 16px; }
+        .pc-pay__qr-image { margin-top: 10px; }
+        /* 认款弹层 */
+        .pc-pay__claim-footer { display: flex; justify-content: flex-end; gap: 8px; }
         .pc-pay__claim-form { display: flex; flex-direction: column; gap: 12px; }
         .pc-pay__claim-row { display: flex; align-items: flex-start; gap: 12px; }
         .pc-pay__claim-label { flex: 0 0 92px; font-size: 14px; color: #333; line-height: 32px; }

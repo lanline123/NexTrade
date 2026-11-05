@@ -558,7 +558,15 @@ function ImageAd({ module }: ModuleProps) {
           <div className="dec-image-ad__list">
             {pics.map((pic, index) => (
               <div className="dec-image-ad__item" key={index}>
-                <a className="dec-image-ad__link" href={navHref(pic.picLink) || 'javascript:;'} target="_blank" rel="noreferrer">
+                <a
+                    className="dec-image-ad__link"
+                    href={navHref(pic.picLink) || '#'}
+                    onClick={(event) => {
+                      if (!navHref(pic.picLink)) event.preventDefault();
+                    }}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                   <img className="dec-image-ad__image" src={picSrc(pic)} alt="" loading="lazy" />
                 </a>
               </div>
@@ -582,7 +590,15 @@ function ImageAdCarousel({ pics, perView }: { pics: any[]; perView: number }) {
             <div className="dec-image-ad__swiper-page" key={page} style={{ gridTemplateColumns: `repeat(${perView}, minmax(0, 1fr))` }}>
               {pics.slice(page * perView, page * perView + perView).map((pic, i) => (
                 <div className="dec-image-ad__item" key={i}>
-                  <a className="dec-image-ad__link" href={navHref(pic.picLink) || 'javascript:;'} target="_blank" rel="noreferrer">
+                  <a
+                    className="dec-image-ad__link"
+                    href={navHref(pic.picLink) || '#'}
+                    onClick={(event) => {
+                      if (!navHref(pic.picLink)) event.preventDefault();
+                    }}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <img className="dec-image-ad__image" src={picSrc(pic)} alt="" loading="lazy" />
                   </a>
                 </div>
@@ -1495,6 +1511,7 @@ function Seckill({ module }: ModuleProps) {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(0);
+  const seckillScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetch('/api/home/home/getSeckill?page=1&size=10')
@@ -1596,9 +1613,15 @@ function Seckill({ module }: ModuleProps) {
                 </div>
               </div>
             ) : null}
-            <div className="goods-ad-warp">
+            <div className={`goods-ad-warp${style === 6 ? ' has-nav' : ''}`}>
+              <SwiperNav
+                visible={style === 6 && products.length > 6}
+                onPrev={() => seckillScrollRef.current?.scrollBy({ left: -seckillScrollRef.current.clientWidth * 0.6, behavior: 'smooth' })}
+                onNext={() => seckillScrollRef.current?.scrollBy({ left: seckillScrollRef.current.clientWidth * 0.6, behavior: 'smooth' })}
+              />
               <div
                 className={`goods-ad-con${style === 6 ? ' is-swiper' : ''}`}
+                ref={seckillScrollRef}
                 style={{ gap: `${goodsGap}px`, gridTemplateColumns: style === 6 ? undefined : `repeat(${columns}, minmax(0, 1fr))` }}
               >
                 {products.map((product, index) => (
@@ -1668,6 +1691,7 @@ function Groupon({ module }: ModuleProps) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(0);
+  const grouponScrollRef = useRef<HTMLDivElement | null>(null);
 
   const promotionId = module?.grouponActivityItem?.grouponPromotionId ? String(module.grouponActivityItem.grouponPromotionId) : '';
 
@@ -1789,9 +1813,15 @@ function Groupon({ module }: ModuleProps) {
                 ) : null}
               </div>
             ) : null}
-            <div className="goods-ad-warp" style={{ padding: goodsPadding ? `${goodsPadding}px` : '0' }}>
+            <div className={`goods-ad-warp${style === 6 ? ' has-nav' : ''}`} style={{ padding: goodsPadding ? `${goodsPadding}px` : '0' }}>
+              <SwiperNav
+                visible={style === 6 && notEnded.length > 6}
+                onPrev={() => grouponScrollRef.current?.scrollBy({ left: -grouponScrollRef.current.clientWidth * 0.6, behavior: 'smooth' })}
+                onNext={() => grouponScrollRef.current?.scrollBy({ left: grouponScrollRef.current.clientWidth * 0.6, behavior: 'smooth' })}
+              />
               <div
                 className={`goods-ad-con${style === 6 ? ' is-swiper' : ''}`}
+                ref={grouponScrollRef}
                 style={{ gap: `${goodsPadding}px`, gridTemplateColumns: style === 6 ? undefined : `repeat(${columns}, minmax(0, 1fr))` }}
               >
                 {notEnded.map((item, index) => (
@@ -1857,7 +1887,11 @@ function Groupon({ module }: ModuleProps) {
 /** PcImageNav.vue：picList、navType(1 固定栅格/2 轮播)、navStyle(1 图+文/2 仅图/3 仅文)、
  * rowNum(3~6)、colNum(1~3)、radioStyle(2 圆角)、picPageType、backgroundColor、frame。 */
 function ImageNav({ module }: ModuleProps) {
-  const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
+  const pics: any[] = Array.isArray(module.picList)
+    ? module.picList
+    : Array.isArray(module.items)
+      ? module.items
+      : [];
   const frame = module.frame || {};
   const navType = Number(module.navType ?? 1);
   const navStyle = Number(module.navStyle ?? 1);
@@ -1976,7 +2010,15 @@ function ImageSquareAd({ module }: ModuleProps) {
           <div className={`${layoutClass}`}>
             {pics.map((pic, index) => (
               <div className="image-ad-item" key={index}>
-                <a className="item-content" href={navHref(pic.picLink) || 'javascript:;'} target="_blank" rel="noreferrer">
+                <a
+                  className="item-content"
+                  href={navHref(pic.picLink) || '#'}
+                  onClick={(event) => {
+                    if (!navHref(pic.picLink)) event.preventDefault();
+                  }}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <img src={pic.picUrl || pic.picThumb || ''} alt={pic.picTitle || ''} loading="lazy" />
                 </a>
               </div>
@@ -2334,7 +2376,11 @@ function CategoryNav3({ module }: ModuleProps) {
 /** PcGroupBanner.vue：picList、number(每屏 1~3)、frame{boxPadding,boxPaddingTop,boxPaddingBottom,
  * boxRadius,backgroundColor,slideHeight 默认195}。 */
 function GroupBanner({ module }: ModuleProps) {
-  const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
+  const pics: any[] = Array.isArray(module.picList)
+    ? module.picList
+    : Array.isArray(module.banners)
+      ? module.banners
+      : [];
   const frame = module.frame || {};
   const perView = Math.min(3, Math.max(1, Number(module.number) || 3));
   const height = px(frame.slideHeight) > 0 ? px(frame.slideHeight) : 195;

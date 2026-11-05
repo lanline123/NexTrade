@@ -2792,3 +2792,22 @@ button.view_detail {
 .groupon-item-image img {
   background: #f2f3f5;
 }
+
+
+/* 秒杀/拼团 style6 横向滑动：旧版 Swiper navigation 箭头 */
+.goods-ad-warp.has-nav {
+  position: relative;
+}
+
+.goods-ad-con.is-swiper {
+  scroll-behavior: smooth;
+}
+
+.goods-ad-warp.has-nav:hover .dec-swiper-nav {
+  opacity: 1;
+}
+
+/* 首页装修图加载慢/超时时的占位底色（避免破图标闪烁） */
+img {
+  color: transparent;
+}
