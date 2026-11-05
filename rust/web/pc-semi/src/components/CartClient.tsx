@@ -84,8 +84,17 @@ export default function CartClient() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
+      window.location.replace(`/login?redirect=${encodeURIComponent('/cart')}`);
+      return;
+    }
     void load();
   }, []);
+
+  useEffect(() => {
+    if (!needLogin) return;
+    window.location.replace(`/login?redirect=${encodeURIComponent('/cart')}`);
+  }, [needLogin]);
 
   const checkedItems = useMemo(
     () => groups.flatMap((group) => (group.carts || []).filter((item) => item.isChecked && !item.isDisabled)),
