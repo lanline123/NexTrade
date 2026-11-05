@@ -702,3 +702,10 @@
 .aftersales-pics__item button { position: absolute; top: 0; right: 0; width: 18px; height: 18px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; line-height: 18px; cursor: pointer; }
 .aftersales-pics__pick { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border: 1px dashed #d9d9d9; border-radius: 6px; color: #8c8c8c; font-size: 12px; cursor: pointer; }
 .aftersales-pics__pick:hover { border-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
+
+/* 结算账号弹窗（termPay/src/SettlementDialog.vue） */
+.settlement-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #f0f0f0; }
+.settlement-tabs button { padding: 8px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #666; font-size: 14px; cursor: pointer; }
+.settlement-tabs button.is-active { border-bottom-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); font-weight: 600; }
+.settlement-content { padding: 12px; border-radius: 6px; background: #fafafa; color: #333; font-size: 13px; line-height: 1.8; }
+.settlement-content img { max-width: 100%; }

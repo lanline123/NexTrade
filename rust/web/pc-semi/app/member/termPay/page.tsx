@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getCreditDetail, getPcHeader } from '@/lib/api';
+import TermPaySettlementButton from '@/components/TermPaySettlementButton';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '账期支付 · 万物新生', robots: { index: false, follow: false } };
@@ -26,12 +27,15 @@ export default async function TermPayPage({ searchParams }: PageProps) {
           <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/member">会员中心</Link><span>/</span><span>账期支付</span></nav>
           <h1 className="pc-cart-title">账期支付</h1>
           {detail ? (
-            <section className="term-summary">
-              <div><span>授信额度</span><b>¥ {Number(detail.creditLimit || 0).toFixed(2)}</b></div>
-              <div><span>可用额度</span><b>¥ {Number(detail.availableAmount || 0).toFixed(2)}</b></div>
-              <div><span>结算周期</span><b>{settlementText} / {detail.settlementDays || 30} 天</b></div>
-              <div><span>剩余天数</span><b>{detail.remainingDays ?? '-'} 天</b></div>
-            </section>
+            <>
+              <section className="term-summary">
+                <div><span>授信额度</span><b>¥ {Number(detail.creditLimit || 0).toFixed(2)}</b></div>
+                <div><span>可用额度</span><b>¥ {Number(detail.availableAmount || 0).toFixed(2)}</b></div>
+                <div><span>结算周期</span><b>{settlementText} / {detail.settlementDays || 30} 天</b></div>
+                <div><span>剩余天数</span><b>{detail.remainingDays ?? '-'} 天</b></div>
+              </section>
+              <div style={{ marginBottom: 12 }}><TermPaySettlementButton /></div>
+            </>
           ) : <div className="comment-empty">暂无账期支付资格</div>}
 
           <div className="term-tabs">

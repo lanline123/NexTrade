@@ -393,6 +393,10 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                 <Link href={`/order/pay?id=${detail.orderId || orderId}`}><Button theme="solid" type="primary">付款</Button></Link>
               )
             ) : null}
+            {/* 源码 OrderInfoHeader.vue：预售待付尾款 → 支付尾款 */}
+            {detail.isPresale && Number(detail.presaleInfo?.presaleStatus) === 1 ? (
+              <Link href={`/order/pay?id=${detail.orderId || orderId}&type=tail`}><Button theme="solid" type="primary">支付尾款</Button></Link>
+            ) : null}
             {actionEnabled(actions, 'confirmReceipt') && orderType !== 9 && orderType !== 10 ? <Button onClick={confirm}>确认收货</Button> : null}
             {actionEnabled(actions, 'toAftersales', 'toAfterSales') && !giftCardBlocked && orderSource !== 'pos' && orderType !== 14 && !isPickupCompleted ? (
               <Link href={`/member/return/Info?orderId=${detail.orderId || orderId}`}><Button>整单售后</Button></Link>
