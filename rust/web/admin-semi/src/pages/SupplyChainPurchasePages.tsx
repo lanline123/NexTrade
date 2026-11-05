@@ -1259,7 +1259,7 @@ export function PurchaseOrders() {
               }}
             >
               <Button theme="borderless" type="warning" size="small">
-                {t('完成')}
+                {t('完结')}
               </Button>
             </Popconfirm>
           ) : null}
@@ -1877,6 +1877,12 @@ export function PurchaseInbound() {
         }
         filters={[
           {
+            field: 'keyword',
+            label: t('关键词'),
+            placeholder: t('输入入库单号/采购单号/供应商'),
+            type: 'input',
+          },
+          {
             field: 'receiptSn',
             label: t('单据编号'),
             placeholder: t('输入入库单号'),
@@ -2303,6 +2309,12 @@ export function PurchaseReturns() {
           </Button>
         }
         filters={[
+          {
+            field: 'keyword',
+            label: t('关键词'),
+            placeholder: t('输入退货单号/入库单号/供应商'),
+            type: 'input',
+          },
           {
             field: 'returnSn',
             label: t('退货单号'),
@@ -2848,6 +2860,14 @@ export function PurchaseReconciliation() {
         rowKey={(row) => String(row.id ?? row.reconciliationId ?? '')}
         columns={columns}
         query={query}
+        filters={[
+          {
+            field: 'keyword',
+            label: t('关键词'),
+            placeholder: t('输入对账单号/供应商'),
+            type: 'input',
+          },
+        ]}
         toolbarExtra={
           <>
             <Input
