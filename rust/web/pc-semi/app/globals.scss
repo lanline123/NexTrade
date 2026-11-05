@@ -4758,3 +4758,17 @@ img {
 .comment-pagination button { border: 0; background: none; color: #333; cursor: pointer; }
 .comment-pagination button:disabled { color: #bbb; cursor: not-allowed; }
 .comment-empty { padding: 60px 0; color: #999; text-align: center; }
+
+
+/* 评价详情 */
+.comment-info-card { padding: 10px 20px 20px; }
+.comment-item { padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
+.comment-item__head a { display: flex; align-items: center; gap: 12px; color: #333; font-size: 14px; }
+.comment-item__head img { width: 64px; height: 64px; object-fit: contain; background: #fafafa; }
+.comment-item__stars { display: flex; align-items: center; gap: 6px; margin: 16px 0; color: #666; font-size: 13px; }
+.comment-item__stars button { border: 0; background: none; color: #d9d9d9; font-size: 24px; cursor: pointer; }
+.comment-item__stars button.is-active { color: #faad14; }
+.comment-item textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #dcdfe6; border-radius: 8px; resize: vertical; font-size: 14px; }
+.comment-item__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; color: #666; font-size: 13px; }
+.comment-item__done { margin-top: 12px; color: #2f9e44; font-size: 13px; }
+.comment-info-back { padding-top: 16px; font-size: 13px; }

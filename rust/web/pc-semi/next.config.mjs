@@ -38,6 +38,7 @@ const nextConfig = {
       { source: '/member/order/List', destination: '/member/order/list' },
       { source: '/member/order/Info', destination: '/member/order/detail' },
       { source: '/member/orderInfo', destination: '/member/order/list' },
+      { source: '/member/comment/Info', destination: '/member/comment/info' },
       { source: '/member/return/List', destination: '/member/aftersales' },
       { source: '/member/return/Info', destination: '/member/aftersales/detail' },
       { source: '/member/return/Log', destination: '/member/aftersales' },
