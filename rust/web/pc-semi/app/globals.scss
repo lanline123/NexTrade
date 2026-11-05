@@ -5278,3 +5278,8 @@ img {
 .pc-header__brand { justify-content: flex-start; }
 .pc-header__brand--align-2 { justify-content: center; }
 .pc-header__brand--align-3 { justify-content: flex-end; }
+
+/* 跨境头部购物车：数量角标 / cartStyle=2 图片 */
+.pc-cart-entry__icon { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.pc-cart-entry__count { position: absolute; top: -7px; right: -11px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: #e1251b; color: #fff; font-size: 10px; font-style: normal; line-height: 16px; text-align: center; }
+.pc-cart-entry__pic { width: 24px; height: 24px; object-fit: contain; }

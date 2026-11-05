@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Search from '@icon-park/react/es/icons/Search';
-import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
 import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
 import Close from '@icon-park/react/es/icons/Close';
 import PcHeaderTopBar from '@/components/PcHeaderTopBar';
 import PcLocaleSelect from '@/components/PcLocaleSelect';
 import PcMine from '@/components/PcMine';
+import PcCartEntry from '@/components/PcCartEntry';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
 
@@ -35,6 +35,8 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   const showCategory = Number(header.showCategory ?? 1) !== 0
     && (pathname !== '/' || Number(header.showHomeCategory ?? 1) !== 0);
   const showRightCart = Number(header.rightCartShow ?? 1) !== 0;
+  const cartStyle = Number(header.cartStyle) || 1;
+  const cartPic = imageUrl(header.cartPic as any);
   const logoAlign = Number(header.logoAlign) || 1;
 
   useEffect(() => {
@@ -128,12 +130,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
 
           <div className="pc-header__actions">
             {styleType === 2 ? <PcMine /> : null}
-            {showRightCart ? (
-              <Link href="/cart" className="pc-header__action">
-                <ShoppingCart size={20} />
-                <span>购物车</span>
-              </Link>
-            ) : null}
+            {showRightCart ? <PcCartEntry cartStyle={cartStyle} cartPic={cartPic} /> : null}
           </div>
         </div>
       </div>
