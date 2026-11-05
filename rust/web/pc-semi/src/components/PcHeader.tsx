@@ -75,62 +75,87 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   };
 
   return (
-    <header className={`pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
+    <header className={`pc-header-runtime pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
       <PcHeaderTopBar config={header as Record<string, any>} showLocale={styleType !== 2} />
 
-      <div className="pc-container pc-header__main">
-        <div className="pc-header__left">
-          <Link href="/" className={`pc-header__brand pc-header__brand--align-${logoAlign}`}>
-            {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: logoWidth, maxWidth: '100%', maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth }} /> : null}
-          </Link>
-          {showCategory ? <Link href="/search" className="pc-header__category">全部商品分类</Link> : null}
-        </div>
-
-        <div className="pc-header__center">
-          <div className="pc-header__search">
-            <span className="pc-header__search-icon"><Search size={18} /></span>
-            <input
-              className="pc-header__search-input"
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') goSearch();
-              }}
-              placeholder="搜索商品 / 分类 / 品牌"
-            />
-            <button type="button" className="pc-header__search-button" onClick={goSearch}>
-              搜索
-            </button>
-          </div>
-
-          {showNav ? (
-            <nav className="pc-header__nav">
-              <div className="pc-header__nav-inner">
-                {navItems.map((item, index) => (
-                  <Link key={index} href={item.link || '/'}>
-                    {item.title || item.name || item.label}
-                  </Link>
-                ))}
+      <div className="page-container">
+        <div className="page-header-inner">
+          <div className="page-c-warap">
+            <div className="page-header-home__left">
+              <div className={`logo-slot${showCategory ? '' : ' logo-slot--wide'}`}>
+                <div className={`logo logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
+                  <div className="logo-area">
+                    <Link href="/" className={`logo-link pc-header__brand pc-header__brand--align-${logoAlign}`}>
+                      {logo || siteLogo ? <img src={logo || siteLogo} alt="" style={{ width: logoWidth, maxWidth: '100%', maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth }} /> : null}
+                    </Link>
+                  </div>
+                </div>
               </div>
-            </nav>
-          ) : null}
-        </div>
+              {showCategory ? (
+                <div className="category-nav">
+                  <Link href="/search" className="pc-header__category">全部商品分类</Link>
+                </div>
+              ) : null}
+            </div>
 
-        <div className="pc-header__right">
-          {styleType === 2 ? <PcLocaleSelect className="pc-header__locale" /> : null}
-          <button
-            type="button"
-            className="pc-header__menu-btn"
-            aria-label="打开菜单"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <HamburgerButton size={20} />
-          </button>
+            <div className="page-header-home__center">
+              <div className="search-nav-box">
+                <div className="search-bar">
+                  <div className="pc-header__search">
+                    <span className="pc-header__search-icon"><Search size={18} /></span>
+                    <input
+                      className="pc-header__search-input"
+                      value={keyword}
+                      onChange={(event) => setKeyword(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') goSearch();
+                      }}
+                      placeholder="搜索商品 / 分类 / 品牌"
+                    />
+                    <button type="button" className="pc-header__search-button" onClick={goSearch}>
+                      搜索
+                    </button>
+                  </div>
+                </div>
 
-          <div className="pc-header__actions">
-            {styleType === 2 ? <PcMine /> : null}
-            {showRightCart ? <PcCartEntry cartStyle={cartStyle} cartPic={cartPic} /> : null}
+                {showNav ? (
+                  <ul className={`sub-nav sub-nav--stacked${pathname === '/' ? ' sub-nav--home' : ''}`}>
+                    {navItems.map((item, index) => (
+                      <li key={index}>
+                        <Link href={item.link || '/'}>{item.title || item.name || item.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="page-header-home__right">
+              {styleType === 2 ? (
+                <div className="language-bar">
+                  <PcLocaleSelect className="pc-header__locale" />
+                </div>
+              ) : null}
+              {styleType === 2 ? (
+                <div className="mine-bar">
+                  <PcMine />
+                </div>
+              ) : null}
+              {showRightCart ? (
+                <div className="car-bar">
+                  <PcCartEntry cartStyle={cartStyle} cartPic={cartPic} />
+                </div>
+              ) : null}
+              <button
+                type="button"
+                className="pc-header__menu-btn"
+                aria-label="打开菜单"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                <HamburgerButton size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
