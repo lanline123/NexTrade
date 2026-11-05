@@ -5211,3 +5211,8 @@ img {
 
 /* 会员登录守卫加载态 */
 .member-auth-loading { padding: 80px 20px; color: #8a919f; font-size: 14px; text-align: center; }
+
+/* IconPark 图标对齐 */
+.pc-header__search-icon svg { display: block; }
+.pc-header__action svg { display: block; }
+.pc-header__menu-btn svg, .pc-mobile-nav__head button svg { display: block; }

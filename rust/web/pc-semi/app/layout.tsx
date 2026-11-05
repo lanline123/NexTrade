@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: ['动力电池回收', '电池拆解', '循环利用', '万物新生'],
   applicationName: SITE_NAME,
+  manifest: '/manifest.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'zh_CN',

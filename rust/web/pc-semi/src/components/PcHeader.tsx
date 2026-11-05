@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Search from '@icon-park/react/es/icons/Search';
+import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
+import User from '@icon-park/react/es/icons/User';
+import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
+import Close from '@icon-park/react/es/icons/Close';
 import PcHeaderTopBar from '@/components/PcHeaderTopBar';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
@@ -62,7 +67,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
         </Link>
 
         <div className="pc-header__search">
-          <span className="pc-header__search-icon">⌕</span>
+          <span className="pc-header__search-icon"><Search size={18} /></span>
           <input
             className="pc-header__search-input"
             value={keyword}
@@ -84,14 +89,16 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
         >
-          ☰
+          <HamburgerButton size={20} />
         </button>
 
         <div className="pc-header__actions">
           <Link href="/member" className="pc-header__action">
+            <User size={20} />
             <span>我的账户</span>
           </Link>
           <Link href="/cart" className="pc-header__action">
+            <ShoppingCart size={20} />
             <span>购物车</span>
           </Link>
         </div>
@@ -115,7 +122,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
           <div className="pc-mobile-nav__panel">
             <div className="pc-mobile-nav__head">
               <b>菜单</b>
-              <button type="button" aria-label="关闭菜单" onClick={() => setMenuOpen(false)}>×</button>
+              <button type="button" aria-label="关闭菜单" onClick={() => setMenuOpen(false)}><Close size={20} /></button>
             </div>
             {navItems.map((item, index) => (
               <Link key={index} href={item.link || '/'} onClick={() => setMenuOpen(false)}>
