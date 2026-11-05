@@ -54,6 +54,26 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
   ]);
   const hasDecorate = head?.pcDefaultStyle !== '1' && Boolean(decorate?.moduleList?.length);
   const pages = Math.max(1, Math.ceil(products.total / size));
+  const siteUrl = (process.env.PC_SITE_URL || 'https://battery.recy.cc').replace(/\/$/, '');
+  const shopJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Store',
+    name: shop?.shopTitle || '店铺详情',
+    image: shop?.shopLogo || undefined,
+    description: shop?.description || undefined,
+    url: `${siteUrl}/shop/${shopId}`,
+    ...(Number(shop?.shopStar || 0) > 0 ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: Number(shop?.shopStar), bestRating: 5 } } : {}),
+  };
+  const shopBreadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: '店铺街', item: `${siteUrl}/shop` },
+      { '@type': 'ListItem', position: 3, name: shop?.shopTitle || '店铺详情' },
+    ],
+  };
+  const shopSchema = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([shopJsonLd, shopBreadcrumbJsonLd]) }} />;
   const hrefFor = (nextPage = page, nextCat = categoryId, nextSort = sort) => {
     const query = new URLSearchParams();
     if (nextCat) query.set('categoryId', nextCat);
@@ -66,6 +86,7 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
   if (hasDecorate) {
     return (
       <div className="shop-detail-page">
+        {shopSchema}
         <PcHeader config={header as any} />
         <main className="shop-decoration-page">
           <div className="shop-decoration-container">
@@ -79,6 +100,7 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
 
   return (
     <div className="shop-detail-page">
+      {shopSchema}
       <PcHeader config={header as any} />
       <main className="shop-detail-main">
         <div className="shop-detail-container">

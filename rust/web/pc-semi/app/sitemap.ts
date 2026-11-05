@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getArticleList, getProducts } from '@/lib/api';
+import { getArticleList, getProducts, getShopList } from '@/lib/api';
 
 const BASE = (process.env.PC_SITE_URL || 'https://battery.recy.cc').replace(/\/$/, '');
 
@@ -41,6 +41,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch {
     // 文章接口失败不阻断 sitemap
+  }
+
+  try {
+    const shops = await getShopList({ page: 1, size: 200 });
+    for (const shop of shops.records as Array<Record<string, any>>) {
+      if (!shop?.shopId) continue;
+      items.push({
+        url: `${BASE}/shop/${shop.shopId}`,
+        lastModified: now,
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      });
+    }
+  } catch {
+    // 店铺接口失败不阻断 sitemap
   }
 
   return items;
