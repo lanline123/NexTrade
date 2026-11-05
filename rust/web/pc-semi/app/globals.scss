@@ -5103,3 +5103,16 @@ img {
 .install-links { display: flex; gap: 12px; margin-top: 20px; }
 .install-links a { display: inline-flex; align-items: center; height: 40px; padding: 0 22px; border-radius: 20px; background: #165dff; color: #fff; font-size: 14px; }
 @media (max-width: 900px) { .install-header { flex-direction: column; height: auto; padding: 20px; gap: 12px; } .install-steps { flex-wrap: wrap; } .install-form { grid-template-columns: 1fr; } }
+
+
+/* 入驻申请 */
+.join-intro-main { padding: 24px 0 60px; background: #f7f8fa; }
+.join-intro h2, .join-intro-status h2 { margin: 0 0 10px; color: #1a1a1a; font-size: 20px; }
+.join-intro__hint { margin: 0 0 20px; color: #8a919f; font-size: 13px; }
+.join-intro__form { max-width: 620px; }
+.join-intro__form select { height: 38px; padding: 0 10px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff; }
+.join-intro__agreement { display: flex; align-items: center; gap: 8px; color: #666 !important; }
+.join-intro-status__badge { display: inline-block; margin-bottom: 14px; padding: 4px 12px; border-radius: 12px; background: #fff7e6; color: #d48806; font-size: 13px; }
+.join-intro-status__badge.is-1 { background: #e6f7ee; color: #2f9e44; }
+.join-intro-status__badge.is-2 { background: #fff1f0; color: #e1251b; }
+.join-intro-status__remark { color: #e1251b; font-size: 13px; }
