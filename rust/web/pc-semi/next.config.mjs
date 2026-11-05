@@ -54,6 +54,7 @@ const nextConfig = {
       { source: '/member/account/CardManagement', destination: '/member/account/cardManagement' },
       { source: '/member/account/Raplytocard', destination: '/member/account/raplytocard' },
       { source: '/member/userInvoice/Info', destination: '/member/userInvoice/info' },
+      { source: '/member/userCertification/Info', destination: '/member/userCertification' },
     ];
   },
 };
