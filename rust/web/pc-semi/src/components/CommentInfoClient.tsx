@@ -15,6 +15,9 @@ interface CommentItem {
   seoLink?: string;
   isCommentInfo?: boolean;
   commentInfo?: { commentRank?: number; content?: string; commentTag?: string[] };
+  /** 源码 comment/Info.vue：可选标签池 + 晒单图片 */
+  allCommentTag?: string[];
+  showPics?: Array<Record<string, unknown>>;
   [key: string]: unknown;
 }
 
@@ -22,7 +25,7 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
   const [items, setItems] = useState<CommentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<number | null>(null);
-  const [forms, setForms] = useState<Record<number, { rank: number; content: string; anonymous: boolean }>>({});
+  const [forms, setForms] = useState<Record<number, { rank: number; content: string; anonymous: boolean; tags: string[]; pics: Array<Record<string, unknown>> }>>({});
 
   const load = () => {
     setLoading(true);
@@ -30,12 +33,14 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
       .then((result) => {
         const list = Array.isArray(result?.items) ? result.items : [];
         setItems(list);
-        const next: Record<number, { rank: number; content: string; anonymous: boolean }> = {};
+        const next: Record<number, { rank: number; content: string; anonymous: boolean; tags: string[]; pics: Array<Record<string, unknown>> }> = {};
         list.forEach((item, index) => {
           next[index] = {
             rank: Number(item.commentInfo?.commentRank || 0),
             content: String(item.commentInfo?.content || ''),
             anonymous: false,
+          tags: Array.isArray(item.commentInfo?.commentTag) ? item.commentInfo.commentTag : [],
+          pics: Array.isArray(item.showPics) ? item.showPics : [],
           };
         });
         setForms(next);
@@ -47,6 +52,37 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
   useEffect(() => {
     load();
   }, [orderId]);
+
+  /** 源码 UploadImage：晒单图片上传（最多 9 张，jpeg/png） */
+  const uploadPic = async (index: number, file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      Toast.error({ content: '只能上传 2M 以内的图片' });
+      return;
+    }
+    try {
+      const token = localStorage.getItem('accessToken') || '';
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/user/user/uploadImg', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+        credentials: 'include',
+      });
+      const json = await response.json();
+      if (json?.code !== undefined && json.code !== 0) {
+        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        return;
+      }
+      const data = json?.data;
+      const url = typeof data === 'string' ? data : String(data?.picUrl || data?.url || '');
+      if (!url) return;
+      const current = forms[index]?.pics || [];
+      setForms({ ...forms, [index]: { ...forms[index], pics: [...current, { picUrl: url, picThumb: String(data?.picThumb || url) }] } });
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '上传失败' });
+    }
+  };
 
   const submit = async (item: CommentItem, index: number) => {
     const form = forms[index];
@@ -61,7 +97,8 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
         orderItemId: item.itemId,
         shopId: item.shopId,
         commentRank: form.rank,
-        commentTag: [],
+        commentTag: form.tags || [],
+        showPics: form.pics || [],
         content: form.content.trim(),
         isAnonymous: form.anonymous ? 1 : 0,
       });
@@ -96,6 +133,63 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
               >★</button>
             ))}
           </div>
+          {/* 源码 comment/Info.vue：评价标签 + 晒单图片 */}
+          {Array.isArray(item.allCommentTag) && item.allCommentTag.length ? (
+            <div className="comment-item__tags">
+              <span>评价标签</span>
+              {item.allCommentTag.map((tag) => {
+                const picked = (forms[index]?.tags || []).includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    disabled={Boolean(item.isCommentInfo)}
+                    className={picked ? 'is-active' : ''}
+                    onClick={() => {
+                      const current = forms[index]?.tags || [];
+                      const next = picked ? current.filter((value) => value !== tag) : [...current, tag];
+                      setForms({ ...forms, [index]: { ...forms[index], tags: next } });
+                    }}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {!item.isCommentInfo ? (
+            <div className="comment-item__pics">
+              {(forms[index]?.pics || []).map((pic, picIndex) => (
+                <span className="comment-item__pic" key={picIndex}>
+                  <img src={String(pic.picThumb || pic.picUrl || '')} alt="晒单" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = forms[index]?.pics || [];
+                      setForms({ ...forms, [index]: { ...forms[index], pics: current.filter((_, i) => i !== picIndex) } });
+                    }}
+                  >×</button>
+                </span>
+              ))}
+              {(forms[index]?.pics || []).length < 9 ? (
+                <label className="comment-item__pic-pick">
+                  + 晒单
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    hidden
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void uploadPic(index, file);
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+              ) : null}
+            </div>
+          ) : null}
+
           <textarea
             value={forms[index]?.content || ''}
             disabled={Boolean(item.isCommentInfo)}
