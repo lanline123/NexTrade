@@ -10,10 +10,10 @@ const BASE = 'http://127.0.0.1:3002';
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const failures = [];
 
-  await page.goto(`${BASE}/?page=brandManage`, { waitUntil: 'networkidle' });
-  await page.getByPlaceholder('请输入管理员账号').fill('admin');
+  await page.goto(`${BASE}/?page=brandManage`, { waitUntil: 'domcontentloaded' });
+  await page.getByPlaceholder('请输入用户名').fill('admin');
   await page.getByPlaceholder('请输入密码').fill('admin123');
-  await page.getByRole('button', { name: '登录' }).click();
+  await page.getByRole('button', { name: /登\s*录/ }).click();
   await page.waitForTimeout(2200);
   await page.getByText('添加品牌', { exact: true }).click();
   await page.waitForTimeout(600);
@@ -77,3 +77,4 @@ const BASE = 'http://127.0.0.1:3002';
   }
   console.log('PASS: 表单标签对齐、控件对齐、单行高度、开关状态检查通过');
 })();
+

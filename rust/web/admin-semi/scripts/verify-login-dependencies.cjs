@@ -10,10 +10,10 @@ const BASE = process.env.VERIFY_BASE || 'http://127.0.0.1:3002';
   const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } });
   const failures = [];
 
-  await page.goto(`${BASE}/?page=loginSetting`, { waitUntil: 'networkidle' });
-  await page.getByPlaceholder('请输入管理员账号').fill('admin');
+  await page.goto(`${BASE}/?page=loginSetting`, { waitUntil: 'domcontentloaded' });
+  await page.getByPlaceholder('请输入用户名').fill('admin');
   await page.getByPlaceholder('请输入密码').fill('admin123');
-  await page.getByRole('button', { name: '登录' }).click();
+  await page.getByRole('button', { name: /登\s*录/ }).click();
   await page.waitForTimeout(2400);
 
   // 登录后可能进入组织选择页（多组织账号），需先进入管理后台
@@ -65,3 +65,4 @@ const BASE = process.env.VERIFY_BASE || 'http://127.0.0.1:3002';
   }
   console.log('PASS: 微信登录模块显隐与联动禁用检查通过');
 })();
+

@@ -6737,7 +6737,7 @@ body {
 
 /* 单选类字段：标签与“是/否”文字基线对齐 */
 .base-settings-card .auto-config-field:has(.semi-radioGroup) > label {
-  padding-top: 13px;
+  padding-top: 9px;
 }
 
 /* 旧版设置页（config-page）应用新的卡片式设置风格 */

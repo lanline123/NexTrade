@@ -8,10 +8,10 @@ const { chromium } = require('playwright-core');
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.on('pageerror', (err) => console.log('PAGEERROR', err.message));
 
-  await page.goto('http://127.0.0.1:3002/', { waitUntil: 'networkidle' });
-  await page.getByPlaceholder('请输入管理员账号').fill('admin');
+  await page.goto('http://127.0.0.1:3002/', { waitUntil: 'domcontentloaded' });
+  await page.getByPlaceholder('请输入用户名').fill('admin');
   await page.getByPlaceholder('请输入密码').fill('admin123');
-  await page.getByRole('button', { name: '登录' }).click();
+  await page.getByRole('button', { name: /登\s*录/ }).click();
   await page.waitForTimeout(2500);
 
   await page.getByText('用户', { exact: true }).click();
@@ -32,3 +32,4 @@ const { chromium } = require('playwright-core');
 
   await browser.close();
 })();
+
