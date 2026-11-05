@@ -4772,3 +4772,18 @@ img {
 .comment-item__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; color: #666; font-size: 13px; }
 .comment-item__done { margin-top: 12px; color: #2f9e44; font-size: 13px; }
 .comment-info-back { padding-top: 16px; font-size: 13px; }
+
+
+/* 收藏店铺 */
+.collect-shop__list { display: flex; flex-direction: column; gap: 14px; }
+.collect-shop__item { padding: 18px; border: 1px solid #eee; border-radius: 10px; }
+.collect-shop__head { display: flex; align-items: center; gap: 14px; }
+.collect-shop__logo img { width: 70px; height: 70px; object-fit: contain; border: 1px solid #eee; border-radius: 6px; }
+.collect-shop__name { display: block; margin-bottom: 8px; color: #1a1a1a; font-size: 16px; font-weight: 700; }
+.collect-shop__cancel { border: 0; background: none; color: #999; font-size: 12px; cursor: pointer; }
+.collect-shop__products { display: flex; gap: 14px; margin-top: 14px; overflow-x: auto; }
+.collect-shop__product { flex: 0 0 120px; }
+.collect-shop__product img { width: 120px; height: 120px; object-fit: contain; background: #fafafa; }
+.collect-shop__product span { display: block; overflow: hidden; color: #666; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.collect-shop__product b { color: #e1251b; font-size: 14px; }
+.collect-shop__empty { color: #999; font-size: 13px; }
