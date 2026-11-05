@@ -58,6 +58,15 @@ export default function PayClient({ orderId }: { orderId: number }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
+      window.location.replace(`/login?redirect=${encodeURIComponent(`/order/pay?id=${orderId}`)}`);
+      return;
+    }
+    if (!orderId) {
+      setLoading(false);
+      Toast.error({ content: '缺少订单 ID' });
+      return;
+    }
     apiGet<PayInfo>('order/pay/index', { id: orderId })
       .then((result) => {
         setInfo(result);
