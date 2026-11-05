@@ -48,6 +48,21 @@ pub struct OrderService {
     cart: CartService,
 }
 
+/// 评价状态过滤归一（Java `OrderListPageQuery.commentStatus`）：
+/// `-1` / `None` → 不过滤；`0` → 待评价（仓储按 Java 语义追加 order_status=5）；
+/// `n > 0` → 已评价等值。
+#[must_use]
+pub fn normalize_comment_status(value: Option<i32>) -> Option<i32> {
+    value.filter(|v| *v != -1)
+}
+
+/// 待晒单过滤归一（Java `OrderListPageQuery.isShowed`）：`-1` / `None` → 不过滤；
+/// `0` → 待晒单；`1` → 已晒单。
+#[must_use]
+pub fn normalize_is_showed(value: Option<i32>) -> Option<i32> {
+    value.filter(|v| *v > -1)
+}
+
 impl OrderService {
     pub fn new(repos: Arc<Repositories>, product: ProductService, cart: CartService) -> Self {
         Self { repos, product, cart }
@@ -1042,16 +1057,36 @@ impl OrderService {
     }
 
     /// 订单分页。
+    ///
+    /// 过滤语义对齐 Java `OrderServiceImpl#list`：
+    /// - `comment_status = Some(0)` → 待评价（`comment_status=0` 且订单已完成）；
+    /// - `comment_status = Some(n>0)` → 已评价等值；
+    /// - `-1` / `None` → 不过滤（前端“全部/待付款/…”标签传 -1）。
+    /// - `is_showed = Some(0/1)` → 待晒单（按 comment 表过滤，见仓储注释）。
     pub async fn list(
         &self,
         user_id: Option<i32>,
         order_status: Option<i32>,
+        comment_status: Option<i32>,
+        is_showed: Option<i32>,
         keyword: Option<&str>,
         page: &PageQuery,
     ) -> Result<PageResult<OrderVO>> {
+        // 与 Java 一致：-1 视为不过滤；待晒单 > -1 生效
+        let comment_status = normalize_comment_status(comment_status);
+        let is_showed = normalize_is_showed(is_showed);
+        let keyword = keyword.map(str::trim).filter(|s| !s.is_empty());
         let (total, orders) = self
             .repos.trade.order
-            .paginate(user_id, order_status, keyword, page.page, page.page_size)
+            .paginate(
+                user_id,
+                order_status,
+                comment_status,
+                is_showed,
+                keyword,
+                page.page,
+                page.page_size,
+            )
             .await?;
         let mut list = Vec::with_capacity(orders.len());
         for o in &orders {
@@ -1838,5 +1873,32 @@ mod tests {
         // 向上取整 (CEILING)：10.55 元 * 6.5% = 0.68575 -> 0.69
         let res = calc_tax_amount(Decimal::new(1055, 2), Decimal::new(65, 1));
         assert_eq!(res, Decimal::new(69, 2));
+    }
+}
+
+#[cfg(test)]
+mod order_list_filter_tests {
+    use super::{normalize_comment_status, normalize_is_showed};
+
+    #[test]
+    fn comment_status_minus_one_means_no_filter() {
+        assert_eq!(normalize_comment_status(None), None);
+        assert_eq!(normalize_comment_status(Some(-1)), None);
+    }
+
+    #[test]
+    fn comment_status_zero_means_pending_and_positive_is_exact() {
+        // 0 = 待评价（仓储层追加 order_status=5 条件）；>0 = 已评价等值
+        assert_eq!(normalize_comment_status(Some(0)), Some(0));
+        assert_eq!(normalize_comment_status(Some(1)), Some(1));
+        assert_eq!(normalize_comment_status(Some(2)), Some(2));
+    }
+
+    #[test]
+    fn is_showed_only_filters_from_zero_upwards() {
+        assert_eq!(normalize_is_showed(None), None);
+        assert_eq!(normalize_is_showed(Some(-1)), None);
+        assert_eq!(normalize_is_showed(Some(0)), Some(0));
+        assert_eq!(normalize_is_showed(Some(1)), Some(1));
     }
 }

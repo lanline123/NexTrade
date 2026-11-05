@@ -289,48 +289,85 @@ impl OrderRepository {
         Ok(affected > 0)
     }
 
-    /// 用户订单分页（状态过滤 + 关键词）。
+    /// 用户订单分页（状态过滤 + 评价状态过滤 + 待晒单过滤 + 关键词）。
+    ///
+    /// 语义对齐 Java `OrderServiceImpl#list(OrderListPageQuery)`：
+    /// - `order_status`：`-1`/`None` 不过滤（调用方已归一），否则等值；
+    /// - `comment_status`：`None` 不过滤；`0` = 待评价（`comment_status = 0`
+    ///   **且** `order_status = 5 已完成`，见 Java `buildQueryWrapper`）；
+    ///   `> 0` = 等值（已评价）；
+    /// - `is_showed`：`None`/`-1` 不过滤；`>= 0` 时按 Java「待晒单」逻辑先取
+    ///   `comment(user_id, is_showed)` 的 `order_id` 集合再过滤（子查询等价于
+    ///   Java 先 `selectList` 再 `in(orderIds)`；无命中时子查询自然返回空集）。
+    /// - `keyword`：订单号 / 收货人模糊匹配。
     pub async fn paginate(
         &self,
         user_id: Option<i32>,
         order_status: Option<i32>,
+        comment_status: Option<i32>,
+        is_showed: Option<i32>,
         keyword: Option<&str>,
         page: u64,
         page_size: u64,
     ) -> Result<(u64, Vec<Order>)> {
         let offset = page.saturating_sub(1) * page_size;
         let kw = keyword.map(|s| format!("%{s}%"));
-
-        let total: (i64,) = sqlx::query_as(
+        // 待晒单：Java 先查 comment 表（user_id + is_showed）得到 orderId 集合
+        let show_sql = if is_showed.is_some() && user_id.is_some() {
+            " AND order_id IN (SELECT order_id FROM `comment` WHERE user_id = ? AND is_showed = ?)"
+        } else {
+            ""
+        };
+        let count_sql = format!(
             "SELECT COUNT(*) FROM `order`
              WHERE is_del = 0
                AND (? IS NULL OR user_id = ?)
                AND (? IS NULL OR order_status = ?)
-               AND (? IS NULL OR order_sn LIKE ? OR consignee LIKE ?)",
-        )
-        .bind(user_id).bind(user_id)
-        .bind(order_status).bind(order_status)
-        .bind(&kw).bind(&kw).bind(&kw)
-        .fetch_one(&self.pool)
-        .await
-        .map_err(map_err)?;
+               AND (
+                     ? IS NULL
+                     OR (? = 0 AND comment_status = 0 AND order_status = 5)
+                     OR (? > 0 AND comment_status = ?)
+                   )
+               AND (? IS NULL OR order_sn LIKE ? OR consignee LIKE ?){show_sql}"
+        );
+        let mut cq = sqlx::query_as::<_, (i64,)>(&count_sql)
+            .bind(user_id).bind(user_id)
+            .bind(order_status).bind(order_status)
+            .bind(comment_status).bind(comment_status).bind(comment_status).bind(comment_status)
+            .bind(&kw).bind(&kw).bind(&kw);
+        if !show_sql.is_empty() {
+            cq = cq.bind(user_id).bind(is_showed);
+        }
+        let total: (i64,) = cq.fetch_one(&self.pool).await.map_err(map_err)?;
 
-        let rows = sqlx::query_as::<_, Order>(
+        let rows_sql = format!(
             "SELECT * FROM `order`
              WHERE is_del = 0
                AND (? IS NULL OR user_id = ?)
                AND (? IS NULL OR order_status = ?)
-               AND (? IS NULL OR order_sn LIKE ? OR consignee LIKE ?)
+               AND (
+                     ? IS NULL
+                     OR (? = 0 AND comment_status = 0 AND order_status = 5)
+                     OR (? > 0 AND comment_status = ?)
+                   )
+               AND (? IS NULL OR order_sn LIKE ? OR consignee LIKE ?){show_sql}
              ORDER BY order_id DESC
-             LIMIT ? OFFSET ?",
-        )
-        .bind(user_id).bind(user_id)
-        .bind(order_status).bind(order_status)
-        .bind(&kw).bind(&kw).bind(&kw)
-        .bind(page_size).bind(offset)
-        .fetch_all(&self.pool)
-        .await
-        .map_err(map_err)?;
+             LIMIT ? OFFSET ?"
+        );
+        let mut rq = sqlx::query_as::<_, Order>(&rows_sql)
+            .bind(user_id).bind(user_id)
+            .bind(order_status).bind(order_status)
+            .bind(comment_status).bind(comment_status).bind(comment_status).bind(comment_status)
+            .bind(&kw).bind(&kw).bind(&kw);
+        if !show_sql.is_empty() {
+            rq = rq.bind(user_id).bind(is_showed);
+        }
+        let rows = rq
+            .bind(page_size)
+            .bind(offset)
+            .fetch_all(&self.pool)
+            .await
+            .map_err(map_err)?;
 
         Ok((total.0 as u64, rows))
     }

@@ -178,6 +178,8 @@ async fn showed_list(
         .list(
             Some(user_id),
             q.single_order_status(),
+            q.comment_status,
+            q.is_showed,
             q.keyword.as_deref(),
             &page,
         )

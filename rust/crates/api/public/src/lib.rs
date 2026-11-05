@@ -538,12 +538,23 @@ async fn order_create(
     ok(vo)
 }
 
-/// `GET /api/order/list`：我的订单。
+/// `GET /api/user/order/list`：我的订单（Java `OrderController.list(OrderListPageQuery)`）。
+///
+/// 旧版 PC 会员中心标签实际入参：
+/// - 全部/待付款/待发货/待收货：`orderStatus` + `commentStatus=-1`；
+/// - 待评价：`orderStatus=-1` + `commentStatus=0`；
+/// - 订单搜索：`keyword`（订单号 / 收货人）。
+/// 评价中心「待晒单」走 `/api/user/comment/showedList` 的 `isShowed`。
 #[derive(Debug, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
 struct MyOrderQuery {
     /// 前端“全部”标签传 `orderStatus=-1`，应视为不过滤。
     order_status: Option<i32>,
+    /// 评价状态：`-1`=不过滤；`0`=待评价（仅已完成订单）；`1`=已评价。
+    comment_status: Option<i32>,
+    /// 是否晒单：`-1`=不过滤；`0`=待晒单；`1`=已晒单（Java `OrderListPageQuery.isShowed`）。
+    is_showed: Option<i32>,
+    keyword: Option<String>,
     page: Option<u64>,
     #[serde(alias = "size")]
     page_size: Option<u64>,
@@ -558,9 +569,19 @@ async fn order_list(
         page: q.page.unwrap_or(1),
         page_size: q.page_size.unwrap_or(20),
     };
+    // 与 Java `OrderListPageQuery` 一致：-1 表示不过滤（在 service 内归一）
     let order_status = q.order_status.filter(|status| *status >= 0);
-    let vo = state.trade.order
-        .list(Some(auth.id), order_status, None, &page)
+    let vo = state
+        .trade
+        .order
+        .list(
+            Some(auth.id),
+            order_status,
+            q.comment_status,
+            q.is_showed,
+            q.keyword.as_deref(),
+            &page,
+        )
         .await?;
     ok(vo)
 }
@@ -619,4 +640,55 @@ pub async fn not_found() -> (StatusCode, Json<ApiResponse<()>>) {
         StatusCode::NOT_FOUND,
         Json(ApiResponse::fail(404, "接口不存在")),
     )
+}
+
+#[cfg(test)]
+mod order_query_tests {
+    use super::MyOrderQuery;
+
+    #[test]
+    fn query_parses_pc_member_tabs() {
+        // 待评价标签：orderStatus=-1 + commentStatus=0
+        let q: MyOrderQuery = serde_json::from_value(serde_json::json!({
+            "orderStatus": -1,
+            "commentStatus": 0,
+            "page": 1,
+            "size": 10
+        }))
+        .expect("待评价参数应可解析");
+        assert_eq!(q.order_status, Some(-1));
+        assert_eq!(q.comment_status, Some(0));
+        assert_eq!(q.is_showed, None);
+        assert_eq!(q.page, Some(1));
+        assert_eq!(q.page_size, Some(10));
+
+        // 待晒单标签（评价中心）：isShowed=0
+        let q: MyOrderQuery = serde_json::from_value(serde_json::json!({
+            "page": 1,
+            "size": 10,
+            "isShowed": 0
+        }))
+        .expect("待晒单参数应可解析");
+        assert_eq!(q.is_showed, Some(0));
+    }
+
+    #[test]
+    fn query_defaults_are_none() {
+        let q: MyOrderQuery = serde_json::from_value(serde_json::json!({})).expect("空参数应可解析");
+        assert_eq!(q.order_status, None);
+        assert_eq!(q.comment_status, None);
+        assert_eq!(q.is_showed, None);
+        assert_eq!(q.keyword, None);
+    }
+
+    #[test]
+    fn query_keyword_and_alias_size() {
+        let q: MyOrderQuery = serde_json::from_value(serde_json::json!({
+            "keyword": "SN2024",
+            "size": 20
+        }))
+        .expect("keyword/size 参数应可解析");
+        assert_eq!(q.keyword.as_deref(), Some("SN2024"));
+        assert_eq!(q.page_size, Some(20));
+    }
 }
