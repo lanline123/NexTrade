@@ -55,6 +55,13 @@ export default function CheckoutClient({ cartIds }: { cartIds: number[] }) {
 
   useEffect(() => {
     let cancelled = false;
+    if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
+      setLoading(false);
+      window.location.replace(`/login?redirect=${encodeURIComponent('/order/check')}`);
+      return () => {
+        cancelled = true;
+      };
+    }
     (async () => {
       try {
         const [addressResult, checkResult, paymentResult] = await Promise.all([
