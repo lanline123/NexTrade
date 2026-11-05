@@ -56,6 +56,12 @@ pub fn normalize_comment_status(value: Option<i32>) -> Option<i32> {
     value.filter(|v| *v != -1)
 }
 
+/// 关键词归一：去首尾空白，空串视为不过滤（Java `StrUtil.isBlank`）。
+#[must_use]
+pub fn normalize_keyword(keyword: Option<&str>) -> Option<&str> {
+    keyword.map(str::trim).filter(|s| !s.is_empty())
+}
+
 /// 待晒单过滤归一（Java `OrderListPageQuery.isShowed`）：`-1` / `None` → 不过滤；
 /// `0` → 待晒单；`1` → 已晒单。
 #[must_use]
@@ -1075,7 +1081,7 @@ impl OrderService {
         // 与 Java 一致：-1 视为不过滤；待晒单 > -1 生效
         let comment_status = normalize_comment_status(comment_status);
         let is_showed = normalize_is_showed(is_showed);
-        let keyword = keyword.map(str::trim).filter(|s| !s.is_empty());
+        let keyword = normalize_keyword(keyword);
         let (total, orders) = self
             .repos.trade.order
             .paginate(
@@ -1692,6 +1698,24 @@ fn fmt_time(secs: i32) -> String {
     }
 }
 
+/// 订单状态提示文案（对齐 Java `OrderStatusEnum.description`）。
+///
+/// PC 订单详情在无法展示支付倒计时时展示 `orderStatusTip`（见
+/// `pc-semi/src/components/OrderDetailClient.tsx`），旧 Java `OrderVO` 会下发该字段。
+#[must_use]
+fn status_tip(status: i32) -> String {
+    match status {
+        0 => "待支付",
+        1 => "已确认，待发货",
+        2 => "处理中，已发货",
+        3 => "已取消",
+        4 => "无效",
+        5 => "已完成",
+        _ => "",
+    }
+    .to_string()
+}
+
 fn to_vo(o: &Order, items: &[OrderItem]) -> OrderVO {
     let status_label = client_status_label(o.order_status);
     let item_values: Vec<serde_json::Value> = items
@@ -1768,6 +1792,7 @@ fn to_vo(o: &Order, items: &[OrderItem]) -> OrderVO {
         order_status: o.order_status,
         order_status_name: status_label.clone(),
         status_label,
+        order_status_tip: status_tip(o.order_status),
         pay_status: o.pay_status,
         shipping_status: o.shipping_status,
         total_amount: o.total_amount,
@@ -1782,7 +1807,7 @@ fn to_vo(o: &Order, items: &[OrderItem]) -> OrderVO {
         order_type: o.order_type,
         parent_order_sn: o.parent_order_sn.clone(),
         is_card_order: o.is_card_order != 0,
-        is_cycle_order: o.is_cycle_order != 0,
+        is_cycle_order: o.is_cycle_order,
         is_pickup: matches!(o.shipping_method, 2),
         presale_info: None,
         order_source: Some(o.order_source.clone()),
@@ -1796,6 +1821,14 @@ fn to_vo(o: &Order, items: &[OrderItem]) -> OrderVO {
         pay_status_name,
         shipping_status_name,
         pay_end_time: None,
+        pay_time: if o.pay_time > 0 { Some(fmt_time(o.pay_time)) } else { None },
+        shipping_time: if o.shipping_time > 0 { Some(fmt_time(o.shipping_time)) } else { None },
+        received_time: if o.received_time > 0 { Some(fmt_time(o.received_time)) } else { None },
+        buyer_note: o.buyer_note.clone(),
+        online_paid_amount: o.online_paid_amount,
+        offline_paid_amount: o.offline_paid_amount,
+        credit_amount: o.credit_amount,
+        invoice_fee: o.invoice_fee,
         shipping_type_name: o.shipping_type_name.clone(),
         tracking_no: o.tracking_no.clone(),
         logistics_name: o.logistics_name.clone(),
@@ -1878,7 +1911,7 @@ mod tests {
 
 #[cfg(test)]
 mod order_list_filter_tests {
-    use super::{normalize_comment_status, normalize_is_showed};
+    use super::{normalize_comment_status, normalize_is_showed, normalize_keyword};
 
     #[test]
     fn comment_status_minus_one_means_no_filter() {
@@ -1895,10 +1928,33 @@ mod order_list_filter_tests {
     }
 
     #[test]
+    fn keyword_blank_is_no_filter() {
+        assert_eq!(normalize_keyword(None), None);
+        assert_eq!(normalize_keyword(Some("   ")), None);
+        assert_eq!(normalize_keyword(Some(" SN001 ")), Some("SN001"));
+    }
+
+    #[test]
     fn is_showed_only_filters_from_zero_upwards() {
         assert_eq!(normalize_is_showed(None), None);
         assert_eq!(normalize_is_showed(Some(-1)), None);
         assert_eq!(normalize_is_showed(Some(0)), Some(0));
         assert_eq!(normalize_is_showed(Some(1)), Some(1));
+    }
+}
+
+#[cfg(test)]
+mod order_contract_tests {
+    use super::status_tip;
+
+    #[test]
+    fn status_tip_matches_java_order_status_enum() {
+        assert_eq!(status_tip(0), "待支付");
+        assert_eq!(status_tip(1), "已确认，待发货");
+        assert_eq!(status_tip(2), "处理中，已发货");
+        assert_eq!(status_tip(3), "已取消");
+        assert_eq!(status_tip(4), "无效");
+        assert_eq!(status_tip(5), "已完成");
+        assert_eq!(status_tip(99), "");
     }
 }
