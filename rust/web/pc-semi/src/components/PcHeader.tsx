@@ -10,6 +10,7 @@ import PcHeaderTopBar from '@/components/PcHeaderTopBar';
 import PcLocaleSelect from '@/components/PcLocaleSelect';
 import PcMine from '@/components/PcMine';
 import PcCartEntry from '@/components/PcCartEntry';
+import PcAllCategory from '@/components/PcAllCategory';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
 
@@ -102,7 +103,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
               </div>
               {showCategory ? (
                 <div className="category-nav">
-                  <Link href="/search" className="pc-header__category">全部商品分类</Link>
+                  <PcAllCategory />
                 </div>
               ) : null}
             </div>

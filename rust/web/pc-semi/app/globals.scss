@@ -5458,3 +5458,35 @@ img {
 
 /* 原版 header 不使用旧版固定 1px 底边，分割由 pc-header-divider--* 控制 */
 .pc-header-runtime.pc-header { border-bottom: 0; background: transparent; }
+
+/* 按 AllCategoryNew.vue 重建分类入口 */
+.pc-header-runtime .category-wrap { position: relative; height: 100%; }
+.pc-header-runtime .category-wrap .category-trigger { position: relative; height: 100%; }
+.pc-header-runtime .category-wrap .bar-wrap { display: flex; align-items: center; height: 100%; cursor: pointer; }
+.pc-header-runtime .category-wrap .content { display: flex; height: 28px; }
+.pc-header-runtime .category-wrap .content:hover .icon, .pc-header-runtime .category-wrap .content:hover .txt { color: var(--primary-dark-2, #165dff); }
+.pc-header-runtime .category-wrap .icon { display: inline-flex; align-items: center; justify-content: center; align-self: center; width: 14px; height: 16px; color: #1a1a1a; }
+.pc-header-runtime .category-wrap .icon.ml { margin-left: 4px; margin-top: 4px; }
+.pc-header-runtime .category-wrap .arrow { transition: transform .2s; transform-origin: 50% 36%; }
+.pc-header-runtime .category-wrap .arrow.rotate { transform: rotate(180deg); }
+.pc-header-runtime .category-wrap .txt { align-self: center; margin-left: 8px; color: #1a1a1a; font-size: 14px; font-weight: 500; line-height: 20px; text-transform: capitalize; }
+.pc-header-runtime .category-dropdown { position: absolute; top: 100%; left: 0; z-index: 5000; width: 1070px; max-width: 1866px; overflow: hidden; border: 1px solid #f2f2f2; border-radius: 10px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+.pc-header-runtime .popover-cate-content { display: flex; column-gap: 25px; height: 600px; padding: 20px; box-sizing: border-box; }
+.pc-header-runtime .category-content-wrapper { display: flex; flex: 1 1 auto; width: 100%; min-width: 0; flex-wrap: nowrap; }
+.pc-header-runtime .left-wrap { position: relative; flex: 0 0 252px; width: 252px; overflow-x: hidden; overflow-y: auto; padding-right: 20px; }
+.pc-header-runtime .left-wrap::-webkit-scrollbar { width: 0; height: 0; }
+.pc-header-runtime .cate_menu_item { display: flex; align-items: center; gap: 6px; box-sizing: border-box; width: 252px; min-width: 0; height: 32px; padding: 0 10px; overflow: hidden; color: #1a1a1a; font-size: 16px; font-weight: 700; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.pc-header-runtime .cate_menu_item:hover, .pc-header-runtime .cate_menu_item.active { background: #f2f2f2; }
+.pc-header-runtime .cate_menu_icon { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 18px; height: 18px; color: #333; }
+.pc-header-runtime .cate_menu_icon_img { display: block; width: 18px; height: 18px; object-fit: contain; }
+.pc-header-runtime .cate_menu_text { min-width: 0; overflow: hidden; }
+.pc-header-runtime .cate_menu_text_inner { display: flex; align-items: center; overflow: hidden; }
+.pc-header-runtime .cate_menu_lk { overflow: hidden; color: #1a1a1a; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.pc-header-runtime .cate_menu_line { margin: 0 2px; color: #1a1a1a; }
+.pc-header-runtime .right-wrap { flex: 1; min-width: 0; overflow-y: auto; }
+.pc-header-runtime .cate-title-row { color: #1a1a1a; font-size: 16px; font-weight: 700; line-height: 24px; }
+.pc-header-runtime .cate-menu-line { margin: 0 2px; }
+.pc-header-runtime .second-class-container { display: flex; flex-wrap: wrap; gap: 16px 10px; margin-top: 14px; }
+.pc-header-runtime .second-class-item { display: flex; align-items: center; gap: 6px; color: #333; font-size: 14px; text-decoration: none; }
+.pc-header-runtime .second-class-item .item-pic { width: 36px; height: 36px; overflow: hidden; border-radius: 4px; }
+.pc-header-runtime .second-class-item .item-pic img { width: 100%; height: 100%; object-fit: contain; }
