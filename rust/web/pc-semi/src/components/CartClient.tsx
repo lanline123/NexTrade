@@ -62,6 +62,8 @@ interface CartItem {
   sku?: CartSku;
   gift?: GiftItem[];
   activityInfo?: any;
+  /** 源码 skuStatus：规格停用标记 */
+  skuStatus?: number;
   /** 源码 usedPromotions：已使用促销，用于过滤活动标签 */
   usedPromotions?: any;
 }
@@ -196,6 +198,8 @@ export default function CartClient() {
   const [recommended, setRecommended] = useState<RecommendedProduct[]>([]);
   /** 源码 settleFoldLimit=8：结算缩略图超过 8 条折叠 */
   const [showAllGoods, setShowAllGoods] = useState(false);
+  /** 源码 isSettleExpanded：优惠明细展开 */
+  const [settleExpanded, setSettleExpanded] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -467,11 +471,11 @@ export default function CartClient() {
     return (
       <Card className="cart-state">
         <IconShoppingBag size="extra-large" />
-        <h2>购物车还是空的</h2>
-        <p>去首页看看有什么适合你的设备。</p>
+        <h2>还没有商品？</h2>
+        <p>去购物，把心仪的好物加入购物车。</p>
         <Link href="/">
           <Button theme="solid" type="primary" size="large">
-            去逛逛
+            去购物
           </Button>
         </Link>
       </Card>
@@ -508,6 +512,8 @@ export default function CartClient() {
               const soldOut = Number(item.stock ?? 1) <= 0;
               const unavailable = isProductUnavailable(item);
               const max = cartQuantityMax(item);
+              /** 源码：规格停用时提示重新选择规格 */
+              const skuStopped = Number(item.skuStatus ?? 1) === 0;
               return (
                 <div key={item.cartId} className={`pc-cart__row ${disabled ? 'is-disabled' : ''}`}>
                   <Checkbox
@@ -548,7 +554,12 @@ export default function CartClient() {
                         </span>
                       ) : null}
                       {unavailable ? (
-                        <span className="pc-cart__disabled-reason">{soldOut ? '已售罄' : '商品已下架或禁售'}</span>
+                        <span className="pc-cart__disabled-reason">
+                          {soldOut ? '已售罄' : skuStopped ? '请重新选择规格' : isSaleProhibited(item) ? '暂不支持购买' : '商品已下架'}
+                          {skuStopped ? (
+                            <Link className="pc-cart__reselect" href={`/product/${item.productId || ''}`}>重新选择规格</Link>
+                          ) : null}
+                        </span>
                       ) : null}
                     </div>
                   </div>
@@ -583,9 +594,14 @@ export default function CartClient() {
         ))}
       </div>
 
-      <div className="pc-cart__footer">
-        {/* 源码 cart/index.vue：已选结算商品缩略图，超过 settleFoldLimit(8) 折叠 */}
-        {checkedItems.length ? (
+      {/* 结算明细（源码 cart/index.vue settle-panel） */}
+      {checkedItems.length ? (
+        <div className="pc-cart__settle">
+          <div className="pc-cart__settle-head">
+            <b>结算明细</b>
+            <span>已选 <b>{checkedCount}</b> 件</span>
+          </div>
+
           <div className="pc-cart__settle-goods">
             <div className={`pc-cart__settle-goods-list${showAllGoods ? '' : ' is-fold'}`}>
               {checkedItems.map((item) => (
@@ -606,34 +622,56 @@ export default function CartClient() {
               </button>
             ) : null}
           </div>
-        ) : null}
+
+          <div className={`pc-cart__settle-lines${settleExpanded ? ' is-expanded' : ''}`}>
+            <div className="pc-cart__settle-line">
+              <span>商品总价</span><span>¥ {money(total.productAmount)}</span>
+            </div>
+            {Number(total.discountDiscountAmount || 0) > 0 ? (
+              <div className="pc-cart__settle-line is-discount"><span>活动优惠</span><span>- ¥ {money(total.discountDiscountAmount)}</span></div>
+            ) : null}
+            {Number(total.discountCouponAmount || 0) > 0 ? (
+              <div className="pc-cart__settle-line is-discount"><span>优惠券</span><span>- ¥ {money(total.discountCouponAmount)}</span></div>
+            ) : null}
+            {Number(total.discountMemberAmount || 0) > 0 ? (
+              <div className="pc-cart__settle-line is-discount"><span>会员优惠</span><span>- ¥ {money(total.discountMemberAmount)}</span></div>
+            ) : null}
+            {Number(total.discountPointAmount || 0) > 0 ? (
+              <div className="pc-cart__settle-line is-discount"><span>积分抵扣</span><span>- ¥ {money(total.discountPointAmount)}</span></div>
+            ) : null}
+            {Number(total.discountBalanceAmount || 0) > 0 ? (
+              <div className="pc-cart__settle-line is-discount"><span>余额抵扣</span><span>- ¥ {money(total.discountBalanceAmount)}</span></div>
+            ) : null}
+            {Number(total.serviceFee || 0) > 0 ? (
+              <div className="pc-cart__settle-line"><span>附加费用</span><span>+ ¥ {money(total.serviceFee)}</span></div>
+            ) : null}
+            <p className="pc-cart__settle-note">实际优惠金额以下单页为准</p>
+          </div>
+
+          <div className="pc-cart__settle-summary">
+            <span className="pc-cart__save">优惠共减 <b>¥ {money(total.discounts)}</b></span>
+            <span className="pc-cart__sum">合计 <b>¥ {money(total.discountAfter ?? productAmount)}</b></span>
+          </div>
+        </div>
+      ) : null}
+
+      {/* 底部操作栏（源码 settle-bottom） */}
+      <div className="pc-cart__footer">
         <Checkbox checked={allChecked} onChange={(event) => void toggleAll(Boolean(event.target.checked))}>
           全选
         </Checkbox>
-        <Button theme="borderless" onClick={() => void removeChecked()}>
-          删除已选
-        </Button>
-        <Button theme="borderless" onClick={() => void collectChecked()}>
-          移入收藏
-        </Button>
-        <Button theme="borderless" type="danger" onClick={() => void clearCart()}>
-          清空购物车
-        </Button>
-        <div className="pc-cart__summary">
-          <span>
-            已选 <b>{checkedCount}</b> 件
-          </span>
-          {Number(total.productAmount || 0) > 0 ? <span>商品总价：¥ {money(total.productAmount)}</span> : null}
-          {Number(total.discountDiscountAmount || 0) > 0 ? <span>活动优惠：-¥ {money(total.discountDiscountAmount)}</span> : null}
-          {Number(total.discountCouponAmount || 0) > 0 ? <span>优惠券：-¥ {money(total.discountCouponAmount)}</span> : null}
-          {Number(total.discountMemberAmount || 0) > 0 ? <span>会员优惠：-¥ {money(total.discountMemberAmount)}</span> : null}
-          {Number(total.discountPointAmount || 0) > 0 ? <span>积分抵扣：-¥ {money(total.discountPointAmount)}</span> : null}
-          {Number(total.discountBalanceAmount || 0) > 0 ? <span>余额抵扣：-¥ {money(total.discountBalanceAmount)}</span> : null}
-          {Number(total.discounts || 0) > 0 ? <span>优惠合计：-¥ {money(total.discounts)}</span> : null}
-          {Number(total.serviceFee || 0) > 0 ? <span>服务费：¥ {money(total.serviceFee)}</span> : null}
-          <span>
-            合计：<b>¥ {money(total.discountAfter ?? productAmount)}</b>
-          </span>
+        <Button theme="borderless" onClick={() => void removeChecked()}>删除已选</Button>
+        <Button theme="borderless" onClick={() => void collectChecked()}>移入收藏</Button>
+        <Button theme="borderless" type="danger" onClick={() => void clearCart()}>清空购物车</Button>
+
+        <div className="pc-cart__footer-right">
+          {checkedCount > 0 ? (
+            <button type="button" className="pc-cart__discount-toggle" onClick={() => setSettleExpanded((value) => !value)}>
+              优惠共减 <b>¥ {money(total.discounts)}</b>
+              <span className="pc-cart__discount-link">优惠明细 <i className={settleExpanded ? 'up' : ''}>▾</i></span>
+            </button>
+          ) : null}
+          <span className="pc-cart__final">合计：<b>¥ {money(total.discountAfter ?? productAmount)}</b></span>
           <Button
             theme="solid"
             type="primary"
@@ -642,7 +680,7 @@ export default function CartClient() {
             loading={checkingOut}
             onClick={() => void checkout()}
           >
-            去结算
+            结算{checkedCount > 0 ? `（${checkedCount}）` : ''}
           </Button>
         </div>
       </div>

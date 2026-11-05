@@ -673,16 +673,28 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
 
       <Card className="pc-checkout__card" title="费用明细">
         <div className="pc-checkout__fees">
-          <div><span>商品金额</span><b>¥ {money(total.productAmount)}</b></div>
-          {Number(total.shippingFee || 0) > 0 ? <div><span>运费</span><b>¥ {money(total.shippingFee)}</b></div> : null}
-          {Number(total.serviceFee || 0) > 0 ? <div><span>服务费</span><b>¥ {money(total.serviceFee)}</b></div> : null}
-          {Number(total.discounts || 0) > 0 ? <div><span>优惠</span><b>-¥ {money(total.discounts)}</b></div> : null}
-          {Number(total.couponAmount || 0) > 0 ? <div><span>优惠券</span><b>-¥ {money(total.couponAmount)}</b></div> : null}
-          {Number(total.pointsAmount || 0) > 0 ? <div><span>积分抵扣</span><b>-¥ {money(total.pointsAmount)}</b></div> : null}
-          {Number(total.giftCardAmount || 0) > 0 ? <div><span>礼品卡抵扣</span><b>-¥ {money(total.giftCardAmount)}</b></div> : null}
+          <div><span>商品总价</span><b>¥ {money(total.productAmount)}</b></div>
+          {Number(total.shippingFee || 0) > 0 ? (
+            <div className="pc-checkout__fee-row">
+              <span>运费</span>
+              <b>{Number(total.shippingFee) > 0 ? `¥ ${money(total.shippingFee)}` : '包邮'}</b>
+            </div>
+          ) : null}
+          {Number(total.serviceFee || 0) > 0 ? <div><span>附加费用</span><b>+ ¥ {money(total.serviceFee)}</b></div> : null}
           {Number(total.taxRate || 0) > 0 ? <div><span>税费</span><b>¥ {money(total.taxRateAmount)}</b></div> : null}
+
+          {Number(total.discounts || 0) > 0 ? <div className="pc-checkout__fee-discount"><span>共优惠</span><b>- ¥ {money(total.discounts)}</b></div> : null}
+          {Number(total.discountCouponAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>优惠券</span><b>- ¥ {money(total.discountCouponAmount)}</b></div> : null}
+          {Number(total.pointsAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>积分减免</span><b>- ¥ {money(total.pointsAmount)}</b></div> : null}
+          {Number(total.balanceAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>余额抵扣</span><b>- ¥ {money(total.balanceAmount)}</b></div> : null}
+          {Number(total.giftCardAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>礼品卡抵扣</span><b>- ¥ {money(total.giftCardAmount)}</b></div> : null}
+          {Number(total.discounts || 0) > 0 || Number(total.pointsAmount || 0) > 0 || Number(total.balanceAmount || 0) > 0 ? (
+            <div className="pc-checkout__fee-row pc-checkout__fee-row--total"><span>共抵扣</span><b>- ¥ {money(Number(total.discounts || 0) + Number(total.pointsAmount || 0) + Number(total.balanceAmount || 0))}</b></div>
+          ) : null}
+
           {Number(total.actualPayDepositAmount || 0) > 0 ? <div><span>应付定金</span><b>¥ {money(total.actualPayDepositAmount)}</b></div> : null}
-          <div className="pc-checkout__fees-total"><span>应付金额</span><b>¥ {money(amount)}</b></div>
+          <div className="pc-checkout__fees-total"><span>{Number(total.actualPayDepositAmount || 0) > 0 ? '仍需支付' : '应付金额'}</span><b>¥ {money(amount)}</b></div>
+          <p className="pc-checkout__tips">该订单最多可用 {availablePoints} 积分、余额 ¥ {money(availableBalance)} 抵扣，实际以提交时计算为准。</p>
         </div>
       </Card>
 

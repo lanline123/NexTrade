@@ -25,7 +25,7 @@ async function getCsrf(): Promise<string> {
   return typeof json.data === 'string' ? json.data : json.data?.token || '';
 }
 
-type Mode = 'mobile' | 'email';
+type Mode = 'mobile' | 'email' | 'wechat';
 
 export default function RegisterPage() {
   const [mode, setMode] = useState<Mode>('mobile');
@@ -42,10 +42,17 @@ export default function RegisterPage() {
   const [countdown, setCountdown] = useState(0);
   const [sending, setSending] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** 源码 Register.vue：微信扫码注册（getWxLoginUrl + wechatEvent 轮询 2s/60s） */
+  const [wechatQr, setWechatQr] = useState('');
+  const [wechatExpired, setWechatExpired] = useState(false);
+  const wechatTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wechatTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (wechatTimer.current) clearInterval(wechatTimer.current);
+      if (wechatTimeout.current) clearTimeout(wechatTimeout.current);
     };
   }, []);
 
@@ -62,6 +69,59 @@ export default function RegisterPage() {
       });
     }, 1000);
   };
+
+  /** 源码 Register.vue showWechatLogin：拉取微信登录地址并生成二维码，轮询扫码结果 */
+  const stopWechat = () => {
+    if (wechatTimer.current) { clearInterval(wechatTimer.current); wechatTimer.current = null; }
+    if (wechatTimeout.current) { clearTimeout(wechatTimeout.current); wechatTimeout.current = null; }
+  };
+
+  const showWechatLogin = async () => {
+    stopWechat();
+    setWechatExpired(false);
+    try {
+      const response = await fetch('/api/user/login/getWxLoginUrl', { credentials: 'include' });
+      const json = await response.json();
+      const url = typeof json?.data === 'string' ? json.data : String(json?.data?.url || json?.data?.qrcodeUrl || '');
+      if (!url) {
+        setWechatExpired(true);
+        return;
+      }
+      const QRCode = (await import('qrcode')).default;
+      setWechatQr(await QRCode.toDataURL(url, { width: 220, margin: 1 }));
+      // 轮询扫码事件
+      wechatTimer.current = setInterval(async () => {
+        try {
+          const event = await fetch('/api/user/login/wechatEvent', { credentials: 'include' }).then((r) => r.json());
+          const data = event?.data || event;
+          if (data?.status === 1 || data?.success) {
+            stopWechat();
+            Toast.success({ content: '微信授权成功' });
+            window.location.replace('/member');
+          }
+        } catch {
+          /* 轮询失败忽略，等待超时 */
+        }
+      }, 2000);
+      wechatTimeout.current = setTimeout(() => {
+        stopWechat();
+        setWechatExpired(true);
+      }, 60000);
+    } catch (error) {
+      setWechatExpired(true);
+      Toast.error({ content: error instanceof Error ? error.message : '微信二维码加载失败' });
+    }
+  };
+
+  /** 切换到微信模式时自动加载二维码 */
+  useEffect(() => {
+    if (mode === 'wechat') {
+      void showWechatLogin();
+    } else {
+      stopWechat();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   /** 源码 MobileCode：sendMobileCode / sendEmailCode */
   const sendCode = async () => {
@@ -160,8 +220,25 @@ export default function RegisterPage() {
         <div className="register-mode">
           <button type="button" className={mode === 'mobile' ? 'is-active' : ''} onClick={() => { setMode('mobile'); setCode(''); }}>手机号注册</button>
           <button type="button" className={mode === 'email' ? 'is-active' : ''} onClick={() => { setMode('email'); setCode(''); }}>邮箱注册</button>
+          <button type="button" className={mode === 'wechat' ? 'is-active' : ''} onClick={() => setMode('wechat')}>微信注册</button>
         </div>
 
+        {mode === 'wechat' ? (
+          <div className="register-wechat">
+            <p className="register-wechat__desc">请使用微信移动端扫描二维码</p>
+            {wechatQr && !wechatExpired ? (
+              <img className="register-wechat__qr" src={wechatQr} alt="微信二维码" />
+            ) : (
+              <div className="register-wechat__placeholder">
+                {wechatExpired ? '二维码已失效' : '二维码加载中...'}
+              </div>
+            )}
+            <Button onClick={() => void showWechatLogin()}>
+              {wechatExpired ? '刷新二维码' : '返回'}
+            </Button>
+            <p className="register-wechat__tip">扫码后自动完成注册并登录</p>
+          </div>
+        ) : (
         <form onSubmit={submit} style={{ marginTop: 16 }}>
           {mode === 'mobile' ? (
             <div className="pc-form-item">
@@ -214,6 +291,7 @@ export default function RegisterPage() {
             注册
           </Button>
         </form>
+        )}
         <div className="pc-login-links">
           <Link href="/login">已有账号？去登录</Link>
           <Link href="/">返回首页</Link>
