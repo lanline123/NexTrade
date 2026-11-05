@@ -15,13 +15,17 @@ const { chromium } = require('playwright-core');
   await page.getByPlaceholder('请输入用户名').fill('admin');
   await page.getByPlaceholder('请输入密码').fill('admin123');
   await page.getByRole('button', { name: /登\s*录/ }).click();
+  await page.waitForTimeout(2000);
+  const orgEntry = page.getByText('管理后台', { exact: true }).first();
+  if ((await orgEntry.count()) > 0) {
+    await orgEntry.click();
+    await page.waitForTimeout(2500);
+  }
   await page.waitForTimeout(3000);
   console.log('after login:', page.url());
   await page.screenshot({ path: 'preview-live-dashboard.png' });
 
-  await page.getByText('交易', { exact: true }).click();
-  await page.waitForTimeout(500);
-  await page.getByText('订单管理', { exact: true }).click();
+  await page.goto('http://127.0.0.1:3002/?page=orders', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2500);
   console.log('orders rows:', await page.locator('.semi-table-tbody .semi-table-row').count());
   await page.screenshot({ path: 'preview-live-orders.png' });

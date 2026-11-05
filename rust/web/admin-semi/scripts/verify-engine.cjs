@@ -12,6 +12,12 @@ const { chromium } = require('playwright-core');
   await page.getByPlaceholder('请输入用户名').fill('admin');
   await page.getByPlaceholder('请输入密码').fill('admin123');
   await page.getByRole('button', { name: /登\s*录/ }).click();
+  await page.waitForTimeout(2000);
+  const orgEntry = page.getByText('管理后台', { exact: true }).first();
+  if ((await orgEntry.count()) > 0) {
+    await orgEntry.click();
+    await page.waitForTimeout(2500);
+  }
   await page.waitForTimeout(2500);
 
   await page.getByText('用户', { exact: true }).click();
