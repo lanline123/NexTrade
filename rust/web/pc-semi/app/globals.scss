@@ -5250,3 +5250,16 @@ img {
   .pc-header__nav { margin-top: 0; }
   .pc-header__nav-inner { height: 40px; gap: 16px; overflow-x: auto; }
 }
+
+/* 跨境风头部语言切换（原版位于头部右侧） */
+.pc-header__locale { flex-shrink: 0; }
+.pc-locale-select {
+  height: 32px;
+  padding: 0 22px 0 8px;
+  border: 0;
+  background: transparent;
+  color: #1a1a1a;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}

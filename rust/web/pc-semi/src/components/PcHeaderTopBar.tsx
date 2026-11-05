@@ -20,7 +20,7 @@ function navHref(link: any): string {
   return link.link || link.appLink || '';
 }
 
-export default function PcHeaderTopBar({ config }: { config: Record<string, any> }) {
+export default function PcHeaderTopBar({ config, showLocale = true }: { config: Record<string, any>; showLocale?: boolean }) {
   const { i18n } = useTranslation();
   const [regions, setRegions] = useState<Region[]>([]);
   const [localeList, setLocaleList] = useState<LocaleItem[]>([]);
@@ -198,7 +198,7 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
         </div>
 
         <div className="pc-topbar__right">
-          {localeList.length > 1 ? (
+          {showLocale && localeList.length > 1 ? (
             <select
               className="pc-topbar__locale"
               value={localeCode}

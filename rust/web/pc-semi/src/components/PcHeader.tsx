@@ -9,6 +9,7 @@ import User from '@icon-park/react/es/icons/User';
 import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
 import Close from '@icon-park/react/es/icons/Close';
 import PcHeaderTopBar from '@/components/PcHeaderTopBar';
+import PcLocaleSelect from '@/components/PcLocaleSelect';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
 
@@ -72,7 +73,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
 
   return (
     <header className={`pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
-      <PcHeaderTopBar config={header as Record<string, any>} />
+      <PcHeaderTopBar config={header as Record<string, any>} showLocale={styleType !== 2} />
 
       <div className="pc-container pc-header__main">
         <div className="pc-header__left">
@@ -113,6 +114,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
         </div>
 
         <div className="pc-header__right">
+          {styleType === 2 ? <PcLocaleSelect className="pc-header__locale" /> : null}
           <button
             type="button"
             className="pc-header__menu-btn"
