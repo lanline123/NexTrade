@@ -4896,3 +4896,7 @@ img {
 .claim-vouchers i { color: #999; font-size: 13px; }
 .claim-form { max-width: 680px; }
 .claim-uploading { color: #999; font-size: 12px; }
+
+
+/* PC 嵌入 H5 预览 */
+.pc-mobile-iframe { display: block; width: 100%; height: 100vh; border: 0; }
