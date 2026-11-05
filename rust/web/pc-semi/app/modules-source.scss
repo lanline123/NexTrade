@@ -2811,3 +2811,104 @@ button.view_detail {
 img {
   color: transparent;
 }
+
+/* Hero：右侧登录态与资产区 —— 严格对齐旧版 PcHomeHero.vue */
+.dec-pc-home-hero__user-top.is-authed { margin-bottom: 0; }
+
+.dec-pc-home-hero__user-assets {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  flex: 1;
+  flex-shrink: 0;
+  margin: 12px 0 10px;
+  padding: 10px 0;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.dec-pc-home-hero__user-assets--wide { grid-template-columns: 0.8fr 1.15fr 1.15fr; }
+
+.dec-pc-home-hero__asset-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 4px;
+  box-sizing: border-box;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .dec-pc-home-hero__asset-num,
+  &:hover .dec-pc-home-hero__asset-label { color: #e1251b; }
+}
+
+.dec-pc-home-hero__asset-num {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #333;
+}
+
+.dec-pc-home-hero__asset-label { margin-top: 6px; font-size: 12px; color: #1a1a1a; }
+
+.dec-pc-home-hero__user-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  flex-shrink: 0;
+  margin-top: auto;
+  text-align: center;
+}
+
+.dec-pc-home-hero__action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 0;
+  overflow: visible;
+  font-size: 12px;
+  line-height: 1.2;
+  color: #333;
+  cursor: pointer;
+  transition: color .2s;
+
+  &:hover { color: #e1251b; }
+
+  span {
+    display: block;
+    width: 100%;
+    padding: 0 2px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+}
+
+/* Hero 用户卡：收紧间距避免文字被裁（220px 固定高） */
+.dec-pc-home-hero__user-card {
+  padding: 14px 12px;
+  box-sizing: border-box;
+}
+
+.dec-pc-home-hero__user-top { margin-bottom: 10px; }
+.dec-pc-home-hero__user-desc { margin-bottom: 6px; }
+.dec-pc-home-hero__login-btn { margin-bottom: 8px; }
+
+.dec-pc-home-hero__user-actions { gap: 2px; }
+.dec-pc-home-hero__action-item { gap: 8px; }
