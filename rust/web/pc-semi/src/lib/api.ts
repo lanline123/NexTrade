@@ -706,3 +706,22 @@ export async function getFeedbackList(params: { page?: number; size?: number; or
   const data = await readData<any>(response);
   return { records: Array.isArray(data?.records) ? data.records : [], total: Number(data?.total || 0) };
 }
+
+
+export interface AftersalesRecordItem {
+  aftersalesId?: number;
+  orderSn?: string;
+  addTime?: string;
+  statusName?: string;
+  aftersalesItems?: Array<{ productId?: number; productName?: string; picThumb?: string; quantity?: number }>;
+  [key: string]: unknown;
+}
+
+export async function getAftersalesRecords(params: { page?: number; size?: number } = {}): Promise<{ records: AftersalesRecordItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 10));
+  const response = await fetch(`${SERVER_API_BASE}/api/user/aftersales/getRecord?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return { records: Array.isArray(data?.records) ? data.records : [], total: Number(data?.total || 0) };
+}
