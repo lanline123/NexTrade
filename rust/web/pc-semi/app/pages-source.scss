@@ -726,3 +726,20 @@
 .feedback-tabs { display: flex; gap: 24px; margin-bottom: 16px; border-bottom: 1px solid #f0f0f0; }
 .feedback-tabs button { padding: 8px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #666; font-size: 14px; cursor: pointer; }
 .feedback-tabs button.is-active { border-bottom-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); font-weight: 600; }
+
+/* 移动端溢出修复：搜索价格表单 / 登录守卫卡片 */
+@media (max-width: 900px) {
+  .pc-search-price-form { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 100%; }
+  .pc-search-price-input { flex: 1 1 40%; min-width: 0; max-width: 100%; }
+  .pc-login-card, .pc-login-native { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+  .pc-login-page { padding: 16px; box-sizing: border-box; }
+  .pc-container { max-width: 100%; padding-left: 12px; padding-right: 12px; box-sizing: border-box; }
+  .pc-member-page, .pc-static-page { overflow-x: hidden; }
+}
+
+@media (max-width: 900px) {
+  .pc-search-price-form { flex-wrap: wrap !important; width: 100% !important; max-width: 100% !important; overflow: hidden; }
+  .pc-search-price-form > * { flex: 1 1 auto; min-width: 0 !important; max-width: 100% !important; }
+  .pc-search-price-input { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+  .pc-search-price-form span { flex: 0 0 auto; }
+}
