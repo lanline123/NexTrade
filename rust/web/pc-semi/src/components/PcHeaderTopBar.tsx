@@ -26,6 +26,7 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
   const [localeList, setLocaleList] = useState<LocaleItem[]>([]);
   const [localeCode, setLocaleCode] = useState('');
   const [regionId, setRegionId] = useState<number | null>(null);
+  const [regionReady, setRegionReady] = useState(false);
   const [regionOpen, setRegionOpen] = useState(false);
   const [user, setUser] = useState<Record<string, any> | null>(null);
   const [siteNav, setSiteNav] = useState<NavItem[]>([]);
@@ -73,18 +74,17 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
       .then((json) => setSiteNav(Array.isArray(json?.data?.topBarNav) ? json.data.topBarNav : []))
       .catch(() => undefined);
 
-    fetch('/api/sys/region/getProvinceList')
-      .then((response) => response.json())
-      .then((json) => setRegions(Array.isArray(json?.data) ? json.data : []))
-      .catch(() => undefined);
-
-    fetch('/api/sys/region/getUserRegion')
-      .then((response) => response.json())
-      .then((json) => {
+    Promise.all([
+      fetch('/api/sys/region/getProvinceList').then((response) => response.json()),
+      fetch('/api/sys/region/getUserRegion').then((response) => response.json()),
+    ])
+      .then(([regionJson, userRegionJson]) => {
+        setRegions(Array.isArray(regionJson?.data) ? regionJson.data : []);
         const cookieId = Number(document.cookie.match(/(?:^|; )userProvinceId=([^;]+)/)?.[1]);
-        setRegionId(Number(json?.data?.regionId) || (Number.isFinite(cookieId) ? cookieId : null));
+        setRegionId(Number(userRegionJson?.data?.regionId) || (Number.isFinite(cookieId) ? cookieId : null));
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setRegionReady(true));
 
     const token = localStorage.getItem('accessToken');
     if (token) {
@@ -140,7 +140,7 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
     <div className="pc-topbar" style={{ background: backgroundColor, color: textColor, ['--pc-topbar-hover' as string]: hoverColor }}>
       <div className="pc-topbar__inner">
         <div className="pc-topbar__left">
-          {showRegion ? (
+          {showRegion ? regionReady ? (
             <div className="pc-topbar__region" onMouseEnter={enterRegion} onMouseLeave={leaveRegion}>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
                 <path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z" />
@@ -156,6 +156,8 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
                 </div>
               ) : null}
             </div>
+          ) : (
+            <div className="pc-topbar__region is-placeholder" aria-hidden="true"><span>全国</span></div>
           ) : null}
 
           {showMemberName ? (

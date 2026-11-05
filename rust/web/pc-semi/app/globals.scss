@@ -5216,3 +5216,8 @@ img {
 .pc-header__search-icon svg { display: block; }
 .pc-header__action svg { display: block; }
 .pc-header__menu-btn svg, .pc-mobile-nav__head button svg { display: block; }
+
+/* 避免首页首屏地区/Logo 先显示占位文案再跳变 */
+.pc-topbar__region.is-placeholder { visibility: hidden; }
+.pc-header__brand-placeholder { display: block; width: 160px; height: 40px; border-radius: 6px; background: #f2f3f5; }
+@media (max-width: 600px) { .pc-header__brand-placeholder { width: 132px; height: 34px; } }

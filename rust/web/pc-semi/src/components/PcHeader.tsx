@@ -22,19 +22,24 @@ const FALLBACK_NAV = [
 export default function PcHeader({ config }: { config?: PcHeaderConfig | null }) {
   const [keyword, setKeyword] = useState('');
   const [siteLogo, setSiteLogo] = useState('');
+  const [logoReady, setLogoReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const header = config || {};
   const logo = imageUrl(header.logoPic);
 
   useEffect(() => {
-    if (logo) return;
+    if (logo) {
+      setLogoReady(true);
+      return;
+    }
     fetch('/api/common/config/base')
       .then((response) => response.json())
       .then((json) => {
         const url = json?.data?.shopLogo;
         if (typeof url === 'string' && url) setSiteLogo(url);
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setLogoReady(true));
   }, [logo]);
 
   useEffect(() => {
@@ -63,7 +68,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
 
       <div className="pc-container pc-header__main">
         <Link href="/" className="pc-header__brand">
-          {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: Number(header.logoWidth) || 160, maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : <b>万物新生</b>}
+          {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: Number(header.logoWidth) || 160, maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : logoReady ? <b>万物新生</b> : <span className="pc-header__brand-placeholder" />}
         </Link>
 
         <div className="pc-header__search">
