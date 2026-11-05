@@ -93,19 +93,40 @@ function TitleAd({ module }: ModuleProps) {
 }
 
 function Notice({ module }: ModuleProps) {
-  const notices = module.noticeList || module.items || [];
+  const frame = module.frame ?? {};
+  const containerModule = {
+    boxPadding: frame.boxPadding ?? module.boxPadding ?? 10,
+    boxPaddingTop: frame.boxPaddingTop ?? module.boxPaddingTop ?? 5,
+    boxPaddingBottom: frame.boxPaddingBottom ?? module.boxPaddingBottom ?? 5,
+    boxRadius: frame.boxRadius ?? module.boxRadius ?? 0,
+    backgroundColor: frame.backgroundColor || module.backgroundColor || '#ffffff',
+    innerPadding: frame.innerPadding ?? module.innerPadding ?? 0,
+  };
+  const itemStyle = {
+    backgroundColor: frame.itemBackgroundColor ?? '#fff8e6',
+    borderRadius: `${frame.itemRadius ?? 4}px`,
+    height: `${frame.itemHeight ?? 35}px`,
+    color: frame.textColor ?? '#555555',
+  };
+  const icon = imageUrl(module.icoPic);
   return (
-    <Frame frame={module.frame}>
-      <div className="dec-notice">
-        <span className="dec-notice__tag">
-          {module.noticeTitle || '公告'}
-        </span>
-        <div className="dec-notice__list">
-          {notices.slice(0, 3).map((item: any, index: number) => (
-            <a key={index} href={linkUrl(item.picLink || item.link)}>
-              {item.picTitle || item.title || item.noticeTitle}
-            </a>
-          ))}
+    <Frame frame={containerModule}>
+      <div className="notice-ad-warp module-ad-con module-notice">
+        <div className="notice-con">
+          <div className="notice-item">
+            <div className="item-content">
+              <div className="item-notice-con" style={itemStyle}>
+                {icon ? (
+                  <div className="item-notice-ico"><img className="item-img" src={icon} alt="" /></div>
+                ) : null}
+                <div className="item-notice-list">
+                  <div className="item-notice-input" style={{ color: frame.textColor ?? '#555555' }}>
+                    {module.text || ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Frame>

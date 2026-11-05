@@ -5398,3 +5398,12 @@ img {
 .line-style-1 .item-line { border-bottom: 1px solid #e5e5e5; }
 .line-style-2 .item-line { border-bottom: 1px dashed #e5e5e5; }
 .line-style-3 .item-line { border-bottom: 1px dotted #e5e5e5; }
+
+/* 按 PcNotice.vue 重建公告 */
+.notice-ad-warp { width: 100%; box-sizing: border-box; }
+.notice-ad-warp .notice-con { width: 100%; }
+.notice-ad-warp .item-notice-con { display: flex; align-items: center; height: 20px; padding: 5px 0; color: #555555; }
+.notice-ad-warp .item-notice-ico { flex-shrink: 0; width: 16px; height: 16px; margin-left: 10px; }
+.notice-ad-warp .item-notice-ico .item-img { width: 100%; height: 100%; object-fit: contain; }
+.notice-ad-warp .item-notice-list { flex: 1; margin-left: 8px; overflow: hidden; }
+.notice-ad-warp .item-notice-input { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
