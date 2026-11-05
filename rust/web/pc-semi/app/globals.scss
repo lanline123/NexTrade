@@ -5173,3 +5173,38 @@ img {
   .pc-header__actions { min-width: 46px; }
   .pc-header__action { min-width: 46px; text-align: center; }
 }
+
+/* 移动端导航抽屉 */
+.pc-header__menu-btn { display: none; }
+@media (max-width: 900px) {
+  .pc-header__menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .pc-mobile-nav { position: fixed; inset: 0; z-index: 10000; }
+  .pc-mobile-nav__overlay { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: rgba(0, 0, 0, 0.45); }
+  .pc-mobile-nav__panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(80vw, 320px);
+    padding: 18px;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.18);
+  }
+  .pc-mobile-nav__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 17px; }
+  .pc-mobile-nav__head button { border: 0; background: transparent; color: #666; font-size: 24px; cursor: pointer; }
+  .pc-mobile-nav__panel > a { display: block; padding: 13px 4px; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 14px; }
+}

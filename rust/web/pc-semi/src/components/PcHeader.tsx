@@ -17,6 +17,7 @@ const FALLBACK_NAV = [
 export default function PcHeader({ config }: { config?: PcHeaderConfig | null }) {
   const [keyword, setKeyword] = useState('');
   const [siteLogo, setSiteLogo] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
   const header = config || {};
   const logo = imageUrl(header.logoPic);
 
@@ -62,6 +63,16 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
           </button>
         </div>
 
+        <button
+          type="button"
+          className="pc-header__menu-btn"
+          aria-label="打开菜单"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          ☰
+        </button>
+
         <div className="pc-header__actions">
           <Link href="/member" className="pc-header__action">
             <span>我的账户</span>
@@ -82,6 +93,25 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
             ))}
           </div>
         </nav>
+      ) : null}
+
+      {menuOpen ? (
+        <div className="pc-mobile-nav">
+          <button type="button" className="pc-mobile-nav__overlay" aria-label="关闭菜单" onClick={() => setMenuOpen(false)} />
+          <div className="pc-mobile-nav__panel">
+            <div className="pc-mobile-nav__head">
+              <b>菜单</b>
+              <button type="button" aria-label="关闭菜单" onClick={() => setMenuOpen(false)}>×</button>
+            </div>
+            {navItems.map((item, index) => (
+              <Link key={index} href={item.link || '/'} onClick={() => setMenuOpen(false)}>
+                {item.title || item.name || item.label}
+              </Link>
+            ))}
+            <Link href="/member" onClick={() => setMenuOpen(false)}>我的账户</Link>
+            <Link href="/cart" onClick={() => setMenuOpen(false)}>购物车</Link>
+          </div>
+        </div>
       ) : null}
     </header>
   );
