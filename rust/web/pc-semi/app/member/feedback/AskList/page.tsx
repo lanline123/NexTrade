@@ -32,7 +32,7 @@ export default async function FeedbackAskListPage({ searchParams }: { searchPara
       <main className="pc-member-page">
         <div className="pc-container">
           <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/member">会员中心</Link><span>/</span><span>问答记录</span></nav>
-          <h1 className="pc-cart-title">问答记录</h1>
+          <div className="pc-list-head"><h1 className="pc-cart-title">问答记录</h1><Link href="/member/feedback/Info" className="pc-list-head__action">提交留言</Link></div>
           <section className="feedback-list">
             {data.records.length ? data.records.map((item, index) => (
               <article className="feedback-card" key={item.id || index}>

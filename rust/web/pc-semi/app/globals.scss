@@ -5047,3 +5047,14 @@ img {
 .feedback-card__reply { margin-top: 12px; padding: 12px; border-radius: 8px; background: #f7f8fa; color: #666; font-size: 13px; }
 .feedback-card__reply p { margin: 6px 0 0; color: #333; }
 .feedback-card__pending { margin-top: 10px; color: #d48806; font-size: 12px; }
+
+
+/* 提交留言 */
+.feedback-form h2 { margin: 0 0 14px; color: #1a1a1a; font-size: 18px; }
+.feedback-form .security-form { max-width: 620px; }
+.feedback-form textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #dcdfe6; border-radius: 8px; resize: vertical; font-size: 14px; }
+.feedback-form__types { display: flex; gap: 8px; flex-wrap: wrap; }
+.feedback-form__types button { height: 34px; padding: 0 18px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+.feedback-form__types button.is-active { border-color: #e1251b; background: #e1251b; color: #fff; }
+.pc-list-head { display: flex; align-items: center; justify-content: space-between; }
+.pc-list-head__action { color: #e1251b; font-size: 14px; }
