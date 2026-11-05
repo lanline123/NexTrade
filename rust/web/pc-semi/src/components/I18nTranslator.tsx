@@ -120,11 +120,16 @@ export default function I18nTranslator() {
       return key;
     };
 
+    const originalTitle = typeof document !== 'undefined' ? document.title : '';
     const apply = () => {
       scheduled = false;
       if (cancelled || typeof document === 'undefined') return;
       walk(document.body, t, originals, attributeOriginals, enabled);
       document.documentElement.lang = locale;
+      if (enabled && originalTitle) {
+        const translatedTitle = t(originalTitle);
+        if (translatedTitle && translatedTitle !== originalTitle) document.title = translatedTitle;
+      }
     };
     const schedule = () => {
       if (scheduled) return;
@@ -145,6 +150,7 @@ export default function I18nTranslator() {
       i18n.off('languageChanged', schedule);
       i18n.off('loaded', schedule);
       i18n.off('added', schedule);
+      if (enabled && originalTitle && typeof document !== 'undefined') document.title = originalTitle;
     };
   }, [enabled, i18n, locale]);
 
