@@ -7,10 +7,10 @@ $ErrorActionPreference = 'Stop'
 Set-Location 'D:\tigshop\java-b2b2b-pro-v5.8.57'
 
 $cred = ("protocol=https`nhost=github.com`n`n" | git credential fill) -split "`n"
-$token = ($cred | Where-Object { $_ -like 'password=*' }) -replace '^password=', ''
+$token = (($cred | Where-Object { $_ -like 'password=*' }) -replace '^password=', '').Trim()
 if (-not $token) { throw '未能获取 GitHub token（git credential fill 失败）' }
-$h = @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json'; 'User-Agent' = 'dsh' }
-$api = 'https://api.github.com/repos/lanline123/rustshop'
+$h = @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json'; 'User-Agent' = 'dsh'; 'X-GitHub-Api-Version' = '2022-11-28' }
+$api = 'https://api.github.com/repos/lanline123/NexTrade'
 $ref = Invoke-RestMethod -Uri "$api/git/ref/heads/main" -Headers $h
 $base = $ref.object.sha
 $baseCommit = Invoke-RestMethod -Uri "$api/git/commits/$base" -Headers $h
