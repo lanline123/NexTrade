@@ -23,6 +23,9 @@ i18next：全量接入，中文原文作 key
 语言切换：无需刷新，同步 html lang 和 document.title
 SEO：metadataBase/OG/Twitter、Organization/WebSite/Product/Store/Article/Breadcrumb JSON-LD
 私密页：member/order/cart/login/register/install 已 noindex
+登录守卫：chat/cart/order/check/order/pay/join/intro/joining/groupByInvited/member/**
+IconPark：header 搜索/账户/购物车/移动端菜单/关闭图标
+站点图标：app/icon.png、apple-icon.png、manifest.webmanifest
 响应式：390px 无横向溢出，移动端导航抽屉
 ```
 
@@ -34,6 +37,7 @@ npm run typecheck
 npm run build
 npm run audit:pc
 npm run audit:i18n
+npm run audit:links
 ```
 
 最近结果：
@@ -45,6 +49,8 @@ build：通过
 路由巡检：109 个，异常均为预期 307 重定向或无效测试 ID
 最新路由审计：117 个新路由，business missing 0；13 个 activity 内部组件路径由 catch-all 承载
 i18n 静态覆盖率：97.8%
+站内链接：12 个入口页、88 条内部链接、0 死链
+运行时：20 个关键页面、0 pageerror
 ```
 
 ### 未完成
