@@ -5360,3 +5360,22 @@ img {
 .pc-header-runtime .lang-popover .lang-item { display: flex; align-items: center; width: 100%; height: 30px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: #333; font-size: 14px; text-align: left; cursor: pointer; }
 .pc-header-runtime .lang-popover .lang-item:hover { background: #f5f7fa; }
 .pc-header-runtime .lang-popover .lang-item.is-active { color: var(--primary-dark-2, #165dff); font-weight: 600; }
+
+/* 按 Mine.vue 重建用户入口 */
+.pc-header-runtime .mine-bar .category-wrap { height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative; }
+.pc-header-runtime .mine-bar .bar-wrap { height: 100%; display: flex; align-items: center; cursor: pointer; }
+.pc-header-runtime .mine-bar .content { display: flex; height: 28px; color: #1a1a1a; }
+.pc-header-runtime .mine-bar .content:hover .icon, .pc-header-runtime .mine-bar .content:hover .txt { color: var(--primary-dark-2, #165dff); }
+.pc-header-runtime .mine-bar .icon { display: flex; align-items: center; align-self: center; color: #1a1a1a; }
+.pc-header-runtime .mine-bar .icon.ml { margin-left: 4px; }
+.pc-header-runtime .mine-bar .arrow { transition: all .2s; }
+.pc-header-runtime .mine-bar .arrow.rotate { transform: rotate(180deg); }
+.pc-header-runtime .mine-bar .txt { align-self: center; margin-left: 6px; color: #1a1a1a; font-size: 14px; font-weight: 500; }
+.pc-header-runtime .popover-mine-content { position: absolute; top: 52px; right: 0; z-index: 9999; width: 180px; min-width: 180px; padding: 12px 16px; border-radius: 6px; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+.pc-header-runtime .popover-mine-content .member-info { display: flex; align-items: center; }
+.pc-header-runtime .popover-mine-content .avatar { width: 28px; height: 28px; overflow: hidden; border-radius: 50%; background: #eef2ff; }
+.pc-header-runtime .popover-mine-content .avatar img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+.pc-header-runtime .popover-mine-content .name { width: 100px; margin-left: 6px; overflow: hidden; color: #1a1a1a; text-overflow: ellipsis; white-space: nowrap; }
+.pc-header-runtime .popover-mine-content .menu-wrap { margin-top: 10px; }
+.pc-header-runtime .popover-mine-content .item-wrap { display: flex; align-items: center; width: 100%; height: 40px; padding: 0; border: 0; background: transparent; color: #1a1a1a; font-size: 14px; text-align: left; text-transform: capitalize; cursor: pointer; }
+.pc-header-runtime .popover-mine-content .item-wrap.logout { color: #888b94; }

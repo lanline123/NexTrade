@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import User from '@icon-park/react/es/icons/User';
+import Down from '@icon-park/react/es/icons/Down';
 
 interface MineUser {
   nickname?: string;
@@ -34,34 +35,43 @@ export default function PcMine() {
 
   if (!user) {
     return (
-      <Link href="/login" className="pc-header__action pc-mine">
-        <User size={20} />
-        <span>登录</span>
-      </Link>
+      <div className="category-wrap">
+        <div className="bar-wrap">
+          <Link href="/login" className="content">
+            <div className="icon"><User size={18} /></div>
+            <div className="txt">登录</div>
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="pc-mine" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <Link href="/member" className="pc-header__action">
-        <User size={20} />
-        <span>我的</span>
-      </Link>
-      {open ? (
-        <div className="pc-mine__dropdown">
-          <Link href="/member" className="pc-mine__head">
-            <span className="pc-mine__avatar">
-              {user.avatar ? <img src={String(user.avatar)} alt="" /> : name.slice(0, 1)}
-            </span>
-            <b>{name}</b>
+    <div className="category-wrap" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <div className="bar-wrap">
+        <div className="content">
+          <Link href="/member" className="content">
+            <div className="icon"><User size={18} /></div>
+            <div className="txt">我的</div>
+            <div className="icon ml"><Down className={`arrow${open ? ' rotate' : ''}`} size={14} /></div>
           </Link>
-          <div className="pc-mine__menu">
-            <Link href="/member/order/list">我的订单</Link>
-            <Link href="/member/comment/List">我的评价</Link>
-            <Link href="/member/collectProduct/List">心愿单</Link>
-            <Link href="/member/address">收货地址</Link>
-            <Link href="/member/browsingHistory">浏览记录</Link>
-            <button type="button" onClick={logout}>退出登录</button>
+        </div>
+      </div>
+      {open ? (
+        <div className="popover-mine-content">
+          <Link href="/member" className="member-info">
+            <div className="avatar">
+              {user.avatar ? <img src={String(user.avatar)} alt="" referrerPolicy="no-referrer" /> : null}
+            </div>
+            <div className="name">{name}</div>
+          </Link>
+          <div className="menu-wrap">
+            <Link href="/member/order/list" className="item-wrap">我的订单</Link>
+            <Link href="/member/comment/list" className="item-wrap">我的评价</Link>
+            <Link href="/member/collectProduct/list" className="item-wrap">心愿单</Link>
+            <Link href="/member/address/list" className="item-wrap">收货地址</Link>
+            <Link href="/member/browsingHistory/list" className="item-wrap">浏览记录</Link>
+            <button type="button" className="item-wrap logout" onClick={logout}>退出登录</button>
           </div>
         </div>
       ) : null}
