@@ -1681,5 +1681,14 @@
     "促销": "Promotion",
     "推荐": "Recommended",
     "更多": "More",
-    "分类": "Categories"
+    "分类": "Categories",
+    "关闭菜单": "Close menu",
+    "打开菜单": "Open menu",
+    "请确认后端 `/api/home/home/pcIndex` 可访问，或设置 `PC_API_BASE`。": "Confirm that `/api/home/home/pcIndex` is reachable, or set `PC_API_BASE`.",
+    "搜索商品、分类、品牌与回收设备。": "Search products, categories, brands and recycling equipment.",
+    "帮助中心文章": "Help Center Article",
+    "安装向导": "Installation Wizard",
+    "订单支付": "Order Payment",
+    "装修模块回归 · 万物新生": "Decoration Module Regression · Wanwu Xinsheng",
+    "商品不存在 · 万物新生": "Product Not Found · Wanwu Xinsheng"
 }
