@@ -7,6 +7,7 @@ import { IconCart, IconCreditCard } from '@douyinfe/semi-icons';
 import type { ProductDetailResponse } from '@/lib/api';
 import { addToCart } from '@/lib/api';
 import { apiGet, apiPost } from '@/lib/client-api';
+import RawImageDownloadButton from '@/components/RawImageDownloadButton';
 
 /**
  * 商品详情（源码对照 java-b2b2c-overseas-v5.8.61/view/pc/pages/item/src/Product.vue
@@ -774,6 +775,7 @@ export default function ProductDetailClient({ detail }: { detail: ProductDetailR
               {collected ? '已收藏' : '收藏'}
             </Button>
             <Button size="large" onClick={() => void openShare()}>分享</Button>
+            <RawImageDownloadButton productId={productId} shopId={shopId || undefined} />
           </div>
           {requireSku ? <p className="pc-product-detail__tips">请选择完整规格后购买</p> : null}
           {outOfStock ? <p className="pc-product-detail__tips">该商品暂时缺货，敬请期待</p> : null}

@@ -77,6 +77,43 @@ export interface ProductDetailResponse {
 }
 
 /** 商品详情：服务端 SSR 拉取，SEO 和首屏都走服务端。 */
+/**
+ * 商品详情（按商品编号 sn 取数）
+ * 源码对照：pages/product/[...slug].vue + pages/item/src/Product.vue
+ * —— 旧版前台 URL 使用商品 SN，后端 `product/product/detail` 支持 `sn` 参数。
+ */
+export async function getProductDetailBySn(sn: string): Promise<ProductDetailResponse> {
+  const response = await fetch(`${SERVER_API_BASE}/api/product/product/detail?sn=${encodeURIComponent(sn)}`, {
+    cache: 'no-store',
+  });
+  return readData<ProductDetailResponse>(response);
+}
+
+/** 源码 utils/seo-url.ts extractProductSnFromSlug：取最后一段，若含 "." 则取点后部分 */
+export function extractProductSnFromSlug(slug?: string | string[] | null): string {
+  const segments = (Array.isArray(slug) ? slug : typeof slug === 'string' ? [slug] : [])
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+  const last = segments[segments.length - 1] || '';
+  if (!last) return '';
+  const dot = last.lastIndexOf('.');
+  if (dot < 0 || dot === last.length - 1) return last;
+  return last.slice(dot + 1);
+}
+
+/** 数字则按 id 取，否则按 sn 取；id 失败再回落 sn，sn 失败再回落 id */
+export async function loadProductBySlug(sn: string): Promise<ProductDetailResponse | null> {
+  if (!sn) return null;
+  const numeric = Number(sn);
+  if (Number.isFinite(numeric) && numeric > 0) {
+    const byId = await getProductDetail(numeric).catch(() => null);
+    if (byId?.item) return byId;
+  }
+  const bySn = await getProductDetailBySn(sn).catch(() => null);
+  if (bySn?.item) return bySn;
+  return null;
+}
+
 export async function getProductDetail(id: number): Promise<ProductDetailResponse> {
   const response = await fetch(`${SERVER_API_BASE}/api/product/product/detail?id=${id}`, {
     cache: 'no-store',
