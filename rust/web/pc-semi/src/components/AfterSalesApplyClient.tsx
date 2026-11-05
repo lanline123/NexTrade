@@ -33,6 +33,9 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
   const [type, setType] = useState(1);
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
+  /** 源码 return/Info.vue 问题描述凭证图片 pics */
+  const [pics, setPics] = useState<Array<Record<string, unknown>>>([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [needLogin, setNeedLogin] = useState(false);
@@ -77,6 +80,38 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
     });
   };
 
+  /** 源码 form/src/UploadImage.vue：凭证上传 /api/user/user/uploadImg */
+  const uploadPic = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      Toast.error({ content: '只能上传 2M 以内的图片' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('accessToken') || '';
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/user/user/uploadImg', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+        credentials: 'include',
+      });
+      const json = await response.json();
+      if (json?.code !== undefined && json.code !== 0) {
+        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        return;
+      }
+      const data = json?.data;
+      const url = typeof data === 'string' ? data : String(data?.picUrl || data?.url || '');
+      if (url) setPics((current) => [...current, { picUrl: url, picThumb: String(data?.picThumb || url) }]);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '上传失败' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const submit = async () => {
     if (!selectedItems.length) {
       Toast.warning({ content: '请选择售后商品' });
@@ -89,6 +124,7 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
         aftersaleType: type,
         aftersaleReason: reason,
         description,
+        pics,
         items: selectedItems,
       });
       Toast.success({ content: '售后申请已提交' });
@@ -160,6 +196,34 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
           )}
           <label>问题描述</label>
           <Input value={description} onChange={setDescription} placeholder="请描述遇到的问题" />
+        </div>
+
+        {/* 源码 return/Info.vue：上传凭证图片（最多 5 张，单张 2M） */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>上传凭证</div>
+          <div className="aftersales-pics">
+            {pics.map((pic, index) => (
+              <span className="aftersales-pics__item" key={index}>
+                <img src={String(pic.picThumb || pic.picUrl || '')} alt="凭证" />
+                <button type="button" onClick={() => setPics((current) => current.filter((_, i) => i !== index))}>×</button>
+              </span>
+            ))}
+            {pics.length < 5 ? (
+              <label className="aftersales-pics__pick">
+                {uploading ? '上传中...' : '+ 上传'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void uploadPic(file);
+                    event.target.value = '';
+                  }}
+                />
+              </label>
+            ) : null}
+          </div>
         </div>
       </Card>
 

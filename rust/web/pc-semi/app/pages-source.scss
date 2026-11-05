@@ -684,3 +684,21 @@
 .chat-input__tool { padding: 3px 10px; border: 1px solid #e5e7eb; border-radius: 4px; color: #333; font-size: 12px; cursor: pointer; }
 .chat-input__tool:hover { border-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
 .chat-input__tips { color: #bbb; font-size: 12px; }
+
+/* 店铺商品卡（pages/shop/src/CatGoodsList.vue） */
+.shop-detail-card { position: relative; }
+.shop-detail-card__img { position: relative; }
+.shop-detail-card__badge { position: absolute; top: 8px; left: 8px; padding: 1px 6px; border-radius: 3px; background: #e1251b; color: #fff; font-size: 11px; }
+.shop-detail-card__price { display: flex; align-items: baseline; gap: 6px; }
+.shop-detail-card__market { color: #bbb; font-size: 12px; font-weight: 400; }
+.shop-detail-card__meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: #8c8c8c; font-size: 12px; }
+.shop-detail-card__promo { display: inline-flex; gap: 4px; }
+.shop-detail-card__promo em { padding: 0 4px; border: 1px solid #ffd8bf; border-radius: 2px; background: #fff7f0; color: #d4380d; font-size: 11px; font-style: normal; }
+
+/* 售后申请凭证上传（return/Info.vue） */
+.aftersales-pics { display: flex; flex-wrap: wrap; gap: 10px; }
+.aftersales-pics__item { position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; }
+.aftersales-pics__item img { width: 100%; height: 100%; object-fit: cover; }
+.aftersales-pics__item button { position: absolute; top: 0; right: 0; width: 18px; height: 18px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; line-height: 18px; cursor: pointer; }
+.aftersales-pics__pick { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border: 1px dashed #d9d9d9; border-radius: 6px; color: #8c8c8c; font-size: 12px; cursor: pointer; }
+.aftersales-pics__pick:hover { border-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }

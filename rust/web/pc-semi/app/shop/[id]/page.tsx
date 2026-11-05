@@ -134,12 +134,29 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
                 <ul className="shop-detail-grid">
                   {products.records.map((product: any) => (
                     <li key={product.productId}>
+                      {/* 源码 pages/shop/src/CatGoodsList.vue 商品卡字段 */}
                       <Link href={`/product/${product.productId}`} className="shop-detail-card" target="_blank">
                         <div className="shop-detail-card__img">
                           <img src={product.picThumb || product.picUrl || ''} alt={product.productName || ''} loading="lazy" />
+                          {Number(product.productSaleMode || 0) > 0 ? <span className="shop-detail-card__badge">预售</span> : null}
                         </div>
                         <div className="shop-detail-card__name">{product.productName}</div>
-                        <div className="shop-detail-card__price">¥ {Number(product.productPrice || 0).toFixed(2)}</div>
+                        <div className="shop-detail-card__price">
+                          ¥ {Number(product.productPrice || product.price || 0).toFixed(2)}
+                          {Number(product.marketPrice || 0) > Number(product.productPrice || 0) ? (
+                            <s className="shop-detail-card__market">¥ {Number(product.marketPrice).toFixed(2)}</s>
+                          ) : null}
+                        </div>
+                        <div className="shop-detail-card__meta">
+                          {product.saleCount !== undefined ? <span>已售 {Number(product.saleCount || 0)}</span> : null}
+                          {Array.isArray(product.promotionList) && product.promotionList.length ? (
+                            <span className="shop-detail-card__promo">
+                              {product.promotionList.slice(0, 2).map((promo: any, index: number) => (
+                                <em key={index}>{String(promo?.type === 2 ? '券' : promo?.name || promo?.title || '促销')}</em>
+                              ))}
+                            </span>
+                          ) : null}
+                        </div>
                       </Link>
                     </li>
                   ))}
