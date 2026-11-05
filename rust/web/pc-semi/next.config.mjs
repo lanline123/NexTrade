@@ -38,6 +38,8 @@ const nextConfig = {
       { source: '/member/order/List', destination: '/member/order/list' },
       { source: '/member/order/Info', destination: '/member/order/detail' },
       { source: '/member/order/claimInfo', destination: '/member/order/claimInfo' },
+      { source: '/member/pin/List', destination: '/member/group' },
+      { source: '/member/pin/Group', destination: '/member/group/info' },
       { source: '/member/Login', destination: '/login' },
       { source: '/member/Register', destination: '/register' },
       { source: '/member/BindMobilePhone', destination: '/member/security' },
