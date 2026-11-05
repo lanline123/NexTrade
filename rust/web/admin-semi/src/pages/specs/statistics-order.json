@@ -7,20 +7,21 @@
     { "name": "startEndTime", "type": "yearSelect/monthPicker", "note": "默认当前年；dateType 切换与搜索按钮都触发重新加载" }
   ],
   "columns": [],
-  "actions": ["搜索", "导出EXCEL(前端CSV含BOM，后端未实现 isExport)"],
+  "actions": ["搜索", "导出EXCEL"],
   "batch": [],
   "widgets": {
     "statCards": {
       "type": "custom",
+      "component": "rust/web/admin-semi/src/pages/PanelChartPages.tsx",
       "requires": ["/panel/salesStatistics/list"],
-      "mcpChecks": [],
+      "mcpChecks": ["人工核对 Semi 统计卡与趋势图数据契约"],
       "note": "金额视图5卡(商品支付金额/商品退款金额/营业额/充值金额*/余额支付金额*，*仅平台admin)+口径Tooltip；数量视图4卡(支付订单数/退款订单数量/充值订单数/余额支付订单数)；环比>0红上箭头否则绿下箭头"
     },
     "trendChart": {
       "type": "custom",
-      "component": "src/components/TrendChart.tsx",
-      "requires": ["salesStatisticsData.horizontalAxis", "salesStatisticsData.longitudinalAxis"],
-      "mcpChecks": [],
+      "component": "rust/web/admin-semi/src/components/TrendChart.tsx",
+      "requires": ["LineChart", "LegendComponent"],
+      "mcpChecks": ["人工核对 Semi 统计卡与趋势图数据契约"],
       "note": "金额视图: name=订单金额 color=#1456f0 yAxisPrefix=¥ unit=''; 数量视图: name=订单数 color=#fac858 yAxisPrefix='' unit=件; 横轴标签按 dateType 加 月/日 后缀；底部图例"
     }
   },

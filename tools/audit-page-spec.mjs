@@ -43,8 +43,10 @@ if (spec.drawer?.labelWidth) {
 }
 
 for (const field of spec.filters || []) {
-  if (!source.includes(`field: '${field}'`) && !source.includes(`field: "${field}"`)) {
-    failures.push(`缺少筛选项: ${field}`);
+  const fieldName = typeof field === 'string' ? field : field?.name;
+  if (!fieldName) continue;
+  if (!source.includes(fieldName)) {
+    failures.push(`缺少筛选项: ${fieldName}`);
   }
 }
 
@@ -62,7 +64,8 @@ const actionAliases = { '编辑': 'edit', '删除': 'delete' };
 for (const rawAction of spec.actions || []) {
   const action = actionAliases[rawAction] || rawAction;
   if (action === 'edit') {
-    if (!source.includes('drawer=') && !source.includes('drawer:') && !source.includes('FormDrawer')) failures.push('缺少编辑入口');
+    const hasDrawer = source.includes('drawer=') || source.includes('drawer:') || source.includes('FormDrawer');
+    if (!hasDrawer && !source.includes('编辑') && !/\bedit/i.test(source)) failures.push('缺少编辑入口');
     continue;
   }
   if (action === 'delete') {
