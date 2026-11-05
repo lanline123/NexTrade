@@ -107,19 +107,139 @@ export function DepositQuery() {
 }
 
 export function DepositAudit() {
-  return (
-    <Simple
-      api="/deposit/recharge/list"
-      rowKey="shopDepositRechargeId"
-      label="组织名称"
-      columns={[
-        { title: '组织名称', dataIndex: 'shopName' },
-        { title: '主体类型', dataIndex: 'subjectTypeText', width: 120 },
-        { title: '交易金额', dataIndex: 'amount', width: 130 },
-        { title: '审核状态', dataIndex: 'statusText', width: 120 },
+  const { t } = useI18n();
+  const [mainTab, setMainTab] = useState<'refund' | 'recharge'>('refund');
+  const [detail, setDetail] = useState<Row | null>(null);
+  const [auditTarget, setAuditTarget] = useState<Row | null>(null);
+  const [auditPass, setAuditPass] = useState(true);
+  const [auditRemark, setAuditRemark] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const isRefund = mainTab === 'refund';
+
+  const rowId = (record: Row) => Number(isRefund ? record.shopDepositRefundId : record.shopDepositRechargeId);
+
+  const openDetail = async (record: Row) => {
+    try {
+      const result = await apiGet<Row>(`/deposit/${mainTab}/detail`, { id: rowId(record) });
+      setDetail(result);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('详情加载失败') });
+    }
+  };
+
+  const submitAudit = async () => {
+    if (!auditTarget) return;
+    try {
+      const payload: Record<string, unknown> = {
+        id: rowId(auditTarget),
+        pass: auditPass,
+        auditRemark: auditRemark.trim(),
+      };
+      if (isRefund && auditPass) payload.payVoucher = '';
+      await apiPost(`/deposit/${mainTab}/audit`, payload);
+      Toast.success({ content: t('审核完成') });
+      setAuditTarget(null);
+      setAuditRemark('');
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('审核失败') });
+    }
+  };
+
+  const columns: ColumnConfig<Row>[] = isRefund
+    ? [
+        { title: '组织名称', dataIndex: 'shopName', render: (_: any, row: Row) => row.shopName || row.ownerName || '--' },
+        { title: '主体类型', dataIndex: 'subjectTypeText', width: 110 },
+        { title: '退还类型', dataIndex: 'typeText', width: 110 },
+        { title: '申请金额', dataIndex: 'amount', width: 130, render: (val: any) => `¥${Number(val || 0).toFixed(2)}` },
+        { title: '审核状态', dataIndex: 'statusText', width: 110 },
+        { title: '申请时间', dataIndex: 'addTimeText', width: 170 },
+      ]
+    : [
+        { title: '组织名称', dataIndex: 'shopName', render: (_: any, row: Row) => row.shopName || row.ownerName || '--' },
+        { title: '主体类型', dataIndex: 'subjectTypeText', width: 110 },
+        { title: '交易金额', dataIndex: 'amount', width: 130, render: (val: any) => `¥${Number(val || 0).toFixed(2)}` },
+        { title: '收款账户', dataIndex: 'payeeAccount', width: 200, render: (_: any, row: Row) => row.payeeAccountNo || row.accountNo || '--' },
+        { title: '支付方式', dataIndex: 'payeeAccountTypeText', width: 110 },
+        { title: '审核状态', dataIndex: 'statusText', width: 110 },
+        { title: '交易备注', dataIndex: 'remark', width: 140, render: (val: any) => val || '--' },
         { title: '提交时间', dataIndex: 'addTimeText', width: 170 },
-      ]}
-    />
+        { title: '关联凭证', dataIndex: 'payVoucher', width: 110, render: (val: any) => (val ? <Tag color="green">{t('已上传')}</Tag> : '--') },
+      ];
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <Button theme={isRefund ? 'solid' : 'light'} type="primary" onClick={() => { setMainTab('refund'); setReloadKey((k) => k + 1); }}>
+          {t('退还审核')}
+        </Button>
+        <Button theme={isRefund ? 'light' : 'solid'} type="primary" onClick={() => { setMainTab('recharge'); setReloadKey((k) => k + 1); }}>
+          {t('充值审核')}
+        </Button>
+      </div>
+      <ListPage<Row>
+        key={`${mainTab}-${reloadKey}`}
+        api={`/deposit/${mainTab}/list`}
+        rowKey={(row) => String(rowId(row))}
+        pageSize={10}
+        columns={columns}
+        filters={[
+          { field: 'keyword', label: t('组织名称'), type: 'input', width: 220 },
+          { field: 'ownerType', label: t('组织类型'), type: 'select', options: [{ label: t('店铺'), value: 'shop' }, { label: t('供应商'), value: 'supplier' }] },
+          { field: 'subjectType', label: t('主体类型'), type: 'select', options: [{ label: t('个人'), value: 1 }, { label: t('企业'), value: 2 }] },
+          isRefund
+            ? { field: 'type', label: t('退还类型'), type: 'select', options: [{ label: t('部分退还'), value: 1 }, { label: t('全额退还'), value: 2 }] }
+            : { field: 'payeeAccountType', label: t('支付方式'), type: 'select', options: [{ label: t('银行卡'), value: 1 }, { label: t('支付宝'), value: 2 }, { label: t('微信'), value: 3 }] },
+          { field: 'status', label: t('审核状态'), type: 'select', options: [{ label: t('待审核'), value: 0 }, { label: t('审核通过'), value: 1 }, { label: t('审核驳回'), value: 2 }] },
+        ]}
+        rowActions={(record: Row) => (
+          <Space spacing={2}>
+            <Button theme="borderless" type="primary" size="small" onClick={() => void openDetail(record)}>
+              {t('详细')}
+            </Button>
+            {Number(record.status) === 0 ? (
+              <Button theme="borderless" type="warning" size="small" onClick={() => { setAuditTarget(record); setAuditPass(true); setAuditRemark(''); }}>
+                {isRefund ? t('退还审核') : t('充值审核')}
+              </Button>
+            ) : null}
+          </Space>
+        )}
+      />
+
+      <Modal title={isRefund ? t('退还详情') : t('充值详情')} visible={!!detail} footer={null} onCancel={() => setDetail(null)} width={640}>
+        {detail ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {Object.entries(detail)
+              .filter(([key, value]) => value !== undefined && value !== null && value !== '' && !key.endsWith('Id') && typeof value !== 'object')
+              .slice(0, 20)
+              .map(([key, value]) => (
+                <div key={key} style={{ display: 'flex', gap: 16 }}>
+                  <span style={{ width: 180, color: '#8a919f' }}>{key}</span>
+                  <span>{String(value)}</span>
+                </div>
+              ))}
+          </div>
+        ) : null}
+      </Modal>
+
+      <Modal
+        title={isRefund ? t('退还审核') : t('充值审核')}
+        visible={!!auditTarget}
+        onCancel={() => setAuditTarget(null)}
+        onOk={() => void submitAudit()}
+        okText={t('提交审核')}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>{t('组织名称')}：{auditTarget?.shopName || auditTarget?.ownerName || '--'}</div>
+          <div>{t('交易金额')}：¥{Number(auditTarget?.amount || 0).toFixed(2)}</div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <label><input type="radio" checked={auditPass} onChange={() => setAuditPass(true)} /> {t('审核通过')}</label>
+            <label><input type="radio" checked={!auditPass} onChange={() => setAuditPass(false)} /> {t('审核驳回')}</label>
+          </div>
+          <TextArea value={auditRemark} onChange={setAuditRemark} placeholder={t('审核备注')} rows={3} />
+        </div>
+      </Modal>
+    </div>
   );
 }
 
