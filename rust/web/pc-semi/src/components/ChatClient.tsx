@@ -38,6 +38,64 @@ export default function ChatClient() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const activeRef = useRef<Conversation | null>(null);
+  const closedRef = useRef(false);
+
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
+
+  useEffect(() => {
+    closedRef.current = false;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    const connect = () => {
+      if (closedRef.current) return;
+      const token = localStorage.getItem('accessToken') || '';
+      if (!token) return;
+      const base = process.env.NEXT_PUBLIC_SOCKET_URL
+        || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+      const url = `${base}${base.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}&platform=pc`;
+      try {
+        const socket = new WebSocket(url);
+        socketRef.current = socket;
+        socket.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(String(event.data || '{}'));
+            if (payload?.type !== 'message') return;
+            const incoming: ChatMessage[] = Array.isArray(payload.data) ? payload.data : [payload.data];
+            const activeId = activeRef.current?.conversationId;
+            setMessages((current) => {
+              const next = [...current];
+              incoming.forEach((message) => {
+                const messageConversation = Number((message as any).conversationId || 0);
+                if (activeId && messageConversation && messageConversation !== activeId) return;
+                if (message.id && next.some((item) => item.id === message.id)) return;
+                next.push(message);
+              });
+              return next;
+            });
+            loadConversations();
+          } catch {
+            // ignore malformed socket payload
+          }
+        };
+        socket.onclose = () => {
+          if (closedRef.current) return;
+          retry = setTimeout(connect, 3000);
+        };
+        socket.onerror = () => socket.close();
+      } catch {
+        retry = setTimeout(connect, 3000);
+      }
+    };
+    connect();
+    return () => {
+      closedRef.current = true;
+      if (retry) clearTimeout(retry);
+      socketRef.current?.close();
+    };
+  }, []);
 
   const loadConversations = () => {
     apiGet<{ records?: Conversation[] }>('im/conversation/conversation/list', { page: 1, size: 50 })
