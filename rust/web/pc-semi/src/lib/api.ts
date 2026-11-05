@@ -686,3 +686,23 @@ export async function getGrouponItems(params: { page?: number; size?: number; ke
   const data = await readData<any>(response);
   return { records: Array.isArray(data?.records) ? data.records : [], total: Number(data?.total || 0) };
 }
+
+
+export interface FeedbackListItem {
+  id?: number;
+  content?: string;
+  addTime?: string;
+  reply?: { content?: string; addTime?: string };
+  [key: string]: unknown;
+}
+
+export async function getFeedbackList(params: { page?: number; size?: number; orderId?: number; orderSn?: string } = {}): Promise<{ records: FeedbackListItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 10));
+  if (params.orderId) query.set('orderId', String(params.orderId));
+  if (params.orderSn) query.set('orderSn', params.orderSn);
+  const response = await fetch(`${SERVER_API_BASE}/api/user/feedback/list?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return { records: Array.isArray(data?.records) ? data.records : [], total: Number(data?.total || 0) };
+}

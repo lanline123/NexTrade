@@ -5037,3 +5037,13 @@ img {
 .invoice-confirm { padding: 24px 28px; border-radius: 12px; background: #fff; color: #666; font-size: 14px; line-height: 2; }
 .invoice-confirm__title { margin: 0 0 16px; color: #1a1a1a; font-size: 18px; font-weight: 700; text-align: center; }
 .invoice-confirm p { margin: 0 0 8px; }
+
+
+/* 会员问答记录 */
+.feedback-list { display: flex; flex-direction: column; gap: 12px; }
+.feedback-card { padding: 18px; border-radius: 10px; background: #fff; }
+.feedback-card__time { color: #999; font-size: 12px; }
+.feedback-card__content { margin-top: 8px; color: #333; font-size: 14px; line-height: 1.8; }
+.feedback-card__reply { margin-top: 12px; padding: 12px; border-radius: 8px; background: #f7f8fa; color: #666; font-size: 13px; }
+.feedback-card__reply p { margin: 6px 0 0; color: #333; }
+.feedback-card__pending { margin-top: 10px; color: #d48806; font-size: 12px; }
