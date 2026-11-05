@@ -4814,3 +4814,18 @@ img {
 .inquiry-reply-form { margin-top: 24px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
 .inquiry-reply-form textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #dcdfe6; border-radius: 8px; resize: vertical; font-size: 14px; }
 .inquiry-reply-actions { display: flex; gap: 12px; margin-top: 12px; }
+
+
+/* 增票资质 */
+.invoice-status { display: inline-block; margin-bottom: 18px; padding: 4px 12px; border-radius: 12px; background: #f1f3f5; color: #666; font-size: 13px; }
+.invoice-status--1 { background: #e6f7ee; color: #2f9e44; }
+.invoice-status--2 { background: #fff7e6; color: #d48806; }
+.invoice-status--3 { background: #fff1f0; color: #e1251b; }
+.invoice-error { margin-bottom: 16px; padding: 10px 14px; border-radius: 8px; background: #fff1f0; color: #e1251b; font-size: 13px; }
+.invoice-readonly { display: flex; flex-direction: column; gap: 14px; }
+.invoice-readonly > div { display: flex; gap: 20px; font-size: 14px; }
+.invoice-readonly label { width: 120px; color: #8a919f; }
+.invoice-form { display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.invoice-form label { color: #333; font-size: 13px; }
+.invoice-form input { height: 38px; padding: 0 10px; border: 1px solid #dcdfe6; border-radius: 4px; }
+.invoice-agreement { display: flex; align-items: center; gap: 8px; color: #666 !important; }
