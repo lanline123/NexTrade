@@ -113,23 +113,61 @@ function Notice({ module }: ModuleProps) {
 }
 
 function Divider({ module }: ModuleProps) {
+  const lineType = Number(module.lineType) || 2;
+  const lineStyle = Number(module.lineStyle) || 1;
+  const rawHeight = Number(module.frame?.itemHeight);
+  const itemHeight = Number.isFinite(rawHeight) ? rawHeight : 10;
+  const frameModule = module.frame ?? {
+    innerPadding: 0,
+    boxPaddingTop: 0,
+    boxPaddingBottom: 0,
+    boxPadding: 0,
+    backgroundColor: '',
+    boxRadius: 0,
+  };
   return (
-    <Frame frame={module.frame}>
-      <div
-        className="dec-divider"
-        style={{
-          height: `${module.lineHeight ?? 1}px`,
-          background: module.lineColor || '#e8ebf0',
-          marginTop: `${module.marginTop ?? 10}px`,
-          marginBottom: `${module.marginBottom ?? 10}px`,
-        }}
-      />
+    <Frame frame={frameModule}>
+      <div className="white-line-warp">
+        <div className="white-line-con" style={{ height: `${itemHeight}px` }}>
+          {lineType === 2 ? (
+            <div className={`white-line-item line-style-${lineStyle}`}>
+              <div className="item-line" />
+            </div>
+          ) : null}
+        </div>
+      </div>
     </Frame>
   );
 }
 
 function Spacer({ module }: ModuleProps) {
-  return <div style={{ height: `${module.blankHeight ?? 20}px` }} aria-hidden />;
+  const frame = module.frame ?? {};
+  const height = module.blankHeight ?? 30;
+  return (
+    <div
+      className="pc-spacer module-ad-con module-white_blank"
+      style={{
+        paddingLeft: `${frame.boxPadding ?? 0}px`,
+        paddingRight: `${frame.boxPadding ?? 0}px`,
+        paddingTop: `${frame.boxPaddingTop ?? 0}px`,
+        paddingBottom: `${frame.boxPaddingBottom ?? 0}px`,
+        boxSizing: 'border-box',
+        width: '100%',
+      }}
+    >
+      <div
+        className="pc-spacer__content"
+        style={{
+          width: '100%',
+          height: `${height}px`,
+          minHeight: '10px',
+          backgroundColor: module.backgroundColor || 'transparent',
+          borderRadius: `${frame.boxRadius ?? 0}px`,
+          boxSizing: 'border-box',
+        }}
+      />
+    </div>
+  );
 }
 
 function QuickNav({ module }: ModuleProps) {

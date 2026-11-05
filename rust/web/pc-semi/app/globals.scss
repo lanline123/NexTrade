@@ -5389,3 +5389,12 @@ img {
 .pc-header-runtime .car-bar .icon { display: flex; align-items: center; align-self: center; width: 20px; height: 20px; color: #1a1a1a; }
 .pc-header-runtime .car-bar .txt { align-self: center; margin-left: 6px; color: #1a1a1a; font-size: 14px; font-weight: 500; }
 .pc-header-runtime .car-bar .count { position: absolute; top: 3px; left: 8px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 16px; height: 16px; padding: 0 3px; border: 1px solid #fff; border-radius: 100px; background: #cc4b11; color: #fff; font-size: 10px; line-height: 16px; text-align: center; }
+
+/* 按 PcDivider.vue 重建分割线 */
+.white-line-warp { width: 100%; box-sizing: border-box; }
+.white-line-con { display: flex; align-items: center; }
+.white-line-item { width: 100%; }
+.white-line-item .item-line { height: 1px; }
+.line-style-1 .item-line { border-bottom: 1px solid #e5e5e5; }
+.line-style-2 .item-line { border-bottom: 1px dashed #e5e5e5; }
+.line-style-3 .item-line { border-bottom: 1px dotted #e5e5e5; }
