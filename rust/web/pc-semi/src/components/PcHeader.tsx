@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Search from '@icon-park/react/es/icons/Search';
 import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
 import User from '@icon-park/react/es/icons/User';
@@ -20,12 +21,19 @@ const FALLBACK_NAV = [
 ];
 
 export default function PcHeader({ config }: { config?: PcHeaderConfig | null }) {
+  const pathname = usePathname();
   const [keyword, setKeyword] = useState('');
   const [siteLogo, setSiteLogo] = useState('');
   const [logoReady, setLogoReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const header = config || {};
   const logo = imageUrl(header.logoPic);
+  const logoWidth = Number(header.logoWidth) || (pathname === '/' ? 190 : 140);
+  // 旧版 PcHeaderRuntime：styleType 1=简约风，2=跨境风；跨境站点默认 2。
+  const styleType = Number(header.styleType) === 1 ? 1 : 2;
+  const showCategory = Number(header.showCategory ?? 1) !== 0
+    && (pathname !== '/' || Number(header.showHomeCategory ?? 1) !== 0);
+  const showRightCart = Number(header.rightCartShow ?? 1) !== 0;
 
   useEffect(() => {
     if (logo) {
@@ -63,63 +71,74 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   };
 
   return (
-    <header className={`pc-header ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
+    <header className={`pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
       <PcHeaderTopBar config={header as Record<string, any>} />
 
       <div className="pc-container pc-header__main">
-        <Link href="/" className="pc-header__brand">
-          {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: Number(header.logoWidth) || 160, maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" /> : null}
-        </Link>
-
-        <div className="pc-header__search">
-          <span className="pc-header__search-icon"><Search size={18} /></span>
-          <input
-            className="pc-header__search-input"
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') goSearch();
-            }}
-            placeholder="搜索商品 / 分类 / 品牌"
-          />
-          <button type="button" className="pc-header__search-button" onClick={goSearch}>
-            搜索
-          </button>
+        <div className="pc-header__left">
+          <Link href="/" className="pc-header__brand">
+            {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: logoWidth, maxWidth: '100%', maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth }} /> : null}
+          </Link>
+          {showCategory ? <Link href="/search" className="pc-header__category">全部商品分类</Link> : null}
         </div>
 
-        <button
-          type="button"
-          className="pc-header__menu-btn"
-          aria-label="打开菜单"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <HamburgerButton size={20} />
-        </button>
+        <div className="pc-header__center">
+          <div className="pc-header__search">
+            <span className="pc-header__search-icon"><Search size={18} /></span>
+            <input
+              className="pc-header__search-input"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') goSearch();
+              }}
+              placeholder="搜索商品 / 分类 / 品牌"
+            />
+            <button type="button" className="pc-header__search-button" onClick={goSearch}>
+              搜索
+            </button>
+          </div>
 
-        <div className="pc-header__actions">
-          <Link href="/member" className="pc-header__action">
-            <User size={20} />
-            <span>我的账户</span>
-          </Link>
-          <Link href="/cart" className="pc-header__action">
-            <ShoppingCart size={20} />
-            <span>购物车</span>
-          </Link>
+          {showNav ? (
+            <nav className="pc-header__nav">
+              <div className="pc-header__nav-inner">
+                {navItems.map((item, index) => (
+                  <Link key={index} href={item.link || '/'}>
+                    {item.title || item.name || item.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          ) : null}
+        </div>
+
+        <div className="pc-header__right">
+          <button
+            type="button"
+            className="pc-header__menu-btn"
+            aria-label="打开菜单"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <HamburgerButton size={20} />
+          </button>
+
+          <div className="pc-header__actions">
+            {styleType === 2 ? (
+              <Link href="/member" className="pc-header__action">
+                <User size={20} />
+                <span>我的账户</span>
+              </Link>
+            ) : null}
+            {showRightCart ? (
+              <Link href="/cart" className="pc-header__action">
+                <ShoppingCart size={20} />
+                <span>购物车</span>
+              </Link>
+            ) : null}
+          </div>
         </div>
       </div>
-
-      {showNav ? (
-        <nav className="pc-header__nav">
-          <div className="pc-container pc-header__nav-inner">
-            {navItems.map((item, index) => (
-              <Link key={index} href={item.link || '/'}>
-                {item.title || item.name || item.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      ) : null}
 
       {menuOpen ? (
         <div className="pc-mobile-nav">

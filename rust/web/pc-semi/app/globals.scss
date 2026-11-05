@@ -5221,3 +5221,32 @@ img {
 .pc-topbar__region.is-placeholder { visibility: hidden; }
 .pc-header__brand-placeholder { display: block; width: 160px; height: 40px; border-radius: 6px; background: #f2f3f5; }
 @media (max-width: 600px) { .pc-header__brand-placeholder { width: 132px; height: 34px; } }
+
+
+/* 跨境版头部：按旧版 PcHeaderOverseasRuntime 三栏结构 */
+.pc-header__main {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: start;
+  gap: 20px;
+  height: auto;
+  padding: 16px 0;
+}
+.pc-header__left { display: flex; align-items: center; gap: 18px; min-width: 0; height: 60px; }
+.pc-header__center { display: flex; flex-direction: column; min-width: 0; }
+.pc-header__right { display: flex; align-items: center; justify-content: flex-end; gap: 14px; height: 60px; min-width: 0; }
+.pc-header__category { flex-shrink: 0; color: #1a1a1a; font-size: 14px; white-space: nowrap; }
+.pc-header__category:hover { color: var(--pc-primary); }
+.pc-header__search { width: 100%; max-width: none; }
+.pc-header__nav { border-top: 0; margin-top: 6px; }
+.pc-header__nav-inner { height: 42px; gap: 34px; justify-content: flex-start; }
+
+@media (max-width: 900px) {
+  .pc-header__main { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 0; }
+  .pc-header__left { flex: 1; height: auto; }
+  .pc-header__right { order: 2; height: auto; }
+  .pc-header__center { order: 3; flex-basis: 100%; width: 100%; }
+  .pc-header__category { display: none; }
+  .pc-header__nav { margin-top: 0; }
+  .pc-header__nav-inner { height: 40px; gap: 16px; overflow-x: auto; }
+}
