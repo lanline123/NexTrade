@@ -5208,3 +5208,6 @@ img {
   .pc-mobile-nav__head button { border: 0; background: transparent; color: #666; font-size: 24px; cursor: pointer; }
   .pc-mobile-nav__panel > a { display: block; padding: 13px 4px; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 14px; }
 }
+
+/* 会员登录守卫加载态 */
+.member-auth-loading { padding: 80px 20px; color: #8a919f; font-size: 14px; text-align: center; }
