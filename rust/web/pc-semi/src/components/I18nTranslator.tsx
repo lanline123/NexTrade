@@ -76,7 +76,15 @@ export default function I18nTranslator() {
     const attributeOriginals = new WeakMap<Element, Map<string, string>>();
     const t: Translator = (key) => {
       if (!enabled) return key;
-      return i18n.t(key, { defaultValue: key });
+      const direct = i18n.t(key, { defaultValue: key });
+      if (direct !== key) return direct;
+      const suffix = ' · 万物新生';
+      if (key.endsWith(suffix)) {
+        const base = key.slice(0, -suffix.length).trim();
+        const translatedBase = i18n.t(base, { defaultValue: base });
+        if (translatedBase !== base) return `${translatedBase} · Wanwu Xinsheng`;
+      }
+      return key;
     };
 
     const apply = () => {
