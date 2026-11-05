@@ -4787,3 +4787,24 @@ img {
 .collect-shop__product span { display: block; overflow: hidden; color: #666; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .collect-shop__product b { color: #e1251b; font-size: 14px; }
 .collect-shop__empty { color: #999; font-size: 13px; }
+
+
+/* 商品咨询 */
+.inquiry-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.inquiry-tabs a { padding: 8px 18px; border-radius: 6px; background: #fff; color: #333; font-size: 14px; }
+.inquiry-tabs a.is-active { background: #e1251b; color: #fff; }
+.inquiry-product { display: flex; align-items: center; gap: 10px; }
+.inquiry-product img { width: 48px; height: 48px; object-fit: contain; }
+.inquiry-content { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inquiry-detail { padding: 24px; border-radius: 12px; background: #fff; }
+.inquiry-detail__product { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid #f0f0f0; }
+.inquiry-detail__product img { width: 72px; height: 72px; object-fit: contain; background: #fafafa; }
+.inquiry-detail__product div { display: flex; flex-direction: column; gap: 6px; }
+.inquiry-detail__product span { color: #999; font-size: 12px; }
+.inquiry-detail__content,
+.inquiry-detail__replies { margin-top: 20px; color: #333; font-size: 14px; }
+.inquiry-detail__content p { margin: 8px 0 0; color: #666; line-height: 1.8; }
+.inquiry-reply { margin-top: 10px; padding: 12px; border-radius: 8px; background: #f7f8fa; }
+.inquiry-reply p { margin: 0; color: #333; }
+.inquiry-reply span { color: #999; font-size: 12px; }
+.inquiry-no-reply { color: #999; }
