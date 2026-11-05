@@ -2655,3 +2655,140 @@ button.view_detail {
   font-size: 13px;
   text-align: center;
 }
+
+@media (max-width: 900px) {
+  .desc-text { max-width: 100% !important; word-break: break-word; overflow-wrap: anywhere; white-space: normal !important; }
+  .dec-pc-home-hero, .dec-pc-home-hero * { min-width: 0 !important; }
+}
+
+@media (max-width: 900px) {
+  .dec-pc-home-quick-nav .nav_container.fs_mod { flex-wrap: wrap !important; overflow-x: hidden !important; gap: 12px !important; }
+  body { overflow-x: hidden; }
+}
+
+
+/* ===================== task-110 Swiper 手势/循环/导航补齐 ===================== */
+
+/* 拖拽中的轨道：禁止选中、保留纵向页面滚动 */
+.dec-image-ad__swiper-viewport,
+.dec-pc-home-hero__banner-viewport,
+.dec-pc-image-nav__carousel-viewport,
+.dec-banner2__track,
+.dec-group-banner__track {
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.dec-image-ad__swiper.is-dragging,
+.dec-pc-home-hero__banner-viewport.is-dragging,
+.dec-pc-image-nav__carousel-viewport.is-dragging,
+.dec-banner2__track.is-dragging,
+.dec-group-banner__track.is-dragging {
+  cursor: grabbing;
+}
+
+.dec-image-ad__swiper-viewport,
+.dec-pc-image-nav__carousel-viewport,
+.dec-banner2__track,
+.dec-group-banner__track {
+  cursor: grab;
+}
+
+.dec-image-ad__swiper-track,
+.dec-pc-home-hero__banner-track,
+.dec-pc-image-nav__carousel-track,
+.dec-banner2__track,
+.dec-group-banner__track {
+  transition: transform 0.45s ease;
+}
+
+.dec-image-ad__swiper-track.is-dragging,
+.dec-pc-home-hero__banner-track.is-dragging {
+  transition: none;
+}
+
+/* 旧版 Swiper navigation 箭头（Banner2 / GroupBanner / ImageNav / CategoryNav / CategoryNav3） */
+.dec-swiper-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  margin-top: -14px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.55);
+  }
+}
+
+.dec-swiper-nav--prev {
+  left: 8px;
+}
+
+.dec-swiper-nav--next {
+  right: 8px;
+}
+
+.dec-image-ad__swiper:hover .dec-swiper-nav,
+.dec-pc-image-nav__carousel:hover .dec-swiper-nav,
+.dec-banner2__inner:hover .dec-swiper-nav,
+.dec-group-banner__inner:hover .dec-swiper-nav,
+.seckill_list_wrap:hover .dec-swiper-nav,
+.dec-category-nav3__list-wrap:hover .dec-swiper-nav {
+  opacity: 1;
+}
+
+.dec-pc-image-nav__carousel,
+.dec-banner2__inner,
+.dec-group-banner__inner,
+.seckill_list_wrap,
+.dec-category-nav3__list-wrap {
+  position: relative;
+}
+
+.dec-category-nav3__list-wrap {
+  overflow: hidden;
+}
+
+/* CategoryNav（CategoryNew）：超出 displayNum 时横向滚动 + 箭头 */
+.mod_seckill .seckill_list.is-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Hero：付费会员入口存在时给用户信息行让出空间 */
+.dec-pc-home-hero__user-top.has-premium-member {
+  padding-top: 10px;
+}
+
+/* 图片加载失败的旧版 el-image 占位：统一灰底（内联 onError 已在 CSS 侧兜底） */
+.dec-pc-home-hero__card-img,
+.dec-pc-home-hero__banner-img,
+.dec-pc-hero__img,
+.dec-pc-product__img,
+.dec-pc-image-nav__image,
+.seckill-item-image img,
+.groupon-item-image img {
+  background: #f2f3f5;
+}

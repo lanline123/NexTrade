@@ -2202,3 +2202,20 @@
     }
   }
 }
+
+@media (max-width: 900px) {
+  .benefit-bar-wrap { min-width: 0 !important; overflow: hidden; }
+  .pc-header-container { min-width: 0 !important; padding: 0 12px !important; }
+  .benefit-bar { min-width: 0 !important; gap: 12px !important; }
+  .benefit-bar__left { display: none !important; }
+  .benefit-bar__content { display: none !important; }
+  .benefit-bar__right { gap: 12px !important; }
+}
+
+@media (max-width: 900px) {
+  .pc-header-runtime .page-container .page-c-warap {
+    display: flex; flex-wrap: wrap; align-items: center;
+    padding: 0 12px; column-gap: 10px; row-gap: 10px; min-width: 0;
+  }
+  .pc-header-runtime .page-container .page-header-home__center { order: 3; flex: 0 0 100%; width: 100%; }
+}

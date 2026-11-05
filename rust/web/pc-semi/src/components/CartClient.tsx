@@ -20,6 +20,28 @@ interface CartSku {
   isEnabled?: number | null;
 }
 
+interface GiftItem {
+  giftId?: number;
+  productId?: number;
+  productName?: string;
+  productSn?: string;
+  seoLink?: string;
+  picUrl?: string;
+  picThumb?: string;
+  skuData?: Array<{ name?: string; value?: string }>;
+  num?: number;
+}
+
+interface RecommendedProduct {
+  productId?: number;
+  productName?: string;
+  productPrice?: string | number;
+  marketPrice?: string | number;
+  picThumb?: string;
+  picUrl?: string;
+  productSn?: string;
+}
+
 interface CartItem {
   cartId: number;
   productId?: number;
@@ -38,7 +60,7 @@ interface CartItem {
   saleStatus?: number | string;
   effectiveSaleStatus?: number | string;
   sku?: CartSku;
-  gift?: any[];
+  gift?: GiftItem[];
   activityInfo?: any;
 }
 
@@ -127,6 +149,7 @@ export default function CartClient() {
   const [needLogin, setNeedLogin] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [recommended, setRecommended] = useState<RecommendedProduct[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -146,6 +169,27 @@ export default function CartClient() {
       setLoading(false);
     }
   };
+
+  // 旧版 ProdSwiper：GET common/recommend/getProductIds → GET product/product/list?ids=
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const idsResult = await request<string | number[]>('common/recommend/getProductIds');
+        const ids = Array.isArray(idsResult) ? idsResult.join(',') : String(idsResult || '');
+        if (!ids) return;
+        const list = await request<{ records?: RecommendedProduct[] }>(
+          `product/product/list?page=1&size=8&ids=${encodeURIComponent(ids)}`,
+        );
+        if (!cancelled) setRecommended(list.records || []);
+      } catch {
+        /* 推荐位失败不影响购物车主流程 */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
@@ -426,6 +470,19 @@ export default function CartClient() {
                           {item.skuData.map((sku) => `${sku.name || ''}：${sku.value || ''}`).join(' / ')}
                         </span>
                       ) : null}
+                      {Array.isArray(item.gift) && item.gift.length ? (
+                        <span className="pc-cart__gifts">
+                          赠品：
+                          {item.gift.map((gift, giftIndex) => (
+                            <span key={gift.giftId ?? giftIndex} className="pc-cart__gift">
+                              {(gift.picThumb || gift.picUrl) ? <img src={gift.picThumb || gift.picUrl} alt={gift.productName || ''} /> : null}
+                              {gift.productName || '赠品'}
+                              {gift.skuData?.length ? `（${gift.skuData.map((sku) => sku.value || '').filter(Boolean).join(' / ')}）` : ''}
+                              {gift.num ? ` × ${gift.num}` : ''}
+                            </span>
+                          ))}
+                        </span>
+                      ) : null}
                       {Array.isArray(item.activityInfo) && item.activityInfo.length ? (
                         <span className="pc-cart__activity">
                           {item.activityInfo.map((activity: any) => activity?.name || activity?.title || '').filter(Boolean).join(' · ')}
@@ -502,6 +559,22 @@ export default function CartClient() {
           </Button>
         </div>
       </div>
+
+      {recommended.length ? (
+        <section className="pc-cart__recommend">
+          <h2 className="pc-cart__recommend-title">精选好物</h2>
+          <div className="pc-cart__recommend-grid">
+            {recommended.map((product) => (
+              <Link key={product.productId} href={`/product/${product.productId || ''}`} className="pc-cart__recommend-card">
+                <img src={product.picThumb || product.picUrl || ''} alt={product.productName || ''} />
+                <span className="pc-cart__recommend-name">{product.productName || '商品'}</span>
+                <b>¥ {money(product.productPrice)}</b>
+                {Number(product.marketPrice || 0) > 0 ? <del>¥ {money(product.marketPrice)}</del> : null}
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

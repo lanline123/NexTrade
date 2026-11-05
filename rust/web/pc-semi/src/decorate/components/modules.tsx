@@ -76,17 +76,140 @@ function px(value: unknown, fallback = 0): number {
 
 /** 简易自动轮播：translate 横向切换 + 圆点，支持 hover 暂停（替代旧版 Swiper）。 */
 function useCarousel(length: number, delay = 3000) {
-  const [index, setIndex] = useState(0);
+  const [index, setIndexRaw] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
-    setIndex(0);
+    setIndexRaw(0);
   }, [length]);
   useEffect(() => {
     if (length <= 1 || paused) return undefined;
-    const timer = window.setInterval(() => setIndex((i) => (i + 1) % length), delay);
+    const timer = window.setInterval(() => setIndexRaw((i) => (i + 1) % length), delay);
     return () => window.clearInterval(timer);
   }, [length, paused, delay]);
-  return { index, setIndex, setPaused };
+  const setIndex = (value: number) => setIndexRaw(length ? ((value % length) + length) % length : 0);
+  return { index, setIndex, setPaused, paused };
+}
+
+/**
+ * 旧版 Swiper 手势/循环补齐：pointer 拖拽 + loop 环绕。
+ * - 拖动位移实时反馈（超出边界时阻尼）；松手超过阈值（30px 或 15% 宽）翻页/上一页；
+ * - loop=true 时首尾环绕（旧版 Swiper loop，无克隆节点，行为一致：翻到最后一张回到第一张）；
+ * - 返回 spread 到 viewport 的 handlers 与当前拖拽偏移（px），供 track transform 叠加。
+ */
+function useSwipeDrag(index: number, count: number, setIndex: (value: number) => void, options: { loop?: boolean } = {}) {
+  const { loop = true } = options;
+  const [offset, setOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragRef = useRef<{ startX: number; startY: number; width: number; dx: number; horizontal: boolean | null; pointerId: number | null }>({
+    startX: 0,
+    startY: 0,
+    width: 0,
+    dx: 0,
+    horizontal: null,
+    pointerId: null,
+  });
+  const stateRef = useRef({ index, count, setIndex, loop });
+  stateRef.current = { index, count, setIndex, loop };
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (stateRef.current.count <= 1) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    dragRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      width: event.currentTarget.clientWidth || 1,
+      dx: 0,
+      horizontal: null,
+      pointerId: event.pointerId,
+    };
+    setDragging(true);
+  };
+
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (drag.pointerId === null) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (drag.horizontal === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      drag.horizontal = Math.abs(dx) > Math.abs(dy);
+      if (drag.horizontal) {
+        try {
+          event.currentTarget.setPointerCapture(drag.pointerId);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    if (drag.horizontal !== true) return;
+    drag.dx = dx;
+    // 边界阻尼（loop 场景下同样给阻尼反馈，松手后再环绕）
+    const atStart = stateRef.current.index <= 0;
+    const atEnd = stateRef.current.index >= stateRef.current.count - 1;
+    const damped = (dx > 0 && atStart) || (dx < 0 && atEnd) ? dx * 0.35 : dx;
+    setOffset(damped);
+  };
+
+  const finish = () => {
+    const drag = dragRef.current;
+    if (drag.pointerId === null) return;
+    const { width, dx, pointerId } = drag;
+    dragRef.current = { startX: 0, startY: 0, width: 0, dx: 0, horizontal: null, pointerId: null };
+    setDragging(false);
+    setOffset(0);
+    if (pointerId !== null) {
+      try {
+        // 释放捕获（元素可能已卸载，忽略错误）
+        document.body.dispatchEvent(new Event('mouseup'));
+      } catch {
+        /* ignore */
+      }
+    }
+    const threshold = Math.max(30, width * 0.15);
+    if (Math.abs(dx) < threshold) return;
+    const current = stateRef.current;
+    const rawNext = dx < 0 ? current.index + 1 : current.index - 1;
+    const next = current.loop ? ((rawNext % current.count) + current.count) % current.count : Math.min(current.count - 1, Math.max(0, rawNext));
+    current.setIndex(next);
+  };
+
+  const onPointerUp = () => finish();
+  const onPointerCancel = () => finish();
+  const onLostPointerCapture = () => finish();
+
+  return {
+    offset,
+    dragging,
+    handlers: {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      onLostPointerCapture,
+    },
+  };
+}
+
+/** 旧版 Swiper navigation 箭头（Banner2 / GroupBanner / ImageNav / CategoryNav / 秒杀拼团 style6 共用）。 */
+function SwiperNav({
+  onPrev,
+  onNext,
+  visible = true,
+}: {
+  onPrev: () => void;
+  onNext: () => void;
+  visible?: boolean;
+}) {
+  if (!visible) return null;
+  return (
+    <>
+      <button type="button" className="dec-swiper-nav dec-swiper-nav--prev" onClick={onPrev} aria-label="上一张">
+        ‹
+      </button>
+      <button type="button" className="dec-swiper-nav dec-swiper-nav--next" onClick={onNext} aria-label="下一张">
+        ›
+      </button>
+    </>
+  );
 }
 
 /* ======================= 交互增强（task-91：源码级补齐） ======================= */
@@ -288,7 +411,21 @@ function useHeroCatItems(): HeroCatItem[] {
 /** 旧版 `buildSubCataFixedStyle`：子类目弹层紧贴左侧面板右边缘、顶部对齐（fixed 视口坐标）。 */
 function subCataFixedStyle(rect: DOMRect): Record<string, string> {
   if (!rect || !Number.isFinite(rect.top) || !Number.isFinite(rect.right)) return {};
-  return { position: 'fixed', top: `${Math.round(rect.top)}px`, left: `${Math.round(rect.right + 8)}px`, zIndex: '1000' };
+  const panelWidth = 680;
+  const gap = 8;
+  const viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
+  const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
+  const preferredLeft = rect.right + gap;
+  const left = preferredLeft + panelWidth > viewportWidth - gap ? Math.max(gap, rect.left - panelWidth - gap) : preferredLeft;
+  const maxHeight = Math.max(240, viewportHeight - rect.top - gap);
+  return {
+    position: 'fixed',
+    top: `${Math.round(rect.top)}px`,
+    left: `${Math.round(left)}px`,
+    maxHeight: `${Math.round(maxHeight)}px`,
+    overflowY: 'auto',
+    zIndex: '1000',
+  };
 }
 
 /** 旧版 `getHotareaStyle` 兜底：后端 position 字符串（如 "left:10px;top:10px"）→ React style。 */
@@ -436,10 +573,11 @@ function ImageAd({ module }: ModuleProps) {
 function ImageAdCarousel({ pics, perView }: { pics: any[]; perView: number }) {
   const pages = Math.max(1, Math.ceil(pics.length / perView));
   const { index, setIndex, setPaused } = useCarousel(pages, 3000);
+  const swipe = useSwipeDrag(index, pages, setIndex);
   return (
-    <div className="dec-image-ad__swiper" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="dec-image-ad__swiper-viewport">
-        <div className="dec-image-ad__swiper-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+    <div className={`dec-image-ad__swiper${swipe.dragging ? ' is-dragging' : ''}`} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="dec-image-ad__swiper-viewport" {...swipe.handlers}>
+        <div className="dec-image-ad__swiper-track" style={{ transform: `translateX(calc(-${index * 100}% + ${swipe.offset}px))` }}>
           {Array.from({ length: pages }).map((_, page) => (
             <div className="dec-image-ad__swiper-page" key={page} style={{ gridTemplateColumns: `repeat(${perView}, minmax(0, 1fr))` }}>
               {pics.slice(page * perView, page * perView + perView).map((pic, i) => (
@@ -688,6 +826,7 @@ function QuickNav({ module }: ModuleProps) {
  * 热门分类取自 /api/category/category/hot（categoryPic/categoryName/seoLink/categoryId）。 */
 function CategoryNav({ module }: ModuleProps) {
   const [categories, setCategories] = useState<any[]>([]);
+  const cateListRef = useRef<HTMLDivElement | null>(null);
   const frame = module.frame || {};
   const radius = px(frame.boxRadius);
   const showTitle = Number(module.showTitle ?? 1) !== 0;
@@ -730,9 +869,22 @@ function CategoryNav({ module }: ModuleProps) {
               </div>
             ) : null}
             <div className="seckill_list_wrap">
-              <div className="seckill_list" style={{ gridTemplateColumns: `repeat(${displayNum}, minmax(0, 1fr))` }}>
+              <SwiperNav visible={categories.length > displayNum} onPrev={() => cateListRef.current?.scrollBy({ left: -cateListRef.current.clientWidth * 0.6, behavior: 'smooth' })} onNext={() => cateListRef.current?.scrollBy({ left: cateListRef.current.clientWidth * 0.6, behavior: 'smooth' })} />
+              <div
+                className={`seckill_list${categories.length > displayNum ? ' is-scroll' : ''}`}
+                ref={cateListRef}
+                style={categories.length > displayNum ? undefined : { gridTemplateColumns: `repeat(${displayNum}, minmax(0, 1fr))` }}
+              >
                 {categories.map((item, index) => (
-                  <div className="proditem" key={item.categoryId ?? index}>
+                  <div
+                    className="proditem"
+                    key={item.categoryId ?? index}
+                    style={
+                      categories.length > displayNum
+                        ? { flex: `0 0 calc((100% - ${(displayNum - 1) * 12}px) / ${displayNum})` }
+                        : undefined
+                    }
+                  >
                     <a
                       href={item.seoLink || `/search?categoryId=${item.categoryId ?? ''}`}
                       target="_blank"
@@ -867,6 +1019,7 @@ function HomeHero({ module }: ModuleProps) {
   const needWideAssets = assetMoney(profile?.balance).length >= 7 || assetNumber(profile?.points).length >= 7;
 
   const { index: bannerIndex, setIndex: setBannerIndex, setPaused: setBannerPaused } = useCarousel(banners.length, 4500);
+  const bannerSwipe = useSwipeDrag(bannerIndex, banners.length, setBannerIndex);
 
   const gradientDirection = HERO_GRADIENT_DIR[String(right.userCardGradientType || 'upDown')] || 'to bottom';
   const userCardGradient = right.userCardGradientColorA && right.userCardGradientColorB
@@ -1041,8 +1194,8 @@ function HomeHero({ module }: ModuleProps) {
             <div className="dec-pc-home-hero__banner" onMouseEnter={() => setBannerPaused(true)} onMouseLeave={() => setBannerPaused(false)}>
               {banners.length ? (
                 <div className="dec-pc-home-hero__banner-inner">
-                  <div className="dec-pc-home-hero__banner-viewport">
-                    <div className="dec-pc-home-hero__banner-track" style={{ transform: `translateX(-${bannerIndex * 100}%)` }}>
+                  <div className={`dec-pc-home-hero__banner-viewport${bannerSwipe.dragging ? ' is-dragging' : ''}`} {...bannerSwipe.handlers}>
+                    <div className="dec-pc-home-hero__banner-track" style={{ transform: `translateX(calc(-${bannerIndex * 100}% + ${bannerSwipe.offset}px))` }}>
                       {banners.map((banner, index) => (
                         <div className="dec-pc-home-hero__banner-slide" key={String(banner.picId ?? index)}>
                           <div className="dec-pc-home-hero__banner-link" onClick={() => openLink(banner.picLink)}>
@@ -1719,6 +1872,7 @@ function ImageNav({ module }: ModuleProps) {
     pages.push(pics.slice(start, start + itemsPerPage));
   }
   const { index, setIndex, setPaused } = useCarousel(Math.max(1, pages.length), 5000);
+  const imageNavSwipe = useSwipeDrag(index, Math.max(1, pages.length), setIndex);
   if (!pics.length) return null;
   const cssVars: Record<string, any> = {
     '--dec-box-padding': `${px(frame.boxPadding, 10)}px`,
@@ -1756,8 +1910,8 @@ function ImageNav({ module }: ModuleProps) {
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
           >
-            <div className="dec-pc-image-nav__carousel-viewport">
-              <div className="dec-pc-image-nav__carousel-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+            <div className={`dec-pc-image-nav__carousel-viewport${imageNavSwipe.dragging ? ' is-dragging' : ''}`} {...imageNavSwipe.handlers}>
+              <div className="dec-pc-image-nav__carousel-track" style={{ transform: `translateX(calc(-${index * 100}% + ${imageNavSwipe.offset}px))` }}>
                 {pages.map((page, pageIndex) => (
                   <div
                     className="dec-pc-image-nav__swiper-page"
@@ -1784,6 +1938,7 @@ function ImageNav({ module }: ModuleProps) {
                 ))}
               </div>
             </div>
+            <SwiperNav visible={pages.length > 1} onPrev={() => setIndex(index - 1)} onNext={() => setIndex(index + 1)} />
             {pages.length > 1 ? (
               <div className="dec-pc-image-nav__dots">
                 {pages.map((_, dot) => (
@@ -2085,6 +2240,7 @@ function Banner2({ module }: ModuleProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pages = Math.max(1, pics.length - perView + 1);
   const { index, setIndex } = useCarousel(pages, 5000);
+  const banner2Swipe = useSwipeDrag(index, pages, setIndex);
   if (!pics.length) return null;
   const style: Record<string, any> = {
     '--dec-box-padding': `${px(frame.boxPadding)}px`,
@@ -2098,7 +2254,7 @@ function Banner2({ module }: ModuleProps) {
   return (
     <div className={`dec-banner2 dec-banner2--num-${perView}`} style={style}>
       <div className="dec-banner2__inner">
-        <div className="dec-banner2__track" ref={trackRef} style={{ transform: `translateX(-${index * (100 / perView)}%)` }}>
+        <div className={`dec-banner2__track${banner2Swipe.dragging ? ' is-dragging' : ''}`} ref={trackRef} {...banner2Swipe.handlers} style={{ transform: `translateX(calc(-${index * (100 / perView)}% + ${banner2Swipe.offset}px))` }}>
           {pics.map((pic, i) => (
             <div className="dec-banner2__item" key={i} style={{ width: `calc((100% - ${(perView - 1) * gap}px) / ${perView})` }}>
               <a className="dec-banner2__link" href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer">
@@ -2107,6 +2263,7 @@ function Banner2({ module }: ModuleProps) {
             </div>
           ))}
         </div>
+        <SwiperNav visible={pages > 1} onPrev={() => setIndex(index - 1)} onNext={() => setIndex(index + 1)} />
         {pages > 1 ? (
           <div className="dec-banner2__dots">
             {Array.from({ length: pages }).map((_, dot) => (
@@ -2123,6 +2280,7 @@ function Banner2({ module }: ModuleProps) {
  * frame{boxPadding,boxPaddingTop,boxPaddingBottom,boxRadius,boxHeight 默认352}、imageBackgroundColor。 */
 function CategoryNav3({ module }: ModuleProps) {
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
+  const nav3Ref = useRef<HTMLDivElement | null>(null);
   const frame = module.frame || {};
   const radius = px(frame.boxRadius);
   const style: Record<string, any> = {
@@ -2147,7 +2305,9 @@ function CategoryNav3({ module }: ModuleProps) {
         ) : null}
       </div>
       {pics.length ? (
-        <div className="dec-category-nav3__list">
+        <div className="dec-category-nav3__list-wrap">
+          <SwiperNav visible={pics.length > 6} onPrev={() => nav3Ref.current?.scrollBy({ left: -nav3Ref.current.clientWidth * 0.6, behavior: 'smooth' })} onNext={() => nav3Ref.current?.scrollBy({ left: nav3Ref.current.clientWidth * 0.6, behavior: 'smooth' })} />
+          <div className="dec-category-nav3__list" ref={nav3Ref}>
           {pics.map((pic, i) => (
             <div className="dec-category-nav3__item" key={i}>
               <a href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer" title={pic.picTitle}>
@@ -2164,6 +2324,7 @@ function CategoryNav3({ module }: ModuleProps) {
               </a>
             </div>
           ))}
+          </div>
         </div>
       ) : null}
     </div>
@@ -2179,6 +2340,7 @@ function GroupBanner({ module }: ModuleProps) {
   const height = px(frame.slideHeight) > 0 ? px(frame.slideHeight) : 195;
   const pages = Math.max(1, pics.length - perView + 1);
   const { index, setIndex } = useCarousel(pages, 5000);
+  const groupBannerSwipe = useSwipeDrag(index, pages, setIndex);
   if (!pics.length) return null;
   const style: Record<string, any> = {
     '--dec-box-padding': `${px(frame.boxPadding)}px`,
@@ -2191,7 +2353,7 @@ function GroupBanner({ module }: ModuleProps) {
   return (
     <div className="dec-group-banner" style={style}>
       <div className="dec-group-banner__inner">
-        <div className="dec-group-banner__track" style={{ transform: `translateX(-${index * (100 / perView)}%)` }}>
+        <div className={`dec-group-banner__track${groupBannerSwipe.dragging ? ' is-dragging' : ''}`} {...groupBannerSwipe.handlers} style={{ transform: `translateX(calc(-${index * (100 / perView)}% + ${groupBannerSwipe.offset}px))` }}>
           {pics.map((pic, i) => (
             <div className="dec-group-banner__item" key={i} style={{ width: `calc((100% - ${(perView - 1) * 30}px) / ${perView})` }}>
               <a className="dec-group-banner__link" href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer" title={pic.picTitle || ''}>
@@ -2200,6 +2362,7 @@ function GroupBanner({ module }: ModuleProps) {
             </div>
           ))}
         </div>
+        <SwiperNav visible={pages > 1} onPrev={() => setIndex(index - 1)} onNext={() => setIndex(index + 1)} />
         {pages > 1 ? (
           <div className="dec-group-banner__dots">
             {Array.from({ length: pages }).map((_, dot) => (

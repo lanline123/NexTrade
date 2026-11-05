@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import ProductGrid from '@/components/ProductGrid';
+import SearchBrandFilter from '@/components/SearchBrandFilter';
 import { getPcHeader } from '@/lib/api';
 import type { ProductListItem } from '@/lib/api';
 import PcFooter from '@/components/PcFooter';
@@ -43,6 +44,8 @@ interface SearchFilterBrand {
   brandId?: string | number;
   brandName?: string;
   name?: string;
+  firstWord?: string;
+  first_word?: string;
 }
 
 interface SearchFilterEnvelope {
@@ -96,6 +99,126 @@ interface ShopListEnvelope {
   total?: number;
 }
 
+/** PC 搜索页装修配置（旧版 store/decorateRuntime.ts PcSearchModuleData + home/home/pcSearch）。 */
+interface PcSearchConfig {
+  backgroundColor: string;
+  themeColor: string;
+  filterStyle: number;
+  filterTemplate: number;
+  showFilterPanel: boolean;
+  showPriceRange: boolean;
+  showShopTag: boolean;
+  showSales: boolean;
+  showCartButton: boolean;
+  goodsStyle: number;
+  goodsRadiusStyle: number;
+  buyStyle: number;
+  componentMarginTop: number;
+  componentMarginBottom: number;
+}
+
+interface PcSearchModule {
+  type?: string;
+  url?: string;
+  module?: Partial<PcSearchConfig> | null;
+}
+
+interface PcSearchEnvelope {
+  moduleList?: PcSearchModule[];
+  data?: { moduleList?: PcSearchModule[] };
+}
+
+const PC_SEARCH_DEFAULTS: PcSearchConfig = {
+  backgroundColor: '#fff',
+  themeColor: '#ff4d4f',
+  filterStyle: 2,
+  filterTemplate: 2,
+  showFilterPanel: true,
+  showPriceRange: true,
+  showShopTag: true,
+  showSales: true,
+  showCartButton: true,
+  goodsStyle: 1,
+  goodsRadiusStyle: 1,
+  buyStyle: 1,
+  componentMarginTop: 8,
+  componentMarginBottom: 8,
+};
+
+function normalizeBoolLike(value: unknown, fallback: boolean): boolean {
+  if (value === undefined || value === null) return fallback;
+  if (value === false || value === 0 || value === '0' || value === 'false') return false;
+  if (value === true || value === 1 || value === '1' || value === 'true') return true;
+  return Boolean(value);
+}
+
+function normalizeNumberLike(value: unknown, fallback: number): number {
+  if (value === undefined || value === null || value === '') return fallback;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+/** 旧版 resolvePcSearchModuleData：只认 pcSearchResult/pc-search-result 且 url 为空或 pcSearch。 */
+function resolvePcSearchModule(result: PcSearchEnvelope | null): Partial<PcSearchConfig> | null {
+  const list = Array.isArray(result?.moduleList)
+    ? result?.moduleList
+    : Array.isArray(result?.data?.moduleList)
+      ? result?.data?.moduleList
+      : [];
+  const matched = (list || []).find(
+    (item) =>
+      (item?.type === 'pcSearchResult' || item?.type === 'pc-search-result') &&
+      (!item?.url || item.url === 'pcSearch') &&
+      item?.module,
+  );
+  return matched?.module || null;
+}
+
+function normalizePcSearchConfig(raw: Partial<PcSearchConfig> | null): PcSearchConfig {
+  const config = raw ? { ...PC_SEARCH_DEFAULTS, ...raw } : { ...PC_SEARCH_DEFAULTS };
+  return {
+    ...config,
+    backgroundColor: String(config.backgroundColor || PC_SEARCH_DEFAULTS.backgroundColor),
+    themeColor: String(config.themeColor || PC_SEARCH_DEFAULTS.themeColor),
+    filterStyle: Number(normalizeNumberLike(config.filterStyle, 2)) === 1 ? 1 : 2,
+    filterTemplate: normalizeNumberLike(config.filterTemplate, 2),
+    goodsStyle: normalizeNumberLike(config.goodsStyle, 1),
+    goodsRadiusStyle: normalizeNumberLike(config.goodsRadiusStyle, 1),
+    buyStyle: normalizeNumberLike(config.buyStyle, 1),
+    componentMarginTop: normalizeNumberLike(config.componentMarginTop, 8),
+    componentMarginBottom: normalizeNumberLike(config.componentMarginBottom, 8),
+    showFilterPanel: normalizeBoolLike(config.showFilterPanel, true),
+    showPriceRange: normalizeBoolLike(config.showPriceRange, true),
+    showShopTag: normalizeBoolLike(config.showShopTag, true),
+    showSales: normalizeBoolLike(config.showSales, true),
+    showCartButton: normalizeBoolLike(config.showCartButton, true),
+  };
+}
+
+function pcSearchClassNames(config: PcSearchConfig): string {
+  const classes = ['search-page'];
+  classes.push(config.filterStyle === 1 ? 'search-page--filter-side' : 'search-page--filter-top');
+  classes.push(
+    config.goodsStyle === 2 ? 'search-page--goods-card' : config.goodsStyle === 3 ? 'search-page--goods-outline' : 'search-page--goods-flat',
+  );
+  classes.push(
+    config.goodsRadiusStyle === 2 ? 'search-page--radius-8' : config.goodsRadiusStyle === 3 ? 'search-page--radius-16' : 'search-page--radius-0',
+  );
+  return classes.join(' ');
+}
+
+function pcSearchStyleVars(config: PcSearchConfig): Record<string, string> {
+  const radiusMap: Record<number, string> = { 1: '0px', 2: '8px', 3: '16px' };
+  return {
+    '--search-bg-color': config.backgroundColor,
+    '--search-margin-top': `${config.componentMarginTop}px`,
+    '--search-margin-bottom': `${config.componentMarginBottom}px`,
+    '--search-item-radius': radiusMap[config.goodsRadiusStyle] || '0px',
+    '--search-grid-columns': config.filterTemplate === 2 ? '6' : '5',
+    '--search-theme-color': config.themeColor,
+  };
+}
+
 function readParam(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] || '' : value || '';
 }
@@ -142,13 +265,20 @@ async function getApi<T>(path: string, params: Record<string, string | number | 
   }
 }
 
-function normalizeBrands(filter?: SearchFilterEnvelope['filter']): Array<{ id: string; name: string }> {
+function brandInitial(name: string): string {
+  const first = (name || '').trim().charAt(0).toUpperCase();
+  return /^[A-Z]$/.test(first) ? first : '';
+}
+
+function normalizeBrands(filter?: SearchFilterEnvelope['filter']): Array<{ id: string; name: string; firstWord: string }> {
   const list = (Array.isArray(filter?.brand) && filter?.brand) || (Array.isArray(filter?.brands) && filter?.brands) || [];
   return list
-    .map((item) => ({
-      id: String(item?.id ?? item?.brandId ?? ''),
-      name: String(item?.brandName ?? item?.name ?? ''),
-    }))
+    .map((item) => {
+      const name = String(item?.brandName ?? item?.name ?? '');
+      const firstWordRaw = String(item?.firstWord ?? item?.first_word ?? '').trim().toUpperCase();
+      const firstWord = /^[A-Z]$/.test(firstWordRaw) ? firstWordRaw : brandInitial(name);
+      return { id: String(item?.id ?? item?.brandId ?? ''), name, firstWord };
+    })
     .filter((item) => item.id && item.name);
 }
 
@@ -228,6 +358,10 @@ const PRICE_RANGES = [
 ];
 
 const SHOP_PAGE_SIZE = 10;
+const SHOP_SORTS = [
+  { key: 'comprehensive', label: '综合', sortField: '' },
+  { key: 'shopStar', label: '评分', sortField: 'shopStar' },
+];
 
 export default async function SearchPage({ searchParams }: PageProps) {
   const keyword = readParam(searchParams?.keyword);
@@ -240,6 +374,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(readParam(searchParams?.page)) || 1);
   const size = 30;
   const tab = readParam(searchParams?.tab) === 'shop' ? 'shop' : 'goods';
+  const shopSortParam = readParam(searchParams?.shopSort) || readParam(searchParams?.sortField);
+  const shopSortKey = shopSortParam === 'shopStar' || shopSortParam === 'star' ? 'shopStar' : 'comprehensive';
   const selectedAttrs = parseSelectedAttrs(readParams(searchParams?.attr));
 
   const sortKey = sort === 'price' ? (order === 'asc' ? 'price-asc' : 'price-desc') : sort === 'sale' || sort === 'time' ? sort : 'default';
@@ -253,13 +389,20 @@ export default async function SearchPage({ searchParams }: PageProps) {
     max: max || undefined,
   };
 
-  const [header, filterResult, shopResult] = await Promise.all([
+  const [header, searchDecorate, filterResult, shopResult] = await Promise.all([
     getPcHeader().catch(() => null),
+    getApi<PcSearchEnvelope>('home/home/pcSearch', {}).catch(() => null),
     postApi<SearchFilterEnvelope>('search/search/getFilter', basePayload),
     tab === 'shop'
-      ? getApi<ShopListEnvelope>('shop/shop/list', { keyword: keyword || undefined, page, size: SHOP_PAGE_SIZE })
+      ? getApi<ShopListEnvelope>('shop/shop/list', {
+          keyword: keyword || undefined,
+          page,
+          size: SHOP_PAGE_SIZE,
+          sortField: SHOP_SORTS.find((item) => item.key === shopSortKey)?.sortField || undefined,
+        })
       : Promise.resolve(null),
   ]);
+  const searchConfig = normalizePcSearchConfig(resolvePcSearchModule(searchDecorate));
 
   const [esAttrResult, productResult] = await Promise.all([
     postApi<EsAttrEnvelope>('search/search/getEsFilter', {
@@ -298,6 +441,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     if (min) params.set('min', min);
     if (max) params.set('max', max);
     if (tab === 'shop') params.set('tab', 'shop');
+    if (shopSortKey === 'shopStar') params.set('shopSort', 'shopStar');
     // 已选属性（名称::值）在筛选/排序/分页之间保留
     const keptAttrs = overrides.attr !== undefined ? (overrides.attr as string[]) : serializeSelectedAttrs(selectedAttrs);
     keptAttrs.forEach((item) => params.append('attr', item));
@@ -313,11 +457,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
     return query ? `?${query}` : '';
   };
 
-  const toggleBrand = (id: string) => {
-    const selected = brand ? brand.split(',').filter(Boolean) : [];
-    const next = selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id];
-    return `/search${buildQuery({ brand: next.length ? next.join(',') : undefined }, 1)}`;
-  };
+  /** 品牌首字母组件的基准查询串：保留筛选条件，剔除 brand/page，由组件自行拼接品牌。 */
+  const brandBaseQuery = buildQuery({ brand: undefined, shopSort: undefined }, 1).replace(/^\?/, '');
 
   /** 点击属性值：同 attrName 多选切换（旧版 FilterSide 复选语义）。 */
   const toggleAttr = (name: string, value: string) => {
@@ -346,7 +487,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <>
       <PcHeader config={header as any} />
-      <main className="pc-list-page">
+      <main className={`pc-list-page ${pcSearchClassNames(searchConfig)}`} style={pcSearchStyleVars(searchConfig) as any}>
         <div className="pc-container">
           <nav className="pc-breadcrumb">
             <Link href="/">首页</Link>
@@ -401,18 +542,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 </div>
               ) : null}
 
-              {/* 品牌筛选（旧版 Filter 品牌项） */}
+              {/* 品牌筛选（旧版 Filter：firstWord 首字母分组 + 更多/收起） */}
               {brands.length ? (
-                <div className="pc-search-filter-row">
-                  <span className="pc-search-filter-row__label">品牌：</span>
-                  <div className="pc-search-filter-row__values">
-                    {brands.map((item) => (
-                      <Link key={item.id} href={toggleBrand(item.id)} className={brand.split(',').includes(item.id) ? 'is-active' : ''}>
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+                <SearchBrandFilter
+                  brands={brands}
+                  selected={brand ? brand.split(',').filter(Boolean) : []}
+                  baseQuery={brandBaseQuery}
+                  maxVisible={8}
+                />
               ) : null}
 
               {/* ES 属性筛选（旧版 FilterSide：属性复选，提交 attrs: [{ attrName, attrValue }]） */}
@@ -467,7 +604,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 <Link href="/search/image" className="pc-image-search-entry">以图搜图</Link>
               </div>
 
-              {/* 价格区间（旧版 SortFilter 区间：预设 + 自定义） */}
+              {/* 价格区间（旧版 SortFilter 区间：预设 + 自定义；装修 showPriceRange 可关闭） */}
+              {searchConfig.showPriceRange ? (
               <div className="pc-list-toolbar">
                 <div className="pc-list-sorts">
                   {PRICE_RANGES.map((item) => (
@@ -495,8 +633,13 @@ export default async function SearchPage({ searchParams }: PageProps) {
                   <button type="submit">确定</button>
                 </form>
               </div>
+              ) : null}
 
-              <ProductGrid products={records} />
+              <ProductGrid
+                products={records}
+                showSales={searchConfig.showSales}
+                showShopTag={searchConfig.showShopTag}
+              />
 
               {pages > 1 ? (
                 <nav className="pc-pagination">
@@ -515,7 +658,25 @@ export default async function SearchPage({ searchParams }: PageProps) {
             </>
           ) : (
             <>
-              {/* 旧版 SearchShopList：GET shop/shop/list（keyword/page/size） */}
+              {/* 旧版 SearchShopList：sortField=shopStar（综合/评分） */}
+              <div className="pc-search-shop-sorts" style={{ display: 'flex', gap: 24, margin: '4px 0 16px' }}>
+                {SHOP_SORTS.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={`/search${buildQuery({ shopSort: item.key === 'shopStar' ? 'shopStar' : undefined }, 1)}`}
+                    style={{
+                      color: shopSortKey === item.key ? '#1a1a1a' : '#666',
+                      fontWeight: shopSortKey === item.key ? 600 : 400,
+                      borderBottom: shopSortKey === item.key ? '2px solid #1a1a1a' : '2px solid transparent',
+                      paddingBottom: 4,
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+
+              {/* 旧版 SearchShopList：GET shop/shop/list（keyword/page/size/sortField） */}
               {shops.length ? (
                 <div className="pc-search-shops" style={{ display: 'grid', gap: 12 }}>
                   {shops.map((shop, index) => (
