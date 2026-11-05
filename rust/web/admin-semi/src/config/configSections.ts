@@ -445,5 +445,57 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
         "sendShipEmail"
       ]
     }
+  ],
+  "storeSettingsManage": [
+    {
+      "title": "基本设置",
+      "fields": [
+        "maxRecommendProductCount",
+        "maxSubAdministrator",
+        "storePostAllocationStatus",
+        "storeIndependentGoods",
+        "shopProductNeedCheck"
+      ]
+    },
+    {
+      "title": "商品分配设置",
+      "fields": [
+        "storeAssignProductName",
+        "storeAssignProductImage",
+        "storeAssignProductPrice"
+      ]
+    },
+    {
+      "title": "库存与费用设置",
+      "fields": [
+        "storeUseSoloProductStock",
+        "storeUseTotalProductStock",
+        "storeAssignDeliveryServiceFee",
+        "storeAssignServerServiceFee"
+      ]
+    },
+    {
+      "title": "下单与门店展示",
+      "fields": [
+        "storeCustomSubmitShippingType",
+        "storeShowOtherCityStore"
+      ]
+    }
+  ],
+  "vendorSettingManage": [
+    {
+      "title": "基本设置",
+      "fields": [
+        "vendorProductNeedCheck",
+        "vendorMaxSubAdministrator"
+      ]
+    },
+    {
+      "title": "价格设置",
+      "fields": [
+        "vendorSetPriceType",
+        "vendorSetPriceAutoValue"
+      ]
+    }
   ]
 };
