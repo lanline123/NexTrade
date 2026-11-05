@@ -5335,3 +5335,14 @@ img {
   .pc-header-runtime .sub-nav { gap: 16px; flex-wrap: nowrap; overflow-x: auto; }
   .pc-header-runtime .pc-header__menu-btn { display: inline-flex; }
 }
+
+/* 按 DefSearchNew.vue 重建搜索框 */
+.pc-header-runtime .top-search { position: relative; border-radius: 7px; width: 100%; border: 1px solid #fff; padding: 1px; background: #fff; box-sizing: border-box; }
+.pc-header-runtime .top-search:hover { border-color: #1a1a1a; }
+.pc-header-runtime .top-search.white { border-color: #c1c1c1; }
+.pc-header-runtime .top-search.white:hover { border-color: var(--primary-dark-2, #165dff); }
+.pc-header-runtime .top-search .search-form { display: flex; align-items: center; height: 37px; width: 100%; border-radius: 8px; background: #fff; }
+.pc-header-runtime .top-search .acea-row { flex: 1; display: flex; align-items: center; justify-content: flex-end; }
+.pc-header-runtime .top-search .search-input { flex: 1; height: 26px; padding: 6px 10px; border: 0; border-radius: 8px; background: #fff; color: #bbbbbb; font-size: 14px; line-height: 26px; outline: none; }
+.pc-header-runtime .top-search .search-input::placeholder { color: #9ca3af; font-size: 14px; }
+.pc-header-runtime .top-search .search-submit { display: flex; align-items: center; justify-content: center; width: 58px; height: 32px; margin-right: 3px; border: 0; border-radius: 4px; background: var(--pc-header-search-accent, #1a1a1a); color: #fff; cursor: pointer; font-size: 22px; }

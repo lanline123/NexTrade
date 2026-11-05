@@ -38,6 +38,8 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   const cartStyle = Number(header.cartStyle) || 1;
   const cartPic = imageUrl(header.cartPic as any);
   const logoAlign = Number(header.logoAlign) || 1;
+  const searchAccentColor = Number(header.searchColorType ?? 1) === 2 ? String(header.searchColor || '#1a1a1a') : '';
+  const searchStyle = searchAccentColor ? ({ '--pc-header-search-accent': searchAccentColor } as React.CSSProperties) : undefined;
 
   useEffect(() => {
     if (logo) {
@@ -101,20 +103,25 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
             <div className="page-header-home__center">
               <div className="search-nav-box">
                 <div className="search-bar">
-                  <div className="pc-header__search">
-                    <span className="pc-header__search-icon"><Search size={18} /></span>
-                    <input
-                      className="pc-header__search-input"
-                      value={keyword}
-                      onChange={(event) => setKeyword(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') goSearch();
-                      }}
-                      placeholder="搜索商品 / 分类 / 品牌"
-                    />
-                    <button type="button" className="pc-header__search-button" onClick={goSearch}>
-                      搜索
-                    </button>
+                  <div className={`top-search${header.isWhite === 0 ? '' : ' white'}`} style={searchStyle}>
+                    <div className="search-form">
+                      <div className="acea-row row-middle">
+                        <input
+                          className="search-input"
+                          value={keyword}
+                          onChange={(event) => setKeyword(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') goSearch();
+                          }}
+                          placeholder="请输入关键词"
+                          autoComplete="off"
+                          name="keywords"
+                        />
+                        <button type="button" className="search-submit" onClick={goSearch}>
+                          <Search size={18} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
