@@ -1,35 +1,34 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { normalizeLocale } from '@/i18n';
 
-type TranslationMap = Record<string, string>;
+type Translator = (key: string) => string;
 
-function readLocale(): string {
-  if (typeof document === 'undefined') return '';
-  return document.cookie.match(/(?:^|; )locale=([^;]+)/)?.[1] || '';
-}
-
-function translateTextNode(node: Text, map: TranslationMap) {
-  const raw = node.nodeValue || '';
-  const key = raw.trim();
-  if (!key || key.length > 200) return;
-  let value = map[key];
-  let matched = key;
-  if (!value) {
-    // 导航/下拉项常把箭头、数量、冒号拼在同一文本节点：拆出主文案再匹配。
-    const suffix = key.match(/^(.+?)(\s*[▾›⌄：:]|\s+\d+)$/);
-    if (suffix) {
-      matched = suffix[1].trim();
-      value = map[matched];
-    }
+function translateTextNode(node: Text, t: Translator, originals: WeakMap<Text, string>, enabled: boolean) {
+  const current = node.nodeValue || '';
+  const original = originals.get(node);
+  const translated = original === undefined ? undefined : t(original.trim());
+  if (original === undefined || (translated !== undefined && current !== translated)) {
+    originals.set(node, current);
   }
-  if (!value || value === matched) return;
-  node.nodeValue = raw.trim().startsWith(matched) ? raw.replace(matched, value) : raw.replace(key, value);
+  const source = originals.get(node) || '';
+  const key = source.trim();
+  if (!enabled || !key || key.length > 200) {
+    if (current !== source) node.nodeValue = source;
+    return;
+  }
+  const value = t(key);
+  if (!value || value === key) return;
+  node.nodeValue = current.trim().startsWith(key) ? current.replace(key, value) : value;
 }
 
-function walk(root: Node, map: TranslationMap) {
+const ATTRIBUTES = ['placeholder', 'title', 'aria-label', 'alt'] as const;
+
+function walk(root: Node, t: Translator, originals: WeakMap<Text, string>, attributeOriginals: WeakMap<Element, Map<string, string>>, enabled: boolean) {
   if (root.nodeType === Node.TEXT_NODE) {
-    translateTextNode(root as Text, map);
+    translateTextNode(root as Text, t, originals, enabled);
     return;
   }
   if (root.nodeType !== Node.ELEMENT_NODE) return;
@@ -37,65 +36,76 @@ function walk(root: Node, map: TranslationMap) {
   if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA'].includes(el.tagName)) return;
   if (el.hasAttribute('data-no-i18n')) return;
 
-  const placeholder = el.getAttribute('placeholder');
-  if (placeholder) {
-    const value = map[placeholder.trim()];
-    if (value) el.setAttribute('placeholder', value);
+  let originalsForElement = attributeOriginals.get(el);
+  if (!originalsForElement) {
+    originalsForElement = new Map();
+    attributeOriginals.set(el, originalsForElement);
   }
-  const title = el.getAttribute('title');
-  if (title) {
-    const value = map[title.trim()];
-    if (value) el.setAttribute('title', value);
+  for (const attribute of ATTRIBUTES) {
+    const current = el.getAttribute(attribute);
+    if (!current) continue;
+    const saved = originalsForElement.get(attribute);
+    const translated = saved ? t(saved.trim()) : '';
+    if (!saved || (translated && current !== translated)) originalsForElement.set(attribute, current);
+    const source = originalsForElement.get(attribute) || '';
+    if (!enabled) {
+      if (current !== source) el.setAttribute(attribute, source);
+      continue;
+    }
+    const value = t(source.trim());
+    if (value && value !== source.trim()) el.setAttribute(attribute, value);
   }
-  el.childNodes.forEach((child) => walk(child, map));
+  el.childNodes.forEach((child) => walk(child, t, originals, attributeOriginals, enabled));
 }
 
 /**
- * 全站 i18n 翻译层：读取 locale cookie + 后端翻译包，替换页面文本。
- * 默认语言（zh / 空）不启用。
+ * i18next 兼容渲染层：
+ * 现有页面仍以中文原文为 key，这里统一通过 i18next.t 翻译，语言切换时自动重跑。
+ * 新页面应优先使用 useTranslation()/t()，本组件只作为存量硬编码文案的兜底。
  */
 export default function I18nTranslator() {
+  const { i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
+  const enabled = locale !== 'zh-CN';
+
   useEffect(() => {
-    const locale = readLocale();
-    if (!locale || locale === 'zh') return;
     let cancelled = false;
     let observer: MutationObserver | null = null;
-    let map: TranslationMap = {};
     let scheduled = false;
+    const originals = new WeakMap<Text, string>();
+    const attributeOriginals = new WeakMap<Element, Map<string, string>>();
+    const t: Translator = (key) => {
+      if (!enabled) return key;
+      return i18n.t(key, { defaultValue: key });
+    };
 
     const apply = () => {
       scheduled = false;
-      if (cancelled) return;
-      walk(document.body, map);
+      if (cancelled || typeof document === 'undefined') return;
+      walk(document.body, t, originals, attributeOriginals, enabled);
       document.documentElement.lang = locale;
     };
-
     const schedule = () => {
       if (scheduled) return;
       scheduled = true;
       window.requestAnimationFrame(apply);
     };
 
-    fetch(`/api/common/i18n/getLocaleTranslations?localeCode=${encodeURIComponent(locale)}`, {
-      credentials: 'include',
-    })
-      .then((response) => response.json())
-      .then((json) => {
-        if (cancelled) return;
-        const data = json?.data || {};
-        const entries = Object.entries(data).filter(([key, value]) => key && typeof value === 'string' && value);
-        map = Object.fromEntries(entries) as TranslationMap;
-        observer = new MutationObserver(schedule);
-        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-        schedule();
-      })
-      .catch(() => undefined);
+    observer = new MutationObserver(schedule);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: [...ATTRIBUTES] });
+    i18n.on('languageChanged', schedule);
+    i18n.on('loaded', schedule);
+    i18n.on('added', schedule);
+    schedule();
 
     return () => {
       cancelled = true;
       observer?.disconnect();
+      i18n.off('languageChanged', schedule);
+      i18n.off('loaded', schedule);
+      i18n.off('added', schedule);
     };
-  }, []);
+  }, [enabled, i18n, locale]);
 
   return null;
 }

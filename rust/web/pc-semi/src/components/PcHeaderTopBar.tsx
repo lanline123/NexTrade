@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { normalizeLocale, writeLocaleCookie } from '@/i18n';
 
 type Region = { regionId: number; regionName: string };
 type LocaleItem = { localeCode: string; language: string; isDefault?: number };
@@ -19,6 +21,7 @@ function navHref(link: any): string {
 }
 
 export default function PcHeaderTopBar({ config }: { config: Record<string, any> }) {
+  const { i18n } = useTranslation();
   const [regions, setRegions] = useState<Region[]>([]);
   const [localeList, setLocaleList] = useState<LocaleItem[]>([]);
   const [localeCode, setLocaleCode] = useState('');
@@ -122,9 +125,10 @@ export default function PcHeaderTopBar({ config }: { config: Record<string, any>
 
   const changeLocale = (code: string) => {
     if (!code || code === localeCode) return;
-    document.cookie = `locale=${encodeURIComponent(code)}; path=/; max-age=31536000; SameSite=Lax`;
+    const next = normalizeLocale(code);
+    writeLocaleCookie(next);
     setLocaleCode(code);
-    window.location.reload();
+    void i18n.changeLanguage(next);
   };
   const userDisplayName = String(user?.nickname || user?.dimUsername || '会员');
   const backgroundColor = String(config.benefitBarBackgroundColor || '#1a1a1a');
