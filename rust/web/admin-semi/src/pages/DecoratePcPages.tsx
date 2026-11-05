@@ -1988,7 +1988,7 @@ export function PcSearchStyle() {
 
   return (
     <div style={{ padding: 20 }}>
-      <Card title={t('PC端搜索页风格')} loading={loading}>
+      <Card title={t('搜索页风格：')} loading={loading}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 30 }}>
           {styles.map((item) => (
             <div key={item.type} style={{ width: 260, cursor: 'pointer', textAlign: 'center' }} onClick={() => setStyleType(item.type)}>

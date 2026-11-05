@@ -2876,7 +2876,13 @@ export function SubMerchants() {
         { title: '商户名称', dataIndex: 'merchantName' },
         { title: '子商户号', dataIndex: 'subMerchantNo' },
         { title: '支付渠道', dataIndex: 'channelText', width: 120 },
-        { title: '状态', dataIndex: 'statusText', width: 100 },
+        { title: '来源', dataIndex: 'sourceText', width: 120 },
+        {
+          title: '状态',
+          dataIndex: 'statusText',
+          width: 100,
+          render: (val: any, row: Row) => val || (Number(row.status) === 0 ? '待激活' : Number(row.status) === 1 ? '已激活' : '已冻结'),
+        },
         { title: '创建时间', dataIndex: 'createTime', width: 170 },
       ]}
     />
@@ -2891,8 +2897,16 @@ export function ProfitSharing() {
       columns={[
         { title: '分账单号', dataIndex: 'outOrderNo' },
         { title: '订单号', dataIndex: 'orderSn' },
+        { title: '订单金额', dataIndex: 'orderAmount', width: 130 },
         { title: '分账金额', dataIndex: 'amount', width: 120 },
         { title: '分账状态', dataIndex: 'statusText', width: 120 },
+        { title: '触发方式', dataIndex: 'triggerTypeText', width: 120 },
+        {
+          title: '完结状态',
+          dataIndex: 'finishStatusText',
+          width: 120,
+          render: (val: any, row: Row) => val || (Number(row.finishStatus) === 0 ? '待处理' : Number(row.finishStatus) === 1 ? '未完结' : '已完结'),
+        },
         { title: '创建时间', dataIndex: 'createTime', width: 170 },
       ]}
     />
@@ -2914,3 +2928,4 @@ export function StatementDownload() {
     />
   );
 }
+

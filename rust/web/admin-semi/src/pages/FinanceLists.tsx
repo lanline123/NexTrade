@@ -36,7 +36,13 @@ export function WithdrawApplyList() {
     { title: '金额', dataIndex: 'amount', width: 130 },
     { title: '手续费(元)', dataIndex: 'handlingFee', width: 130 },
     { title: '手续费率', dataIndex: 'handlingRate', width: 120 },
-    { title: '到款状态', dataIndex: 'statusType', width: 130 },
+    { title: '提现账号类型', dataIndex: 'accountTypeText', width: 130 },
+    {
+      title: '到款状态',
+      dataIndex: 'statusType',
+      width: 130,
+      render: (val: any, row: FinanceRow) => val || (Number(row.status) === 1 ? '已完成' : Number(row.status) === 2 ? '拒绝申请' : '待处理'),
+    },
     { title: '操作时间', dataIndex: 'addTime', width: 180 },
   ];
   return (
@@ -58,7 +64,12 @@ export function RechargeOrderList() {
     { title: '手机号', dataIndex: 'mobile', width: 150 },
     { title: '金额', dataIndex: 'amount', width: 130 },
     { title: '赠送金额', dataIndex: 'discountMoney', width: 130 },
-    { title: '到款状态', dataIndex: 'statusType', width: 130 },
+    {
+      title: '到款状态',
+      dataIndex: 'statusType',
+      width: 130,
+      render: (val: any, row: FinanceRow) => val || (Number(row.status) === 1 ? '已完成' : Number(row.status) === 2 ? '拒绝申请' : '待处理'),
+    },
     { title: '操作时间', dataIndex: 'addTime', width: 180 },
   ];
   return (
