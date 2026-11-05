@@ -1,10 +1,12 @@
 import { getHomeDecorate } from '@/lib/api';
+import type { Metadata } from 'next';
 import PcHeader from '@/components/PcHeader';
 import { DecorateRenderer } from '@/decorate/components/modules';
 import type { HomeDecorateResponse } from '@/decorate/types';
 import PcFooter from '@/components/PcFooter';
 
 export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
 function pageBackground(pageModule: HomeDecorateResponse['pageModule']): React.CSSProperties {
   const style: React.CSSProperties = { background: '#f2f3f5' };
