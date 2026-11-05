@@ -4852,3 +4852,9 @@ img {
 .invoice-order__actions a,
 .invoice-order__actions button { border: 0; background: none; color: #333; font-size: 13px; cursor: pointer; }
 .invoice-order__actions a.is-primary { color: #e1251b; font-weight: 700; }
+
+
+/* 申请发票 */
+.invoice-options { display: flex; gap: 10px; }
+.invoice-options button { height: 34px; padding: 0 18px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
+.invoice-options button.is-active { border-color: #e1251b; background: #fff7f6; color: #e1251b; }
