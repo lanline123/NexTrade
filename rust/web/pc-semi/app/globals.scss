@@ -5452,3 +5452,9 @@ img {
   .pc-header-runtime .page-c-warap { min-width: 0; }
   .pc-header-runtime .search-bar { height: auto; min-height: 0; }
 }
+
+/* 原版 page-header-inner 只保留顶部 16px，底边由 headerVars 控制（默认 0） */
+.pc-header-runtime .page-header-inner { padding: 16px 0 0; }
+
+/* 原版 header 不使用旧版固定 1px 底边，分割由 pc-header-divider--* 控制 */
+.pc-header-runtime.pc-header { border-bottom: 0; background: transparent; }
