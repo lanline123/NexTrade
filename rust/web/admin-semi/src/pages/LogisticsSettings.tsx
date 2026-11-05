@@ -77,7 +77,7 @@ export default function LogisticsSettings() {
       content: t('确定删除选中的 {count} 条配置？', { count: ids.length }),
       onOk: async () => {
         try {
-          await apiPost('/setting/logisticsCompanyConfig/batch', { ids, type: 'del' });
+          await Promise.all(ids.map((id) => apiPost('/setting/logisticsCompanyConfig/del', { id })));
           Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);

@@ -68,7 +68,7 @@ export default function TaxRates() {
       content: t('确定删除选中的 {count} 条规则？', { count: ids.length }),
       onOk: async () => {
         try {
-          await apiPost('/setting/taxRate/batch', { ids, type: 'del' });
+          await Promise.all(ids.map((id) => apiPost('/setting/taxRate/del', { id })));
           Toast.success({ content: t('批量删除成功') });
           clear();
           setReloadKey((key) => key + 1);

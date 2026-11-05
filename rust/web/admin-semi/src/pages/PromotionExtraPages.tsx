@@ -186,8 +186,8 @@ export function PromotionStyle() {
           title: '营销样式配置',
           addText: '添加样式',
           width: 600,
-          createApi: '/promotion/productStyle/save',
-          updateApi: '/promotion/productStyle/save',
+          createApi: '/promotion/productStyle/create',
+          updateApi: '/promotion/productStyle/update',
           deleteApi: '/promotion/productStyle/del',
           sections: [
             {
@@ -339,8 +339,8 @@ export function SignInSetting() {
           title: '签到规则配置',
           addText: '添加签到奖励',
           width: 600,
-          createApi: '/promotion/signInSetting/save',
-          updateApi: '/promotion/signInSetting/save',
+          createApi: '/promotion/signInSetting/create',
+          updateApi: '/promotion/signInSetting/update',
           deleteApi: '/promotion/signInSetting/del',
           sections: [
             {
@@ -464,7 +464,7 @@ export function GiftCard() {
   return (
     <div>
       <ListPage
-        api="/promotion/giftCard/batch"
+        api="/promotion/giftCardGroups/list"
         rowKey="cardGroupId"
         columns={columns}
         filters={[
@@ -474,9 +474,9 @@ export function GiftCard() {
           title: '礼品卡配置',
           addText: '添加礼品卡',
           width: 600,
-          createApi: '/promotion/giftCard/create',
-          updateApi: '/promotion/giftCard/update',
-          deleteApi: '/promotion/giftCard/del',
+          createApi: '/promotion/giftCardGroups/create',
+          updateApi: '/promotion/giftCardGroups/update',
+          deleteApi: '/promotion/giftCardGroups/delete',
           sections: [
             {
               key: 'basic',
@@ -529,7 +529,7 @@ export function Lottery() {
   return (
     <div>
       <ListPage
-        api="/promotion/lotteryActivity/updateStatus"
+        api="/promotion/lotteryActivity/list"
         rowKey="activityId"
         columns={columns}
         filters={[
@@ -541,7 +541,7 @@ export function Lottery() {
           width: 600,
           createApi: '/promotion/lotteryActivity/create',
           updateApi: '/promotion/lotteryActivity/update',
-          deleteApi: '/promotion/lotteryActivity/del',
+          deleteApi: '/promotion/lotteryActivity/delete',
           sections: [
             {
               key: 'basic',

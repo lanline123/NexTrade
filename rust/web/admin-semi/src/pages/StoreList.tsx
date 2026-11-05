@@ -81,7 +81,7 @@ export default function StoreList() {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiPost('/shop/shop/del', { id });
+      await apiPost('/merchant/shop/del', { id });
       Toast.success({ content: t('删除门店成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
@@ -93,9 +93,9 @@ export default function StoreList() {
     title: '门店',
     addText: '新增门店',
     width: 600,
-    createApi: '/shop/shop/create',
-    updateApi: '/shop/shop/update',
-    detailApi: '/shop/shop/detail',
+    createApi: '/merchant/shop/create',
+    updateApi: '/merchant/shop/update',
+    detailApi: '/merchant/shop/detail',
     idField: 'shopId',
     toPayload: (values, mode) => ({
       ...values,
@@ -288,7 +288,7 @@ export default function StoreList() {
     <>
       <ListPage<StoreRow>
         key={reloadKey}
-        api="/shop/shop/list?shopType=2"
+        api="/merchant/shop/list?shopType=2"
         rowKey="shopId"
         pageSize={10}
         actionWidth={160}

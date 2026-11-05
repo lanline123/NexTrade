@@ -1,0 +1,26 @@
+// H5 预览所需的通用小样式（iconfont-h5 的箭头在 React 版以内联 SVG/伪元素实现）
+.h5-arrow-right {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    font-size: 0;
+    border-style: solid;
+    border-width: 4px 0 4px 5px;
+    border-color: transparent transparent transparent currentColor;
+    margin-left: 2px;
+}
+
+.h5-countdown {
+    display: inline-flex;
+    align-items: center;
+
+    .h5-countdown-num {
+        display: inline-block;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    .h5-countdown-colon {
+        padding: 0 1px;
+    }
+}

@@ -117,6 +117,15 @@ export interface ConfigFieldGroup {
   visibleWhen?: ConfigWhen;
 }
 
+/** 数字字段的取值范围与精度约束（对齐旧版 el-input-number / decimal 输入）。 */
+export interface ConfigNumberLimit {
+  min?: number;
+  max?: number;
+  /** 0 表示只允许整数；1 表示保留 1 位小数。 */
+  precision?: number;
+  step?: number;
+}
+
 export interface ConfigRendererContext {
   value: unknown;
   values: Record<string, unknown>;
@@ -329,6 +338,16 @@ interface AutoConfigPageProps {
   defaults?: Record<string, unknown>;
   /** 特殊字段的自定义控件渲染器（拖拽排序、证书上传等）。 */
   renderers?: Record<string, (context: ConfigRendererContext) => ReactNode>;
+  /** 数字字段的取值范围、精度与步长。 */
+  numberLimits?: Record<string, ConfigNumberLimit>;
+  /** 字段变更后的联动修正（返回值会合并进表单值）。 */
+  adjustValues?: (
+    key: string,
+    value: unknown,
+    values: Record<string, unknown>,
+  ) => Record<string, unknown> | void;
+  /** 保存前校验；返回错误文案则中止保存。 */
+  validate?: (values: Record<string, unknown>) => string | null | undefined;
   onSaved?: (values: Record<string, unknown>) => void;
   modern?: boolean;
 }
@@ -523,6 +542,9 @@ export default function AutoConfigPage({
   labels,
   defaults,
   renderers,
+  numberLimits,
+  adjustValues,
+  validate,
   onSaved,
   modern,
 }: AutoConfigPageProps) {
@@ -538,15 +560,17 @@ export default function AutoConfigPage({
     apiGet<Record<string, unknown>>(getApi)
       .then((result) => {
         const data = { ...defaults, ...(result || {}) };
-        // 品牌迁移：历史默认版权中的 Tigshop 统一显示/保存为 NexTrade
-        if (typeof data.defaultCopyright === 'string') {
+        // 品牌迁移仅作用于品牌相关配置，避免把计算字段注入其它配置分组
+        const brandConfigApi = /basicSettings|globalSettings|getAdmin/.test(getApi);
+        if (brandConfigApi && typeof data.defaultCopyright === 'string') {
           data.defaultCopyright = data.defaultCopyright.replace(/Tigshop/gi, 'NexTrade');
         }
         // 历史默认技术支持图来自第三方 OSS / 旧品牌，统一替换为平台自有标识
         if (
-          typeof data.defaultTechSupport !== 'string' ||
-          !data.defaultTechSupport ||
-          /tigshop|nlatstore|default_tech_support/i.test(data.defaultTechSupport)
+          brandConfigApi &&
+          (typeof data.defaultTechSupport !== 'string' ||
+            !data.defaultTechSupport ||
+            /tigshop|nlatstore|default_tech_support/i.test(data.defaultTechSupport))
         ) {
           data.defaultTechSupport = `${window.location.origin}${NEXTRADE_TECH_SUPPORT}`;
         }
@@ -565,12 +589,34 @@ export default function AutoConfigPage({
   const entries = useMemo(() => Object.entries(values), [values]);
 
   const update = (key: string, value: unknown) => {
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      const next = { ...current, [key]: value };
+      const patch = adjustValues?.(key, value, next);
+      return patch ? { ...next, ...patch } : next;
+    });
+  };
+
+  const normalizeNumber = (key: string, next: unknown): number => {
+    const limit = numberLimits?.[key];
+    let parsed = Number(next);
+    if (!Number.isFinite(parsed)) parsed = limit?.min ?? 0;
+    if (limit?.precision !== undefined) {
+      const factor = 10 ** Math.max(0, limit.precision);
+      parsed = Math.round(parsed * factor) / factor;
+    }
+    if (limit?.min !== undefined) parsed = Math.max(limit.min, parsed);
+    if (limit?.max !== undefined) parsed = Math.min(limit.max, parsed);
+    return parsed;
   };
 
   const labelOf = (key: string) => labels?.[key] || formatLabel(key);
 
   const save = async () => {
+    const invalid = validate?.(values);
+    if (invalid) {
+      Toast.error({ content: invalid });
+      return;
+    }
     setSaving(true);
     try {
       const payload: Record<string, unknown> = { ...values };
@@ -775,7 +821,11 @@ export default function AutoConfigPage({
           <InputNumber
             disabled={disabled}
             value={value}
-            onChange={(next) => update(key, Number(next || 0))}
+            min={numberLimits?.[key]?.min}
+            max={numberLimits?.[key]?.max}
+            precision={numberLimits?.[key]?.precision}
+            step={numberLimits?.[key]?.step}
+            onChange={(next) => update(key, normalizeNumber(key, next))}
           />
         ) : isObject ? (
           <TextArea

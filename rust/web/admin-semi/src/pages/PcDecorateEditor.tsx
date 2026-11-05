@@ -263,6 +263,10 @@ interface SettingFieldDef {
   key: string;
   label: string;
   hint?: string;
+  /** 依当前模块数据动态计算的提示文案（优先级高于 hint，如 image-ad 随 picType 变化的建议尺寸） */
+  hintFor?: (m: Record<string, any>) => string;
+  /** 输入框占位文案（对齐旧版 Settings.vue 各 el-input 的 placeholder） */
+  placeholder?: string;
   options?: Array<{ label: string; value: number | string }>;
   max?: number;
   min?: number;
@@ -293,10 +297,14 @@ interface SettingFieldDef {
   extend?: boolean;
   /** 字段前的分组标题（原版 dec-edit-title-box） */
   section?: string;
+  /** 不渲染字段级分组标题（如原版 pc-product-group 的「购买按钮」直接以行 label 呈现） */
+  hideSection?: boolean;
   /** 同一字段前连续多个分组标题（如营销通栏 中间焦点区 → 轮播广告） */
   sections?: string[];
   /** 图片列表最大数量（原版 ModulePicList max-count） */
   picMax?: number;
+  /** 依模块数据动态计算图片最大数量（如 pc-image-square-ad 随布局固定张数） */
+  picMaxFor?: (m: Record<string, any>) => number;
   /** colorPair 的第二个颜色 key */
   secondKey?: string;
   /** colorPair 第二个颜色的重置值 */
@@ -323,6 +331,12 @@ interface ModuleDef {
 /** 深层取值（'title.titleText' 形式） */
 function getPath(obj: Record<string, any>, path: string): any {
   return path.split('.').reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
+}
+
+/** 设置项提示文案：hintFor 优先（随模块数据变化），否则回退静态 hint。 */
+function fieldHint(field: SettingFieldDef, moduleData: Record<string, any>): string {
+  if (field.hintFor) return field.hintFor(moduleData);
+  return field.hint || '';
 }
 
 /** 深层写入（不可变） */
@@ -437,7 +451,14 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'radio', key: 'picType', label: '选择模板', options: [{ label: '一行一个', value: 1 }, { label: '轮播', value: 2 }, { label: '一行两个', value: 5 }, { label: '一行三个', value: 6 }, { label: '一行四个', value: 7 }] },
-      { kind: 'picList', key: 'picList', label: '添加图片', hint: '可拖拽排序，建议宽1500px', section: '添加图片' },
+      { kind: 'picList', key: 'picList', label: '图片列表', section: '添加图片',
+        // 原版按 picType 显示不同提示文案（仅一行一个 / 轮播两种布局有提示）
+        hintFor: (m) => {
+          const picType = Number(m.picType);
+          if (picType === 2) return '提示：您可以通过拖拽进行图片排序，宽不小于1500px（选择轮播时可开启通宽排版）';
+          if (picType === 1) return '提示：您可以通过拖拽进行图片排序，单图占宽为100%，建议宽1500px，高度自适应';
+          return '';
+        } },
       { kind: 'radio', key: 'picPageType', label: '指示器样式', options: [{ label: '样式一', value: 1 }, { label: '样式二', value: 2 }, { label: '样式三', value: 3 }], showIf: (m) => Number(m.picType) === 2 },
       { kind: 'color', key: 'swiperPageColor', label: '指示器颜色', resetValue: '#333333', showIf: (m) => Number(m.picType) === 2 },
       { kind: 'select', key: 'swiperPreView', label: '轮播一行显示', options: [1, 2, 3, 4].map((n) => ({ label: `${n}个`, value: n })), showIf: (m) => Number(m.picType) === 2 },
@@ -487,7 +508,10 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'squareTemplate', key: 'picType', label: '选择模板', section: '选择布局' },
-      { kind: 'picList', key: 'picList', label: '添加图片', hint: '先选模板确定格子数量（固定张数）', section: '添加图片' },
+      { kind: 'picList', key: 'picList', label: '添加图片', section: '添加图片',
+        // 原版：格子数量由布局决定（固定 2/3/4 张），标题处展示"固定 N 张"
+        hintFor: (m) => `固定 ${({ 1: 2, 2: 3, 3: 4, 4: 4, 5: 3, 6: 4, 7: 3 } as Record<number, number>)[Number(m.picType)] ?? 2} 张（先选模板确定格子数量）`,
+        picMaxFor: (m) => ({ 1: 2, 2: 3, 3: 4, 4: 4, 5: 3, 6: 4, 7: 3 } as Record<number, number>)[Number(m.picType)] ?? 2 },
       { kind: 'slider', key: 'imgPadding', label: '图片边距', max: 30 },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       ...containerFields({ showInnerPadding: true }),
@@ -503,6 +527,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       title: standardTitle(),
     }),
     settings: [
+      { kind: 'picList', key: 'picList', label: '热图', hint: '添加图片后在每张图下绘制热区（宽/高/上/左 为像素，基准 500px 宽）' },
+      { kind: 'hotarea', key: 'hotarea', label: '热区' },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       ...containerFields({ showInnerPadding: true }),
     ],
@@ -540,7 +566,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'radio', key: 'showTitle', label: '显示标题', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
-      { kind: 'input', key: 'titleName', label: '标题', showIf: (m) => Number(m.showTitle) === 1 },
+      { kind: 'input', key: 'titleName', label: '标题', placeholder: '请输入标题', showIf: (m) => Number(m.showTitle) === 1 },
       { kind: 'slider', key: 'displayNum', label: '一屏显示数量', min: 1, max: 10 },
       { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#f7f7f7' },
       ...containerFields(),
@@ -558,9 +584,9 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     settings: [
       { kind: 'picList', key: 'picList', label: '图片卡片', hint: '可拖拽排序，建议 180*180 像素', picDesc: true, picAddText: '添加一组' },
       { kind: 'color', key: 'imageBackgroundColor', label: '图片背景色', resetValue: '', section: '参数设置' },
-      { kind: 'input', key: 'titleText', label: '标题内容' },
+      { kind: 'input', key: 'titleText', label: '标题内容', placeholder: '请输入标题内容' },
       { kind: 'radio', key: 'showMore', label: '显示查看更多', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
-      { kind: 'input', key: 'showMoreText', label: '查看更多文字', showIf: (m) => Number(m.showMore) === 1 },
+      { kind: 'input', key: 'showMoreText', label: '查看更多文字', placeholder: '请输入查看更多文字', showIf: (m) => Number(m.showMore) === 1 },
       { kind: 'link', key: 'moreLink', label: '更多链接', showIf: (m) => Number(m.showMore) === 1 },
       { kind: 'color', key: 'backgroundColor', label: '模块背景颜色', resetValue: 'rgba(0, 0, 0, 0.02)' },
     ],
@@ -649,7 +675,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'crossedOutPrice', label: '商品划线价', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'radio', key: 'showSales', label: '已售', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'radio', key: 'showShopTag', label: '商品店铺', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
-      { kind: 'container', key: 'buyBtnStyle', label: '购买按钮', containerType: 'buyBtn', extend: false },
+      { kind: 'container', key: 'buyBtnStyle', label: '购买按钮', containerType: 'buyBtn', extend: false, hideSection: true },
       { kind: 'container', key: 'productColor', label: '商品颜色设置', containerType: 'productColor' },
       { kind: 'container', key: 'groupTitle', label: '分组标题设置', containerType: 'groupTitle' },
       { kind: 'container', key: 'moduleStyle', label: '模块样式设置', containerType: 'moduleStyle' },
@@ -665,7 +691,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       products: { ...productsDefaults(), productNumber: 20 },
     }),
     settings: [
-      { kind: 'input', key: 'titleName', label: '标题', hint: '可不填' },
+      { kind: 'input', key: 'titleName', label: '标题', placeholder: '请输入标题（可不填）' },
       { kind: 'products', key: 'products', label: '选择商品', section: '商品设置', numberMax: 50 },
       ...containerFields(),
     ],
@@ -681,8 +707,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     }),
     settings: [
       { kind: 'switch', key: 'showTitle', label: '显示标题栏' },
-      { kind: 'input', key: 'title', label: '标题内容', showIf: (m) => Number(m.showTitle) === 1 },
-      { kind: 'textarea', key: 'desc', label: '描述内容', showIf: (m) => Number(m.showTitle) === 1 },
+      { kind: 'input', key: 'title', label: '标题内容', placeholder: '请输入标题内容', showIf: (m) => Number(m.showTitle) === 1 },
+      { kind: 'textarea', key: 'desc', label: '描述内容', placeholder: '请输入描述内容, 字数不超过500', showIf: (m) => Number(m.showTitle) === 1 },
       { kind: 'slider', key: 'itemPadding', label: '组件边距', max: 30, extend: true },
       { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30, extend: true },
       { kind: 'slider', key: 'boxPadding', label: '左右边距', max: 30, extend: true },
@@ -700,8 +726,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       goodsGap: 10,
     }),
     settings: [
-      { kind: 'title', key: 'title', label: '标题设置', hint: '秒杀商品由营销-秒杀决定', titleHideAlign: true },
       { kind: 'slider', key: 'goodsGap', label: '商品间距', max: 40 },
+      { kind: 'title', key: 'title', label: '标题设置', hint: '秒杀商品由营销-秒杀决定', titleHideAlign: true },
       ...containerFields({ showInnerPadding: true }),
     ],
     summary: (m) => String(getPath(m, 'title.titleText') || m.seckillTitle || ''),
@@ -716,7 +742,6 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       grouponActivityItem: null as unknown as Record<string, any>,
     }),
     settings: [
-      { kind: 'title', key: 'title', label: '标题设置', titleHideAlign: true },
       { kind: 'radio', key: 'style', label: '选择模板', options: [{ label: '一行四个', value: 2 }, { label: '一行五个', value: 3 }, { label: '一行六个', value: 4 }, { label: '横向滑动', value: 6 }] },
       {
         kind: 'radio', key: 'groupType', label: '拼团类型', options: [{ label: '普通拼团', value: 1 }, { label: '阶梯拼团', value: 2 }],
@@ -728,6 +753,8 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'showName', label: '显示商品名称', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'radio', key: 'showPrice', label: '显示商品价格', options: [{ label: '显示', value: 1 }, { label: '不显示', value: 0 }] },
       { kind: 'slider', key: 'goodsPadding', label: '商品边距', max: 50 },
+      // 原版顺序：模板/类型/活动/卡片/边距在前，标题设置位于内容设置末尾
+      { kind: 'title', key: 'title', label: '标题设置', titleHideAlign: true },
       { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#ffffff', extend: true },
       { kind: 'slider', key: 'boxRadius', label: '圆角', max: 30, extend: true },
       { kind: 'slider', key: 'innerPadding', label: '内边距', max: 30, extend: true },
@@ -784,25 +811,27 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     settings: [
       { kind: 'color', key: 'left.backgroundColor', label: '背景颜色', resetValue: '#ffffff', section: '左侧分类导航' },
       { kind: 'color', key: 'left.textColor', label: '文字颜色', resetValue: '#333333' },
-      { kind: 'picList', key: 'center.banners', label: '中间轮播图', sections: ['中间焦点区', '轮播广告'] },
+      { kind: 'picList', key: 'center.banners', label: '中间轮播图', sections: ['中间焦点区', '轮播广告'], picAddText: '添加轮播' },
       { kind: 'heroCards', key: 'center.modules', label: '频道卡位(6个)', section: '推荐卡位' },
-      { kind: 'input', key: 'right.user.nickname', label: '未登录标题文字', section: '右侧会员卡' },
+      { kind: 'switch', key: 'right.premiumMember.show', label: '付费会员', section: '右侧会员卡' },
+      { kind: 'input', key: 'right.premiumMember.title', label: '标题', placeholder: '会员', showIf: (m) => m.right?.premiumMember?.show === true },
+      { kind: 'input', key: 'right.premiumMember.description', label: '描述', placeholder: '请输入描述', showIf: (m) => m.right?.premiumMember?.show === true },
+      { kind: 'link', key: 'right.premiumMember.link', label: '跳转链接', showIf: (m) => m.right?.premiumMember?.show === true },
+      { kind: 'input', key: 'right.user.nickname', label: '未登录标题文字', placeholder: '如：欢迎来商城' },
       { kind: 'colorPair', key: 'right.userCardGradientColorA', secondKey: 'right.userCardGradientColorB', label: '背景渐变色', resetValue: '#FFEDE1', resetValueSecond: '#FCF9F8' },
       { kind: 'radio', key: 'right.userCardGradientType', label: '渐变方向', options: [{ label: '上下', value: 'upDown' }, { label: '左右', value: 'leftRight' }, { label: '斜向', value: 'diagonal' }] },
-      { kind: 'switch', key: 'right.premiumMember.show', label: '付费会员' },
-      { kind: 'input', key: 'right.premiumMember.title', label: '标题', showIf: (m) => m.right?.premiumMember?.show === true },
-      { kind: 'input', key: 'right.premiumMember.description', label: '描述', showIf: (m) => m.right?.premiumMember?.show === true },
-      { kind: 'link', key: 'right.premiumMember.link', label: '跳转链接', showIf: (m) => m.right?.premiumMember?.show === true },
-      { kind: 'input', key: 'right.shopsTitle', label: '区块标题', section: '快捷入口区' },
-      { kind: 'input', key: 'right.shopsSubTitle', label: '角标文字' },
+      { kind: 'input', key: 'right.shopsTitle', label: '区块标题', placeholder: '请输入标题', section: '快捷入口区' },
+      { kind: 'input', key: 'right.shopsSubTitle', label: '角标文字', placeholder: '如：HOT、推荐' },
       { kind: 'color', key: 'right.shopsSubTitleBg', label: '角标背景色', resetValue: '#FF4E4E' },
-      { kind: 'input', key: 'right.shopsMoreText', label: '查看更多文字' },
+      { kind: 'input', key: 'right.shopsMoreText', label: '查看更多文字', placeholder: '如：查看全部、更多' },
       { kind: 'link', key: 'right.shopsMoreLink', label: '查看更多链接' },
       { kind: 'color', key: 'right.shopsTextColor', label: '入口文字颜色', resetValue: '#a06a38' },
-      { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表', picMax: 4 },
+      { kind: 'picList', key: 'right.shortcuts', label: '入口列表', section: '入口列表', picMax: 4, picAddText: '添加入口' },
       { kind: 'slider', key: 'style.panelRadius', label: '圆角', max: 30, section: '整体样式' },
       { kind: 'color', key: 'style.panelBackgroundColor', label: '背景色', resetValue: '#ffffff' },
       { kind: 'slider', key: 'style.gap', label: '内间距', max: 30 },
+      // 原版「外边距」= ModuleContainerSettings（frame.* 自动归入扩展设置）
+      ...containerFields(),
     ],
     summary: (m) => `三列通栏 · ${((m.center?.banners || []) as PicItem[]).length} 轮播`,
   },
@@ -814,12 +843,12 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       frame: { textColor: '#555555', itemBackgroundColor: '#fff8e6', backgroundColor: '#ffffff', innerPadding: 0, itemHeight: 35, itemRadius: 4, boxRadius: 0, boxPadding: 10, boxPaddingTop: 5, boxPaddingBottom: 5 },
     }),
     settings: [
-      { kind: 'input', key: 'text', label: '公告内容' },
+      { kind: 'input', key: 'text', label: '公告内容', placeholder: '请输入公告内容' },
       { kind: 'pic', key: 'icoPic', label: '公告图标', resetValue: { picUrl: NOTICE_ICON, picThumb: NOTICE_ICON } },
-      { kind: 'color', key: 'frame.textColor', label: '文字颜色', resetValue: '#555555' },
-      { kind: 'color', key: 'frame.itemBackgroundColor', label: '组件背景', resetValue: '#ffffff' },
-      { kind: 'slider', key: 'frame.itemRadius', label: '组件圆角', max: 50 },
-      { kind: 'slider', key: 'frame.itemHeight', label: '组件高度', min: 20, max: 80 },
+      { kind: 'color', key: 'frame.textColor', label: '文字颜色', resetValue: '#555555', extend: false },
+      { kind: 'color', key: 'frame.itemBackgroundColor', label: '组件背景', resetValue: '#ffffff', extend: false },
+      { kind: 'slider', key: 'frame.itemRadius', label: '组件圆角', max: 50, extend: false },
+      { kind: 'slider', key: 'frame.itemHeight', label: '组件高度', min: 20, max: 80, extend: false },
       ...containerFields(),
     ],
     summary: (m) => String(m.text || '').slice(0, 20),
@@ -860,8 +889,9 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     settings: [
       { kind: 'radio', key: 'lineType', label: '分割类型', options: [{ label: '空白', value: 1 }, { label: '分割线', value: 2 }] },
       { kind: 'radio', key: 'lineStyle', label: '选择样式', options: [{ label: '实线', value: 1 }, { label: '虚线', value: 2 }, { label: '点状线', value: 3 }] },
+      // 原版：组件高度在扩展设置顶部（无分组标题），容器设置标题之后才是一般容器项
       { kind: 'slider', key: 'frame.itemHeight', label: '组件高度', min: 0, max: 100 },
-      ...containerFields(),
+      ...containerFields().map((f, index) => (index === 0 ? { ...f, section: '容器设置' } : f)),
     ],
     summary: (m) => (Number(m.lineType) === 1 ? '空白' : '分割线'),
   },
@@ -4916,17 +4946,24 @@ function ModuleSettingsPanel({
 }) {
   const { t } = useI18n();
   const isQuickNav = def.type === 'pc-home-quick-nav';
-  const hasExtend = def.settings.some((field) => (
-    field.extend || field.key.startsWith('frame.') || field.kind === 'container'
-  ));
+  /**
+   * 是否属于「扩展设置」Tab：
+   * - 显式 extend:true；
+   * - frame.* 容器字段；
+   * - container 变体默认归扩展，但显式 extend:false 时归内容设置
+   *   （原版 pc-product-group 的「购买按钮」位于内容设置/商品参数设置之后）。
+   */
+  const isExtendField = (field: ModuleDef['settings'][number]) => {
+    if (field.key.startsWith('frame.')) return field.extend !== false;
+    if (field.kind === 'container') return field.extend !== false;
+    return Boolean(field.extend);
+  };
+  const hasExtend = def.settings.some(isExtendField);
   const tabbed = isQuickNav || hasExtend;
   const [activeTab, setActiveTab] = useState<'content' | 'extend'>('content');
   useEffect(() => {
     setActiveTab('content');
   }, [def.type]);
-  const isExtendField = (field: ModuleDef['settings'][number]) => (
-    field.extend || field.key.startsWith('frame.') || field.kind === 'container'
-  );
   const visibleSettings = tabbed
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
@@ -4972,7 +5009,6 @@ function ModuleSettingsPanel({
     'pc-banner2': '外边距',
     'pc-group-banner': '外边距',
     'pc-category-nav': '外边距',
-    'pc-divider': '容器设置',
     'pc-home-coupon': '容器设置',
     'pc-home-groupon': '容器设置',
     'pc-home-hero': '外边距',
@@ -4995,7 +5031,6 @@ function ModuleSettingsPanel({
     'pc-category-nav3': '内容设置',
     'pc-home-groupon': '标题设置',
     'pc-home-seckill': '标题设置',
-    'pc-image-hotarea': '标题设置',
     'pc-product-group': '内容设置',
     'pc-title-ad': '标题设置',
   };
@@ -5048,7 +5083,9 @@ function ModuleSettingsPanel({
             if (isSection) {
               return (
                 <div key={field.key}>
-                  <div className={sectionClass(field.label)}><div className="title">{t(field.label)}</div></div>
+                  {!field.hideSection && (
+                    <div className={sectionClass(field.label)}><div className="title">{t(field.label)}</div></div>
+                  )}
                   <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
                 </div>
               );
@@ -5074,7 +5111,7 @@ function ModuleSettingsPanel({
                   <div className="dec-edit-group-con">
                     <FieldControl field={field} moduleData={moduleData} onChange={onChange} />
                   </div>
-                  {field.hint && <div className="dec-edit-group-desc">{t(field.hint)}</div>}
+                  {fieldHint(field, moduleData) && <div className="dec-edit-group-desc">{t(fieldHint(field, moduleData))}</div>}
                 </div>
               </div>
             );
@@ -5476,7 +5513,7 @@ function SettingsFieldRows({
                 onChange={(next) => onChange(next)}
               />
             </div>
-            {field.hint && <div className="dec-edit-group-desc">{t(field.hint)}</div>}
+            {fieldHint(field, data) && <div className="dec-edit-group-desc">{t(fieldHint(field, data))}</div>}
           </div>
         );
       })}
@@ -5529,9 +5566,9 @@ function FieldControl({
         />
       );
     case 'input':
-      return <Input value={String(value ?? '')} onChange={(v) => set(v)} />;
+      return <Input value={String(value ?? '')} onChange={(v) => set(v)} placeholder={field.placeholder ? t(field.placeholder) : undefined} />;
     case 'textarea':
-      return <TextArea value={String(value ?? '')} onChange={(v: string) => set(v)} rows={2} maxLength={500} />;
+      return <TextArea value={String(value ?? '')} onChange={(v: string) => set(v)} rows={2} maxLength={500} placeholder={field.placeholder ? t(field.placeholder) : undefined} />;
     case 'number':
       return (
         <InputNumber
@@ -5629,11 +5666,12 @@ function FieldControl({
         </div>
       );
     case 'picList':
-      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddTextFor ? field.picAddTextFor(moduleData) : field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} max={field.picMax} />;
+      return <PicListEditor value={(value as PicItem[]) || []} onChange={(v) => set(v)} showDesc={field.picDesc} addText={field.picAddTextFor ? field.picAddTextFor(moduleData) : field.picAddText} showLink={!field.picNoLink} showText={!field.picNoText} max={field.picMaxFor ? field.picMaxFor(moduleData) : field.picMax} />;
     case 'pic':
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <PicListEditor value={value && (value as PicItem).picUrl ? [value as PicItem] : []} onChange={(v) => set(v[0] || { picUrl: '', picThumb: '' })} />
+          {/* 原版单图控件（如 pc-notice 公告图标）隐藏标题/描述/链接输入 */}
+          <PicListEditor value={value && (value as PicItem).picUrl ? [value as PicItem] : []} onChange={(v) => set(v[0] || { picUrl: '', picThumb: '' })} showText={false} showLink={false} showDesc={false} />
           <Button size="small" onClick={() => set((field.resetValue as PicItem) || { picUrl: '', picThumb: '' })}>{t('重置')}</Button>
         </div>
       );

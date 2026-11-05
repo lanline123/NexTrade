@@ -133,6 +133,7 @@ export function IntraCityDelivery() {
   const [thirdPartyLoading, setThirdPartyLoading] = useState(false);
   const [thirdPartySaving, setThirdPartySaving] = useState(false);
   const [thirdPartyError, setThirdPartyError] = useState('');
+  const [thirdPartyUnavailable, setThirdPartyUnavailable] = useState(false);
   const [meituan, setMeituan] = useState<MeituanPlatformConfig>(DEFAULT_MEITUAN);
 
   const toNumber = (value: unknown, fallback = 0) => {
@@ -222,11 +223,13 @@ export function IntraCityDelivery() {
     setThirdPartyVisible(true);
     setThirdPartyLoading(true);
     setThirdPartyError('');
+    setThirdPartyUnavailable(false);
     try {
       const res = await apiGet<MeituanPlatformConfig>('/o2o/meituanDelivery/platformConfig/getConfig');
       setMeituan({ ...DEFAULT_MEITUAN, ...(res || {}) });
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
+      setThirdPartyUnavailable(true);
       setThirdPartyError(`${t('第三方配送配置接口暂未接入')}${message ? `：${message}` : ''}`);
     } finally {
       setThirdPartyLoading(false);
@@ -234,6 +237,10 @@ export function IntraCityDelivery() {
   };
 
   const saveThirdPartyManage = async () => {
+    if (thirdPartyUnavailable) {
+      Toast.warning({ content: t('后端尚未提供第三方配送配置保存接口') });
+      return;
+    }
     setThirdPartySaving(true);
     try {
       await apiPost('/o2o/meituanDelivery/platformConfig/saveConfig', meituan);
@@ -573,7 +580,7 @@ export function IntraCityDelivery() {
         footer={
           <div className="modal-footer">
             <Button onClick={() => setThirdPartyVisible(false)}>{t('取消')}</Button>
-            <Button theme="solid" type="primary" loading={thirdPartySaving} onClick={saveThirdPartyManage}>
+            <Button theme="solid" type="primary" loading={thirdPartySaving} disabled={thirdPartyUnavailable} onClick={saveThirdPartyManage}>
               {t('保存')}
             </Button>
           </div>
@@ -586,6 +593,7 @@ export function IntraCityDelivery() {
         ) : (
           <div className="third-party-sheet__body">
             {thirdPartyError && <Banner type="danger" closeIcon={null} description={thirdPartyError} />}
+            {thirdPartyUnavailable && <Banner type="warning" closeIcon={null} description={t('当前只能查看本地表单，保存按钮不可用：需后端补齐 /o2o/meituanDelivery/platformConfig 接口。')} />}
             <div className="pmo-form">
               <div className="pmo-section">
                 <div className="pmo-section-title">{t('美团配送')}</div>

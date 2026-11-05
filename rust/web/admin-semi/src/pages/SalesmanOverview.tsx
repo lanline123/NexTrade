@@ -46,9 +46,11 @@ export function salesmanFormatTime(val: number | string | undefined | null): str
 }
 
 /**
- * 列表导出(旧页 GET list + isExport=1 → Excel 流)。
- * Rust 端 salesman 系列列表暂未实现 Excel 导出(返回 JSON),
- * 此处探测 Content-Type:JSON 时给出明确提示,而不是落一个假 xlsx。
+ * 列表导出（旧页 GET list + isExport=1 → Excel 流）。
+ * Rust 端 salesman 系列列表暂未实现 Excel 导出（忽略 isExport，返回 JSON 数据）：
+ * - Content-Type 为 Excel 时直接下载；
+ * - 为 JSON 时从返回的 records/list 行数据客户端生成 CSV（Excel 可直接打开），
+ *   避免“导出按钮无效果”，并保留数据导出的实际能力。
  */
 export async function salesmanDownloadExport(
   path: string,
@@ -63,10 +65,48 @@ export async function salesmanDownloadExport(
   const res = await fetch(`/adminapi${path}?${query.toString()}`, {
     headers: { Authorization: `Bearer ${getToken()}`, ...getContextHeaders() },
   });
+  if (!res.ok) {
+    const message = t ? t('导出请求失败') : '导出请求失败';
+    Toast.warning({ content: message });
+    return;
+  }
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
-    const message = '后端暂未提供该列表的 Excel 导出,已记录差异';
-    Toast.warning({ content: t ? t(message) : message });
+    const json = (await res.json().catch(() => null)) as any;
+    const payload = json?.data ?? json;
+    const rows: any[] = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.records)
+        ? payload.records
+        : Array.isArray(payload?.list)
+          ? payload.list
+          : [];
+    if (!rows.length) {
+      const message = '后端未返回可导出的数据';
+      Toast.warning({ content: t ? t(message) : message });
+      return;
+    }
+    const keys = Array.from(
+      rows.reduce((set: Set<string>, row: any) => {
+        Object.keys(row || {}).forEach((key) => set.add(key));
+        return set;
+      }, new Set<string>()),
+    );
+    const escapeCell = (value: unknown) => {
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+      const text = String(value);
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const csv = [keys.map(escapeCell).join(','), ...rows.map((row) => keys.map((key) => escapeCell(row?.[key])).join(','))].join('\r\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename.replace(/\.xlsx$/i, '.csv');
+    link.click();
+    URL.revokeObjectURL(url);
+    Toast.success({ content: t ? t('已导出 CSV（后端暂未提供 Excel 流）') : '已导出 CSV' });
     return;
   }
   const blob = await res.blob();

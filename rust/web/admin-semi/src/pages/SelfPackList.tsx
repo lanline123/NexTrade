@@ -67,7 +67,7 @@ export default function SelfPackList() {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiPost('/shop/shop/del', { id });
+      await apiPost('/merchant/shop/del', { id });
       Toast.success({ content: t('删除自提点成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
@@ -79,9 +79,9 @@ export default function SelfPackList() {
     title: '自提点',
     addText: '新增自提点',
     width: 550,
-    createApi: '/shop/shop/create',
-    updateApi: '/shop/shop/update',
-    detailApi: '/shop/shop/detail',
+    createApi: '/merchant/shop/create',
+    updateApi: '/merchant/shop/update',
+    detailApi: '/merchant/shop/detail',
     idField: 'shopId',
     toPayload: (values) => ({
       ...values,
@@ -213,7 +213,7 @@ export default function SelfPackList() {
     <>
       <ListPage<SelfPackRow>
         key={reloadKey}
-        api="/shop/shop/list?shopType=3"
+        api="/merchant/shop/list?shopType=3"
         rowKey="shopId"
         pageSize={10}
         actionWidth={180}

@@ -1,0 +1,5 @@
+/* 图片广告2 专属样式（自 view/admin imageAd2/Preview.vue <style scoped> 移植）
+   说明：原 scoped 的 .swiper-main padding-bottom 被 :deep(.swiper-main){padding-bottom:0} 覆盖，净效果为 0，不再输出 */
+.module-ad-warp {
+    overflow: hidden;
+}

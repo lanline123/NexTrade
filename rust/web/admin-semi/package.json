@@ -10,7 +10,8 @@
     "verify:ui": "node scripts/verify-ui.cjs",
     "verify:config": "node scripts/verify-config-regressions.cjs",
     "verify:pages": "node scripts/smoke-pages.cjs",
-    "i18n:check": "node scripts/check-i18n.cjs"
+    "i18n:check": "node scripts/check-i18n.cjs",
+    "audit:api": "node scripts/audit-admin-api.mjs"
   },
   "dependencies": {
     "@douyinfe/semi-icons": "^2.104.0",

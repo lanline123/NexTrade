@@ -142,6 +142,152 @@ const buildDefaultForm = (): Record<string, any> => ({
   sortOrder: 50,
 });
 
+function PromotionAudienceSelector({
+  value,
+  onChange,
+  rankOptions,
+}: {
+  value: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+  rankOptions: Array<{ label: string; value: number }>;
+}) {
+  const { t } = useI18n();
+  const [scope, setScope] = useState<number>(Number(value?.scope ?? 0));
+  const [mode, setMode] = useState<'rank' | 'tag'>('rank');
+  const [rankIds, setRankIds] = useState<number[]>(Array.isArray(value?.rankIds) ? value.rankIds : []);
+  const [groups, setGroups] = useState<Array<{ label: string; value: number }>>([]);
+  const [groupIds, setGroupIds] = useState<number[]>([]);
+  const [tagsByGroup, setTagsByGroup] = useState<Record<number, Array<{ label: string; value: number }>>>({});
+  const [tagIds, setTagIds] = useState<number[]>(Array.isArray(value?.tagIds) ? value.tagIds : []);
+  const [tagMatchMode, setTagMatchMode] = useState<number>(Number(value?.tagMatchMode ?? 0));
+
+  useEffect(() => {
+    apiGet<any>('/user/memberTagGroup/list')
+      .then((result) => {
+        const list = Array.isArray(result) ? result : result?.list || result?.records || [];
+        setGroups((list || []).map((item: any) => ({ label: String(item.groupName || item.group_name || ''), value: Number(item.groupId ?? item.group_id ?? 0) })));
+      })
+      .catch(() => setGroups([]));
+  }, []);
+
+  const emit = (next: Partial<{ scope: number; mode: 'rank' | 'tag'; rankIds: number[]; tagIds: number[]; tagMatchMode: number }>) => {
+    const nextScope = next.scope ?? scope;
+    const nextMode = next.mode ?? mode;
+    const nextRankIds = next.rankIds ?? rankIds;
+    const nextTagIds = next.tagIds ?? tagIds;
+    const nextMatchMode = next.tagMatchMode ?? tagMatchMode;
+    onChange({
+      scope: nextScope,
+      userIds: [],
+      users: [],
+      rankIds: nextScope === 1 && nextMode === 'rank' ? nextRankIds : [],
+      tagIds: nextScope === 1 && nextMode === 'tag' ? nextTagIds : [],
+      tagMatchMode: nextScope === 1 && nextMode === 'tag' ? nextMatchMode : 0,
+    });
+  };
+
+  const loadTags = async (groupId: number) => {
+    if (tagsByGroup[groupId]) return;
+    try {
+      const result = await apiGet<any>('/user/memberTag/listByGroup', { groupId });
+      const list = Array.isArray(result) ? result : result?.list || result?.records || [];
+      setTagsByGroup((prev) => ({
+        ...prev,
+        [groupId]: (list || []).map((item: any) => ({ label: String(item.tagName || item.tag_name || item.id), value: Number(item.id ?? item.tagId ?? item.tag_id) })),
+      }));
+    } catch {
+      setTagsByGroup((prev) => ({ ...prev, [groupId]: [] }));
+    }
+  };
+
+  return (
+    <div>
+      <RadioGroup
+        value={scope}
+        onChange={(event: any) => {
+          const nextScope = Number(event.target.value);
+          setScope(nextScope);
+          emit({ scope: nextScope });
+        }}
+      >
+        <Radio value={0}>{t('全部会员')}</Radio>
+        <Radio value={1}>{t('部分会员')}</Radio>
+      </RadioGroup>
+      {scope === 1 ? (
+        <div style={{ marginTop: 12 }}>
+          <RadioGroup
+            value={mode}
+            onChange={(event: any) => {
+              const nextMode = String(event.target.value) === 'tag' ? 'tag' : 'rank';
+              setMode(nextMode);
+              emit({ scope: 1, mode: nextMode });
+            }}
+          >
+            <Radio value="rank">{t('会员等级')}</Radio>
+            <Radio value="tag">{t('会员标签')}</Radio>
+          </RadioGroup>
+          {mode === 'rank' ? (
+            <Select
+              multiple
+              placeholder={t('选择会员等级')}
+              style={{ width: 320, marginTop: 8 }}
+              optionList={rankOptions}
+              value={rankIds}
+              onChange={(next) => {
+                const ids = ((next as number[]) || []).map(Number);
+                setRankIds(ids);
+                emit({ scope: 1, mode: 'rank', rankIds: ids });
+              }}
+            />
+          ) : (
+            <div style={{ marginTop: 8 }}>
+              <Space style={{ marginBottom: 8 }}>
+                <Select
+                  multiple
+                  placeholder={t('选择标签组')}
+                  style={{ width: 260 }}
+                  optionList={groups}
+                  value={groupIds}
+                  onChange={(next) => {
+                    const ids = ((next as number[]) || []).map(Number);
+                    setGroupIds(ids);
+                    ids.forEach((id) => void loadTags(id));
+                  }}
+                />
+                <Select
+                  value={tagMatchMode}
+                  style={{ width: 130 }}
+                  optionList={[{ label: t('满足任一'), value: 0 }, { label: t('满足全部'), value: 1 }]}
+                  onChange={(next) => {
+                    const modeValue = Number(next || 0);
+                    setTagMatchMode(modeValue);
+                    emit({ scope: 1, mode: 'tag', tagMatchMode: modeValue });
+                  }}
+                />
+              </Space>
+              <Select
+                multiple
+                placeholder={t('选择会员标签')}
+                style={{ width: 320 }}
+                optionList={groups.flatMap((group) => tagsByGroup[group.value] || [])}
+                value={tagIds}
+                onChange={(next) => {
+                  const ids = ((next as number[]) || []).map(Number);
+                  setTagIds(ids);
+                  emit({ scope: 1, mode: 'tag', tagIds: ids, tagMatchMode });
+                }}
+              />
+            </div>
+          )}
+          <div style={{ marginTop: 8, color: 'var(--semi-color-text-2)', fontSize: 12 }}>
+            {t('注：会员等级与会员标签互斥；指定会员建议在站内信人群圈选中使用。')}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function SortEditor({ row, onSaved }: { row: PromotionRow; onSaved: () => void }) {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
@@ -601,6 +747,7 @@ export default function ProductPromotions() {
       range,
       rangeData: range === 0 ? [] : rangeData,
       limitUserRank: Array.isArray(payload.limitUserRank) ? payload.limitUserRank.map(Number) : [],
+      sendUserTarget: (payload.sendUserTarget as Record<string, any>) || EMPTY_SEND_USER_TARGET,
       // 旧 Info.vue 提交口径：会员标记未启用，统一按全部会员处理
       memberRange: 0,
       memberMarks: [],
@@ -613,9 +760,6 @@ export default function ProductPromotions() {
           promotionId: editingId,
           isAvailable: Number(editingRecord?.isAvailable ?? 1),
           sortOrder: Number(editingRecord?.sortOrder ?? 50),
-          ...(editingRecord?.sendUserTarget !== undefined && editingRecord?.sendUserTarget !== null
-            ? { sendUserTarget: editingRecord.sendUserTarget }
-            : {}),
           ...(editingRecord?.memberAudience !== undefined && editingRecord?.memberAudience !== null
             ? { memberAudience: editingRecord.memberAudience }
             : {}),
@@ -625,7 +769,6 @@ export default function ProductPromotions() {
           ...body,
           isAvailable: 1,
           sortOrder: 50,
-          sendUserTarget: EMPTY_SEND_USER_TARGET,
         });
       }
       Toast.success({ content: t('操作成功') });
@@ -763,13 +906,12 @@ export default function ProductPromotions() {
               field: 'sendUserTarget',
               label: t('适用会员'),
               type: 'custom',
-              render: () => (
-                <div
-                  className="promo-member-target"
-                  title={t('SendUserSelector 人群圈选未迁移：创建/编辑统一按全部会员提交')}
-                >
-                  {t('全部会员（人群圈选暂未迁移，按全部会员提交）')}
-                </div>
+              render: ({ formApi, values }) => (
+                <PromotionAudienceSelector
+                  value={(values.sendUserTarget as Record<string, any>) || EMPTY_SEND_USER_TARGET}
+                  onChange={(next) => formApi?.setValue('sendUserTarget', next)}
+                  rankOptions={rankOptions}
+                />
               ),
             },
           ],

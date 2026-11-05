@@ -1,0 +1,52 @@
+/* 图片魔方 专属样式（自 view/admin imageSquareAd/Preview.vue <style scoped> 逐条移植，less 嵌套已展平） */
+.image-square-layout-1 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+.image-square-layout-2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.image-square-layout-3 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+.image-square-layout-4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+.image-square-layout-4 .image-ad-item:nth-child(2) {
+    grid-column: 1 / 2;
+}
+.image-square-layout-4 .image-ad-item:nth-child(3) {
+    grid-row: 1 / 2;
+    grid-column: 2 / 2;
+}
+
+.image-square-layout {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+.image-square-layout .item-content {
+    height: 100%;
+}
+.image-square-layout .item-img-a {
+    height: 100%;
+}
+.image-square-layout .item-img {
+    height: 100%;
+}
+.image-square-layout .grid-layout-2 {
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+}
+.image-square-layout.image-square-layout3 .grid-layout-3 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.image-square-layout2 .grid-layout-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}

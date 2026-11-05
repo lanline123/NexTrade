@@ -48,7 +48,7 @@ export function MessageTypes() {
 
   const handleUpdateField = async (id: number, field: string, val: unknown) => {
     try {
-      await apiPost('/setting/config/messageType/updateField', { id, field, val });
+      await apiPost('/setting/messageType/updateField', { id, field, val });
       Toast.success({ content: t('修改成功') });
       setReloadKey((k) => k + 1);
     } catch (error) {
@@ -85,7 +85,7 @@ export function MessageTypes() {
     if (!editingRow) return;
     setEditLoading(true);
     try {
-      await apiPost('/setting/config/messageType/updateField', {
+      await apiPost('/setting/messageType/updateField', {
         id: editingRow.messageId,
         field: 'name',
         val: editName,

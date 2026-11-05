@@ -111,7 +111,7 @@ export function WholesaleProducts() {
     if (!currentProduct) return;
     setPriceLoading(true);
     try {
-      await apiPost('/wholesale/product/savePrice', {
+      await apiPost('/wholesale/product/price/save', {
         productId: currentProduct.productId,
         wholesalePrice: priceForm.wholesalePrice,
       });
@@ -138,7 +138,7 @@ export function WholesaleProducts() {
     if (!currentProduct) return;
     setBuyRuleLoading(true);
     try {
-      await apiPost('/wholesale/product/saveBuyRule', {
+      await apiPost('/wholesale/product/buyRule/save', {
         productId: currentProduct.productId,
         moqDimension: buyRuleForm.moqDimension,
         moq: buyRuleForm.moq,
@@ -157,7 +157,7 @@ export function WholesaleProducts() {
     if (batchProductIds.length === 0) return;
     setBatchRuleLoading(true);
     try {
-      await apiPost('/wholesale/product/batchSaveBuyRule', {
+      await apiPost('/wholesale/product/buyRule/batchSave', {
         productIds: batchProductIds,
         moq: batchMoq,
       });
@@ -181,7 +181,7 @@ export function WholesaleProducts() {
     if (!currentProduct) return;
     setMultipleLoading(true);
     try {
-      await apiPost('/wholesale/product/saveMultiple', {
+      await apiPost('/wholesale/product/multiple/save', {
         productId: currentProduct.productId,
         multiple: multipleVal,
       });

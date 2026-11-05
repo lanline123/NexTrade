@@ -92,23 +92,7 @@ export default function ProductInventoryLogs() {
           tabList={LOG_TABS.map((tab) => ({ tab: t(tab.label), itemKey: String(tab.value) }))}
         />
       }
-      rowActions={(row) => (
-        <Button
-          theme="borderless"
-          size="small"
-          onClick={async () => {
-            try {
-              await apiPost('/product/productInventoryLog/batch', { ids: [row.logId], type: 'del' });
-              Toast.success({ content: t('删除成功') });
-              reload();
-            } catch (error) {
-              Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
-            }
-          }}
-        >
-          {t('删除')}
-        </Button>
-      )}
+      /* 库存流水为只读审计日志，后端未提供删除接口，故不提供删除操作 */
     />
   );
 }

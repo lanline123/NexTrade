@@ -1735,6 +1735,12 @@ async fn h_64(_state: State<AdminState>) -> ApiResult<()> {
 cfg_get!(h_65, "serverFundManagement");
 
 // get /decorate/themeStyle/list
+// get /o2o/meituanDelivery/platformConfig/getConfig
+cfg_get!(h_72, "o2oMeituanDeliveryConfig");
+
+// post /o2o/meituanDelivery/platformConfig/saveConfig
+cfg_set!(h_73, "o2oMeituanDeliveryConfig");
+
 cfg_get!(h_66, "themeStyle");
 
 // post /decorate/themeStyle/saveThemeStyle
@@ -1966,6 +1972,14 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/user/oauth/render", get(h_63))
         .route("/user/oauth/callback", get(h_64))
         .route("/finance/serverFundManagement/settings/detail", get(h_65))
+        .route(
+            "/o2o/meituanDelivery/platformConfig/getConfig",
+            get(h_72),
+        )
+        .route(
+            "/o2o/meituanDelivery/platformConfig/saveConfig",
+            post(h_73),
+        )
         .route("/decorate/themeStyle/list", get(h_66))
         .route("/decorate/themeStyle/saveThemeStyle", post(h_67))
         .route("/decorate/mobileDecorate/list", post(h_68))

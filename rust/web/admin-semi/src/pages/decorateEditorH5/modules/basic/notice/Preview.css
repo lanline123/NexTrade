@@ -1,0 +1,33 @@
+.notice-con {
+    overflow: hidden;
+}
+.item-notice-list {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.item-notice-input {
+    display: inline-flex;
+    align-items: center;
+    color: #555555;
+    white-space: nowrap;
+}
+
+.item-notice-input.scroll-animation {
+    animation: marquee-scroll 13s linear infinite;
+}
+
+.headlines-item {
+    display: inline-block;
+    padding-right: 30px;
+}
+
+@keyframes marquee-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}

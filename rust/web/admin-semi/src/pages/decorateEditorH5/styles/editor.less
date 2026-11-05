@@ -1,0 +1,319 @@
+// H5 编辑器骨架样式（对齐 view/admin editor 的三栏布局）
+@import "./h5icons.less";
+
+.h5-editor-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f0f2f5;
+}
+
+.h5-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 52px;
+    padding: 0 16px;
+    background: #fff;
+    border-bottom: 1px solid #e5e6eb;
+    flex-shrink: 0;
+
+    .h5-editor-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .h5-editor-header-right {
+        display: flex;
+        align-items: center;
+    }
+
+    .h5-editor-page-tag {
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(var(--semi-blue-4), 0.1);
+        color: var(--semi-color-primary);
+        font-size: 12px;
+    }
+}
+
+.h5-editor-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.h5-editor-left {
+    width: 300px;
+    background: #fff;
+    border-right: 1px solid #e5e6eb;
+    overflow-y: auto;
+    flex-shrink: 0;
+    padding: 8px;
+
+    .h5-editor-page-entry {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: #f7f8fa;
+        cursor: pointer;
+        font-size: 13px;
+
+        &:hover {
+            background: #eef1f6;
+        }
+    }
+}
+
+.h5-editor-toolbar {
+    .h5-editor-toolbar-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+}
+
+.h5-editor-module-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 8px 2px;
+}
+
+.h5-editor-module-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 4px;
+    border: 1px solid #e5e6eb;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: var(--semi-color-primary);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .h5-editor-module-icon {
+        font-size: 20px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .h5-editor-module-label {
+        font-size: 12px;
+        text-align: center;
+        line-height: 1.2;
+    }
+}
+
+.h5-editor-center {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+// 手机画布
+.h5-editor-canvas-window {
+    width: 375px;
+    min-height: 700px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.h5-editor-canvas-page {
+    min-height: 700px;
+    position: relative;
+}
+
+.gallery-list-ul {
+    min-height: 700px;
+    position: relative;
+}
+
+.h5-editor-canvas-empty {
+    padding: 60px 0;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+}
+
+// 画布模块项
+.h5-editor-modules-item {
+    position: relative;
+    cursor: grab;
+
+    &:hover {
+        outline: 1px dashed rgba(var(--semi-blue-5), 0.8);
+        outline-offset: -1px;
+    }
+
+    &.active {
+        outline: 2px solid var(--semi-color-primary);
+        outline-offset: -2px;
+    }
+
+    &.is-hidden {
+        opacity: 0.4;
+    }
+
+    .h5-editor-module-label-tag {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 6;
+        padding: 1px 8px;
+        font-size: 12px;
+        line-height: 18px;
+        background: var(--semi-color-primary);
+        color: #fff;
+        border-radius: 0 0 6px 0;
+        opacity: 0;
+        transition: opacity 0.15s;
+        pointer-events: none;
+    }
+
+    .h5-editor-module-actions {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        z-index: 6;
+        display: none;
+        gap: 2px;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 4px;
+        padding: 2px 4px;
+
+        span {
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 3px;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .semi-icon {
+                font-size: 14px;
+            }
+        }
+    }
+
+    &:hover,
+    &.active {
+        .h5-editor-module-label-tag {
+            opacity: 1;
+        }
+
+        .h5-editor-module-actions {
+            display: inline-flex;
+        }
+    }
+}
+
+.h5-editor-module-preview {
+    position: relative;
+    z-index: 1;
+    pointer-events: none; // 预览层不拦截点击（与旧编辑器 module-mask 行为一致）
+}
+
+.h5-editor-preview-loading {
+    padding: 24px 0;
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+}
+
+.h5-editor-preview-missing {
+    padding: 16px;
+    margin: 8px;
+    text-align: center;
+    color: #999;
+    background: #f7f8fa;
+    border: 1px dashed #d8d8d8;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+// 右侧设置面板
+.h5-editor-right {
+    width: 360px;
+    background: #fff;
+    border-left: 1px solid #e5e6eb;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.h5-editor-settings {
+    .h5-editor-settings-header {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e6eb;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 2;
+    }
+
+    .h5-editor-settings-empty {
+        padding: 40px 16px;
+        text-align: center;
+        color: #999;
+        font-size: 13px;
+    }
+}
+
+.h5-editor-settings-body {
+    padding: 16px;
+}
+
+.h5-editor-setting-group {
+    margin-bottom: 16px;
+
+    .h5-editor-setting-label {
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+}
+
+.h5-editor-pic-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #e5e6eb;
+    }
+}
+
+.h5-editor-select {
+    width: 100%;
+    height: 32px;
+    border: 1px solid #d8d8d8;
+    border-radius: 4px;
+    padding: 0 8px;
+    background: #fff;
+}
