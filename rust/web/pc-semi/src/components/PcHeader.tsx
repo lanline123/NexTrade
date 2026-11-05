@@ -35,6 +35,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   const showCategory = Number(header.showCategory ?? 1) !== 0
     && (pathname !== '/' || Number(header.showHomeCategory ?? 1) !== 0);
   const showRightCart = Number(header.rightCartShow ?? 1) !== 0;
+  const logoAlign = Number(header.logoAlign) || 1;
 
   useEffect(() => {
     if (logo) {
@@ -77,7 +78,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
 
       <div className="pc-container pc-header__main">
         <div className="pc-header__left">
-          <Link href="/" className="pc-header__brand">
+          <Link href="/" className={`pc-header__brand pc-header__brand--align-${logoAlign}`}>
             {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: logoWidth, maxWidth: '100%', maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth }} /> : null}
           </Link>
           {showCategory ? <Link href="/search" className="pc-header__category">全部商品分类</Link> : null}

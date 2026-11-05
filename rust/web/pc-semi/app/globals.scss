@@ -5273,3 +5273,8 @@ img {
 .pc-mine__menu { display: flex; flex-direction: column; padding-top: 6px; }
 .pc-mine__menu a, .pc-mine__menu button { padding: 8px 4px; border: 0; background: transparent; color: #333; font-size: 13px; text-align: left; cursor: pointer; }
 .pc-mine__menu a:hover, .pc-mine__menu button:hover { color: #165dff; }
+
+/* pcHeader.logoAlign: 1 左 2 中 3 右 */
+.pc-header__brand { justify-content: flex-start; }
+.pc-header__brand--align-2 { justify-content: center; }
+.pc-header__brand--align-3 { justify-content: flex-end; }
