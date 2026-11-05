@@ -4881,3 +4881,18 @@ img {
 .term-order__amount { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; white-space: nowrap; }
 .term-order__amount b { color: #e1251b; font-size: 18px; }
 @media (max-width: 900px) { .term-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .term-order__body { flex-direction: column; align-items: stretch; } }
+
+
+/* 线下汇款认款 */
+.claim-card { padding: 10px 20px 24px; }
+.claim-summary { display: flex; gap: 30px; padding-bottom: 14px; border-bottom: 1px solid #f0f0f0; color: #666; font-size: 14px; }
+.claim-tip { margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: #f7f8fa; color: #666; font-size: 13px; }
+.claim-tip.is-reject { background: #fff1f0; color: #e1251b; }
+.claim-row { display: flex; align-items: baseline; gap: 14px; padding: 12px 0; color: #666; font-size: 14px; }
+.claim-row > span:first-child { width: 90px; flex-shrink: 0; color: #8a919f; }
+.claim-row b { color: #333; font-weight: 500; }
+.claim-vouchers { display: flex; flex-wrap: wrap; gap: 10px; }
+.claim-vouchers img { width: 96px; height: 96px; object-fit: cover; border: 1px solid #eee; border-radius: 4px; }
+.claim-vouchers i { color: #999; font-size: 13px; }
+.claim-form { max-width: 680px; }
+.claim-uploading { color: #999; font-size: 12px; }

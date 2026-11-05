@@ -37,6 +37,7 @@ const nextConfig = {
       { source: '/member/browsingHistory/List', destination: '/member/browsingHistory' },
       { source: '/member/order/List', destination: '/member/order/list' },
       { source: '/member/order/Info', destination: '/member/order/detail' },
+      { source: '/member/order/claimInfo', destination: '/member/order/claimInfo' },
       { source: '/member/orderInfo', destination: '/member/order/list' },
       { source: '/member/comment/Info', destination: '/member/comment/info' },
       { source: '/member/return/List', destination: '/member/aftersales' },
