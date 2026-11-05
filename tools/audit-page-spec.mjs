@@ -31,7 +31,7 @@ if (!oldPage && !spec.skipOldPage) failures.push(`找不到旧页面清单: ${sp
 
 if (spec.drawer?.width) {
   const width = Number(spec.drawer.width);
-  const widthPattern = new RegExp(`width\\s*:\\s*${width}\\b`);
+  const widthPattern = new RegExp(`width\\s*[:=]\\s*\\{?\\s*${width}\\b`);
   if (!widthPattern.test(source)) {
     failures.push(`Drawer 宽度未配置为 ${width}px`);
   }
@@ -58,7 +58,9 @@ const actionLabels = {
   audit: '去处理',
   logs: '日志',
 };
-for (const action of spec.actions || []) {
+const actionAliases = { '编辑': 'edit', '删除': 'delete' };
+for (const rawAction of spec.actions || []) {
+  const action = actionAliases[rawAction] || rawAction;
   if (action === 'edit') {
     if (!source.includes('drawer=') && !source.includes('drawer:') && !source.includes('FormDrawer')) failures.push('缺少编辑入口');
     continue;

@@ -7,7 +7,7 @@
   "actions": ["编辑"],
   "batch": [],
   "drawer": {
-    "width": 580
+    "width": 760
   },
   "table": {
     "fillWidth": true,
