@@ -2912,3 +2912,20 @@ img {
 
 .dec-pc-home-hero__user-actions { gap: 2px; }
 .dec-pc-home-hero__action-item { gap: 8px; }
+
+/* Hero 商品价格：缩小字号，长价格不再撑满卡片（对齐旧版视觉比例） */
+.dec-pc-home-hero__card-price {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--dec-price-color, #e1251b);
+  margin-top: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dec-pc-home-hero__card-price .dec-price-symbol,
+.dec-pc-home-hero__card-price .dec-price-decimals { font-size: 12px; font-weight: 700; }
