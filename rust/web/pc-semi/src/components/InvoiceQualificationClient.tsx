@@ -72,8 +72,15 @@ export default function InvoiceQualificationClient() {
 
   return (
     <Card className="member-card invoice-card">
-      <div className={`invoice-status invoice-status--${status}`}>{statusText}</div>
-      {status === 2 && form.applyReply ? <div className="invoice-error">审核未通过原因：{form.applyReply}</div> : null}
+      {/* 源码 member/userInvoice/Info.vue 头部说明 */}
+      <h3 className="invoice-title">您的增票资质</h3>
+      <p className="invoice-hint invoice-hint--strong">温馨提示：请如实填写，所有信息均为必填</p>
+      <p className="invoice-hint">所有信息均为必填</p>
+      <p className="invoice-hint">我们会在一个工作日内完成审核工作</p>
+      <p className="invoice-hint">资质上传一到两个工作日后即可查询资质审核结果查询时间</p>
+      <p className="invoice-hint">注意：有效增值税专用发票开票资质仅为一个</p>
+      <div className={`invoice-status invoice-status--${status}`}>{statusText || '已申请，待审核'}</div>
+      {status === 2 && form.applyReply ? <div className="invoice-error">审核失败原因：{form.applyReply}</div> : null}
 
       {!editing && form.companyName ? (
         <div className="invoice-readonly">
@@ -83,7 +90,10 @@ export default function InvoiceQualificationClient() {
           <div><label>注册电话</label><span>{form.companyPhone || '-'}</span></div>
           <div><label>开户银行</label><span>{form.companyBank || '-'}</span></div>
           <div><label>银行账户</label><span>{form.companyAccount || '-'}</span></div>
-          <Button onClick={() => setEditing(true)}>修改并重新审核</Button>
+          <div className="invoice-actions">
+            <Button onClick={() => setEditing(true)}>{status === 2 ? '添加增票资质' : '修改'}</Button>
+            <Button onClick={() => setEditing(false)}>取消</Button>
+          </div>
         </div>
       ) : (
         <div className="invoice-form">
@@ -99,8 +109,11 @@ export default function InvoiceQualificationClient() {
           <input value={form.companyBank || ''} onChange={(event) => update('companyBank', event.target.value)} placeholder="请输入开户银行" />
           <label>银行账户</label>
           <input value={form.companyAccount || ''} onChange={(event) => update('companyAccount', event.target.value)} placeholder="请输入银行账户" />
-          <label className="invoice-agreement"><input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /> 已阅读并同意《发票资质协议》</label>
-          <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>提交审核</Button>
+          <label className="invoice-agreement"><input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /> 我已阅读并同意《增票资质确认书》</label>
+          <div className="invoice-actions">
+            <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>确认</Button>
+            <Button onClick={() => setEditing(false)}>取消</Button>
+          </div>
         </div>
       )}
     </Card>

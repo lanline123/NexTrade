@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Card, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
-type Brand = 'alipay' | 'wechat' | 'paypal' | 'stripe' | 'huifu' | 'lakala' | 'yeepay' | 'yabanpay';
+type Brand = 'alipay' | 'wechat' | 'paypal' | 'stripe' | 'huifu' | 'lakala' | 'yeepay' | 'yabanpay' | 'yunpay';
 
 interface PayOrder {
   orderSn?: string;
@@ -33,6 +33,7 @@ const BRAND_LABELS: Record<Brand, string> = {
   lakala: '拉卡拉',
   yeepay: '易宝支付',
   yabanpay: 'YabandPay',
+  yunpay: '云闪付',
 };
 
 function brandPayType(brand: Brand, query: URLSearchParams): string {
@@ -40,6 +41,7 @@ function brandPayType(brand: Brand, query: URLSearchParams): string {
   const payCode = (query.get('payCode') || '').trim();
   if (brand === 'alipay' || brand === 'wechat' || brand === 'paypal' || brand === 'stripe') return brand;
   if (brand === 'yabanpay') return `yabanpay_${type === 'alipay' ? 'alipay' : 'wechat'}`;
+  if (brand === 'yunpay') return `yunpay_${type === 'alipay' ? 'alipay' : type === 'yunshanfu' ? 'yunshanfu' : 'wechat'}`;
   if (payCode) return payCode;
   return `${brand}${type === 'alipay' ? 'Alipay' : 'Wechat'}`;
 }
@@ -64,6 +66,21 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
     finished: false,
   });
   const brandLabel = BRAND_LABELS[brand];
+  /** 源码渠道页扫码文案：微信/支付宝/云闪付 */
+  /** 源码 yunpay.vue：标题随 type 变化 */
+  const channelTitle = (() => {
+    if (brand !== 'yunpay') return '';
+    const t = (new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('type') || 'wechat').toLowerCase();
+    return t === 'alipay' ? '支付宝支付' : t === 'yunshanfu' ? '云闪付' : '微信支付';
+  })();
+
+  const scanTip = (() => {
+    if (brand === 'yunpay') {
+      const t = (new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('type') || 'wechat').toLowerCase();
+      return t === 'alipay' ? '请使用支付宝扫一扫' : t === 'yunshanfu' ? '请使用云闪付扫一扫' : '请使用微信扫一扫';
+    }
+    return isAlipay ? '请使用支付宝扫一扫' : '请使用微信扫一扫';
+  })();
 
   const stopPoll = useCallback(() => {
     const state = pollRef.current;
@@ -255,7 +272,7 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
           应付金额：<b className="pc-channel-price">¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
         </div>
         <Card className="pc-channel-card">
-          <h1 className="pc-channel-title">{brandLabel}</h1>
+          <h1 className="pc-channel-title">{brand === 'yunpay' ? channelTitle : brandLabel}</h1>
           <div className="pc-channel-main">
             <div className="pc-channel-left">
               <div className="pc-channel-refresh">
@@ -283,8 +300,11 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
                 </button>
               ) : null}
               <div className="pc-channel-scan">
-                <div>{isAlipay ? '请使用支付宝扫一扫' : '请使用微信扫一扫'}</div>
+                <div>{scanTip}</div>
                 <div>扫描二维码支付</div>
+                <div className="pc-channel-other-ways">
+                  <button type="button" className="pc-channel-link" onClick={backToPay}>选择其他支付方式</button>
+                </div>
               </div>
             </div>
           </div>

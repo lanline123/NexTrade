@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
+import Link from 'next/link';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 interface FormState {
@@ -24,6 +25,8 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
     invoiceType: 1, titleType: 1, amount: '', invoiceContent: '商品明细', mobile: '', email: '',
     companyName: '', companyCode: '', companyAddress: '', companyPhone: '', companyBank: '', companyAccount: '',
   });
+  /** 源码：已驳回后重新提交开票申请 */
+  const isReapply = Boolean((form as any).applyReply);
   const [invoiceStatus, setInvoiceStatus] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -70,10 +73,16 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
       <div className="invoice-form">
         <label>发票类型</label>
         <div className="invoice-options">
-          <button type="button" className={form.invoiceType === 1 ? 'is-active' : ''} onClick={() => update('invoiceType', 1)}>普通发票</button>
+          <button type="button" className={form.invoiceType === 1 ? 'is-active' : ''} onClick={() => update('invoiceType', 1)}>电子普通发票</button>
           <button type="button" className={form.invoiceType === 2 ? 'is-active' : ''} onClick={() => update('invoiceType', 2)}>增值税专用发票</button>
         </div>
-        {form.invoiceType === 2 && !invoiceStatus ? <div className="invoice-error">尚未提交增票资质，请先前往“增票资质”提交。</div> : null}
+        {form.invoiceType === 2 && !invoiceStatus ? (
+          <div className="invoice-error">
+            您还未通过增票资质申请，暂时无法开具增值税专用发票，
+            <Link href="/member/userInvoice/confirmInfo">去申请增票资质</Link>
+          </div>
+        ) : null}
+        <p className="invoice-hint">注意：有效增值税专用发票开票资质仅为一个</p>
         {form.invoiceType === 1 ? (
           <>
             <label>发票抬头</label>
@@ -87,6 +96,12 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
         <input value={form.amount} onChange={(event) => update('amount', event.target.value)} placeholder="请输入开票金额" inputMode="decimal" />
         <label>发票内容</label>
         <input value={form.invoiceContent} onChange={(event) => update('invoiceContent', event.target.value)} placeholder="商品明细" />
+        <p className="invoice-hint">发票内容将显示详细商品名称与价格信息</p>
+        <p className="invoice-hint">使用礼品卡支付部分的金额，不支持开发票</p>
+        <p className="invoice-hint">电子普通发票和纸质普通发票具备同等法律效力，可支持报销入账</p>
+        <p className="invoice-hint">我公司依法开具发票，请您按照税法规定使用发票</p>
+        <p className="invoice-hint">如商品由第三方卖家销售，发票类型及内容将由该卖家决定，发票由卖家开具并提供</p>
+        <p className="invoice-hint">如您为企业采购，需要多单合并开具或批量提交发票可注册企业用户</p>
         {form.invoiceType === 1 && form.titleType === 2 ? (
           <>
             <label>企业名称</label>
@@ -113,7 +128,13 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
         <input value={form.mobile} onChange={(event) => update('mobile', event.target.value)} placeholder="请输入收票人手机" />
         <label>收票人邮箱</label>
         <input value={form.email} onChange={(event) => update('email', event.target.value)} placeholder="请输入收票人邮箱" />
-        <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>提交申请</Button>
+        <div className="invoice-actions">
+          <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>
+            {isReapply ? '重新提交开票申请' : '提交开票申请'}
+          </Button>
+          <Button onClick={() => window.history.back()}>暂不开票</Button>
+          <Link href="/member/userInvoice/confirmInfo">增票资质</Link>
+        </div>
       </div>
     </Card>
   );

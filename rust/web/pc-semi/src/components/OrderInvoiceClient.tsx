@@ -10,6 +10,7 @@ interface InvoiceOrder {
   orderSn?: string;
   addTime?: string;
   totalAmount?: number | string;
+  shippingFee?: number | string;
   items?: Array<{ productId?: number; productName?: string; picThumb?: string; quantity?: number }>;
   invoiceData?: { id?: number; status?: number; statusName?: string; applyReply?: string };
 }
@@ -60,7 +61,8 @@ export default function OrderInvoiceClient() {
               <article className="invoice-order" key={order.orderId}>
                 <header>
                   <span>订单号：{order.orderSn || '-'}</span>
-                  <span>{order.addTime || ''}</span>
+                  <span>下单时间：{order.addTime || '-'}</span>
+                  <span>状态：{invoice ? invoice.statusName || '已申请' : '可申请'}</span>
                 </header>
                 <div className="invoice-order__body">
                   <div className="invoice-order__products">
@@ -73,7 +75,8 @@ export default function OrderInvoiceClient() {
                     ))}
                   </div>
                   <div className="invoice-order__meta">
-                    <b>¥ {Number(order.totalAmount || 0).toFixed(2)}</b>
+                    <b>总金额 ¥ {Number(order.totalAmount || 0).toFixed(2)}</b>
+                    {Number(order.shippingFee || 0) > 0 ? <small>运费 ¥ {Number(order.shippingFee).toFixed(2)}</small> : null}
                     {invoice ? (
                       <span className={status === 1 ? 'is-success' : status === 2 ? 'is-error' : 'is-pending'}>
                         {invoice.statusName || (status === 0 ? '待审核' : status === 1 ? '通过' : '失败/作废')}
@@ -81,9 +84,13 @@ export default function OrderInvoiceClient() {
                     ) : <span className="is-none">未申请</span>}
                   </div>
                   <div className="invoice-order__actions">
-                    <Link href={`/member/order/detail?id=${order.orderId || ''}`}>订单详情</Link>
+                    <Link href={`/member/order/detail?id=${order.orderId || ''}`}>查看</Link>
                     {invoice ? (
-                      <button type="button" onClick={() => void removeInvoice(invoice.id)}>删除发票</button>
+                      status === 2 ? (
+                        <Link href={`/member/orderInvoice/info?orderId=${order.orderId || ''}`} className="is-primary">重新申请</Link>
+                      ) : (
+                        <button type="button" onClick={() => void removeInvoice(invoice.id)}>删除发票</button>
+                      )
                     ) : (
                       <Link href={`/member/orderInvoice/info?orderId=${order.orderId || ''}`} className="is-primary">申请发票</Link>
                     )}
@@ -100,7 +107,7 @@ export default function OrderInvoiceClient() {
             </div>
           ) : null}
         </div>
-      ) : <div className="comment-empty">暂无已完成订单</div>}
+      ) : <div className="comment-empty">还没有可申请订单</div>}
     </Card>
   );
 }
