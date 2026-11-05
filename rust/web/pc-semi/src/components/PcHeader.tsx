@@ -68,7 +68,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
 
       <div className="pc-container pc-header__main">
         <Link href="/" className="pc-header__brand">
-          {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: Number(header.logoWidth) || 160, maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : logoReady ? <b>万物新生</b> : <span className="pc-header__brand-placeholder" />}
+          {logo || siteLogo ? <img src={logo || siteLogo} alt="万物新生" style={{ width: Number(header.logoWidth) || 160, maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" /> : null}
         </Link>
 
         <div className="pc-header__search">
