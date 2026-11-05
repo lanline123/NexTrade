@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Search from '@icon-park/react/es/icons/Search';
 import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
-import User from '@icon-park/react/es/icons/User';
 import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
 import Close from '@icon-park/react/es/icons/Close';
 import PcHeaderTopBar from '@/components/PcHeaderTopBar';
 import PcLocaleSelect from '@/components/PcLocaleSelect';
+import PcMine from '@/components/PcMine';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
 
@@ -126,12 +126,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
           </button>
 
           <div className="pc-header__actions">
-            {styleType === 2 ? (
-              <Link href="/member" className="pc-header__action">
-                <User size={20} />
-                <span>我的账户</span>
-              </Link>
-            ) : null}
+            {styleType === 2 ? <PcMine /> : null}
             {showRightCart ? (
               <Link href="/cart" className="pc-header__action">
                 <ShoppingCart size={20} />
