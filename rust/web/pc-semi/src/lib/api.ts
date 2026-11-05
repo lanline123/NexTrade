@@ -656,3 +656,33 @@ export async function getGrouponRecordDetail(recordId: number): Promise<GrouponR
   const response = await fetch(`${SERVER_API_BASE}/api/promotion/groupon/record/details?grouponPromotionRecordId=${recordId}`, { cache: 'no-store' });
   return readData<GrouponRecordDetail>(response);
 }
+
+
+export async function getGrouponBanners(): Promise<string[]> {
+  const response = await fetch(`${SERVER_API_BASE}/api/promotion/groupon/imageList`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  const records = Array.isArray(data?.records) ? data.records : Array.isArray(data) ? data : [];
+  return records.map((item: any) => String(item?.pcGrouponImage || '')).filter(Boolean);
+}
+
+export interface GrouponListItem {
+  productId?: number;
+  grouponPromotionItemId?: number;
+  productName?: string;
+  picThumb?: string;
+  grouponPrice?: number | string;
+  productPrice?: number | string;
+  minGroupNum?: number;
+  joinNumCount?: number;
+  [key: string]: unknown;
+}
+
+export async function getGrouponItems(params: { page?: number; size?: number; keyword?: string } = {}): Promise<{ records: GrouponListItem[]; total: number }> {
+  const query = new URLSearchParams();
+  query.set('page', String(params.page || 1));
+  query.set('size', String(params.size || 20));
+  if (params.keyword) query.set('keyword', params.keyword);
+  const response = await fetch(`${SERVER_API_BASE}/api/promotion/groupon/itemList?${query.toString()}`, { cache: 'no-store' });
+  const data = await readData<any>(response);
+  return { records: Array.isArray(data?.records) ? data.records : [], total: Number(data?.total || 0) };
+}
