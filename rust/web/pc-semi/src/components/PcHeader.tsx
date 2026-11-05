@@ -29,7 +29,8 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   const [menuOpen, setMenuOpen] = useState(false);
   const header = config || {};
   const logo = imageUrl(header.logoPic);
-  const logoWidth = Number(header.logoWidth) || (pathname === '/' ? 190 : 140);
+  const logoWidth = Number(header.logoWidth) || 110;
+  const logoHeight = Number(header.logoHeight) || 40;
   // 旧版 PcHeaderRuntime：styleType 1=简约风，2=跨境风；跨境站点默认 2。
   const styleType = Number(header.styleType) === 1 ? 1 : 2;
   const showCategory = Number(header.showCategory ?? 1) !== 0
@@ -38,6 +39,12 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
   const cartStyle = Number(header.cartStyle) || 1;
   const cartPic = imageUrl(header.cartPic as any);
   const logoAlign = Number(header.logoAlign) || 1;
+  const rawDivider = header.bottomDividerType ?? header.bottomDividerStyle ?? 1;
+  const dividerStyle = rawDivider === 2 || rawDivider === 'border'
+    ? 'border'
+    : rawDivider === 0 || rawDivider === 3 || rawDivider === 'none'
+      ? 'none'
+      : 'shadow';
   const searchAccentColor = Number(header.searchColorType ?? 1) === 2 ? String(header.searchColor || '#1a1a1a') : '';
   const searchStyle = searchAccentColor ? ({ '--pc-header-search-accent': searchAccentColor } as React.CSSProperties) : undefined;
 
@@ -80,7 +87,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
     <header className={`pc-header-runtime pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
       <PcHeaderTopBar config={header as Record<string, any>} showLocale={styleType !== 2} styleType={styleType} />
 
-      <div className="page-container">
+      <div className={`page-container pc-header-divider--${dividerStyle}`}>
         <div className="page-header-inner">
           <div className="page-c-warap">
             <div className="page-header-home__left">
@@ -88,7 +95,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
                 <div className={`logo logo--${logoAlign === 2 ? 'center' : logoAlign === 3 ? 'right' : 'left'}`}>
                   <div className="logo-area">
                     <Link href="/" className={`logo-link pc-header__brand pc-header__brand--align-${logoAlign}`}>
-                      {logo || siteLogo ? <img src={logo || siteLogo} alt="" style={{ width: logoWidth, maxWidth: '100%', maxHeight: Number(header.logoHeight) || 49, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth }} /> : null}
+                      {logo || siteLogo ? <img src={logo || siteLogo} alt="" style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} /> : !logoReady ? <span className="pc-header__brand-placeholder" style={{ width: logoWidth, height: logoHeight }} /> : null}
                     </Link>
                   </div>
                 </div>
