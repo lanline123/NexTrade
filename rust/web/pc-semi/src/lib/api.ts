@@ -601,3 +601,33 @@ export async function getInquiryDetail(id: number): Promise<Record<string, any> 
   const response = await fetch(`${SERVER_API_BASE}/api/user/priceInquiry/detail?id=${id}`, { cache: 'no-store' });
   return readData<Record<string, any>>(response);
 }
+
+
+export interface CreditOrderItem {
+  orderId: number;
+  orderSn?: string;
+  orderTime?: string;
+  creditAmount?: number | string;
+  totalQuantity?: number;
+  settlementStatus?: number;
+  settlementStatusText?: string;
+  riskStatus?: number;
+  riskStatusText?: string;
+  items?: Array<{ productId?: number; productName?: string; picThumb?: string; quantity?: number; price?: number | string }>;
+}
+
+export interface CreditDetail {
+  creditLimit?: number | string;
+  usedAmount?: number | string;
+  availableAmount?: number | string;
+  settlementType?: number;
+  settlementDays?: number;
+  remainingDays?: number;
+  pendingOrders?: CreditOrderItem[];
+  settledOrders?: CreditOrderItem[];
+}
+
+export async function getCreditDetail(): Promise<CreditDetail | null> {
+  const response = await fetch(`${SERVER_API_BASE}/api/user/user/creditDetail`, { cache: 'no-store' });
+  return readData<CreditDetail>(response);
+}

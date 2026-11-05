@@ -4858,3 +4858,26 @@ img {
 .invoice-options { display: flex; gap: 10px; }
 .invoice-options button { height: 34px; padding: 0 18px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
 .invoice-options button.is-active { border-color: #e1251b; background: #fff7f6; color: #e1251b; }
+
+
+/* 账期支付 */
+.term-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.term-summary > div { display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 12px; background: #fff; }
+.term-summary span { color: #8a919f; font-size: 12px; }
+.term-summary b { color: #1a1a1a; font-size: 20px; }
+.term-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.term-tabs a { padding: 8px 18px; border-radius: 6px; background: #fff; color: #333; font-size: 14px; }
+.term-tabs a.is-active { background: #e1251b; color: #fff; }
+.term-orders { display: flex; flex-direction: column; gap: 14px; }
+.term-order { border: 1px solid #eee; border-radius: 10px; overflow: hidden; background: #fff; }
+.term-order header { display: flex; gap: 24px; align-items: center; padding: 12px 16px; background: #f7f8fa; color: #666; font-size: 13px; }
+.term-order header .is-overdue { color: #e1251b; font-weight: 700; }
+.term-order__body { display: flex; align-items: center; gap: 20px; padding: 16px; }
+.term-order__goods { flex: 1; display: flex; gap: 14px; overflow-x: auto; }
+.term-good { display: flex; flex-direction: column; width: 96px; gap: 4px; }
+.term-good img { width: 96px; height: 96px; object-fit: contain; background: #fafafa; }
+.term-good span { overflow: hidden; color: #333; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.term-good small { color: #999; }
+.term-order__amount { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; white-space: nowrap; }
+.term-order__amount b { color: #e1251b; font-size: 18px; }
+@media (max-width: 900px) { .term-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .term-order__body { flex-direction: column; align-items: stretch; } }
