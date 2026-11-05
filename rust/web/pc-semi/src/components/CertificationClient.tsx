@@ -218,13 +218,24 @@ export default function CertificationClient() {
 
       {!editing && state?.companyData?.corporateName ? (
         <div className="cert-readonly">
+          <h3 className="cert-readonly__title">
+            {status === 1 ? '恭喜您，您的申请审核通过' : status === 2 ? '很遗憾，您的申请审核未通过' : '申请已受理，我们将在 3 个工作日内完成审核'}
+          </h3>
+          <div className="cert-readonly__sub">基本信息 · 以下为本次申请内容：</div>
           <div><label>认证类型</label><span>{Number(state.type) === 1 ? '个人' : '企业'}</span></div>
           <div><label>证件类型</label><span>{state.companyData.documentType || '-'}</span></div>
-          <div><label>姓名</label><span>{state.companyData.corporateName}</span></div>
+          <div><label>{Number(state.type) === 1 ? '姓名' : '法定代表人姓名'}</label><span>{state.companyData.corporateName}</span></div>
           <div><label>证件号码</label><span>{state.companyData.documentNumber}</span></div>
           <div><label>联系人手机</label><span>{state.companyData.contactPhone}</span></div>
-          {Number(state.type) === 2 ? <div><label>企业名称</label><span>{state.companyData.companyName || '-'}</span></div> : null}
-          {status === 2 ? <Button onClick={() => setEditing(true)}>修改并重新提交</Button> : null}
+          {Number(state.type) === 2 ? (
+            <>
+              <div><label>企业名称</label><span>{state.companyData.companyName || '-'}</span></div>
+              <div><label>统一社会信用代码</label><span>{state.companyData.businessLicenseId || '-'}</span></div>
+              <div><label>注册地址</label><span>{state.companyData.businessLicenseAddress || '-'}</span></div>
+            </>
+          ) : null}
+          <div><label>备注</label><span>{state.auditRemark || '-'}</span></div>
+          {status === 2 ? <Button onClick={() => setEditing(true)}>重新申请</Button> : null}
         </div>
       ) : (
         <div className="security-form cert-form">
@@ -234,6 +245,7 @@ export default function CertificationClient() {
             <button type="button" className={Number(form.type) === 1 ? 'is-active' : ''} onClick={() => setForm({ ...form, type: 1 })}>个人</button>
             <button type="button" className={Number(form.type) === 2 ? 'is-active' : ''} onClick={() => setForm({ ...form, type: 2 })}>企业</button>
           </div>
+          <div className="cert-section">{Number(form.type) === 1 ? '个人信息' : '法定代表人信息'}</div>
           <label>证件类型</label>
           <select value={form.companyData?.documentType || ''} onChange={(event) => update('documentType', event.target.value)}>
             <option value="">请选择证件类型</option>
@@ -242,7 +254,7 @@ export default function CertificationClient() {
             <option value="3">营业执照</option>
           </select>
           <label>{Number(form.type) === 1 ? '姓名' : '法定代表人姓名'}</label>
-          <input value={form.companyData?.corporateName || ''} onChange={(event) => update('corporateName', event.target.value)} placeholder="请输入姓名" />
+          <input value={form.companyData?.corporateName || ''} onChange={(event) => update('corporateName', event.target.value)} placeholder="填写中文名（英文名），如“张三（Zhang San）”" />
           <label>证件号码</label>
           <input value={form.companyData?.documentNumber || ''} onChange={(event) => update('documentNumber', event.target.value)} placeholder="请输入证件号码" />
           <label>联系人手机</label>
@@ -257,14 +269,14 @@ export default function CertificationClient() {
                   type="button"
                   className={Number(form.companyData?.certificateValidityPeriod) === 1 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), certificateValidityPeriod: 1 } }))}
-                >长期</button>
+                >长期有效</button>
                 <button
                   type="button"
                   className={Number(form.companyData?.certificateValidityPeriod) === 2 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), certificateValidityPeriod: 2 } }))}
-                >指定期限</button>
+                >区间有效</button>
               </div>
-              <label>有效期起止</label>
+              <label>证件有效期</label>
               <div className="cert-range">
                 <input
                   type="date"
@@ -280,20 +292,22 @@ export default function CertificationClient() {
                   onChange={(event) => update('certificateValidityPeriodEnd', event.target.value)}
                 />
               </div>
-              <label>证件照（正面/反面）</label>
+              <label>{Number(form.type) === 1 ? '个人证件照' : '法定代表人证件照'}</label>
+              <p className="cert-field-tip">必须为彩色图片且小于2M，若为复印件，需加盖公司红章。</p>
               <div className="cert-uploads">
-                <CertImageUpload label="证件正面" value={form.companyData?.frontOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), frontOfPhoto: list } }))} />
-                <CertImageUpload label="证件反面" value={form.companyData?.backOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), backOfPhoto: list } }))} />
+                <CertImageUpload label="证件照（人像面）" value={form.companyData?.frontOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), frontOfPhoto: list } }))} />
+                <CertImageUpload label="证件照（国徽面）" value={form.companyData?.backOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), backOfPhoto: list } }))} />
               </div>
             </>
           ) : (
             <>
+              <div className="cert-section">企业信息</div>
               <label>企业名称</label>
               <input value={form.companyData?.companyName || ''} onChange={(event) => update('companyName', event.target.value)} placeholder="请输入企业名称" />
               <label>统一社会信用代码</label>
-              <input value={form.companyData?.businessLicenseId || ''} onChange={(event) => update('businessLicenseId', event.target.value)} placeholder="请输入统一社会信用代码" />
+              <input value={form.companyData?.businessLicenseId || ''} onChange={(event) => update('businessLicenseId', event.target.value)} placeholder="请输入营业执照上18位统一社会信用代码" />
               <label>注册地址</label>
-              <input value={form.companyData?.businessLicenseAddress || ''} onChange={(event) => update('businessLicenseAddress', event.target.value)} placeholder="请输入注册地址" />
+              <input value={form.companyData?.businessLicenseAddress || ''} onChange={(event) => update('businessLicenseAddress', event.target.value)} placeholder="注册地址需与营业执照登记住所一致" />
               <label>经营范围</label>
               <input value={form.companyData?.businessScope || ''} onChange={(event) => update('businessScope', event.target.value)} placeholder="请输入经营范围" />
               <label>经营期限</label>
@@ -307,9 +321,9 @@ export default function CertificationClient() {
                   type="button"
                   className={Number(form.companyData?.operatingTermType) === 2 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), operatingTermType: 2 } }))}
-                >指定期限</button>
+                >区间有效</button>
               </div>
-              <label>经营期限起止</label>
+              <label>营业期限</label>
               <div className="cert-range">
                 <input
                   type="date"

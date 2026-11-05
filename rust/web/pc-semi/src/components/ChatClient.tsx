@@ -224,7 +224,7 @@ export default function ChatClient() {
           >
             <img src={item.shopLogo || ''} alt={item.shopTitle || ''} />
             <div>
-              <b>{item.shopTitle || '店铺客服'}</b>
+              <b>{item.shopTitle || (item.shopId ? '店铺客服' : '平台自营')}</b>
               <span>{item.lastMessage || ''}</span>
             </div>
             {Number(item.unreadCount || 0) > 0 ? <i>{item.unreadCount}</i> : null}

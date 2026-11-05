@@ -34,9 +34,20 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
             <article className="article-detail">
               <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/article/news/list">资讯中心</Link><span>/</span><span>{item.articleTitle || '文章'}</span></nav>
               <h1>{item.articleTitle}</h1>
-              <div className="article-meta">{item.addTime || ''}</div>
+              <div className="article-meta">时间：{item.addTime || ''}</div>
               {item.articleThumb ? <img className="article-cover" src={item.articleThumb} alt={item.articleTitle || ''} /> : null}
               <div className="article-content" dangerouslySetInnerHTML={{ __html: item.content || '' }} />
+              {/* 源码 article/news/Info.vue：相关链接 */}
+              {Array.isArray((item as any).relatedLinks) && (item as any).relatedLinks.length ? (
+                <div className="article-related">
+                  <h3>相关链接</h3>
+                  {(item as any).relatedLinks.map((link: any, index: number) => (
+                    <a key={index} href={String(link.url || '#')} target="_blank" rel="noreferrer">
+                      {link.title || link.url}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
               <div className="article-nav">
                 {data?.prev ? <Link href={`/article/news/list?articleId=${data.prev.articleId}`}>« 上一篇：{data.prev.articleTitle}</Link> : <span />}
                 {data?.next ? <Link href={`/article/news/list?articleId=${data.next.articleId}`}>下一篇：{data.next.articleTitle} »</Link> : <span />}

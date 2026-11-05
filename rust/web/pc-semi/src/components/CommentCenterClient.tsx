@@ -74,7 +74,7 @@ interface SubNum {
 const TABS: Array<{ key: TabKey; label: string }> = [
   { key: 'pending', label: '待评价' },
   { key: 'showed', label: '待晒单' },
-  { key: 'commented', label: '已评价' },
+  { key: 'commented', label: '晒单评价' },
 ];
 
 function money(value: unknown): string {
@@ -193,7 +193,10 @@ export default function CommentCenterClient() {
             ) : null}
           </div>
         ) : (
-          <div className="comment-empty">{tab === 'pending' ? '暂无待评价订单' : '暂无待晒单订单'}</div>
+          <div className="comment-empty">
+            <p>{tab === 'pending' ? '当前筛选下还没有任何订单哦' : '暂无待晒单订单'}</p>
+            <Link href="/">{tab === 'pending' ? '现在就去' : '选购商品'}</Link>
+          </div>
         )
       ) : (
         comments.length ? (
@@ -255,7 +258,10 @@ export default function CommentCenterClient() {
             ) : null}
           </div>
         ) : (
-          <div className="comment-empty">暂无已评价记录</div>
+          <div className="comment-empty">
+            <p>暂无已评价记录</p>
+            <Link href="/">去购物</Link>
+          </div>
         )
       )}
     </Card>
