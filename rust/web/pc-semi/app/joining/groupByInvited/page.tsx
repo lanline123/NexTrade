@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
+import MemberAuthGuard from '@/components/MemberAuthGuard';
 import { getGrouponRecordDetail, getPcHeader } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,8 @@ export default async function GroupInvitePage({ searchParams }: { searchParams?:
   const remain = Math.max(0, required - joined);
 
   return (
-    <div className="invite-page">
+    <MemberAuthGuard>
+      <div className="invite-page">
       <PcHeader config={header as any} />
       <main className="invite-main">
         <div className="invite-card">
@@ -84,6 +86,7 @@ export default async function GroupInvitePage({ searchParams }: { searchParams?:
         </div>
       </main>
       <PcFooter />
-    </div>
+      </div>
+    </MemberAuthGuard>
   );
 }
