@@ -648,7 +648,7 @@ export interface GrouponRecordDetail {
   endTime?: string;
   orderId?: number;
   shopTitle?: string;
-  joinUsers?: Array<{ userId?: number; nickname?: string; avatar?: string }>;
+  joinUsers?: Array<{ userId?: number; nickname?: string; avatar?: string; leader?: boolean; classIcon?: string }>;
   [key: string]: unknown;
 }
 

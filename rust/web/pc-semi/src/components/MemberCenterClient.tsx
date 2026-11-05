@@ -78,6 +78,8 @@ export default function MemberCenterClient() {
   const [info, setInfo] = useState<MemberCenterInfo | null>(null);
   const [orderNum, setOrderNum] = useState<OrderNum>({});
   const [history, setHistory] = useState<HistoryProduct[]>([]);
+  /** 源码 ProdSwiper「精选好物」：推荐商品 */
+  const [recommended, setRecommended] = useState<HistoryProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [needLogin, setNeedLogin] = useState(false);
 
@@ -86,11 +88,14 @@ export default function MemberCenterClient() {
       apiGet<MemberCenterInfo>('user/user/memberCenter'),
       apiGet<OrderNum>('user/order/orderNum').catch(() => ({})),
       apiGet<HistoryProduct[]>('user/user/historyProduct', { page: 1, size: 10 }).catch(() => []),
+      apiGet<{ records?: HistoryProduct[] } | HistoryProduct[]>('common/recommend/guessLike', { size: 10 }).catch(() => []),
     ])
-      .then(([profile, counts, browsing]) => {
+      .then(([profile, counts, browsing, guess]) => {
         setInfo(profile || {});
         setOrderNum(counts || {});
         setHistory(Array.isArray(browsing) ? browsing.slice(0, 5) : []);
+        const guessList = Array.isArray(guess) ? guess : (guess?.records || []);
+        setRecommended(Array.isArray(guessList) ? guessList.slice(0, 10) : []);
       })
       .catch((error) => {
         const message = error instanceof Error ? error.message : '';
@@ -233,6 +238,25 @@ export default function MemberCenterClient() {
           <div className="member-card__more">
             <Link href="/member/browsingHistory">查看全部浏览记录 <IconArrowRight /></Link>
           </div>
+        </Card>
+
+        {/* 源码 pages/member/index.vue 末尾 ProdSwiper titleName="精选好物" */}
+        <Card className="member-card" title="精选好物">
+          {recommended.length ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 12 }}>
+              {recommended.map((item) => (
+                <Link key={item.productId} href={`/product/${item.productId}`} style={{ display: 'block', color: 'inherit' }}>
+                  <div style={{ width: '100%', aspectRatio: '1 / 1', background: '#f7f8fa', borderRadius: 8, overflow: 'hidden' }}>
+                    {item.picThumb ? <img src={item.picThumb} alt={item.productName || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.productName || ''}</div>
+                  <div style={{ color: '#e1251b', fontSize: 13 }}>¥ {Number(item.productPrice || 0).toFixed(2)}</div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div style={{ color: '#98a2b3', fontSize: 13 }}>暂无推荐商品</div>
+          )}
         </Card>
       </div>
     </div>

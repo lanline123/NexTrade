@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
+import GrouponDetailActions from '@/components/GrouponDetailActions';
 import { getGrouponRecordDetail, getPcHeader } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -57,8 +58,12 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
               </div>
 
               <div className="groupon-detail__actions">
-                <Link className="is-primary" href={`/joining/groupByInvited?id=${detail.grouponPromotionRecordId || recordId}`}>邀请好友参团</Link>
-                {detail.orderId ? <Link href={`/member/order/detail?id=${detail.orderId}`}>查看订单</Link> : null}
+                <GrouponDetailActions
+                  recordId={Number(detail.grouponPromotionRecordId || recordId) || 0}
+                  endTime={detail.endTime as string | number | undefined}
+                  canInvite={remain > 0 && Number(detail.joinStatus) !== 2}
+                  orderId={detail.orderId ? Number(detail.orderId) : undefined}
+                />
                 <Link href={`/product/${detail.productId || ''}`}>商品详情</Link>
               </div>
             </section>

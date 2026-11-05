@@ -26,6 +26,19 @@ interface CompanyData {
   businessLicenseId?: string;
   businessLicenseAddress?: string;
   businessScope?: string;
+  /** 证件有效期：1 长期 / 2 指定区间（源码 certificateValidityPeriod） */
+  certificateValidityPeriod?: number | string;
+  certificateValidityPeriodDate?: string;
+  certificateValidityPeriodEnd?: string;
+  /** 证件照（源码 frontOfPhoto / backOfPhoto） */
+  frontOfPhoto?: Array<Record<string, unknown>>;
+  backOfPhoto?: Array<Record<string, unknown>>;
+  /** 营业执照图片与经营期限（源码 businessLicenseImg / operatingTermType） */
+  businessLicenseImg?: Array<Record<string, unknown>>;
+  licenseAddrProvince?: string;
+  operatingTermType?: number | string;
+  operatingTermTypeDate?: string;
+  operatingTermTypeEnd?: string;
 }
 
 interface ApplyState {
@@ -38,6 +51,76 @@ interface ApplyState {
 }
 
 const STATUS_TEXT: Record<number, string> = { 0: '待审核', 1: '审核通过', 2: '审核未通过' };
+
+/** 证件/营业执照图片上传（源码 form/src/UploadImage.vue，走 /api/user/user/uploadImg） */
+function CertImageUpload({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value?: Array<Record<string, unknown>>;
+  onChange: (list: Array<Record<string, unknown>>) => void;
+}) {
+  const list = Array.isArray(value) ? value : [];
+  const [uploading, setUploading] = useState(false);
+
+  const upload = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      Toast.error({ content: '只能上传 2M 以内的图片' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('accessToken') || '';
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/user/user/uploadImg', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+        credentials: 'include',
+      });
+      const json = await response.json();
+      if (json?.code !== undefined && json.code !== 0) {
+        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        return;
+      }
+      const data = json?.data;
+      const url = typeof data === 'string' ? data : String(data?.picUrl || data?.url || '');
+      if (url) onChange([...list, { picUrl: url, picThumb: String(data?.picThumb || url) }]);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '上传失败' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="cert-upload">
+      <span className="cert-upload__label">{label}</span>
+      {list.map((item, index) => (
+        <span key={index} className="cert-upload__thumb">
+          <img src={String(item.picThumb || item.picUrl || '')} alt={label} />
+          <button type="button" onClick={() => onChange(list.filter((_, i) => i !== index))}>×</button>
+        </span>
+      ))}
+      <label className="cert-upload__pick">
+        {uploading ? '上传中...' : '+ 上传'}
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void upload(file);
+            event.target.value = '';
+          }}
+        />
+      </label>
+    </div>
+  );
+}
 
 /** 旧接口 `myApply` 返回数组；`detail` 返回单对象，统一归一为最新一条。 */
 function normalizeApply(input: unknown): ApplyState | null {
@@ -168,6 +251,40 @@ export default function CertificationClient() {
             <>
               <label>居住地址</label>
               <input value={form.companyData?.residentialAddress || ''} onChange={(event) => update('residentialAddress', event.target.value)} placeholder="请输入居住地址" />
+              <label>证件有效期</label>
+              <div className="cert-options">
+                <button
+                  type="button"
+                  className={Number(form.companyData?.certificateValidityPeriod) === 1 ? 'is-active' : ''}
+                  onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), certificateValidityPeriod: 1 } }))}
+                >长期</button>
+                <button
+                  type="button"
+                  className={Number(form.companyData?.certificateValidityPeriod) === 2 ? 'is-active' : ''}
+                  onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), certificateValidityPeriod: 2 } }))}
+                >指定期限</button>
+              </div>
+              <label>有效期起止</label>
+              <div className="cert-range">
+                <input
+                  type="date"
+                  value={form.companyData?.certificateValidityPeriodDate || ''}
+                  disabled={Number(form.companyData?.certificateValidityPeriod) !== 2}
+                  onChange={(event) => update('certificateValidityPeriodDate', event.target.value)}
+                />
+                <span>至</span>
+                <input
+                  type="date"
+                  value={form.companyData?.certificateValidityPeriodEnd || ''}
+                  disabled={Number(form.companyData?.certificateValidityPeriod) !== 2}
+                  onChange={(event) => update('certificateValidityPeriodEnd', event.target.value)}
+                />
+              </div>
+              <label>证件照（正面/反面）</label>
+              <div className="cert-uploads">
+                <CertImageUpload label="证件正面" value={form.companyData?.frontOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), frontOfPhoto: list } }))} />
+                <CertImageUpload label="证件反面" value={form.companyData?.backOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), backOfPhoto: list } }))} />
+              </div>
             </>
           ) : (
             <>
@@ -179,6 +296,39 @@ export default function CertificationClient() {
               <input value={form.companyData?.businessLicenseAddress || ''} onChange={(event) => update('businessLicenseAddress', event.target.value)} placeholder="请输入注册地址" />
               <label>经营范围</label>
               <input value={form.companyData?.businessScope || ''} onChange={(event) => update('businessScope', event.target.value)} placeholder="请输入经营范围" />
+              <label>经营期限</label>
+              <div className="cert-options">
+                <button
+                  type="button"
+                  className={Number(form.companyData?.operatingTermType) === 1 ? 'is-active' : ''}
+                  onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), operatingTermType: 1 } }))}
+                >长期</button>
+                <button
+                  type="button"
+                  className={Number(form.companyData?.operatingTermType) === 2 ? 'is-active' : ''}
+                  onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), operatingTermType: 2 } }))}
+                >指定期限</button>
+              </div>
+              <label>经营期限起止</label>
+              <div className="cert-range">
+                <input
+                  type="date"
+                  value={form.companyData?.operatingTermTypeDate || ''}
+                  disabled={Number(form.companyData?.operatingTermType) !== 2}
+                  onChange={(event) => update('operatingTermTypeDate', event.target.value)}
+                />
+                <span>至</span>
+                <input
+                  type="date"
+                  value={form.companyData?.operatingTermTypeEnd || ''}
+                  disabled={Number(form.companyData?.operatingTermType) !== 2}
+                  onChange={(event) => update('operatingTermTypeEnd', event.target.value)}
+                />
+              </div>
+              <label>营业执照图片</label>
+              <div className="cert-uploads">
+                <CertImageUpload label="营业执照" value={form.companyData?.businessLicenseImg} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), businessLicenseImg: list } }))} />
+              </div>
             </>
           )}
           <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>提交认证</Button>

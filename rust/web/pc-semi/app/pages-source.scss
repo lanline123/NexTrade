@@ -493,3 +493,194 @@
   color: #999;
   font-size: 12px;
 }
+
+/* 优惠券详情（coupon/index.vue） */
+.pc-coupon-detail { position: relative; padding: 24px; background: #fff5ce; border-radius: 8px; }
+.pc-coupon-detail__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.pc-coupon-detail__name h3 { margin: 0 0 8px; color: #1a1a1a; font-size: 18px; font-weight: 600; }
+.pc-coupon-detail__name p { margin: 0 0 4px; color: #666; font-size: 13px; line-height: 20px; }
+.pc-coupon-detail__shop { color: #8c8c8c !important; }
+.pc-coupon-detail__amount { color: #e1251b; font-size: 32px; font-weight: 700; }
+.pc-coupon-detail__discount { color: #e1251b; font-size: 28px; font-weight: 700; }
+.pc-coupon-detail__time { margin-top: 12px; color: #8c8c8c; font-size: 13px; }
+.pc-coupon-detail__cond { margin-top: 6px; color: #666; font-size: 13px; }
+.pc-coupon-detail__result { display: flex; gap: 12px; margin-top: 20px; }
+
+/* 聊天消息卡片（chat/src/ChatMessageList.vue） */
+.chat-message__image { max-width: 180px; max-height: 180px; border-radius: 6px; object-fit: cover; }
+.chat-message__card { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; background: #fff; text-decoration: none; color: #1a1a1a; }
+.chat-message__card img { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; }
+.chat-message__card-name { max-width: 200px; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.chat-message__card-price { margin-top: 4px; color: #e1251b; font-size: 13px; font-weight: 600; }
+
+/* 实名认证：有效期区间 + 证件照/营业执照上传（userCertification/Info.vue） */
+.cert-range { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cert-range input[type="date"] { flex: 1; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; }
+.cert-range input[disabled] { background: #f5f5f5; color: #bbb; }
+.cert-uploads { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.cert-upload { display: flex; align-items: center; gap: 8px; }
+.cert-upload__label { color: #666; font-size: 13px; }
+.cert-upload__thumb { position: relative; width: 72px; height: 72px; border-radius: 6px; overflow: hidden; }
+.cert-upload__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.cert-upload__thumb button { position: absolute; top: 0; right: 0; width: 18px; height: 18px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; line-height: 18px; cursor: pointer; }
+.cert-upload__pick { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border: 1px dashed #d9d9d9; border-radius: 6px; color: #8c8c8c; font-size: 12px; cursor: pointer; }
+.cert-upload__pick:hover { border-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
+
+/* 发票详情 / 重新申请（orderInvoice/Info.vue） */
+.invoice-detail__status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 16px; margin-bottom: 16px; border-radius: 6px; background: #f5f7fa; font-size: 14px; }
+.invoice-detail__status.is-1 { background: #f0f9eb; color: #52a940; }
+.invoice-detail__status.is-2 { background: #fff2f0; color: #d4380d; }
+.invoice-detail__status.is-3 { background: #f5f5f5; color: #8c8c8c; }
+.invoice-detail__reply { color: #d4380d; font-size: 13px; }
+.invoice-detail__list { margin: 0; padding: 0; }
+.invoice-detail__list > div { display: flex; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.invoice-detail__list dt { flex: 0 0 130px; margin: 0; color: #8c8c8c; }
+.invoice-detail__list dd { flex: 1; margin: 0; color: #1a1a1a; word-break: break-all; }
+.invoice-detail__img { margin-top: 16px; }
+.invoice-detail__img img { max-width: 260px; border-radius: 6px; border: 1px solid #f0f0f0; }
+.invoice-detail__actions { display: flex; gap: 12px; margin-top: 20px; }
+
+/* 收藏店铺（collectShop/List.vue） */
+.collect-shop__item { display: flex; gap: 16px; padding: 16px; border: 1px solid #f0f0f0; border-radius: 8px; margin-bottom: 16px; }
+.collect-shop__left { display: flex; flex: 0 0 200px; flex-direction: column; align-items: center; gap: 10px; padding-right: 16px; border-right: 1px solid #f0f0f0; }
+.collect-shop__logo { width: 80px; height: 80px; overflow: hidden; border-radius: 8px; }
+.collect-shop__logo img { width: 100%; height: 100%; object-fit: contain; }
+.collect-shop__name { color: #1a1a1a; font-size: 15px; font-weight: 600; text-align: center; text-decoration: none; }
+.collect-shop__ops { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.collect-shop__btn { padding: 4px 10px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; color: #333; font-size: 12px; text-decoration: none; cursor: pointer; }
+.collect-shop__btn:hover { border-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
+.collect-shop__cancel { color: #8c8c8c; }
+.collect-shop__right { flex: 1; min-width: 0; }
+.collect-shop__tabs { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.collect-shop__tabs-left { display: flex; gap: 16px; }
+.collect-shop__tabs-left button { padding: 4px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #666; font-size: 14px; cursor: pointer; }
+.collect-shop__tabs-left button.is-active { border-bottom-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
+.collect-shop__tabs-right { display: flex; gap: 6px; }
+.collect-shop__tabs-right button { width: 24px; height: 24px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; color: #666; cursor: pointer; }
+.collect-shop__tabs-right button[disabled] { color: #d9d9d9; cursor: not-allowed; }
+.collect-shop__products { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.collect-shop__product { display: flex; flex-direction: column; gap: 6px; color: #1a1a1a; text-decoration: none; }
+.collect-shop__product img { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; }
+.collect-shop__product-name { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.collect-shop__product b { color: #e1251b; font-size: 14px; }
+.collect-shop__empty { color: #bbb; font-size: 13px; }
+@media (max-width: 900px) {
+  .collect-shop__item { flex-direction: column; }
+  .collect-shop__left { flex: none; border-right: 0; border-bottom: 1px solid #f0f0f0; padding: 0 0 12px; }
+  .collect-shop__products { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* 拼团详情倒计时与邀请（member/group/Info.vue） */
+.groupon-detail__countdown { display: flex; align-items: center; gap: 8px; margin: 12px 0; font-size: 14px; }
+.groupon-detail__countdown-label { color: #8c8c8c; }
+.groupon-detail__countdown-time { padding: 2px 8px; border-radius: 4px; background: #1a1a1a; color: #fff; font-variant-numeric: tabular-nums; }
+.groupon-detail__countdown .is-ended { color: #8c8c8c; }
+.groupon-detail__cta { display: flex; gap: 12px; }
+.groupon-detail__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.groupon-invite__input { width: 100%; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 6px; color: #333; font-size: 13px; }
+.groupon-invite__tip { margin: 10px 0 0; color: #8c8c8c; font-size: 12px; }
+
+/* 余额提现（account/Raplytocard.vue） */
+.withdraw-disabled { margin-bottom: 16px; padding: 12px 16px; border-radius: 6px; background: #fff7e6; color: #ad6800; font-size: 13px; }
+.withdraw-disabled a { color: var(--pc-primary, #165dff); }
+.withdraw-desc { margin: 12px 0; padding: 12px; border-radius: 6px; background: #fafafa; color: #666; font-size: 13px; line-height: 1.7; }
+.withdraw-desc img { max-width: 100%; }
+
+/* 注册页（member/Register.vue） */
+.register-mode { display: flex; gap: 24px; margin-top: 16px; border-bottom: 1px solid #f0f0f0; }
+.register-mode button { padding: 8px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #666; font-size: 14px; cursor: pointer; }
+.register-mode button.is-active { border-bottom-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); font-weight: 600; }
+.register-code { display: flex; gap: 10px; align-items: center; }
+.register-code > :first-child { flex: 1; }
+.register-agree { display: flex; align-items: flex-start; gap: 8px; margin: 4px 0 14px; color: #666; font-size: 12px; line-height: 1.6; }
+.register-agree input { margin-top: 3px; }
+.register-agree a { color: var(--pc-primary, #165dff); }
+
+/* 商家入驻分步表单（join/intro.vue） */
+.join-steps { display: flex; gap: 32px; margin: 0 0 24px; padding: 0; list-style: none; }
+.join-steps li { display: flex; align-items: center; gap: 8px; color: #bbb; font-size: 14px; }
+.join-steps li.is-active { color: #1a1a1a; font-weight: 600; }
+.join-steps li.is-done { color: #52a940; }
+.join-steps__index { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid currentColor; border-radius: 50%; font-size: 12px; }
+.join-actions { display: flex; gap: 12px; margin-top: 20px; }
+.join-status h3 { margin: 0 0 10px; font-size: 16px; }
+.join-status__remark { color: #d4380d; font-size: 13px; }
+.join-status__tip { color: #666; font-size: 13px; }
+
+/* 拼团邀请页倒计时与团长标记（joining/groupByInvited.vue） */
+.invite-countdown { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 14px; }
+.invite-countdown__label { color: #8c8c8c; }
+.invite-countdown__time { padding: 2px 8px; border-radius: 4px; background: #1a1a1a; color: #fff; font-variant-numeric: tabular-nums; }
+.invite-countdown.is-ended { color: #8c8c8c; }
+.invite-user { position: relative; }
+.invite-user__badge { position: absolute; top: -6px; left: 50%; padding: 0 6px; border-radius: 8px; background: #e1251b; color: #fff; font-size: 10px; line-height: 16px; transform: translateX(-50%); }
+.invite-user.is-leader img { border: 2px solid #e1251b; border-radius: 50%; }
+
+/* 结算缩略图折叠（cart/index.vue settle-goods） */
+.pc-cart__settle-goods { width: 100%; margin-bottom: 12px; }
+.pc-cart__settle-goods-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.pc-cart__settle-goods-list.is-fold { max-height: 176px; overflow: hidden; }
+.pc-cart__settle-goods-item { position: relative; width: 76px; height: 76px; overflow: hidden; border: 1px solid #f0f0f0; border-radius: 6px; }
+.pc-cart__settle-goods-item.is-empty { border: 0; }
+.pc-cart__settle-goods-item img { width: 100%; height: 100%; object-fit: contain; }
+.pc-cart__settle-goods-uncheck { position: absolute; right: 0; bottom: 0; left: 0; height: 20px; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; line-height: 20px; cursor: pointer; }
+.pc-cart__settle-goods-toggle { margin-top: 8px; border: 0; background: transparent; color: var(--pc-primary, #165dff); font-size: 13px; cursor: pointer; }
+
+/* 购物车活动标签（cart/index.vue promotion-box/ticket-content） */
+.pc-cart__activity { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pc-cart__promotion { display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border: 1px solid #ffd8bf; border-radius: 3px; background: #fff7f0; color: #d4380d; font-size: 11px; line-height: 16px; }
+.pc-cart__promotion.is-ticket { border-color: #ffbb96; background: #fff2e8; }
+.pc-cart__promotion-type { padding-right: 4px; border-right: 1px solid #ffbb96; }
+.pc-cart__promotion-text { white-space: nowrap; }
+
+/* 店铺头部（pages/shop/src/ShopRefHeader.vue） */
+.shop-ref-header { background: #fff; }
+.shop-ref-header__container { max-width: 1600px; margin: 0 auto; padding: 0 38px; }
+.shop-ref-header__top { display: flex; align-items: center; gap: 24px; height: 76px; }
+.shop-ref-header__site-logo { display: inline-flex; align-items: center; height: 40px; }
+.shop-ref-header__site-logo img { max-height: 40px; object-fit: contain; }
+.shop-ref-header__site-logo span { color: #1a1a1a; font-size: 18px; font-weight: 700; }
+.shop-ref-header__search { display: flex; flex: 1; align-items: center; max-width: 560px; height: 36px; border: 1px solid #c1c1c1; border-radius: 7px; overflow: hidden; }
+.shop-ref-header__search input { flex: 1; height: 100%; padding: 0 12px; border: 0; outline: none; font-size: 14px; }
+.shop-ref-header__btn { height: 100%; padding: 0 14px; border: 0; background: #1a1a1a; color: #fff; font-size: 13px; cursor: pointer; }
+.shop-ref-header__btn.is-shop { background: #fff; color: #1a1a1a; border-left: 1px solid #e5e5e5; }
+.shop-ref-header__info { padding: 12px 0 18px; }
+.shop-ref-header__card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 8px; background: #f7f7f7; }
+.shop-ref-header__logo { display: flex; align-items: center; justify-content: center; width: 72px; height: 72px; overflow: hidden; border-radius: 8px; background: #fff; }
+.shop-ref-header__logo img { width: 100%; height: 100%; object-fit: contain; }
+.shop-ref-header__logo span { color: #bbb; font-size: 20px; }
+.shop-ref-header__meta { flex: 1; min-width: 0; }
+.shop-ref-header__title-row { display: flex; align-items: center; gap: 12px; }
+.shop-ref-header__title { color: #1a1a1a; font-size: 18px; font-weight: 700; }
+.shop-ref-header__license { color: var(--pc-primary, #165dff); font-size: 13px; text-decoration: none; }
+.shop-ref-header__sub { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; color: #666; font-size: 13px; }
+.shop-ref-header__tip { padding: 1px 8px; border-radius: 10px; background: #fff; color: #d4380d; font-size: 12px; }
+.shop-ref-header__actions { display: flex; gap: 10px; }
+.shop-ref-header__actions .is-followed { color: #8c8c8c; }
+@media (max-width: 900px) {
+  .shop-ref-header__container { padding: 0 12px; }
+  .shop-ref-header__top { flex-direction: column; height: auto; gap: 12px; padding: 12px 0; }
+  .shop-ref-header__card { flex-wrap: wrap; }
+}
+
+/* 店铺分类菜单（pages/shop/src/ShopCategoryMenu.vue） */
+.shop-category-menu { width: 200px; padding: 12px 0; border-radius: 8px; background: #fff; }
+.shop-category-menu .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; color: #333; font-size: 14px; text-decoration: none; }
+.shop-category-menu .menu-item a { flex: 1; color: inherit; text-decoration: none; }
+.shop-category-menu .menu-item:hover { background: #f5f7fa; }
+.shop-category-menu .menu-item.active { background: #f0f6ff; color: var(--pc-primary, #165dff); font-weight: 600; }
+.shop-category-menu .all-products { margin-bottom: 6px; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; }
+.shop-category-menu .arrow-icon { width: 20px; height: 20px; border: 0; background: transparent; color: #8c8c8c; font-size: 12px; cursor: pointer; transition: transform .2s; }
+.shop-category-menu .arrow-icon.expanded { transform: rotate(180deg); }
+.shop-category-menu .sub-menu { padding-left: 12px; }
+.shop-category-menu .sub-item { padding: 6px 16px; color: #666; font-size: 13px; }
+.shop-category-menu .sub-item.active { color: var(--pc-primary, #165dff); font-weight: 600; }
+@media (max-width: 900px) {
+  .shop-category-menu { width: 100%; }
+}
+
+/* 聊天输入工具栏（chat/src/ChatInput.vue） */
+.chat-input__tools { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.chat-input__tool { padding: 3px 10px; border: 1px solid #e5e7eb; border-radius: 4px; color: #333; font-size: 12px; cursor: pointer; }
+.chat-input__tool:hover { border-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
+.chat-input__tips { color: #bbb; font-size: 12px; }

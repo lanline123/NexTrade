@@ -4,6 +4,8 @@ import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getPcHeader, getShopCategories, getShopDecorate, getShopDetail, getShopHead, getShopProducts } from '@/lib/api';
 import ShopHomepageClient from '@/components/ShopHomepageClient';
+import ShopHeader from '@/components/ShopHeader';
+import ShopCategoryMenu from '@/components/ShopCategoryMenu';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,36 +106,22 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
       <PcHeader config={header as any} />
       <main className="shop-detail-main">
         <div className="shop-detail-container">
-          <section className="shop-detail-header">
-            <Link href={`/shop/${shopId}`} className="shop-detail-logo">
-              <img src={shop?.shopLogo || ''} alt={shop?.shopTitle || ''} />
-            </Link>
-            <div className="shop-detail-meta">
-              <h1>{shop?.shopTitle || '店铺详情'}</h1>
-              <div className="shop-detail-rating">
-                <span>{shop?.shopStar ? `${Number(shop.shopStar).toFixed(1)} 分` : '暂无评分'}</span>
-                <span>{Number(shop?.collectCount || 0)} 粉丝</span>
-              </div>
-              {shop?.description ? <p>{shop.description}</p> : null}
-            </div>
-          </section>
+          {/* 源码 pages/shop/src/ShopRefHeader.vue：店铺头部（logo/搜索/资质/粉丝/客服/关注） */}
+          <ShopHeader
+            shopInfo={{
+              shopId,
+              shopTitle: shop?.shopTitle,
+              shopLogo: shop?.shopLogo,
+              collectCount: shop?.collectCount,
+              collectShop: Boolean((shop as any)?.collectShop),
+              businessLicensePic: (shop as any)?.businessLicensePic,
+              tipNames: shop?.shopStar ? [`${Number(shop.shopStar).toFixed(1)} 分`] : [],
+            }}
+            siteLogo={undefined}
+          />
 
           <div className="shop-detail-body">
-            <aside className="shop-category-menu">
-              <Link href={hrefFor(1, '', sort)} className={!categoryId ? 'is-active' : ''}>全部商品</Link>
-              {categories.map((category: any) => (
-                <div className="shop-category-group" key={category.categoryId}>
-                  <Link href={hrefFor(1, String(category.categoryId), sort)} className={String(category.categoryId) === categoryId ? 'is-active' : ''}>
-                    {category.categoryName}
-                  </Link>
-                  {(category.children || []).map((child: any) => (
-                    <Link key={child.categoryId} className={`shop-category-child${String(child.categoryId) === categoryId ? ' is-active' : ''}`} href={hrefFor(1, String(child.categoryId), sort)}>
-                      {child.categoryName}
-                    </Link>
-                  ))}
-                </div>
-              ))}
-            </aside>
+            <ShopCategoryMenu shopId={shopId} categories={categories as any} currentCategoryId={categoryId} />
 
             <section className="shop-detail-products">
               <div className="shop-detail-sort">

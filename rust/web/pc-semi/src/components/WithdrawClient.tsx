@@ -28,6 +28,35 @@ export default function WithdrawClient() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [balance, setBalance] = useState(0);
+  /** 源码读取 config/base：会员提现开关、可用提现方式、提现说明（富文本） */
+  const [withdrawalEnabled, setWithdrawalEnabled] = useState(true);
+  const [methods, setMethods] = useState<number[]>([1, 2, 3]);
+  const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    fetch('/api/common/config/base')
+      .then((response) => response.json())
+      .then((json) => {
+        const config = json?.data || json || {};
+        if (config.memberWithdrawalEnabled !== undefined) {
+          setWithdrawalEnabled(Number(config.memberWithdrawalEnabled) === 1);
+        }
+        const rawMethods = config.memberWithdrawalMethod ?? config.memberWithdrawalMethods;
+        if (rawMethods) {
+          const list = String(rawMethods)
+            .split(',')
+            .map((item) => Number(String(item).trim()))
+            .filter((item) => [1, 2, 3].includes(item));
+          if (list.length) {
+            setMethods(list);
+            setType((current) => (list.includes(current) ? current : list[0]));
+          }
+        }
+        const html = String(config.memberWithdrawalDescription || '');
+        if (html) setDescription(html);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     apiGet<{ balance?: number | string }>('user/user/memberCenter')
@@ -72,12 +101,18 @@ export default function WithdrawClient() {
 
   return (
     <Card className="member-card withdraw-card" loading={loading}>
+      {!withdrawalEnabled ? (
+        <div className="withdraw-disabled">
+          <p>会员余额提现功能已关闭。</p>
+          <a href="/member/account/detail">返回账户余额</a>
+        </div>
+      ) : null}
       <div className="withdraw-balance" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#fff' }}>
         <span>可提现余额</span>
         <b style={{ color: '#e1251b', fontSize: 20 }}>¥ {balance.toFixed(2)}</b>
       </div>
       <div className="withdraw-types">
-        {[1, 2, 3].map((value) => (
+        {methods.map((value) => (
           <button key={value} type="button" className={type === value ? 'is-active' : ''} onClick={() => setType(value)}>{TYPE_LABELS[value]}</button>
         ))}
       </div>
@@ -104,9 +139,13 @@ export default function WithdrawClient() {
       <div className="security-form withdraw-form">
         <label>提现金额</label>
         <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="请输入提现金额" inputMode="decimal" />
+        {description ? (
+          <div className="withdraw-desc" dangerouslySetInnerHTML={{ __html: description }} />
+        ) : null}
         <div style={{ display: 'flex', gap: 10 }}>
-          <Button theme="solid" type="primary" disabled={!accounts.length} loading={submitting} onClick={() => void submit()}>提交提现申请</Button>
+          <Button theme="solid" type="primary" disabled={!accounts.length || !withdrawalEnabled} loading={submitting} onClick={() => void submit()}>提交提现申请</Button>
           <Button onClick={() => setAmount(balance > 0 ? balance.toFixed(2) : '')}>全部提现</Button>
+          <Button onClick={() => { window.location.href = '/member/account/cardManagement'; }}>管理提现账户</Button>
         </div>
       </div>
     </Card>

@@ -30,6 +30,22 @@ function textOf(message: ChatMessage): string {
   return String(message.content?.content || '');
 }
 
+/** 消息类型：源码 ChatMessageList 支持 text/image/product/order 卡片 */
+function messageKind(message: ChatMessage): string {
+  if (typeof message.content === 'object' && message.content?.messageType) {
+    return String(message.content.messageType);
+  }
+  return String(message.messageType || 'text');
+}
+
+/** 取出商品/订单卡片负载（源码 messageType=product|order 时 content 内嵌对象） */
+function cardOf(message: ChatMessage, kind: 'product' | 'order'): Record<string, unknown> | null {
+  if (messageKind(message) !== kind) return null;
+  if (typeof message.content !== 'object' || !message.content) return null;
+  const raw = (message.content as Record<string, unknown>)[kind];
+  return (raw as Record<string, unknown>) || null;
+}
+
 export default function ChatClient() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [active, setActive] = useState<Conversation | null>(null);
@@ -138,6 +154,42 @@ export default function ChatClient() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  /** 源码 chat/src/ChatInput.vue：图片/视频上传后以 messageType=image 发送 */
+  const uploadImage = async (file: File) => {
+    if (!active?.conversationId) return;
+    if (file.size > 10 * 1024 * 1024) {
+      Toast.error({ content: '只能上传 10M 以内的图片' });
+      return;
+    }
+    try {
+      const token = localStorage.getItem('accessToken') || '';
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/user/user/uploadImg', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+        credentials: 'include',
+      });
+      const json = await response.json();
+      if (json?.code !== undefined && json.code !== 0) {
+        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        return;
+      }
+      const data = json?.data;
+      const url = typeof data === 'string' ? data : String(data?.picUrl || data?.url || '');
+      if (!url) return;
+      await apiPost('im/conversation/message/send', {
+        conversationId: active.conversationId,
+        shopId: active.shopId || 0,
+        content: { messageType: 'image', content: url },
+      });
+      loadMessages(active);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '图片发送失败' });
+    }
+  };
+
   const send = async () => {
     if (!active || !input.trim()) return;
     setSending(true);
@@ -184,9 +236,33 @@ export default function ChatClient() {
         <div className="chat-messages">
           {messages.map((message, index) => {
             const self = Boolean(message.isSelf) || Number(message.senderType) === 1;
+            const kind = messageKind(message);
+            const product = cardOf(message, 'product');
+            const order = cardOf(message, 'order');
             return (
               <div key={message.id || index} className={`chat-message${self ? ' is-self' : ''}`}>
-                <div className="chat-message__bubble">{textOf(message) || '[非文本消息]'}</div>
+                <div className="chat-message__bubble">
+                  {kind === 'image' ? (
+                    <img className="chat-message__image" src={textOf(message)} alt="图片消息" />
+                  ) : product ? (
+                    <a className="chat-message__card" href={`/product/${String(product.productId || product.id || '')}`} target="_blank" rel="noreferrer">
+                      <img src={String(product.picThumb || product.pic || '')} alt="" />
+                      <div>
+                        <div className="chat-message__card-name">{String(product.productName || product.name || '')}</div>
+                        <div className="chat-message__card-price">¥{Number(product.price || 0).toFixed(2)}</div>
+                      </div>
+                    </a>
+                  ) : order ? (
+                    <div className="chat-message__card">
+                      <div>
+                        <div className="chat-message__card-name">订单 {String(order.orderSn || '')}</div>
+                        <div className="chat-message__card-price">¥{Number(order.orderAmount || 0).toFixed(2)}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    textOf(message) || '[非文本消息]'
+                  )}
+                </div>
                 <div className="chat-message__time">{message.sendTime || message.addTime || ''}</div>
               </div>
             );
@@ -194,6 +270,22 @@ export default function ChatClient() {
           <div ref={bottomRef} />
         </div>
         <div className="chat-input">
+          <div className="chat-input__tools">
+            <label className="chat-input__tool">
+              图片
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void uploadImage(file);
+                  event.target.value = '';
+                }}
+              />
+            </label>
+            <span className="chat-input__tips">按 Shift + Enter 换行</span>
+          </div>
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}

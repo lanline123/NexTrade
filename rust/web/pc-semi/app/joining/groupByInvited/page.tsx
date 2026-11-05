@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import MemberAuthGuard from '@/components/MemberAuthGuard';
+import GrouponCountdown from '@/components/GrouponCountdown';
 import { getGrouponRecordDetail, getPcHeader } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,9 @@ export default async function GroupInvitePage({ searchParams }: { searchParams?:
                   {detail.joinStatusDesc || (Number(detail.joinStatus) === 1 ? '拼团中' : '已成团')}
                   {Number(detail.joinStatus) === 1 ? `，还差 ${remain} 人成团` : ''}
                 </div>
+                {Number(detail.joinStatus) === 1 && detail.endTime ? (
+                  <GrouponCountdown endTime={detail.endTime as string | number} />
+                ) : null}
                 {detail.endTime ? <div className="invite-status__time">结束时间：{detail.endTime}</div> : null}
                 <div className="invite-progress"><i style={{ width: `${Math.min(100, Math.round((joined / Math.max(1, required)) * 100))}%` }} /></div>
               </section>
@@ -51,8 +55,9 @@ export default async function GroupInvitePage({ searchParams }: { searchParams?:
                 <h2>拼团成员</h2>
                 <div className="invite-user-list">
                   {joinUsers.length ? joinUsers.map((user, index) => (
-                    <div className="invite-user" key={`${user.userId || index}`}>
+                    <div className={`invite-user${user.leader ? ' is-leader' : ''}`} key={`${user.userId || index}`}>
                       <img src={user.avatar || ''} alt={user.nickname || ''} />
+                      {user.leader ? <span className="invite-user__badge">团长</span> : null}
                       <span>{user.nickname || '匿名用户'}</span>
                     </div>
                   )) : <span className="invite-empty">暂无成员</span>}

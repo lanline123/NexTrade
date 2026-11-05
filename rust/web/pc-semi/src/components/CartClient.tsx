@@ -62,6 +62,8 @@ interface CartItem {
   sku?: CartSku;
   gift?: GiftItem[];
   activityInfo?: any;
+  /** 源码 usedPromotions：已使用促销，用于过滤活动标签 */
+  usedPromotions?: any;
 }
 
 interface CartGroup {
@@ -78,12 +80,54 @@ interface Total {
   discounts?: number;
   discountAfter?: number;
   serviceFee?: number;
+  /** 源码 cart/index.vue 结算明细拆分项 */
+  discountDiscountAmount?: number;
+  discountCouponAmount?: number;
+  discountMemberAmount?: number;
+  discountPointAmount?: number;
+  discountBalanceAmount?: number;
 }
 
 interface CartResult {
   cartList: CartGroup[];
   total: Total;
 }
+
+/** 源码 cart/index.vue activityTextMap：活动类型 -> 文案 */
+const ACTIVITY_TEXT: Record<number, string> = {
+  1: '秒杀价',
+  2: '券',
+  3: '满减',
+  4: '折扣',
+  5: '满赠',
+  6: '限时折扣',
+  7: '拼团',
+};
+
+/** 源码 formatActivityList：过滤已使用促销，返回 type + 文案 */
+function formatActivities(list: unknown, usedPromotions?: unknown): Array<{ type: number; text: string }> {
+  const source = Array.isArray(list) ? list : [];
+  const used = Array.isArray(usedPromotions) ? usedPromotions : [];
+  const usedIds = new Set(
+    used.map((item: any) => String(item?.promotionId ?? item?.id ?? '')).filter(Boolean),
+  );
+  const output: Array<{ type: number; text: string }> = [];
+  source.forEach((item: any) => {
+    const type = Number(item?.type ?? item?.promotionType ?? 0);
+    const promotionId = String(item?.promotionId ?? item?.id ?? '');
+    if (promotionId && usedIds.has(promotionId)) return;
+    if (type === 2) {
+      output.push({ type, text: String(item?.data?.promotionDesc || item?.promotionDesc || item?.name || '') });
+      return;
+    }
+    const text = ACTIVITY_TEXT[type] || String(item?.name || item?.title || '');
+    if (text) output.push({ type, text });
+  });
+  return output;
+}
+
+/** 源码 settleFoldLimit：结算缩略图折叠阈值 */
+const SETTLE_FOLD_LIMIT = 8;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : '';
@@ -150,6 +194,8 @@ export default function CartClient() {
   const [updating, setUpdating] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [recommended, setRecommended] = useState<RecommendedProduct[]>([]);
+  /** 源码 settleFoldLimit=8：结算缩略图超过 8 条折叠 */
+  const [showAllGoods, setShowAllGoods] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -243,6 +289,14 @@ export default function CartClient() {
         : group,
     );
     await syncCheck(next);
+  };
+
+  /** 源码 onUncheckSettleProduct：结算缩略图上取消选择单个商品 */
+  const toggleItemChecked = async (cartId: number, checked: boolean) => {
+    const owner = groups.find((group) => (group.carts || []).some((item) => item.cartId === cartId));
+    if (!owner) return;
+    const index = groups.indexOf(owner);
+    await toggleItem(index, cartId, checked);
   };
 
   const toggleItem = async (index: number, cartId: number, checked: boolean) => {
@@ -485,7 +539,12 @@ export default function CartClient() {
                       ) : null}
                       {Array.isArray(item.activityInfo) && item.activityInfo.length ? (
                         <span className="pc-cart__activity">
-                          {item.activityInfo.map((activity: any) => activity?.name || activity?.title || '').filter(Boolean).join(' · ')}
+                          {formatActivities(item.activityInfo, item.usedPromotions).map((activity, activityIndex) => (
+                            <span className={`pc-cart__promotion${activity.type === 2 ? ' is-ticket' : ''}`} key={activityIndex}>
+                              {activity.type === 2 ? <span className="pc-cart__promotion-type">券</span> : null}
+                              <span className="pc-cart__promotion-text">{activity.text}</span>
+                            </span>
+                          ))}
                         </span>
                       ) : null}
                       {unavailable ? (
@@ -525,6 +584,29 @@ export default function CartClient() {
       </div>
 
       <div className="pc-cart__footer">
+        {/* 源码 cart/index.vue：已选结算商品缩略图，超过 settleFoldLimit(8) 折叠 */}
+        {checkedItems.length ? (
+          <div className="pc-cart__settle-goods">
+            <div className={`pc-cart__settle-goods-list${showAllGoods ? '' : ' is-fold'}`}>
+              {checkedItems.map((item) => (
+                <div className="pc-cart__settle-goods-item" key={item.cartId}>
+                  <img src={item.picThumb || ''} alt={item.productName || ''} />
+                  <button type="button" className="pc-cart__settle-goods-uncheck" onClick={() => void toggleItemChecked(item.cartId, false)}>
+                    取消选择
+                  </button>
+                </div>
+              ))}
+              {Array.from({ length: (4 - (checkedItems.length % 4)) % 4 }).map((_, index) => (
+                <div className="pc-cart__settle-goods-item is-empty" key={`empty-${index}`} />
+              ))}
+            </div>
+            {checkedItems.length > SETTLE_FOLD_LIMIT ? (
+              <button type="button" className="pc-cart__settle-goods-toggle" onClick={() => setShowAllGoods((value) => !value)}>
+                {showAllGoods ? '收起' : '显示全部商品'}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         <Checkbox checked={allChecked} onChange={(event) => void toggleAll(Boolean(event.target.checked))}>
           全选
         </Checkbox>
@@ -541,8 +623,13 @@ export default function CartClient() {
           <span>
             已选 <b>{checkedCount}</b> 件
           </span>
-          {Number(total.productAmount || 0) > 0 ? <span>商品金额：¥ {money(total.productAmount)}</span> : null}
-          {Number(total.discounts || 0) > 0 ? <span>优惠：-¥ {money(total.discounts)}</span> : null}
+          {Number(total.productAmount || 0) > 0 ? <span>商品总价：¥ {money(total.productAmount)}</span> : null}
+          {Number(total.discountDiscountAmount || 0) > 0 ? <span>活动优惠：-¥ {money(total.discountDiscountAmount)}</span> : null}
+          {Number(total.discountCouponAmount || 0) > 0 ? <span>优惠券：-¥ {money(total.discountCouponAmount)}</span> : null}
+          {Number(total.discountMemberAmount || 0) > 0 ? <span>会员优惠：-¥ {money(total.discountMemberAmount)}</span> : null}
+          {Number(total.discountPointAmount || 0) > 0 ? <span>积分抵扣：-¥ {money(total.discountPointAmount)}</span> : null}
+          {Number(total.discountBalanceAmount || 0) > 0 ? <span>余额抵扣：-¥ {money(total.discountBalanceAmount)}</span> : null}
+          {Number(total.discounts || 0) > 0 ? <span>优惠合计：-¥ {money(total.discounts)}</span> : null}
           {Number(total.serviceFee || 0) > 0 ? <span>服务费：¥ {money(total.serviceFee)}</span> : null}
           <span>
             合计：<b>¥ {money(total.discountAfter ?? productAmount)}</b>
