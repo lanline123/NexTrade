@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getInquiryDetail, getPcHeader } from '@/lib/api';
+import InquiryReplyClient from '@/components/InquiryReplyClient';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '咨询详情 · 万物新生', robots: { index: false, follow: false } };
@@ -36,6 +37,7 @@ export default async function InquiryInfoPage({ searchParams }: { searchParams?:
                 <div key={index} className="inquiry-reply"><p>{reply.content || ''}</p><span>{reply.createTime || ''}</span></div>
               )) : <p className="inquiry-no-reply">暂无回复</p>}
             </div>
+            <InquiryReplyClient id={id} />
           </section>
         </div>
       </main>

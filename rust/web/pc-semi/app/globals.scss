@@ -4808,3 +4808,9 @@ img {
 .inquiry-reply p { margin: 0; color: #333; }
 .inquiry-reply span { color: #999; font-size: 12px; }
 .inquiry-no-reply { color: #999; }
+
+
+/* 咨询回复 */
+.inquiry-reply-form { margin-top: 24px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
+.inquiry-reply-form textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #dcdfe6; border-radius: 8px; resize: vertical; font-size: 14px; }
+.inquiry-reply-actions { display: flex; gap: 12px; margin-top: 12px; }
