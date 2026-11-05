@@ -6,6 +6,37 @@ import { normalizeLocale } from '@/i18n';
 
 type Translator = (key: string) => string;
 
+function translateDynamic(key: string): string | null {
+  const patterns: Array<[RegExp, (...matches: string[]) => string]> = [
+    [/^请求失败（HTTP (\d+)）$/, (code) => `Request failed (HTTP ${code})`],
+    [/^请求失败（(\d+)）$/, (code) => `Request failed (${code})`],
+    [/^接口返回不是 JSON（HTTP (\d+)）$/, (code) => `Response is not JSON (HTTP ${code})`],
+    [/^接口返回格式异常（HTTP (\d+)）$/, (code) => `Unexpected response format (HTTP ${code})`],
+    [/^(.+) 分$/, (value) => `${value} points`],
+    [/^还差 (\d+) 人成团$/, (count) => `${count} more people to form the group`],
+    [/^，还差 (\d+) 人成团$/, (count) => `, ${count} more people to form the group`],
+    [/^订单 (.+)$/, (orderNo) => `Order ${orderNo}`],
+    [/^支付方式 (.+)$/, (id) => `Payment method ${id}`],
+    [/^规格 (.+)$/, (id) => `Specification ${id}`],
+    [/^第 (\d+) 张$/, (index) => `Image ${index}`],
+    [/^搜索：(.+)$/, (keyword) => `Search: ${keyword}`],
+    [/^“(.+)”的搜索结果$/, (keyword) => `Search results for "${keyword}"`],
+    [/^快捷入口 (\d+)$/, (index) => `Quick Entry ${index}`],
+    [/^导航 (\d+)$/, (index) => `Navigation ${index}`],
+    [/^分组 (\d+)$/, (index) => `Group ${index}`],
+    [/^（冻结 (.+)）$/, (amount) => `(Frozen ${amount})`],
+    [/^请输入(.+)账号$/, (type) => `Please enter ${type} account`],
+    [/^(.+) · 搜索 · 万物新生$/, (keyword) => `Search "${keyword}" · Wanwu Xinsheng`],
+    [/^(.+) · 积分兑换 · 万物新生$/, (name) => `${name} · Points Redemption · Wanwu Xinsheng`],
+    [/^(.+)营业执照信息公示专用$/, (shop) => `${shop} Business License Public Notice`],
+  ];
+  for (const [pattern, build] of patterns) {
+    const match = key.match(pattern);
+    if (match) return build(...match.slice(1));
+  }
+  return null;
+}
+
 function translateTextNode(node: Text, t: Translator, originals: WeakMap<Text, string>, enabled: boolean) {
   const current = node.nodeValue || '';
   const original = originals.get(node);
@@ -78,11 +109,13 @@ export default function I18nTranslator() {
       if (!enabled) return key;
       const direct = i18n.t(key, { defaultValue: key });
       if (direct !== key) return direct;
+      const dynamic = translateDynamic(key);
+      if (dynamic) return dynamic;
       const suffix = ' · 万物新生';
       if (key.endsWith(suffix)) {
         const base = key.slice(0, -suffix.length).trim();
         const translatedBase = i18n.t(base, { defaultValue: base });
-        if (translatedBase !== base) return `${translatedBase} · Wanwu Xinsheng`;
+        return `${translatedBase} · Wanwu Xinsheng`;
       }
       return key;
     };
