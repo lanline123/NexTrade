@@ -17,7 +17,15 @@ function readParam(value: string | string[] | undefined): string {
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const keyword = readParam(searchParams?.keyword);
-  return { title: keyword ? `${keyword} · 搜索 · 万物新生` : '搜索商品 · 万物新生' };
+  const title = keyword ? `${keyword} · 搜索 · 万物新生` : '搜索商品 · 万物新生';
+  const description = keyword ? `搜索“${keyword}”相关的动力电池回收设备与商品。` : '搜索商品、分类、品牌与回收设备。';
+  return {
+    title,
+    description,
+    alternates: { canonical: keyword ? `/search?keyword=${encodeURIComponent(keyword)}` : '/search' },
+    robots: keyword ? { index: false, follow: true } : { index: true, follow: true },
+    openGraph: { title, description, url: keyword ? `/search?keyword=${encodeURIComponent(keyword)}` : '/search' },
+  };
 }
 
 const SORTS = [
