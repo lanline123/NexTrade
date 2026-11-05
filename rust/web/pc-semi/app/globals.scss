@@ -5141,3 +5141,35 @@ img {
 .chat-input { display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid #eee; background: #fff; }
 .chat-input textarea { flex: 1; padding: 10px; border: 1px solid #dcdfe6; border-radius: 8px; resize: none; font-size: 14px; }
 @media (max-width: 900px) { .chat-layout { flex-direction: column; height: 700px; } .chat-conversations { width: 100%; max-height: 180px; } }
+
+/* 移动端顶部栏：避免右侧入口被裁切 */
+@media (max-width: 600px) {
+  .pc-topbar__inner { padding: 0 12px; gap: 8px; }
+  .pc-topbar__left, .pc-topbar__right { gap: 10px; }
+  .pc-topbar__right .pc-topbar__menu, .pc-topbar__locale { display: none; }
+  .pc-topbar__right > a:not(:first-of-type) { display: none; }
+  .pc-topbar__link, .pc-topbar__user-name, .pc-topbar__auth a { white-space: nowrap; }
+}
+
+/* 移动端主头部：压缩品牌与操作区，避免搜索按钮/购物车裁切 */
+@media (max-width: 600px) {
+  .pc-header__main { gap: 10px; }
+  .pc-header__brand { flex: 1; min-width: 0; }
+  .pc-header__brand img { max-height: 36px; }
+  .pc-header__actions { gap: 12px; margin-left: 0; }
+  .pc-header__action { font-size: 11px; }
+  .pc-header__search { min-width: 0; }
+  .pc-header__search .semi-input-wrapper { min-width: 0; flex: 1; }
+  .pc-header__search .semi-button { flex-shrink: 0; }
+}
+
+/* 移动端只保留购物车入口，避免右侧裁切 */
+@media (max-width: 600px) {
+  .pc-header__actions .pc-header__action:first-child { display: none; }
+}
+
+/* 移动端购物车入口留足宽度，避免文字贴边裁切 */
+@media (max-width: 600px) {
+  .pc-header__actions { min-width: 46px; }
+  .pc-header__action { min-width: 46px; text-align: center; }
+}
