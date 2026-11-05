@@ -13,11 +13,12 @@
 
 ```text
 pcHome 装修模块：20/20 已注册
-业务路由：静态页面 109 个
+业务路由：静态页面 117 个
+路由审计：13 个缺失均为 activity 内部组件路径，由 /activity/[...slug] 兜底
 路由兼容：order 支付渠道、member 登录/注册、pin、旧内部路由均已映射
 i18next：全量接入，中文原文作 key
 语言包：zh_cn 230 条，en_us 1692 条
-静态文案覆盖率：97.8%
+静态文案覆盖率：97.8%（剩余 21 条为动态插值模板，已由正则兜底）
 动态格式：错误码/评分/拼团人数/订单号/图片序号等已支持
 语言切换：无需刷新，同步 html lang 和 document.title
 SEO：metadataBase/OG/Twitter、Organization/WebSite/Product/Store/Article/Breadcrumb JSON-LD
@@ -42,6 +43,7 @@ typecheck：通过
 build：通过
 静态路由 SSR：91/91 通过（早期批次）
 路由巡检：109 个，异常均为预期 307 重定向或无效测试 ID
+最新路由审计：117 个新路由，仅 13 个 activity 内部组件路径未单独建页
 i18n 静态覆盖率：97.8%
 ```
 
