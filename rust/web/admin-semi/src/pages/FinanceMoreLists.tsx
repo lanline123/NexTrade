@@ -66,8 +66,10 @@ export function DepositRules() {
       label="规则名称"
       columns={[
         { title: '规则名称', dataIndex: 'ruleName' },
+        { title: '商家类型', dataIndex: 'merchantTypeText', width: 120 },
         { title: '保证金金额', dataIndex: 'depositAmount', width: 130 },
         { title: '规则状态', dataIndex: 'statusText', width: 120 },
+        { title: '生效时间', dataIndex: 'effectiveTime', width: 180 },
         { title: '创建时间', dataIndex: 'createTime', width: 180 },
       ]}
     />
@@ -97,6 +99,7 @@ export function DepositQuery() {
       label="组织名称"
       columns={[
         { title: '组织名称', dataIndex: 'shopName' },
+        { title: '经营类目', dataIndex: 'categoryName', width: 140 },
         { title: '应缴金额', dataIndex: 'shouldAmount', width: 130 },
         { title: '已缴金额', dataIndex: 'paidAmount', width: 130 },
         { title: '剩余待缴', dataIndex: 'remainingAmount', width: 130 },
