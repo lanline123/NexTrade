@@ -16,7 +16,14 @@ export default async function InquiryInfoPage({ searchParams }: { searchParams?:
     getPcHeader().catch(() => null),
   ]);
   const item: any = data?.item || data || {};
-  const replies = data?.replies || item.replies || [];
+  const replies = data?.replies || item.replies || item.replyRecords || [];
+  /** 源码 statusClass：0 待回复 / 1 已回复 / 2 已关闭 */
+  const status = Number(item.status ?? 0);
+  const STATUS: Record<number, { text: string; icon: string }> = {
+    0: { text: '等待商家回复', icon: '⏳' },
+    1: { text: '商家已回复', icon: '✓' },
+    2: { text: '已关闭', icon: '—' },
+  };
 
   return (
     <>
@@ -26,11 +33,31 @@ export default async function InquiryInfoPage({ searchParams }: { searchParams?:
           <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/member">会员中心</Link><span>/</span><Link href="/member/inquiry">商品咨询</Link><span>/</span><span>咨询详情</span></nav>
           <h1 className="pc-cart-title">咨询详情</h1>
           <section className="inquiry-detail">
-            <div className="inquiry-detail__product">
-              <img src={item.product?.picThumb || ''} alt={item.product?.productName || ''} />
-              <div><b>{item.product?.productName || '商品'}</b><span>{item.createTime || ''}</span></div>
+            {/* 源码 member/inquiry/Info.vue 状态卡 */}
+            <div className={`inquiry-detail__status is-${status}`}>
+              <span className="inquiry-detail__status-icon">{STATUS[status]?.icon || '⏳'}</span>
+              {STATUS[status]?.text || item.statusText || '待回复'}
             </div>
-            <div className="inquiry-detail__content"><b>咨询内容</b><p>{item.content || '-'}</p></div>
+            <div className="inquiry-detail__product">
+              <img src={item.product?.picThumb || item.product?.picUrl || ''} alt={item.product?.productName || ''} />
+              <div>
+                <b>{item.product?.productName || '商品'}</b>
+                {Number(item.product?.marketPrice || 0) > 0 ? (
+                  <span className="inquiry-detail__market">市场价 ¥ {Number(item.product.marketPrice).toFixed(2)}</span>
+                ) : null}
+                {Number(item.product?.productPrice || 0) > 0 ? (
+                  <span className="inquiry-detail__shop-price">¥ {Number(item.product.productPrice).toFixed(2)}</span>
+                ) : null}
+                <span>{item.createTime || ''}</span>
+              </div>
+            </div>
+            <div className="inquiry-detail__content"><b>询价内容</b><p>{item.content || '-'}</p></div>
+            {/* 源码：询价时间 / 联系人 / 联系方式 */}
+            <dl className="inquiry-detail__meta">
+              <div><dt>询价时间</dt><dd>{item.createTime || '-'}</dd></div>
+              <div><dt>联系人</dt><dd>{item.contactName || '-'}</dd></div>
+              <div><dt>联系方式</dt><dd>{item.mobile || '-'}</dd></div>
+            </dl>
             <div className="inquiry-detail__replies">
               <b>回复</b>
               {Array.isArray(replies) && replies.length ? replies.map((reply: any, index: number) => (

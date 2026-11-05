@@ -743,3 +743,40 @@
   .pc-search-price-input { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
   .pc-search-price-form span { flex: 0 0 auto; }
 }
+
+/* 询价详情（member/inquiry/Info.vue） */
+.inquiry-detail__status { display: flex; align-items: center; gap: 8px; padding: 12px 16px; margin-bottom: 12px; border-radius: 6px; background: #fff7e6; color: #ad6800; font-size: 14px; }
+.inquiry-detail__status.is-1 { background: #f0f9eb; color: #52a940; }
+.inquiry-detail__status.is-2 { background: #f5f5f5; color: #8c8c8c; }
+.inquiry-detail__status-icon { font-size: 16px; }
+.inquiry-detail__market { margin-left: 8px; color: #bbb; font-size: 13px; text-decoration: line-through; }
+.inquiry-detail__shop-price { margin-left: 8px; color: #e1251b; font-size: 14px; font-weight: 600; }
+.inquiry-detail__meta { margin: 12px 0; padding: 0; }
+.inquiry-detail__meta > div { display: flex; padding: 6px 0; font-size: 14px; }
+.inquiry-detail__meta dt { flex: 0 0 100px; margin: 0; color: #8c8c8c; }
+.inquiry-detail__meta dd { flex: 1; margin: 0; color: #1a1a1a; }
+
+/* 帮助中心（article/issue/Index.vue） */
+.pc-article-issue { display: flex; gap: 24px; }
+.pc-article-issue__side { display: flex; flex: 0 0 200px; flex-direction: column; gap: 4px; padding: 16px; border-radius: 8px; background: #f7f8fa; }
+.pc-article-issue__side > b { margin-bottom: 10px; color: #1a1a1a; font-size: 15px; }
+.pc-article-issue__side button { padding: 8px 12px; border: 0; border-radius: 4px; background: transparent; color: #666; font-size: 14px; text-align: left; cursor: pointer; }
+.pc-article-issue__side button:hover { background: #fff; }
+.pc-article-issue__side button.is-active { background: var(--pc-primary, #165dff); color: #fff; }
+.pc-article-issue__main { flex: 1; min-width: 0; }
+.pc-article-issue__tabs { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; border-bottom: 1px solid #f0f0f0; }
+.pc-article-issue__tabs button { padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #666; font-size: 14px; cursor: pointer; }
+.pc-article-issue__tabs button.is-active { border-bottom-color: var(--pc-primary, #165dff); color: var(--pc-primary, #165dff); }
+.pc-article-issue__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; }
+.pc-article-issue__list a { color: #333; font-size: 14px; text-decoration: none; }
+.pc-article-issue__list a:hover { color: var(--pc-primary, #165dff); }
+.pc-article-issue__empty { color: #bbb; font-size: 13px; }
+.pc-article-issue__hot { display: flex; flex-direction: column; gap: 8px; margin-top: 28px; padding: 16px; border-radius: 8px; background: #fafafa; }
+.pc-article-issue__hot > b { margin-bottom: 4px; color: #1a1a1a; font-size: 15px; }
+.pc-article-issue__hot a { color: #666; font-size: 13px; text-decoration: none; }
+.pc-article-issue__hot a:hover { color: var(--pc-primary, #165dff); }
+@media (max-width: 900px) {
+  .pc-article-issue { flex-direction: column; }
+  .pc-article-issue__side { flex: none; }
+  .pc-article-issue__list { grid-template-columns: 1fr; }
+}
