@@ -85,9 +85,54 @@ function ImageHotarea({ module }: ModuleProps) {
 
 function TitleAd({ module }: ModuleProps) {
   const title = module.title || {};
+  const frame = module.frame || {};
+  const titleRadius = Number(title.titleRadius) || 0;
+  const leftRight = Number(frame.leftAndRightPadding) || 0;
+  const align = Number(title.titleAlign) || 1;
+  const styleType = Number(title.titleStyle) || 1;
+  const background = title.titleBackground2 && title.titleBackground
+    ? `linear-gradient(to right, ${title.titleBackground}, ${title.titleBackground2})`
+    : title.titleBackground || '';
+  const titleBarStyle: Record<string, string> = {
+    borderRadius: `${titleRadius}px`,
+    padding: `10px ${leftRight}px`,
+  };
+  if (background) titleBarStyle.background = background;
   return (
-    <Frame frame={module.frame}>
-      <ModuleTitle title={{ ...title, showTitle: 1 }} />
+    <Frame frame={frame}>
+      {!title.titleText || String(title.titleText).trim() === '' ? (
+        <div className="module-ad-empty empty-title_ad">
+          <div className="image-empty-bg" />
+          <div className="desc">点击添加标题</div>
+        </div>
+      ) : (
+        <div className={`title-ad-warp ad-title_align__${align}`} style={{ paddingLeft: `${leftRight}px`, paddingRight: `${leftRight}px` }}>
+          <div className="title-ad-con">
+            <div className="title-ad-item">
+              <div className="item-content">
+                <div className={`image-ad-title ad-title_style__${styleType}`} style={titleBarStyle}>
+                  <div className="image-ad-title-l">
+                    <div className="image-ad-title-h" style={{ color: title.titleColor || undefined }}>{title.titleText}</div>
+                    {title.descText ? (
+                      <div className="image-ad-title-d" style={{ color: title.descColor || undefined }}>{title.descText}</div>
+                    ) : null}
+                  </div>
+                  {Number(title.showMore) === 1 ? (
+                    <div className="image-ad-title-r">
+                      <a className="more-link" href={linkUrl(title.moreLink)} style={{ color: title.moreColor || undefined }}>
+                        <div className="flex align-center">
+                          <span>{title.moreLink?.title || '查看更多'}</span>
+                          <i className="iconfont-pc icon-login-jt" />
+                        </div>
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Frame>
   );
 }

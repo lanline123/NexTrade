@@ -5407,3 +5407,20 @@ img {
 .notice-ad-warp .item-notice-ico .item-img { width: 100%; height: 100%; object-fit: contain; }
 .notice-ad-warp .item-notice-list { flex: 1; margin-left: 8px; overflow: hidden; }
 .notice-ad-warp .item-notice-input { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 按 PcTitleAd.vue 重建标题模块 */
+.title-ad-warp { width: 100%; box-sizing: border-box; }
+.title-ad-warp .title-ad-item { min-height: 20px; padding: 0; }
+.title-ad-warp .title-ad-item .item-content { width: 100%; }
+.title-ad-warp .image-ad-title { position: relative; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; width: 100%; }
+.title-ad-warp .image-ad-title-l { display: flex; flex: 1; flex-direction: column; gap: 8px; overflow: hidden; }
+.title-ad-warp .image-ad-title-h { color: #323233; font-size: 16px; font-weight: bold; line-height: 20px; word-break: break-all; }
+.title-ad-warp .image-ad-title-d { padding-top: 8px; color: #8c8c8c; font-size: 12px; line-height: 18px; word-break: break-all; }
+.title-ad-warp .image-ad-title-r .more-link { display: flex; align-items: center; gap: 4px; cursor: pointer; text-decoration: none; }
+.title-ad-warp .image-ad-title-r .more-link .iconfont-pc { font-size: 12px; }
+.image-ad-title.ad-title_style__2 .image-ad-title-l .image-ad-title-h { font-weight: 600; }
+.image-ad-title.ad-title_style__2 .image-ad-title-l .image-ad-title-d { padding-top: 0; color: #11bb55; font-size: 16px; font-weight: 600; }
+.title-ad-warp.ad-title_align__2 .image-ad-title { justify-content: center; }
+.title-ad-warp.ad-title_align__2 .image-ad-title .image-ad-title-l { flex: none; align-items: center; text-align: center; }
+.title-ad-warp.ad-title_align__2 .image-ad-title .image-ad-title-r { position: absolute; right: 0; }
+.module-ad-empty.empty-title_ad { display: flex; min-height: 50px; flex-direction: column; align-items: center; justify-content: center; color: #9ca3af; font-size: 12px; }
