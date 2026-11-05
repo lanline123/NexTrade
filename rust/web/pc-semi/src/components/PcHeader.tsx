@@ -76,7 +76,7 @@ export default function PcHeader({ config }: { config?: PcHeaderConfig | null })
 
   return (
     <header className={`pc-header-runtime pc-header pc-header--style-${styleType} ${header.isWhite === 0 ? 'pc-header--dark' : ''}`}>
-      <PcHeaderTopBar config={header as Record<string, any>} showLocale={styleType !== 2} />
+      <PcHeaderTopBar config={header as Record<string, any>} showLocale={styleType !== 2} styleType={styleType} />
 
       <div className="page-container">
         <div className="page-header-inner">

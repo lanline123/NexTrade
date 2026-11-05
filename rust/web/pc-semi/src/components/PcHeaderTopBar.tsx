@@ -20,7 +20,7 @@ function navHref(link: any): string {
   return link.link || link.appLink || '';
 }
 
-export default function PcHeaderTopBar({ config, showLocale = true }: { config: Record<string, any>; showLocale?: boolean }) {
+export default function PcHeaderTopBar({ config, showLocale = true, styleType = 1 }: { config: Record<string, any>; showLocale?: boolean; styleType?: number }) {
   const { i18n } = useTranslation();
   const [regions, setRegions] = useState<Region[]>([]);
   const [localeList, setLocaleList] = useState<LocaleItem[]>([]);
@@ -147,8 +147,9 @@ export default function PcHeaderTopBar({ config, showLocale = true }: { config: 
   const hasValue = (value: unknown) => value !== undefined && value !== null && String(value).trim() !== '';
 
   return (
-    <div className="pc-topbar" style={{ background: backgroundColor, color: textColor, ['--pc-topbar-hover' as string]: hoverColor }}>
+    <div className={`pc-topbar pc-topbar--style-${styleType}`} style={{ background: backgroundColor, color: textColor, ['--pc-topbar-hover' as string]: hoverColor }}>
       <div className="pc-topbar__inner">
+        {styleType === 1 ? (
         <div className="pc-topbar__left">
           {showRegion ? regionReady ? (
             <div className="pc-topbar__region" onMouseEnter={enterRegion} onMouseLeave={leaveRegion}>
@@ -196,6 +197,7 @@ export default function PcHeaderTopBar({ config, showLocale = true }: { config: 
             </div>
           ) : null}
         </div>
+        ) : null}
 
         <div className="pc-topbar__right">
           {showLocale && localeList.length > 1 ? (
@@ -216,7 +218,7 @@ export default function PcHeaderTopBar({ config, showLocale = true }: { config: 
             </Link>
           ) : null}
 
-          {showMemberCenter ? (
+          {styleType === 1 && showMemberCenter ? (
             <div className="pc-topbar__menu" onMouseEnter={() => setOpenMenu('member')} onMouseLeave={() => setOpenMenu(null)}>
               <button type="button" className="pc-topbar__link">会员中心 ▾</button>
               {openMenu === 'member' ? (
@@ -227,8 +229,8 @@ export default function PcHeaderTopBar({ config, showLocale = true }: { config: 
             </div>
           ) : null}
 
-          {showMessage ? <Link href="/member/userMessage/list" className="pc-topbar__link">站内消息</Link> : null}
-          {showOrders ? <Link href="/member/order/list" className="pc-topbar__link">我的订单</Link> : null}
+          {styleType === 1 && showMessage ? <Link href="/member/userMessage/list" className="pc-topbar__link">站内消息</Link> : null}
+          {styleType === 1 && showOrders ? <Link href="/member/order/list" className="pc-topbar__link">我的订单</Link> : null}
 
           {showSiteNav && siteNav.length ? (
             <div className="pc-topbar__menu" onMouseEnter={() => setOpenMenu('site')} onMouseLeave={() => setOpenMenu(null)}>
