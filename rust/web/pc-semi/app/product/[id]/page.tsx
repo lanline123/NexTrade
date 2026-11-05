@@ -68,10 +68,18 @@ export default async function ProductPage({ params }: PageProps) {
       availability: Number(item?.productStock || 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     },
   };
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首页', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: item?.productName || '商品详情' },
+    ],
+  };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([productJsonLd, breadcrumbJsonLd]) }} />
       <PcHeader config={header as any} />
       <main className="pc-product-page">
         <div className="pc-container">

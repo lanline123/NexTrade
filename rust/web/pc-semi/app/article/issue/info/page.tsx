@@ -5,16 +5,62 @@ import PcFooter from '@/components/PcFooter';
 import { getArticleIssueInfo, getPcHeader } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: '帮助详情 · 万物新生' };
+
+interface ArticlePageProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+function readArticleId(searchParams?: ArticlePageProps['searchParams']): number {
+  const raw = searchParams?.articleId;
+  return Number(Array.isArray(raw) ? raw[0] : raw) || 0;
+}
+
+export async function generateMetadata({ searchParams }: ArticlePageProps): Promise<Metadata> {
+  const articleId = readArticleId(searchParams);
+  const data = articleId ? await getArticleIssueInfo(articleId).catch(() => null) : null;
+  const item = data?.item;
+  const description = item?.description || '帮助中心文章';
+  return {
+    title: item?.articleTitle ? `${item.articleTitle} · 万物新生` : '帮助详情 · 万物新生',
+    description,
+    alternates: { canonical: `/article/issue/info?articleId=${articleId}` },
+    openGraph: {
+      type: 'article',
+      url: `/article/issue/info?articleId=${articleId}`,
+      title: item?.articleTitle || '帮助详情',
+      description,
+    },
+  };
+}
 
 export default async function ArticleIssueInfoPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const raw = searchParams?.articleId;
   const articleId = Number(Array.isArray(raw) ? raw[0] : raw) || 0;
   const [header, data] = await Promise.all([getPcHeader().catch(() => null), articleId ? getArticleIssueInfo(articleId) : Promise.resolve(null)]);
   const item = data?.item || null;
+  const siteUrl = (process.env.PC_SITE_URL || 'https://battery.recy.cc').replace(/\/$/, '');
+  const articleJsonLd = item ? {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: item.articleTitle,
+    description: item.description || '',
+    datePublished: item.addTime || undefined,
+    mainEntityOfPage: `${siteUrl}/article/issue/info?articleId=${articleId}`,
+    publisher: { '@type': 'Organization', name: '万物新生', url: siteUrl },
+  } : null;
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: '帮助中心', item: `${siteUrl}/article/issue` },
+      { '@type': 'ListItem', position: 3, name: item?.articleTitle || '文章详情' },
+    ],
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd ? [articleJsonLd, breadcrumbJsonLd] : breadcrumbJsonLd) }} />
       <PcHeader config={header as any} />
       <main className="pc-static-page">
         <div className="pc-container">

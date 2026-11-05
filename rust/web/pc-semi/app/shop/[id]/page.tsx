@@ -21,6 +21,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: shop?.shopTitle ? `${shop.shopTitle} · 万物新生` : '店铺详情 · 万物新生',
     description: shop?.description || '店铺详情',
+    alternates: { canonical: `/shop/${params.id}` },
+    openGraph: {
+      type: 'website',
+      url: `/shop/${params.id}`,
+      title: shop?.shopTitle || '店铺详情',
+      description: shop?.description || '店铺详情',
+      images: shop?.shopLogo ? [shop.shopLogo] : undefined,
+    },
   };
 }
 
