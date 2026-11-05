@@ -120,6 +120,11 @@ export default function ChatClient() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
+      setLoading(false);
+      window.location.replace(`/login?redirect=${encodeURIComponent('/chat')}`);
+      return;
+    }
     loadConversations();
   }, []);
 
