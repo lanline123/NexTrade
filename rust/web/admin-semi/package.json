@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "verify:ui": "node scripts/verify-ui.cjs",
     "verify:config": "node scripts/verify-config-regressions.cjs",
+    "verify:pages": "node scripts/smoke-pages.cjs",
     "i18n:check": "node scripts/check-i18n.cjs"
   },
   "dependencies": {
