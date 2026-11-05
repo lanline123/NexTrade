@@ -62,8 +62,16 @@ const ROUTE_TABLE: [(&str, &str, &str); 9] = [
     ("GET", "/setting/gallery/list", "GalleryController.list"),
     ("GET", "/setting/gallery/detail", "GalleryController.detail"),
     ("POST", "/setting/gallery/del", "GalleryController.del"),
-    ("POST", "/setting/gallery/create", "GalleryController.create"),
-    ("POST", "/setting/gallery/update", "GalleryController.update"),
+    (
+        "POST",
+        "/setting/gallery/create",
+        "GalleryController.create",
+    ),
+    (
+        "POST",
+        "/setting/gallery/update",
+        "GalleryController.update",
+    ),
     ("POST", "/setting/gallery/batch", "GalleryController.batch"),
     ("GET", "/setting/gallery/tree", "GalleryController.tree"),
     ("POST", "/setting/gallery/sort", "GalleryController.sort"),
@@ -170,10 +178,7 @@ async fn update(
 ///
 /// 对应 Java `GalleryController#del(@RequestBody @Valid GalleryDelDTO)`：
 /// 带 `deleteMode` → 连子分组一起处理；不带 → 只删单行。
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<GalleryDelDTO>,
-) -> ApiResult<()> {
+async fn del(State(state): State<AdminState>, Json(dto): Json<GalleryDelDTO>) -> ApiResult<()> {
     state.content.gallery.delete(&dto).await?;
     ok(())
 }
@@ -259,10 +264,7 @@ pub fn resolve_scope(headers: &HeaderMap) -> GalleryScope {
     } else {
         None
     };
-    GalleryScope {
-        shop_id,
-        vendor_id,
-    }
+    GalleryScope { shop_id, vendor_id }
 }
 
 #[cfg(test)]
@@ -305,8 +307,10 @@ mod tests {
             );
         }
         // 不允许重复声明（路由表改错时会暴露）
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");

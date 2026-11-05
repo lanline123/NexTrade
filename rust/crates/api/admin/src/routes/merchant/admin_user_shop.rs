@@ -1,4 +1,4 @@
-﻿//! 管理端店铺员工路由（merchant::admin_user_shop）。
+//! 管理端店铺员工路由（merchant::admin_user_shop）。
 //!
 //! 对应原 Java `com.tigshop.adminapi.controller.shop.AdminUserShopController`
 //! （`@RequestMapping("/adminapi/merchant/adminUserShop")`，9 个端点，全部需登录）。
@@ -27,18 +27,46 @@ use crate::AdminState;
 
 /// 本域 9 条路由（挂载路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 9] = [
-    ("GET", "/merchant/adminUserShop/list", "AdminUserShopController.list"),
-    ("GET", "/merchant/adminUserShop/detail", "AdminUserShopController.detail"),
-    ("GET", "/merchant/adminUserShop/info", "AdminUserShopController.info"),
+    (
+        "GET",
+        "/merchant/adminUserShop/list",
+        "AdminUserShopController.list",
+    ),
+    (
+        "GET",
+        "/merchant/adminUserShop/detail",
+        "AdminUserShopController.detail",
+    ),
+    (
+        "GET",
+        "/merchant/adminUserShop/info",
+        "AdminUserShopController.info",
+    ),
     (
         "GET",
         "/merchant/adminUserShop/checkIsAdmin",
         "AdminUserShopController.checkIsAdmin",
     ),
-    ("POST", "/merchant/adminUserShop/create", "AdminUserShopController.create"),
-    ("POST", "/merchant/adminUserShop/update", "AdminUserShopController.update"),
-    ("POST", "/merchant/adminUserShop/del", "AdminUserShopController.del"),
-    ("POST", "/merchant/adminUserShop/batch", "AdminUserShopController.batch"),
+    (
+        "POST",
+        "/merchant/adminUserShop/create",
+        "AdminUserShopController.create",
+    ),
+    (
+        "POST",
+        "/merchant/adminUserShop/update",
+        "AdminUserShopController.update",
+    ),
+    (
+        "POST",
+        "/merchant/adminUserShop/del",
+        "AdminUserShopController.del",
+    ),
+    (
+        "POST",
+        "/merchant/adminUserShop/batch",
+        "AdminUserShopController.batch",
+    ),
     (
         "POST",
         "/merchant/adminUserShop/modifyUser",
@@ -94,11 +122,7 @@ async fn list(
 ) -> ApiResult<PageResult<AdminUserShopVO>> {
     // 多租户：店铺账号只能列自己店铺的员工；平台账号可用可选 shopId 过滤。
     let scope = auth.resolve_shop_scope(q.shop_id)?;
-    ok(state
-        .merchant
-        .admin_user_shop
-        .list(&q, scope)
-        .await?)
+    ok(state.merchant.admin_user_shop.list(&q, scope).await?)
 }
 
 async fn detail(

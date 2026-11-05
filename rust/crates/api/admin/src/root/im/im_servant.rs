@@ -33,7 +33,9 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use tigshop_core::models::im::im_servant::{ImServantListQuery, ImServantScope, ImServantVO, ServantModifyStatusDTO};
+use tigshop_core::models::im::im_servant::{
+    ImServantListQuery, ImServantScope, ImServantVO, ServantModifyStatusDTO,
+};
 use tigshop_core::types::PageResult;
 use tigshop_infrastructure::db::repo::marketing::tenant::TenantScope;
 use tigshop_security::web::{ok, ApiResult, AuthUser};
@@ -101,7 +103,11 @@ async fn modify_status(
 ) -> ApiResult<serde_json::Value> {
     let scope = resolve_scope(&headers, &auth);
     // Java：dto.setServantId(SecurityUtils.getCurrentAdminId()) → 用登录态，忽略请求体
-    let id = state.im.im_servant.modify_status(dto.status, auth.id, scope).await?;
+    let id = state
+        .im
+        .im_servant
+        .modify_status(dto.status, auth.id, scope)
+        .await?;
     ok(serde_json::json!({ "id": id }))
 }
 

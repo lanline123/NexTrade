@@ -620,10 +620,7 @@ pub fn calc_points(
     } else {
         0
     };
-    let available = user_points
-        .min(value_points)
-        .min(max_percent_points)
-        .max(0);
+    let available = user_points.min(value_points).min(max_percent_points).max(0);
     let used = use_point.max(0).min(available);
     let mut points_amount = Decimal::from(used) * integral_scale / Decimal::ONE_HUNDRED;
     if points_amount > base {
@@ -699,9 +696,7 @@ pub fn parse_promotion_tiers(raw: &str) -> Vec<PromotionTier> {
     };
     list.iter()
         .filter_map(|item| {
-            let min = item
-                .get("minAmount")
-                .and_then(|v| as_decimal(v))?;
+            let min = item.get("minAmount").and_then(|v| as_decimal(v))?;
             let reduce = item
                 .get("reduce")
                 .and_then(|v| as_decimal(v))
@@ -728,7 +723,10 @@ pub fn parse_promotion_tiers(raw: &str) -> Vec<PromotionTier> {
 
 /// 选取满足门槛的最高档（`isMoreApplicablePromotionRule`：minAmount 更大者优先）。
 #[must_use]
-pub fn pick_promotion_tier(tiers: &[PromotionTier], compare_data: Decimal) -> Option<&PromotionTier> {
+pub fn pick_promotion_tier(
+    tiers: &[PromotionTier],
+    compare_data: Decimal,
+) -> Option<&PromotionTier> {
     tiers
         .iter()
         .filter(|tier| tier.min_amount > Decimal::ZERO && tier.min_amount <= compare_data)
@@ -748,7 +746,10 @@ pub fn promotion_discount(
     compare_data: Decimal,
     price_amount: Decimal,
 ) -> Option<(Decimal, Decimal)> {
-    if price_amount <= Decimal::ZERO || compare_data < tier.min_amount || tier.min_amount <= Decimal::ZERO {
+    if price_amount <= Decimal::ZERO
+        || compare_data < tier.min_amount
+        || tier.min_amount <= Decimal::ZERO
+    {
         return None;
     }
     match promotion_type {
@@ -756,9 +757,7 @@ pub fn promotion_discount(
             let mut total = if rules_type == 1 {
                 tier.reduce
             } else {
-                let times = (compare_data / tier.min_amount)
-                    .trunc()
-                    .max(Decimal::ONE);
+                let times = (compare_data / tier.min_amount).trunc().max(Decimal::ONE);
                 tier.reduce * times
             };
             total = total.min(price_amount).max(Decimal::ZERO);
@@ -883,7 +882,6 @@ pub fn calc_shipping_fee(
     (rule.start_price + units * rule.add_price).max(Decimal::ZERO)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -991,7 +989,14 @@ mod tests {
         assert_eq!(calc.available_points, 0);
         assert_eq!(calc.points_amount, Decimal::ZERO);
 
-        let calc = calc_points(5, 1000, Decimal::new(500, 2), Decimal::from(1), Decimal::from(100), Decimal::from(100));
+        let calc = calc_points(
+            5,
+            1000,
+            Decimal::new(500, 2),
+            Decimal::from(1),
+            Decimal::from(100),
+            Decimal::from(100),
+        );
         assert_eq!(calc.used_points, 5);
         assert_eq!(calc.points_amount, Decimal::new(5, 2));
     }
@@ -1000,17 +1005,35 @@ mod tests {
     fn coupon_rule_money_and_discount() {
         // 满减券
         assert_eq!(
-            coupon_rule_discount(1, Decimal::from(10), Decimal::from(0), Decimal::ZERO, Decimal::from(150)),
+            coupon_rule_discount(
+                1,
+                Decimal::from(10),
+                Decimal::from(0),
+                Decimal::ZERO,
+                Decimal::from(150)
+            ),
             Decimal::from(10)
         );
         // 折扣券 8.5 折 → 优惠 15%
         assert_eq!(
-            coupon_rule_discount(2, Decimal::ZERO, Decimal::new(85, 1), Decimal::ZERO, Decimal::from(100)),
+            coupon_rule_discount(
+                2,
+                Decimal::ZERO,
+                Decimal::new(85, 1),
+                Decimal::ZERO,
+                Decimal::from(100)
+            ),
             Decimal::new(15, 0)
         );
         // 封顶
         assert_eq!(
-            coupon_rule_discount(1, Decimal::from(100), Decimal::ZERO, Decimal::from(30), Decimal::from(200)),
+            coupon_rule_discount(
+                1,
+                Decimal::from(100),
+                Decimal::ZERO,
+                Decimal::from(30),
+                Decimal::from(200)
+            ),
             Decimal::from(30)
         );
     }
@@ -1027,14 +1050,53 @@ mod tests {
             free_price: Decimal::from(100),
         };
         // 1 件：首价 5
-        assert_eq!(calc_shipping_fee(&rule, Decimal::from(10), Decimal::from(1), Decimal::ZERO, Decimal::ZERO), Decimal::from(5));
+        assert_eq!(
+            calc_shipping_fee(
+                &rule,
+                Decimal::from(10),
+                Decimal::from(1),
+                Decimal::ZERO,
+                Decimal::ZERO
+            ),
+            Decimal::from(5)
+        );
         // 4 件：5 + ceil((4-1)/2)*2 = 9
-        assert_eq!(calc_shipping_fee(&rule, Decimal::from(10), Decimal::from(4), Decimal::ZERO, Decimal::ZERO), Decimal::from(9));
+        assert_eq!(
+            calc_shipping_fee(
+                &rule,
+                Decimal::from(10),
+                Decimal::from(4),
+                Decimal::ZERO,
+                Decimal::ZERO
+            ),
+            Decimal::from(9)
+        );
         // 满 100 包邮
-        assert_eq!(calc_shipping_fee(&rule, Decimal::from(100), Decimal::from(1), Decimal::ZERO, Decimal::ZERO), Decimal::ZERO);
+        assert_eq!(
+            calc_shipping_fee(
+                &rule,
+                Decimal::from(100),
+                Decimal::from(1),
+                Decimal::ZERO,
+                Decimal::ZERO
+            ),
+            Decimal::ZERO
+        );
         // 包邮模板
-        let free = ShippingRule { is_free: true, ..rule };
-        assert_eq!(calc_shipping_fee(&free, Decimal::from(1), Decimal::from(1), Decimal::ZERO, Decimal::ZERO), Decimal::ZERO);
+        let free = ShippingRule {
+            is_free: true,
+            ..rule
+        };
+        assert_eq!(
+            calc_shipping_fee(
+                &free,
+                Decimal::from(1),
+                Decimal::from(1),
+                Decimal::ZERO,
+                Decimal::ZERO
+            ),
+            Decimal::ZERO
+        );
     }
 
     #[test]
@@ -1050,7 +1112,13 @@ mod tests {
         };
         // 0.25m³：6 + ceil((0.15)/0.05)*3 = 15
         assert_eq!(
-            calc_shipping_fee(&rule, Decimal::from(10), Decimal::ZERO, Decimal::ZERO, Decimal::new(25, 2)),
+            calc_shipping_fee(
+                &rule,
+                Decimal::from(10),
+                Decimal::ZERO,
+                Decimal::ZERO,
+                Decimal::new(25, 2)
+            ),
             Decimal::from(15)
         );
     }
@@ -1068,7 +1136,13 @@ mod tests {
         };
         // 2.2kg：8 + ceil((1.2)/0.5)=3 → 14
         assert_eq!(
-            calc_shipping_fee(&rule, Decimal::from(10), Decimal::ZERO, Decimal::new(2200, 3), Decimal::ZERO),
+            calc_shipping_fee(
+                &rule,
+                Decimal::from(10),
+                Decimal::ZERO,
+                Decimal::new(2200, 3),
+                Decimal::ZERO
+            ),
             Decimal::from(14)
         );
     }
@@ -1098,11 +1172,20 @@ mod tests {
         );
         // 固定金额，且不超过订单金额
         assert_eq!(
-            calc_deposit(Decimal::from(5), Some(2), None, Some(Decimal::from(8)), None),
+            calc_deposit(
+                Decimal::from(5),
+                Some(2),
+                None,
+                Some(Decimal::from(8)),
+                None
+            ),
             Decimal::from(5)
         );
         // 未配置类型 → 0
-        assert_eq!(calc_deposit(Decimal::from(10), None, None, None, None), Decimal::ZERO);
+        assert_eq!(
+            calc_deposit(Decimal::from(10), None, None, None, None),
+            Decimal::ZERO
+        );
     }
 
     #[test]
@@ -1127,16 +1210,20 @@ mod tests {
 
     #[test]
     fn promotion_tiers_and_discount() {
-        let tiers = parse_promotion_tiers(r#"[{"minAmount":100,"reduce":10},{"minAmount":300,"reduce":50}]"#);
+        let tiers = parse_promotion_tiers(
+            r#"[{"minAmount":100,"reduce":10},{"minAmount":300,"reduce":50}]"#,
+        );
         assert_eq!(tiers.len(), 2);
         let tier = pick_promotion_tier(&tiers, Decimal::from(350)).unwrap();
         assert_eq!(tier.reduce, Decimal::from(50));
         // 阶梯满减：350 减 50
-        let (total, proportion) = promotion_discount(1, 1, tier, Decimal::from(350), Decimal::from(350)).unwrap();
+        let (total, proportion) =
+            promotion_discount(1, 1, tier, Decimal::from(350), Decimal::from(350)).unwrap();
         assert_eq!(total, Decimal::from(50));
         assert!(proportion < Decimal::ONE);
         // 循环优惠：350/300 = 1 倍 → 50
-        let (loop_total, _) = promotion_discount(1, 0, tier, Decimal::from(600), Decimal::from(600)).unwrap();
+        let (loop_total, _) =
+            promotion_discount(1, 0, tier, Decimal::from(600), Decimal::from(600)).unwrap();
         assert_eq!(loop_total, Decimal::from(100));
         // 满折 8.5 折
         let tier = PromotionTier {
@@ -1145,13 +1232,13 @@ mod tests {
             gift_id: None,
             num: 0,
         };
-        let (total, proportion) = promotion_discount(2, 1, &tier, Decimal::from(200), Decimal::from(200)).unwrap();
+        let (total, proportion) =
+            promotion_discount(2, 1, &tier, Decimal::from(200), Decimal::from(200)).unwrap();
         assert_eq!(total, Decimal::from(30));
         assert_eq!(proportion, Decimal::new(85, 2));
         assert!(promotion_discount(1, 1, &tier, Decimal::from(10), Decimal::from(10)).is_none());
     }
 }
-
 
 #[cfg(test)]
 mod tolerant_query_tests {

@@ -52,8 +52,14 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
         .route("/promotion/buyerShow/commentInfo/list", get(comment_list))
-        .route("/promotion/buyerShow/commentInfo/audit", post(comment_audit))
-        .route("/promotion/buyerShow/commentInfo/batch", post(comment_batch))
+        .route(
+            "/promotion/buyerShow/commentInfo/audit",
+            post(comment_audit),
+        )
+        .route(
+            "/promotion/buyerShow/commentInfo/batch",
+            post(comment_batch),
+        )
         .route(
             "/promotion/buyerShow/commentInfo/showOrHide",
             post(comment_show_or_hide),
@@ -154,7 +160,11 @@ async fn comment_show_or_hide(
     State(state): State<AdminState>,
     Json(param): Json<BuyerShowCommentShowOrHideParam>,
 ) -> ApiResult<&'static str> {
-    state.marketing.buyer_show_comment.show_or_hide(&param).await?;
+    state
+        .marketing
+        .buyer_show_comment
+        .show_or_hide(&param)
+        .await?;
     ok("操作成功")
 }
 

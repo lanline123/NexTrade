@@ -1,4 +1,4 @@
-﻿//! 拼团活动商品（`marketing::groupon_promotion_item`）DTO / VO / 纯函数。
+//! 拼团活动商品（`marketing::groupon_promotion_item`）DTO / VO / 纯函数。
 //!
 //! 对应原 Java：
 //! - `com.tigshop.adminapi.controller.promotion.GrouponPromotionItemController`
@@ -26,8 +26,7 @@ pub const MSG_EXIST_SECKILL: &str = "选择的商品已存在限时秒杀活动"
 /// 商品已存在限时折扣活动。
 pub const MSG_EXIST_TIME_DISCOUNT: &str = "选择的商品已存在限时折扣活动";
 /// 时间段内已参与其他拼团。
-pub const MSG_EXIST_OTHER_GROUPON: &str =
-    "该商品在时间段内已参与其他拼团活动，不能重复绑定";
+pub const MSG_EXIST_OTHER_GROUPON: &str = "该商品在时间段内已参与其他拼团活动，不能重复绑定";
 /// SKU 已禁用（Java `ProductSkuServiceImpl#checkSkuEnabled`）。
 pub const MSG_SKU_DISABLED: &str = "商品规格已禁用，请重新选择";
 
@@ -78,7 +77,10 @@ impl CreateParam {
         if self.group_nums.as_deref().unwrap_or_default().is_empty() {
             return Err("成团人数集合不能为空".to_string());
         }
-        let details = self.groupon_promotion_details.as_deref().unwrap_or_default();
+        let details = self
+            .groupon_promotion_details
+            .as_deref()
+            .unwrap_or_default();
         if details.is_empty() {
             return Err("拼团信息不能为空".to_string());
         }
@@ -450,7 +452,14 @@ pub fn parse_group_num_json(raw: &str) -> Vec<GrouponNumVO> {
 #[must_use]
 pub fn assemble_ranges(
     details: &[DetailVO],
-) -> (Option<Decimal>, Option<Decimal>, Option<i32>, Option<i32>, Option<i32>, Option<i32>) {
+) -> (
+    Option<Decimal>,
+    Option<Decimal>,
+    Option<i32>,
+    Option<i32>,
+    Option<i32>,
+    Option<i32>,
+) {
     let prices: Vec<Decimal> = details
         .iter()
         .flat_map(|d| d.group_promotion_detail_prices.iter())
@@ -467,10 +476,7 @@ pub fn assemble_ranges(
 #[must_use]
 pub fn group_num_range(nums: &[GrouponNumVO]) -> (Option<i32>, Option<i32>) {
     let values: Vec<i32> = nums.iter().filter_map(|n| n.group_num).collect();
-    (
-        values.iter().copied().min(),
-        values.iter().copied().max(),
-    )
+    (values.iter().copied().min(), values.iter().copied().max())
 }
 
 /// 是否预约商品（Java `isReservationProduct`：`product_type` 5/6）。

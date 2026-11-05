@@ -92,7 +92,10 @@ impl AuthorityListQuery {
     #[must_use]
     pub fn page_params(&self) -> (u64, u64) {
         let page = self.page.unwrap_or(1).max(1);
-        let size = self.size.unwrap_or(DEFAULT_PAGE_SIZE).clamp(1, MAX_PAGE_SIZE);
+        let size = self
+            .size
+            .unwrap_or(DEFAULT_PAGE_SIZE)
+            .clamp(1, MAX_PAGE_SIZE);
         (page, size)
     }
 
@@ -300,20 +303,28 @@ mod tests {
     #[test]
     fn authority_child_dto_accepts_camel_and_snake_case() {
         let camel: Vec<AuthorityChildDTO> =
-            serde_json::from_str(r#"[{"authName":"编辑","authSn":"refundApplyUpdateManage"}]"#).unwrap();
+            serde_json::from_str(r#"[{"authName":"编辑","authSn":"refundApplyUpdateManage"}]"#)
+                .unwrap();
         assert_eq!(camel[0].auth_name.as_deref(), Some("编辑"));
         assert_eq!(camel[0].auth_sn.as_deref(), Some("refundApplyUpdateManage"));
 
         let snake: Vec<AuthorityChildDTO> =
-            serde_json::from_str(r#"[{"auth_name":"编辑","auth_sn":"userInvoiceUpdateManage"}]"#).unwrap();
+            serde_json::from_str(r#"[{"auth_name":"编辑","auth_sn":"userInvoiceUpdateManage"}]"#)
+                .unwrap();
         assert_eq!(snake[0].auth_name.as_deref(), Some("编辑"));
         assert_eq!(snake[0].auth_sn.as_deref(), Some("userInvoiceUpdateManage"));
     }
 
     #[test]
     fn field_to_column_matches_java_property_lookup() {
-        assert_eq!(authority_field_to_column("authoritySn"), Some("authority_sn"));
-        assert_eq!(authority_field_to_column("authority_sn"), Some("authority_sn"));
+        assert_eq!(
+            authority_field_to_column("authoritySn"),
+            Some("authority_sn")
+        );
+        assert_eq!(
+            authority_field_to_column("authority_sn"),
+            Some("authority_sn")
+        );
         assert_eq!(authority_field_to_column("nope"), None);
     }
 }

@@ -134,9 +134,7 @@ impl PriceInquiryQuery {
     /// （不 trim），故返回原始切片。
     #[must_use]
     pub fn effective_keyword(&self) -> Option<&str> {
-        self.keyword
-            .as_deref()
-            .filter(|s| !s.trim().is_empty())
+        self.keyword.as_deref().filter(|s| !s.trim().is_empty())
     }
 
     /// 有效手机号过滤值（Java `like(StrUtil.isNotBlank(mobile), mobile)`：
@@ -245,7 +243,10 @@ pub struct UpdateFieldDTO {
     /// 字段名
     pub field: Option<String>,
     /// 值
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -427,7 +428,11 @@ mod tests {
     #[test]
     fn query_size_is_capped_at_100() {
         let q: PriceInquiryQuery = serde_json::from_str(r#"{"size":500}"#).unwrap();
-        assert_eq!(q.page_query().page_size, 100, "BasePage.getSize() > 100 ⇒ 100");
+        assert_eq!(
+            q.page_query().page_size,
+            100,
+            "BasePage.getSize() > 100 ⇒ 100"
+        );
     }
 
     #[test]
@@ -491,7 +496,13 @@ mod tests {
 
     // ———————————————— 回复记录 ————————————————
 
-    fn record(id: i32, reply_type: i32, name: &str, content: &str, ts: i32) -> PriceInquiryReplyRecord {
+    fn record(
+        id: i32,
+        reply_type: i32,
+        name: &str,
+        content: &str,
+        ts: i32,
+    ) -> PriceInquiryReplyRecord {
         PriceInquiryReplyRecord {
             id,
             inquiry_id: 9,

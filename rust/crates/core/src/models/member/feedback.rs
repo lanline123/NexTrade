@@ -657,12 +657,10 @@ impl FeedbackLookups {
     #[must_use]
     pub fn product(&self, product_id: Option<i32>) -> Option<UserFeedbackProductVO> {
         let id = product_id.filter(|v| *v > 0)?;
-        self.products
-            .get(&id)
-            .map(|name| UserFeedbackProductVO {
-                product_id: id,
-                product_name: name.clone(),
-            })
+        self.products.get(&id).map(|name| UserFeedbackProductVO {
+            product_id: id,
+            product_name: name.clone(),
+        })
     }
 
     /// 店铺信息（`shop_id <= 0` 或查不到 → `None`）。
@@ -777,10 +775,8 @@ pub fn build_detail_vo(
             product_id,
             product_name,
         }),
-        order_info: order.map(|(order_id, order_sn)| UserFeedbackDetailOrderVO {
-            order_id,
-            order_sn,
-        }),
+        order_info: order
+            .map(|(order_id, order_sn)| UserFeedbackDetailOrderVO { order_id, order_sn }),
         shop_id: f.shop_id,
         shop: shop.map(|(shop_id, shop_title)| UserFeedbackDetailShopVO {
             shop_id,
@@ -1007,9 +1003,7 @@ fn format_secs_utc8(secs: i64) -> String {
 #[must_use]
 pub fn to_feedback_pics(pics: Option<&[String]>) -> String {
     match pics {
-        Some(v) if !v.is_empty() => {
-            serde_json::to_string(v).unwrap_or_else(|_| "[]".to_string())
-        }
+        Some(v) if !v.is_empty() => serde_json::to_string(v).unwrap_or_else(|_| "[]".to_string()),
         _ => "[]".to_string(),
     }
 }
@@ -1114,8 +1108,12 @@ fn find_ci(hay: &str, needle: &str, from: usize) -> Option<usize> {
     if nb.is_empty() || from >= hb.len() || nb.len() > hb.len() - from {
         return None;
     }
-    (from..=hb.len() - nb.len())
-        .find(|&i| hb[i..i + nb.len()].iter().zip(nb).all(|(a, b)| a.eq_ignore_ascii_case(b)))
+    (from..=hb.len() - nb.len()).find(|&i| {
+        hb[i..i + nb.len()]
+            .iter()
+            .zip(nb)
+            .all(|(a, b)| a.eq_ignore_ascii_case(b))
+    })
 }
 
 /// Java `\w`（默认 ASCII）：`[A-Za-z0-9_]`。
@@ -1430,7 +1428,9 @@ mod tests {
         let c = list_order_clause(&q(serde_json::json!({})));
         assert_eq!(c, " ORDER BY id DESC");
         // sortField = 主键属性名 → 主键列
-        let c = list_order_clause(&q(serde_json::json!({"sortField": "id", "sortOrder": "asc"})));
+        let c = list_order_clause(&q(
+            serde_json::json!({"sortField": "id", "sortOrder": "asc"}),
+        ));
         assert_eq!(c, " ORDER BY id ASC");
         // 属性名 / 列名都要命中
         let c = list_order_clause(&q(
@@ -1454,16 +1454,24 @@ mod tests {
     #[test]
     fn order_clause_direction_edge_cases() {
         // 空串 sortOrder → 降序（Java isEmpty 分支）
-        let c = list_order_clause(&q(serde_json::json!({"sortField": "status", "sortOrder": ""})));
+        let c = list_order_clause(&q(
+            serde_json::json!({"sortField": "status", "sortOrder": ""}),
+        ));
         assert_eq!(c, " ORDER BY status DESC");
         // 非法值 → 完全不追加 ORDER BY（Java 的 else-if 缺口）
-        let c = list_order_clause(&q(serde_json::json!({"sortField": "status", "sortOrder": "weird"})));
+        let c = list_order_clause(&q(
+            serde_json::json!({"sortField": "status", "sortOrder": "weird"}),
+        ));
         assert_eq!(c, "");
         // 不做 trim：`" asc"` 也不等于 asc
-        let c = list_order_clause(&q(serde_json::json!({"sortField": "status", "sortOrder": " asc"})));
+        let c = list_order_clause(&q(
+            serde_json::json!({"sortField": "status", "sortOrder": " asc"}),
+        ));
         assert_eq!(c, "");
         // 大小写不敏感
-        let c = list_order_clause(&q(serde_json::json!({"sortField": "status", "sortOrder": "ASC"})));
+        let c = list_order_clause(&q(
+            serde_json::json!({"sortField": "status", "sortOrder": "ASC"}),
+        ));
         assert_eq!(c, " ORDER BY status ASC");
     }
 
@@ -1573,7 +1581,10 @@ mod tests {
         let pics = vec!["a.jpg".to_string(), "b.jpg".to_string()];
         assert_eq!(to_feedback_pics(Some(&pics)), r#"["a.jpg","b.jpg"]"#);
 
-        assert_eq!(parse_feedback_pics(Some(r#"["a"]"#)), Some(vec!["a".to_string()]));
+        assert_eq!(
+            parse_feedback_pics(Some(r#"["a"]"#)),
+            Some(vec!["a".to_string()])
+        );
         assert_eq!(parse_feedback_pics(Some("[]")), Some(Vec::new()));
         // 非法 JSON / 空 / 纯空白 → None（Java JsonUtil 返回 null）
         assert_eq!(parse_feedback_pics(Some("not json")), None);
@@ -1652,8 +1663,14 @@ mod tests {
         assert_eq!(vo.add_time, "2023-11-15 06:13:20");
         assert_eq!(vo.nickname.as_deref(), Some("昵称"));
         assert_eq!(vo.order_sn.as_deref(), Some("SN123"));
-        assert_eq!(vo.product.as_ref().map(|p| p.product_name.as_str()), Some("商品A"));
-        assert_eq!(vo.shop.as_ref().and_then(|s| s.shop_title.as_deref()), Some("店铺A"));
+        assert_eq!(
+            vo.product.as_ref().map(|p| p.product_name.as_str()),
+            Some("商品A")
+        );
+        assert_eq!(
+            vo.shop.as_ref().and_then(|s| s.shop_title.as_deref()),
+            Some("店铺A")
+        );
         let r = vo.reply.expect("应有回复");
         assert_eq!(r.username, "admin");
         assert_eq!(r.add_time, "2023-11-15 06:15:00");

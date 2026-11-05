@@ -16,7 +16,7 @@
 use axum::{extract::Query, extract::State, routing::get, Extension, Router};
 use tigshop_core::models::system::tips_manage::{TipsManageQuery, TipsVO};
 use tigshop_openapi::RouteDoc;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::tenant::{platform_only, require_platform};
 
@@ -31,7 +31,8 @@ const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new().route("/common/tipsManage/list", get(list))
+    Router::new()
+        .route("/common/tipsManage/list", get(list))
         .layer(axum::middleware::from_fn(platform_only))
 }
 

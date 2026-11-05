@@ -183,7 +183,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（驼峰属性名或数据库列名）
     pub field: Option<String>,
     /// 值
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -247,7 +250,10 @@ mod tests {
     /// 名称校验：必填与长度上限的文案逐字符对齐 `ServicesConstants`。
     #[test]
     fn service_name_validation_messages_are_verbatim() {
-        assert_eq!(validate_service_name(None).unwrap_err(), MSG_SERVICE_NAME_REQUIRED);
+        assert_eq!(
+            validate_service_name(None).unwrap_err(),
+            MSG_SERVICE_NAME_REQUIRED
+        );
         assert_eq!(
             validate_service_name(Some("   ")).unwrap_err(),
             MSG_SERVICE_NAME_REQUIRED
@@ -279,9 +285,18 @@ mod tests {
                 "sort_order"
             ]
         );
-        assert_eq!(normalize_field("productServiceName"), Some("product_service_name"));
-        assert_eq!(normalize_field("product_service_name"), Some("product_service_name"));
-        assert_eq!(normalize_field("productServiceDesc"), Some("product_service_desc"));
+        assert_eq!(
+            normalize_field("productServiceName"),
+            Some("product_service_name")
+        );
+        assert_eq!(
+            normalize_field("product_service_name"),
+            Some("product_service_name")
+        );
+        assert_eq!(
+            normalize_field("productServiceDesc"),
+            Some("product_service_desc")
+        );
         assert_eq!(normalize_field("defaultOn"), Some("default_on"));
         assert_eq!(normalize_field("sortOrder"), Some("sort_order"));
         // 图标 / 店铺 ID / 主键不在白名单 → 报 `field 的值有误`
@@ -339,10 +354,9 @@ mod tests {
         assert_eq!(json["shopId"], 0);
 
         // 反向：请求体 camelCase 可解析
-        let back: ServicesDTO = serde_json::from_str(
-            r#"{"productServiceName":"包邮","sortOrder":3,"defaultOn":0}"#,
-        )
-        .unwrap();
+        let back: ServicesDTO =
+            serde_json::from_str(r#"{"productServiceName":"包邮","sortOrder":3,"defaultOn":0}"#)
+                .unwrap();
         assert_eq!(back.product_service_name.as_deref(), Some("包邮"));
         assert_eq!(back.sort_order, Some(3));
     }

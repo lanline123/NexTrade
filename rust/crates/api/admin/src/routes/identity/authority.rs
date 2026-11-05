@@ -160,7 +160,9 @@ async fn get_all_authority(
     Query(q): Query<AllAuthorityQuery>,
 ) -> ApiResult<Option<Vec<AuthorityTreeNode>>> {
     let ctx = context_from(&auth, q.shop_id, q.vendor_id);
-    ok(state.identity.authority
+    ok(state
+        .identity
+        .authority
         .get_all_authority(&ctx, q.admin_type.as_deref())
         .await?)
 }
@@ -207,7 +209,11 @@ async fn get_authority_parent_name(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<Option<String>> {
-    ok(state.identity.authority.get_authority_parent_name(q.id).await?)
+    ok(state
+        .identity
+        .authority
+        .get_authority_parent_name(q.id)
+        .await?)
 }
 
 /// 权限目录是平台级元数据：只有平台账号可增删改，店铺账号只能读取自身菜单。
@@ -264,7 +270,10 @@ async fn del(
 }
 
 /// `GET /adminapi/authority/authority/detail?id=`：权限详情。
-async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<AuthorityDTO> {
+async fn detail(
+    State(state): State<AdminState>,
+    Query(q): Query<IdQuery>,
+) -> ApiResult<AuthorityDTO> {
     ok(state.identity.authority.detail(q.id).await?)
 }
 
@@ -301,10 +310,7 @@ async fn update_field(
 fn context_from(auth: &AuthUser, shop_id: Option<i32>, vendor_id: Option<i32>) -> AuthorityContext {
     let (shop_id, vendor_id) = match auth.scoped_shop_id() {
         Some(scope) => (Some(scope), None),
-        None => (
-            shop_id.filter(|v| *v != 0),
-            vendor_id.filter(|v| *v != 0),
-        ),
+        None => (shop_id.filter(|v| *v != 0), vendor_id.filter(|v| *v != 0)),
     };
     AuthorityContext {
         admin_id: auth.id,
@@ -328,7 +334,10 @@ mod tests {
             ("GET", "/adminapi/authority/authority/getAllAuthority"),
             ("GET", "/adminapi/authority/authority/getAuthority"),
             ("GET", "/adminapi/authority/authority/list"),
-            ("GET", "/adminapi/authority/authority/getAuthorityParentName"),
+            (
+                "GET",
+                "/adminapi/authority/authority/getAuthorityParentName",
+            ),
             ("POST", "/adminapi/authority/authority/batch"),
             ("POST", "/adminapi/authority/authority/create"),
             ("POST", "/adminapi/authority/authority/del"),

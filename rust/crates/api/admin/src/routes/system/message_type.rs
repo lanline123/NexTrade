@@ -39,9 +39,11 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::catalog::category_all::UpdateFieldDTO;
-use tigshop_core::models::system::message_type::{MessageTypeDetailDTO, MessageTypeListQuery, MessageTypeListVO};
+use tigshop_core::models::system::message_type::{
+    MessageTypeDetailDTO, MessageTypeListQuery, MessageTypeListVO,
+};
 use tigshop_core::types::PageResult;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::tenant::{platform_only, require_platform};
 
@@ -166,10 +168,12 @@ async fn update_field(
 /// → `MessageTypeServiceImpl#miniProgramMessageTemplate`。
 ///
 /// **未启用**：缺少微信小程序 access_token 服务（见服务层文档）。
-async fn mini_program_message_template(
-    State(state): State<AdminState>,
-) -> ApiResult<&'static str> {
-    state.system.message_type.mini_program_message_template().await?;
+async fn mini_program_message_template(State(state): State<AdminState>) -> ApiResult<&'static str> {
+    state
+        .system
+        .message_type
+        .mini_program_message_template()
+        .await?;
     ok("生成成功")
 }
 
@@ -202,7 +206,10 @@ mod tests {
             "POST",
             "/adminapi/setting/messageType/miniProgramMessageTemplate",
         ),
-        ("POST", "/adminapi/setting/messageType/wechatMessageTemplate"),
+        (
+            "POST",
+            "/adminapi/setting/messageType/wechatMessageTemplate",
+        ),
     ];
 
     #[test]
@@ -211,8 +218,7 @@ mod tests {
         assert_eq!(docs.len(), CONTRACT_PATHS.len());
         for (method, path) in CONTRACT_PATHS {
             assert!(
-                docs.iter()
-                    .any(|d| d.method == method && d.path == path),
+                docs.iter().any(|d| d.method == method && d.path == path),
                 "缺少契约路由 {method} {path}"
             );
         }

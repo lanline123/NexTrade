@@ -1,4 +1,4 @@
-﻿//! 装修推广短链域（content::decorate_promote）DTO / 纯函数。
+//! 装修推广短链域（content::decorate_promote）DTO / 纯函数。
 //!
 //! 对应 Java `DecorateController#generateShortLink`
 //! （`POST /adminapi/decorate/promote/generateShortLink`）。
@@ -115,7 +115,10 @@ mod tests {
         assert_eq!(a, b);
         assert_ne!(a, c);
         assert!(!a.is_empty() && a.len() <= 7);
-        assert_eq!(build_short_link(Some("https://h5.x.com/"), "abc"), "https://h5.x.com/s/abc");
+        assert_eq!(
+            build_short_link(Some("https://h5.x.com/"), "abc"),
+            "https://h5.x.com/s/abc"
+        );
         assert_eq!(build_short_link(None, "abc"), "/s/abc");
     }
 

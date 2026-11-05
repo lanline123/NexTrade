@@ -30,13 +30,21 @@ use crate::AdminState;
 
 /// 本域 3 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 3] = [
-    ("GET", "/setting/licensed/index", "LicensedController.getLicensedIndex"),
+    (
+        "GET",
+        "/setting/licensed/index",
+        "LicensedController.getLicensedIndex",
+    ),
     (
         "POST",
         "/setting/licensed/saveLicensed",
         "LicensedController.saveLicensed",
     ),
-    ("POST", "/setting/licensed/update", "LicensedController.update"),
+    (
+        "POST",
+        "/setting/licensed/update",
+        "LicensedController.update",
+    ),
 ];
 
 /// 授权许可路由（挂载于 `/adminapi` 下，外层统一套 `require_auth`）。

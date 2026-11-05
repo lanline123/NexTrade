@@ -60,7 +60,8 @@ impl StockCalendarListQuery {
     pub fn date_range(&self) -> (NaiveDate, NaiveDate) {
         let today = chrono::Local::now().date_naive();
         let parse = |s: &Option<String>| -> Option<NaiveDate> {
-            s.as_deref().and_then(|v| NaiveDate::parse_from_str(v.trim(), "%Y-%m-%d").ok())
+            s.as_deref()
+                .and_then(|v| NaiveDate::parse_from_str(v.trim(), "%Y-%m-%d").ok())
         };
         let mut start = parse(&self.start_date).unwrap_or(today);
         let mut end = parse(&self.end_date).unwrap_or(start);
@@ -265,10 +266,7 @@ pub struct ProductTimeListVO {
 /// - `excludeMonthDays`：1-31
 /// - `excludeSpecificDates`：`yyyy-MM-dd` 精确排除
 #[must_use]
-pub fn filter_dates(
-    dates: &[NaiveDate],
-    exclusion: Option<&DateExclusionDTO>,
-) -> Vec<NaiveDate> {
+pub fn filter_dates(dates: &[NaiveDate], exclusion: Option<&DateExclusionDTO>) -> Vec<NaiveDate> {
     let Some(ex) = exclusion else {
         return dates.to_vec();
     };
@@ -296,10 +294,8 @@ mod tests {
 
     #[test]
     fn date_range_clamps_to_31_days() {
-        let q: StockCalendarListQuery = serde_json::from_str(
-            r#"{"startDate":"2026-01-01","endDate":"2026-03-01"}"#,
-        )
-        .unwrap();
+        let q: StockCalendarListQuery =
+            serde_json::from_str(r#"{"startDate":"2026-01-01","endDate":"2026-03-01"}"#).unwrap();
         let (s, e) = q.date_range();
         assert_eq!(s.to_string(), "2026-01-01");
         assert_eq!((e - s).num_days(), 30);

@@ -277,7 +277,10 @@ pub struct UpdateFieldDTO {
     /// 字段名
     pub field: Option<String>,
     /// 值
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -374,7 +377,12 @@ mod tests {
 
     #[test]
     fn download_flag_only_true_when_positive() {
-        for (raw, want) in [(None, false), (Some(0), false), (Some(-1), false), (Some(1), true)] {
+        for (raw, want) in [
+            (None, false),
+            (Some(0), false),
+            (Some(-1), false),
+            (Some(1), true),
+        ] {
             let q = ECardGroupListQuery {
                 is_download: raw,
                 ..Default::default()

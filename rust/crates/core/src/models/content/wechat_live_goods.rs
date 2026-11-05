@@ -1,4 +1,4 @@
-﻿//! 微信直播商品库域（content::wechat_live_goods）DTO / 纯函数。
+//! 微信直播商品库域（content::wechat_live_goods）DTO / 纯函数。
 //!
 //! 对应原 Java `WechatLiveGoodsController` 的 3 个端点：
 //! `POST /adminapi/content/wechatLiveGoods/import`、`GET .../list`、`GET .../query`。
@@ -114,9 +114,10 @@ mod tests {
 
     #[test]
     fn queries_accept_java_names() {
-        let q: WechatLiveGoodsPageQuery =
-            serde_json::from_str(r#"{"roomId":1,"auditStatus":2,"keyword":"a","page":1,"size":10}"#)
-                .unwrap();
+        let q: WechatLiveGoodsPageQuery = serde_json::from_str(
+            r#"{"roomId":1,"auditStatus":2,"keyword":"a","page":1,"size":10}"#,
+        )
+        .unwrap();
         assert_eq!(q.room_id, Some(1));
         assert_eq!(q.audit_status, Some(2));
     }

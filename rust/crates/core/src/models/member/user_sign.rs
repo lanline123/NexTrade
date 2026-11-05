@@ -81,8 +81,18 @@ mod tests {
     #[test]
     fn sign_points_matches_day_num() {
         let days = vec![
-            SignInSettingVO { id: 1, day_num: Some(1), points: Some(5), ..Default::default() },
-            SignInSettingVO { id: 2, day_num: Some(2), points: Some(10), ..Default::default() },
+            SignInSettingVO {
+                id: 1,
+                day_num: Some(1),
+                points: Some(5),
+                ..Default::default()
+            },
+            SignInSettingVO {
+                id: 2,
+                day_num: Some(2),
+                points: Some(10),
+                ..Default::default()
+            },
         ];
         assert_eq!(sign_points(&days, 1, 0), 5);
         assert_eq!(sign_points(&days, 2, 0), 10);
@@ -95,7 +105,12 @@ mod tests {
     fn messages_and_vo_serde() {
         assert_eq!(ALREADY_SIGNED, "今天已经签到过了");
         assert_eq!(SIGN_FAILED, "签到失败");
-        let vo = UserSignInfoVO { record: 2, is_sign: 0, sign_points: 5, ..Default::default() };
+        let vo = UserSignInfoVO {
+            record: 2,
+            is_sign: 0,
+            sign_points: 5,
+            ..Default::default()
+        };
         let v = serde_json::to_value(&vo).unwrap();
         assert_eq!(v["isSign"], 0);
         assert_eq!(v["signPoints"], 5);

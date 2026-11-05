@@ -25,9 +25,11 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
-    [
-        ("GET", "/adminapi/salesman/salesman/list", "SalesmanController.list"),
-    ]
+    [(
+        "GET",
+        "/adminapi/salesman/salesman/list",
+        "SalesmanController.list",
+    )]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
     .collect()

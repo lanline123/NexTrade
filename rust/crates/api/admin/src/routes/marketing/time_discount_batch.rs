@@ -34,15 +34,8 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 }
 
 /// `POST /adminapi/promotion/timeDiscount/batch`：批量删除限时折扣。
-async fn batch(
-    State(state): State<AdminState>,
-    Json(dto): Json<BatchDTO>,
-) -> ApiResult<()> {
-    state
-        .marketing
-        .time_discount_batch
-        .batch(&dto)
-        .await?;
+async fn batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<()> {
+    state.marketing.time_discount_batch.batch(&dto).await?;
     ok(())
 }
 

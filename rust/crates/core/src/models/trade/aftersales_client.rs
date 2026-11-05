@@ -294,9 +294,7 @@ pub fn client_status_desc(
                 "商家已签收商品，财务正在处理退款，将按原路退回。".to_string()
             }
         }
-        aftersales_status::SEND_BACK => {
-            "申请已通过，请填写退货物流信息并寄回商品。".to_string()
-        }
+        aftersales_status::SEND_BACK => "申请已通过，请填写退货物流信息并寄回商品。".to_string(),
         aftersales_status::RETURNED | aftersales_status::WAIT_FOR_SUPPLIER_RECEIPT => {
             "商品已寄出，等待商家签收，签收后将为你处理退款。".to_string()
         }
@@ -794,14 +792,8 @@ mod tests {
 
     #[test]
     fn status_sets_match_java_helpers() {
-        assert_eq!(
-            aftersales_status::applied_statuses(),
-            [1, 2, 4, 5, 21, 22]
-        );
-        assert_eq!(
-            aftersales_status::valid_statuses(),
-            [1, 2, 4, 5, 6, 21, 22]
-        );
+        assert_eq!(aftersales_status::applied_statuses(), [1, 2, 4, 5, 21, 22]);
+        assert_eq!(aftersales_status::valid_statuses(), [1, 2, 4, 5, 6, 21, 22]);
         assert_eq!(aftersales_status::terminal_statuses(), [6, 7, 3]);
     }
 
@@ -903,7 +895,10 @@ mod tests {
             Some("你的退款申请已被商家拒绝，拒绝理由：，可联系商家协商或重新申请。")
         );
         // 取消状态无副文案
-        assert_eq!(client_status_desc(Some(1), Some(7), Some(0), None, false), None);
+        assert_eq!(
+            client_status_desc(Some(1), Some(7), Some(0), None, false),
+            None
+        );
     }
 
     #[test]

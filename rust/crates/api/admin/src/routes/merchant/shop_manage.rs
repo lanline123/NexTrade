@@ -100,11 +100,19 @@ const ROUTE_TABLE: [(&str, &str, &str); 20] = [
     // (HTTP method, 本模块路径, 原 Java handler)
     ("GET", "/merchant/shop/list", "ShopController.list"),
     ("GET", "/merchant/shop/detail", "ShopController.detail"),
-    ("GET", "/merchant/shop/currentDetail", "ShopController.currentShop"),
+    (
+        "GET",
+        "/merchant/shop/currentDetail",
+        "ShopController.currentShop",
+    ),
     ("POST", "/merchant/shop/create", "ShopController.create"),
     ("POST", "/merchant/shop/update", "ShopController.update"),
     ("POST", "/merchant/shop/del", "ShopController.del"),
-    ("POST", "/merchant/shop/updateField", "ShopController.updateField"),
+    (
+        "POST",
+        "/merchant/shop/updateField",
+        "ShopController.updateField",
+    ),
     ("POST", "/merchant/shop/batch", "ShopController.batch"),
     ("GET", "/merchant/shop/myShop", "ShopController.myShop"),
     (
@@ -119,8 +127,16 @@ const ROUTE_TABLE: [(&str, &str, &str); 20] = [
     ),
     ("POST", "/merchant/shop/choose", "ShopController.choose"),
     ("GET", "/merchant/shop/shopList", "ShopController.shopList"),
-    ("GET", "/merchant/shop/staffShow", "ShopController.staffShow"),
-    ("POST", "/merchant/shop/updateInfo", "ShopController.updateInfo"),
+    (
+        "GET",
+        "/merchant/shop/staffShow",
+        "ShopController.staffShow",
+    ),
+    (
+        "POST",
+        "/merchant/shop/updateInfo",
+        "ShopController.updateInfo",
+    ),
     ("POST", "/merchant/shop/setting", "ShopController.setting"),
     (
         "GET",
@@ -179,7 +195,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/merchant/shop/staffShow", get(shop_staff_show))
         .route("/merchant/shop/updateInfo", post(shop_update_info))
         .route("/merchant/shop/setting", post(shop_setting))
-        .route("/merchant/shop/getVendorSetting", get(shop_get_vendor_setting))
+        .route(
+            "/merchant/shop/getVendorSetting",
+            get(shop_get_vendor_setting),
+        )
         .route(
             "/merchant/shop/updateVendorSetting",
             post(shop_update_vendor_setting),
@@ -253,7 +272,11 @@ async fn shop_detail(
     let shop_id = q
         .shop_id
         .ok_or_else(|| tigshop_core::Error::Validation("店铺ID不能为空".into()))?;
-    ok(state.merchant.shop_manage.detail_with_score(shop_id).await?)
+    ok(state
+        .merchant
+        .shop_manage
+        .detail_with_score(shop_id)
+        .await?)
 }
 
 /// 当前账号的店铺范围（仅来自认证身份）。
@@ -274,10 +297,9 @@ fn require_platform(tenant: &TenantContext) -> Result<(), AppError> {
 fn target_shop(tenant: &TenantContext, requested: Option<i32>) -> Result<i32, AppError> {
     match tenant.shop_scope() {
         Some(scope) => match requested.filter(|v| *v > 0) {
-            Some(req) if req != scope => Err(tigshop_core::Error::Forbidden(format!(
-                "无权访问店铺 {req} 的数据"
-            ))
-            .into()),
+            Some(req) if req != scope => {
+                Err(tigshop_core::Error::Forbidden(format!("无权访问店铺 {req} 的数据")).into())
+            }
             _ => Ok(scope),
         },
         None => requested
@@ -297,7 +319,11 @@ async fn shop_current_detail(
     Query(q): Query<ShopIdQuery>,
 ) -> ApiResult<ShopVO> {
     let shop_id = target_shop(&tenant, q.shop_id)?;
-    ok(state.merchant.shop_manage.current_detail(shop_id, auth.id).await?)
+    ok(state
+        .merchant
+        .shop_manage
+        .current_detail(shop_id, auth.id)
+        .await?)
 }
 
 /// `POST /adminapi/merchant/shop/create`：创建店铺。
@@ -417,7 +443,11 @@ async fn shop_set_pos_login_default(
     if let Some(scope) = tenant_shop(&tenant) {
         p.shop_id = Some(scope);
     }
-    state.merchant.shop_manage.set_pos_login_default(&p, auth.id).await?;
+    state
+        .merchant
+        .shop_manage
+        .set_pos_login_default(&p, auth.id)
+        .await?;
     ok("设置成功")
 }
 
@@ -434,7 +464,11 @@ async fn shop_record_login_system(
     if let Some(scope) = tenant_shop(&tenant) {
         p.shop_id = Some(scope);
     }
-    state.merchant.shop_manage.record_login_system(&p, auth.id).await?;
+    state
+        .merchant
+        .shop_manage
+        .record_login_system(&p, auth.id)
+        .await?;
     ok("记录成功")
 }
 
@@ -518,7 +552,11 @@ async fn shop_update_info(
     Json(p): Json<ShopWritePayload>,
 ) -> ApiResult<serde_json::Value> {
     let shop_id = target_shop(&tenant, q.shop_id)?;
-    let shop = state.merchant.shop_manage.update_info(&p, Some(shop_id)).await?;
+    let shop = state
+        .merchant
+        .shop_manage
+        .update_info(&p, Some(shop_id))
+        .await?;
     ok(shop_entity_json(&shop))
 }
 
@@ -557,7 +595,11 @@ async fn shop_setting(
     Json(p): Json<ShopSettingPayload>,
 ) -> ApiResult<&'static str> {
     let shop_id = target_shop(&tenant, q.shop_id)?;
-    state.merchant.shop_manage.setting(&p, Some(shop_id)).await?;
+    state
+        .merchant
+        .shop_manage
+        .setting(&p, Some(shop_id))
+        .await?;
     ok("设置成功")
 }
 
@@ -571,7 +613,11 @@ async fn shop_get_vendor_setting(
     Query(q): Query<ShopIdQuery>,
 ) -> ApiResult<VendorSettingVO> {
     let shop_id = target_shop(&tenant, q.shop_id)?;
-    ok(state.merchant.shop_manage.get_vendor_setting(shop_id).await?)
+    ok(state
+        .merchant
+        .shop_manage
+        .get_vendor_setting(shop_id)
+        .await?)
 }
 
 /// `POST /adminapi/merchant/shop/updateVendorSetting?shopId=`：保存供应商配置。
@@ -586,7 +632,11 @@ async fn shop_update_vendor_setting(
     Json(p): Json<VendorSettingUpdateParam>,
 ) -> ApiResult<&'static str> {
     let shop_id = target_shop(&tenant, q.shop_id)?;
-    state.merchant.shop_manage.update_vendor_setting(shop_id, &p).await?;
+    state
+        .merchant
+        .shop_manage
+        .update_vendor_setting(shop_id, &p)
+        .await?;
     ok("保存成功")
 }
 
@@ -608,7 +658,11 @@ async fn shop_store_list_by_product_id(
         .product_id
         .filter(|v| *v > 0)
         .ok_or_else(|| tigshop_core::Error::Validation("商品ID不能为空".into()))?;
-    ok(state.merchant.shop_manage.store_list_by_product_id(product_id).await?)
+    ok(state
+        .merchant
+        .shop_manage
+        .store_list_by_product_id(product_id)
+        .await?)
 }
 
 /// `POST /adminapi/merchant/shop/delShop`：删除店铺 / 门店 / 自提点（软删除）。

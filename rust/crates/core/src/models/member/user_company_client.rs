@@ -88,8 +88,7 @@ mod tests {
     #[test]
     fn dto_and_time() {
         let dto: UserCompanyDTO =
-            serde_json::from_str(r#"{"type":2,"companyName":"A","companyData":{"k":1}}"#)
-                .unwrap();
+            serde_json::from_str(r#"{"type":2,"companyName":"A","companyData":{"k":1}}"#).unwrap();
         assert_eq!(dto.r#type, Some(2));
         assert_eq!(dto.company_name.as_deref(), Some("A"));
         assert_eq!(format_time(Some(1_700_000_000)), "2023-11-15 06:13:20");

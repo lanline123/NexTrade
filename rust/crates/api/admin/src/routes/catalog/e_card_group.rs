@@ -45,16 +45,20 @@ use tigshop_core::models::catalog::e_card_group::{
 };
 use tigshop_core::types::PageResult;
 use tigshop_core::Error;
-use tigshop_security::web::{ApiResult, AppError, AuthUser, client_ip, ok};
+use tigshop_security::web::{client_ip, ok, ApiResult, AppError, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 电子卡券组域全部 8 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java 方法名）。
 ///
 /// 顺序与原 Java `ECardGroupController` 一致；`implemented_routes()` 唯一来源。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/product/eCardGroup/list", "ECardGroupController.list"),
+    (
+        "GET",
+        "/product/eCardGroup/list",
+        "ECardGroupController.list",
+    ),
     (
         "GET",
         "/product/eCardGroup/detail",
@@ -70,7 +74,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "/product/eCardGroup/update",
         "ECardGroupController.update",
     ),
-    ("POST", "/product/eCardGroup/del", "ECardGroupController.del"),
+    (
+        "POST",
+        "/product/eCardGroup/del",
+        "ECardGroupController.del",
+    ),
     (
         "POST",
         "/product/eCardGroup/updateField",
@@ -263,7 +271,11 @@ async fn e_card_group_import(
     state
         .catalog
         .e_card_group
-        .batch_import(form_group_id.or(q.group_id), file_present, file_bytes.as_deref())
+        .batch_import(
+            form_group_id.or(q.group_id),
+            file_present,
+            file_bytes.as_deref(),
+        )
         .await?;
     ok(())
 }
@@ -460,13 +472,22 @@ mod tests {
     /// 多租户：电子卡券组详情/更新/删除跨店 403。
     #[test]
     fn tenant_scope_isolation() {
-        let shop = AuthUser { id: 3, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(5) };
+        let shop = AuthUser {
+            id: 3,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(5),
+        };
         assert!(tenant::ensure_row_shop(&shop, 5).is_ok());
         assert!(tenant::ensure_row_shop(&shop, 6).is_err());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert!(tenant::ensure_row_shop(&platform, 6).is_ok());
     }
-
 }

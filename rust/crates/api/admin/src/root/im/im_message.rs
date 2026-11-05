@@ -37,8 +37,8 @@ use axum::{
     Extension, Json, Router,
 };
 use tigshop_core::models::im::im_message::{
-    ImMessageListDTO, ImMessageListVO, ImMessageReceivedListDTO, ImMessageSendDTO,
-    ImMessageSendVO, ImSetReadDTO, UploadVideoInfoVO,
+    ImMessageListDTO, ImMessageListVO, ImMessageReceivedListDTO, ImMessageSendDTO, ImMessageSendVO,
+    ImSetReadDTO, UploadVideoInfoVO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_core::Error;
@@ -65,13 +65,21 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/im/conversation/message/list", "ImMessageController.list"),
+        (
+            "GET",
+            "/im/conversation/message/list",
+            "ImMessageController.list",
+        ),
         (
             "GET",
             "/im/conversation/message/receivedList",
             "ImMessageController.receivedList",
         ),
-        ("POST", "/im/conversation/message/send", "ImMessageController.send"),
+        (
+            "POST",
+            "/im/conversation/message/send",
+            "ImMessageController.send",
+        ),
         (
             "POST",
             "/im/conversation/message/uploadVideo",
@@ -96,7 +104,11 @@ async fn list(
     Query(dto): Query<ImMessageListDTO>,
 ) -> ApiResult<PageResult<ImMessageListVO>> {
     let shop_id = resolve_shop_id(&headers, &auth);
-    ok(state.im.im_message.list_as_admin(&dto, shop_id, auth.id).await?)
+    ok(state
+        .im
+        .im_message
+        .list_as_admin(&dto, shop_id, auth.id)
+        .await?)
 }
 
 /// `GET /im/conversation/message/receivedList`：客服消息播报记录列表。
@@ -107,7 +119,11 @@ async fn received_list(
     Query(dto): Query<ImMessageReceivedListDTO>,
 ) -> ApiResult<PageResult<ImMessageListVO>> {
     let shop_id = resolve_shop_id(&headers, &auth);
-    ok(state.im.im_message.received_list(&dto, shop_id, auth.id).await?)
+    ok(state
+        .im
+        .im_message
+        .received_list(&dto, shop_id, auth.id)
+        .await?)
 }
 
 /// `POST /im/conversation/message/send`：发送消息（后台分支）。
@@ -118,7 +134,11 @@ async fn send(
     Json(dto): Json<ImMessageSendDTO>,
 ) -> ApiResult<ImMessageSendVO> {
     let shop_id = resolve_shop_id(&headers, &auth);
-    ok(state.im.im_message.send_as_admin(&dto, auth.id, shop_id).await?)
+    ok(state
+        .im
+        .im_message
+        .send_as_admin(&dto, auth.id, shop_id)
+        .await?)
 }
 
 /// `POST /im/conversation/message/uploadVideo`：上传视频（multipart，本地存储）。
@@ -127,7 +147,11 @@ async fn upload_video(
     mut multipart: Multipart,
 ) -> ApiResult<UploadVideoInfoVO> {
     let (file_name, bytes) = read_upload_file(&mut multipart).await?;
-    ok(state.im.im_message.upload_video(file_name.as_deref(), &bytes).await?)
+    ok(state
+        .im
+        .im_message
+        .upload_video(file_name.as_deref(), &bytes)
+        .await?)
 }
 
 /// `POST /im/conversation/message/setRead`：设置已读（后台分支）。
@@ -155,7 +179,9 @@ fn resolve_shop_id(_headers: &HeaderMap, _auth: &AuthUser) -> Option<i32> {
 }
 
 /// 读取 `multipart/form-data` 的 `file` 字段（文件名 + 字节流）。
-async fn read_upload_file(multipart: &mut Multipart) -> Result<(Option<String>, Vec<u8>), AppError> {
+async fn read_upload_file(
+    multipart: &mut Multipart,
+) -> Result<(Option<String>, Vec<u8>), AppError> {
     let mut file_name: Option<String> = None;
     let mut bytes: Vec<u8> = Vec::new();
     while let Some(field) = multipart

@@ -33,18 +33,42 @@ use crate::AdminState;
 
 /// 本域 8 条路由（挂载路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/merchant/apply/list", "MerchantApplyController.list"),
-    ("GET", "/merchant/apply/detail", "MerchantApplyController.detail"),
-    ("POST", "/merchant/apply/update", "MerchantApplyController.update"),
+    (
+        "GET",
+        "/merchant/apply/list",
+        "MerchantApplyController.list",
+    ),
+    (
+        "GET",
+        "/merchant/apply/detail",
+        "MerchantApplyController.detail",
+    ),
+    (
+        "POST",
+        "/merchant/apply/update",
+        "MerchantApplyController.update",
+    ),
     ("POST", "/merchant/apply/del", "MerchantApplyController.del"),
     (
         "POST",
         "/merchant/apply/updateField",
         "MerchantApplyController.updateField",
     ),
-    ("POST", "/merchant/apply/batch", "MerchantApplyController.batch"),
-    ("POST", "/merchant/apply/audit", "MerchantApplyController.audit"),
-    ("GET", "/merchant/apply/config", "MerchantApplyController.config"),
+    (
+        "POST",
+        "/merchant/apply/batch",
+        "MerchantApplyController.batch",
+    ),
+    (
+        "POST",
+        "/merchant/apply/audit",
+        "MerchantApplyController.audit",
+    ),
+    (
+        "GET",
+        "/merchant/apply/config",
+        "MerchantApplyController.config",
+    ),
 ];
 
 /// 入驻申请域路由（挂载于 `/adminapi` 下）。
@@ -177,11 +201,7 @@ async fn audit(
     Json(param): Json<MerchantApplyAuditParam>,
 ) -> ApiResult<()> {
     require_platform(&tenant)?;
-    state
-        .merchant
-        .merchant_apply
-        .audit(&param, auth.id)
-        .await?;
+    state.merchant.merchant_apply.audit(&param, auth.id).await?;
     ok(())
 }
 

@@ -483,12 +483,18 @@ pub fn prize_status_text(is_win: i32, prize_type: Option<i32>, status: i32) -> S
         return "-".to_string();
     }
     match prize_type {
-        Some(PRIZE_TYPE_POINTS | PRIZE_TYPE_COUPON) => {
-            if status == 1 { "已发放" } else { "未发放" }.to_string()
+        Some(PRIZE_TYPE_POINTS | PRIZE_TYPE_COUPON) => if status == 1 {
+            "已发放"
+        } else {
+            "未发放"
         }
-        Some(PRIZE_TYPE_PRODUCT) => {
-            if status == 1 { "已兑换" } else { "未兑换" }.to_string()
+        .to_string(),
+        Some(PRIZE_TYPE_PRODUCT) => if status == 1 {
+            "已兑换"
+        } else {
+            "未兑换"
         }
+        .to_string(),
         _ => "-".to_string(),
     }
 }
@@ -570,7 +576,10 @@ mod tests {
     #[test]
     fn basic_param_validation_messages() {
         let mut p = LotteryActivityParam::default();
-        assert_eq!(p.validate_basic(300, 200).unwrap_err(), "活动结束时间必须大于开始时间");
+        assert_eq!(
+            p.validate_basic(300, 200).unwrap_err(),
+            "活动结束时间必须大于开始时间"
+        );
         p.start_time = Some("2024-12-01 00:00:00".into());
         p.cost_type = Some(2);
         assert_eq!(
@@ -578,10 +587,7 @@ mod tests {
             "抽奖参与条件参数错误"
         );
         p.cost_type = Some(1);
-        assert_eq!(
-            p.validate_basic(100, 200).unwrap_err(),
-            "消耗积分必须大于0"
-        );
+        assert_eq!(p.validate_basic(100, 200).unwrap_err(), "消耗积分必须大于0");
         p.cost_points = Some(10);
         assert_eq!(
             p.validate_basic(100, 200).unwrap_err(),

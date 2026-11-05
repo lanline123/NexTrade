@@ -49,7 +49,11 @@ pub async fn api_token_auth(
         // Java：throw new GlobalException("API Token无效或过期")
         return Err(AppError(Error::Unauthorized("API Token无效或过期".into())));
     };
-    let Some(user) = admin_user.find_user(record.admin_id).await.map_err(AppError)? else {
+    let Some(user) = admin_user
+        .find_user(record.admin_id)
+        .await
+        .map_err(AppError)?
+    else {
         return Err(AppError(Error::Unauthorized("API Token无效或过期".into())));
     };
     let _ = admin_user.touch_api_token(record.id, now).await;

@@ -94,7 +94,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/promotion/productPromotion/create", post(create))
         .route("/promotion/productPromotion/update", post(update))
         .route("/promotion/productPromotion/del", post(del))
-        .route("/promotion/productPromotion/updateField", post(update_field))
+        .route(
+            "/promotion/productPromotion/updateField",
+            post(update_field),
+        )
         .route("/promotion/productPromotion/batch", post(batch))
         .route("/promotion/productPromotion/config", get(config))
         .route("/promotion/productPromotion/conflict", get(conflict))

@@ -154,7 +154,11 @@ async fn overview(
     Extension(tenant): Extension<TenantContext>,
 ) -> ApiResult<DepositShopOverviewVO> {
     let vendor_id = current_vendor(&tenant)?;
-    ok(state.merchant.vendor_deposit_shop.overview(vendor_id).await?)
+    ok(state
+        .merchant
+        .vendor_deposit_shop
+        .overview(vendor_id)
+        .await?)
 }
 
 /// `GET /adminapi/deposit/vendor/logList`：供应商端交易流水（分页）。
@@ -171,7 +175,11 @@ async fn log_list(
     Query(q): Query<DepositShopLogQuery>,
 ) -> ApiResult<PageResult<DepositShopLogVO>> {
     let vendor_id = current_vendor(&tenant)?;
-    ok(state.merchant.vendor_deposit_shop.log_list(vendor_id, &q).await?)
+    ok(state
+        .merchant
+        .vendor_deposit_shop
+        .log_list(vendor_id, &q)
+        .await?)
 }
 
 /// `GET /adminapi/deposit/vendor/frozenDetailList`：冻结明细（平台扣款记录）。
@@ -188,7 +196,11 @@ async fn frozen_detail_list(
     Query(q): Query<DepositShopLogQuery>,
 ) -> ApiResult<PageResult<DepositShopFrozenDetailVO>> {
     let vendor_id = current_vendor(&tenant)?;
-    ok(state.merchant.vendor_deposit_shop.frozen_detail_list(vendor_id, &q).await?)
+    ok(state
+        .merchant
+        .vendor_deposit_shop
+        .frozen_detail_list(vendor_id, &q)
+        .await?)
 }
 
 /// `GET /adminapi/deposit/vendor/warning`：首页保证金预警横幅。
@@ -200,7 +212,11 @@ async fn warning(
     Extension(tenant): Extension<TenantContext>,
 ) -> ApiResult<DepositShopWarningVO> {
     let vendor_id = current_vendor(&tenant)?;
-    ok(state.merchant.vendor_deposit_shop.warning(vendor_id).await?)
+    ok(state
+        .merchant
+        .vendor_deposit_shop
+        .warning(vendor_id)
+        .await?)
 }
 
 /// `GET /adminapi/deposit/vendor/protocol`：保证金协议。
@@ -262,7 +278,10 @@ mod tests {
         assert_eq!(current_vendor(&vendor(5)).expect("供应商应通过"), 5);
         let err = current_vendor(&shop()).expect_err("店铺账号不得访问供应商接口");
         assert_eq!(err.0.business_code(), 401);
-        assert_eq!(err.0.to_string(), format!("业务错误 [401]: {MSG_VENDOR_REQUIRED}"));
+        assert_eq!(
+            err.0.to_string(),
+            format!("业务错误 [401]: {MSG_VENDOR_REQUIRED}")
+        );
         assert!(current_vendor(&platform()).is_err());
         // 缺失 vendor_id 的 vendor 类型账号同样 401
         let no_vendor = TenantContext::new(Some("vendor".into()), None, None);

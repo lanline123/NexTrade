@@ -31,9 +31,9 @@ pub mod salesman_product;
 pub mod seckill;
 pub mod seckill_batch;
 pub mod sign_in_setting;
+pub mod tenant_layer;
 pub mod time_discount;
 pub mod time_discount_batch;
-pub mod tenant_layer;
 
 use axum::Router;
 
@@ -76,9 +76,7 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .merge(sign_in_setting::routes(state))
         .merge(time_discount::routes(state))
         .merge(time_discount_batch::routes(state))
-        .layer(axum::middleware::from_fn(
-            tenant_layer::tenant_scope_layer,
-        ))
+        .layer(axum::middleware::from_fn(tenant_layer::tenant_scope_layer))
 }
 
 /// 免登录的域路由（对应 Java `URL_WHITELIST`，外层不套 require_auth）。

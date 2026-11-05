@@ -478,15 +478,18 @@ pub fn validate_update(
     }
     let group_name = dto.group_name.clone().unwrap_or_default();
 
-    let tags = dto.tags.as_ref().ok_or_else(|| MSG_TAGS_REQUIRED.to_string())?;
+    let tags = dto
+        .tags
+        .as_ref()
+        .ok_or_else(|| MSG_TAGS_REQUIRED.to_string())?;
     if tags.len() < MIN_TAG_COUNT {
         return Err(MSG_TAGS_MIN.to_string());
     }
 
     let mut items = Vec::with_capacity(tags.len());
     for t in tags {
-        let name = non_blank(t.tag_name.as_deref())
-            .ok_or_else(|| MSG_TAG_NAME_REQUIRED.to_string())?;
+        let name =
+            non_blank(t.tag_name.as_deref()).ok_or_else(|| MSG_TAG_NAME_REQUIRED.to_string())?;
         items.push(TagItem {
             id: t.id,
             tag_name: name.to_string(),
@@ -546,8 +549,7 @@ impl TagSyncPlan {
 #[must_use]
 pub fn plan_tag_sync(existing: &[ExistingTag], submitted: &[TagItem]) -> TagSyncPlan {
     let submitted_ids: HashSet<i64> = submitted.iter().filter_map(|i| i.id).collect();
-    let existing_by_id: HashMap<i64, &ExistingTag> =
-        existing.iter().map(|t| (t.id, t)).collect();
+    let existing_by_id: HashMap<i64, &ExistingTag> = existing.iter().map(|t| (t.id, t)).collect();
 
     let mut plan = TagSyncPlan::default();
 
@@ -811,7 +813,10 @@ mod tests {
 
         let overflow: std::result::Result<OperateDTO, _> =
             serde_json::from_str(r#"{"id":2147483648}"#);
-        assert!(overflow.is_err(), "超 i32 应反序列化失败（Java Integer 语义）");
+        assert!(
+            overflow.is_err(),
+            "超 i32 应反序列化失败（Java Integer 语义）"
+        );
 
         // 冗余字段被忽略
         let dto: OperateDTO =
@@ -1030,10 +1035,7 @@ mod tests {
         let cur = vec![existing(1, "A"), existing(2, "B")];
         let submitted = vec![item(Some(1), "A"), item(Some(99), "外来标签")];
         let plan = plan_tag_sync(&cur, &submitted);
-        assert!(
-            plan.rename_ids.is_empty(),
-            "外来 ID 不应改名: {plan:?}"
-        );
+        assert!(plan.rename_ids.is_empty(), "外来 ID 不应改名: {plan:?}");
         assert!(
             plan.insert_names.is_empty(),
             "带 ID 的提交项不应变成新增: {plan:?}"
@@ -1054,11 +1056,7 @@ mod tests {
     #[test]
     fn plan_tag_sync_preserves_submitted_order() {
         let cur = vec![existing(1, "A")];
-        let submitted = vec![
-            item(None, "N1"),
-            item(Some(1), "A2"),
-            item(None, "N2"),
-        ];
+        let submitted = vec![item(None, "N1"), item(Some(1), "A2"), item(None, "N2")];
         let plan = plan_tag_sync(&cur, &submitted);
         assert_eq!(plan.insert_names, vec!["N1".to_string(), "N2".to_string()]);
         assert_eq!(plan.rename_ids, vec![(1, "A2".to_string())]);
@@ -1091,7 +1089,10 @@ mod tests {
     /// 名称缺失/空白 → `"unknown"`（Java `MybatisPlusMetaObjectHandler`）。
     #[test]
     fn admin_operator_falls_back_to_unknown() {
-        assert_eq!(AdminOperator::from_auth(7, None).name_ref(), Some("unknown"));
+        assert_eq!(
+            AdminOperator::from_auth(7, None).name_ref(),
+            Some("unknown")
+        );
         assert_eq!(
             AdminOperator::from_auth(7, Some("   ")).name_ref(),
             Some("unknown")

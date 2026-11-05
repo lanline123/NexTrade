@@ -133,7 +133,9 @@ async fn coupon_claim(
     let coupon_id = payload
         .coupon_id
         .ok_or_else(|| Error::Validation("优惠券主键不能为空".into()))?;
-    let id = state.trade.proxy_shopping_user_coupon
+    let id = state
+        .trade
+        .proxy_shopping_user_coupon
         .claim(payload.user_id, coupon_id, auth.id)
         .await?;
     ok(id)
@@ -208,7 +210,10 @@ async fn coupon_visible_list(
     let list = state
         .trade
         .proxy_shopping_user_coupon
-        .visible_list(payload.user_id, payload.product_ids.as_deref().unwrap_or_default())
+        .visible_list(
+            payload.user_id,
+            payload.product_ids.as_deref().unwrap_or_default(),
+        )
         .await?;
     ok(list.iter().map(coupon_to_json).collect())
 }
@@ -250,17 +255,13 @@ mod tests {
         assert_eq!(docs.len(), 2);
         assert_eq!(docs[0].path, "/adminapi/proxyShopping/coupon/claim");
         assert_eq!(docs[0].method, "POST");
-        assert_eq!(
-            docs[1].path,
-            "/adminapi/proxyShopping/coupon/visible-list"
-        );
+        assert_eq!(docs[1].path, "/adminapi/proxyShopping/coupon/visible-list");
     }
 
     #[test]
     fn payload_accepts_frontend_camel_case_body() {
         // 前端真实提交体（字段名逐字取自 Java `UserCouponClaimParam`）
-        let full: ClaimPayload =
-            serde_json::from_str(r#"{"couponId":12,"userId":34}"#).unwrap();
+        let full: ClaimPayload = serde_json::from_str(r#"{"couponId":12,"userId":34}"#).unwrap();
         assert_eq!(full.coupon_id, Some(12));
         assert_eq!(full.user_id, Some(34));
 

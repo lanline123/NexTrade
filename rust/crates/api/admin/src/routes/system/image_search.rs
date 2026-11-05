@@ -8,25 +8,35 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use serde::Deserialize;
-use serde_json::{json, Value};
-use sqlx::Row;
-use tigshop_core::Error;
-use tigshop_security::web::{ok, ApiResult, AppError};
 use base64::Engine as _;
 use hmac::{Hmac, Mac};
 use reqwest::multipart::{Form, Part};
+use serde::Deserialize;
+use serde_json::{json, Value};
 use sha1::Sha1;
+use sqlx::Row;
+use tigshop_core::Error;
+use tigshop_security::web::{ok, ApiResult, AppError};
 
 use crate::AdminState;
 
 const CONFIG_KEYS: [&str; 17] = [
-    "imageSearchEnabled", "imageSearchH5Enabled", "imageSearchPcEnabled",
-    "imageSearchAppEnabled", "imageSearchShopEnabled", "imageSearchProvider",
-    "imageSearchIndexName", "imageSearchSimilarityPercent", "imageSearchMaxResults",
-    "imageSearchAliyunRegionId", "imageSearchAliyunAccessKeyId", "imageSearchAliyunAccessKeySecret",
-    "imageSearchAliyunSecurityToken", "imageSearchAliyunVpc",
-    "imageSearchAliyunConnectTimeoutMillis", "imageSearchAliyunReadTimeoutMillis",
+    "imageSearchEnabled",
+    "imageSearchH5Enabled",
+    "imageSearchPcEnabled",
+    "imageSearchAppEnabled",
+    "imageSearchShopEnabled",
+    "imageSearchProvider",
+    "imageSearchIndexName",
+    "imageSearchSimilarityPercent",
+    "imageSearchMaxResults",
+    "imageSearchAliyunRegionId",
+    "imageSearchAliyunAccessKeyId",
+    "imageSearchAliyunAccessKeySecret",
+    "imageSearchAliyunSecurityToken",
+    "imageSearchAliyunVpc",
+    "imageSearchAliyunConnectTimeoutMillis",
+    "imageSearchAliyunReadTimeoutMillis",
     "imageSearchVersion",
 ];
 
@@ -46,14 +56,46 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/api/setting/imageSearch/regions", "ImageSearchAdminController.regions"),
-        ("GET", "/api/setting/imageSearch/detail", "ImageSearchAdminController.detail"),
-        ("POST", "/api/setting/imageSearch/save", "ImageSearchAdminController.save"),
-        ("POST", "/api/setting/imageSearch/check", "ImageSearchAdminController.check"),
-        ("POST", "/api/setting/imageSearch/build", "ImageSearchAdminController.build"),
-        ("POST", "/api/setting/imageSearch/syncProduct", "ImageSearchAdminController.syncProduct"),
-        ("GET", "/api/setting/imageSearch/task", "ImageSearchAdminController.task"),
-        ("POST", "/api/setting/imageSearch/retry", "ImageSearchAdminController.retry"),
+        (
+            "GET",
+            "/api/setting/imageSearch/regions",
+            "ImageSearchAdminController.regions",
+        ),
+        (
+            "GET",
+            "/api/setting/imageSearch/detail",
+            "ImageSearchAdminController.detail",
+        ),
+        (
+            "POST",
+            "/api/setting/imageSearch/save",
+            "ImageSearchAdminController.save",
+        ),
+        (
+            "POST",
+            "/api/setting/imageSearch/check",
+            "ImageSearchAdminController.check",
+        ),
+        (
+            "POST",
+            "/api/setting/imageSearch/build",
+            "ImageSearchAdminController.build",
+        ),
+        (
+            "POST",
+            "/api/setting/imageSearch/syncProduct",
+            "ImageSearchAdminController.syncProduct",
+        ),
+        (
+            "GET",
+            "/api/setting/imageSearch/task",
+            "ImageSearchAdminController.task",
+        ),
+        (
+            "POST",
+            "/api/setting/imageSearch/retry",
+            "ImageSearchAdminController.retry",
+        ),
     ]
     .iter()
     .map(|(m, p, h)| tigshop_openapi::RouteDoc::new(m, p, h))
@@ -84,7 +126,10 @@ struct RegionsQuery {
 
 async fn regions(Query(q): Query<RegionsQuery>) -> ApiResult<Value> {
     if q.provider.as_deref().unwrap_or("aliyun") != "aliyun" {
-        return Err(tigshop_security::web::AppError(Error::biz(400, "图搜厂商尚未接入")));
+        return Err(tigshop_security::web::AppError(Error::biz(
+            400,
+            "图搜厂商尚未接入",
+        )));
     }
     ok(json!([
         {"regionId":"cn-shanghai","regionName":"华东2（上海）"},
@@ -96,12 +141,10 @@ async fn regions(Query(q): Query<RegionsQuery>) -> ApiResult<Value> {
 
 async fn detail(State(state): State<AdminState>) -> ApiResult<Value> {
     let rows = load_config(&state).await?;
-    let job = sqlx::query(
-        "SELECT * FROM image_search_sync_job ORDER BY id DESC LIMIT 1",
-    )
-    .fetch_optional(&state.repos.pool)
-    .await
-    .map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
+    let job = sqlx::query("SELECT * FROM image_search_sync_job ORDER BY id DESC LIMIT 1")
+        .fetch_optional(&state.repos.pool)
+        .await
+        .map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
     let build_job = job.map(|r| job_json(&r)).unwrap_or(Value::Null);
     let number = |v: &str| v.parse::<i64>().unwrap_or(0);
     ok(json!({
@@ -140,10 +183,7 @@ fn mask(value: &str) -> String {
     }
 }
 
-async fn save(
-    State(state): State<AdminState>,
-    Json(body): Json<Value>,
-) -> ApiResult<()> {
+async fn save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
     let old_version = load_config(&state)
         .await?
         .iter()
@@ -152,7 +192,10 @@ async fn save(
         .unwrap_or(0);
     let version = body.get("version").and_then(Value::as_i64).unwrap_or(-1);
     if version != old_version {
-        return Err(tigshop_security::web::AppError(Error::biz(400, "配置已被修改，请刷新后重试")));
+        return Err(tigshop_security::web::AppError(Error::biz(
+            400,
+            "配置已被修改，请刷新后重试",
+        )));
     }
     let settings = body.get("settings").cloned().unwrap_or(Value::Null);
     let map = [
@@ -173,7 +216,12 @@ async fn save(
             } else {
                 v.to_string().trim_matches('"').to_string()
             };
-            state.system.config_basic.repo().save_code(code, &value).await?;
+            state
+                .system
+                .config_basic
+                .repo()
+                .save_code(code, &value)
+                .await?;
         }
     }
     if let Some(aliyun) = settings.get("aliyun") {
@@ -183,7 +231,10 @@ async fn save(
             ("imageSearchAliyunAccessKeySecret", "accessKeySecret"),
             ("imageSearchAliyunSecurityToken", "securityToken"),
             ("imageSearchAliyunVpc", "vpc"),
-            ("imageSearchAliyunConnectTimeoutMillis", "connectTimeoutMillis"),
+            (
+                "imageSearchAliyunConnectTimeoutMillis",
+                "connectTimeoutMillis",
+            ),
             ("imageSearchAliyunReadTimeoutMillis", "readTimeoutMillis"),
         ];
         for (code, field) in keys {
@@ -193,7 +244,12 @@ async fn save(
                 } else {
                     v.to_string().trim_matches('"').to_string()
                 };
-                state.system.config_basic.repo().save_code(code, &value).await?;
+                state
+                    .system
+                    .config_basic
+                    .repo()
+                    .save_code(code, &value)
+                    .await?;
             }
         }
     }
@@ -212,31 +268,49 @@ async fn check(State(state): State<AdminState>) -> ApiResult<Value> {
     let secret = cfg_get(&rows, "imageSearchAliyunAccessKeySecret");
     let region = cfg_get(&rows, "imageSearchAliyunRegionId");
     let index = cfg_get(&rows, "imageSearchIndexName");
-    let configured = !key.is_empty() && !secret.is_empty() && !region.is_empty() && !index.is_empty();
+    let configured =
+        !key.is_empty() && !secret.is_empty() && !region.is_empty() && !index.is_empty();
     if !configured {
         return ok(json!({"reachable": false, "requestId": Value::Null, "configured": false}));
     }
-    let client = reqwest::Client::builder().timeout(std::time::Duration::from_secs(20)).build()
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
         .map_err(|e| AppError(Error::Internal(e.to_string())))?;
     let params = vec![
         ("Action".to_string(), "Detail".to_string()),
         ("InstanceName".to_string(), index.to_string()),
-        ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
-        ("Timestamp".to_string(), chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        (
+            "SignatureNonce".to_string(),
+            uuid::Uuid::new_v4().to_string(),
+        ),
+        (
+            "Timestamp".to_string(),
+            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        ),
     ];
     let body = sign_version("POST", key, secret, region, "2020-12-14", &params);
-    let resp = client.post(format!("https://imagesearch.{region}.aliyuncs.com/"))
-        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(body).send().await;
+    let resp = client
+        .post(format!("https://imagesearch.{region}.aliyuncs.com/"))
+        .header(
+            reqwest::header::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
+        .body(body)
+        .send()
+        .await;
     match resp {
         Ok(r) => {
             let status = r.status();
             let v: Value = r.json().await.unwrap_or(Value::Null);
             let request_id = v.get("RequestId").cloned().unwrap_or(Value::Null);
-            let reachable = status.is_success() && v.get("Success").and_then(Value::as_bool) != Some(false);
+            let reachable =
+                status.is_success() && v.get("Success").and_then(Value::as_bool) != Some(false);
             ok(json!({"reachable": reachable, "requestId": request_id, "configured": true}))
         }
-        Err(e) => ok(json!({"reachable": false, "requestId": Value::Null, "configured": true, "message": e.to_string()})),
+        Err(e) => ok(
+            json!({"reachable": false, "requestId": Value::Null, "configured": true, "message": e.to_string()}),
+        ),
     }
 }
 
@@ -265,7 +339,11 @@ async fn sync_product(
     }
     let rows = load_config(&state).await?;
     validate_sync_config(&rows)?;
-    let job_key = format!("{}:product:{}", cfg_get(&rows, "imageSearchIndexName"), product_id);
+    let job_key = format!(
+        "{}:product:{}",
+        cfg_get(&rows, "imageSearchIndexName"),
+        product_id
+    );
     let id = insert_job(&state, &job_key, product_id, &rows).await?;
     spawn_build(state, id, product_id);
     ok(json!({"taskId": id, "state": "PENDING"}))
@@ -301,7 +379,9 @@ pub(crate) async fn enqueue_product_sync(state: &AdminState, product_id: i32) {
     if product_id <= 0 {
         return;
     }
-    let Ok(rows) = load_config(state).await else { return; };
+    let Ok(rows) = load_config(state).await else {
+        return;
+    };
     if cfg_get(&rows, "imageSearchEnabled") != "1" {
         return;
     }
@@ -311,7 +391,11 @@ pub(crate) async fn enqueue_product_sync(state: &AdminState, product_id: i32) {
     {
         return;
     }
-    let job_key = format!("{}:product:{}", cfg_get(&rows, "imageSearchIndexName"), product_id);
+    let job_key = format!(
+        "{}:product:{}",
+        cfg_get(&rows, "imageSearchIndexName"),
+        product_id
+    );
     if let Ok(id) = insert_job(state, &job_key, product_id, &rows).await {
         spawn_build(state.clone(), id, product_id);
     }
@@ -361,10 +445,7 @@ async fn task(State(state): State<AdminState>, Query(q): Query<TaskQuery>) -> Ap
     ok(row.map(|r| job_json(&r)).unwrap_or(Value::Null))
 }
 
-async fn retry(
-    State(state): State<AdminState>,
-    Query(q): Query<TaskQuery>,
-) -> ApiResult<()> {
+async fn retry(State(state): State<AdminState>, Query(q): Query<TaskQuery>) -> ApiResult<()> {
     let task_id = q.task_id.unwrap_or(0);
     sqlx::query("UPDATE image_search_sync_job SET state='PENDING', attempts=attempts+1, last_error='', updated_at=? WHERE id=?")
         .bind(tigshop_common::utils::now_seconds() as i64)
@@ -377,7 +458,9 @@ async fn retry(
         .fetch_optional(&state.repos.pool)
         .await
         .map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
-    let product_id = row.and_then(|r| r.try_get::<i32, _>("product_id").ok()).unwrap_or(0);
+    let product_id = row
+        .and_then(|r| r.try_get::<i32, _>("product_id").ok())
+        .unwrap_or(0);
     spawn_build(state, task_id, product_id);
     ok(())
 }
@@ -427,7 +510,10 @@ async fn run_build(state: AdminState, job_id: i64, product_id: i32) -> Result<()
     if product_id > 0 {
         q = q.bind(product_id);
     }
-    let products = q.fetch_all(&state.repos.pool).await.map_err(|e| e.to_string())?;
+    let products = q
+        .fetch_all(&state.repos.pool)
+        .await
+        .map_err(|e| e.to_string())?;
     let mut scanned = 0i64;
     let mut added = 0i64;
     let mut skipped = 0i64;
@@ -448,10 +534,17 @@ async fn run_build(state: AdminState, job_id: i64, product_id: i32) -> Result<()
         scanned += 1;
         if let Some(url) = url {
             let pic_name = format!("product-{pid}.jpg");
-            if check_exists(&client, &region, &key, &secret, &index, pid, &pic_name).await.unwrap_or(false) {
+            if check_exists(&client, &region, &key, &secret, &index, pid, &pic_name)
+                .await
+                .unwrap_or(false)
+            {
                 skipped += 1;
             } else {
-                match download_upload_add(&client, &region, &key, &secret, &index, pid, &pic_name, &url).await {
+                match download_upload_add(
+                    &client, &region, &key, &secret, &index, pid, &pic_name, &url,
+                )
+                .await
+                {
                     Ok(()) => added += 1,
                     Err(e) => {
                         skipped += 1;
@@ -480,15 +573,26 @@ async fn run_build(state: AdminState, job_id: i64, product_id: i32) -> Result<()
 
 async fn set_job_state(state: &AdminState, job_id: i64, state_name: &str, attempts: i32) {
     sqlx::query("UPDATE image_search_sync_job SET state=?, attempts=?, updated_at=? WHERE id=?")
-        .bind(state_name).bind(attempts).bind(tigshop_common::utils::now_seconds() as i64).bind(job_id)
-        .execute(&state.repos.pool).await.ok();
+        .bind(state_name)
+        .bind(attempts)
+        .bind(tigshop_common::utils::now_seconds() as i64)
+        .bind(job_id)
+        .execute(&state.repos.pool)
+        .await
+        .ok();
 }
 
 async fn mark_job_failed(state: &AdminState, job_id: i64, error: &str) {
     let short = error.chars().take(120).collect::<String>();
-    sqlx::query("UPDATE image_search_sync_job SET state='FAILED', last_error=?, updated_at=? WHERE id=?")
-        .bind(short).bind(tigshop_common::utils::now_seconds() as i64).bind(job_id)
-        .execute(&state.repos.pool).await.ok();
+    sqlx::query(
+        "UPDATE image_search_sync_job SET state='FAILED', last_error=?, updated_at=? WHERE id=?",
+    )
+    .bind(short)
+    .bind(tigshop_common::utils::now_seconds() as i64)
+    .bind(job_id)
+    .execute(&state.repos.pool)
+    .await
+    .ok();
 }
 
 async fn download_upload_add(
@@ -501,8 +605,16 @@ async fn download_upload_add(
     pic_name: &str,
     url: &str,
 ) -> Result<(), String> {
-    let bytes = client.get(url).send().await.map_err(|e| e.to_string())?
-        .error_for_status().map_err(|e| e.to_string())?.bytes().await.map_err(|e| e.to_string())?;
+    let bytes = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
+        .map_err(|e| e.to_string())?
+        .bytes()
+        .await
+        .map_err(|e| e.to_string())?;
     if bytes.is_empty() || bytes.len() > 6 * 1024 * 1024 {
         return Err("图片为空或超过6MB".into());
     }
@@ -514,17 +626,36 @@ async fn download_upload_add(
         ("PicName".to_string(), pic_name.to_string()),
         ("ProductId".to_string(), product_id.to_string()),
         ("CustomContent".to_string(), product_id.to_string()),
-        ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
-        ("Timestamp".to_string(), chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        (
+            "SignatureNonce".to_string(),
+            uuid::Uuid::new_v4().to_string(),
+        ),
+        (
+            "Timestamp".to_string(),
+            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        ),
     ];
     let body = sign_version("POST", key, secret, region, "2020-12-14", &params);
-    let resp = client.post(format!("https://imagesearch.{region}.aliyuncs.com/"))
-        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(body).send().await.map_err(|e| e.to_string())?;
+    let resp = client
+        .post(format!("https://imagesearch.{region}.aliyuncs.com/"))
+        .header(
+            reqwest::header::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
+        .body(body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let text = resp.text().await.unwrap_or_default();
     let v: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
-    if v.get("Success").and_then(Value::as_bool) == Some(false) || v.get("Code").and_then(Value::as_i64).unwrap_or(1) != 0 {
-        return Err(v.get("Message").and_then(Value::as_str).unwrap_or("AddImage 失败").to_string());
+    if v.get("Success").and_then(Value::as_bool) == Some(false)
+        || v.get("Code").and_then(Value::as_i64).unwrap_or(1) != 0
+    {
+        return Err(v
+            .get("Message")
+            .and_then(Value::as_str)
+            .unwrap_or("AddImage 失败")
+            .to_string());
     }
     Ok(())
 }
@@ -543,16 +674,33 @@ async fn delete_image(
         ("InstanceName".to_string(), index.to_string()),
         ("PicName".to_string(), pic_name.to_string()),
         ("ProductId".to_string(), product_id.to_string()),
-        ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
-        ("Timestamp".to_string(), chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        (
+            "SignatureNonce".to_string(),
+            uuid::Uuid::new_v4().to_string(),
+        ),
+        (
+            "Timestamp".to_string(),
+            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        ),
     ];
     let body = sign_version("POST", key, secret, region, "2020-12-14", &params);
-    let resp = client.post(format!("https://imagesearch.{region}.aliyuncs.com/"))
-        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(body).send().await.map_err(|e| e.to_string())?;
+    let resp = client
+        .post(format!("https://imagesearch.{region}.aliyuncs.com/"))
+        .header(
+            reqwest::header::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
+        .body(body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let v: Value = resp.json().await.unwrap_or(Value::Null);
     if v.get("Success").and_then(Value::as_bool) == Some(false) {
-        return Err(v.get("Message").and_then(Value::as_str).unwrap_or("DeleteImage 失败").to_string());
+        return Err(v
+            .get("Message")
+            .and_then(Value::as_str)
+            .unwrap_or("DeleteImage 失败")
+            .to_string());
     }
     Ok(())
 }
@@ -571,13 +719,26 @@ async fn check_exists(
         ("InstanceName".to_string(), index.to_string()),
         ("PicName".to_string(), pic_name.to_string()),
         ("ProductId".to_string(), product_id.to_string()),
-        ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
-        ("Timestamp".to_string(), chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        (
+            "SignatureNonce".to_string(),
+            uuid::Uuid::new_v4().to_string(),
+        ),
+        (
+            "Timestamp".to_string(),
+            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        ),
     ];
     let body = sign_version("POST", key, secret, region, "2020-12-14", &params);
-    let resp = client.post(format!("https://imagesearch.{region}.aliyuncs.com/"))
-        .header(reqwest::header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body(body).send().await.map_err(|e| e.to_string())?;
+    let resp = client
+        .post(format!("https://imagesearch.{region}.aliyuncs.com/"))
+        .header(
+            reqwest::header::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
+        .body(body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let v: Value = resp.json().await.unwrap_or(Value::Null);
     Ok(v.get("Exists").and_then(Value::as_bool).unwrap_or(false))
 }
@@ -592,27 +753,43 @@ async fn upload_transfer(
     let params = vec![
         ("Action".to_string(), "AuthorizeFileUpload".to_string()),
         ("Product".to_string(), "ImageSearch".to_string()),
-        ("SignatureNonce".to_string(), uuid::Uuid::new_v4().to_string()),
-        ("Timestamp".to_string(), chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+        (
+            "SignatureNonce".to_string(),
+            uuid::Uuid::new_v4().to_string(),
+        ),
+        (
+            "Timestamp".to_string(),
+            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        ),
     ];
     let query = sign_version("GET", key, secret, region, "2019-12-19", &params);
-    let response = client.get(format!("https://openplatform.aliyuncs.com/?{query}"))
-        .send().await.map_err(|e| e.to_string())?;
+    let response = client
+        .get(format!("https://openplatform.aliyuncs.com/?{query}"))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let status = response.status();
     let text = response.text().await.map_err(|e| e.to_string())?;
-    let auth: Value = serde_json::from_str(&text)
-        .map_err(|e| format!("OSS 授权响应解析失败: {e} / {text}"))?;
+    let auth: Value =
+        serde_json::from_str(&text).map_err(|e| format!("OSS 授权响应解析失败: {e} / {text}"))?;
     if !status.is_success() {
         return Err(format!("获取 OSS 上传授权失败: HTTP {status} {text}"));
     }
-    let s = |k: &str| auth.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
+    let s = |k: &str| {
+        auth.get(k)
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string()
+    };
     let bucket = s("Bucket");
     let endpoint = s("Endpoint");
     let object_key = s("ObjectKey");
     if bucket.is_empty() || endpoint.is_empty() || object_key.is_empty() {
         return Err(format!("获取 OSS 上传授权失败: {text}"));
     }
-    let part = Part::bytes(bytes.to_vec()).file_name(object_key.clone()).mime_str("application/octet-stream")
+    let part = Part::bytes(bytes.to_vec())
+        .file_name(object_key.clone())
+        .mime_str("application/octet-stream")
         .map_err(|e| e.to_string())?;
     let form = Form::new()
         .text("OSSAccessKeyId", s("AccessKeyId"))
@@ -621,14 +798,26 @@ async fn upload_transfer(
         .text("key", object_key.clone())
         .text("success_action_status", "201")
         .part("file", part);
-    let resp = client.post(format!("https://{bucket}.{endpoint}/")).multipart(form).send().await.map_err(|e| e.to_string())?;
+    let resp = client
+        .post(format!("https://{bucket}.{endpoint}/"))
+        .multipart(form)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     if !resp.status().is_success() {
         return Err(format!("OSS 上传失败：{}", resp.status()));
     }
     Ok(format!("https://{bucket}.{endpoint}/{object_key}"))
 }
 
-fn sign_version(method: &str, key_id: &str, secret: &str, region: &str, version: &str, params: &[(String, String)]) -> String {
+fn sign_version(
+    method: &str,
+    key_id: &str,
+    secret: &str,
+    region: &str,
+    version: &str,
+    params: &[(String, String)],
+) -> String {
     let mut all = params.to_vec();
     all.push(("AccessKeyId".into(), key_id.into()));
     all.push(("Format".into(), "JSON".into()));
@@ -637,7 +826,11 @@ fn sign_version(method: &str, key_id: &str, secret: &str, region: &str, version:
     all.push(("SignatureVersion".into(), "1.0".into()));
     all.push(("Version".into(), version.into()));
     all.sort_by(|a, b| a.0.cmp(&b.0));
-    let canonical = all.iter().map(|(k, v)| format!("{}={}", pe(k), pe(v))).collect::<Vec<_>>().join("&");
+    let canonical = all
+        .iter()
+        .map(|(k, v)| format!("{}={}", pe(k), pe(v)))
+        .collect::<Vec<_>>()
+        .join("&");
     let string_to_sign = format!("{}&%2F&{}", method, pe(&canonical));
     let mut mac = HmacSha1::new_from_slice(format!("{secret}&").as_bytes()).expect("HMAC");
     mac.update(string_to_sign.as_bytes());
@@ -649,7 +842,9 @@ fn pe(input: &str) -> String {
     let mut out = String::new();
     for b in input.bytes() {
         match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char)
+            }
             _ => out.push_str(&format!("%{b:02X}")),
         }
     }

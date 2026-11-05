@@ -83,11 +83,7 @@ async fn list(
     Extension(tenant): Extension<TenantContext>,
     Query(q): Query<PosDeviceListQuery>,
 ) -> ApiResult<PageResult<PosDeviceVO>> {
-    ok(state
-        .pos
-        .device
-        .list(&q, tenant.shop_scope())
-        .await?)
+    ok(state.pos.device.list(&q, tenant.shop_scope()).await?)
 }
 
 /// `GET /adminapi/pos/device/all`：设备全量（下拉）。

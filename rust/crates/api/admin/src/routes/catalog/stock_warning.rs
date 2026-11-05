@@ -44,10 +44,15 @@ use axum::{
     Extension, Json, Router,
 };
 use serde::Deserialize;
-use tigshop_core::models::catalog::stock_warning::{StockWarningBatchResultVO, StockWarningBatchSaveDTO, StockWarningExportQuery, StockWarningImportErrorRow, StockWarningImportResultVO, StockWarningImportRow, StockWarningListQuery, StockWarningPageVO, StockWarningSaveDTO, StockWarningSettingSaveDTO, StockWarningSettingVO};
+use tigshop_core::models::catalog::stock_warning::{
+    StockWarningBatchResultVO, StockWarningBatchSaveDTO, StockWarningExportQuery,
+    StockWarningImportErrorRow, StockWarningImportResultVO, StockWarningImportRow,
+    StockWarningListQuery, StockWarningPageVO, StockWarningSaveDTO, StockWarningSettingSaveDTO,
+    StockWarningSettingVO,
+};
 use tigshop_core::types::PageResult;
 use tigshop_core::{Error, Result};
-use tigshop_security::web::{ApiResult, AppError, AuthUser, ok};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 use tigshop_services::catalog::stock_warning::{resolve_shop_id, ImportFile};
 
 use crate::AdminState;
@@ -160,8 +165,8 @@ fn resolve_request_shop(
     let admin_type = header_str(headers, "x-admin-type")
         .filter(|v| !v.trim().is_empty())
         .or_else(|| auth.admin_type.clone());
-    let header_shop_id = header_str(headers, "x-shop-id")
-        .and_then(|v| v.trim().parse::<i32>().ok());
+    let header_shop_id =
+        header_str(headers, "x-shop-id").and_then(|v| v.trim().parse::<i32>().ok());
     // 服务层提供的是自由函数 `tigshop_services::catalog::stock_warning::resolve_shop_id`
     // （非 `StockWarningService` 的关联函数），与 Java `resolveShopId` 语义一致。
     resolve_shop_id(requested_shop_id, admin_type.as_deref(), header_shop_id)
@@ -235,7 +240,11 @@ async fn stock_warning_setting(
     Query(query): Query<SettingQuery>,
 ) -> ApiResult<StockWarningSettingVO> {
     let owner_shop_id = resolve_request_shop(&headers, &auth, query.shop_id)?;
-    ok(state.catalog.stock_warning.get_setting(Some(owner_shop_id)).await?)
+    ok(state
+        .catalog
+        .stock_warning
+        .get_setting(Some(owner_shop_id))
+        .await?)
 }
 
 /// `POST /adminapi/product/stockWarning/setting`：保存库存预警通知总开关。
@@ -291,8 +300,18 @@ async fn stock_warning_export(
     query.shop_id = Some(resolve_request_shop(&headers, &auth, query.shop_id)?);
     let rows = state.catalog.stock_warning.export(&query).await?;
     let headers = [
-        "商品名称", "规格", "商品编码", "SKU编码", "仓库", "实时库存", "在途库存",
-        "库存下限", "库存上限", "库存状态", "库存预警", "相关商品数",
+        "商品名称",
+        "规格",
+        "商品编码",
+        "SKU编码",
+        "仓库",
+        "实时库存",
+        "在途库存",
+        "库存下限",
+        "库存上限",
+        "库存状态",
+        "库存预警",
+        "相关商品数",
     ];
     let data: Vec<Vec<String>> = rows
         .iter()
@@ -314,7 +333,10 @@ async fn stock_warning_export(
         })
         .collect();
     let bytes = tigshop_services::system::excel::build_xlsx(&headers, &data, "库存预警")?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, "stock_warning.xlsx"))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes,
+        "stock_warning.xlsx",
+    ))
 }
 
 // ——————————————————————————————————————————————
@@ -355,13 +377,16 @@ async fn stock_warning_import(
 ) -> ApiResult<StockWarningImportResultVO> {
     let (file, form_shop_id) = read_upload(&mut multipart).await?;
     let Some((_, bytes)) = file.as_ref() else {
-        return Err(AppError(tigshop_core::Error::Validation("文件不能为空".into())));
+        return Err(AppError(tigshop_core::Error::Validation(
+            "文件不能为空".into(),
+        )));
     };
     // Java `@RequestParam("shopId")` 同时接受表单字段与查询串参数
-    let owner_shop_id =
-        resolve_request_shop(&headers, &auth, form_shop_id.or(query.shop_id))?;
+    let owner_shop_id = resolve_request_shop(&headers, &auth, form_shop_id.or(query.shop_id))?;
     let rows = parse_stock_warning_rows(bytes)?;
-    ok(state.catalog.stock_warning
+    ok(state
+        .catalog
+        .stock_warning
         .import_rows(&rows, Some(owner_shop_id))
         .await?)
 }
@@ -382,7 +407,10 @@ fn parse_stock_warning_rows(
         let sku_sn = cell(1);
         let lower_limit = cell(2);
         let upper_limit = cell(3);
-        if product_sn.is_none() && sku_sn.is_none() && lower_limit.is_none() && upper_limit.is_none()
+        if product_sn.is_none()
+            && sku_sn.is_none()
+            && lower_limit.is_none()
+            && upper_limit.is_none()
         {
             continue;
         }
@@ -394,7 +422,9 @@ fn parse_stock_warning_rows(
         });
     }
     if rows.is_empty() {
-        return Err(AppError(tigshop_core::Error::Validation("表格数据为空".into())));
+        return Err(AppError(tigshop_core::Error::Validation(
+            "表格数据为空".into(),
+        )));
     }
     Ok(rows)
 }
@@ -418,8 +448,7 @@ async fn stock_warning_import_errors(
 ) -> std::result::Result<axum::response::Response, AppError> {
     let (file, form_shop_id) = read_upload(&mut multipart).await?;
     // Java `@RequestParam("shopId")` 同时接受表单字段与查询串参数
-    let owner_shop_id =
-        resolve_request_shop(&headers, &auth, form_shop_id.or(query.shop_id))?;
+    let owner_shop_id = resolve_request_shop(&headers, &auth, form_shop_id.or(query.shop_id))?;
     let bytes = state
         .catalog
         .stock_warning

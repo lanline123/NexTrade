@@ -190,9 +190,7 @@ pub fn extract_extension(url: &str) -> String {
         }
     }
     match path.rfind('.') {
-        Some(index) if index > 0 && index < path.len() - 1 => {
-            path[index + 1..].to_lowercase()
-        }
+        Some(index) if index > 0 && index < path.len() - 1 => path[index + 1..].to_lowercase(),
         _ => String::new(),
     }
 }
@@ -542,7 +540,9 @@ mod tests {
     #[test]
     fn upload_validation_matches_java() {
         assert_eq!(
-            validate_upload_file(Some("image/png"), 0, "20").unwrap_err().1,
+            validate_upload_file(Some("image/png"), 0, "20")
+                .unwrap_err()
+                .1,
             ERR_UPLOAD_FILE_EMPTY
         );
         assert_eq!(

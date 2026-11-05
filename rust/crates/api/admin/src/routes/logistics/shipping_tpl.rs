@@ -66,8 +66,8 @@ use tigshop_core::models::logistics::shipping_tpl::{
 };
 use tigshop_security::web::{client_ip, ok, ApiResult, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 运费模板域管理端路由（挂载于 `/adminapi` 下）。
 ///
@@ -160,9 +160,8 @@ async fn detail(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<DetailQuery>,
 ) -> ApiResult<ShippingTplVO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("运费模板ID不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("运费模板ID不能为空".into()))?;
     let owner = state.logistics.shipping_tpl.shop_id_of(id).await?;
     tenant::ensure_row_shop_opt(&auth, owner)?;
     ok(state.logistics.shipping_tpl.detail(&q).await?)
@@ -281,7 +280,10 @@ async fn config(
     State(state): State<AdminState>,
     Extension(auth): Extension<AuthUser>,
 ) -> ApiResult<Vec<ShippingTypeVO>> {
-    ok(state.logistics.shipping_tpl.config(current_shop_id(&auth))?)
+    ok(state
+        .logistics
+        .shipping_tpl
+        .config(current_shop_id(&auth))?)
 }
 
 /// `POST /adminapi/setting/shippingTpl/setDefault?id=`：设置默认运费模板。
@@ -313,8 +315,10 @@ mod tests {
     fn route_paths_match_java_verbatim() {
         let docs = implemented_routes();
         // `RouteDoc.method` / `RouteDoc.path` 是 `String`，故此处用 `Vec<(String, String)>`
-        let actual: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let actual: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         let expected: Vec<(String, String)> = vec![
             ("GET", "/adminapi/setting/shippingTpl/detail"),
             ("POST", "/adminapi/setting/shippingTpl/create"),
@@ -365,11 +369,21 @@ mod tests {
     /// 多租户占位：鉴权中间件未接入前恒为 `None`（平台账号语义）。
     #[test]
     fn shipping_tpl_scope_comes_from_auth() {
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert_eq!(current_shop_id(&platform), None);
-        let shop = AuthUser { id: 2, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(6) };
+        let shop = AuthUser {
+            id: 2,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(6),
+        };
         assert_eq!(current_shop_id(&shop), Some(6));
         assert!(tenant::ensure_row_shop_opt(&shop, Some(9)).is_err());
     }

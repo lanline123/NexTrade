@@ -17,13 +17,41 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/promotion/rechargeSetting/list", "RechargeSettingController.list"),
-    ("GET", "/promotion/rechargeSetting/detail", "RechargeSettingController.detail"),
-    ("POST", "/promotion/rechargeSetting/create", "RechargeSettingController.create"),
-    ("POST", "/promotion/rechargeSetting/update", "RechargeSettingController.update"),
-    ("POST", "/promotion/rechargeSetting/del", "RechargeSettingController.del"),
-    ("POST", "/promotion/rechargeSetting/updateField", "RechargeSettingController.updateField"),
-    ("POST", "/promotion/rechargeSetting/batch", "RechargeSettingController.batch"),
+    (
+        "GET",
+        "/promotion/rechargeSetting/list",
+        "RechargeSettingController.list",
+    ),
+    (
+        "GET",
+        "/promotion/rechargeSetting/detail",
+        "RechargeSettingController.detail",
+    ),
+    (
+        "POST",
+        "/promotion/rechargeSetting/create",
+        "RechargeSettingController.create",
+    ),
+    (
+        "POST",
+        "/promotion/rechargeSetting/update",
+        "RechargeSettingController.update",
+    ),
+    (
+        "POST",
+        "/promotion/rechargeSetting/del",
+        "RechargeSettingController.del",
+    ),
+    (
+        "POST",
+        "/promotion/rechargeSetting/updateField",
+        "RechargeSettingController.updateField",
+    ),
+    (
+        "POST",
+        "/promotion/rechargeSetting/batch",
+        "RechargeSettingController.batch",
+    ),
 ];
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -59,7 +87,10 @@ async fn list(
     ok(state.marketing.recharge_setting.list(&q).await?)
 }
 
-async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<RechargeSettingVO> {
+async fn detail(
+    State(state): State<AdminState>,
+    Query(q): Query<IdQuery>,
+) -> ApiResult<RechargeSettingVO> {
     ok(state.marketing.recharge_setting.detail(q.id).await?)
 }
 

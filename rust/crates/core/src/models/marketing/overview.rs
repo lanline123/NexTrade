@@ -70,7 +70,11 @@ pub fn horizontal_axis(
 }
 
 fn days_in_month(year: i32, month: u32) -> u32 {
-    let (ny, nm) = if month == 12 { (year + 1, 1) } else { (year, month + 1) };
+    let (ny, nm) = if month == 12 {
+        (year + 1, 1)
+    } else {
+        (year, month + 1)
+    };
     let first_next = chrono::NaiveDate::from_ymd_opt(ny, nm, 1)
         .unwrap_or_else(|| chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap());
     let first_this = chrono::NaiveDate::from_ymd_opt(year, month, 1)
@@ -193,8 +197,14 @@ mod tests {
         assert_eq!(bucket_label(3, secs), "07");
         assert_eq!(bucket_label(4, secs), "2023-11-15");
         let start = chrono::NaiveDate::from_ymd_opt(2026, 2, 10).unwrap();
-        assert_eq!(range_date(2, start, start).1, chrono::NaiveDate::from_ymd_opt(2026, 2, 28).unwrap());
-        assert_eq!(parse_start_end(Some("2026-01-01,2026-01-31")).1, chrono::NaiveDate::from_ymd_opt(2026, 1, 31).unwrap());
+        assert_eq!(
+            range_date(2, start, start).1,
+            chrono::NaiveDate::from_ymd_opt(2026, 2, 28).unwrap()
+        );
+        assert_eq!(
+            parse_start_end(Some("2026-01-01,2026-01-31")).1,
+            chrono::NaiveDate::from_ymd_opt(2026, 1, 31).unwrap()
+        );
         assert_eq!(parse_start_end(None).0, parse_start_end(None).1);
     }
 

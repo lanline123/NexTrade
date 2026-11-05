@@ -26,7 +26,8 @@ const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
 /// 账户总览路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new().route("/finance/accountPanel/list", get(list))
+    Router::new()
+        .route("/finance/accountPanel/list", get(list))
         .layer(axum::middleware::from_fn(platform_only))
 }
 

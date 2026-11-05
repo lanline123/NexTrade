@@ -201,22 +201,13 @@ mod tests {
             msg_type: Some(3),
             ..Default::default()
         };
-        assert_eq!(
-            validate_payload(&dto).unwrap_err(),
-            MSG_MSG_TYPE_INVALID
-        );
+        assert_eq!(validate_payload(&dto).unwrap_err(), MSG_MSG_TYPE_INVALID);
         dto.msg_type = Some(1);
-        assert_eq!(
-            validate_payload(&dto).unwrap_err(),
-            MSG_CONTENT_REQUIRED
-        );
+        assert_eq!(validate_payload(&dto).unwrap_err(), MSG_CONTENT_REQUIRED);
         dto.content = Some("你好".into());
         assert!(validate_payload(&dto).is_ok());
         dto.content = Some("字".repeat(MAX_CONTENT_LEN + 1));
-        assert_eq!(
-            validate_payload(&dto).unwrap_err(),
-            MSG_CONTENT_TOO_LONG
-        );
+        assert_eq!(validate_payload(&dto).unwrap_err(), MSG_CONTENT_TOO_LONG);
         // 600 字边界通过
         dto.content = Some("字".repeat(MAX_CONTENT_LEN));
         assert!(validate_payload(&dto).is_ok());
@@ -228,10 +219,7 @@ mod tests {
             msg_type: Some(2),
             ..Default::default()
         };
-        assert_eq!(
-            validate_payload(&base).unwrap_err(),
-            MSG_NEWS_TITLE_INVALID
-        );
+        assert_eq!(validate_payload(&base).unwrap_err(), MSG_NEWS_TITLE_INVALID);
         let with_title = ReplyPayloadDTO {
             news_title: Some("标题".into()),
             ..base.clone()
@@ -279,9 +267,18 @@ mod tests {
     fn payload_parse_serialize_round_trip() {
         // 无配置 → 空载荷
         assert_eq!(parse_payload(None), ReplyPayloadVO::default_payload());
-        assert_eq!(parse_payload(Some("   ")), ReplyPayloadVO::default_payload());
-        assert_eq!(parse_payload(Some("not-json")), ReplyPayloadVO::default_payload());
-        assert_eq!(parse_payload(Some("null")), ReplyPayloadVO::default_payload());
+        assert_eq!(
+            parse_payload(Some("   ")),
+            ReplyPayloadVO::default_payload()
+        );
+        assert_eq!(
+            parse_payload(Some("not-json")),
+            ReplyPayloadVO::default_payload()
+        );
+        assert_eq!(
+            parse_payload(Some("null")),
+            ReplyPayloadVO::default_payload()
+        );
 
         let dto = ReplyPayloadDTO {
             msg_type: Some(1),

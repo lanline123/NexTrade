@@ -1,4 +1,4 @@
-﻿//! 管理端店铺订单配置路由（trade::shop_order_config）。
+//! 管理端店铺订单配置路由（trade::shop_order_config）。
 //!
 //! 对应 Java `ShopOrderConfigController`（`/adminapi/order/config`）：
 //! `GET /adminapi/order/config/detail`、`POST /adminapi/order/config/save`。
@@ -8,9 +8,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use tigshop_core::models::trade::shop_order_config::{
-    OrderConfigDTO, OrderConfigDetailQuery,
-};
+use tigshop_core::models::trade::shop_order_config::{OrderConfigDTO, OrderConfigDetailQuery};
 use tigshop_openapi::RouteDoc;
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 
@@ -18,8 +16,16 @@ use crate::AdminState;
 
 /// 本域 2 条路由。
 const ROUTE_TABLE: [(&str, &str, &str); 2] = [
-    ("GET", "/order/config/detail", "ShopOrderConfigController.detail"),
-    ("POST", "/order/config/save", "ShopOrderConfigController.save"),
+    (
+        "GET",
+        "/order/config/detail",
+        "ShopOrderConfigController.detail",
+    ),
+    (
+        "POST",
+        "/order/config/save",
+        "ShopOrderConfigController.save",
+    ),
 ];
 
 /// 店铺订单配置路由（挂载于 `/adminapi` 下）。

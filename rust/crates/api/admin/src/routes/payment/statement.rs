@@ -127,7 +127,9 @@ async fn export_statement(
 ) -> Result<axum::response::Response, AppError> {
     q.shop_id = auth.resolve_shop_scope(q.shop_id)?;
     let (file_name, bytes) = state.payment.statement.export_statement_xlsx(&q).await?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, &file_name))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes, &file_name,
+    ))
 }
 
 /// `GET /adminapi/finance/statement/exportStatementStatistics`：导出统计
@@ -139,7 +141,9 @@ async fn export_statistics(
 ) -> Result<axum::response::Response, AppError> {
     q.shop_id = auth.resolve_shop_scope(q.shop_id)?;
     let (file_name, bytes) = state.payment.statement.export_statistics_xlsx(&q).await?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, &file_name))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes, &file_name,
+    ))
 }
 
 /// `GET /adminapi/finance/statement/getStatementStatisticsList`：对账单统计。
@@ -167,8 +171,14 @@ mod tests {
             ("GET", "/adminapi/finance/statement/getStatementList"),
             ("POST", "/adminapi/finance/statement/saveStatementDownload"),
             ("GET", "/adminapi/finance/statement/exportStatement"),
-            ("GET", "/adminapi/finance/statement/exportStatementStatistics"),
-            ("GET", "/adminapi/finance/statement/getStatementStatisticsList"),
+            (
+                "GET",
+                "/adminapi/finance/statement/exportStatementStatistics",
+            ),
+            (
+                "GET",
+                "/adminapi/finance/statement/getStatementStatisticsList",
+            ),
             ("GET", "/adminapi/finance/statement/getStatementQueryConfig"),
         ];
         let docs = implemented_routes();

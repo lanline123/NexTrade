@@ -58,11 +58,23 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/im/conversation/conversation/transfer", post(transfer))
         .route("/im/conversation/conversation/detail", get(detail))
         .route("/im/conversation/conversation/create", post(create))
-        .route("/im/conversation/conversation/waitServantList", get(wait_servant_list))
+        .route(
+            "/im/conversation/conversation/waitServantList",
+            get(wait_servant_list),
+        )
         .route("/im/conversation/conversation/del", post(del))
-        .route("/im/conversation/conversation/saveRemark", post(save_remark))
-        .route("/im/conversation/conversation/consultHistory", get(consult_history))
-        .route("/im/conversation/conversation/updateField", post(update_field))
+        .route(
+            "/im/conversation/conversation/saveRemark",
+            post(save_remark),
+        )
+        .route(
+            "/im/conversation/conversation/consultHistory",
+            get(consult_history),
+        )
+        .route(
+            "/im/conversation/conversation/updateField",
+            post(update_field),
+        )
         .route("/im/conversation/conversation/batch", post(batch))
 }
 
@@ -264,7 +276,11 @@ async fn consult_history(
     Query(q): Query<ImConversationPageQuery>,
 ) -> ApiResult<PageResult<ConsultHistoryListVO>> {
     let shop_id = resolve_shop_id(&headers, &auth);
-    ok(state.im.im_conversation.consult_history(&q, shop_id).await?)
+    ok(state
+        .im
+        .im_conversation
+        .consult_history(&q, shop_id)
+        .await?)
 }
 
 /// `POST /im/conversation/conversation/updateField`：更新会话字段（白名单 `status`）。
@@ -277,10 +293,7 @@ async fn update_field(
 }
 
 /// `POST /im/conversation/conversation/batch`：批量操作（仅 `type = "del"`）。
-async fn batch(
-    State(state): State<AdminState>,
-    Json(dto): Json<BatchDTO>,
-) -> ApiResult<()> {
+async fn batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<()> {
     state.im.im_conversation.batch(&dto).await?;
     ok(())
 }

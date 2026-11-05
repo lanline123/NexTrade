@@ -10,8 +10,8 @@
 //! - 出参 `com.tigshop.bean.dto.authority.AdminLogDTO`
 //!   （`java/tigshop-bean/src/main/java/com/tigshop/bean/dto/authority/AdminLogDTO.java`）
 
-use serde::{Deserialize, Serialize};
 use crate::types::PageQuery;
+use serde::{Deserialize, Serialize};
 
 /// Java `BasePage` 默认页大小。
 pub const DEFAULT_PAGE_SIZE: u64 = 15;
@@ -227,7 +227,10 @@ mod tests {
     fn page_defaults_match_java_base_page() {
         assert_eq!(q(serde_json::json!({})).page_params(), (1, 15));
         assert_eq!(q(serde_json::json!({"size": 101})).page_params(), (1, 100));
-        assert_eq!(q(serde_json::json!({"page": 4, "size": 10})).limit_offset(), (10, 30));
+        assert_eq!(
+            q(serde_json::json!({"page": 4, "size": 10})).limit_offset(),
+            (10, 30)
+        );
         let pq = q(serde_json::json!({"page": 2})).page_query();
         assert_eq!((pq.page, pq.page_size), (2, 15));
     }
@@ -235,7 +238,9 @@ mod tests {
     #[test]
     fn keyword_is_camel_case_and_optional() {
         assert_eq!(
-            q(serde_json::json!({"keyword": "1.2.3.4"})).keyword.as_deref(),
+            q(serde_json::json!({"keyword": "1.2.3.4"}))
+                .keyword
+                .as_deref(),
             Some("1.2.3.4")
         );
         assert_eq!(q(serde_json::json!({})).keyword, None);
@@ -262,12 +267,27 @@ mod tests {
     #[test]
     fn scope_missing_or_non_positive_id_yields_nothing() {
         for t in ["shop", "store", "pickup", "pos"] {
-            assert_eq!(Scope::resolve(Some(t), None, Some(3)), Scope::Nothing, "{t}");
-            assert_eq!(Scope::resolve(Some(t), Some(0), None), Scope::Nothing, "{t}");
-            assert_eq!(Scope::resolve(Some(t), Some(-2), None), Scope::Nothing, "{t}");
+            assert_eq!(
+                Scope::resolve(Some(t), None, Some(3)),
+                Scope::Nothing,
+                "{t}"
+            );
+            assert_eq!(
+                Scope::resolve(Some(t), Some(0), None),
+                Scope::Nothing,
+                "{t}"
+            );
+            assert_eq!(
+                Scope::resolve(Some(t), Some(-2), None),
+                Scope::Nothing,
+                "{t}"
+            );
         }
         assert_eq!(Scope::resolve(Some("vendor"), None, None), Scope::Nothing);
-        assert_eq!(Scope::resolve(Some("vendor"), Some(5), Some(0)), Scope::Nothing);
+        assert_eq!(
+            Scope::resolve(Some("vendor"), Some(5), Some(0)),
+            Scope::Nothing
+        );
         assert_eq!(
             Scope::resolve(Some("vendor"), None, Some(5)),
             Scope::Vendor { vendor_id: 5 }
@@ -277,11 +297,20 @@ mod tests {
     #[test]
     fn scope_other_types_yield_nothing_and_are_case_sensitive() {
         assert_eq!(Scope::resolve(None, Some(1), Some(1)), Scope::Nothing);
-        assert_eq!(Scope::resolve(Some("legacy"), Some(1), Some(1)), Scope::Nothing);
+        assert_eq!(
+            Scope::resolve(Some("legacy"), Some(1), Some(1)),
+            Scope::Nothing
+        );
         // Java 用 equals，"Admin" 不是平台账号
-        assert_eq!(Scope::resolve(Some("Admin"), Some(1), Some(1)), Scope::Nothing);
+        assert_eq!(
+            Scope::resolve(Some("Admin"), Some(1), Some(1)),
+            Scope::Nothing
+        );
         assert_eq!(Scope::resolve(Some("Shop"), Some(1), None), Scope::Nothing);
-        assert_eq!(Scope::resolve(Some("Vendor"), None, Some(1)), Scope::Nothing);
+        assert_eq!(
+            Scope::resolve(Some("Vendor"), None, Some(1)),
+            Scope::Nothing
+        );
     }
 
     #[test]

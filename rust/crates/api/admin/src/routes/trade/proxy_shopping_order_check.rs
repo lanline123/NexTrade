@@ -1,4 +1,4 @@
-﻿//! 代客下单订单结算路由（trade::proxy_shopping_order_check）。
+//! 代客下单订单结算路由（trade::proxy_shopping_order_check）。
 //!
 //! 对应原 Java `com.tigshop.adminapi.controller.proxyshopping.ProxyShoppingOrderCheckController`
 //! （`@RequestMapping("/adminapi/proxyShopping/order/check")`，
@@ -128,10 +128,7 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
             "/proxyShopping/order/check/getAvailablePaymentType",
             get(get_available_payment_type),
         )
-        .route(
-            "/proxyShopping/order/check/pickupList",
-            get(pickup_list),
-        )
+        .route("/proxyShopping/order/check/pickupList", get(pickup_list))
         .route("/proxyShopping/order/check/index", post(check_index))
         .route("/proxyShopping/order/check/update", post(check_update))
         .route(
@@ -169,7 +166,11 @@ async fn get_available_payment_type(
     State(state): State<AdminState>,
     Query(q): Query<AvailablePaymentTypeQuery>,
 ) -> ApiResult<Vec<PaymentTypeVO>> {
-    ok(state.trade.proxy_shopping_order_check.available_payment_types(&q).await?)
+    ok(state
+        .trade
+        .proxy_shopping_order_check
+        .available_payment_types(&q)
+        .await?)
 }
 
 /// `GET /adminapi/proxyShopping/order/check/pickupList`：获取自提点列表。
@@ -187,7 +188,11 @@ async fn pickup_list(
     if let Some(scope) = tenant.shop_scope() {
         q.shop_id = Some(scope);
     }
-    ok(state.trade.proxy_shopping_order_check.pickup_list(&q).await?)
+    ok(state
+        .trade
+        .proxy_shopping_order_check
+        .pickup_list(&q)
+        .await?)
 }
 
 /// `POST /adminapi/proxyShopping/order/check/index`：获取结算页信息。
@@ -202,7 +207,11 @@ async fn check_index(
     Json(param): Json<OrderCheckParam>,
 ) -> ApiResult<tigshop_core::models::trade::check::OrderCheckVO> {
     let ctx = request_context_from_auth(&auth);
-    let vo = state.trade.proxy_shopping_order_check.check_index(&param, &ctx).await?;
+    let vo = state
+        .trade
+        .proxy_shopping_order_check
+        .check_index(&param, &ctx)
+        .await?;
     ok(vo)
 }
 
@@ -215,7 +224,11 @@ async fn check_update(
     Json(param): Json<OrderCheckParam>,
 ) -> ApiResult<tigshop_core::models::trade::check::OrderCheckVO> {
     let ctx = request_context_from_auth(&auth);
-    let vo = state.trade.proxy_shopping_order_check.check_update(&param, &ctx).await?;
+    let vo = state
+        .trade
+        .proxy_shopping_order_check
+        .check_update(&param, &ctx)
+        .await?;
     ok(vo)
 }
 
@@ -228,7 +241,11 @@ async fn check_update_coupon(
     Json(param): Json<OrderCheckParam>,
 ) -> ApiResult<tigshop_core::models::trade::check::OrderCheckVO> {
     let ctx = request_context_from_auth(&auth);
-    let vo = state.trade.proxy_shopping_order_check.check_update_coupon(&param, &ctx).await?;
+    let vo = state
+        .trade
+        .proxy_shopping_order_check
+        .check_update_coupon(&param, &ctx)
+        .await?;
     ok(vo)
 }
 
@@ -241,7 +258,11 @@ async fn check_change_price(
     Json(param): Json<OrderCheckParam>,
 ) -> ApiResult<tigshop_core::models::trade::check::OrderCheckVO> {
     let ctx = request_context_from_auth(&auth);
-    let vo = state.trade.proxy_shopping_order_check.change_price(&param, &ctx).await?;
+    let vo = state
+        .trade
+        .proxy_shopping_order_check
+        .change_price(&param, &ctx)
+        .await?;
     ok(vo)
 }
 
@@ -254,7 +275,11 @@ async fn check_change_price_show(
     Json(param): Json<OrderCheckParam>,
 ) -> ApiResult<tigshop_core::models::trade::check::OrderCheckVO> {
     let ctx = request_context_from_auth(&auth);
-    let vo = state.trade.proxy_shopping_order_check.change_price_show(&param, &ctx).await?;
+    let vo = state
+        .trade
+        .proxy_shopping_order_check
+        .change_price_show(&param, &ctx)
+        .await?;
     ok(vo)
 }
 
@@ -270,7 +295,11 @@ async fn check_submit(
     Json(param): Json<OrderCheckParam>,
 ) -> ApiResult<tigshop_core::models::OrderCreateVO> {
     let ctx = request_context_from_auth(&auth);
-    let vo = state.trade.proxy_shopping_order_check.submit(&param, &ctx, auth.id).await?;
+    let vo = state
+        .trade
+        .proxy_shopping_order_check
+        .submit(&param, &ctx, auth.id)
+        .await?;
     ok(vo)
 }
 

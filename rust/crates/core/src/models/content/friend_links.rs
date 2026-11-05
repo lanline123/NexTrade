@@ -43,7 +43,13 @@ pub const DEFAULT_PAGE_SIZE: u64 = 15;
 pub const MAX_PAGE_SIZE: u64 = 100;
 
 /// `friend_links` 表可参与 `ORDER BY` 的真实列（防注入）。
-pub const SORTABLE_COLUMNS: [&str; 5] = ["link_id", "link_title", "link_logo", "link_url", "sort_order"];
+pub const SORTABLE_COLUMNS: [&str; 5] = [
+    "link_id",
+    "link_title",
+    "link_logo",
+    "link_url",
+    "sort_order",
+];
 
 /// 属性名 → 列名（Java `getColumnByPropertyName`；未知回退主键）。
 #[must_use]
@@ -184,7 +190,10 @@ pub struct UpdateFieldDTO {
     /// 字段名。
     pub field: Option<String>,
     /// 字段值。
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -251,7 +260,10 @@ mod tests {
             resolve_sort(Some("linkTitle"), None),
             ("link_title", Some(true))
         );
-        assert_eq!(resolve_sort(Some("sort_order"), Some("x")), ("sort_order", None));
+        assert_eq!(
+            resolve_sort(Some("sort_order"), Some("x")),
+            ("sort_order", None)
+        );
         assert_eq!(
             resolve_sort(Some("1=1 --"), Some("asc")),
             ("link_id", Some(false))

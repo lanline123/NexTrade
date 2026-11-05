@@ -34,9 +34,21 @@ use crate::AdminState;
 /// 本域 6 条路由（`/adminapi` 前缀之后的路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 6] = [
     ("GET", "/deposit/rule/list", "DepositRuleController.list"),
-    ("GET", "/deposit/rule/detail", "DepositRuleController.detail"),
-    ("POST", "/deposit/rule/create", "DepositRuleController.create"),
-    ("POST", "/deposit/rule/update", "DepositRuleController.update"),
+    (
+        "GET",
+        "/deposit/rule/detail",
+        "DepositRuleController.detail",
+    ),
+    (
+        "POST",
+        "/deposit/rule/create",
+        "DepositRuleController.create",
+    ),
+    (
+        "POST",
+        "/deposit/rule/update",
+        "DepositRuleController.update",
+    ),
     ("POST", "/deposit/rule/del", "DepositRuleController.del"),
     (
         "POST",

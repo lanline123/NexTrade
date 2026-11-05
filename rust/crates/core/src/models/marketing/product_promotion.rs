@@ -438,10 +438,7 @@ pub struct ConflictPageVO {
 
 /// `ProductPromotion` 实体 → 冲突 VO。
 #[must_use]
-pub fn conflict_vo_from_entity(
-    e: &crate::entities::ProductPromotion,
-    now: i64,
-) -> ConflictPageVO {
+pub fn conflict_vo_from_entity(e: &crate::entities::ProductPromotion, now: i64) -> ConflictPageVO {
     let _ = now;
     ConflictPageVO {
         promotion_id: e.promotion_id,
@@ -530,7 +527,10 @@ mod tests {
             },
             PromotionTypeData::default(),
         ];
-        assert_eq!(min_amount_from_type_data(&data), Decimal::from_str("50.00").unwrap());
+        assert_eq!(
+            min_amount_from_type_data(&data),
+            Decimal::from_str("50.00").unwrap()
+        );
         assert_eq!(min_amount_from_type_data(&[]), Decimal::ZERO);
     }
 

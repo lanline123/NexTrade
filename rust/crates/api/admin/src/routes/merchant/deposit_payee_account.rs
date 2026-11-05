@@ -17,10 +17,26 @@ use tigshop_security::web::{ok, ApiResult, AppError, TenantContext};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 4] = [
-    ("GET", "/deposit/payeeAccount/list", "DepositPayeeAccountController.list"),
-    ("POST", "/deposit/payeeAccount/create", "DepositPayeeAccountController.create"),
-    ("POST", "/deposit/payeeAccount/update", "DepositPayeeAccountController.update"),
-    ("POST", "/deposit/payeeAccount/del", "DepositPayeeAccountController.del"),
+    (
+        "GET",
+        "/deposit/payeeAccount/list",
+        "DepositPayeeAccountController.list",
+    ),
+    (
+        "POST",
+        "/deposit/payeeAccount/create",
+        "DepositPayeeAccountController.create",
+    ),
+    (
+        "POST",
+        "/deposit/payeeAccount/update",
+        "DepositPayeeAccountController.update",
+    ),
+    (
+        "POST",
+        "/deposit/payeeAccount/del",
+        "DepositPayeeAccountController.del",
+    ),
 ];
 
 /// 收款账户路由。
@@ -130,7 +146,13 @@ mod tests {
 
     #[test]
     fn methods_match_java_controller() {
-        assert_eq!(ROUTE_TABLE.iter().filter(|(m, _, _)| *m == "GET").count(), 1);
-        assert_eq!(ROUTE_TABLE.iter().filter(|(m, _, _)| *m == "POST").count(), 3);
+        assert_eq!(
+            ROUTE_TABLE.iter().filter(|(m, _, _)| *m == "GET").count(),
+            1
+        );
+        assert_eq!(
+            ROUTE_TABLE.iter().filter(|(m, _, _)| *m == "POST").count(),
+            3
+        );
     }
 }

@@ -8,6 +8,7 @@
 //! | `POST /search/search/getProduct` | `SearchController.list` | optional |
 //! | `POST /search/search/getFilter` | `SearchController.getFilter` | optional |
 //! | `GET  /search/search/getAttributeSuggestions` | `SearchController.getAttributeSuggestions` | optional |
+//! | `POST /search/search/getEsFilter` | PC 搜索页属性筛选项（5.8.61 前端调用，Java 后端快照未含此路由） | optional |
 //!
 //! 同 feature 的管理端 2 条在
 //! `crates/api/admin/src/routes/catalog/search_admin.rs`。
@@ -45,7 +46,7 @@ use tigshop_security::JwtService;
 use crate::PublicState;
 
 /// 本模块负责的 3 条前台路由（`/api` 前缀之后的路径）。
-const ROUTE_TABLE: [(&str, &str, &str); 3] = [
+const ROUTE_TABLE: [(&str, &str, &str); 4] = [
     (
         "POST",
         "/search/search/getProduct",
@@ -61,6 +62,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 3] = [
         "/search/search/getAttributeSuggestions",
         "SearchController.getAttributeSuggestions",
     ),
+    (
+        "POST",
+        "/search/search/getEsFilter",
+        "SearchController.getEsFilter",
+    ),
 ];
 
 /// 前台商品搜索路由（挂载于 `/api` 下，模块自带可选登录态中间件）。
@@ -72,6 +78,7 @@ pub fn routes(state: &PublicState) -> Router<PublicState> {
             "/search/search/getAttributeSuggestions",
             get(get_attribute_suggestions),
         )
+        .route("/search/search/getEsFilter", post(get_es_filter))
         .layer(middleware::from_fn_with_state(
             state.jwt.clone(),
             optional_auth,
@@ -161,6 +168,26 @@ async fn get_attribute_suggestions(
     ok(serde_json::json!({ "attributes": attributes }))
 }
 
+/// `POST /api/search/search/getEsFilter`：PC 搜索页「ES 属性筛选项」。
+///
+/// 原版 PC 前端（`view/pc/pages/search/components/api.ts#getSearchEsFilter`）
+/// 调用该路径获取 `{ attributes: [{ name, values: [{ value }] }] }`；5.8.61 的
+/// Java 后端快照（`SearchController`）只有 getProduct/getFilter/
+/// getAttributeSuggestions，新 PC 搜索页已按旧前端保留该调用 —— 缺失会让属性
+/// 筛选面板永远为空，属 PC 阻塞缺口。
+///
+/// 本实现无 Elasticsearch 依赖（与 `getAttributeSuggestions` 一致，恒走 MySQL
+/// 回退）：复用 `product_attributes`（`attr_type = 0`）聚合，响应结构与
+/// `attributeSuggestions` 相同（`values[].count` 为附加字段，PC 端忽略）。
+async fn get_es_filter(
+    State(state): State<PublicState>,
+    Json(dto): Json<ProductSearchClientQuery>,
+) -> ApiResult<serde_json::Value> {
+    let attributes: Vec<AttributeSuggestionVO> =
+        state.catalog.search_admin.attribute_suggestions(&dto).await?;
+    ok(serde_json::json!({ "attributes": attributes }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -168,7 +195,7 @@ mod tests {
     #[test]
     fn implemented_routes_match_java_contract() {
         let docs = implemented_routes();
-        assert_eq!(docs.len(), 3);
+        assert_eq!(docs.len(), 4);
         let expected = [
             (
                 "POST",
@@ -184,6 +211,11 @@ mod tests {
                 "GET",
                 "/api/search/search/getAttributeSuggestions",
                 "SearchController.getAttributeSuggestions",
+            ),
+            (
+                "POST",
+                "/api/search/search/getEsFilter",
+                "SearchController.getEsFilter",
             ),
         ];
         for (method, path, handler) in expected {
@@ -201,6 +233,7 @@ mod tests {
             ("POST", "/search/search/getProduct"),
             ("POST", "/search/search/getFilter"),
             ("GET", "/search/search/getAttributeSuggestions"),
+            ("POST", "/search/search/getEsFilter"),
         ];
         assert_eq!(registered.len(), ROUTE_TABLE.len());
         for (method, path) in registered {

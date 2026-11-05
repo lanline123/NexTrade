@@ -28,8 +28,8 @@ use axum::{
     Extension, Json, Router,
 };
 use tigshop_core::models::member::shop_member::{
-    ShopMemberAddParam, ShopMemberDetailQuery, ShopMemberListVO, ShopMemberQueryPage,
-    ShopMemberImportRow, ShopMemberSettingParam, ShopMemberSettingVO, ShopMemberShopListVO,
+    ShopMemberAddParam, ShopMemberDetailQuery, ShopMemberImportRow, ShopMemberListVO,
+    ShopMemberQueryPage, ShopMemberSettingParam, ShopMemberSettingVO, ShopMemberShopListVO,
     ShopMemberShopQueryPage,
 };
 use tigshop_core::models::member::user_manage::UserImportSuccessListVO;
@@ -57,7 +57,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "ShopMemberController.shopList",
     ),
     ("GET", "/user/shopMember/list", "ShopMemberController.list"),
-    ("GET", "/user/shopMember/detail", "ShopMemberController.detail"),
+    (
+        "GET",
+        "/user/shopMember/detail",
+        "ShopMemberController.detail",
+    ),
     ("POST", "/user/shopMember/add", "ShopMemberController.add"),
     (
         "GET",
@@ -143,7 +147,9 @@ async fn setting_save(
     Json(param): Json<ShopMemberSettingParam>,
 ) -> ApiResult<()> {
     if !auth.is_platform() {
-        return Err(tigshop_core::Error::Forbidden("仅平台账号可修改店铺会员全局开关".into()).into());
+        return Err(
+            tigshop_core::Error::Forbidden("仅平台账号可修改店铺会员全局开关".into()).into(),
+        );
     }
     state.member.shop_member.setting_save(&param).await?;
     ok(())
@@ -191,7 +197,8 @@ async fn download_import_template(
     State(state): State<AdminState>,
 ) -> std::result::Result<axum::response::Response, AppError> {
     let _ = &state;
-    let headers = tigshop_services::member::shop_member::ShopMemberService::import_template_headers();
+    let headers =
+        tigshop_services::member::shop_member::ShopMemberService::import_template_headers();
     let bytes = tigshop_services::system::excel::build_xlsx(&headers, &[], "店铺会员导入模板")?;
     Ok(crate::support::excel_response::xlsx_response(
         bytes,
@@ -211,11 +218,7 @@ async fn import_members(
         return Err(AppError(Error::biz_msg("表格数据为空")));
     }
     let ctx = context_shop_id(&auth);
-    ok(state
-        .member
-        .shop_member
-        .import_members(&rows, ctx)
-        .await?)
+    ok(state.member.shop_member.import_members(&rows, ctx).await?)
 }
 
 /// `importErrorData`（anonymous）：店铺会员导入失败数据 xlsx。
@@ -225,11 +228,7 @@ async fn import_error_data(
 ) -> std::result::Result<axum::response::Response, AppError> {
     let bytes = read_upload_file(&mut multipart).await?;
     let rows = parse_shop_member_rows(&bytes)?;
-    let errors = state
-        .member
-        .shop_member
-        .import_error_data(&rows)
-        .await?;
+    let errors = state.member.shop_member.import_error_data(&rows).await?;
     let headers_out = ["用户名", "手机号*", "邮箱", "昵称", "生日", "错误信息"];
     let data: Vec<Vec<String>> = errors
         .iter()
@@ -244,7 +243,8 @@ async fn import_error_data(
             ]
         })
         .collect();
-    let bytes = tigshop_services::system::excel::build_xlsx(&headers_out, &data, "店铺会员导入错误")?;
+    let bytes =
+        tigshop_services::system::excel::build_xlsx(&headers_out, &data, "店铺会员导入错误")?;
     Ok(crate::support::excel_response::xlsx_response(
         bytes,
         "shop_member_import_error.xlsx",
@@ -253,9 +253,11 @@ async fn import_error_data(
 
 /// 读取 multipart 的 `file` 字段。
 async fn read_upload_file(multipart: &mut Multipart) -> Result<Vec<u8>, AppError> {
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError(Error::Validation(format!("读取上传文件失败: {e}")))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError(Error::Validation(format!("读取上传文件失败: {e}"))))?
+    {
         if field.name() == Some("file") {
             return field
                 .bytes()
@@ -362,10 +364,7 @@ mod tests {
             .iter()
             .all(|(_, p, _)| *p != "/user/shopMember/importErrorData"));
         assert_eq!(PUBLIC_ROUTE_TABLE.len(), 1);
-        assert_eq!(
-            PUBLIC_ROUTE_TABLE[0].1,
-            "/user/shopMember/importErrorData"
-        );
+        assert_eq!(PUBLIC_ROUTE_TABLE[0].1, "/user/shopMember/importErrorData");
     }
 
     #[test]

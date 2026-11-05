@@ -33,12 +33,32 @@ use crate::AdminState;
 /// 本域 6 条路由（去掉 `/adminapi` 前缀）。最后一条 `batch` 来自
 /// 新版管理端前端契约（`view/admin/src/api/salesman/subgroup.ts`）。
 const ROUTE_TABLE: [(&str, &str, &str); 6] = [
-    ("GET", "/salesman/group/list", "SalesmanGroupController.list"),
-    ("GET", "/salesman/group/detail", "SalesmanGroupController.detail"),
-    ("POST", "/salesman/group/create", "SalesmanGroupController.create"),
-    ("POST", "/salesman/group/update", "SalesmanGroupController.update"),
+    (
+        "GET",
+        "/salesman/group/list",
+        "SalesmanGroupController.list",
+    ),
+    (
+        "GET",
+        "/salesman/group/detail",
+        "SalesmanGroupController.detail",
+    ),
+    (
+        "POST",
+        "/salesman/group/create",
+        "SalesmanGroupController.create",
+    ),
+    (
+        "POST",
+        "/salesman/group/update",
+        "SalesmanGroupController.update",
+    ),
     ("POST", "/salesman/group/del", "SalesmanGroupController.del"),
-    ("POST", "/salesman/group/batch", "SalesmanGroupController.batch"),
+    (
+        "POST",
+        "/salesman/group/batch",
+        "SalesmanGroupController.batch",
+    ),
 ];
 
 /// 分组管理路由（`/adminapi` 下，全局 `require_auth` 已生效）。
@@ -77,10 +97,12 @@ async fn list(
     ok(state.marketing.salesman_group.list(&q).await?)
 }
 
-async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<Option<SalesmanGroupVO>> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+async fn detail(
+    State(state): State<AdminState>,
+    Query(q): Query<IdQuery>,
+) -> ApiResult<Option<SalesmanGroupVO>> {
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.marketing.salesman_group.detail(id).await?)
 }
 
@@ -154,7 +176,10 @@ mod tests {
             .collect();
         assert_eq!(
             gets,
-            vec!["/adminapi/salesman/group/list", "/adminapi/salesman/group/detail"]
+            vec![
+                "/adminapi/salesman/group/list",
+                "/adminapi/salesman/group/detail"
+            ]
         );
     }
 

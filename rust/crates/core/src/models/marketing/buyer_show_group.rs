@@ -228,7 +228,8 @@ mod tests {
         assert_eq!(p.group_ids.as_deref(), Some(&[1, 2][..]));
 
         let u: BuyerShowGroupUpdateParam =
-            serde_json::from_str(r#"{"buyerShowGroupId":7,"groupName":"x","groupIds":[3]}"#).unwrap();
+            serde_json::from_str(r#"{"buyerShowGroupId":7,"groupName":"x","groupIds":[3]}"#)
+                .unwrap();
         assert_eq!(u.buyer_show_group_id, Some(7));
 
         let o: OperateDTO = serde_json::from_str(r#"{"id":9,"adminNote":"n"}"#).unwrap();
@@ -242,8 +243,14 @@ mod tests {
         assert_eq!(BuyerShowGroupScope::Unscoped.shop_id(), None);
         // 落库值：Java 跳过 null 列 → 列默认 0
         assert_eq!(BuyerShowGroupScope::Unscoped.insert_shop_id(), 0);
-        assert_eq!(BuyerShowGroupScope::from_optional(None), BuyerShowGroupScope::Unscoped);
-        assert_eq!(BuyerShowGroupScope::from_optional(Some(4)), BuyerShowGroupScope::Shop(4));
+        assert_eq!(
+            BuyerShowGroupScope::from_optional(None),
+            BuyerShowGroupScope::Unscoped
+        );
+        assert_eq!(
+            BuyerShowGroupScope::from_optional(Some(4)),
+            BuyerShowGroupScope::Shop(4)
+        );
     }
 
     #[test]

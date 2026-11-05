@@ -18,7 +18,9 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use tigshop_core::models::payment::paylog::{PaylogCreateDTO, PaylogListQuery, PaylogUpdateDTO, PaylogVO};
+use tigshop_core::models::payment::paylog::{
+    PaylogCreateDTO, PaylogListQuery, PaylogUpdateDTO, PaylogVO,
+};
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
 
@@ -41,10 +43,26 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/finance/payLog/list", "PaylogController.list"),
-        ("GET", "/adminapi/finance/payLog/detail", "PaylogController.detail"),
-        ("POST", "/adminapi/finance/payLog/create", "PaylogController.create"),
-        ("POST", "/adminapi/finance/payLog/update", "PaylogController.update"),
+        (
+            "GET",
+            "/adminapi/finance/payLog/list",
+            "PaylogController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/finance/payLog/detail",
+            "PaylogController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/finance/payLog/create",
+            "PaylogController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/finance/payLog/update",
+            "PaylogController.update",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -65,10 +83,7 @@ struct IdQuery {
     id: i32,
 }
 
-async fn detail(
-    State(state): State<AdminState>,
-    Query(q): Query<IdQuery>,
-) -> ApiResult<PaylogVO> {
+async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<PaylogVO> {
     ok(state.payment.paylog.detail(q.id).await?)
 }
 

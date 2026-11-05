@@ -98,7 +98,6 @@ pub const IS_SHOW_NOT_SHOW: i32 = 0;
 
 // ————————————————————— Java 常量文案（逐字符照抄） —————————————————————
 
-
 /// Java `MobileCatNavConstants.CATEGORY_ID_NOT_NULL`
 /// （`MobileCatNavCreateDTO.categoryId` 上的 `@NotBlank(message = ...)`）。
 ///
@@ -506,7 +505,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -634,7 +636,6 @@ mod tests {
 
     // ————————————————————— 常量：与 Java 逐字符对照 —————————————————————
 
-
     /// Java `MobileCatNavController.updateField` 的内联白名单。
     #[test]
     fn update_field_whitelist_matches_java_literal() {
@@ -740,7 +741,6 @@ mod tests {
     }
 
     // ————————————————————— 纯逻辑：VO 构造（list vs detail） —————————————————————
-
 
     /// `detail`：三列 JSON 还原为数组；`categoryName` **不**补（恒 null）。
     #[test]
@@ -910,10 +910,7 @@ mod tests {
         assert_eq!(map_update_field_column("sortOrder"), Some("sort_order"));
         assert_eq!(map_update_field_column("sort_order"), Some("sort_order"));
         // 主键能归一但不在白名单
-        assert_eq!(
-            map_update_field_column("mobileCatNavId"),
-            Some(KEY_COLUMN)
-        );
+        assert_eq!(map_update_field_column("mobileCatNavId"), Some(KEY_COLUMN));
         assert_eq!(
             map_update_field_column("mobile_cat_nav_id"),
             Some(KEY_COLUMN)
@@ -980,7 +977,8 @@ mod tests {
         let dto: OperateDTO = serde_json::from_str(r#"{"adminNote":"x"}"#).unwrap();
         assert_eq!(dto.id, None);
 
-        let dto: BatchDTO = serde_json::from_str(r#"{"ids":[1,2],"type":"del","value":0}"#).unwrap();
+        let dto: BatchDTO =
+            serde_json::from_str(r#"{"ids":[1,2],"type":"del","value":0}"#).unwrap();
         assert_eq!(dto.r#type, "del");
         assert_eq!(dto.ids, vec![1, 2]);
         let dto: BatchDTO = serde_json::from_str(r#"{"ids":[],"type":"show"}"#).unwrap();

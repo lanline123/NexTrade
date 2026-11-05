@@ -42,7 +42,11 @@ use crate::AdminState;
 
 /// 本域全部 8 条路由（去掉 `/adminapi` 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/merchant/shopAccount/list", "ShopFundsController.list"),
+    (
+        "GET",
+        "/merchant/shopAccount/list",
+        "ShopFundsController.list",
+    ),
     (
         "GET",
         "/merchant/shopAccount/detail",
@@ -58,7 +62,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "/merchant/shopAccount/update",
         "ShopFundsController.update",
     ),
-    ("POST", "/merchant/shopAccount/del", "ShopFundsController.del"),
+    (
+        "POST",
+        "/merchant/shopAccount/del",
+        "ShopFundsController.del",
+    ),
     (
         "POST",
         "/merchant/shopAccount/updateField",
@@ -135,9 +143,8 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<Option<ShopFundsVO>> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.merchant.shop_funds.detail(id).await?)
 }
 
@@ -157,10 +164,7 @@ async fn update(
     ok(())
 }
 
-async fn delete(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<()> {
+async fn delete(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<()> {
     state.merchant.shop_funds.delete(&dto).await?;
     ok(())
 }
@@ -255,11 +259,13 @@ mod tests {
     #[test]
     fn query_and_body_parse_camel_case() {
         let q: ShopFundsListQuery =
-            serde_json::from_str(r#"{"status":1,"shopType":2,"keyword":"旗舰","size":30}"#).unwrap();
+            serde_json::from_str(r#"{"status":1,"shopType":2,"keyword":"旗舰","size":30}"#)
+                .unwrap();
         assert_eq!(q.page_size, Some(30));
         assert_eq!(q.shop_type, Some(2));
         let d: ShopFundsUpdateDTO =
-            serde_json::from_str(r#"{"shopId":5,"shopTitle":"新店名","shopMoney":"99.90"}"#).unwrap();
+            serde_json::from_str(r#"{"shopId":5,"shopTitle":"新店名","shopMoney":"99.90"}"#)
+                .unwrap();
         assert_eq!(d.shop_id, Some(5));
         assert_eq!(d.shop_title.as_deref(), Some("新店名"));
     }

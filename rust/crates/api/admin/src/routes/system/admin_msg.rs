@@ -31,13 +31,37 @@ use crate::AdminState;
 
 /// 本域 7 条路由（挂载路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/msg/adminMsg/msgCount", "AdminMsgController.getMsgCount"),
-    ("GET", "/msg/adminMsg/msgTypeArr", "AdminMsgController.msgTypeArr"),
+    (
+        "GET",
+        "/msg/adminMsg/msgCount",
+        "AdminMsgController.getMsgCount",
+    ),
+    (
+        "GET",
+        "/msg/adminMsg/msgTypeArr",
+        "AdminMsgController.msgTypeArr",
+    ),
     ("GET", "/msg/adminMsg/list", "AdminMsgController.list"),
-    ("GET", "/msg/adminMsg/broadcastList", "AdminMsgController.broadcastList"),
-    ("GET", "/msg/adminMsg/homeSummary", "AdminMsgController.homeSummary"),
-    ("POST", "/msg/adminMsg/setReaded", "AdminMsgController.setReaded"),
-    ("POST", "/msg/adminMsg/setAllReaded", "AdminMsgController.setAllReaded"),
+    (
+        "GET",
+        "/msg/adminMsg/broadcastList",
+        "AdminMsgController.broadcastList",
+    ),
+    (
+        "GET",
+        "/msg/adminMsg/homeSummary",
+        "AdminMsgController.homeSummary",
+    ),
+    (
+        "POST",
+        "/msg/adminMsg/setReaded",
+        "AdminMsgController.setReaded",
+    ),
+    (
+        "POST",
+        "/msg/adminMsg/setAllReaded",
+        "AdminMsgController.setAllReaded",
+    ),
 ];
 
 /// 后台消息域路由（挂载于 `/adminapi` 下）。
@@ -115,7 +139,10 @@ where
     let value = Option::<String>::deserialize(deserializer)?;
     match value.as_deref().map(str::trim) {
         None | Some("") => Ok(None),
-        Some(raw) => raw.parse::<i64>().map(Some).map_err(serde::de::Error::custom),
+        Some(raw) => raw
+            .parse::<i64>()
+            .map(Some)
+            .map_err(serde::de::Error::custom),
     }
 }
 
@@ -248,7 +275,10 @@ mod tests {
         let shop = TenantContext::new(Some("shop".into()), Some(5), None);
         assert_eq!(
             scope_from_tenant(&shop, Some(9)),
-            MsgScope::Shop { shop_id: 5, platform: false }
+            MsgScope::Shop {
+                shop_id: 5,
+                platform: false
+            }
         );
         let vendor = TenantContext::new(Some("vendor".into()), None, Some(3));
         assert_eq!(
@@ -258,7 +288,10 @@ mod tests {
         let platform = TenantContext::new(Some("admin".into()), None, None);
         assert_eq!(
             scope_from_tenant(&platform, Some(7)),
-            MsgScope::Shop { shop_id: 7, platform: true }
+            MsgScope::Shop {
+                shop_id: 7,
+                platform: true
+            }
         );
     }
 

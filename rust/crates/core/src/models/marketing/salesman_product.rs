@@ -198,7 +198,12 @@ impl SalesmanProductPageQuery {
             .as_deref()
             .map(str::trim)
             .filter(|s| !s.is_empty())
-            .or_else(|| self.keyword.as_deref().map(str::trim).filter(|s| !s.is_empty()))
+            .or_else(|| {
+                self.keyword
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+            })
     }
 }
 
@@ -260,15 +265,17 @@ pub struct SalesmanProductSaveParam {
 impl SalesmanProductSaveParam {
     /// `productId` 必填（Java `@NotNull`）。
     pub fn validate(&self) -> Result<i32, String> {
-        self.product_id.ok_or_else(|| MSG_PRODUCT_ID_REQUIRED.to_string())
+        self.product_id
+            .ok_or_else(|| MSG_PRODUCT_ID_REQUIRED.to_string())
     }
 
     /// `commission_data` 序列化（Java `JSON.toJSONString`；空列表也序列化为 `null`）。
     #[must_use]
     pub fn commission_json(&self) -> String {
         match &self.commission_data {
-            Some(data) if !data.is_empty() => serde_json::to_string(data)
-                .unwrap_or_else(|_| "null".to_string()),
+            Some(data) if !data.is_empty() => {
+                serde_json::to_string(data).unwrap_or_else(|_| "null".to_string())
+            }
             _ => "null".to_string(),
         }
     }
@@ -300,8 +307,9 @@ impl SalesmanProductEditParam {
     #[must_use]
     pub fn commission_json(&self) -> String {
         match &self.commission_data {
-            Some(data) if !data.is_empty() => serde_json::to_string(data)
-                .unwrap_or_else(|_| "null".to_string()),
+            Some(data) if !data.is_empty() => {
+                serde_json::to_string(data).unwrap_or_else(|_| "null".to_string())
+            }
             _ => "null".to_string(),
         }
     }

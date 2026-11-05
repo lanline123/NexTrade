@@ -19,12 +19,36 @@ use crate::AdminState;
 /// 本域 7 条路由。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
     ("GET", "/panel/panel/index", "PanelController.index"),
-    ("GET", "/panel/panel/vendorIndex", "PanelController.vendorIndex"),
-    ("GET", "/panel/panel/statisticalData", "PanelController.statisticalData"),
-    ("GET", "/panel/panel/vendorStatisticalData", "PanelController.vendorStatisticalData"),
-    ("GET", "/panel/panel/searchMenu", "PanelController.searchMenu"),
-    ("GET", "/panel/panel/shortcutMenu", "PanelController.shortcutMenu"),
-    ("POST", "/panel/panel/saveShortcutMenu", "PanelController.saveShortcutMenu"),
+    (
+        "GET",
+        "/panel/panel/vendorIndex",
+        "PanelController.vendorIndex",
+    ),
+    (
+        "GET",
+        "/panel/panel/statisticalData",
+        "PanelController.statisticalData",
+    ),
+    (
+        "GET",
+        "/panel/panel/vendorStatisticalData",
+        "PanelController.vendorStatisticalData",
+    ),
+    (
+        "GET",
+        "/panel/panel/searchMenu",
+        "PanelController.searchMenu",
+    ),
+    (
+        "GET",
+        "/panel/panel/shortcutMenu",
+        "PanelController.shortcutMenu",
+    ),
+    (
+        "POST",
+        "/panel/panel/saveShortcutMenu",
+        "PanelController.saveShortcutMenu",
+    ),
 ];
 
 /// 首页面板域路由（挂载于 `/adminapi` 下）。
@@ -120,7 +144,11 @@ async fn shortcut_menu(
     Query(q): Query<ShopQuery>,
 ) -> ApiResult<tigshop_core::models::analytics::panel::ShortcutMenuVO> {
     let shop_id = auth.resolve_shop_scope(q.shop_id)?.unwrap_or(0);
-    ok(state.analytics.panel.shortcut_menu(auth.id, shop_id).await?)
+    ok(state
+        .analytics
+        .panel
+        .shortcut_menu(auth.id, shop_id)
+        .await?)
 }
 
 async fn save_shortcut_menu(

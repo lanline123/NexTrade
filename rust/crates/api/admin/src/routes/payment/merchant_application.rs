@@ -23,6 +23,7 @@
 //! > `submit/apply/approve/refresh/uploadMedia` 的渠道客户端 → 本地校验后明确
 //! > 业务错误（见服务层模块头），不伪造成功。
 
+use axum::response::IntoResponse;
 use axum::{
     extract::{Multipart, Query, State},
     http::HeaderMap,
@@ -36,7 +37,6 @@ use tigshop_core::models::payment::merchant_application::{
 };
 use tigshop_core::types::PageResult;
 use tigshop_core::Error;
-use axum::response::IntoResponse;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 use tigshop_services::payment::merchant_application::MerchantApplicationViewer;
 
@@ -103,12 +103,27 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/finance/merchantApplication/list", get(list))
         .route("/finance/merchantApplication/localMedia", get(empty_list))
         .route("/finance/merchantApplication/wechatBanks", get(empty_list))
-        .route("/finance/merchantApplication/wechatBankBranches", get(empty_list))
-        .route("/finance/merchantApplication/wechatBankCities", get(empty_list))
-        .route("/finance/merchantApplication/wechatBankNames", get(empty_list))
-        .route("/finance/merchantApplication/wechatBankProvinces", get(empty_list))
+        .route(
+            "/finance/merchantApplication/wechatBankBranches",
+            get(empty_list),
+        )
+        .route(
+            "/finance/merchantApplication/wechatBankCities",
+            get(empty_list),
+        )
+        .route(
+            "/finance/merchantApplication/wechatBankNames",
+            get(empty_list),
+        )
+        .route(
+            "/finance/merchantApplication/wechatBankProvinces",
+            get(empty_list),
+        )
         .route("/finance/merchantApplication/abandon", post(abandon))
-        .route("/finance/merchantApplication/delete", post(delete_application))
+        .route(
+            "/finance/merchantApplication/delete",
+            post(delete_application),
+        )
         .route("/finance/merchantApplication/reapply", post(reapply))
         .route("/finance/merchantApplication/retry", post(retry))
         .route("/finance/merchantApplication/submit", post(submit))
@@ -119,7 +134,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/finance/merchantApplication/refresh", post(refresh))
         .route("/finance/merchantApplication/apply", post(apply))
         .route("/finance/merchantApplication/current", get(current))
-        .route("/finance/merchantApplication/uploadMedia", post(upload_media))
+        .route(
+            "/finance/merchantApplication/uploadMedia",
+            post(upload_media),
+        )
 }
 
 /// 本模块已实现路由（覆盖率统计，完整契约路径）。
@@ -175,8 +193,14 @@ async fn abandon(
     Extension(auth): Extension<AuthUser>,
     Json(body): Json<serde_json::Value>,
 ) -> ApiResult<()> {
-    let id = body.get("id").and_then(serde_json::Value::as_i64).unwrap_or(0);
-    let reason = body.get("reason").and_then(serde_json::Value::as_str).unwrap_or("");
+    let id = body
+        .get("id")
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(0);
+    let reason = body
+        .get("reason")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("");
     sqlx::query("UPDATE merchant_application SET abandoned=1, abandon_reason=?, abandon_admin_id=?, abandon_time=NOW(), status='ABANDONED' WHERE id=? AND is_del=0")
         .bind(reason).bind(auth.id).bind(id)
         .execute(&state.repos.pool).await.map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
@@ -188,10 +212,18 @@ async fn delete_application(
     Extension(auth): Extension<AuthUser>,
     Json(body): Json<serde_json::Value>,
 ) -> ApiResult<()> {
-    let id = body.get("id").and_then(serde_json::Value::as_i64).unwrap_or(0);
-    sqlx::query("UPDATE merchant_application SET is_del=1, delete_admin_id=?, delete_time=NOW() WHERE id=?")
-        .bind(auth.id).bind(id)
-        .execute(&state.repos.pool).await.map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
+    let id = body
+        .get("id")
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(0);
+    sqlx::query(
+        "UPDATE merchant_application SET is_del=1, delete_admin_id=?, delete_time=NOW() WHERE id=?",
+    )
+    .bind(auth.id)
+    .bind(id)
+    .execute(&state.repos.pool)
+    .await
+    .map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
     ok(())
 }
 
@@ -199,7 +231,10 @@ async fn reapply(
     State(state): State<AdminState>,
     Json(body): Json<serde_json::Value>,
 ) -> ApiResult<()> {
-    let id = body.get("id").and_then(serde_json::Value::as_i64).unwrap_or(0);
+    let id = body
+        .get("id")
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(0);
     sqlx::query("UPDATE merchant_application SET status='DRAFT', abandoned=0, submission_attempted=0, reject_reason='' WHERE id=? AND is_del=0")
         .bind(id).execute(&state.repos.pool).await.map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
     ok(())
@@ -209,7 +244,10 @@ async fn retry(
     State(state): State<AdminState>,
     Json(body): Json<serde_json::Value>,
 ) -> ApiResult<()> {
-    let id = body.get("id").and_then(serde_json::Value::as_i64).unwrap_or(0);
+    let id = body
+        .get("id")
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(0);
     sqlx::query("UPDATE merchant_application SET status='DRAFT', submission_attempted=0 WHERE id=? AND is_del=0")
         .bind(id).execute(&state.repos.pool).await.map_err(|e| tigshop_security::web::AppError(Error::Database(e.to_string())))?;
     ok(())
@@ -220,7 +258,11 @@ async fn list(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<MerchantApplicationPageQuery>,
 ) -> ApiResult<PageResult<MerchantApplicationVO>> {
-    ok(state.payment.merchant_application.list(&q, viewer(&auth)).await?)
+    ok(state
+        .payment
+        .merchant_application
+        .list(&q, viewer(&auth))
+        .await?)
 }
 
 async fn submit(
@@ -228,7 +270,11 @@ async fn submit(
     Extension(auth): Extension<AuthUser>,
     Json(param): Json<MerchantApplicationSubmitParam>,
 ) -> ApiResult<MerchantApplicationVO> {
-    ok(state.payment.merchant_application.submit(&param, auth.id).await?)
+    ok(state
+        .payment
+        .merchant_application
+        .submit(&param, auth.id)
+        .await?)
 }
 
 /// `detail?id=` 查询参数（Java `@RequestParam Long id`）。
@@ -243,7 +289,11 @@ async fn detail(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<Option<MerchantApplicationVO>> {
-    ok(state.payment.merchant_application.detail(q.id, viewer(&auth)).await?)
+    ok(state
+        .payment
+        .merchant_application
+        .detail(q.id, viewer(&auth))
+        .await?)
 }
 
 /// `media?id=&role=` 查询参数（`role`：1 营业执照 2 身份证人像面 3 身份证国徽面）。
@@ -258,7 +308,11 @@ async fn media(
     State(state): State<AdminState>,
     Query(q): Query<MediaQuery>,
 ) -> Result<axum::response::Response, AppError> {
-    let bytes = state.payment.merchant_application.media(q.id, q.role).await?;
+    let bytes = state
+        .payment
+        .merchant_application
+        .media(q.id, q.role)
+        .await?;
     Ok(([(axum::http::header::CONTENT_TYPE, "image/jpeg")], bytes).into_response())
 }
 
@@ -275,14 +329,15 @@ async fn reject(
     Extension(auth): Extension<AuthUser>,
     Json(param): Json<MerchantApplicationAuditParam>,
 ) -> ApiResult<()> {
-    state.payment.merchant_application.reject(&param, auth.id).await?;
+    state
+        .payment
+        .merchant_application
+        .reject(&param, auth.id)
+        .await?;
     ok(())
 }
 
-async fn refresh(
-    State(state): State<AdminState>,
-    Query(q): Query<IdQuery>,
-) -> ApiResult<()> {
+async fn refresh(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<()> {
     state.payment.merchant_application.refresh(q.id).await?;
     ok(())
 }
@@ -292,7 +347,11 @@ async fn apply(
     Extension(auth): Extension<AuthUser>,
     Json(param): Json<MerchantApplicationSubmitParam>,
 ) -> ApiResult<MerchantApplicationVO> {
-    ok(state.payment.merchant_application.apply(&param, viewer(&auth)).await?)
+    ok(state
+        .payment
+        .merchant_application
+        .apply(&param, viewer(&auth))
+        .await?)
 }
 
 /// `current?payChannel=` 查询参数。
@@ -416,13 +475,19 @@ mod tests {
 
     #[test]
     fn shop_header_three_states() {
-        assert_eq!(resolve_shop_id(&headers(&[("x-admin-type", "admin")])), Some(0));
+        assert_eq!(
+            resolve_shop_id(&headers(&[("x-admin-type", "admin")])),
+            Some(0)
+        );
         assert_eq!(
             resolve_shop_id(&headers(&[("x-admin-type", "shop"), ("x-shop-id", "7")])),
             Some(7)
         );
         assert_eq!(resolve_shop_id(&headers(&[])), None);
-        assert_eq!(resolve_shop_id(&headers(&[("x-admin-type", "vendor")])), None);
+        assert_eq!(
+            resolve_shop_id(&headers(&[("x-admin-type", "vendor")])),
+            None
+        );
     }
 
     #[test]

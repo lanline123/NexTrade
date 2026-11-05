@@ -1,4 +1,4 @@
-﻿//! 管理端汇付斗拱设置路由（payment::lakala_config，2 条）。
+//! 管理端汇付斗拱设置路由（payment::lakala_config，2 条）。
 //!
 //! `GET /adminapi/setting/config/lakalaSettings`、`POST /adminapi/setting/config/saveLakala`。
 
@@ -10,9 +10,9 @@ use axum::{
 };
 use serde_json::Value;
 use tigshop_openapi::RouteDoc;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
-use crate::support::tenant::{platform_only};
+use crate::support::tenant::platform_only;
 
 use crate::AdminState;
 
@@ -68,11 +68,7 @@ async fn save_settings(
     State(state): State<AdminState>,
     Json(payload): Json<Value>,
 ) -> ApiResult<()> {
-    state
-        .payment
-        .lakala_config
-        .save_settings(&payload)
-        .await?;
+    state.payment.lakala_config.save_settings(&payload).await?;
     ok(())
 }
 
@@ -97,6 +93,8 @@ mod tests {
     #[test]
     fn route_table_slice_is_exact() {
         assert_eq!(ROUTE_TABLE.len(), 2);
-        assert!(ROUTE_TABLE.iter().all(|(_, p, _)| p.starts_with("/setting/config/")));
+        assert!(ROUTE_TABLE
+            .iter()
+            .all(|(_, p, _)| p.starts_with("/setting/config/")));
     }
 }

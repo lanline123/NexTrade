@@ -30,12 +30,12 @@ use axum::{
 use serde::Deserialize;
 use tigshop_core::models::content::gallery::GalleryScope;
 use tigshop_core::models::content::gallery_pic::{
-    ERR_ID_REQUIRED, ERR_UPLOAD_FILE_EMPTY, GalleryListResVO, GalleryPicBatchDTO, GalleryPicDTO,
-    GalleryPicExternalDTO, GalleryPicListQuery, GalleryPicSortDTO, GalleryPicTransferDTO,
-    GalleryPicUploadVO, OperateDTO, UpdateFieldDTO,
+    GalleryListResVO, GalleryPicBatchDTO, GalleryPicDTO, GalleryPicExternalDTO,
+    GalleryPicListQuery, GalleryPicSortDTO, GalleryPicTransferDTO, GalleryPicUploadVO, OperateDTO,
+    UpdateFieldDTO, ERR_ID_REQUIRED, ERR_UPLOAD_FILE_EMPTY,
 };
-use tigshop_openapi::RouteDoc;
 use tigshop_infrastructure::db::repo::marketing::tenant::TenantScope;
+use tigshop_openapi::RouteDoc;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::download_response::zip_response;
@@ -43,8 +43,16 @@ use crate::AdminState;
 
 /// 本域全部 10 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 10] = [
-    ("GET", "/setting/galleryPic/list", "GalleryPicController.list"),
-    ("POST", "/setting/galleryPic/del", "GalleryPicController.del"),
+    (
+        "GET",
+        "/setting/galleryPic/list",
+        "GalleryPicController.list",
+    ),
+    (
+        "POST",
+        "/setting/galleryPic/del",
+        "GalleryPicController.del",
+    ),
     (
         "POST",
         "/setting/galleryPic/uploadImg",
@@ -60,7 +68,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 10] = [
         "/setting/galleryPic/detail",
         "GalleryPicController.detail",
     ),
-    ("POST", "/setting/galleryPic/sort", "GalleryPicController.sort"),
+    (
+        "POST",
+        "/setting/galleryPic/sort",
+        "GalleryPicController.sort",
+    ),
     (
         "POST",
         "/setting/galleryPic/transfer",
@@ -150,10 +162,7 @@ pub fn resolve_scope(headers: &HeaderMap) -> GalleryScope {
     } else {
         None
     };
-    GalleryScope {
-        shop_id,
-        vendor_id,
-    }
+    GalleryScope { shop_id, vendor_id }
 }
 
 // ——————————————————————————————————————————————
@@ -193,11 +202,11 @@ async fn upload_img(
     mut multipart: Multipart,
 ) -> ApiResult<GalleryPicUploadVO> {
     let mut payload: Option<(Option<String>, Option<String>, Vec<u8>)> = None;
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e| AppError(tigshop_core::Error::Validation(format!("文件不能为空: {e}"))))?
-    {
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        AppError(tigshop_core::Error::Validation(format!(
+            "文件不能为空: {e}"
+        )))
+    })? {
         if field.name() != Some("file") {
             continue;
         }
@@ -206,7 +215,11 @@ async fn upload_img(
         let bytes = field
             .bytes()
             .await
-            .map_err(|e| AppError(tigshop_core::Error::Validation(format!("文件不能为空: {e}"))))?
+            .map_err(|e| {
+                AppError(tigshop_core::Error::Validation(format!(
+                    "文件不能为空: {e}"
+                )))
+            })?
             .to_vec();
         payload = Some((content_type, file_name, bytes));
         break;

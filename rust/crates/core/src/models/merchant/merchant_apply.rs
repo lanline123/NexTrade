@@ -219,9 +219,10 @@ pub fn format_time(ts: Option<i32>) -> String {
     };
     match chrono::DateTime::from_timestamp(i64::from(ts), 0) {
         Some(dt) => dt
-            .with_timezone(&chrono::FixedOffset::east_opt(8 * 3600).unwrap_or_else(|| {
-                chrono::FixedOffset::east_opt(0).expect("UTC offset")
-            }))
+            .with_timezone(
+                &chrono::FixedOffset::east_opt(8 * 3600)
+                    .unwrap_or_else(|| chrono::FixedOffset::east_opt(0).expect("UTC offset")),
+            )
             .format("%Y-%m-%d %H:%M:%S")
             .to_string(),
         None => String::new(),
@@ -255,7 +256,10 @@ mod tests {
         assert_eq!(apply_field_to_column(Some("status")), "status");
         assert_eq!(apply_field_to_column(Some("shopTitle")), "shop_title");
         assert_eq!(apply_field_to_column(Some("shop_title")), "shop_title");
-        assert_eq!(apply_field_to_column(Some("merchantApplyId")), "merchant_apply_id");
+        assert_eq!(
+            apply_field_to_column(Some("merchantApplyId")),
+            "merchant_apply_id"
+        );
         // 未知 → 主键列（防注入），且不在 GENERAL_FIELDS 内
         assert_eq!(apply_field_to_column(Some("nope")), "merchant_apply_id");
         assert!(is_general_field("status"));
@@ -298,7 +302,8 @@ mod tests {
     #[test]
     fn audit_param_and_vo_serde_shapes() {
         let p: MerchantApplyAuditParam =
-            serde_json::from_str(r#"{"merchantApplyId":7,"status":10,"auditRemark":"ok"}"#).unwrap();
+            serde_json::from_str(r#"{"merchantApplyId":7,"status":10,"auditRemark":"ok"}"#)
+                .unwrap();
         assert_eq!(p.merchant_apply_id, Some(7));
         assert_eq!(p.status, Some(10));
         let vo = MerchantApplyVO {

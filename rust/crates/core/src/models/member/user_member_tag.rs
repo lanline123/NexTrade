@@ -176,13 +176,11 @@ mod tests {
             .unwrap_err(),
             MSG_TAG_IDS_REQUIRED
         );
-        assert!(
-            validate_batch_param(&UserMemberTagBatchParam {
-                user_ids: vec![1],
-                tag_ids: vec![2],
-            })
-            .is_ok()
-        );
+        assert!(validate_batch_param(&UserMemberTagBatchParam {
+            user_ids: vec![1],
+            tag_ids: vec![2],
+        })
+        .is_ok());
         assert_eq!(
             MSG_SHOP_MEMBER_FROZEN,
             "平台未开放店铺会员功能，当前所有会员功能处于冻结状态，如有疑问请联系平台客服。"
@@ -235,8 +233,7 @@ mod tests {
         assert_eq!(p.user_id, Some(9));
         assert_eq!(p.tag_ids, vec![1, 2]);
         let b: UserMemberTagBatchParam =
-            serde_json::from_value(serde_json::json!({"userIds": [1, 2], "tagIds": [3]}))
-                .unwrap();
+            serde_json::from_value(serde_json::json!({"userIds": [1, 2], "tagIds": [3]})).unwrap();
         assert_eq!(b.user_ids, vec![1, 2]);
         assert_eq!(b.tag_ids, vec![3]);
     }

@@ -274,7 +274,9 @@ pub struct GalleryVideoListVO {
 /// - `parentId` 缺失 → 「父级id不能为空」
 /// - `name` 空白 → 「相册名称不能为空」
 pub fn validate_create(dto: &GalleryVideoCreateDTO) -> Result<(i32, String), String> {
-    let parent_id = dto.parent_id.ok_or_else(|| MSG_PARENT_ID_REQUIRED.to_string())?;
+    let parent_id = dto
+        .parent_id
+        .ok_or_else(|| MSG_PARENT_ID_REQUIRED.to_string())?;
     let name = dto
         .name
         .as_deref()
@@ -439,10 +441,7 @@ mod tests {
             .unwrap_err(),
             MSG_NAME_REQUIRED
         );
-        assert_eq!(
-            require_group_id(None).unwrap_err(),
-            MSG_GROUP_ID_REQUIRED
-        );
+        assert_eq!(require_group_id(None).unwrap_err(), MSG_GROUP_ID_REQUIRED);
     }
 
     #[test]

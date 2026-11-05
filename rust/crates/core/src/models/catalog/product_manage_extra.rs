@@ -30,8 +30,7 @@ pub const MSG_PARTICIPLE_NOT_MIGRATED: &str = "商品关键词分词未迁移（
 /// ES 全量同步未迁移（`ProductEsService.syncAllProductsStream`）。
 pub const MSG_ES_INIT_NOT_MIGRATED: &str = "商品全量同步 ES 未迁移（依赖 Elasticsearch 客户端）";
 /// 商品推广页未迁移（短链服务 + 微信小程序码）。
-pub const MSG_POST_NOT_MIGRATED: &str =
-    "商品推广页未迁移（依赖短链服务与微信小程序码生成）";
+pub const MSG_POST_NOT_MIGRATED: &str = "商品推广页未迁移（依赖短链服务与微信小程序码生成）";
 
 /// 商品描述图片（Java `ProductDescImageVO`）。
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -197,7 +196,10 @@ pub fn parse_desc_images(product_desc: Option<&str>) -> Vec<ProductDescImageVO> 
     };
     let mut out = Vec::new();
     for item in arr {
-        let ty = item.get("type").and_then(|v| v.as_str()).unwrap_or_default();
+        let ty = item
+            .get("type")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
         let url = match ty {
             "pic" => item.get("pic").and_then(|v| v.as_str()),
             "video" => item.get("cover").and_then(|v| v.as_str()),
@@ -276,7 +278,10 @@ mod tests {
 
     #[test]
     fn field_whitelist_and_scalar_conversion() {
-        assert_eq!(product_field_column("productStatus"), Some("product_status"));
+        assert_eq!(
+            product_field_column("productStatus"),
+            Some("product_status")
+        );
         assert_eq!(product_field_column("productName"), Some("product_name"));
         assert_eq!(product_field_column("id"), None);
         assert_eq!(scalar_to_string(&serde_json::json!(1)), Some("1".into()));

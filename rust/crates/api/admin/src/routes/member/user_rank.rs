@@ -50,7 +50,7 @@ use tigshop_core::models::member::user_rank::{
     BatchDTO, OperateDTO, RankListByProVO, UpdateFieldDTO, UserRankDTO, UserRankDetailVO,
     UserRankEditParam, UserRankListQuery, UserRankListVO,
 };
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::tenant::{platform_only, require_platform};
 
@@ -61,11 +61,19 @@ use crate::AdminState;
 /// **这是 [`implemented_routes`] 的唯一来源**，与 [`routes`] 里的注册一一对应。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
     // (HTTP method, 本模块路径, 原 Java handler)
-    ("GET", "/user/userRank/listByPro", "UserRankController.listByPro"),
+    (
+        "GET",
+        "/user/userRank/listByPro",
+        "UserRankController.listByPro",
+    ),
     ("POST", "/user/userRank/create", "UserRankController.create"),
     ("GET", "/user/userRank/detail", "UserRankController.detail"),
     ("POST", "/user/userRank/update", "UserRankController.update"),
-    ("POST", "/user/userRank/updateField", "UserRankController.updateField"),
+    (
+        "POST",
+        "/user/userRank/updateField",
+        "UserRankController.updateField",
+    ),
     ("POST", "/user/userRank/del", "UserRankController.del"),
     ("POST", "/user/userRank/batch", "UserRankController.batch"),
 ];
@@ -295,7 +303,21 @@ mod tenant_tests {
 
     #[test]
     fn platform_only_helper_rejects_shop_identity() {
-        assert!(require_platform(&AuthUser::new(1, "a".into(), None, Some("admin".into()), Some(0))).is_ok());
-        assert!(require_platform(&AuthUser::new(2, "s".into(), None, Some("shop".into()), Some(7))).is_err());
+        assert!(require_platform(&AuthUser::new(
+            1,
+            "a".into(),
+            None,
+            Some("admin".into()),
+            Some(0)
+        ))
+        .is_ok());
+        assert!(require_platform(&AuthUser::new(
+            2,
+            "s".into(),
+            None,
+            Some("shop".into()),
+            Some(7)
+        ))
+        .is_err());
     }
 }

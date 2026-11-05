@@ -1,13 +1,9 @@
-﻿//! 管理端文章分类路由（content::article_category）。
+//! 管理端文章分类路由（content::article_category）。
 //!
 //! 对应 Java `ArticleCategoryController`（`/adminapi/content/articleCategory`）：
 //! `POST update`、`POST updateField`、`POST batch`。
 
-use axum::{
-    extract::State,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, routing::post, Json, Router};
 use tigshop_core::models::content::article_category::{
     ArticleCategoryDTO, BatchDTO, UpdateFieldDTO,
 };
@@ -65,18 +61,11 @@ async fn update_field(
     State(state): State<AdminState>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<()> {
-    state
-        .content
-        .article_category
-        .update_field(&dto)
-        .await?;
+    state.content.article_category.update_field(&dto).await?;
     ok(())
 }
 
-async fn batch(
-    State(state): State<AdminState>,
-    Json(dto): Json<BatchDTO>,
-) -> ApiResult<()> {
+async fn batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<()> {
     state.content.article_category.batch(&dto).await?;
     ok(())
 }
@@ -90,7 +79,10 @@ mod tests {
         let docs = implemented_routes();
         assert_eq!(docs.len(), 3);
         assert_eq!(docs[0].path, "/adminapi/content/articleCategory/update");
-        assert_eq!(docs[1].path, "/adminapi/content/articleCategory/updateField");
+        assert_eq!(
+            docs[1].path,
+            "/adminapi/content/articleCategory/updateField"
+        );
         assert_eq!(docs[2].path, "/adminapi/content/articleCategory/batch");
         for d in &docs {
             assert_eq!(d.method, "POST");

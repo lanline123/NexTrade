@@ -82,7 +82,11 @@ where
             E: serde::de::Error,
         {
             let s = v.trim();
-            if s.is_empty() || s.eq_ignore_ascii_case("nan") || s.eq_ignore_ascii_case("undefined") || s.eq_ignore_ascii_case("null") {
+            if s.is_empty()
+                || s.eq_ignore_ascii_case("nan")
+                || s.eq_ignore_ascii_case("undefined")
+                || s.eq_ignore_ascii_case("null")
+            {
                 return Ok(None);
             }
             Ok(s.parse::<i32>().ok())
@@ -138,7 +142,11 @@ where
             E: serde::de::Error,
         {
             let s = v.trim();
-            if s.is_empty() || s.eq_ignore_ascii_case("nan") || s.eq_ignore_ascii_case("undefined") || s.eq_ignore_ascii_case("null") {
+            if s.is_empty()
+                || s.eq_ignore_ascii_case("nan")
+                || s.eq_ignore_ascii_case("undefined")
+                || s.eq_ignore_ascii_case("null")
+            {
                 return Ok(None);
             }
             Ok(s.parse::<f64>().ok())
@@ -596,7 +604,10 @@ mod tests {
         assert_eq!(parse_i32_list("[1,2,3]"), vec![1, 2, 3]);
         assert_eq!(parse_i32_list("bad"), Vec::<i32>::new());
         assert_eq!(to_json(&vec!["北京", "朝阳"]), "[\"北京\",\"朝阳\"]");
-        assert_eq!(parse_string_list("[\"北京\",\"朝阳\"]"), vec!["北京", "朝阳"]);
+        assert_eq!(
+            parse_string_list("[\"北京\",\"朝阳\"]"),
+            vec!["北京", "朝阳"]
+        );
     }
 
     #[test]
@@ -681,7 +692,6 @@ mod tests {
         assert_eq!(json["isSystem"], serde_json::Value::Null);
     }
 }
-
 
 #[cfg(test)]
 mod tolerant_dto_tests {

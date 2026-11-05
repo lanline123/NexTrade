@@ -304,8 +304,8 @@ impl UserWithdrawApplyCreateDTO {
         let user_id = self.user_id.unwrap_or(0);
         let amount = self.amount.unwrap_or(Decimal::ZERO);
         let account_data = self.account_data.clone().unwrap_or_default();
-        let account_data_json = serde_json::to_string(&account_data)
-            .map_err(|e| format!("账户信息序列化失败: {e}"))?;
+        let account_data_json =
+            serde_json::to_string(&account_data).map_err(|e| format!("账户信息序列化失败: {e}"))?;
         Ok(UserWithdrawApplyCreate {
             user_id,
             amount,
@@ -336,9 +336,7 @@ pub struct UserWithdrawApplyUpdate {
 impl UserWithdrawApplyUpdateDTO {
     /// `@NotNull(id)` + `@Size(postscript, max=80)`。
     pub fn validate(&self) -> Result<UserWithdrawApplyUpdate, String> {
-        let id = self
-            .id
-            .ok_or_else(|| MSG_ID_REQUIRED_DTO.to_string())?;
+        let id = self.id.ok_or_else(|| MSG_ID_REQUIRED_DTO.to_string())?;
         if let Some(postscript) = self.postscript.as_deref() {
             if postscript.chars().count() > 80 {
                 return Err(MSG_POSTSCRIPT_TOO_LONG.to_string());
@@ -367,7 +365,10 @@ pub struct OperateDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -391,7 +392,8 @@ impl UpdateFieldDTO {
             .val
             .as_deref()
             .ok_or_else(|| MSG_FIELD_VALUE_REQUIRED.to_string())?;
-        let column = resolve_update_field(field).ok_or_else(|| MSG_INVALID_FIELD_VALUE.to_string())?;
+        let column =
+            resolve_update_field(field).ok_or_else(|| MSG_INVALID_FIELD_VALUE.to_string())?;
         Ok(WithdrawFieldUpdate {
             id,
             column,

@@ -98,7 +98,9 @@ async fn translate_to_seo_identification(
     State(state): State<AdminState>,
     Query(q): Query<TranslateSeoQuery>,
 ) -> ApiResult<String> {
-    ok(state.content.seo
+    ok(state
+        .content
+        .seo
         .translate_to_seo_identification(q.chinese_text.as_deref())
         .await?)
 }

@@ -47,13 +47,41 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/finance/refundApply/config", "RefundApplyController.config"),
-        ("GET", "/adminapi/finance/refundApply/list", "RefundApplyController.list"),
-        ("GET", "/adminapi/finance/refundApply/detail", "RefundApplyController.detail"),
-        ("POST", "/adminapi/finance/refundApply/audit", "RefundApplyController.audit"),
-        ("POST", "/adminapi/finance/refundApply/offlineAudit", "RefundApplyController.offlineAudit"),
-        ("POST", "/adminapi/finance/refundApply/create", "RefundApplyController.create"),
-        ("POST", "/adminapi/finance/refundApply/update", "RefundApplyController.update"),
+        (
+            "GET",
+            "/adminapi/finance/refundApply/config",
+            "RefundApplyController.config",
+        ),
+        (
+            "GET",
+            "/adminapi/finance/refundApply/list",
+            "RefundApplyController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/finance/refundApply/detail",
+            "RefundApplyController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/finance/refundApply/audit",
+            "RefundApplyController.audit",
+        ),
+        (
+            "POST",
+            "/adminapi/finance/refundApply/offlineAudit",
+            "RefundApplyController.offlineAudit",
+        ),
+        (
+            "POST",
+            "/adminapi/finance/refundApply/create",
+            "RefundApplyController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/finance/refundApply/update",
+            "RefundApplyController.update",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -64,12 +92,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 ///
 /// 返回 `[{status: 0, name: "待处理"}, ...]`。
 async fn config() -> ApiResult<Vec<serde_json::Value>> {
-    let cfg: Vec<serde_json::Value> = tigshop_services::payment::refund_apply::RefundApplyService::status_config()
-        .into_iter()
-        .map(|(status, name)| {
-            serde_json::json!({ "status": status, "name": name })
-        })
-        .collect();
+    let cfg: Vec<serde_json::Value> =
+        tigshop_services::payment::refund_apply::RefundApplyService::status_config()
+            .into_iter()
+            .map(|(status, name)| serde_json::json!({ "status": status, "name": name }))
+            .collect();
     ok(cfg)
 }
 
@@ -174,6 +201,12 @@ mod tenant_tests {
         let shop = AuthUser::new(1, "s".into(), None, Some("shop".into()), Some(7));
         assert!(shop.ensure_shop_access(7).is_ok());
         assert!(shop.ensure_shop_access(9).is_err());
-        assert_eq!(shop.resolve_shop_scope(Some(9)).unwrap_err().to_string().contains("无权访问店铺 9"), true);
+        assert_eq!(
+            shop.resolve_shop_scope(Some(9))
+                .unwrap_err()
+                .to_string()
+                .contains("无权访问店铺 9"),
+            true
+        );
     }
 }

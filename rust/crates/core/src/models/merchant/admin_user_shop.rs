@@ -236,14 +236,20 @@ mod tests {
         let v = resolve_auth_list(7, Some(r#"["a","b"]"#), Some(r#"["c"]"#));
         assert_eq!(v, serde_json::json!(["a", "b"]));
         // 角色存在但解析失败 → 空数组（Java 置 new JSONArray()）
-        assert_eq!(resolve_auth_list(7, Some("oops"), None), serde_json::json!([]));
+        assert_eq!(
+            resolve_auth_list(7, Some("oops"), None),
+            serde_json::json!([])
+        );
         // 角色为 0 → 回退员工自身 auth_list（非 "[]"）
         assert_eq!(
             resolve_auth_list(0, None, Some(r#"["x"]"#)),
             serde_json::json!(["x"])
         );
         // 自身也是 "[]" → 空数组
-        assert_eq!(resolve_auth_list(0, None, Some("[]")), serde_json::json!([]));
+        assert_eq!(
+            resolve_auth_list(0, None, Some("[]")),
+            serde_json::json!([])
+        );
     }
 
     #[test]

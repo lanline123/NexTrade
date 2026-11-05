@@ -30,7 +30,7 @@ use axum::{
 };
 use tigshop_core::models::system::app_version_admin::{AppVersionDetailVO, AppVersionEditParam};
 use tigshop_core::{Error, Result};
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::tenant::{platform_only, require_platform};
 
@@ -92,7 +92,9 @@ async fn app_version_update(
     Extension(auth): Extension<AuthUser>,
     Json(param): Json<AppVersionEditParam>,
 ) -> ApiResult<&'static str> {
-    state.system.app_version_admin
+    state
+        .system
+        .app_version_admin
         .update(&param, Some(i64::from(auth.id)), &auth.username)
         .await?;
     ok("更新成功")
@@ -108,7 +110,9 @@ async fn app_version_upload_file(
     mut multipart: Multipart,
 ) -> ApiResult<String> {
     let form = read_upload_file(&mut multipart).await?;
-    ok(state.system.app_version_admin
+    ok(state
+        .system
+        .app_version_admin
         .upload_file(form.file_name.as_deref(), &form.bytes)?)
 }
 

@@ -17,13 +17,41 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/promotion/productGift/list", "ProductGiftController.list"),
-    ("GET", "/promotion/productGift/detail", "ProductGiftController.detail"),
-    ("POST", "/promotion/productGift/create", "ProductGiftController.create"),
-    ("POST", "/promotion/productGift/update", "ProductGiftController.update"),
-    ("POST", "/promotion/productGift/del", "ProductGiftController.del"),
-    ("POST", "/promotion/productGift/updateField", "ProductGiftController.updateField"),
-    ("POST", "/promotion/productGift/batch", "ProductGiftController.batch"),
+    (
+        "GET",
+        "/promotion/productGift/list",
+        "ProductGiftController.list",
+    ),
+    (
+        "GET",
+        "/promotion/productGift/detail",
+        "ProductGiftController.detail",
+    ),
+    (
+        "POST",
+        "/promotion/productGift/create",
+        "ProductGiftController.create",
+    ),
+    (
+        "POST",
+        "/promotion/productGift/update",
+        "ProductGiftController.update",
+    ),
+    (
+        "POST",
+        "/promotion/productGift/del",
+        "ProductGiftController.del",
+    ),
+    (
+        "POST",
+        "/promotion/productGift/updateField",
+        "ProductGiftController.updateField",
+    ),
+    (
+        "POST",
+        "/promotion/productGift/batch",
+        "ProductGiftController.batch",
+    ),
 ];
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -75,33 +103,21 @@ async fn list(
     State(state): State<AdminState>,
     Query(q): Query<ProductGiftListQuery>,
 ) -> ApiResult<PageResult<ProductGiftVO>> {
-    ok(state
-        .marketing
-        .product_gift
-        .list(&q)
-        .await?)
+    ok(state.marketing.product_gift.list(&q).await?)
 }
 
 async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<GiftIdQuery>,
 ) -> ApiResult<ProductGiftVO> {
-    ok(state
-        .marketing
-        .product_gift
-        .detail(q.gift_id)
-        .await?)
+    ok(state.marketing.product_gift.detail(q.gift_id).await?)
 }
 
 async fn create(
     State(state): State<AdminState>,
     Json(dto): Json<ProductGiftCreateDTO>,
 ) -> ApiResult<()> {
-    let _id = state
-        .marketing
-        .product_gift
-        .create(&dto)
-        .await?;
+    let _id = state.marketing.product_gift.create(&dto).await?;
     ok(())
 }
 
@@ -109,11 +125,7 @@ async fn update(
     State(state): State<AdminState>,
     Json(dto): Json<ProductGiftUpdateDTO>,
 ) -> ApiResult<()> {
-    state
-        .marketing
-        .product_gift
-        .update(&dto)
-        .await?;
+    state.marketing.product_gift.update(&dto).await?;
     ok(())
 }
 
@@ -159,7 +171,10 @@ mod tests {
     #[test]
     fn shop_id_three_states() {
         let mut h = axum::http::HeaderMap::new();
-        h.insert("x-admin-type", axum::http::HeaderValue::from_static("admin"));
+        h.insert(
+            "x-admin-type",
+            axum::http::HeaderValue::from_static("admin"),
+        );
         assert_eq!(current_shop_id(&h), Some(0));
         let mut h = axum::http::HeaderMap::new();
         h.insert("x-admin-type", axum::http::HeaderValue::from_static("shop"));

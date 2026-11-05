@@ -331,12 +331,12 @@ mod tests {
     #[test]
     fn shipping_texts_match_java() {
         assert_eq!(build_shipping_type_text(1, 0, 0), "快递发货");
-        assert_eq!(build_shipping_type_text(1, 1, 1), "快递发货；同城配送；到店自提");
-        assert_eq!(build_shipping_type_text(0, 0, 0), "");
         assert_eq!(
-            build_shipping_tpl_text(Some(2), None, 8),
-            "【运费模板】8"
+            build_shipping_type_text(1, 1, 1),
+            "快递发货；同城配送；到店自提"
         );
+        assert_eq!(build_shipping_type_text(0, 0, 0), "");
+        assert_eq!(build_shipping_tpl_text(Some(2), None, 8), "【运费模板】8");
         assert_eq!(
             build_shipping_tpl_text(Some(1), Some(Decimal::new(500, 2)), 0),
             "5"
@@ -367,7 +367,10 @@ mod tests {
 
     #[test]
     fn spec_text_and_pairs_match_spec_import_utils() {
-        assert_eq!(to_import_spec_text(Some("颜色:红|尺寸:L")), "颜色:红；尺寸:L");
+        assert_eq!(
+            to_import_spec_text(Some("颜色:红|尺寸:L")),
+            "颜色:红；尺寸:L"
+        );
         assert_eq!(to_import_spec_text(None), "");
         assert_eq!(
             parse_spec_pairs("颜色:红；尺寸:L"),

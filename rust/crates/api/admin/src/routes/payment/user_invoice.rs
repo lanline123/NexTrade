@@ -47,7 +47,11 @@ use crate::AdminState;
 
 /// 本域 7 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/finance/userInvoice/list", "UserInvoiceController.list"),
+    (
+        "GET",
+        "/finance/userInvoice/list",
+        "UserInvoiceController.list",
+    ),
     (
         "GET",
         "/finance/userInvoice/detail",
@@ -63,7 +67,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
         "/finance/userInvoice/update",
         "UserInvoiceController.update",
     ),
-    ("POST", "/finance/userInvoice/del", "UserInvoiceController.del"),
+    (
+        "POST",
+        "/finance/userInvoice/del",
+        "UserInvoiceController.del",
+    ),
     (
         "POST",
         "/finance/userInvoice/updateField",

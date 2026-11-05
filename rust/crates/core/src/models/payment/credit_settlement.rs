@@ -328,7 +328,10 @@ pub fn epoch_to_date(secs: i64) -> chrono::NaiveDate {
 /// 结算周期基点（Java `getBaseStartDate`）：
 /// `period_start_time` → `create_time`（> 10^12 视为毫秒）→ 当天 0 点。
 #[must_use]
-pub fn base_start_date(period_start_time: Option<i64>, create_time: Option<i64>) -> chrono::NaiveDate {
+pub fn base_start_date(
+    period_start_time: Option<i64>,
+    create_time: Option<i64>,
+) -> chrono::NaiveDate {
     if let Some(secs) = period_start_time.filter(|v| *v > 0) {
         return epoch_to_date(secs);
     }
@@ -526,12 +529,18 @@ impl CreditSettlementHistoryQuery {
     /// 有效流水号（模糊）。
     #[must_use]
     pub fn effective_settlement_sn(&self) -> Option<&str> {
-        self.settlement_sn.as_deref().filter(|s| !s.trim().is_empty())
+        self.settlement_sn
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
     }
 
     /// 结算时间下界（秒）。
     pub fn time_start_epoch(&self) -> Result<Option<i64>, String> {
-        match self.settlement_time_start.as_deref().filter(|s| !s.trim().is_empty()) {
+        match self
+            .settlement_time_start
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
             Some(raw) => Ok(Some(date_start_epoch(parse_date(raw)?))),
             None => Ok(None),
         }
@@ -539,7 +548,11 @@ impl CreditSettlementHistoryQuery {
 
     /// 结算时间上界（秒）。
     pub fn time_end_epoch(&self) -> Result<Option<i64>, String> {
-        match self.settlement_time_end.as_deref().filter(|s| !s.trim().is_empty()) {
+        match self
+            .settlement_time_end
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
             Some(raw) => Ok(Some(date_end_epoch(parse_date(raw)?))),
             None => Ok(None),
         }
@@ -608,14 +621,17 @@ impl CreditOrderListQuery {
     /// `pendingOrders` 入口：Java 强制 `settlementStatusList = [0, 3]`。
     #[must_use]
     pub fn for_pending_orders(mut self) -> Self {
-        self.settlement_status_list =
-            Some(vec![ORDER_STATUS_UNSETTLED, ORDER_STATUS_REFUNDING]);
+        self.settlement_status_list = Some(vec![ORDER_STATUS_UNSETTLED, ORDER_STATUS_REFUNDING]);
         self
     }
 
     /// 下单时间下界（秒）。
     pub fn time_start_epoch(&self) -> Result<Option<i64>, String> {
-        match self.order_time_start.as_deref().filter(|s| !s.trim().is_empty()) {
+        match self
+            .order_time_start
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
             Some(raw) => Ok(Some(date_start_epoch(parse_date(raw)?))),
             None => Ok(None),
         }
@@ -623,7 +639,11 @@ impl CreditOrderListQuery {
 
     /// 下单时间上界（秒）。
     pub fn time_end_epoch(&self) -> Result<Option<i64>, String> {
-        match self.order_time_end.as_deref().filter(|s| !s.trim().is_empty()) {
+        match self
+            .order_time_end
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
             Some(raw) => Ok(Some(date_end_epoch(parse_date(raw)?))),
             None => Ok(None),
         }
@@ -898,7 +918,10 @@ mod tests {
         assert_eq!(out.user_id, 3);
         assert_eq!(out.settlement_sn, "SN2026");
         assert_eq!(out.order_ids, vec![1, 2]);
-        assert_eq!(format_time(Some(out.settlement_time)), "2026-01-15 10:30:00");
+        assert_eq!(
+            format_time(Some(out.settlement_time)),
+            "2026-01-15 10:30:00"
+        );
     }
 
     #[test]
@@ -955,7 +978,10 @@ mod tests {
             settlement_time_end: Some("  ".into()),
             ..Default::default()
         };
-        assert_eq!(q.time_start_epoch().unwrap(), Some(date_start_epoch(parse_date("2026-01-15").unwrap())));
+        assert_eq!(
+            q.time_start_epoch().unwrap(),
+            Some(date_start_epoch(parse_date("2026-01-15").unwrap()))
+        );
         assert_eq!(q.time_end_epoch().unwrap(), None);
         let bad = CreditSettlementHistoryQuery {
             settlement_time_start: Some("bad".into()),

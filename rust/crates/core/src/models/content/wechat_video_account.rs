@@ -217,7 +217,10 @@ fn parse_datetime(raw: &str) -> Option<i64> {
     let tz = chrono::FixedOffset::east_opt(8 * 3600)?;
     for fmt in ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"] {
         if let Ok(dt) = NaiveDateTime::parse_from_str(&candidate, fmt) {
-            return tz.from_local_datetime(&dt).single().map(|dt| dt.timestamp());
+            return tz
+                .from_local_datetime(&dt)
+                .single()
+                .map(|dt| dt.timestamp());
         }
     }
     None

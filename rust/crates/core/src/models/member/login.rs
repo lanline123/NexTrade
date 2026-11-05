@@ -102,7 +102,8 @@ pub const CLIENT_TYPE_HEADER: &str = "x-client-type";
 /// 行为验证未迁移。
 pub const CAPTCHA_NOT_MIGRATED: &str = "行为验证（AJ-Captcha）未迁移：本构建无法校验 verifyToken，已按 Java 同款流程跳过该步（见模块文档）";
 /// Redis 不可用（服务以 `Option<CacheService>` 降级）。
-pub const CACHE_UNAVAILABLE: &str = "缓存服务不可用（Redis 未连接），无法处理验证码/重置令牌相关请求";
+pub const CACHE_UNAVAILABLE: &str =
+    "缓存服务不可用（Redis 未连接），无法处理验证码/重置令牌相关请求";
 
 /// `POST /api/user/login/sendMobileCode` / `POST /adminapi/login/sendMobileCode`
 /// 入参（Java `com.tigshop.bean.dto.login.RegisterSmsDTO`）。
@@ -398,7 +399,10 @@ mod tests {
 
         let token = "a".repeat(64);
         assert!(validate_reset_token(Some(&token)).is_ok());
-        assert!(validate_reset_token(Some(&"A".repeat(64))).is_err(), "必须小写");
+        assert!(
+            validate_reset_token(Some(&"A".repeat(64))).is_err(),
+            "必须小写"
+        );
         assert!(validate_reset_token(Some(&"a".repeat(63))).is_err());
         assert!(validate_reset_token(None).is_err());
     }
@@ -423,7 +427,10 @@ mod tests {
 
     #[test]
     fn cache_keys_match_java_string_concatenation() {
-        assert_eq!(sms_code_key(Some("forgetPassword"), "13800000000"), "forgetPassword13800000000");
+        assert_eq!(
+            sms_code_key(Some("forgetPassword"), "13800000000"),
+            "forgetPassword13800000000"
+        );
         assert_eq!(sms_code_key(None, "13800000000"), "13800000000");
         assert_eq!(email_code_key(Some("login"), "a@b.com"), "logina@b.com");
         assert_eq!(password_reset_key("abc"), "password-reset:abc");
@@ -464,12 +471,19 @@ mod tests {
         let data = unwrap_open_data(dto.open_data.as_ref()).unwrap();
         assert_eq!(data.get("openid").and_then(Value::as_str), Some("o1"));
 
-        let vo = QuickLoginSettingVO { wechat_login: 1, show_oauth: 1 };
+        let vo = QuickLoginSettingVO {
+            wechat_login: 1,
+            show_oauth: 1,
+        };
         let v = serde_json::to_value(&vo).unwrap();
         assert_eq!(v["wechatLogin"], 1);
         assert_eq!(v["showOauth"], 1);
 
-        let wx = WxLoginInfoByCodeVO { r#type: 2, token: None, open_data: None };
+        let wx = WxLoginInfoByCodeVO {
+            r#type: 2,
+            token: None,
+            open_data: None,
+        };
         let v = serde_json::to_value(&wx).unwrap();
         assert_eq!(v["type"], 2);
         assert!(v.get("token").is_some());

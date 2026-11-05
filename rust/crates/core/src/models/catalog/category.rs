@@ -206,11 +206,7 @@ impl ProductRelateQuery {
             product_id: Some(self.product_id.unwrap_or(0)),
             size: Some(self.size.unwrap_or(10)),
             rank_num: Some(self.rank_num.unwrap_or(5)),
-            intro: Some(
-                self.intro
-                    .clone()
-                    .unwrap_or_else(|| "hot".to_string()),
-            ),
+            intro: Some(self.intro.clone().unwrap_or_else(|| "hot".to_string())),
             shop_id: self.shop_id,
         }
     }

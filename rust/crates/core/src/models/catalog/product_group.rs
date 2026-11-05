@@ -305,7 +305,10 @@ pub struct UpdateFieldDTO {
     /// 字段名
     pub field: Option<String>,
     /// 值
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -462,7 +465,11 @@ mod tests {
                 sort_order: Some("asc".into()),
                 ..Default::default()
             };
-            assert_eq!(q.order_clause(), " ORDER BY product_group_id ASC", "{field}");
+            assert_eq!(
+                q.order_clause(),
+                " ORDER BY product_group_id ASC",
+                "{field}"
+            );
         }
         // 非法 sortOrder ⇒ 不追加 ORDER BY
         let q = ProductGroupListQuery {
@@ -515,10 +522,7 @@ mod tests {
         assert_eq!(parse_product_ids(Some("[1,\"x\"]")), Vec::<i32>::new());
         // 往返
         let ids = vec![9, 8, 7];
-        assert_eq!(
-            parse_product_ids(Some(&product_ids_to_json(&ids))),
-            ids
-        );
+        assert_eq!(parse_product_ids(Some(&product_ids_to_json(&ids))), ids);
     }
 
     // ———————————————— 时间 / VO ————————————————

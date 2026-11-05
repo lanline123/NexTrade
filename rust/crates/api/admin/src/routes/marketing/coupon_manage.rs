@@ -53,26 +53,14 @@ const ROUTE_TABLE: [(&str, &str, &str); 9] = [
         "/promotion/coupon/update",
         "CouponController.update",
     ),
-    (
-        "POST",
-        "/promotion/coupon/del",
-        "CouponController.del",
-    ),
+    ("POST", "/promotion/coupon/del", "CouponController.del"),
     (
         "POST",
         "/promotion/coupon/updateField",
         "CouponController.updateField",
     ),
-    (
-        "POST",
-        "/promotion/coupon/batch",
-        "CouponController.batch",
-    ),
-    (
-        "GET",
-        "/promotion/coupon/config",
-        "CouponController.config",
-    ),
+    ("POST", "/promotion/coupon/batch", "CouponController.batch"),
+    ("GET", "/promotion/coupon/config", "CouponController.config"),
     (
         "POST",
         "/promotion/coupon/issue/preview",
@@ -126,9 +114,7 @@ fn shop_id_from_headers(headers: &HeaderMap) -> Option<i32> {
     };
     match header_str("x-admin-type").as_deref() {
         Some("admin") => Some(0),
-        Some("shop" | "pos") => {
-            header_str("x-shop-id").and_then(|v| v.trim().parse::<i32>().ok())
-        }
+        Some("shop" | "pos") => header_str("x-shop-id").and_then(|v| v.trim().parse::<i32>().ok()),
         _ => None,
     }
 }
@@ -140,12 +126,10 @@ async fn create(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<CouponDTO>,
 ) -> ApiResult<()> {
-    let shop_id = auth.scoped_shop_id().or_else(|| shop_id_from_headers(&headers));
-    state
-        .marketing
-        .coupon_manage
-        .create(&dto, shop_id)
-        .await?;
+    let shop_id = auth
+        .scoped_shop_id()
+        .or_else(|| shop_id_from_headers(&headers));
+    state.marketing.coupon_manage.create(&dto, shop_id).await?;
     ok(())
 }
 
@@ -156,12 +140,10 @@ async fn update(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<CouponDTO>,
 ) -> ApiResult<()> {
-    let shop_id = auth.scoped_shop_id().or_else(|| shop_id_from_headers(&headers));
-    state
-        .marketing
-        .coupon_manage
-        .update(&dto, shop_id)
-        .await?;
+    let shop_id = auth
+        .scoped_shop_id()
+        .or_else(|| shop_id_from_headers(&headers));
+    state.marketing.coupon_manage.update(&dto, shop_id).await?;
     ok(())
 }
 
@@ -219,7 +201,9 @@ async fn issue_preview(
     Extension(auth): Extension<AuthUser>,
     Json(param): Json<CouponManualIssueParam>,
 ) -> ApiResult<CouponManualIssuePreviewVO> {
-    let shop_id = auth.scoped_shop_id().or_else(|| shop_id_from_headers(&headers));
+    let shop_id = auth
+        .scoped_shop_id()
+        .or_else(|| shop_id_from_headers(&headers));
     ok(state
         .marketing
         .coupon_manage
@@ -366,8 +350,7 @@ mod tests {
         assert_eq!(q.coupon_id, Some(1));
         assert_eq!(q.batch_id, Some(2));
 
-        let q: CouponIssueBatchPageQuery =
-            serde_json::from_str(r#"{"sourceType":2}"#).unwrap();
+        let q: CouponIssueBatchPageQuery = serde_json::from_str(r#"{"sourceType":2}"#).unwrap();
         assert_eq!(q.source_type, Some(2));
     }
 }

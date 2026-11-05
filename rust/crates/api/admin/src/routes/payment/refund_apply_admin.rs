@@ -24,7 +24,11 @@ use crate::AdminState;
 
 /// 本域 3 条路由（`/adminapi` 前缀之后的路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 3] = [
-    ("POST", "/finance/refundApply/del", "RefundApplyController.del"),
+    (
+        "POST",
+        "/finance/refundApply/del",
+        "RefundApplyController.del",
+    ),
     (
         "POST",
         "/finance/refundApply/updateField",

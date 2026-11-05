@@ -50,7 +50,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/pos/adminUserPos/info", get(admin_user_detail))
         .route("/pos/adminUserPos/create", post(admin_user_modify))
         .route("/pos/adminUserPos/update", post(admin_user_modify))
-        .route("/pos/adminUserPos/updateField", post(admin_user_update_field))
+        .route(
+            "/pos/adminUserPos/updateField",
+            post(admin_user_update_field),
+        )
         .route("/pos/adminUserPos/batch", post(admin_user_batch))
         .route("/pos/adminUserPos/modifyUser", post(admin_user_modify))
         .route("/pos/adminUserPos/del", post(admin_user_del))
@@ -77,10 +80,16 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/pos/user/rechargeOrder/paymentList", get(recharge_setting))
         // 商品
         .route("/pos/product/index", get(product_index))
-        .route("/pos/product/getProduct", get(product_get).post(product_list_post))
+        .route(
+            "/pos/product/getProduct",
+            get(product_get).post(product_list_post),
+        )
         .route("/pos/product/productDetail", get(product_detail))
         .route("/pos/product/getCategoryInfo", get(product_categories))
-        .route("/pos/product/getProductAvailability", get(product_availability))
+        .route(
+            "/pos/product/getProductAvailability",
+            get(product_availability),
+        )
         // 购物车 / 挂单
         .route("/pos/cart/list", post(cart_list))
         .route("/pos/cart/getCount", get(cart_count))
@@ -92,7 +101,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/pos/cart/changePrice", post(cart_change_price))
         .route("/pos/cart/changePriceShow", post(cart_change_price))
         .route("/pos/cart/pendingOrder", post(cart_pending))
-        .route("/pos/cart/pendingOrderList", get(cart_pending_list_get).post(cart_pending_list))
+        .route(
+            "/pos/cart/pendingOrderList",
+            get(cart_pending_list_get).post(cart_pending_list),
+        )
         .route("/pos/cart/takePendingOrder", post(cart_take_pending))
         .route("/pos/cart/cancelPendingOrder", post(cart_cancel_pending))
         // 桌台
@@ -149,68 +161,264 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 }
 
 const ROUTE_TABLE: [(&str, &str, &str); 62] = [
-    ("POST", "/pos/adminUserPos/list", "PosAdminUserPosController.list"),
-    ("GET", "/pos/adminUserPos/detail", "PosAdminUserPosController.detail"),
-    ("POST", "/pos/adminUserPos/batch", "PosAdminUserPosController.batch"),
-    ("POST", "/pos/adminUserPos/modifyUser", "PosAdminUserPosController.modifyUser"),
-    ("POST", "/pos/adminUserPos/del", "PosAdminUserPosController.del"),
+    (
+        "POST",
+        "/pos/adminUserPos/list",
+        "PosAdminUserPosController.list",
+    ),
+    (
+        "GET",
+        "/pos/adminUserPos/detail",
+        "PosAdminUserPosController.detail",
+    ),
+    (
+        "POST",
+        "/pos/adminUserPos/batch",
+        "PosAdminUserPosController.batch",
+    ),
+    (
+        "POST",
+        "/pos/adminUserPos/modifyUser",
+        "PosAdminUserPosController.modifyUser",
+    ),
+    (
+        "POST",
+        "/pos/adminUserPos/del",
+        "PosAdminUserPosController.del",
+    ),
     ("POST", "/pos/posSwitch/work", "PosSwitchController.work"),
-    ("POST", "/pos/posSwitch/workOff", "PosSwitchController.workOff"),
-    ("GET", "/pos/posSwitch/posStatistics", "PosSwitchController.posStatistics"),
-    ("POST", "/pos/posManager/createMember", "PosManagerController.createMember"),
-    ("POST", "/pos/posManager/createTourists", "PosManagerController.createTourists"),
+    (
+        "POST",
+        "/pos/posSwitch/workOff",
+        "PosSwitchController.workOff",
+    ),
+    (
+        "GET",
+        "/pos/posSwitch/posStatistics",
+        "PosSwitchController.posStatistics",
+    ),
+    (
+        "POST",
+        "/pos/posManager/createMember",
+        "PosManagerController.createMember",
+    ),
+    (
+        "POST",
+        "/pos/posManager/createTourists",
+        "PosManagerController.createTourists",
+    ),
     ("POST", "/pos/user/list", "PosUserController.list"),
     ("GET", "/pos/user/detail", "PosUserController.detail"),
-    ("GET", "/pos/user/userAddressList", "PosUserController.userAddressList"),
-    ("POST", "/pos/user/userAddressCreate", "PosUserController.userAddressCreate"),
-    ("POST", "/pos/user/coupon/visible-list", "PosUserController.couponVisible"),
-    ("POST", "/pos/user/coupon/claim", "PosUserController.couponClaim"),
-    ("POST", "/pos/user/rechargeOrder/create", "PosUserController.rechargeCreate"),
-    ("POST", "/pos/user/rechargeOrder/update", "PosUserController.rechargeUpdate"),
-    ("GET", "/pos/user/rechargeOrder/checkStatus", "PosUserController.rechargeCheck"),
-    ("GET", "/pos/user/rechargeOrder/setting", "PosUserController.rechargeSetting"),
+    (
+        "GET",
+        "/pos/user/userAddressList",
+        "PosUserController.userAddressList",
+    ),
+    (
+        "POST",
+        "/pos/user/userAddressCreate",
+        "PosUserController.userAddressCreate",
+    ),
+    (
+        "POST",
+        "/pos/user/coupon/visible-list",
+        "PosUserController.couponVisible",
+    ),
+    (
+        "POST",
+        "/pos/user/coupon/claim",
+        "PosUserController.couponClaim",
+    ),
+    (
+        "POST",
+        "/pos/user/rechargeOrder/create",
+        "PosUserController.rechargeCreate",
+    ),
+    (
+        "POST",
+        "/pos/user/rechargeOrder/update",
+        "PosUserController.rechargeUpdate",
+    ),
+    (
+        "GET",
+        "/pos/user/rechargeOrder/checkStatus",
+        "PosUserController.rechargeCheck",
+    ),
+    (
+        "GET",
+        "/pos/user/rechargeOrder/setting",
+        "PosUserController.rechargeSetting",
+    ),
     ("GET", "/pos/product/index", "PosProductController.index"),
-    ("GET", "/pos/product/getProduct", "PosProductController.getProduct"),
-    ("GET", "/pos/product/productDetail", "PosProductController.productDetail"),
-    ("GET", "/pos/product/getCategoryInfo", "PosProductController.getCategoryInfo"),
-    ("GET", "/pos/product/getProductAvailability", "PosProductController.getAvailability"),
+    (
+        "GET",
+        "/pos/product/getProduct",
+        "PosProductController.getProduct",
+    ),
+    (
+        "GET",
+        "/pos/product/productDetail",
+        "PosProductController.productDetail",
+    ),
+    (
+        "GET",
+        "/pos/product/getCategoryInfo",
+        "PosProductController.getCategoryInfo",
+    ),
+    (
+        "GET",
+        "/pos/product/getProductAvailability",
+        "PosProductController.getAvailability",
+    ),
     ("POST", "/pos/cart/list", "PosCartController.list"),
     ("POST", "/pos/cart/addToCart", "PosCartController.addToCart"),
-    ("POST", "/pos/cart/updateItem", "PosCartController.updateItem"),
-    ("POST", "/pos/cart/removeItem", "PosCartController.removeItem"),
+    (
+        "POST",
+        "/pos/cart/updateItem",
+        "PosCartController.updateItem",
+    ),
+    (
+        "POST",
+        "/pos/cart/removeItem",
+        "PosCartController.removeItem",
+    ),
     ("POST", "/pos/cart/clearCart", "PosCartController.clearCart"),
-    ("POST", "/pos/cart/changePrice", "PosCartController.changePrice"),
-    ("POST", "/pos/cart/changePriceShow", "PosCartController.changePriceShow"),
-    ("POST", "/pos/cart/pendingOrder", "PosCartController.pendingOrder"),
-    ("POST", "/pos/cart/pendingOrderList", "PosCartController.pendingOrderList"),
-    ("POST", "/pos/cart/takePendingOrder", "PosCartController.takePendingOrder"),
-    ("POST", "/pos/cart/cancelPendingOrder", "PosCartController.cancelPendingOrder"),
+    (
+        "POST",
+        "/pos/cart/changePrice",
+        "PosCartController.changePrice",
+    ),
+    (
+        "POST",
+        "/pos/cart/changePriceShow",
+        "PosCartController.changePriceShow",
+    ),
+    (
+        "POST",
+        "/pos/cart/pendingOrder",
+        "PosCartController.pendingOrder",
+    ),
+    (
+        "POST",
+        "/pos/cart/pendingOrderList",
+        "PosCartController.pendingOrderList",
+    ),
+    (
+        "POST",
+        "/pos/cart/takePendingOrder",
+        "PosCartController.takePendingOrder",
+    ),
+    (
+        "POST",
+        "/pos/cart/cancelPendingOrder",
+        "PosCartController.cancelPendingOrder",
+    ),
     ("GET", "/pos/table/list", "PosTableController.list"),
     ("GET", "/pos/table/detail", "PosTableController.detail"),
     ("POST", "/pos/table/create", "PosTableController.create"),
     ("POST", "/pos/table/update", "PosTableController.update"),
-    ("POST", "/pos/table/updateField", "PosTableController.updateField"),
+    (
+        "POST",
+        "/pos/table/updateField",
+        "PosTableController.updateField",
+    ),
     ("POST", "/pos/table/del", "PosTableController.del"),
-    ("POST", "/pos/table/area/list", "PosTableAreaController.list"),
-    ("GET", "/pos/table/area/detail", "PosTableAreaController.detail"),
-    ("POST", "/pos/table/area/create", "PosTableAreaController.create"),
-    ("POST", "/pos/table/area/update", "PosTableAreaController.update"),
+    (
+        "POST",
+        "/pos/table/area/list",
+        "PosTableAreaController.list",
+    ),
+    (
+        "GET",
+        "/pos/table/area/detail",
+        "PosTableAreaController.detail",
+    ),
+    (
+        "POST",
+        "/pos/table/area/create",
+        "PosTableAreaController.create",
+    ),
+    (
+        "POST",
+        "/pos/table/area/update",
+        "PosTableAreaController.update",
+    ),
     ("POST", "/pos/table/area/del", "PosTableAreaController.del"),
-    ("POST", "/pos/table/operate/open", "PosTableOperateController.open"),
-    ("POST", "/pos/table/operate/bindUser", "PosTableOperateController.bindUser"),
-    ("POST", "/pos/table/operate/cancel", "PosTableOperateController.cancel"),
-    ("POST", "/pos/table/operate/clear", "PosTableOperateController.clear"),
-    ("POST", "/pos/table/operate/transfer", "PosTableOperateController.transfer"),
-    ("GET", "/pos/table/operate/board", "PosTableOperateController.board"),
-    ("POST", "/pos/table/operate/placeOrder", "PosTableOperateController.placeOrder"),
-    ("POST", "/pos/table/operate/checkout", "PosTableOperateController.checkout"),
-    ("GET", "/pos/table/operate/check/index", "PosTableOperateController.checkIndex"),
-    ("POST", "/pos/table/operate/check/update", "PosTableOperateController.checkUpdate"),
-    ("GET", "/pos/table/receiptList", "PosTableController.receiptList"),
-    ("GET", "/pos/table/receiptStatistics", "PosTableController.receiptStatistics"),
-    ("GET", "/pos/table/setting/get", "PosTableSettingController.get"),
-    ("POST", "/pos/table/setting/save", "PosTableSettingController.save"),
-    ("GET", "/pos/order/check/getOrderRemark", "PosOrderController.getOrderRemark"),
+    (
+        "POST",
+        "/pos/table/operate/open",
+        "PosTableOperateController.open",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/bindUser",
+        "PosTableOperateController.bindUser",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/cancel",
+        "PosTableOperateController.cancel",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/clear",
+        "PosTableOperateController.clear",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/transfer",
+        "PosTableOperateController.transfer",
+    ),
+    (
+        "GET",
+        "/pos/table/operate/board",
+        "PosTableOperateController.board",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/placeOrder",
+        "PosTableOperateController.placeOrder",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/checkout",
+        "PosTableOperateController.checkout",
+    ),
+    (
+        "GET",
+        "/pos/table/operate/check/index",
+        "PosTableOperateController.checkIndex",
+    ),
+    (
+        "POST",
+        "/pos/table/operate/check/update",
+        "PosTableOperateController.checkUpdate",
+    ),
+    (
+        "GET",
+        "/pos/table/receiptList",
+        "PosTableController.receiptList",
+    ),
+    (
+        "GET",
+        "/pos/table/receiptStatistics",
+        "PosTableController.receiptStatistics",
+    ),
+    (
+        "GET",
+        "/pos/table/setting/get",
+        "PosTableSettingController.get",
+    ),
+    (
+        "POST",
+        "/pos/table/setting/save",
+        "PosTableSettingController.save",
+    ),
+    (
+        "GET",
+        "/pos/order/check/getOrderRemark",
+        "PosOrderController.getOrderRemark",
+    ),
 ];
 
 // ————————————————————— 收银员 —————————————————————
@@ -264,7 +472,11 @@ async fn admin_user_del(
     State(state): State<AdminState>,
     Json(dto): Json<PosAdminUserDelDTO>,
 ) -> ApiResult<()> {
-    let ids = dto.ids.clone().or_else(|| dto.id.map(|v| vec![v])).unwrap_or_default();
+    let ids = dto
+        .ids
+        .clone()
+        .or_else(|| dto.id.map(|v| vec![v]))
+        .unwrap_or_default();
     for id in ids {
         state.pos.cashier.cashier_delete(id).await?;
     }
@@ -277,7 +489,11 @@ async fn pos_work(
     State(state): State<AdminState>,
     Extension(tenant): Extension<TenantContext>,
 ) -> ApiResult<()> {
-    state.pos.cashier.set_work(tenant_context_id(&tenant), true).await?;
+    state
+        .pos
+        .cashier
+        .set_work(tenant_context_id(&tenant), true)
+        .await?;
     ok(())
 }
 
@@ -285,7 +501,11 @@ async fn pos_work_off(
     State(state): State<AdminState>,
     Extension(tenant): Extension<TenantContext>,
 ) -> ApiResult<()> {
-    state.pos.cashier.set_work(tenant_context_id(&tenant), false).await?;
+    state
+        .pos
+        .cashier
+        .set_work(tenant_context_id(&tenant), false)
+        .await?;
     ok(())
 }
 
@@ -293,7 +513,11 @@ async fn pos_statistics(
     State(state): State<AdminState>,
     Extension(tenant): Extension<TenantContext>,
 ) -> ApiResult<PosStatisticsVO> {
-    ok(state.pos.cashier.statistics(tenant_context_id(&tenant)).await?)
+    ok(state
+        .pos
+        .cashier
+        .statistics(tenant_context_id(&tenant))
+        .await?)
 }
 
 /// TenantContext 无 admin id；登录管理员 id 由请求扩展 AuthUser 提供。
@@ -330,7 +554,12 @@ async fn user_by_mobile(
     let res = state
         .pos
         .cashier
-        .users(&PosUserQuery { page: Some(1), size: Some(10), keyword: Some(mobile), user_id: None })
+        .users(&PosUserQuery {
+            page: Some(1),
+            size: Some(10),
+            keyword: Some(mobile),
+            user_id: None,
+        })
         .await?;
     let first = res
         .get("records")
@@ -405,14 +634,22 @@ async fn coupon_get_list(
     State(state): State<AdminState>,
     Query(q): Query<PosCouponQuery>,
 ) -> ApiResult<serde_json::Value> {
-    ok(state.pos.cashier.coupon_visible(q.user_id.unwrap_or(0)).await?)
+    ok(state
+        .pos
+        .cashier
+        .coupon_visible(q.user_id.unwrap_or(0))
+        .await?)
 }
 
 async fn coupon_visible(
     State(state): State<AdminState>,
     Json(q): Json<PosCouponQuery>,
 ) -> ApiResult<serde_json::Value> {
-    ok(state.pos.cashier.coupon_visible(q.user_id.unwrap_or(0)).await?)
+    ok(state
+        .pos
+        .cashier
+        .coupon_visible(q.user_id.unwrap_or(0))
+        .await?)
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -541,7 +778,8 @@ async fn product_list_post(
 async fn product_detail(
     State(state): State<AdminState>,
     Query(q): Query<PosProductGetQuery>,
-) -> ApiResult<serde_json::Value> {    ok(state
+) -> ApiResult<serde_json::Value> {
+    ok(state
         .pos
         .cashier
         .product_detail(q.product_id.unwrap_or(0))
@@ -584,7 +822,11 @@ async fn cart_list(
     ok(state
         .pos
         .cashier
-        .cart(admin_id_of(&tenant), dto.user_id.unwrap_or(0), dto.table_id.unwrap_or(0))
+        .cart(
+            admin_id_of(&tenant),
+            dto.user_id.unwrap_or(0),
+            dto.table_id.unwrap_or(0),
+        )
         .await?)
 }
 
@@ -598,7 +840,9 @@ async fn cart_count(
         .cashier
         .cart(admin_id_of(&tenant), q.user_id.unwrap_or(0), 0)
         .await?;
-    ok(serde_json::json!({"totalCount": cart.total.total_count, "checkedCount": cart.total.checked_count}))
+    ok(
+        serde_json::json!({"totalCount": cart.total.total_count, "checkedCount": cart.total.checked_count}),
+    )
 }
 
 async fn cart_update_check(
@@ -606,7 +850,13 @@ async fn cart_update_check(
     Extension(tenant): Extension<TenantContext>,
     Json(dto): Json<PosCartUpdateDTO>,
 ) -> ApiResult<()> {
-    ok_generic(state.pos.cashier.update_item(admin_id_of(&tenant), &dto).await?)
+    ok_generic(
+        state
+            .pos
+            .cashier
+            .update_item(admin_id_of(&tenant), &dto)
+            .await?,
+    )
 }
 
 async fn cart_add(
@@ -614,7 +864,11 @@ async fn cart_add(
     Extension(tenant): Extension<TenantContext>,
     Json(dto): Json<PosCartAddDTO>,
 ) -> ApiResult<i64> {
-    ok(state.pos.cashier.add_to_cart(admin_id_of(&tenant), &dto).await?)
+    ok(state
+        .pos
+        .cashier
+        .add_to_cart(admin_id_of(&tenant), &dto)
+        .await?)
 }
 
 async fn cart_update(
@@ -622,7 +876,13 @@ async fn cart_update(
     Extension(tenant): Extension<TenantContext>,
     Json(dto): Json<PosCartUpdateDTO>,
 ) -> ApiResult<()> {
-    ok_generic(state.pos.cashier.update_item(admin_id_of(&tenant), &dto).await?)
+    ok_generic(
+        state
+            .pos
+            .cashier
+            .update_item(admin_id_of(&tenant), &dto)
+            .await?,
+    )
 }
 
 #[must_use]
@@ -635,7 +895,11 @@ async fn cart_remove(
     Extension(tenant): Extension<TenantContext>,
     Json(dto): Json<PosCartRemoveDTO>,
 ) -> ApiResult<()> {
-    state.pos.cashier.remove_items(admin_id_of(&tenant), &dto).await?;
+    state
+        .pos
+        .cashier
+        .remove_items(admin_id_of(&tenant), &dto)
+        .await?;
     ok(())
 }
 
@@ -652,7 +916,11 @@ async fn cart_change_price(
     Extension(tenant): Extension<TenantContext>,
     Json(dto): Json<PosCartChangePriceDTO>,
 ) -> ApiResult<()> {
-    state.pos.cashier.change_price(admin_id_of(&tenant), &dto).await?;
+    state
+        .pos
+        .cashier
+        .change_price(admin_id_of(&tenant), &dto)
+        .await?;
     ok(())
 }
 
@@ -661,7 +929,11 @@ async fn cart_pending(
     Extension(tenant): Extension<TenantContext>,
     Json(dto): Json<PosPendingOrderDTO>,
 ) -> ApiResult<()> {
-    state.pos.cashier.pending_order(admin_id_of(&tenant), &dto).await?;
+    state
+        .pos
+        .cashier
+        .pending_order(admin_id_of(&tenant), &dto)
+        .await?;
     ok(())
 }
 
@@ -712,11 +984,7 @@ async fn cart_take_pending(
         .cashier
         .take_pending(admin_id_of(&tenant), dto.pending_id)
         .await?;
-    ok(state
-        .pos
-        .cashier
-        .cart(admin_id_of(&tenant), 0, 0)
-        .await?)
+    ok(state.pos.cashier.cart(admin_id_of(&tenant), 0, 0).await?)
 }
 
 async fn cart_cancel_pending(
@@ -793,10 +1061,7 @@ async fn table_update_field(
     )
 }
 
-async fn table_del(
-    State(state): State<AdminState>,
-    Json(dto): Json<PosIdQuery>,
-) -> ApiResult<()> {
+async fn table_del(State(state): State<AdminState>, Json(dto): Json<PosIdQuery>) -> ApiResult<()> {
     state.pos.cashier.table_delete(dto.id.unwrap_or(0)).await?;
     ok(())
 }
@@ -813,9 +1078,7 @@ async fn table_area_detail(
     Query(q): Query<PosIdQuery>,
 ) -> ApiResult<serde_json::Value> {
     let areas = state.pos.cashier.areas(0).await?;
-    let one = areas
-        .into_iter()
-        .find(|a| a.area_id == q.id.unwrap_or(-1));
+    let one = areas.into_iter().find(|a| a.area_id == q.id.unwrap_or(-1));
     ok(serde_json::to_value(one).unwrap_or(serde_json::Value::Null))
 }
 
@@ -977,7 +1240,11 @@ async fn pos_order_remark(
     State(state): State<AdminState>,
     Query(q): Query<PosUserIdQuery>,
 ) -> ApiResult<serde_json::Value> {
-    let remark = state.pos.cashier.order_remark(q.user_id.unwrap_or(0)).await?;
+    let remark = state
+        .pos
+        .cashier
+        .order_remark(q.user_id.unwrap_or(0))
+        .await?;
     ok(serde_json::json!({ "orderRemark": remark }))
 }
 
@@ -1018,15 +1285,21 @@ async fn pos_check_submit(
 ) -> ApiResult<serde_json::Value> {
     let table_id = pos_check_table_id(&body);
     if table_id <= 0 {
-        return Err(tigshop_security::web::AppError(tigshop_core::Error::Validation(
-            "缺少 tableId".into(),
-        )));
+        return Err(tigshop_security::web::AppError(
+            tigshop_core::Error::Validation("缺少 tableId".into()),
+        ));
     }
     let dto = PosTableOperateDTO {
         table_id,
-        user_id: body.get("userId").and_then(serde_json::Value::as_i64).map(|v| v as i32),
+        user_id: body
+            .get("userId")
+            .and_then(serde_json::Value::as_i64)
+            .map(|v| v as i32),
         target_table_id: None,
-        order_id: body.get("orderId").and_then(serde_json::Value::as_i64).map(|v| v as i32),
+        order_id: body
+            .get("orderId")
+            .and_then(serde_json::Value::as_i64)
+            .map(|v| v as i32),
         remark: body
             .get("remark")
             .and_then(serde_json::Value::as_str)
@@ -1068,9 +1341,6 @@ async fn order_pay_check(
         .await?;
     ok(serde_json::to_value(row).unwrap_or(serde_json::Value::Null))
 }
-
-
-
 
 /// `GET /adminapi/adminapi/adminUser/checkCode`：安装期检查码（兼容桩）。
 async fn admin_check_code() -> ApiResult<serde_json::Value> {

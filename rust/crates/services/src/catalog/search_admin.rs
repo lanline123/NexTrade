@@ -302,6 +302,7 @@ impl SearchAdminService {
             product_status: Some(q.product_status.unwrap_or(1)),
             sort_field,
             sort_order,
+            attrs: q.attrs.clone().unwrap_or_default(),
         })
     }
 }

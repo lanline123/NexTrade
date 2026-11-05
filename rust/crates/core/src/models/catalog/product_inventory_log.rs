@@ -185,7 +185,9 @@ mod tests {
         assert_eq!(format_sku_value(Some("")), "");
         assert_eq!(format_sku_value(Some("oops")), "");
         assert_eq!(
-            format_sku_value(Some(r#"[{"name":"颜色","value":"红"},{"name":"尺寸","value":"L"}]"#)),
+            format_sku_value(Some(
+                r#"[{"name":"颜色","value":"红"},{"name":"尺寸","value":"L"}]"#
+            )),
             "颜色:红,尺寸:L"
         );
     }

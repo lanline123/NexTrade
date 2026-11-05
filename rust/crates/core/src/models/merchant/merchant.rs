@@ -134,7 +134,10 @@ pub struct BatchDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -189,7 +192,9 @@ pub struct MerchantVO {
 #[must_use]
 pub fn format_time(secs: Option<i32>) -> String {
     use chrono::TimeZone;
-    let Some(secs) = secs else { return String::new() };
+    let Some(secs) = secs else {
+        return String::new();
+    };
     if secs == 0 {
         return String::new();
     }
@@ -249,7 +254,10 @@ mod tests {
 
         let base = serde_json::json!({"type":2,"companyName":"ACME","corporateName":"张三"});
         assert_eq!(base_field_i32(Some(&base), "type"), Some(2));
-        assert_eq!(base_field_str(Some(&base), "companyName").as_deref(), Some("ACME"));
+        assert_eq!(
+            base_field_str(Some(&base), "companyName").as_deref(),
+            Some("ACME")
+        );
         assert_eq!(base_field_str(None, "companyName"), None);
     }
 

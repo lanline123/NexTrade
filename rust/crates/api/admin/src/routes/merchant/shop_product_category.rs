@@ -127,7 +127,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/merchant/shopProductCategory/update", post(update))
         .route("/merchant/shopProductCategory/del", post(del))
         .route("/merchant/shopProductCategory/batch", post(batch))
-        .route("/merchant/shopProductCategory/updateField", post(update_field))
+        .route(
+            "/merchant/shopProductCategory/updateField",
+            post(update_field),
+        )
 }
 
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
@@ -169,7 +172,11 @@ async fn list(
     Query(q): Query<ShopProductCategoryListQuery>,
 ) -> ApiResult<PageResult<ShopProductCategoryVO>> {
     let shop_id = tenant_shop_scope(&tenant);
-    ok(state.merchant.shop_product_category.list(&q, shop_id).await?)
+    ok(state
+        .merchant
+        .shop_product_category
+        .list(&q, shop_id)
+        .await?)
 }
 
 /// `GET /adminapi/merchant/shopProductCategory/getCategoryName?parentId=`：按父级取名称。
@@ -195,7 +202,11 @@ async fn get_category_name(
         .parent_id
         .filter(|v| *v > 0)
         .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
-    ok(state.merchant.shop_product_category.get_category_name(parent_id).await?)
+    ok(state
+        .merchant
+        .shop_product_category
+        .get_category_name(parent_id)
+        .await?)
 }
 
 /// `GET /adminapi/merchant/shopProductCategory/detail?id=`：分类详情。
@@ -216,10 +227,9 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<ShopProductCategoryVO> {
-    let id = q
-        .id
-        .filter(|v| *v > 0)
-        .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
+    let id =
+        q.id.filter(|v| *v > 0)
+            .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
     ok(state.merchant.shop_product_category.detail(id).await?)
 }
 
@@ -283,7 +293,11 @@ async fn update(
     Json(dto): Json<ShopProductCategoryUpdateDTO>,
 ) -> ApiResult<bool> {
     let shop_id = tenant_shop_scope(&tenant);
-    ok(state.merchant.shop_product_category.update(&dto, shop_id).await?)
+    ok(state
+        .merchant
+        .shop_product_category
+        .update(&dto, shop_id)
+        .await?)
 }
 
 /// `POST /adminapi/merchant/shopProductCategory/del`：删除分类。
@@ -300,7 +314,11 @@ async fn del(
     Json(dto): Json<OperateDTO>,
 ) -> ApiResult<bool> {
     let shop_id = tenant_shop_scope(&tenant);
-    ok(state.merchant.shop_product_category.del(&dto, shop_id).await?)
+    ok(state
+        .merchant
+        .shop_product_category
+        .del(&dto, shop_id)
+        .await?)
 }
 
 /// `POST /adminapi/merchant/shopProductCategory/batch`：批量操作（仅 `del`）。
@@ -314,7 +332,11 @@ async fn batch(
     Json(dto): Json<BatchDTO>,
 ) -> ApiResult<bool> {
     let shop_id = tenant_shop_scope(&tenant);
-    ok(state.merchant.shop_product_category.batch(&dto, shop_id).await?)
+    ok(state
+        .merchant
+        .shop_product_category
+        .batch(&dto, shop_id)
+        .await?)
 }
 
 /// `POST /adminapi/merchant/shopProductCategory/updateField`：更新单个字段。
@@ -332,7 +354,11 @@ async fn update_field(
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
     let shop_id = tenant_shop_scope(&tenant);
-    ok(state.merchant.shop_product_category.update_field(&dto, shop_id).await?)
+    ok(state
+        .merchant
+        .shop_product_category
+        .update_field(&dto, shop_id)
+        .await?)
 }
 
 #[cfg(test)]

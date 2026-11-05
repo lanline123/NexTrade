@@ -81,7 +81,11 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/product/category/list", "CategoryController.list"),
+        (
+            "GET",
+            "/adminapi/product/category/list",
+            "CategoryController.list",
+        ),
         (
             "GET",
             "/adminapi/product/category/getParentName",
@@ -102,7 +106,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/adminapi/product/category/update",
             "CategoryController.update",
         ),
-        ("POST", "/adminapi/product/category/del", "CategoryController.del"),
+        (
+            "POST",
+            "/adminapi/product/category/del",
+            "CategoryController.del",
+        ),
         (
             "POST",
             "/adminapi/product/category/batch",

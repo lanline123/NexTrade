@@ -397,7 +397,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名皆可）。
     pub field: Option<String>,
     /// 字段值。
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -540,10 +543,7 @@ mod tests {
             resolve_sort(Some("isTop"), Some("DESC")),
             ("is_top", Some(true))
         );
-        assert_eq!(
-            resolve_sort(Some("is_top"), None),
-            ("is_top", Some(true))
-        );
+        assert_eq!(resolve_sort(Some("is_top"), None), ("is_top", Some(true)));
         assert_eq!(
             resolve_sort(Some("startTime"), Some("asc")),
             ("start_time", Some(false))

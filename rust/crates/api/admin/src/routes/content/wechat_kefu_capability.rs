@@ -63,7 +63,10 @@ mod tests {
     fn route_table_is_unique_and_prefixed() {
         assert_eq!(ROUTE_TABLE.len(), 1);
         let (_, path, _) = ROUTE_TABLE[0];
-        assert!(path.starts_with("/wechat/keywordRule/"), "路径前缀错误: {path}");
+        assert!(
+            path.starts_with("/wechat/keywordRule/"),
+            "路径前缀错误: {path}"
+        );
         assert_ne!(path, "/wechat/keywordRule/list", "不得与规则列表路由冲突");
     }
 }

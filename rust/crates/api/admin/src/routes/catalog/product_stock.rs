@@ -53,14 +53,13 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::catalog::product_stock::{
-    AdjustDetailQuery, AllocateExcelExportDTO, AllocatePageQuery, AllocateStockOutDTO,
-    AuditAllocateQuery, CreateAllocateDTO, ProductStockAdjustRecordDetailVO,
+    AdjustDetailQuery, AllocateBatchImportRow, AllocateExcelExportDTO, AllocatePageQuery,
+    AllocateProductImportRow, AllocateStockOutDTO, AuditAllocateQuery, CreateAllocateDTO,
+    ProductImportSuccessVO, ProductStockAdjustRecordDetailVO,
     ProductStockAllocateOperationRecordVO, ProductStockAllocateRecordDetailVO,
-    ProductStockAllocateRecordPageVO, ProductStockDetailVO, ProductStockPageVO,
-    ProductStockRecordVO, StockAdjustDTO, StockDetailQuery, StockInDTO, StockPageQuery,
-    AllocateBatchImportRow, AllocateProductImportRow, ProductImportSuccessVO,
-    ProductStockImportRow,
-    StockRecordPageQuery, EXCEL_UNMIGRATED_MSG,
+    ProductStockAllocateRecordPageVO, ProductStockDetailVO, ProductStockImportRow,
+    ProductStockPageVO, ProductStockRecordVO, StockAdjustDTO, StockDetailQuery, StockInDTO,
+    StockPageQuery, StockRecordPageQuery, EXCEL_UNMIGRATED_MSG,
 };
 use tigshop_core::types::PageResult;
 use tigshop_core::Error;
@@ -82,7 +81,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/product/stock/stockOut", post(stock_out))
         .route("/product/stock/downloadTemplate", get(download_template))
         .route("/product/stock/batchImport", post(batch_import))
-        .route("/product/stock/getImportErrorData", post(get_import_error_data))
+        .route(
+            "/product/stock/getImportErrorData",
+            post(get_import_error_data),
+        )
         .route("/product/stock/stockAdjust", post(stock_adjust))
         .route("/product/stock/adjustDetail", get(adjust_detail))
         .route(
@@ -105,8 +107,14 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/product/stock/stockOutAllocate", post(stock_out_allocate))
         .route("/product/stock/stockInAllocate", post(stock_in_allocate))
         .route("/product/stock/exportAllocate", post(export_allocate))
-        .route("/product/stock/getAllocateTemplate", get(get_allocate_template))
-        .route("/product/stock/batchImportAllocate", post(batch_import_allocate))
+        .route(
+            "/product/stock/getAllocateTemplate",
+            get(get_allocate_template),
+        )
+        .route(
+            "/product/stock/batchImportAllocate",
+            post(batch_import_allocate),
+        )
         .route(
             "/product/stock/getBatchImportErrorData",
             post(get_batch_import_error_data),
@@ -133,7 +141,11 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/product/stock/page", "ProductStockController.page"),
+        (
+            "GET",
+            "/adminapi/product/stock/page",
+            "ProductStockController.page",
+        ),
         (
             "GET",
             "/adminapi/product/stock/stockDetail",
@@ -410,7 +422,11 @@ async fn get_allocate_product_stock_page(
     Query(q): Query<StockPageQuery>,
 ) -> ApiResult<PageResult<ProductStockPageVO>> {
     let op = operator_from(&headers, &auth);
-    ok(state.catalog.product_stock.allocate_product_stock_page(&q, &op).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .allocate_product_stock_page(&q, &op)
+        .await?)
 }
 
 /// `GET /adminapi/product/stock/productStockAllocateRecordPage`：库存调拨记录。
@@ -424,7 +440,11 @@ async fn allocate_record_page(
     Query(q): Query<AllocatePageQuery>,
 ) -> ApiResult<PageResult<ProductStockAllocateRecordPageVO>> {
     let op = operator_from(&headers, &auth);
-    ok(state.catalog.product_stock.allocate_record_page(&q, &op).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .allocate_record_page(&q, &op)
+        .await?)
 }
 
 /// `GET /adminapi/product/stock/productStockAllocateRecordDetail?id=`：库存调拨记录详情。
@@ -435,7 +455,11 @@ async fn allocate_record_detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<ProductStockAllocateRecordDetailVO> {
-    ok(state.catalog.product_stock.allocate_record_detail(q.id).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .allocate_record_detail(q.id)
+        .await?)
 }
 
 /// `GET /adminapi/product/stock/getOrgList`：组织集合。
@@ -472,7 +496,9 @@ async fn allocate_operation_detail(
     State(state): State<AdminState>,
     Query(q): Query<AllocateIdQuery>,
 ) -> ApiResult<Vec<ProductStockAllocateOperationRecordVO>> {
-    ok(state.catalog.product_stock
+    ok(state
+        .catalog
+        .product_stock
         .allocate_operation_detail(q.allocate_id)
         .await?)
 }
@@ -539,7 +565,11 @@ async fn create_allocate(
     Json(dto): Json<CreateAllocateDTO>,
 ) -> ApiResult<bool> {
     let op = operator_from(&headers, &auth);
-    ok(state.catalog.product_stock.create_allocate(&dto, &op).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .create_allocate(&dto, &op)
+        .await?)
 }
 
 /// `POST /adminapi/product/stock/auditAllocate?id=&auditType=&remark=`：调拨审核。
@@ -566,7 +596,11 @@ async fn cancel_allocate(
     Json(ids): Json<Vec<i32>>,
 ) -> ApiResult<bool> {
     let op = operator_from(&headers, &auth);
-    ok(state.catalog.product_stock.cancel_allocate(&ids, &op).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .cancel_allocate(&ids, &op)
+        .await?)
 }
 
 /// `POST /adminapi/product/stock/stockOutAllocate`：调拨出库。
@@ -579,7 +613,11 @@ async fn stock_out_allocate(
     Json(dto): Json<AllocateStockOutDTO>,
 ) -> ApiResult<bool> {
     let op = operator_from(&headers, &auth);
-    ok(state.catalog.product_stock.stock_out_allocate(&dto, &op).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .stock_out_allocate(&dto, &op)
+        .await?)
 }
 
 /// `POST /adminapi/product/stock/stockInAllocate`：调拨入库。
@@ -592,7 +630,11 @@ async fn stock_in_allocate(
     Json(dto): Json<AllocateStockOutDTO>,
 ) -> ApiResult<bool> {
     let op = operator_from(&headers, &auth);
-    ok(state.catalog.product_stock.stock_in_allocate(&dto, &op).await?)
+    ok(state
+        .catalog
+        .product_stock
+        .stock_in_allocate(&dto, &op)
+        .await?)
 }
 
 /// `POST /adminapi/product/stock/exportAllocate`：调拨单导出。
@@ -611,7 +653,9 @@ async fn export_allocate(
         .product_stock
         .export_allocate_xlsx(&dto, shop_id)
         .await?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, &file_name))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes, &file_name,
+    ))
 }
 
 // ——————————————————————————————————————————————
@@ -634,7 +678,13 @@ fn excel_unmigrated<T: serde::Serialize>() -> ApiResult<T> {
 /// **未迁移**（`@ResponseExcel` 二进制流）。
 async fn download_template() -> std::result::Result<axum::response::Response, AppError> {
     // 对应 Java `ProductStockOutExcelDTO` 的列：商品名称 / 商品编码 / 商品规格名称 / 商品出入库数量 / 备注
-    let headers = ["商品名称", "商品编码", "商品规格名称", "商品出入库数量", "备注"];
+    let headers = [
+        "商品名称",
+        "商品编码",
+        "商品规格名称",
+        "商品出入库数量",
+        "备注",
+    ];
     let bytes = tigshop_services::system::excel::build_xlsx(&headers, &[], "商品出入库模板")?;
     Ok(crate::support::excel_response::xlsx_response(
         bytes,
@@ -715,9 +765,11 @@ async fn get_import_error_data(
 
 /// 读取 multipart 中的 `file` 字段。
 async fn read_upload_file(multipart: &mut Multipart) -> Result<Vec<u8>, AppError> {
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError(Error::Validation(format!("读取上传文件失败: {e}")))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError(Error::Validation(format!("读取上传文件失败: {e}"))))?
+    {
         if field.name() == Some("file") {
             return field
                 .bytes()
@@ -731,8 +783,7 @@ async fn read_upload_file(multipart: &mut Multipart) -> Result<Vec<u8>, AppError
 
 /// 解析商品出入库导入 xlsx（首行表头；列序与 Java DTO 一致）。
 fn parse_stock_import_rows(bytes: &[u8]) -> Result<Vec<ProductStockImportRow>, AppError> {
-    let sheet = tigshop_services::system::excel::read_xlsx(bytes)
-        .map_err(AppError)?;
+    let sheet = tigshop_services::system::excel::read_xlsx(bytes).map_err(AppError)?;
     let mut rows = Vec::new();
     for line in sheet.iter().skip(1) {
         let get = |i: usize| {
@@ -757,7 +808,15 @@ fn parse_stock_import_rows(bytes: &[u8]) -> Result<Vec<ProductStockImportRow>, A
 
 /// `GET /adminapi/product/stock/getAllocateTemplate`：下载导入调拨单 Excel。
 async fn get_allocate_template() -> std::result::Result<axum::response::Response, AppError> {
-    let headers = ["出库门店", "入库门店", "备注", "商品名称", "商品编码", "商品规格名称", "数量"];
+    let headers = [
+        "出库门店",
+        "入库门店",
+        "备注",
+        "商品名称",
+        "商品编码",
+        "商品规格名称",
+        "数量",
+    ];
     let bytes = tigshop_services::system::excel::build_xlsx(&headers, &[], "调拨单导入模板")?;
     Ok(crate::support::excel_response::xlsx_response(
         bytes,
@@ -877,7 +936,9 @@ async fn batch_import_allocate_product(
     if rows.is_empty() {
         return Err(AppError(Error::biz_msg("表格数据为空")));
     }
-    let shop_id = q.shop_id.ok_or_else(|| AppError(Error::biz_msg("请选择出库组织")))?;
+    let shop_id = q
+        .shop_id
+        .ok_or_else(|| AppError(Error::biz_msg("请选择出库组织")))?;
     let target_shop_id = q
         .target_shop_id
         .ok_or_else(|| AppError(Error::biz_msg("请选择入库组织")))?;
@@ -904,7 +965,9 @@ async fn get_allocate_product_error_data(
 ) -> std::result::Result<axum::response::Response, AppError> {
     let bytes = read_upload_file(&mut multipart).await?;
     let rows = parse_allocate_product_rows(&bytes)?;
-    let shop_id = q.shop_id.ok_or_else(|| AppError(Error::biz_msg("请选择出库组织")))?;
+    let shop_id = q
+        .shop_id
+        .ok_or_else(|| AppError(Error::biz_msg("请选择出库组织")))?;
     let target_shop_id = q
         .target_shop_id
         .ok_or_else(|| AppError(Error::biz_msg("请选择入库组织")))?;
@@ -940,9 +1003,7 @@ async fn get_allocate_product_error_data(
 }
 
 /// 解析调拨商品导入 xlsx（列序与 `AllocateProductImportExcelDTO` 一致）。
-fn parse_allocate_product_rows(
-    bytes: &[u8],
-) -> Result<Vec<AllocateProductImportRow>, AppError> {
+fn parse_allocate_product_rows(bytes: &[u8]) -> Result<Vec<AllocateProductImportRow>, AppError> {
     let sheet = tigshop_services::system::excel::read_xlsx(bytes).map_err(AppError)?;
     let mut rows = Vec::new();
     for line in sheet.iter().skip(1) {
@@ -1000,7 +1061,10 @@ mod tests {
             3
         );
         // shop 但缺 x-shop-id → 0（Java 返回 null，服务层兜底 0）
-        assert_eq!(shop_id_from_headers(&headers(&[("x-admin-type", "shop")])), 0);
+        assert_eq!(
+            shop_id_from_headers(&headers(&[("x-admin-type", "shop")])),
+            0
+        );
         // 未带 admin-type → 0
         assert_eq!(shop_id_from_headers(&headers(&[])), 0);
         // 非法 shop-id → 0
@@ -1020,7 +1084,9 @@ mod tests {
         paths.sort();
         paths.dedup();
         assert_eq!(paths.len(), before, "路由路径不能重复");
-        assert!(paths.iter().all(|p| p.starts_with("/adminapi/product/stock/")));
+        assert!(paths
+            .iter()
+            .all(|p| p.starts_with("/adminapi/product/stock/")));
         // 抽查控制器前缀重复的写法（本控制器前缀为 /adminapi/product/stock）
         assert!(paths.contains(&"/adminapi/product/stock/page".to_string()));
     }

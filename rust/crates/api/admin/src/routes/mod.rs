@@ -1,25 +1,25 @@
 //! 管理端路由，按限界上下文分组。
 
-pub mod identity;
-pub mod merchant;
-pub mod wholesale;
+pub mod analytics;
 pub mod catalog;
-pub mod trade;
-pub mod payment;
+pub mod content;
+pub mod identity;
+pub mod im;
+pub mod lang;
+pub mod logistics;
 pub mod marketing;
 pub mod member;
-pub mod logistics;
-pub mod content;
-pub mod system;
-pub mod im;
-pub mod analytics;
-pub mod openapi;
-pub mod lang;
-pub mod vendor;
-pub mod pos;
+pub mod merchant;
 pub mod o2o;
-pub mod supply_chain;
+pub mod openapi;
+pub mod payment;
+pub mod pos;
 pub mod shop_group;
+pub mod supply_chain;
+pub mod system;
+pub mod trade;
+pub mod vendor;
+pub mod wholesale;
 
 use axum::Router;
 

@@ -94,9 +94,7 @@ pub fn build_guess_suggestions(
                 continue;
             }
             if keyword.contains(val) || val.contains(keyword) {
-                hits.entry(val.to_string())
-                    .or_default()
-                    .insert(*product_id);
+                hits.entry(val.to_string()).or_default().insert(*product_id);
             }
         }
     }
@@ -133,10 +131,7 @@ mod tests {
             normalize_guess_keyword(Some(" 手机 ")),
             Some("手机".to_string())
         );
-        assert_eq!(
-            normalize_guess_keyword(Some("12")),
-            Some("12".to_string())
-        );
+        assert_eq!(normalize_guess_keyword(Some("12")), Some("12".to_string()));
     }
 
     #[test]
@@ -157,9 +152,15 @@ mod tests {
         // 「手机」命中 2 个商品（1、3），「苹果」命中 2 个（1、2）；
         // 同计数按关键词字典序 → 苹果 在 手机 前？按 Unicode：苹(0x82F9) < 手(0x624B)? 手=0x624B < 苹=0x82F9 → 手机 在前
         assert_eq!(out.len(), 2);
-        let mobile = out.iter().find(|s| s.keyword.as_deref() == Some("手机")).unwrap();
+        let mobile = out
+            .iter()
+            .find(|s| s.keyword.as_deref() == Some("手机"))
+            .unwrap();
         assert_eq!(mobile.count, Some(2));
-        let apple = out.iter().find(|s| s.keyword.as_deref() == Some("苹果")).unwrap();
+        let apple = out
+            .iter()
+            .find(|s| s.keyword.as_deref() == Some("苹果"))
+            .unwrap();
         assert_eq!(apple.count, Some(2));
         assert!(out.iter().all(|s| s.r#type.as_deref() == Some("search")));
     }
@@ -168,11 +169,7 @@ mod tests {
     fn suggestions_take_top_ten_and_ignore_blank_tokens() {
         let mut products = Vec::new();
         for i in 0..15 {
-            products.push((
-                i,
-                format!("商品{i}"),
-                Some(format!("关键词{i} 额外")),
-            ));
+            products.push((i, format!("商品{i}"), Some(format!("关键词{i} 额外"))));
         }
         let out = build_guess_suggestions(&products, "关键词");
         assert_eq!(out.len(), 10);

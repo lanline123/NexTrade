@@ -34,10 +34,26 @@ use super::tenant;
 const ROUTE_TABLE: [(&str, &str, &str); 6] = [
     ("GET", "/product/product/config", "ProductController.config"),
     ("POST", "/product/product/copy", "ProductController.copy"),
-    ("GET", "/product/product/getPromoteData", "ProductController.getPromoteData"),
-    ("GET", "/product/product/selectProductList", "ProductController.selectProductList"),
-    ("POST", "/product/product/saveShareInfo", "ProductController.saveShareInfo"),
-    ("GET", "/product/product/shareInfo", "ProductController.shareInfo"),
+    (
+        "GET",
+        "/product/product/getPromoteData",
+        "ProductController.getPromoteData",
+    ),
+    (
+        "GET",
+        "/product/product/selectProductList",
+        "ProductController.selectProductList",
+    ),
+    (
+        "POST",
+        "/product/product/saveShareInfo",
+        "ProductController.saveShareInfo",
+    ),
+    (
+        "GET",
+        "/product/product/shareInfo",
+        "ProductController.shareInfo",
+    ),
 ];
 
 /// 管理端 batch 2 路由（挂载于 `/adminapi` 下）。
@@ -47,7 +63,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/product/product/config", get(config))
         .route("/product/product/copy", post(copy))
         .route("/product/product/getPromoteData", get(get_promote_data))
-        .route("/product/product/selectProductList", get(select_product_list))
+        .route(
+            "/product/product/selectProductList",
+            get(select_product_list),
+        )
         .route("/product/product/saveShareInfo", post(save_share_info))
         .route("/product/product/shareInfo", get(share_info))
 }
@@ -111,7 +130,11 @@ async fn get_promote_data(
     Query(q): Query<ProductIdQuery>,
 ) -> ApiResult<serde_json::Value> {
     ensure_product_access(&state, &auth, q.product_id).await?;
-    ok(state.catalog.product_manage_client.admin_promote_data(q.product_id).await?)
+    ok(state
+        .catalog
+        .product_manage_client
+        .admin_promote_data(q.product_id)
+        .await?)
 }
 
 /// `GET /adminapi/product/product/selectProductList`
@@ -121,7 +144,11 @@ async fn select_product_list(
     Query(mut q): Query<SelectProductListQuery>,
 ) -> ApiResult<PageResult<serde_json::Value>> {
     q.shop_id = tenant::list_scope(&auth, q.shop_id)?;
-    ok(state.catalog.product_manage_client.admin_select_product_list(&q).await?)
+    ok(state
+        .catalog
+        .product_manage_client
+        .admin_select_product_list(&q)
+        .await?)
 }
 
 /// `POST /adminapi/product/product/saveShareInfo`
@@ -131,7 +158,11 @@ async fn save_share_info(
     Json(dto): Json<ProductShareInfoDTO>,
 ) -> ApiResult<bool> {
     ensure_product_access(&state, &auth, dto.product_id).await?;
-    ok(state.catalog.product_manage_client.admin_save_share_info(&dto).await?)
+    ok(state
+        .catalog
+        .product_manage_client
+        .admin_save_share_info(&dto)
+        .await?)
 }
 
 /// `GET /adminapi/product/product/shareInfo?productId=`
@@ -141,7 +172,11 @@ async fn share_info(
     Query(q): Query<ProductIdQuery>,
 ) -> ApiResult<ProductShareInfoVO> {
     ensure_product_access(&state, &auth, q.product_id).await?;
-    ok(state.catalog.product_manage_client.admin_share_info(q.product_id).await?)
+    ok(state
+        .catalog
+        .product_manage_client
+        .admin_share_info(q.product_id)
+        .await?)
 }
 
 #[cfg(test)]

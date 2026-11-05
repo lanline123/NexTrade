@@ -43,13 +43,21 @@ use crate::AdminState;
 
 /// 本域全部 8 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/wholesale/wholesaler/page", "WholesalerController.page"),
+    (
+        "GET",
+        "/wholesale/wholesaler/page",
+        "WholesalerController.page",
+    ),
     (
         "GET",
         "/wholesale/wholesaler/selectableUserPage",
         "WholesalerController.selectableUserPage",
     ),
-    ("POST", "/wholesale/wholesaler/add", "WholesalerController.add"),
+    (
+        "POST",
+        "/wholesale/wholesaler/add",
+        "WholesalerController.add",
+    ),
     (
         "POST",
         "/wholesale/wholesaler/import",
@@ -137,11 +145,7 @@ async fn selectable_user_page(
     State(state): State<AdminState>,
     Query(q): Query<WholesalerSelectableUserQuery>,
 ) -> ApiResult<PageResult<WholesalerSelectableUserVO>> {
-    ok(state
-        .wholesale
-        .wholesaler
-        .selectable_user_page(&q)
-        .await?)
+    ok(state.wholesale.wholesaler.selectable_user_page(&q).await?)
 }
 
 /// `POST /adminapi/wholesale/wholesaler/add`：添加批发商 → `{"wholesalerId": id}`。
@@ -184,7 +188,11 @@ async fn change_grade(
     let grade_id = q
         .grade_id
         .ok_or_else(|| tigshop_core::Error::Validation("gradeId 不能为空".into()))?;
-    state.wholesale.wholesaler.change_grade(id, grade_id).await?;
+    state
+        .wholesale
+        .wholesaler
+        .change_grade(id, grade_id)
+        .await?;
     ok(())
 }
 
@@ -254,12 +262,18 @@ mod tests {
         assert_eq!(
             actual,
             vec![
-                ("GET".to_string(), "/adminapi/wholesale/wholesaler/page".to_string()),
+                (
+                    "GET".to_string(),
+                    "/adminapi/wholesale/wholesaler/page".to_string()
+                ),
                 (
                     "GET".to_string(),
                     "/adminapi/wholesale/wholesaler/selectableUserPage".to_string()
                 ),
-                ("POST".to_string(), "/adminapi/wholesale/wholesaler/add".to_string()),
+                (
+                    "POST".to_string(),
+                    "/adminapi/wholesale/wholesaler/add".to_string()
+                ),
                 (
                     "POST".to_string(),
                     "/adminapi/wholesale/wholesaler/changeGrade".to_string()
@@ -304,8 +318,7 @@ mod tests {
     /// query 参数 camelCase（`wholesalerId` / `gradeId` / `pageSize`）。
     #[test]
     fn query_params_parse_camel_case() {
-        let s: SetStatusQuery =
-            serde_json::from_str(r#"{"wholesalerId":5,"status":1}"#).unwrap();
+        let s: SetStatusQuery = serde_json::from_str(r#"{"wholesalerId":5,"status":1}"#).unwrap();
         assert_eq!(s.wholesaler_id, Some(5));
         assert_eq!(s.status, Some(1));
         let g: ChangeGradeQuery =

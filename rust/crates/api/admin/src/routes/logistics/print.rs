@@ -60,14 +60,14 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::logistics::print::{
-    OperateDTO, PrintAddDTO, PrintDetailVO, PrintPageQuery, PrintUpdateDTO, PrintVO, UpdateFieldDTO,
-    MSG_ID_REQUIRED, MSG_OPERATE_ID_REQUIRED,
+    OperateDTO, PrintAddDTO, PrintDetailVO, PrintPageQuery, PrintUpdateDTO, PrintVO,
+    UpdateFieldDTO, MSG_ID_REQUIRED, MSG_OPERATE_ID_REQUIRED,
 };
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 本域全部 8 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 ///
@@ -79,9 +79,17 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
     ("GET", "/print/print/detail", "PrintController.detail"),
     ("POST", "/print/print/create", "PrintController.create"),
     ("POST", "/print/print/update", "PrintController.update"),
-    ("POST", "/print/print/updateField", "PrintController.updateField"),
+    (
+        "POST",
+        "/print/print/updateField",
+        "PrintController.updateField",
+    ),
     ("POST", "/print/print/del", "PrintController.del"),
-    ("POST", "/print/print/hasEnabled", "PrintController.hasEnabled"),
+    (
+        "POST",
+        "/print/print/hasEnabled",
+        "PrintController.hasEnabled",
+    ),
     (
         "GET",
         "/print/print/devicePrinters",
@@ -145,7 +153,11 @@ async fn print_list(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<PrintPageQuery>,
 ) -> ApiResult<PageResult<PrintVO>> {
-    ok(state.logistics.print.list(&q, tenant::platform_or_shop_id(&auth)).await?)
+    ok(state
+        .logistics
+        .print
+        .list(&q, tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// `GET /adminapi/print/print/detail?id=`：打印机详情。
@@ -158,10 +170,13 @@ async fn print_detail(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<PrintDetailVO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
-    ok(state.logistics.print.detail(id, tenant::platform_or_shop_id(&auth)).await?)
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
+    ok(state
+        .logistics
+        .print
+        .detail(id, tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// `POST /adminapi/print/print/create`：新增打印机。
@@ -173,7 +188,11 @@ async fn print_create(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<PrintAddDTO>,
 ) -> ApiResult<bool> {
-    ok(state.logistics.print.create(&dto, tenant::platform_or_shop_id(&auth)).await?)
+    ok(state
+        .logistics
+        .print
+        .create(&dto, tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// `POST /adminapi/print/print/update`：编辑打印机。
@@ -184,7 +203,11 @@ async fn print_update(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<PrintUpdateDTO>,
 ) -> ApiResult<bool> {
-    ok(state.logistics.print.update(&dto, tenant::platform_or_shop_id(&auth)).await?)
+    ok(state
+        .logistics
+        .print
+        .update(&dto, tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// `POST /adminapi/print/print/updateField`：更新单个字段。
@@ -196,7 +219,11 @@ async fn print_update_field(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
-    ok(state.logistics.print.update_field(&dto, tenant::platform_or_shop_id(&auth)).await?)
+    ok(state
+        .logistics
+        .print
+        .update_field(&dto, tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// `POST /adminapi/print/print/del`：删除打印机。
@@ -213,7 +240,11 @@ async fn print_del(
     let id = dto
         .id
         .ok_or_else(|| tigshop_core::Error::Validation(MSG_OPERATE_ID_REQUIRED.into()))?;
-    state.logistics.print.delete(id, tenant::platform_or_shop_id(&auth)).await?;
+    state
+        .logistics
+        .print
+        .delete(id, tenant::platform_or_shop_id(&auth))
+        .await?;
     ok(())
 }
 
@@ -224,7 +255,11 @@ async fn print_has_enabled(
     State(state): State<AdminState>,
     Extension(auth): Extension<AuthUser>,
 ) -> ApiResult<bool> {
-    ok(state.logistics.print.has_enabled(tenant::platform_or_shop_id(&auth)).await?)
+    ok(state
+        .logistics
+        .print
+        .has_enabled(tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// `GET /adminapi/print/print/devicePrinters?deviceCode=`：
@@ -328,7 +363,11 @@ mod tests {
         let mut unique = actual.clone();
         unique.sort();
         unique.dedup();
-        assert_eq!(unique.len(), actual.len(), "implemented_routes() 存在重复项");
+        assert_eq!(
+            unique.len(),
+            actual.len(),
+            "implemented_routes() 存在重复项"
+        );
     }
 
     /// method 与 Java 注解一致：`list` / `detail` / `devicePrinters` 是
@@ -412,19 +451,28 @@ mod tests {
     fn device_printers_query_parses_camel_case() {
         let none: DevicePrintersQuery = serde_json::from_str("{}").unwrap();
         assert_eq!(none.device_code, None);
-        let some: DevicePrintersQuery =
-            serde_json::from_str(r#"{"deviceCode":"POS-A"}"#).unwrap();
+        let some: DevicePrintersQuery = serde_json::from_str(r#"{"deviceCode":"POS-A"}"#).unwrap();
         assert_eq!(some.device_code.as_deref(), Some("POS-A"));
     }
 
     /// 租户店铺 ID 由 AuthUser 决定：平台 0、店铺本店。
     #[test]
     fn tenant_shop_id_from_auth() {
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert_eq!(tenant::platform_or_shop_id(&platform), 0);
-        let shop = AuthUser { id: 2, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(9) };
+        let shop = AuthUser {
+            id: 2,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(9),
+        };
         assert_eq!(tenant::platform_or_shop_id(&shop), 9);
     }
 }

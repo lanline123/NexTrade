@@ -1,7 +1,7 @@
 //! 根级路由（不带模块前缀），按限界上下文分组。
 
-pub mod system;
 pub mod im;
+pub mod system;
 
 use axum::Router;
 

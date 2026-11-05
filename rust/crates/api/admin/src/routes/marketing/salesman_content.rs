@@ -51,18 +51,46 @@ use crate::AdminState;
 /// **这是 `implemented_routes()` 的唯一来源**；顺序与原 Java
 /// `SalesmanContentController` 一致，供逐字符对照 `docs/api-contract.json`。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/salesman/content/list", "SalesmanContentController.list"),
-    ("GET", "/salesman/content/config", "SalesmanContentController.config"),
-    ("GET", "/salesman/content/detail", "SalesmanContentController.detail"),
-    ("POST", "/salesman/content/create", "SalesmanContentController.create"),
-    ("POST", "/salesman/content/update", "SalesmanContentController.update"),
-    ("POST", "/salesman/content/del", "SalesmanContentController.del"),
+    (
+        "GET",
+        "/salesman/content/list",
+        "SalesmanContentController.list",
+    ),
+    (
+        "GET",
+        "/salesman/content/config",
+        "SalesmanContentController.config",
+    ),
+    (
+        "GET",
+        "/salesman/content/detail",
+        "SalesmanContentController.detail",
+    ),
+    (
+        "POST",
+        "/salesman/content/create",
+        "SalesmanContentController.create",
+    ),
+    (
+        "POST",
+        "/salesman/content/update",
+        "SalesmanContentController.update",
+    ),
+    (
+        "POST",
+        "/salesman/content/del",
+        "SalesmanContentController.del",
+    ),
     (
         "POST",
         "/salesman/content/updateField",
         "SalesmanContentController.updateField",
     ),
-    ("POST", "/salesman/content/batch", "SalesmanContentController.batch"),
+    (
+        "POST",
+        "/salesman/content/batch",
+        "SalesmanContentController.batch",
+    ),
 ];
 
 /// 分销内容域路由（挂载于 `/adminapi` 下）。
@@ -104,11 +132,7 @@ async fn list(
     State(state): State<AdminState>,
     Query(q): Query<SalesmanContentPageQuery>,
 ) -> ApiResult<PageResult<SalesmanContentVO>> {
-    ok(state
-        .marketing
-        .salesman_content
-        .list_admin(&q)
-        .await?)
+    ok(state.marketing.salesman_content.list_admin(&q).await?)
 }
 
 /// `GET /adminapi/salesman/content/config`：状态字典。
@@ -205,8 +229,9 @@ fn header_str(headers: &axum::http::HeaderMap, name: &str) -> Option<String> {
 pub fn shop_id_from_headers(headers: &axum::http::HeaderMap) -> Option<i32> {
     match header_str(headers, "x-admin-type").as_deref() {
         Some("admin") => Some(0),
-        Some("shop" | "pos") => header_str(headers, "x-shop-id")
-            .and_then(|v| v.trim().parse::<i32>().ok()),
+        Some("shop" | "pos") => {
+            header_str(headers, "x-shop-id").and_then(|v| v.trim().parse::<i32>().ok())
+        }
         _ => None,
     }
 }
@@ -217,7 +242,7 @@ mod tests {
     use axum::http::HeaderValue;
 
     #[cfg(test)]
-fn headers(pairs: &[(&str, &str)]) -> axum::http::HeaderMap {
+    fn headers(pairs: &[(&str, &str)]) -> axum::http::HeaderMap {
         let mut h = axum::http::HeaderMap::new();
         for (k, v) in pairs {
             h.insert(
@@ -251,8 +276,10 @@ fn headers(pairs: &[(&str, &str)]) -> axum::http::HeaderMap {
             );
         }
         // 不允许重复声明（路由表改错时会暴露）
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");
@@ -300,10 +327,7 @@ fn headers(pairs: &[(&str, &str)]) -> axum::http::HeaderMap {
     #[test]
     fn admin_scope_is_platform_zero() {
         assert_eq!(
-            shop_id_from_headers(&headers(&[
-                ("x-admin-type", "admin"),
-                ("x-shop-id", "9"),
-            ])),
+            shop_id_from_headers(&headers(&[("x-admin-type", "admin"), ("x-shop-id", "9"),])),
             Some(0)
         );
     }

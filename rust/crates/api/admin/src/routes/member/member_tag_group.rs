@@ -79,12 +79,36 @@ use crate::AdminState;
 /// **这是 [`implemented_routes`] 的唯一来源**，与 [`routes`] 里的注册一一对应。
 const ROUTE_TABLE: [(&str, &str, &str); 6] = [
     // (HTTP method, 本模块路径, 原 Java handler)
-    ("GET", "/user/memberTagGroup/detail", "MemberTagGroupController.detail"),
-    ("POST", "/user/memberTagGroup/create", "MemberTagGroupController.create"),
-    ("POST", "/user/memberTagGroup/update", "MemberTagGroupController.update"),
-    ("POST", "/user/memberTagGroup/del", "MemberTagGroupController.del"),
-    ("POST", "/user/memberTagGroup/setTop", "MemberTagGroupController.setTop"),
-    ("POST", "/user/memberTagGroup/cancelTop", "MemberTagGroupController.cancelTop"),
+    (
+        "GET",
+        "/user/memberTagGroup/detail",
+        "MemberTagGroupController.detail",
+    ),
+    (
+        "POST",
+        "/user/memberTagGroup/create",
+        "MemberTagGroupController.create",
+    ),
+    (
+        "POST",
+        "/user/memberTagGroup/update",
+        "MemberTagGroupController.update",
+    ),
+    (
+        "POST",
+        "/user/memberTagGroup/del",
+        "MemberTagGroupController.del",
+    ),
+    (
+        "POST",
+        "/user/memberTagGroup/setTop",
+        "MemberTagGroupController.setTop",
+    ),
+    (
+        "POST",
+        "/user/memberTagGroup/cancelTop",
+        "MemberTagGroupController.cancelTop",
+    ),
 ];
 
 /// 会员标签组管理域路由（挂载于 `/adminapi` 下，全局 `require_auth` 已生效）。
@@ -198,9 +222,8 @@ async fn detail(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<GroupIdQuery>,
 ) -> ApiResult<MemberTagGroupDetailVO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.to_string()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.to_string()))?;
     let shop_id = shop_scope(&auth);
     ok(state.member.member_tag_group.detail(id, shop_id).await?)
 }
@@ -223,7 +246,11 @@ async fn create(
 ) -> ApiResult<serde_json::Value> {
     let shop_id = shop_scope(&auth);
     let operator = operator_from(&auth);
-    let id = state.member.member_tag_group.create(&dto, shop_id, &operator).await?;
+    let id = state
+        .member
+        .member_tag_group
+        .create(&dto, shop_id, &operator)
+        .await?;
     ok(serde_json::json!({ "id": id }))
 }
 
@@ -240,7 +267,11 @@ async fn update(
 ) -> ApiResult<serde_json::Value> {
     let shop_id = shop_scope(&auth);
     let operator = operator_from(&auth);
-    let outcome = state.member.member_tag_group.update(&dto, shop_id, &operator).await?;
+    let outcome = state
+        .member
+        .member_tag_group
+        .update(&dto, shop_id, &operator)
+        .await?;
     ok(serde_json::json!({
         "groupId": outcome.group_id,
         "deleted": outcome.deleted,
@@ -264,7 +295,11 @@ async fn del(
 ) -> ApiResult<serde_json::Value> {
     require_group_id(dto.group_id())?;
     let shop_id = shop_scope(&auth);
-    let outcome = state.member.member_tag_group.del_group(&dto, shop_id).await?;
+    let outcome = state
+        .member
+        .member_tag_group
+        .del_group(&dto, shop_id)
+        .await?;
     ok(serde_json::json!({
         "groupId": outcome.group_id,
         "removedLinks": outcome.removed_links,
@@ -289,7 +324,11 @@ async fn set_top(
     require_group_id(dto.group_id())?;
     let shop_id = shop_scope(&auth);
     let operator = operator_from(&auth);
-    let top = state.member.member_tag_group.set_top(&dto, shop_id, &operator).await?;
+    let top = state
+        .member
+        .member_tag_group
+        .set_top(&dto, shop_id, &operator)
+        .await?;
     ok(serde_json::json!({ "isTop": top }))
 }
 
@@ -308,7 +347,11 @@ async fn cancel_top(
     require_group_id(dto.group_id())?;
     let shop_id = shop_scope(&auth);
     let operator = operator_from(&auth);
-    let affected = state.member.member_tag_group.cancel_top(&dto, shop_id, &operator).await?;
+    let affected = state
+        .member
+        .member_tag_group
+        .cancel_top(&dto, shop_id, &operator)
+        .await?;
     ok(serde_json::json!({ "affected": affected }))
 }
 

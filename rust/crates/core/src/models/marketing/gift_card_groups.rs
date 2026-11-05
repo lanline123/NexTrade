@@ -25,8 +25,8 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use crate::models::marketing::gift_card::{
-    format_unix_time, GiftCardProductVO, GROUP_TYPE_EXCHANGE, GROUP_TYPE_TOP_UP,
-    VALIDITY_FIXED, VALIDITY_NUMBER, VALIDITY_PERMANENT,
+    format_unix_time, GiftCardProductVO, GROUP_TYPE_EXCHANGE, GROUP_TYPE_TOP_UP, VALIDITY_FIXED,
+    VALIDITY_NUMBER, VALIDITY_PERMANENT,
 };
 
 /// `GiftCardGroupsPageQuery`/排序用的主键列。
@@ -168,7 +168,10 @@ impl GiftCardGroupsListQuery {
     /// 关键字（Java `StrUtil.isNotBlank`：空白不参与过滤）。
     #[must_use]
     pub fn effective_keyword(&self) -> Option<&str> {
-        self.keyword.as_deref().map(str::trim).filter(|s| !s.is_empty())
+        self.keyword
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
     }
 }
 
@@ -420,12 +423,12 @@ mod tests {
         assert_eq!(validity_type_name(1), "永久有效");
         assert_eq!(validity_type_name(2), "天数");
         assert_eq!(validity_type_name(3), "固定时间");
-        assert_eq!(
-            validate_validity_type(9).unwrap_err(),
-            "未知的卡有效期类型"
-        );
+        assert_eq!(validate_validity_type(9).unwrap_err(), "未知的卡有效期类型");
         assert_eq!(expire_time_text(VALIDITY_PERMANENT, Some(123)), None);
-        assert_eq!(expire_time_text(VALIDITY_FIXED, Some(0)), Some(String::new()));
+        assert_eq!(
+            expire_time_text(VALIDITY_FIXED, Some(0)),
+            Some(String::new())
+        );
     }
 
     #[test]

@@ -1,4 +1,4 @@
-﻿//! 管理端装修模板路由（content::decorate_template）。
+//! 管理端装修模板路由（content::decorate_template）。
 //!
 //! 对应 Java `DecorateTemplateController`（`/adminapi/decorate/template`）：
 //! `GET category`、`GET list`、`GET detail`。转发官网 OpenTemplate API，业务字段原样透传。
@@ -8,10 +8,10 @@ use axum::{
     routing::get,
     Router,
 };
+use serde_json::Value;
 use tigshop_core::models::content::decorate_template::{
     DecorateTemplateDetailQuery, DecorateTemplateListQuery,
 };
-use serde_json::Value;
 use tigshop_openapi::RouteDoc;
 use tigshop_security::web::{ok, ApiResult};
 

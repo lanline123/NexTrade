@@ -148,7 +148,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或数据库列名皆可，Java 侧两者都兼容）。
     pub field: Option<String>,
     /// 字段值（Java 侧是 `String`，由 DB 隐式转换）。
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 

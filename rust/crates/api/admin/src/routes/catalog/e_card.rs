@@ -132,10 +132,7 @@ async fn e_card_update(
 /// `POST /adminapi/product/eCard/del`：删除电子卡券。
 ///
 /// Java `del(@Validated @RequestBody OperateDTO)`：`id @NotNull` 生效。
-async fn e_card_del(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<()> {
+async fn e_card_del(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<()> {
     let id = dto
         .id
         .ok_or_else(|| Error::Validation(ID_REQUIRED.into()))?;
@@ -155,10 +152,7 @@ async fn e_card_update_field(
 }
 
 /// `POST /adminapi/product/eCard/batch`：批量操作（仅 `type = "del"`）。
-async fn e_card_batch(
-    State(state): State<AdminState>,
-    Json(dto): Json<BatchDTO>,
-) -> ApiResult<()> {
+async fn e_card_batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<()> {
     state.catalog.e_card.batch(&dto).await?;
     ok(())
 }

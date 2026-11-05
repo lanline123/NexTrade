@@ -1,4 +1,4 @@
-﻿//! 管理端微信直播订单同步路由（content::wechat_live_order_sync）。
+//! 管理端微信直播订单同步路由（content::wechat_live_order_sync）。
 //!
 //! 对应 Java `WechatLiveOrderSyncController`（`/adminapi/content/wechatLiveOrderSync`）：
 //! `GET logs`、`POST retry/{logId}`、`POST reconcile`。三个接口均返回明确「未迁移」业务错误。
@@ -41,14 +41,8 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
         .route("/content/wechatLiveOrderSync/logs", get(logs))
-        .route(
-            "/content/wechatLiveOrderSync/retry/{logId}",
-            post(retry),
-        )
-        .route(
-            "/content/wechatLiveOrderSync/reconcile",
-            post(reconcile),
-        )
+        .route("/content/wechatLiveOrderSync/retry/{logId}", post(retry))
+        .route("/content/wechatLiveOrderSync/reconcile", post(reconcile))
 }
 
 /// 已实现路由（契约完整路径）。
@@ -67,10 +61,7 @@ async fn logs(
     ok(state.content.wechat_live_order_sync.logs(&q).await?)
 }
 
-async fn retry(
-    State(state): State<AdminState>,
-    Path(log_id): Path<i64>,
-) -> ApiResult<()> {
+async fn retry(State(state): State<AdminState>, Path(log_id): Path<i64>) -> ApiResult<()> {
     state.content.wechat_live_order_sync.retry(log_id).await?;
     ok(())
 }
@@ -79,7 +70,11 @@ async fn reconcile(
     State(state): State<AdminState>,
     Json(param): Json<ReconcileParam>,
 ) -> ApiResult<()> {
-    state.content.wechat_live_order_sync.reconcile(&param).await?;
+    state
+        .content
+        .wechat_live_order_sync
+        .reconcile(&param)
+        .await?;
     ok(())
 }
 

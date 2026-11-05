@@ -67,9 +67,7 @@ impl SalesStatisticsQuery {
     #[must_use]
     pub fn range(&self, now: i64) -> (i64, i64) {
         let end = self.end_time.unwrap_or(now);
-        let start = self
-            .start_time
-            .unwrap_or_else(|| end - 30 * 24 * 3600);
+        let start = self.start_time.unwrap_or_else(|| end - 30 * 24 * 3600);
         (start.min(end), end)
     }
 }

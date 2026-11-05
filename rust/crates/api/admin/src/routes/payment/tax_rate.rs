@@ -40,7 +40,9 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use tigshop_core::models::payment::tax_rate::{OperateDTO, TaxRateDTO, TaxRateListQuery, TaxRateVO};
+use tigshop_core::models::payment::tax_rate::{
+    OperateDTO, TaxRateDTO, TaxRateListQuery, TaxRateVO,
+};
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AppError};
 
@@ -55,8 +57,16 @@ const ROUTE_TABLE: [(&str, &str, &str); 5] = [
     // (HTTP method, 本模块路径, 原 Java handler)
     ("GET", "/setting/taxRate/list", "TaxRateController.list"),
     ("GET", "/setting/taxRate/detail", "TaxRateController.detail"),
-    ("POST", "/setting/taxRate/create", "TaxRateController.create"),
-    ("POST", "/setting/taxRate/update", "TaxRateController.update"),
+    (
+        "POST",
+        "/setting/taxRate/create",
+        "TaxRateController.create",
+    ),
+    (
+        "POST",
+        "/setting/taxRate/update",
+        "TaxRateController.update",
+    ),
     ("POST", "/setting/taxRate/del", "TaxRateController.del"),
 ];
 

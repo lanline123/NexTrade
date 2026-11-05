@@ -3,7 +3,12 @@
 //! 原 Java `com.tigshop.adminapi.controller.promotion.LotteryActivityController`
 //! （`@RequestMapping("/adminapi/promotion/lotteryActivity")`，8 端点）。
 //! 权限矩阵未迁移（只校验登录态）。
-use axum::{extract::Query, extract::State, routing::{get, post}, Json, Router};
+use axum::{
+    extract::Query,
+    extract::State,
+    routing::{get, post},
+    Json, Router,
+};
 use serde::Deserialize;
 use tigshop_core::models::marketing::lottery_activity::{
     LotteryActivityIdParam, LotteryActivityListQuery, LotteryActivityListVO, LotteryActivityParam,
@@ -17,14 +22,46 @@ use crate::AdminState;
 
 /// 本域 8 条路由（去 `/adminapi` 前缀的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/promotion/lotteryActivity/list", "LotteryActivityController.list"),
-    ("GET", "/promotion/lotteryActivity/detail", "LotteryActivityController.detail"),
-    ("POST", "/promotion/lotteryActivity/create", "LotteryActivityController.create"),
-    ("POST", "/promotion/lotteryActivity/update", "LotteryActivityController.update"),
-    ("POST", "/promotion/lotteryActivity/delete", "LotteryActivityController.delete"),
-    ("POST", "/promotion/lotteryActivity/end", "LotteryActivityController.end"),
-    ("GET", "/promotion/lotteryActivity/userManage", "LotteryActivityController.userManage"),
-    ("GET", "/promotion/lotteryActivity/userRecord", "LotteryActivityController.userRecord"),
+    (
+        "GET",
+        "/promotion/lotteryActivity/list",
+        "LotteryActivityController.list",
+    ),
+    (
+        "GET",
+        "/promotion/lotteryActivity/detail",
+        "LotteryActivityController.detail",
+    ),
+    (
+        "POST",
+        "/promotion/lotteryActivity/create",
+        "LotteryActivityController.create",
+    ),
+    (
+        "POST",
+        "/promotion/lotteryActivity/update",
+        "LotteryActivityController.update",
+    ),
+    (
+        "POST",
+        "/promotion/lotteryActivity/delete",
+        "LotteryActivityController.delete",
+    ),
+    (
+        "POST",
+        "/promotion/lotteryActivity/end",
+        "LotteryActivityController.end",
+    ),
+    (
+        "GET",
+        "/promotion/lotteryActivity/userManage",
+        "LotteryActivityController.userManage",
+    ),
+    (
+        "GET",
+        "/promotion/lotteryActivity/userRecord",
+        "LotteryActivityController.userRecord",
+    ),
 ];
 
 /// 抽奖活动管理路由（挂载于 `/adminapi` 下，外层统一套 `require_auth`）。
@@ -69,7 +106,11 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<ActivityIdQuery>,
 ) -> ApiResult<LotteryActivityVO> {
-    ok(state.marketing.lottery_activity.detail(q.activity_id).await?)
+    ok(state
+        .marketing
+        .lottery_activity
+        .detail(q.activity_id)
+        .await?)
 }
 
 async fn create(
@@ -136,7 +177,10 @@ mod tests {
             ("GET", "/adminapi/promotion/lotteryActivity/userRecord"),
         ];
         for (method, path) in expected {
-            assert!(docs.iter().any(|d| d.method == method && d.path == path), "缺少 {method} {path}");
+            assert!(
+                docs.iter().any(|d| d.method == method && d.path == path),
+                "缺少 {method} {path}"
+            );
         }
         let mut keys: Vec<String> = docs.iter().map(tigshop_openapi::RouteDoc::key).collect();
         let mut unique = keys.clone();

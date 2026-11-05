@@ -148,9 +148,15 @@ pub struct PromotionCreateDTO {
     /// 平台账号创建时指定归属店铺；店铺账号只能落本店（多租户，见
     /// `infrastructure::db::repo::marketing::tenant::TenantScope`）。
     pub shop_id: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub start_time: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub end_time: Option<i32>,
     #[serde(rename = "type")]
     pub r#type: Option<i32>,
@@ -170,9 +176,15 @@ pub struct PromotionCreateDTO {
 pub struct PromotionUpdateDTO {
     pub promotion_id: Option<i32>,
     pub promotion_name: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub start_time: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub end_time: Option<i32>,
     #[serde(rename = "type")]
     pub r#type: Option<i32>,
@@ -260,13 +272,22 @@ mod tests {
         let now = 1_700_000_000i64;
         assert_eq!(time_bucket(now, 0, 0), TIME_ONGOING);
         assert_eq!(time_bucket(now, 0, 0), 1);
-        assert_eq!(time_bucket(now, (now - 10) as i32, (now + 100) as i32), TIME_ONGOING);
+        assert_eq!(
+            time_bucket(now, (now - 10) as i32, (now + 100) as i32),
+            TIME_ONGOING
+        );
         // 进行中优先于「7 天内到期」
-        assert_eq!(time_bucket(now, (now - 10) as i32, (now + 3600) as i32), TIME_ONGOING);
+        assert_eq!(
+            time_bucket(now, (now - 10) as i32, (now + 3600) as i32),
+            TIME_ONGOING
+        );
         // 未开始
         assert_eq!(time_bucket(now, (now + 10) as i32, (now + 20) as i32), -1);
         // 已结束
-        assert_eq!(time_bucket(now, (now - 20) as i32, (now - 10) as i32), TIME_ENDED);
+        assert_eq!(
+            time_bucket(now, (now - 20) as i32, (now - 10) as i32),
+            TIME_ENDED
+        );
     }
 
     #[test]
@@ -275,13 +296,19 @@ mod tests {
         assert_eq!(parse_type_list(Some("x")), None);
         assert_eq!(parse_type_list(None), None);
         assert_eq!(parse_value(Some(r#"{"a":1}"#)).unwrap()["a"], 1);
-        assert_eq!(parse_value(Some("[1, 2, 3]")).unwrap(), serde_json::json!([1, 2, 3]));
+        assert_eq!(
+            parse_value(Some("[1, 2, 3]")).unwrap(),
+            serde_json::json!([1, 2, 3])
+        );
         assert_eq!(
             parse_value(Some(r#"["a","b"]"#)).unwrap(),
             serde_json::json!(["a", "b"])
         );
         assert!(parse_value(None).is_none());
-        assert_eq!(value_to_text(Some(&serde_json::json!([1, 2]))), Some("[1,2]".into()));
+        assert_eq!(
+            value_to_text(Some(&serde_json::json!([1, 2]))),
+            Some("[1,2]".into())
+        );
         assert_eq!(value_to_text(None), None);
     }
 

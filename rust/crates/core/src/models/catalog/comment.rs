@@ -303,7 +303,10 @@ pub struct OperateDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -494,11 +497,7 @@ pub fn mask_name(name: &str) -> String {
     match chars.len() {
         1 => SINGLE_MASK.to_string(),
         2 => format!("{}{MIDDLE_MASK}", chars[0]),
-        _ => format!(
-            "{}{MIDDLE_MASK}{}",
-            chars[0],
-            chars[chars.len() - 1]
-        ),
+        _ => format!("{}{MIDDLE_MASK}{}", chars[0], chars[chars.len() - 1]),
     }
 }
 
@@ -544,10 +543,7 @@ pub fn parse_show_pics(raw: Option<&str>) -> Option<Vec<CommentShowPicVO>> {
                         .get("picThumb")
                         .and_then(|v| v.as_str())
                         .map(str::to_string),
-                    pic_url: o
-                        .get("picUrl")
-                        .and_then(|v| v.as_str())
-                        .map(str::to_string),
+                    pic_url: o.get("picUrl").and_then(|v| v.as_str()).map(str::to_string),
                     pic_name: o
                         .get("picName")
                         .and_then(|v| v.as_str())
@@ -587,10 +583,7 @@ pub fn parse_sku_data(raw: &str) -> Option<Vec<CommentSkuDataVO>> {
                 let o = v.as_object()?;
                 Some(CommentSkuDataVO {
                     name: o.get("name").and_then(|v| v.as_str()).map(str::to_string),
-                    value: o
-                        .get("value")
-                        .and_then(|v| v.as_str())
-                        .map(str::to_string),
+                    value: o.get("value").and_then(|v| v.as_str()).map(str::to_string),
                     attr_pic_thumb: o
                         .get("attrPicThumb")
                         .and_then(|v| v.as_str())
@@ -855,10 +848,8 @@ mod tests {
     fn parse_sku_data_matches_product_sku_dto() {
         assert!(parse_sku_data("").is_none());
         assert!(parse_sku_data("[]").unwrap().is_empty());
-        let items = parse_sku_data(
-            r#"[{"name":"颜色","value":"红","attrPicThumb":"x.png"}]"#,
-        )
-        .unwrap();
+        let items =
+            parse_sku_data(r#"[{"name":"颜色","value":"红","attrPicThumb":"x.png"}]"#).unwrap();
         assert_eq!(items.len(), 1);
         assert_eq!(items[0].name.as_deref(), Some("颜色"));
         assert_eq!(items[0].value.as_deref(), Some("红"));
@@ -872,7 +863,13 @@ mod tests {
         // COMMENT_FIELDS 常量与 Java CheckFieldConstants 完全一致
         assert_eq!(
             COMMENT_FIELDS,
-            ["is_show", "sort_order", "comment_rank", "is_top", "is_recommend"]
+            [
+                "is_show",
+                "sort_order",
+                "comment_rank",
+                "is_top",
+                "is_recommend"
+            ]
         );
         // 真实可更新列（is_show 在 comment 表不存在，Java 也会报错）
         assert_eq!(

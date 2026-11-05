@@ -59,8 +59,8 @@ use tigshop_core::models::catalog::product_sale::{ProductSaleParam, ProductSaleS
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
-use crate::AdminState;
 use crate::routes::system::image_search::enqueue_product_sync;
+use crate::AdminState;
 
 /// 商品域管理端路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -111,7 +111,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/adminapi/product/productBatch/productBatchEdit",
             "ProductBatchController.productBatchEdit",
         ),
-        ("GET", "/adminapi/product/product/list", "ProductController.list"),
+        (
+            "GET",
+            "/adminapi/product/product/list",
+            "ProductController.list",
+        ),
         (
             "GET",
             "/adminapi/product/product/detail",
@@ -132,7 +136,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/adminapi/product/product/update",
             "ProductController.update",
         ),
-        ("POST", "/adminapi/product/product/del", "ProductController.del"),
+        (
+            "POST",
+            "/adminapi/product/product/del",
+            "ProductController.del",
+        ),
         (
             "GET",
             "/adminapi/product/product/saleStatus",
@@ -218,7 +226,10 @@ async fn product_detail(
     let detail = state.catalog.product_manage.admin_detail(q.id).await?;
     if let (Some(shop_id), Some(ref d)) = (auth.scoped_shop_id(), &detail) {
         if d.shop_id != shop_id && d.shop_id != 0 {
-            return Err(AppError(tigshop_core::Error::biz(403, "无权查看其他商户商品")));
+            return Err(AppError(tigshop_core::Error::biz(
+                403,
+                "无权查看其他商户商品",
+            )));
         }
     }
     ok(detail)
@@ -308,9 +319,8 @@ async fn download_template(State(state): State<AdminState>) -> Response {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 ),
             );
-            let disposition = format!(
-                "attachment; filename=\"{encoded}\"; filename*=UTF-8''{encoded}"
-            );
+            let disposition =
+                format!("attachment; filename=\"{encoded}\"; filename*=UTF-8''{encoded}");
             if let Ok(value) = HeaderValue::from_str(&disposition) {
                 headers.insert(header::CONTENT_DISPOSITION, value);
             }
@@ -333,32 +343,34 @@ async fn product_batch_modify(
     let mut file: Option<(Option<String>, Vec<u8>)> = None;
 
     while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError(tigshop_core::Error::Validation(format!("解析上传表单失败: {e}")))
+        AppError(tigshop_core::Error::Validation(format!(
+            "解析上传表单失败: {e}"
+        )))
     })? {
         let name = field.name().unwrap_or_default().to_string();
         if name == "file" {
             let file_name = field.file_name().map(str::to_string);
-            let bytes = field
-                .bytes()
-                .await
-                .map_err(|e| AppError(tigshop_core::Error::Validation(format!("读取上传文件失败: {e}"))))?;
+            let bytes = field.bytes().await.map_err(|e| {
+                AppError(tigshop_core::Error::Validation(format!(
+                    "读取上传文件失败: {e}"
+                )))
+            })?;
             file = Some((file_name, bytes.to_vec()));
         } else {
-            let value = field
-                .text()
-                .await
-                .map_err(|e| AppError(tigshop_core::Error::Validation(format!("读取表单字段失败: {e}"))))?;
+            let value = field.text().await.map_err(|e| {
+                AppError(tigshop_core::Error::Validation(format!(
+                    "读取表单字段失败: {e}"
+                )))
+            })?;
             params.insert(name, value);
         }
     }
 
-    let parse_i32 = |key: &str| {
-        params
-            .get(key)
-            .and_then(|v| v.trim().parse::<i32>().ok())
-    };
+    let parse_i32 = |key: &str| params.get(key).and_then(|v| v.trim().parse::<i32>().ok());
     let (file_name, bytes) = file.unwrap_or((None, Vec::new()));
-    ok(state.catalog.product_manage
+    ok(state
+        .catalog
+        .product_manage
         .batch_modify_scoped(
             parse_i32("isAutoCat"),
             parse_i32("isAutoBrand"),

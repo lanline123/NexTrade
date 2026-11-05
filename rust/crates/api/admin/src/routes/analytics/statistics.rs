@@ -106,10 +106,7 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
             "/panel/statisticsAccess/accessStatistics",
             get(access_statistics),
         )
-        .route(
-            "/panel/statisticsUser/addUserTrends",
-            get(add_user_trends),
-        )
+        .route("/panel/statisticsUser/addUserTrends", get(add_user_trends))
         .route(
             "/panel/statisticsUser/userConsumptionRanking",
             get(user_consumption_ranking),
@@ -189,25 +186,38 @@ async fn user_consumption_ranking(
     if q.is_export.unwrap_or(0) == 1 {
         q.page = Some(1);
         q.size = Some(10_000);
-        let page = state.analytics.statistics.user_consumption_ranking(&q).await?;
+        let page = state
+            .analytics
+            .statistics
+            .user_consumption_ranking(&q)
+            .await?;
         let rows: Vec<Vec<String>> = page
             .list
             .iter()
-            .map(|r| vec![
-                r.username.clone().unwrap_or_default(),
-                r.mobile.clone().unwrap_or_default(),
-                r.order_num.to_string(),
-                r.order_amount.to_string(),
-            ])
+            .map(|r| {
+                vec![
+                    r.username.clone().unwrap_or_default(),
+                    r.mobile.clone().unwrap_or_default(),
+                    r.order_num.to_string(),
+                    r.order_amount.to_string(),
+                ]
+            })
             .collect();
         let bytes = tigshop_services::system::excel::build_xlsx(
             &["会员名称", "手机号", "订单数", "消费总额"],
             &rows,
             "会员消费排行",
         )?;
-        return Ok(crate::support::excel_response::xlsx_response(bytes, "user_consumption_ranking.xlsx"));
+        return Ok(crate::support::excel_response::xlsx_response(
+            bytes,
+            "user_consumption_ranking.xlsx",
+        ));
     }
-    let page = state.analytics.statistics.user_consumption_ranking(&q).await?;
+    let page = state
+        .analytics
+        .statistics
+        .user_consumption_ranking(&q)
+        .await?;
     Ok(axum::response::IntoResponse::into_response(ok(page)?))
 }
 
@@ -262,10 +272,7 @@ mod tests {
             "GET /adminapi/panel/statisticsUser/userStatisticsPanel",
         ];
         for e in expected {
-            assert!(
-                keys.contains(&e.to_string()),
-                "缺少路由 {e}；实际={keys:?}"
-            );
+            assert!(keys.contains(&e.to_string()), "缺少路由 {e}；实际={keys:?}");
         }
     }
 
@@ -282,10 +289,7 @@ mod tests {
         let docs = implemented_routes();
         let refs: Vec<&str> = docs.iter().map(|d| d.java_ref.as_str()).collect();
         for k in known {
-            assert!(
-                refs.contains(&k),
-                "缺少 java_ref 引用 {k}；实际={refs:?}"
-            );
+            assert!(refs.contains(&k), "缺少 java_ref 引用 {k}；实际={refs:?}");
         }
         // 且全部以面板控制器前缀开头
         for d in implemented_routes() {

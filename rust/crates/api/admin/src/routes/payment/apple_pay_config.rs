@@ -12,9 +12,9 @@ use axum::{
 };
 use serde_json::Value;
 use tigshop_openapi::RouteDoc;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
-use crate::support::tenant::{platform_only};
+use crate::support::tenant::platform_only;
 
 use crate::AdminState;
 
@@ -102,6 +102,8 @@ mod tests {
     #[test]
     fn route_table_slice_is_exact() {
         assert_eq!(ROUTE_TABLE.len(), 2);
-        assert!(ROUTE_TABLE.iter().all(|(_, p, _)| p.starts_with("/setting/config/")));
+        assert!(ROUTE_TABLE
+            .iter()
+            .all(|(_, p, _)| p.starts_with("/setting/config/")));
     }
 }

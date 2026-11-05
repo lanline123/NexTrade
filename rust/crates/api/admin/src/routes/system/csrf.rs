@@ -12,11 +12,8 @@ use tigshop_security::web::{ok, ApiResult};
 
 use crate::AdminState;
 
-const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
-    "GET",
-    "/common/csrf/create",
-    "CSRFController.create",
-)];
+const ROUTE_TABLE: [(&str, &str, &str); 1] =
+    [("GET", "/common/csrf/create", "CSRFController.create")];
 
 /// 匿名路由（免登录）。
 pub fn public_routes(state: &AdminState) -> Router<AdminState> {

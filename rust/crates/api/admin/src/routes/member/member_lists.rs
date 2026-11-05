@@ -30,9 +30,21 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/user/userRank/list", "UserRankController.list"),
-        ("GET", "/adminapi/user/memberTagGroup/list", "MemberTagGroupController.list"),
-        ("GET", "/adminapi/user/userPointsLog/list", "UserPointsLogController.list"),
+        (
+            "GET",
+            "/adminapi/user/userRank/list",
+            "UserRankController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/user/memberTagGroup/list",
+            "MemberTagGroupController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/user/userPointsLog/list",
+            "UserPointsLogController.list",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -40,9 +52,7 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 }
 
 /// `GET /adminapi/user/userRank/list`：会员等级列表。
-async fn rank_list(
-    State(state): State<AdminState>,
-) -> ApiResult<Vec<UserRankVO>> {
+async fn rank_list(State(state): State<AdminState>) -> ApiResult<Vec<UserRankVO>> {
     ok(state.member.member_lists.ranks().await?)
 }
 
@@ -105,7 +115,6 @@ async fn points_log_list(
         page_size: q.page_size.unwrap_or(20),
     };
     ok(PageResult::new(page.total, list, &pq))
-
 }
 
 #[cfg(test)]

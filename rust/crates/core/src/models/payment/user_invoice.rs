@@ -284,7 +284,10 @@ pub struct BatchDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -353,8 +356,14 @@ mod tests {
     fn update_field_only_status_is_allowed() {
         assert_eq!(resolve_update_field("status"), Some("status"));
         for field in [
-            "invoiceId", "companyName", "company_name", "mobile", "is_show",
-            "sort_order", "nope", "",
+            "invoiceId",
+            "companyName",
+            "company_name",
+            "mobile",
+            "is_show",
+            "sort_order",
+            "nope",
+            "",
         ] {
             assert_eq!(resolve_update_field(field), None, "{field}");
         }
@@ -435,10 +444,7 @@ mod tests {
         assert_eq!(format_unix_time(None), "");
         assert_eq!(format_unix_time(Some(0)), "");
         // 2023-11-14T22:13:20Z + 8h
-        assert_eq!(
-            format_unix_time(Some(1_700_000_000)),
-            "2023-11-15 06:13:20"
-        );
+        assert_eq!(format_unix_time(Some(1_700_000_000)), "2023-11-15 06:13:20");
     }
 
     #[test]

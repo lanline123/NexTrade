@@ -23,11 +23,31 @@ use tigshop_security::web::{ok, ApiResult, AuthUser};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 5] = [
-    ("GET", "/panel/salesStatistics/list", "SalesStatisticsController.list"),
-    ("GET", "/panel/salesStatistics/salesDetail", "SalesStatisticsController.salesDetail"),
-    ("GET", "/panel/salesStatistics/salesProductDetail", "SalesStatisticsController.salesProductDetail"),
-    ("GET", "/panel/salesStatistics/salesIndicators", "SalesStatisticsController.salesIndicators"),
-    ("GET", "/panel/salesStatistics/salesRanking", "SalesStatisticsController.salesRanking"),
+    (
+        "GET",
+        "/panel/salesStatistics/list",
+        "SalesStatisticsController.list",
+    ),
+    (
+        "GET",
+        "/panel/salesStatistics/salesDetail",
+        "SalesStatisticsController.salesDetail",
+    ),
+    (
+        "GET",
+        "/panel/salesStatistics/salesProductDetail",
+        "SalesStatisticsController.salesProductDetail",
+    ),
+    (
+        "GET",
+        "/panel/salesStatistics/salesIndicators",
+        "SalesStatisticsController.salesIndicators",
+    ),
+    (
+        "GET",
+        "/panel/salesStatistics/salesRanking",
+        "SalesStatisticsController.salesRanking",
+    ),
 ];
 
 /// 销售统计路由（挂载于 `/adminapi` 下）。
@@ -36,8 +56,14 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
     Router::new()
         .route("/panel/salesStatistics/list", get(list))
         .route("/panel/salesStatistics/salesDetail", get(sales_detail))
-        .route("/panel/salesStatistics/salesProductDetail", get(sales_product_detail))
-        .route("/panel/salesStatistics/salesIndicators", get(sales_indicators))
+        .route(
+            "/panel/salesStatistics/salesProductDetail",
+            get(sales_product_detail),
+        )
+        .route(
+            "/panel/salesStatistics/salesIndicators",
+            get(sales_indicators),
+        )
         .route("/panel/salesStatistics/salesRanking", get(sales_ranking))
 }
 

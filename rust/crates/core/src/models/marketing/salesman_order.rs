@@ -124,7 +124,9 @@ pub struct SalesmanOrderVO {
 #[must_use]
 pub fn format_time(secs: Option<i32>) -> String {
     use chrono::TimeZone;
-    let Some(secs) = secs else { return String::new() };
+    let Some(secs) = secs else {
+        return String::new();
+    };
     if secs == 0 {
         return String::new();
     }

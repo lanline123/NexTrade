@@ -43,14 +43,18 @@ use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 use tigshop_services::catalog::price_inquiry::AdminOperator;
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 商品询价域全部 5 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java 方法名）。
 ///
 /// 顺序与原 Java `PriceInquiryController` 一致；`implemented_routes()` 唯一来源。
 const ROUTE_TABLE: [(&str, &str, &str); 5] = [
-    ("GET", "/product/priceInquiry/list", "PriceInquiryController.list"),
+    (
+        "GET",
+        "/product/priceInquiry/list",
+        "PriceInquiryController.list",
+    ),
     (
         "GET",
         "/product/priceInquiry/detail",
@@ -61,7 +65,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 5] = [
         "/product/priceInquiry/reply",
         "PriceInquiryController.reply",
     ),
-    ("POST", "/product/priceInquiry/del", "PriceInquiryController.del"),
+    (
+        "POST",
+        "/product/priceInquiry/del",
+        "PriceInquiryController.del",
+    ),
     (
         "POST",
         "/product/priceInquiry/batch",
@@ -199,8 +207,9 @@ fn shop_filter_from_headers(headers: &axum::http::HeaderMap) -> Option<i32> {
     let admin_type = header_str(headers, "x-admin-type");
     match admin_type.as_deref() {
         Some("admin") => Some(0),
-        Some("shop" | "pos") => header_str(headers, "x-shop-id")
-            .and_then(|v| v.trim().parse::<i32>().ok()),
+        Some("shop" | "pos") => {
+            header_str(headers, "x-shop-id").and_then(|v| v.trim().parse::<i32>().ok())
+        }
         _ => None,
     }
 }
@@ -336,13 +345,22 @@ mod tests {
     /// 多租户：店铺账号的询价归属校验（跨店 403）。
     #[test]
     fn tenant_scope_isolation() {
-        let shop = AuthUser { id: 3, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(5) };
+        let shop = AuthUser {
+            id: 3,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(5),
+        };
         assert!(tenant::ensure_row_shop(&shop, 5).is_ok());
         assert!(tenant::ensure_row_shop(&shop, 6).is_err());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert!(tenant::ensure_row_shop(&platform, 6).is_ok());
     }
-
 }

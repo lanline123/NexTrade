@@ -55,17 +55,61 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/content/article/list", "ArticleController.list"),
-        ("GET", "/adminapi/content/article/detail", "ArticleController.detail"),
-        ("POST", "/adminapi/content/article/create", "ArticleController.create"),
-        ("POST", "/adminapi/content/article/update", "ArticleController.update"),
-        ("POST", "/adminapi/content/article/updateField", "ArticleController.updateField"),
-        ("POST", "/adminapi/content/article/del", "ArticleController.del"),
-        ("GET", "/adminapi/content/articleCategory/list", "ArticleCategoryController.list"),
-        ("GET", "/adminapi/content/articleCategory/tree", "ArticleCategoryController.tree"),
-        ("GET", "/adminapi/content/articleCategory/detail", "ArticleCategoryController.detail"),
-        ("POST", "/adminapi/content/articleCategory/create", "ArticleCategoryController.create"),
-        ("POST", "/adminapi/content/articleCategory/del", "ArticleCategoryController.del"),
+        (
+            "GET",
+            "/adminapi/content/article/list",
+            "ArticleController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/content/article/detail",
+            "ArticleController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/content/article/create",
+            "ArticleController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/content/article/update",
+            "ArticleController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/content/article/updateField",
+            "ArticleController.updateField",
+        ),
+        (
+            "POST",
+            "/adminapi/content/article/del",
+            "ArticleController.del",
+        ),
+        (
+            "GET",
+            "/adminapi/content/articleCategory/list",
+            "ArticleCategoryController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/content/articleCategory/tree",
+            "ArticleCategoryController.tree",
+        ),
+        (
+            "GET",
+            "/adminapi/content/articleCategory/detail",
+            "ArticleCategoryController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/content/articleCategory/create",
+            "ArticleCategoryController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/content/articleCategory/del",
+            "ArticleCategoryController.del",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -138,10 +182,9 @@ impl ArticleSaveDTO {
     fn category_id(&self) -> i32 {
         match self.article_category_id.as_ref() {
             Some(serde_json::Value::Number(n)) => n.as_i64().unwrap_or(0) as i32,
-            Some(serde_json::Value::Array(a)) => a
-                .first()
-                .and_then(serde_json::Value::as_i64)
-                .unwrap_or(0) as i32,
+            Some(serde_json::Value::Array(a)) => {
+                a.first().and_then(serde_json::Value::as_i64).unwrap_or(0) as i32
+            }
             Some(serde_json::Value::String(s)) => s.parse().unwrap_or(0),
             _ => 0,
         }
@@ -188,7 +231,11 @@ async fn article_set_show(
     State(state): State<AdminState>,
     Json(dto): Json<SetShowDTO>,
 ) -> ApiResult<&'static str> {
-    state.content.article.set_show(dto.article_id, dto.is_show).await?;
+    state
+        .content
+        .article
+        .set_show(dto.article_id, dto.is_show)
+        .await?;
     ok("操作成功")
 }
 
@@ -230,16 +277,12 @@ async fn article_batch(
 }
 
 /// `GET /adminapi/content/articleCategory/list`：文章分类平铺列表。
-async fn category_list(
-    State(state): State<AdminState>,
-) -> ApiResult<Vec<ArticleCategoryVO>> {
+async fn category_list(State(state): State<AdminState>) -> ApiResult<Vec<ArticleCategoryVO>> {
     ok(state.content.article.categories().await?)
 }
 
 /// `GET /adminapi/content/articleCategory/tree`：文章分类树。
-async fn category_tree(
-    State(state): State<AdminState>,
-) -> ApiResult<Vec<ArticleCategoryTreeNode>> {
+async fn category_tree(State(state): State<AdminState>) -> ApiResult<Vec<ArticleCategoryTreeNode>> {
     ok(state.content.article.category_tree().await?)
 }
 

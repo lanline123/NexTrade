@@ -55,8 +55,8 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::logistics::logistics_company::{
-    LogisticsCompanyCreateDTO, LogisticsCompanyUpdateDTO, LogisticsCompanyVO, OperateDTO,
-    SyncLogisticsCompanyResultVO, SyncQuery, UpdateFieldDTO, BatchDTO,
+    BatchDTO, LogisticsCompanyCreateDTO, LogisticsCompanyUpdateDTO, LogisticsCompanyVO, OperateDTO,
+    SyncLogisticsCompanyResultVO, SyncQuery, UpdateFieldDTO,
 };
 use tigshop_security::web::{ok, ApiResult};
 
@@ -160,10 +160,9 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<LogisticsCompanyVO> {
-    let id = q
-        .id
-        .filter(|v| *v > 0)
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.filter(|v| *v > 0)
+            .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.logistics.logistics_company.detail(id).await?)
 }
 
@@ -300,10 +299,7 @@ mod tests {
 
         // `logisticsCompany` 是小驼峰，绝不能写成 `/logistics_company`
         for p in &paths {
-            assert!(
-                p.starts_with("/setting/logisticsCompany/"),
-                "{p} 前缀错误"
-            );
+            assert!(p.starts_with("/setting/logisticsCompany/"), "{p} 前缀错误");
             assert!(!p.contains("/logistics_company"), "{p} 不得用下划线写法");
         }
 

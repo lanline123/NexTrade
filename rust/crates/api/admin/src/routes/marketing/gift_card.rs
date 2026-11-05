@@ -42,8 +42,16 @@ use crate::AdminState;
 /// 本域 10 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 /// 最后两条来自新版管理端前端契约（`view/admin/src/api/promotion/giftCard.ts`）。
 const ROUTE_TABLE: [(&str, &str, &str); 10] = [
-    ("GET", "/promotion/giftCards/list", "GiftCardController.list"),
-    ("GET", "/promotion/giftCards/detail", "GiftCardController.detail"),
+    (
+        "GET",
+        "/promotion/giftCards/list",
+        "GiftCardController.list",
+    ),
+    (
+        "GET",
+        "/promotion/giftCards/detail",
+        "GiftCardController.detail",
+    ),
     (
         "GET",
         "/promotion/giftCards/importTemplate",
@@ -100,11 +108,17 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
             "/promotion/giftCards/giftCardExchangeDetail",
             get(gift_card_exchange_detail),
         )
-        .route("/promotion/giftCards/updateCardStatus", post(update_card_status))
+        .route(
+            "/promotion/giftCards/updateCardStatus",
+            post(update_card_status),
+        )
         .route("/promotion/giftCards/createBatch", post(create_batch))
         .route("/promotion/giftCards/create", post(create))
         .route("/promotion/giftCards/update", post(update))
-        .route("/promotion/giftCards/showCardPassword", get(show_card_password))
+        .route(
+            "/promotion/giftCards/showCardPassword",
+            get(show_card_password),
+        )
 }
 
 /// 本模块已实现路由（覆盖率统计，完整契约路径）。
@@ -143,18 +157,28 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<GiftCardsIdQuery>,
 ) -> ApiResult<GiftCardsVO> {
-    ok(state.marketing.gift_card.admin_detail(q.gift_cards_id).await?)
+    ok(state
+        .marketing
+        .gift_card
+        .admin_detail(q.gift_cards_id)
+        .await?)
 }
 
 /// `GET /promotion/giftCards/importTemplate`：导入模板（xlsx）。
-async fn import_template(State(state): State<AdminState>) -> Result<axum::response::Response, AppError> {
+async fn import_template(
+    State(state): State<AdminState>,
+) -> Result<axum::response::Response, AppError> {
     let template = state.marketing.gift_card.import_template();
     let rows: Vec<Vec<String>> = template
         .into_iter()
         .map(|r| vec![r.card_number, r.card_password])
         .collect();
-    let bytes = tigshop_services::system::excel::build_xlsx(&["卡号", "密码"], &rows, "礼品卡导入模板")?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, "gift_card_template.xlsx"))
+    let bytes =
+        tigshop_services::system::excel::build_xlsx(&["卡号", "密码"], &rows, "礼品卡导入模板")?;
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes,
+        "gift_card_template.xlsx",
+    ))
 }
 
 /// `GET /promotion/giftCards/exportList`：导出列表（xlsx）。
@@ -162,20 +186,43 @@ async fn export_list(
     State(state): State<AdminState>,
     Query(q): Query<CardGroupsIdQuery>,
 ) -> Result<axum::response::Response, AppError> {
-    let card_groups_id = q.card_groups_id.ok_or_else(|| {
-        AppError(Error::Validation("cardGroupsId不能为空".into()))
-    })?;
-    let list = state.marketing.gift_card.export_list(card_groups_id).await?;
+    let card_groups_id = q
+        .card_groups_id
+        .ok_or_else(|| AppError(Error::Validation("cardGroupsId不能为空".into())))?;
+    let list = state
+        .marketing
+        .gift_card
+        .export_list(card_groups_id)
+        .await?;
     let rows: Vec<Vec<String>> = list
         .into_iter()
-        .map(|r| vec![r.card_number, r.card_password, r.gift_card_sn.unwrap_or_default(), r.is_sold, r.is_exchange, r.add_time])
+        .map(|r| {
+            vec![
+                r.card_number,
+                r.card_password,
+                r.gift_card_sn.unwrap_or_default(),
+                r.is_sold,
+                r.is_exchange,
+                r.add_time,
+            ]
+        })
         .collect();
     let bytes = tigshop_services::system::excel::build_xlsx(
-        &["卡号", "密码", "卡序列号", "是否售出", "是否兑换", "添加时间"],
+        &[
+            "卡号",
+            "密码",
+            "卡序列号",
+            "是否售出",
+            "是否兑换",
+            "添加时间",
+        ],
         &rows,
         "礼品卡列表",
     )?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, "gift_cards.xlsx"))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes,
+        "gift_cards.xlsx",
+    ))
 }
 
 /// `POST /promotion/giftCards/importList`：Excel 批量导入（**未迁移**）。
@@ -192,7 +239,11 @@ async fn import_list(
         .filter_map(|row| {
             let number = row.first()?.trim().to_string();
             let password = row.get(1).map(|s| s.trim().to_string()).unwrap_or_default();
-            if number.is_empty() && password.is_empty() { None } else { Some((number, password)) }
+            if number.is_empty() && password.is_empty() {
+                None
+            } else {
+                Some((number, password))
+            }
         })
         .collect();
     ok(state
@@ -265,21 +316,40 @@ struct CardIdQuery {
 }
 
 /// `POST /adminapi/promotion/giftCards/create`：生成礼品卡。
-async fn create(State(state): State<AdminState>, Json(body): Json<serde_json::Value>) -> ApiResult<()> {
+async fn create(
+    State(state): State<AdminState>,
+    Json(body): Json<serde_json::Value>,
+) -> ApiResult<()> {
     let card_groups_id = body
         .get("cardGroupsId")
         .and_then(serde_json::Value::as_i64)
         .unwrap_or(0) as i32;
-    let count = body.get("count").and_then(serde_json::Value::as_i64).unwrap_or(1) as i32;
-    state.marketing.gift_card.create_batch(card_groups_id, count).await?;
+    let count = body
+        .get("count")
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(1) as i32;
+    state
+        .marketing
+        .gift_card
+        .create_batch(card_groups_id, count)
+        .await?;
     ok(())
 }
 
 /// `POST /adminapi/promotion/giftCards/update`：更新礼品卡可用状态。
-async fn update(State(state): State<AdminState>, Json(body): Json<serde_json::Value>) -> ApiResult<()> {
+async fn update(
+    State(state): State<AdminState>,
+    Json(body): Json<serde_json::Value>,
+) -> ApiResult<()> {
     let dto = GiftCardUpdateStatusDTO {
-        gift_cards_id: body.get("giftCardsId").and_then(serde_json::Value::as_i64).map(|v| v as i32),
-        is_available: body.get("isAvailable").and_then(serde_json::Value::as_i64).map(|v| v as i32),
+        gift_cards_id: body
+            .get("giftCardsId")
+            .and_then(serde_json::Value::as_i64)
+            .map(|v| v as i32),
+        is_available: body
+            .get("isAvailable")
+            .and_then(serde_json::Value::as_i64)
+            .map(|v| v as i32),
     };
     state.marketing.gift_card.update_card_status(&dto).await?;
     ok(())
@@ -294,11 +364,13 @@ async fn create_batch(
     State(state): State<AdminState>,
     Json(param): Json<GiftCardIdParam>,
 ) -> ApiResult<()> {
-    let card_groups_id = param
-        .gift_cards_id()
-        .map_err(Error::Validation)?;
+    let card_groups_id = param.gift_cards_id().map_err(Error::Validation)?;
     let count = param.count.unwrap_or(0);
-    state.marketing.gift_card.create_batch(card_groups_id, count).await?;
+    state
+        .marketing
+        .gift_card
+        .create_batch(card_groups_id, count)
+        .await?;
     ok(())
 }
 
@@ -315,7 +387,11 @@ async fn show_card_password(
         .card_id
         .filter(|v| *v > 0)
         .ok_or_else(|| AppError(Error::Validation("cardId不能为空".into())))?;
-    ok(state.marketing.gift_card.show_card_password(card_id).await?)
+    ok(state
+        .marketing
+        .gift_card
+        .show_card_password(card_id)
+        .await?)
 }
 
 #[cfg(test)]
@@ -333,7 +409,10 @@ mod tests {
             ("GET", "/adminapi/promotion/giftCards/exportList"),
             ("POST", "/adminapi/promotion/giftCards/importList"),
             ("POST", "/adminapi/promotion/giftCards/delete"),
-            ("GET", "/adminapi/promotion/giftCards/giftCardExchangeDetail"),
+            (
+                "GET",
+                "/adminapi/promotion/giftCards/giftCardExchangeDetail",
+            ),
             ("POST", "/adminapi/promotion/giftCards/updateCardStatus"),
             ("POST", "/adminapi/promotion/giftCards/createBatch"),
             ("GET", "/adminapi/promotion/giftCards/showCardPassword"),

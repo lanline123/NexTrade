@@ -71,10 +71,7 @@ mod tests {
         assert_eq!(json["kefuEnabled"], false);
 
         let vo = WechatKefuCapabilityVO { kefu_enabled: true };
-        assert_eq!(
-            serde_json::to_value(&vo).unwrap()["kefuEnabled"],
-            true
-        );
+        assert_eq!(serde_json::to_value(&vo).unwrap()["kefuEnabled"], true);
     }
 
     #[test]

@@ -40,9 +40,7 @@ pub const PARAM_MISSING_MSG: &str = "接口参数缺失";
 /// # Errors
 /// 业务码 `1001`「接口参数缺失」——任一参数缺失（Java
 /// `MissingServletRequestParameterException` 的等价分支）。
-pub fn validate_query(
-    q: &SocketSendQuery,
-) -> std::result::Result<(String, String), crate::Error> {
+pub fn validate_query(q: &SocketSendQuery) -> std::result::Result<(String, String), crate::Error> {
     match (q.target_user_id.as_ref(), q.message.as_ref()) {
         (Some(target), Some(message)) => Ok((target.clone(), message.clone())),
         _ => Err(crate::Error::biz(SERVICE_DATA_ERROR, PARAM_MISSING_MSG)),

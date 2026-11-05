@@ -103,8 +103,12 @@ pub const KEY_PROPERTY: &str = "rankId";
 /// logistics::shipping_tpl 那种「白名单含幻影列」的缺陷；未知字段名会按 Java 的
 /// `getColumnByPropertyName` 回退主键列 `rank_id`，而 `rank_id`
 /// **不在**白名单里 ⇒ 被拒绝。
-pub const USER_RANK_FIELDS: [&str; 4] =
-    ["rank_name", "discount", "min_growth_points", "max_growth_points"];
+pub const USER_RANK_FIELDS: [&str; 4] = [
+    "rank_name",
+    "discount",
+    "min_growth_points",
+    "max_growth_points",
+];
 
 /// 等级配置行 `user_rank_config.code`（Java 里是内联字面量 `"rank_config"`）。
 pub const RANK_CONFIG_CODE: &str = "rank_config";
@@ -551,7 +555,10 @@ impl UserRankListQuery {
     pub fn page_query(&self) -> PageQuery {
         PageQuery {
             page: self.page.unwrap_or(1).max(1),
-            page_size: self.size.unwrap_or(DEFAULT_PAGE_SIZE).clamp(1, MAX_PAGE_SIZE),
+            page_size: self
+                .size
+                .unwrap_or(DEFAULT_PAGE_SIZE)
+                .clamp(1, MAX_PAGE_SIZE),
         }
     }
 
@@ -789,7 +796,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名）
     pub field: Option<String>,
     /// 值（统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -1326,7 +1336,10 @@ mod tests {
     #[test]
     fn user_rights_joins_in_java_order() {
         let r = rank(1, "8.5", "2");
-        assert_eq!(build_user_rights(&r), "享受会员包邮 会员折扣8.5折 2倍积分回馈");
+        assert_eq!(
+            build_user_rights(&r),
+            "享受会员包邮 会员折扣8.5折 2倍积分回馈"
+        );
     }
 
     /// 三项都为空 ⇒ 空串（不加「享受」前缀）。
@@ -1498,8 +1511,14 @@ mod tests {
         assert_eq!(map_update_field_column("rankName"), "rank_name");
         assert_eq!(map_update_field_column("rank_name"), "rank_name");
         assert_eq!(map_update_field_column("discount"), "discount");
-        assert_eq!(map_update_field_column("minGrowthPoints"), "min_growth_points");
-        assert_eq!(map_update_field_column("max_growth_points"), "max_growth_points");
+        assert_eq!(
+            map_update_field_column("minGrowthPoints"),
+            "min_growth_points"
+        );
+        assert_eq!(
+            map_update_field_column("max_growth_points"),
+            "max_growth_points"
+        );
         assert_eq!(map_update_field_column("unknown"), KEY_COLUMN);
         assert!(!USER_RANK_FIELDS.contains(&KEY_COLUMN), "主键列不在白名单");
     }
@@ -1587,7 +1606,10 @@ mod tests {
         );
 
         p.rank_type = Some(1);
-        assert_eq!(validate_edit_param(&p), Err("用户等级数据不能为空".to_string()));
+        assert_eq!(
+            validate_edit_param(&p),
+            Err("用户等级数据不能为空".to_string())
+        );
 
         p.data = Some(Vec::new());
         assert_eq!(
@@ -1680,15 +1702,21 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(
-            build_user_rank_fields(&mk(None), IS_PRO, 1).rank_point.as_deref(),
+            build_user_rank_fields(&mk(None), IS_PRO, 1)
+                .rank_point
+                .as_deref(),
             Some("0")
         );
         assert_eq!(
-            build_user_rank_fields(&mk(Some("")), IS_PRO, 1).rank_point.as_deref(),
+            build_user_rank_fields(&mk(Some("")), IS_PRO, 1)
+                .rank_point
+                .as_deref(),
             Some("0")
         );
         assert_eq!(
-            build_user_rank_fields(&mk(Some("3")), IS_PRO, 1).rank_point.as_deref(),
+            build_user_rank_fields(&mk(Some("3")), IS_PRO, 1)
+                .rank_point
+                .as_deref(),
             Some("3")
         );
     }
@@ -1704,7 +1732,10 @@ mod tests {
         assert_eq!(vo.user_count, 12);
         assert_eq!(vo.rank_level, 1);
         assert_eq!(vo.rank_point.as_deref(), Some("2"));
-        assert_eq!(vo.user_rights.as_deref(), Some("享受会员包邮 会员折扣8.5折 2倍积分回馈"));
+        assert_eq!(
+            vo.user_rights.as_deref(),
+            Some("享受会员包邮 会员折扣8.5折 2倍积分回馈")
+        );
         assert_eq!(vo.rights.as_ref().map(Vec::len), Some(1));
     }
 
@@ -1722,8 +1753,8 @@ mod tests {
     /// `BatchDTO` 的 ids 去重与 `type` 判据。
     #[test]
     fn batch_dto_helpers() {
-        let d: BatchDTO = serde_json::from_str(r#"{"ids":[3,1,3,-2],"type":"del"}"#)
-            .expect("应能反序列化");
+        let d: BatchDTO =
+            serde_json::from_str(r#"{"ids":[3,1,3,-2],"type":"del"}"#).expect("应能反序列化");
         assert!(d.is_delete());
         assert_eq!(d.effective_ids(), vec![1, 3]);
         let d: BatchDTO = serde_json::from_str(r#"{"type":"show"}"#).expect("应能反序列化");
@@ -1750,7 +1781,10 @@ mod tests {
     #[test]
     fn column_constants_match_schema() {
         assert_eq!(USER_RANK_COLUMNS.len(), 15);
-        assert_eq!(USER_RANK_CONFIG_COLUMNS, ["id", "code", "rank_type", "data"]);
+        assert_eq!(
+            USER_RANK_CONFIG_COLUMNS,
+            ["id", "code", "rank_type", "data"]
+        );
         assert_eq!(KEY_COLUMN, "rank_id");
         assert_eq!(KEY_PROPERTY, "rankId");
         assert_eq!(
@@ -1777,8 +1811,10 @@ mod tests {
         assert!(parse_grow_setting(Some("not-json")).is_none());
         assert!(parse_grow_setting(Some("[1,2]")).is_none());
 
-        let vo = parse_grow_setting(Some(r#"{"buyOrder":1,"buyOrderNumber":2,"bindPhoneGrowth":5}"#))
-            .expect("合法对象应能解析");
+        let vo = parse_grow_setting(Some(
+            r#"{"buyOrder":1,"buyOrderNumber":2,"bindPhoneGrowth":5}"#,
+        ))
+        .expect("合法对象应能解析");
         assert_eq!(vo.buy_order, Some(1));
         assert_eq!(vo.buy_order_number, Some(2));
         assert_eq!(vo.bind_phone_growth, Some(5));
@@ -1851,7 +1887,10 @@ mod tests {
             user_rank: RankPageResult::new(
                 vec![init_rank_list_vo()],
                 0,
-                &PageQuery { page: 1, page_size: 15 },
+                &PageQuery {
+                    page: 1,
+                    page_size: 15,
+                },
             ),
             rank_config: init_rank_config_vo(),
         };

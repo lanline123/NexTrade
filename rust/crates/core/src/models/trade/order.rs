@@ -175,13 +175,32 @@ pub struct OrderVO {
     pub order_type: Option<i32>,
     pub parent_order_sn: Option<String>,
     pub is_card_order: bool,
-    pub is_cycle_order: bool,
+    /// 周期购标记（旧前端读 `Number(isCycleOrder) !== 1`，必须下发数字 0/1 而非布尔）
+    pub is_cycle_order: i32,
     pub is_pickup: bool,
     pub presale_info: Option<serde_json::Value>,
     pub order_source: Option<String>,
     pub cycle_card_info: Option<serde_json::Value>,
     /// 发票申请数据（发票列表页读取 `invoiceData`）
     pub invoice_data: Option<serde_json::Value>,
+    /// 订单状态提示文案（Java `orderStatusTip`，PC 订单详情无倒计时时展示）
+    pub order_status_tip: String,
+    /// 订单支付时间（未支付为 null）
+    pub pay_time: Option<String>,
+    /// 订单发货时间（未发货为 null）
+    pub shipping_time: Option<String>,
+    /// 订单收货时间（未收货为 null）
+    pub received_time: Option<String>,
+    /// 买家备注（PC 订单详情展示）
+    pub buyer_note: String,
+    /// 线上支付金额（PC 订单金额明细）
+    pub online_paid_amount: Decimal,
+    /// 线下支付金额（PC 订单金额明细）
+    pub offline_paid_amount: Decimal,
+    /// 账期支付金额（PC 订单金额明细）
+    pub credit_amount: Decimal,
+    /// 发票费用
+    pub invoice_fee: Decimal,
     pub balance: Decimal,
     pub shipping_fee: Decimal,
     // ————— 详情页需要的扩展字段 —————

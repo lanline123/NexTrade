@@ -41,8 +41,7 @@ pub const MSG_ID_REQUIRED: &str = "优惠券id不能为空";
 /// `优惠券不存在`
 pub const MSG_NOT_EXIST: &str = "优惠券不存在";
 /// `优惠券金额不能大于或等于最低订单金额`
-pub const MSG_COUPON_MONEY_EXCEED_MIN_ORDER_AMOUNT: &str =
-    "优惠券金额不能大于或等于最低订单金额";
+pub const MSG_COUPON_MONEY_EXCEED_MIN_ORDER_AMOUNT: &str = "优惠券金额不能大于或等于最低订单金额";
 /// `id不能为空`
 pub const MSG_UPDATE_ID_REQUIRED: &str = "id不能为空";
 /// `字段名不能为空`
@@ -222,10 +221,23 @@ pub fn validate_coupon_dto(dto: &CouponDTO, is_update: bool) -> crate::Result<()
     if is_update && dto.coupon_id.is_none() {
         return Err(crate::Error::Validation(MSG_ID_REQUIRED.into()));
     }
-    if dto.coupon_name.as_deref().map(str::trim).unwrap_or("").is_empty() {
+    if dto
+        .coupon_name
+        .as_deref()
+        .map(str::trim)
+        .unwrap_or("")
+        .is_empty()
+    {
         return Err(crate::Error::Validation(MSG_NAME_REQUIRED.into()));
     }
-    if dto.coupon_name.as_deref().map(str::chars).map(|c| c.count()).unwrap_or(0) > 50 {
+    if dto
+        .coupon_name
+        .as_deref()
+        .map(str::chars)
+        .map(|c| c.count())
+        .unwrap_or(0)
+        > 50
+    {
         return Err(crate::Error::Validation(MSG_NAME_TOO_LONG.into()));
     }
     Ok(())

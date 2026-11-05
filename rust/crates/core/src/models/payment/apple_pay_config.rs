@@ -1,4 +1,4 @@
-﻿//! 支付渠道设置引擎 + Apple Pay 设置字段（payment::apple_pay_config）。
+//! 支付渠道设置引擎 + Apple Pay 设置字段（payment::apple_pay_config）。
 //!
 //! 对应原 Java：
 //! - `com.tigshop.adminapi.controller.setting.ApplePayConfigController`
@@ -87,10 +87,7 @@ pub fn load_settings(
         out.insert(field.json.to_string(), value);
     }
     for (biz, json_key) in spec.derived_arrays {
-        let raw = rows
-            .get(*biz)
-            .and_then(|v| v.clone())
-            .unwrap_or_default();
+        let raw = rows.get(*biz).and_then(|v| v.clone()).unwrap_or_default();
         out.insert(
             (*json_key).to_string(),
             serde_json::from_str::<Value>(&raw).unwrap_or_else(|_| Value::Array(Vec::new())),
@@ -164,22 +161,86 @@ pub fn derived_biz_codes(spec: &SettingsSpec) -> Vec<&'static str> {
 
 /// Apple Pay 设置字段（顺序与 Java `ApplePaySettingsVO` 一致）。
 pub const APPLE_PAY_FIELDS: &[SettingsField] = &[
-    SettingsField { json: "useApplePay", biz: "useApplePay", default: Some("0") },
-    SettingsField { json: "applePayMerchantId", biz: "applePayMerchantId", default: None },
-    SettingsField { json: "applePayDisplayName", biz: "applePayDisplayName", default: None },
-    SettingsField { json: "applePayCountryCode", biz: "applePayCountryCode", default: Some("CN") },
-    SettingsField { json: "applePayCurrency", biz: "applePayCurrency", default: Some("CNY") },
-    SettingsField { json: "applePaySupportedNetworks", biz: "applePaySupportedNetworks", default: Some("chinaUnionPay,visa,masterCard") },
-    SettingsField { json: "applePayMerchantIdentityCert", biz: "applePayMerchantIdentityCert", default: Some("0") },
-    SettingsField { json: "applePayMerchantIdentityKey", biz: "applePayMerchantIdentityKey", default: Some("0") },
-    SettingsField { json: "applePayProcessingPrivateKey", biz: "applePayProcessingPrivateKey", default: Some("0") },
-    SettingsField { json: "applePayAcquirerProvider", biz: "applePayAcquirerProvider", default: Some("generic") },
-    SettingsField { json: "applePayUmsSignType", biz: "applePayUmsSignType", default: Some("SHA256") },
-    SettingsField { json: "applePayAcquirerGateway", biz: "applePayAcquirerGateway", default: None },
-    SettingsField { json: "applePayAcquirerMerchantNo", biz: "applePayAcquirerMerchantNo", default: None },
-    SettingsField { json: "applePayAcquirerKey", biz: "applePayAcquirerKey", default: None },
-    SettingsField { json: "applePayCountryListStr", biz: "applePayCountryList", default: Some("") },
-    SettingsField { json: "applePayCurrencyListStr", biz: "applePayCurrencyList", default: Some("") },
+    SettingsField {
+        json: "useApplePay",
+        biz: "useApplePay",
+        default: Some("0"),
+    },
+    SettingsField {
+        json: "applePayMerchantId",
+        biz: "applePayMerchantId",
+        default: None,
+    },
+    SettingsField {
+        json: "applePayDisplayName",
+        biz: "applePayDisplayName",
+        default: None,
+    },
+    SettingsField {
+        json: "applePayCountryCode",
+        biz: "applePayCountryCode",
+        default: Some("CN"),
+    },
+    SettingsField {
+        json: "applePayCurrency",
+        biz: "applePayCurrency",
+        default: Some("CNY"),
+    },
+    SettingsField {
+        json: "applePaySupportedNetworks",
+        biz: "applePaySupportedNetworks",
+        default: Some("chinaUnionPay,visa,masterCard"),
+    },
+    SettingsField {
+        json: "applePayMerchantIdentityCert",
+        biz: "applePayMerchantIdentityCert",
+        default: Some("0"),
+    },
+    SettingsField {
+        json: "applePayMerchantIdentityKey",
+        biz: "applePayMerchantIdentityKey",
+        default: Some("0"),
+    },
+    SettingsField {
+        json: "applePayProcessingPrivateKey",
+        biz: "applePayProcessingPrivateKey",
+        default: Some("0"),
+    },
+    SettingsField {
+        json: "applePayAcquirerProvider",
+        biz: "applePayAcquirerProvider",
+        default: Some("generic"),
+    },
+    SettingsField {
+        json: "applePayUmsSignType",
+        biz: "applePayUmsSignType",
+        default: Some("SHA256"),
+    },
+    SettingsField {
+        json: "applePayAcquirerGateway",
+        biz: "applePayAcquirerGateway",
+        default: None,
+    },
+    SettingsField {
+        json: "applePayAcquirerMerchantNo",
+        biz: "applePayAcquirerMerchantNo",
+        default: None,
+    },
+    SettingsField {
+        json: "applePayAcquirerKey",
+        biz: "applePayAcquirerKey",
+        default: None,
+    },
+    SettingsField {
+        json: "applePayCountryListStr",
+        biz: "applePayCountryList",
+        default: Some(""),
+    },
+    SettingsField {
+        json: "applePayCurrencyListStr",
+        biz: "applePayCurrencyList",
+        default: Some(""),
+    },
 ];
 
 /// Apple Pay 设置规格。
@@ -211,8 +272,14 @@ mod tests {
         // 长度 4：half=2，start=1，end=3 → 中间两位掩码
         assert_eq!(mask_middle_half(Some("abcd")), Some("a**d".to_string()));
         // 长度 8：half=4，start=2，end=6
-        assert_eq!(mask_middle_half(Some("abcdefgh")), Some("ab****gh".to_string()));
-        assert_eq!(mask_middle_half(Some("1234567890")), Some("12*****890".to_string()));
+        assert_eq!(
+            mask_middle_half(Some("abcdefgh")),
+            Some("ab****gh".to_string())
+        );
+        assert_eq!(
+            mask_middle_half(Some("1234567890")),
+            Some("12*****890".to_string())
+        );
     }
 
     #[test]
@@ -237,7 +304,10 @@ mod tests {
             ("applePayAcquirerKey", "abcdefgh"),
         ]);
         let out = load_settings(&APPLE_PAY_SPEC, &rows);
-        assert_eq!(out["applePayAcquirerMerchantNo"], Value::String("12*****890".into()));
+        assert_eq!(
+            out["applePayAcquirerMerchantNo"],
+            Value::String("12*****890".into())
+        );
         assert_eq!(out["applePayAcquirerKey"], Value::String("ab****gh".into()));
     }
 
@@ -260,7 +330,9 @@ mod tests {
         let updates = pick_updates(&APPLE_PAY_SPEC, &payload, &current);
         assert!(updates.contains(&("useApplePay".to_string(), "1".to_string())));
         assert!(updates.contains(&("applePayAcquirerKey".to_string(), "new-secret".to_string())));
-        assert!(!updates.iter().any(|(biz, _)| biz == "applePayAcquirerMerchantNo"));
+        assert!(!updates
+            .iter()
+            .any(|(biz, _)| biz == "applePayAcquirerMerchantNo"));
         assert!(!updates.iter().any(|(biz, _)| biz == "applePayDisplayName"));
         assert!(!updates.iter().any(|(biz, _)| biz == "applePayCountryList"));
     }

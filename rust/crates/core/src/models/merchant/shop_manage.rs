@@ -621,7 +621,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（`@NotNull`；驼峰属性名或库列名）
     pub field: Option<String>,
     /// 值（`@NotNull`，字符串形态）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -696,10 +699,7 @@ mod tests {
         assert!(p.shop_open_close_config.as_ref().unwrap().is_object());
         assert_eq!(p.shop_region_ids.as_deref(), Some(&[1, 2][..]));
         assert_eq!(p.shop_tips.as_deref(), Some(&[7][..]));
-        assert_eq!(
-            p.shop_longitude,
-            Some("120.1".parse::<Decimal>().unwrap())
-        );
+        assert_eq!(p.shop_longitude, Some("120.1".parse::<Decimal>().unwrap()));
     }
 
     #[test]

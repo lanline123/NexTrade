@@ -1612,12 +1612,21 @@ mod tests {
         assert_eq!(OrderStatus::Cancelled as i32, 3);
         assert_eq!(OrderStatus::Invalid as i32, 4);
         assert_eq!(OrderStatus::Completed as i32, 5);
-        assert_eq!(OrderStatus::of(1).map(OrderStatus::name), Some("已确认，待发货"));
+        assert_eq!(
+            OrderStatus::of(1).map(OrderStatus::name),
+            Some("已确认，待发货")
+        );
         assert_eq!(OrderStatus::name_of(9), "");
         assert_eq!(OrderStatus::Confirmed.admin_name(), Some("已付款，待发货"));
         assert_eq!(OrderStatus::Invalid.admin_name(), None);
-        assert_eq!(OrderStatus::Processing.pre_status(), Some(OrderStatus::Confirmed));
-        assert_eq!(OrderStatus::Confirmed.pre_status(), Some(OrderStatus::Cancelled));
+        assert_eq!(
+            OrderStatus::Processing.pre_status(),
+            Some(OrderStatus::Confirmed)
+        );
+        assert_eq!(
+            OrderStatus::Confirmed.pre_status(),
+            Some(OrderStatus::Cancelled)
+        );
         assert_eq!(OrderStatus::Pending.pre_status(), None);
     }
 
@@ -1682,7 +1691,10 @@ mod tests {
         assert_eq!(q.include_invalid, Some(true));
         assert_eq!(q.invoice_scope, Some(true));
         assert_eq!(q.member_tag_ids.as_deref(), Some(&[1i64, 2][..]));
-        assert_eq!(q.sort_items.as_ref().unwrap()[0].field.as_deref(), Some("addTime"));
+        assert_eq!(
+            q.sort_items.as_ref().unwrap()[0].field.as_deref(),
+            Some("addTime")
+        );
         assert!(!q.only_deleted());
     }
 
@@ -1711,7 +1723,10 @@ mod tests {
         assert_eq!(q.order_ids.as_deref(), Some(&[1i32, 2][..]));
         assert_eq!(q.include_invalid, Some(false));
         assert_eq!(q.invoice_scope, Some(false));
-        assert_eq!(q.sort_items.as_ref().unwrap()[0].field.as_deref(), Some("totalAmount"));
+        assert_eq!(
+            q.sort_items.as_ref().unwrap()[0].field.as_deref(),
+            Some("totalAmount")
+        );
 
         // 空串等价于「未传」（Spring 绑定为 null）
         let q: OrderListQuery = serde_json::from_str(r#"{"includeInvalid":""}"#).unwrap();
@@ -1826,9 +1841,10 @@ mod tests {
         .unwrap();
         assert_eq!(c.region_ids.as_deref(), Some(&[110_000i32, 110_100][..]));
 
-        let s: OrderModifyShippingParam =
-            serde_json::from_str(r#"{"id":3,"shippingMethod":1,"logisticsId":5,"trackingNo":"SF1"}"#)
-                .unwrap();
+        let s: OrderModifyShippingParam = serde_json::from_str(
+            r#"{"id":3,"shippingMethod":1,"logisticsId":5,"trackingNo":"SF1"}"#,
+        )
+        .unwrap();
         assert_eq!(s.shipping_method, Some(1));
         assert_eq!(s.tracking_no.as_deref(), Some("SF1"));
 

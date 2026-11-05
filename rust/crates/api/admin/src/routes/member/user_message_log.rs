@@ -30,7 +30,7 @@ use tigshop_core::models::member::user_message_log::{
     UserMessageLogRecallParam,
 };
 use tigshop_core::types::PageResult;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::tenant::{platform_only, require_platform};
 
@@ -38,13 +38,21 @@ use crate::AdminState;
 
 /// 本域路由清单（去掉 `/adminapi` 前缀 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 5] = [
-    ("GET", "/user/userMessageLog/list", "UserMessageLogController.list"),
+    (
+        "GET",
+        "/user/userMessageLog/list",
+        "UserMessageLogController.list",
+    ),
     (
         "POST",
         "/user/userMessageLog/create",
         "UserMessageLogController.create",
     ),
-    ("POST", "/user/userMessageLog/del", "UserMessageLogController.del"),
+    (
+        "POST",
+        "/user/userMessageLog/del",
+        "UserMessageLogController.del",
+    ),
     (
         "POST",
         "/user/userMessageLog/batch",
@@ -140,8 +148,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");
@@ -174,7 +184,21 @@ mod tenant_tests {
 
     #[test]
     fn platform_only_helper_rejects_shop_identity() {
-        assert!(require_platform(&AuthUser::new(1, "a".into(), None, Some("admin".into()), Some(0))).is_ok());
-        assert!(require_platform(&AuthUser::new(2, "s".into(), None, Some("shop".into()), Some(7))).is_err());
+        assert!(require_platform(&AuthUser::new(
+            1,
+            "a".into(),
+            None,
+            Some("admin".into()),
+            Some(0)
+        ))
+        .is_ok());
+        assert!(require_platform(&AuthUser::new(
+            2,
+            "s".into(),
+            None,
+            Some("shop".into()),
+            Some(7)
+        ))
+        .is_err());
     }
 }

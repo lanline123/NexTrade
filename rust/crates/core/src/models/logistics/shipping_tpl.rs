@@ -112,7 +112,6 @@ where
     de.deserialize_any(V)
 }
 
-
 // ——————————————————————————————————————————————
 // 常量（对应 Java 常量类 / 注解阈值）
 // ——————————————————————————————————————————————
@@ -157,8 +156,7 @@ pub const KEY_PROPERTY: &str = "shippingTplId";
 ///
 /// 这是一处**有意的行为偏离**（Java 500 → Rust 400），已列入
 /// `uncertain_points`，待产品确认这三列是否为缺失的迁移列。
-pub const SHIPPING_TPL_FIELDS: [&str; 4] =
-    ["is_show", "sort_order", "status", "shipping_tpl_name"];
+pub const SHIPPING_TPL_FIELDS: [&str; 4] = ["is_show", "sort_order", "status", "shipping_tpl_name"];
 
 /// 「是」的取值（Java `Constants.YES = 1`）。
 pub const YES: i32 = 1;
@@ -457,7 +455,10 @@ impl ShippingTplVO {
     /// 由模板实体 + 配送类型列表构造（`detail` 语义）。
     #[must_use]
     pub fn with_types(t: &ShippingTplEntity, types: Vec<ShippingTypeVO>) -> Self {
-        Self { shipping_tpl_info: types, ..Self::from_entity(t) }
+        Self {
+            shipping_tpl_info: types,
+            ..Self::from_entity(t)
+        }
     }
 }
 
@@ -735,7 +736,8 @@ pub struct ShippingTplSaveDTO {
 /// 但**没有** `@NotNull` 注解，且 `shippingTplName` 允许为空
 /// （Java `update` 用 `StrUtil.isNotBlank` 守卫查重）。
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase", default)]pub struct ShippingTplUpdateDTO {
+#[serde(rename_all = "camelCase", default)]
+pub struct ShippingTplUpdateDTO {
     /// 主键（Java `id`）
     pub id: Option<i64>,
     /// 运费模板信息列表
@@ -796,7 +798,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -953,7 +958,9 @@ pub fn validate_save(dto: &ShippingTplSaveDTO) -> Result<ValidatedSave, String> 
         .ok_or_else(|| MSG_SHIPPING_TPL_NAME_NOT_BLANK.to_string())?
         .to_string();
     if name.chars().count() > SHIPPING_TPL_NAME_MAX_LEN {
-        return Err(format!("运费模板名称不能超过{SHIPPING_TPL_NAME_MAX_LEN}个字符"));
+        return Err(format!(
+            "运费模板名称不能超过{SHIPPING_TPL_NAME_MAX_LEN}个字符"
+        ));
     }
 
     let shipping_time = dto.shipping_time.clone().unwrap_or_default();
@@ -961,8 +968,12 @@ pub fn validate_save(dto: &ShippingTplSaveDTO) -> Result<ValidatedSave, String> 
         return Err(format!("配送时间不能超过{SHIPPING_TIME_MAX_LEN}个字符"));
     }
 
-    let is_default = dto.is_default.ok_or_else(|| MSG_IS_DEFAULT_NOT_NULL.to_string())?;
-    let is_free = dto.is_free.ok_or_else(|| MSG_IS_FREE_NOT_NULL.to_string())?;
+    let is_default = dto
+        .is_default
+        .ok_or_else(|| MSG_IS_DEFAULT_NOT_NULL.to_string())?;
+    let is_free = dto
+        .is_free
+        .ok_or_else(|| MSG_IS_FREE_NOT_NULL.to_string())?;
     let pricing_type = dto
         .pricing_type
         .ok_or_else(|| MSG_PRICING_TYPE_NOT_NULL.to_string())?;
@@ -987,7 +998,13 @@ pub fn validate_save(dto: &ShippingTplSaveDTO) -> Result<ValidatedSave, String> 
         }
     }
 
-    Ok(ValidatedSave { name, shipping_time, is_default, is_free, pricing_type })
+    Ok(ValidatedSave {
+        name,
+        shipping_time,
+        is_default,
+        is_free,
+        pricing_type,
+    })
 }
 
 /// v5.8.61 体积计费规则校验（对齐 Java `validateVolumeRule`）。
@@ -1010,7 +1027,11 @@ fn validate_volume_value(
     let Some(value) = value else {
         return Err(format!(
             "{label}须为{}，最多{integer_digits}位整数、{scale}位小数",
-            if must_be_positive { "正数" } else { "非负数" }
+            if must_be_positive {
+                "正数"
+            } else {
+                "非负数"
+            }
         ));
     };
     let lower_ok = if must_be_positive {
@@ -1022,7 +1043,11 @@ fn validate_volume_value(
     if !lower_ok || value.normalize().scale() > scale || value >= upper {
         return Err(format!(
             "{label}须为{}，最多{integer_digits}位整数、{scale}位小数",
-            if must_be_positive { "正数" } else { "非负数" }
+            if must_be_positive {
+                "正数"
+            } else {
+                "非负数"
+            }
         ));
     }
     Ok(())
@@ -1098,8 +1123,14 @@ mod tests {
             .collect();
         assert_eq!(real, vec!["shipping_tpl_name"]);
         for phantom in ["is_show", "sort_order", "status"] {
-            assert!(!SHIPPING_TPL_COLUMNS.contains(&phantom), "{phantom} 不应是真实列");
-            assert!(SHIPPING_TPL_FIELDS.contains(&phantom), "{phantom} 应在 Java 白名单里");
+            assert!(
+                !SHIPPING_TPL_COLUMNS.contains(&phantom),
+                "{phantom} 不应是真实列"
+            );
+            assert!(
+                SHIPPING_TPL_FIELDS.contains(&phantom),
+                "{phantom} 应在 Java 白名单里"
+            );
         }
     }
 
@@ -1267,11 +1298,17 @@ mod tests {
             r#"{"shippingTplName":"  ","isDefault":0,"isFree":0,"pricingType":1}"#,
         )
         .unwrap();
-        assert_eq!(validate_save(&blank).unwrap_err(), MSG_SHIPPING_TPL_NAME_NOT_BLANK);
+        assert_eq!(
+            validate_save(&blank).unwrap_err(),
+            MSG_SHIPPING_TPL_NAME_NOT_BLANK
+        );
 
         let no_default: ShippingTplSaveDTO =
             serde_json::from_str(r#"{"shippingTplName":"x","isFree":0,"pricingType":1}"#).unwrap();
-        assert_eq!(validate_save(&no_default).unwrap_err(), MSG_IS_DEFAULT_NOT_NULL);
+        assert_eq!(
+            validate_save(&no_default).unwrap_err(),
+            MSG_IS_DEFAULT_NOT_NULL
+        );
 
         let no_free: ShippingTplSaveDTO =
             serde_json::from_str(r#"{"shippingTplName":"x","isDefault":0,"pricingType":1}"#)
@@ -1280,7 +1317,10 @@ mod tests {
 
         let no_pricing: ShippingTplSaveDTO =
             serde_json::from_str(r#"{"shippingTplName":"x","isDefault":0,"isFree":0}"#).unwrap();
-        assert_eq!(validate_save(&no_pricing).unwrap_err(), MSG_PRICING_TYPE_NOT_NULL);
+        assert_eq!(
+            validate_save(&no_pricing).unwrap_err(),
+            MSG_PRICING_TYPE_NOT_NULL
+        );
 
         // 名称恰好 120 字符合法，121 报错
         let edge = ShippingTplSaveDTO {
@@ -1301,7 +1341,10 @@ mod tests {
     /// ⚠️ `create` 用 `isChecked == 1`；`update` 用 `isChecked > 0` —— 两者不一致。
     #[test]
     fn is_checked_semantics_differ_between_create_and_update() {
-        let mk = |v: Option<i32>| ShippingTypeParam { is_checked: v, ..Default::default() };
+        let mk = |v: Option<i32>| ShippingTypeParam {
+            is_checked: v,
+            ..Default::default()
+        };
 
         // create 口径：必须恰为 1
         assert!(mk(Some(1)).is_checked_yes());
@@ -1323,7 +1366,10 @@ mod tests {
     /// `wants_default` 只在 `isDefault == 1` 时为真（`Constants.YES.equals`）。
     #[test]
     fn wants_default_only_on_yes() {
-        let mk = |v: Option<i32>| ShippingTplUpdateDTO { is_default: v, ..Default::default() };
+        let mk = |v: Option<i32>| ShippingTplUpdateDTO {
+            is_default: v,
+            ..Default::default()
+        };
         assert!(mk(Some(1)).wants_default());
         assert!(!mk(Some(0)).wants_default());
         assert!(!mk(Some(2)).wants_default());
@@ -1333,9 +1379,15 @@ mod tests {
     /// `effective_name` 忽略空白名（Java `StrUtil.isNotBlank` 守卫）。
     #[test]
     fn effective_name_ignores_blank() {
-        let dto = ShippingTplUpdateDTO { shipping_tpl_name: Some("   ".into()), ..Default::default() };
+        let dto = ShippingTplUpdateDTO {
+            shipping_tpl_name: Some("   ".into()),
+            ..Default::default()
+        };
         assert_eq!(dto.effective_name(), None);
-        let dto = ShippingTplUpdateDTO { shipping_tpl_name: Some(" A ".into()), ..Default::default() };
+        let dto = ShippingTplUpdateDTO {
+            shipping_tpl_name: Some(" A ".into()),
+            ..Default::default()
+        };
         assert_eq!(dto.effective_name(), Some("A"));
     }
 
@@ -1394,17 +1446,18 @@ mod tests {
     /// 缺 `defaultTplInfo` ⇒ 该配送类型整体不产出行（对应 Java 的 NPE 场景）。
     #[test]
     fn missing_default_tpl_info_yields_no_rows() {
-        let p = ShippingTypeParam { is_checked: Some(1), ..Default::default() };
+        let p = ShippingTypeParam {
+            is_checked: Some(1),
+            ..Default::default()
+        };
         assert!(p.info_rows(&tpl()).is_empty());
     }
 
     /// 缺 `areaTplInfo` ⇒ 只有默认行，不 panic（Java 此处会 NPE）。
     #[test]
     fn missing_area_tpl_info_is_treated_as_empty() {
-        let p: ShippingTypeParam = serde_json::from_str(
-            r#"{"defaultTplInfo":{"startPrice":5.00}}"#,
-        )
-        .unwrap();
+        let p: ShippingTypeParam =
+            serde_json::from_str(r#"{"defaultTplInfo":{"startPrice":5.00}}"#).unwrap();
         let rows = p.info_rows(&tpl());
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].is_default, YES);
@@ -1420,10 +1473,13 @@ mod tests {
             area_region_names: vec!["江西".into(), "南昌".into()],
         };
         let s = serialize_region_data(Some(&p)).unwrap();
-        assert_eq!(parse_region_data(Some(&s)), Some(RegionDataVO {
-            area_regions: vec![vec![1, 360000], vec![1, 360000, 360100]],
-            area_region_names: vec!["江西".into(), "南昌".into()],
-        }));
+        assert_eq!(
+            parse_region_data(Some(&s)),
+            Some(RegionDataVO {
+                area_regions: vec![vec![1, 360000], vec![1, 360000, 360100]],
+                area_region_names: vec!["江西".into(), "南昌".into()],
+            })
+        );
     }
 
     /// `None` / 空串 / 非法 JSON 都不解析（Java 有 `isNotBlank` 守卫）。
@@ -1473,10 +1529,9 @@ mod tests {
         assert_eq!(p.add_number, Some(Decimal::new(15, 1)));
 
         // 数字字符串（同样必须支持）
-        let p: ShippingTplInfoParam = serde_json::from_str(
-            r#"{"startPrice":"5.00","addPrice":"2","freePrice":"99.9"}"#,
-        )
-        .unwrap();
+        let p: ShippingTplInfoParam =
+            serde_json::from_str(r#"{"startPrice":"5.00","addPrice":"2","freePrice":"99.9"}"#)
+                .unwrap();
         assert_eq!(p.start_price, Some(Decimal::new(500, 2)));
         assert_eq!(p.add_price, Some(Decimal::new(2, 0)));
         assert_eq!(p.free_price, Some(Decimal::new(999, 1)));
@@ -1490,9 +1545,7 @@ mod tests {
         assert_eq!(ShippingTplInfoParam::default().start_price, None);
 
         // 非数字字符串应报错（不静默吞掉）
-        assert!(
-            serde_json::from_str::<ShippingTplInfoParam>(r#"{"startPrice":"abc"}"#).is_err()
-        );
+        assert!(serde_json::from_str::<ShippingTplInfoParam>(r#"{"startPrice":"abc"}"#).is_err());
     }
 
     /// 端到端：`create` 请求体的完整 JSON 能解析出金额与嵌套结构。
@@ -1535,7 +1588,8 @@ mod tests {
 
     /// `UpdateFieldDTO` / `BatchDTO` / `OperateDTO` 反序列化。
     #[test]
-    fn common_dtos_deserialize() {        let u: UpdateFieldDTO =
+    fn common_dtos_deserialize() {
+        let u: UpdateFieldDTO =
             serde_json::from_str(r#"{"id":1,"field":"shipping_tpl_name","val":"新名"}"#).unwrap();
         assert_eq!(u.id, Some(1));
         assert_eq!(u.field.as_deref(), Some("shipping_tpl_name"));
@@ -1553,17 +1607,29 @@ mod tests {
     /// Java `buildSortOrder` 三分支。
     #[test]
     fn order_clause_three_branches() {
-        let q = ShippingTplListQuery { sort_order: Some("asc".into()), ..Default::default() };
+        let q = ShippingTplListQuery {
+            sort_order: Some("asc".into()),
+            ..Default::default()
+        };
         assert_eq!(q.order_clause(), " ORDER BY shipping_tpl_id ASC");
 
-        let q = ShippingTplListQuery { sort_order: None, ..Default::default() };
+        let q = ShippingTplListQuery {
+            sort_order: None,
+            ..Default::default()
+        };
         assert_eq!(q.order_clause(), " ORDER BY shipping_tpl_id DESC");
 
-        let q = ShippingTplListQuery { sort_order: Some("desc".into()), ..Default::default() };
+        let q = ShippingTplListQuery {
+            sort_order: Some("desc".into()),
+            ..Default::default()
+        };
         assert_eq!(q.order_clause(), " ORDER BY shipping_tpl_id DESC");
 
         // 非法值：Java else-if 未覆盖 ⇒ 无排序
-        let q = ShippingTplListQuery { sort_order: Some("ascending".into()), ..Default::default() };
+        let q = ShippingTplListQuery {
+            sort_order: Some("ascending".into()),
+            ..Default::default()
+        };
         assert_eq!(q.order_clause(), "");
     }
 
@@ -1599,15 +1665,24 @@ mod tests {
         let q = ShippingTplListQuery::default();
         assert_eq!(q.page_query().page, 1);
         assert_eq!(q.page_query().page_size, 15);
-        let q = ShippingTplListQuery { size: Some(500), ..Default::default() };
+        let q = ShippingTplListQuery {
+            size: Some(500),
+            ..Default::default()
+        };
         assert_eq!(q.page_query().page_size, 100);
     }
 
     /// `updateField` 归一：真实列可命中，幻觉列不行。
     #[test]
     fn update_field_column_normalization() {
-        assert_eq!(map_update_field_column("shippingTplName"), Some("shipping_tpl_name"));
-        assert_eq!(map_update_field_column("shipping_tpl_name"), Some("shipping_tpl_name"));
+        assert_eq!(
+            map_update_field_column("shippingTplName"),
+            Some("shipping_tpl_name")
+        );
+        assert_eq!(
+            map_update_field_column("shipping_tpl_name"),
+            Some("shipping_tpl_name")
+        );
         assert_eq!(map_update_field_column("isFree"), Some("is_free"));
         assert_eq!(map_update_field_column("isDefault"), Some("is_default"));
         // Java 白名单里但库里没有的列

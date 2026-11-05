@@ -1,4 +1,4 @@
-﻿//! 管理端文章批处理路由（content::article_batch）。
+//! 管理端文章批处理路由（content::article_batch）。
 //!
 //! 对应 Java `POST /adminapi/content/article/batch`。
 
@@ -10,11 +10,8 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 /// 本域 1 条管理端路由。
-const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
-    "POST",
-    "/content/article/batch",
-    "ArticleController.batch",
-)];
+const ROUTE_TABLE: [(&str, &str, &str); 1] =
+    [("POST", "/content/article/batch", "ArticleController.batch")];
 
 /// 文章批处理路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {

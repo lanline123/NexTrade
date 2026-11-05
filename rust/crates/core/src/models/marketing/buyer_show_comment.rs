@@ -220,7 +220,8 @@ mod tests {
 
     #[test]
     fn page_size_is_capped_at_100() {
-        let q: BuyerShowCommentListQuery = serde_json::from_str(r#"{"page":2,"size":500}"#).unwrap();
+        let q: BuyerShowCommentListQuery =
+            serde_json::from_str(r#"{"page":2,"size":500}"#).unwrap();
         assert_eq!(q.page_no(), 2);
         assert_eq!(q.page_size(), 100);
         assert_eq!(q.page_query().page_size, 100);

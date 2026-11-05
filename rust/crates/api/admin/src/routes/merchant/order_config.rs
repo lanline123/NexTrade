@@ -158,10 +158,9 @@ async fn order_config_detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<OrderConfigVO> {
-    let id = q
-        .id
-        .filter(|v| *v > 0)
-        .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
+    let id =
+        q.id.filter(|v| *v > 0)
+            .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
     ok(state.merchant.order_config.detail(id).await?)
 }
 

@@ -46,13 +46,21 @@ use crate::AdminState;
 
 /// 本域全部 13 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 13] = [
-    ("GET", "/wholesale/product/page", "WholesaleProductController.page"),
+    (
+        "GET",
+        "/wholesale/product/page",
+        "WholesaleProductController.page",
+    ),
     (
         "GET",
         "/wholesale/product/selectable/page",
         "WholesaleProductController.selectablePage",
     ),
-    ("POST", "/wholesale/product/add", "WholesaleProductController.add"),
+    (
+        "POST",
+        "/wholesale/product/add",
+        "WholesaleProductController.add",
+    ),
     (
         "POST",
         "/wholesale/product/batchAdd",
@@ -116,11 +124,20 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/wholesale/product/batchDelete", post(batch_delete))
         .route("/wholesale/product/price/detail", get(price_detail))
         .route("/wholesale/product/price/save", post(price_save))
-        .route("/wholesale/product/price/batchSetCommon", post(batch_set_common))
-        .route("/wholesale/product/price/batchSetByGrade", post(batch_set_grade))
+        .route(
+            "/wholesale/product/price/batchSetCommon",
+            post(batch_set_common),
+        )
+        .route(
+            "/wholesale/product/price/batchSetByGrade",
+            post(batch_set_grade),
+        )
         .route("/wholesale/product/buyRule/detail", get(buy_rule_detail))
         .route("/wholesale/product/buyRule/save", post(buy_rule_save))
-        .route("/wholesale/product/buyRule/batchSave", post(buy_rule_batch_save))
+        .route(
+            "/wholesale/product/buyRule/batchSave",
+            post(buy_rule_batch_save),
+        )
         .route("/wholesale/product/multiple/save", post(multiple_save))
 }
 
@@ -158,7 +175,11 @@ async fn page(
     State(state): State<AdminState>,
     Query(q): Query<WholesaleProductPageQuery>,
 ) -> ApiResult<PageResult<WholesaleProductVO>> {
-    ok(state.wholesale.wholesale_product.page(&q, shop_id()).await?)
+    ok(state
+        .wholesale
+        .wholesale_product
+        .page(&q, shop_id())
+        .await?)
 }
 
 /// `GET /adminapi/wholesale/product/selectable/page`
@@ -178,7 +199,11 @@ async fn add(
     State(state): State<AdminState>,
     Json(dto): Json<WholesaleProductAddDTO>,
 ) -> ApiResult<serde_json::Value> {
-    let product_id = state.wholesale.wholesale_product.add(&dto, shop_id()).await?;
+    let product_id = state
+        .wholesale
+        .wholesale_product
+        .add(&dto, shop_id())
+        .await?;
     ok(serde_json::json!({ "productId": product_id }))
 }
 
@@ -277,7 +302,11 @@ async fn buy_rule_save(
     State(state): State<AdminState>,
     Json(dto): Json<WholesaleBuyRuleSaveDTO>,
 ) -> ApiResult<()> {
-    state.wholesale.wholesale_product.buy_rule_save(&dto).await?;
+    state
+        .wholesale
+        .wholesale_product
+        .buy_rule_save(&dto)
+        .await?;
     ok(())
 }
 
@@ -350,7 +379,11 @@ mod tests {
         let docs = implemented_routes();
         assert_eq!(docs.len(), 13);
         for d in &docs {
-            assert!(d.path.starts_with("/adminapi/wholesale/product/"), "{} 缺少前缀", d.path);
+            assert!(
+                d.path.starts_with("/adminapi/wholesale/product/"),
+                "{} 缺少前缀",
+                d.path
+            );
             assert!(d.java_ref.starts_with("WholesaleProductController."));
         }
     }

@@ -249,7 +249,10 @@ pub struct BatchDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -368,8 +371,15 @@ mod tests {
     fn update_field_is_always_rejected() {
         // 本表没有 GENERAL_FIELDS 里的任何列
         for field in [
-            "logId", "log_id", "refundType", "refund_amount", "status",
-            "is_show", "sort_order", "nope", "",
+            "logId",
+            "log_id",
+            "refundType",
+            "refund_amount",
+            "status",
+            "is_show",
+            "sort_order",
+            "nope",
+            "",
         ] {
             assert_eq!(resolve_update_field(field), None, "{field}");
         }
@@ -390,10 +400,7 @@ mod tests {
         assert_eq!(q.limit_offset(), (100, 200));
         assert_eq!(q.order_clause(), " ORDER BY refund_amount ASC");
         // 列名直传也接受
-        assert_eq!(
-            map_refund_log_column("refund_amount"),
-            "refund_amount"
-        );
+        assert_eq!(map_refund_log_column("refund_amount"), "refund_amount");
         // 未知/注入字符串回退主键
         let q = RefundLogListQuery {
             sort_field: Some("x; DROP TABLE refund_log".into()),

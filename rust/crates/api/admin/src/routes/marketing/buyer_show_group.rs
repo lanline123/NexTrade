@@ -61,7 +61,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/promotion/buyerShow/group/detail", get(group_detail))
         .route("/promotion/buyerShow/group/update", post(group_update))
         .route("/promotion/buyerShow/group/del", post(group_delete))
-        .route("/promotion/buyerShow/group/del/{id}", post(group_delete_path))
+        .route(
+            "/promotion/buyerShow/group/del/{id}",
+            post(group_delete_path),
+        )
 }
 
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
@@ -108,7 +111,11 @@ async fn group_create(
     Json(param): Json<BuyerShowGroupSaveParam>,
 ) -> ApiResult<serde_json::Value> {
     let scope = scope_from_tenant();
-    let buyer_show_group_id = state.marketing.buyer_show_group.create(&param, scope).await?;
+    let buyer_show_group_id = state
+        .marketing
+        .buyer_show_group
+        .create(&param, scope)
+        .await?;
     ok(serde_json::json!({ "buyerShowGroupId": buyer_show_group_id }))
 }
 
@@ -141,7 +148,11 @@ async fn group_detail(
     Query(query): Query<GroupDetailQuery>,
 ) -> ApiResult<BuyerShowGroupVO> {
     let buyer_show_group_id = require_group_id(query.buyer_show_group_id)?;
-    ok(state.marketing.buyer_show_group.detail(buyer_show_group_id).await?)
+    ok(state
+        .marketing
+        .buyer_show_group
+        .detail(buyer_show_group_id)
+        .await?)
 }
 
 /// `POST /adminapi/promotion/buyerShow/group/update`：更新买家秀分组。
@@ -299,7 +310,10 @@ mod tests {
     #[test]
     fn other_or_missing_admin_type_is_unscoped() {
         assert_eq!(
-            resolve_scope(&headers(&[("x-admin-type", "vendor")]), &auth_without_type()),
+            resolve_scope(
+                &headers(&[("x-admin-type", "vendor")]),
+                &auth_without_type()
+            ),
             BuyerShowGroupScope::Unscoped
         );
         assert_eq!(
@@ -330,8 +344,7 @@ mod tests {
 
     #[test]
     fn detail_query_accepts_java_param_name() {
-        let q: GroupDetailQuery =
-            serde_json::from_str(r#"{"buyerShowGroupId":12}"#).unwrap();
+        let q: GroupDetailQuery = serde_json::from_str(r#"{"buyerShowGroupId":12}"#).unwrap();
         assert_eq!(q.buyer_show_group_id, Some(12));
         // 缺失 → None（由 require_group_id 转成 1001「接口参数缺失」）
         let q: GroupDetailQuery = serde_json::from_str("{}").unwrap();

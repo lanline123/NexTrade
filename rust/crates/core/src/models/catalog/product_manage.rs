@@ -135,7 +135,11 @@ impl AdminProductListQuery {
 
     /// 解析 `brandIds`（逗号分隔）。
     pub fn parsed_brand_ids(&self) -> Result<Option<Vec<i32>>, String> {
-        parse_id_csv(self.brand_ids.as_deref(), "非法的品牌ID参数", "品牌ID参数为空")
+        parse_id_csv(
+            self.brand_ids.as_deref(),
+            "非法的品牌ID参数",
+            "品牌ID参数为空",
+        )
     }
 }
 
@@ -151,10 +155,7 @@ pub fn parse_id_csv(
     let Some(raw) = raw.map(str::trim).filter(|s| !s.is_empty()) else {
         return Ok(None);
     };
-    if !raw
-        .chars()
-        .all(|c| c.is_ascii_digit() || c == ',')
-    {
+    if !raw.chars().all(|c| c.is_ascii_digit() || c == ',') {
         return Err(illegal_msg.to_string());
     }
     let ids: Vec<i32> = raw
@@ -1050,8 +1051,7 @@ mod tests {
     #[test]
     fn i32_list_accepts_comma_string_array_and_single() {
         // Spring 习惯：逗号分隔
-        let q: AdminProductListQuery =
-            serde_json::from_str(r#"{"productTypes":"1,2,5"}"#).unwrap();
+        let q: AdminProductListQuery = serde_json::from_str(r#"{"productTypes":"1,2,5"}"#).unwrap();
         assert_eq!(q.product_types, Some(vec![1, 2, 5]));
 
         // 数组（重复键表单 / JSON 数组）
@@ -1160,7 +1160,10 @@ mod tests {
                 "attrList":{"normal":[],"spe":[{"attrName":"颜色","attrList":[{"attrType":1,"attrName":"颜色","attrValue":"红"}]}]}}"#,
         )
         .unwrap();
-        assert_eq!(dto.img_list.as_ref().unwrap()[0].pic_url.as_deref(), Some("a.jpg"));
+        assert_eq!(
+            dto.img_list.as_ref().unwrap()[0].pic_url.as_deref(),
+            Some("a.jpg")
+        );
         assert_eq!(dto.product_desc_arr.as_ref().unwrap().len(), 2);
         assert_eq!(dto.product_list.as_ref().unwrap().len(), 1);
         let spe = dto.attr_list.unwrap().spe;

@@ -17,8 +17,16 @@ use tigshop_security::web::{ok, ApiResult, AuthUser};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 3] = [
-    ("GET", "/finance/subMerchant/list", "SubMerchantController.list"),
-    ("POST", "/finance/subMerchant/bind", "SubMerchantController.bind"),
+    (
+        "GET",
+        "/finance/subMerchant/list",
+        "SubMerchantController.list",
+    ),
+    (
+        "POST",
+        "/finance/subMerchant/bind",
+        "SubMerchantController.bind",
+    ),
     (
         "POST",
         "/finance/subMerchant/unbind",

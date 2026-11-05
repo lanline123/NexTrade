@@ -102,7 +102,9 @@ pub fn zero_money() -> Decimal {
 #[must_use]
 pub fn format_time(secs: Option<i32>) -> String {
     use chrono::TimeZone;
-    let Some(secs) = secs else { return String::new() };
+    let Some(secs) = secs else {
+        return String::new();
+    };
     if secs == 0 {
         return String::new();
     }
@@ -129,7 +131,10 @@ mod tests {
 
     #[test]
     fn validation_and_messages_are_verbatim() {
-        assert_eq!(validate_name(Some("  ")).unwrap_err(), MSG_GROUP_NAME_REQUIRED);
+        assert_eq!(
+            validate_name(Some("  ")).unwrap_err(),
+            MSG_GROUP_NAME_REQUIRED
+        );
         assert!(validate_name(Some("一级")).is_ok());
         assert!(validate_name(None).is_err());
         assert_eq!(MSG_GROUP_NOT_FOUND, "未知的分销员分组");

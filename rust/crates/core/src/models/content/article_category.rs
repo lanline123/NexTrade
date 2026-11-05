@@ -1,4 +1,4 @@
-﻿//! 文章分类管理域（content::article_category）DTO / 纯函数。
+//! 文章分类管理域（content::article_category）DTO / 纯函数。
 //!
 //! 对应原 Java `ArticleCategoryController` 的 3 个端点：
 //! `POST /adminapi/content/articleCategory/update`、`updateField`、`batch`。
@@ -89,7 +89,10 @@ mod tests {
 
     #[test]
     fn field_whitelist_matches_java() {
-        assert_eq!(resolve_field("articleCategoryName"), Some("article_category_name"));
+        assert_eq!(
+            resolve_field("articleCategoryName"),
+            Some("article_category_name")
+        );
         assert_eq!(resolve_field("category_sn"), Some("category_sn"));
         assert_eq!(resolve_field("sortOrder"), Some("sort_order"));
         assert_eq!(resolve_field("parent_id"), None);

@@ -70,7 +70,9 @@ fn page_of(q: &Pg) -> (u64, u64, u64) {
 
 async fn read_cfg(state: &AdminState, code: &str) -> Result<Value, Error> {
     let raw = state.system.config_basic.repo().find_by_code(code).await?;
-    Ok(raw.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_else(|| serde_json::json!({})))
+    Ok(raw
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_else(|| serde_json::json!({})))
 }
 
 macro_rules! list_pg {
@@ -93,10 +95,18 @@ macro_rules! list_pg {
 
 macro_rules! detail_one {
     ($fn_name:ident, $table:literal, $key:literal, $jo:expr) => {
-        async fn $fn_name(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+        async fn $fn_name(
+            State(state): State<AdminState>,
+            Query(q): Query<Pg>,
+        ) -> ApiResult<Value> {
             let row: Option<(Value,)> = sqlx::query_as(&format!(
-                "SELECT JSON_OBJECT({}) FROM `{}` WHERE `{}` = ? LIMIT 1", $jo, $table, $key))
-                .bind(q.id.unwrap_or(0)).fetch_optional(&pool(&state)).await.map_err(db)?;
+                "SELECT JSON_OBJECT({}) FROM `{}` WHERE `{}` = ? LIMIT 1",
+                $jo, $table, $key
+            ))
+            .bind(q.id.unwrap_or(0))
+            .fetch_optional(&pool(&state))
+            .await
+            .map_err(db)?;
             ok(row.map(|(v,)| v).unwrap_or(Value::Null))
         }
     };
@@ -124,11 +134,28 @@ macro_rules! upd_field {
 macro_rules! del_ids {
     ($fn_name:ident, $table:literal, $key:literal) => {
         async fn $fn_name(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
-            let ids = q.ids.clone().or_else(|| q.id.map(|v| vec![v])).unwrap_or_default();
-            if ids.is_empty() { return Err(tigshop_security::web::AppError(Error::Validation("缺少 id".into()))); }
-            let list = ids.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(",");
-            sqlx::query(&format!("DELETE FROM `{}` WHERE `{}` IN ({})", $table, $key, list))
-                .execute(&pool(&state)).await.map_err(db)?;
+            let ids = q
+                .ids
+                .clone()
+                .or_else(|| q.id.map(|v| vec![v]))
+                .unwrap_or_default();
+            if ids.is_empty() {
+                return Err(tigshop_security::web::AppError(Error::Validation(
+                    "缺少 id".into(),
+                )));
+            }
+            let list = ids
+                .iter()
+                .map(|v| v.to_string())
+                .collect::<Vec<_>>()
+                .join(",");
+            sqlx::query(&format!(
+                "DELETE FROM `{}` WHERE `{}` IN ({})",
+                $table, $key, list
+            ))
+            .execute(&pool(&state))
+            .await
+            .map_err(db)?;
             ok(())
         }
     };
@@ -144,20 +171,50 @@ macro_rules! cfg_get {
 
 macro_rules! cfg_set {
     ($fn_name:ident, $code:literal) => {
-        async fn $fn_name(State(state): State<AdminState>, Json(body): Json<serde_json::Map<String, Value>>) -> ApiResult<()> {
-            state.system.config_basic.repo().save_code($code, &Value::Object(body).to_string()).await?;
+        async fn $fn_name(
+            State(state): State<AdminState>,
+            Json(body): Json<serde_json::Map<String, Value>>,
+        ) -> ApiResult<()> {
+            state
+                .system
+                .config_basic
+                .repo()
+                .save_code($code, &Value::Object(body).to_string())
+                .await?;
             ok(())
         }
     };
 }
 
 /// 通用状态更新：body {id 或 ids, status?}（缺省 0=撤回待处理）。
-async fn set_status(state: &AdminState, table: &str, key: &str, q: &Pg, status: i32) -> Result<(), Error> {
-    let ids = q.ids.clone().or_else(|| q.id.map(|v| vec![v])).unwrap_or_default();
-    if ids.is_empty() { return Err(Error::Validation("缺少 id".into())); }
-    let list = ids.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(",");
-    sqlx::query(&format!("UPDATE `{}` SET status = ? WHERE `{}` IN ({})", table, key, list))
-        .bind(status).execute(&pool(state)).await.map_err(db)?;
+async fn set_status(
+    state: &AdminState,
+    table: &str,
+    key: &str,
+    q: &Pg,
+    status: i32,
+) -> Result<(), Error> {
+    let ids = q
+        .ids
+        .clone()
+        .or_else(|| q.id.map(|v| vec![v]))
+        .unwrap_or_default();
+    if ids.is_empty() {
+        return Err(Error::Validation("缺少 id".into()));
+    }
+    let list = ids
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
+    sqlx::query(&format!(
+        "UPDATE `{}` SET status = ? WHERE `{}` IN ({})",
+        table, key, list
+    ))
+    .bind(status)
+    .execute(&pool(state))
+    .await
+    .map_err(db)?;
     Ok(())
 }
 
@@ -174,19 +231,33 @@ del_ids!(h_2, "area_store_manager_shop", "area_store_manager_shop_id");
 list_pg!(h_3, "area_store_manager_shop", "area_store_manager_shop_id", "'area_store_manager_shop_id', area_store_manager_shop_id, 'area_store_manager_id', area_store_manager_id, 'shop_id', shop_id, 'create_time', create_time", "area_store_manager_id");
 
 // get /o2o/decorate/decorate/detail
-detail_one!(h_4, "decorate", "decorate_id", "'decorate_id', decorate_id, 'decorate_title', decorate_title, 'data', data");
+detail_one!(
+    h_4,
+    "decorate",
+    "decorate_id",
+    "'decorate_id', decorate_id, 'decorate_title', decorate_title, 'data', data"
+);
 
 // post /o2o/decorate/decorate/update
 async fn h_5(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     let data = q.value.clone().unwrap_or(Value::Null).to_string();
-    sqlx::query("UPDATE decorate SET data = ? WHERE decorate_id = ?").bind(data).bind(q.id.unwrap_or(0)).execute(&pool(&state)).await.map_err(db)?;
+    sqlx::query("UPDATE decorate SET data = ? WHERE decorate_id = ?")
+        .bind(data)
+        .bind(q.id.unwrap_or(0))
+        .execute(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(())
 }
 
 // post /o2o/dispatch/assign
 async fn h_6(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     // 简化：按 delivery_order 主键指派配送员（staff_id 经 id 传入）
-    sqlx::query("UPDATE delivery_order SET status = 1 WHERE id = ?").bind(q.id.unwrap_or(0)).execute(&pool(&state)).await.map_err(db)?;
+    sqlx::query("UPDATE delivery_order SET status = 1 WHERE id = ?")
+        .bind(q.id.unwrap_or(0))
+        .execute(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(())
 }
 
@@ -199,7 +270,11 @@ async fn h_7(State(state): State<AdminState>) -> ApiResult<Value> {
 // post /order/dispatch/assign
 async fn h_8(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     // 简化：按 delivery_order 主键指派配送员（staff_id 经 id 传入）
-    sqlx::query("UPDATE delivery_order SET status = 1 WHERE id = ?").bind(q.id.unwrap_or(0)).execute(&pool(&state)).await.map_err(db)?;
+    sqlx::query("UPDATE delivery_order SET status = 1 WHERE id = ?")
+        .bind(q.id.unwrap_or(0))
+        .execute(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(())
 }
 
@@ -226,7 +301,10 @@ del_ids!(h_14, "reservation_tpl", "reservation_tpl_id");
 
 // post /o2o/shopPickupConfig/saveShopPickupTpl
 async fn h_15(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     sqlx::query("INSERT INTO shop_pickup_tpl (shop_id, tpl_name, stocking_status, pickup_time_status, pickup_end_status, is_default, create_time, update_time) VALUES (?, ?, 0, 0, 0, 1, ?, ?)")
         .bind(q.shop_id.unwrap_or(0)).bind(q.keyword.clone().unwrap_or_default()).bind(now).bind(now)
         .execute(&pool(&state)).await.map_err(db)?;
@@ -235,14 +313,29 @@ async fn h_15(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<(
 
 // post /o2o/storeProduct/writeOff
 async fn h_16(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i32;
-    sqlx::query("UPDATE order_pickup_shipment SET shipment_status = 1, check_time = ? WHERE order_id = ?")
-        .bind(now).bind(q.order_id.unwrap_or(0)).execute(&pool(&state)).await.map_err(db)?;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i32;
+    sqlx::query(
+        "UPDATE order_pickup_shipment SET shipment_status = 1, check_time = ? WHERE order_id = ?",
+    )
+    .bind(now)
+    .bind(q.order_id.unwrap_or(0))
+    .execute(&pool(&state))
+    .await
+    .map_err(db)?;
     ok(())
 }
 
 // post /o2o/tip/list
-list_pg!(h_17, "tip", "tip_id", "'tip_id', tip_id, 'tip_name', tip_name, 'status', status, 'add_time', add_time", "tip_name");
+list_pg!(
+    h_17,
+    "tip",
+    "tip_id",
+    "'tip_id', tip_id, 'tip_name', tip_name, 'status', status, 'add_time', add_time",
+    "tip_name"
+);
 
 // post /o2o/tip/del
 del_ids!(h_18, "tip", "tip_id");
@@ -274,7 +367,10 @@ async fn h_tip_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> A
 
 // post /o2o/tip/create
 async fn h_tip_create(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<i64> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     let r = sqlx::query("INSERT INTO tip (tip_name, status, add_time) VALUES (?, ?, ?)")
         .bind(q.tip_name.unwrap_or_default())
         .bind(q.status.unwrap_or(1))
@@ -305,7 +401,11 @@ async fn h_tip_update_field(State(state): State<AdminState>, Json(q): Json<Pg>) 
     let column = match field.as_str() {
         "tipName" | "tip_name" => "tip_name",
         "status" => "status",
-        other => return Err(tigshop_security::web::AppError(Error::Validation(format!("不支持字段 {other}")))),
+        other => {
+            return Err(tigshop_security::web::AppError(Error::Validation(format!(
+                "不支持字段 {other}"
+            ))))
+        }
     };
     let val = q.value.unwrap_or(Value::Null);
     let sql = format!("UPDATE tip SET {column} = ? WHERE tip_id = ?");
@@ -356,7 +456,9 @@ async fn h_staff_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> A
     .fetch_all(&pool(&state))
     .await
     .map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
 // get /o2o/serviceStaff/detail
@@ -372,7 +474,10 @@ async fn h_staff_detail(State(state): State<AdminState>, Query(q): Query<Pg>) ->
 }
 
 // get /o2o/serviceStaff/showMobile
-async fn h_staff_show_mobile(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_staff_show_mobile(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let row: Option<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('id', id, 'name', name, 'phone', phone) FROM service_staff WHERE id = ? AND is_delete = 0",
     )
@@ -384,9 +489,20 @@ async fn h_staff_show_mobile(State(state): State<AdminState>, Query(q): Query<Pg
 }
 
 // post /o2o/serviceStaff/create
-async fn h_staff_create(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
-    let gs = |k: &str| body.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
+async fn h_staff_create(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<i64> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+    let gs = |k: &str| {
+        body.get(k)
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string()
+    };
     let gi = |k: &str| body.get(k).and_then(Value::as_i64).unwrap_or(0);
     let r = sqlx::query(
         "INSERT INTO service_staff (name, nickname, avatar, phone, member_id, store_id, type, status, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -409,8 +525,16 @@ async fn h_staff_create(State(state): State<AdminState>, Json(body): Json<Value>
 
 // post /o2o/serviceStaff/update
 async fn h_staff_update(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
-    let gs = |k: &str| body.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+    let gs = |k: &str| {
+        body.get(k)
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string()
+    };
     let gi = |k: &str| body.get(k).and_then(Value::as_i64).unwrap_or(0);
     sqlx::query(
         "UPDATE service_staff SET name = ?, nickname = ?, avatar = ?, phone = ?, member_id = ?, store_id = ?, type = ?, status = ?, update_time = ? WHERE id = ? AND is_delete = 0",
@@ -432,18 +556,32 @@ async fn h_staff_update(State(state): State<AdminState>, Json(body): Json<Value>
 }
 
 // post /o2o/serviceStaff/updateField
-async fn h_staff_update_field(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn h_staff_update_field(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
-    let field = body.get("field").and_then(Value::as_str).unwrap_or_default();
+    let field = body
+        .get("field")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let column = match field {
         "status" => "status",
         "workStatus" | "work_status" => "work_status",
         "name" => "name",
         "phone" => "phone",
         "storeId" | "store_id" => "store_id",
-        other => return Err(tigshop_security::web::AppError(Error::Validation(format!("不支持字段 {other}")))),
+        other => {
+            return Err(tigshop_security::web::AppError(Error::Validation(format!(
+                "不支持字段 {other}"
+            ))))
+        }
     };
-    let val = body.get("val").cloned().or_else(|| body.get("value").cloned()).unwrap_or(Value::Null);
+    let val = body
+        .get("val")
+        .cloned()
+        .or_else(|| body.get("value").cloned())
+        .unwrap_or(Value::Null);
     let sql = format!("UPDATE service_staff SET {column} = ? WHERE id = ? AND is_delete = 0");
     if matches!(column, "status" | "work_status" | "store_id") {
         sqlx::query(&sql)
@@ -467,13 +605,21 @@ async fn h_staff_update_field(State(state): State<AdminState>, Json(body): Json<
 async fn h_staff_del(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
     let ids = json_ids(&body);
     if ids.is_empty() {
-        return Err(tigshop_security::web::AppError(Error::Validation("缺少 id".into())));
+        return Err(tigshop_security::web::AppError(Error::Validation(
+            "缺少 id".into(),
+        )));
     }
-    let list = ids.iter().map(ToString::to_string).collect::<Vec<_>>().join(",");
-    sqlx::query(&format!("UPDATE service_staff SET is_delete = 1 WHERE id IN ({list})"))
-        .execute(&pool(&state))
-        .await
-        .map_err(db)?;
+    let list = ids
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
+    sqlx::query(&format!(
+        "UPDATE service_staff SET is_delete = 1 WHERE id IN ({list})"
+    ))
+    .execute(&pool(&state))
+    .await
+    .map_err(db)?;
     ok(())
 }
 
@@ -496,13 +642,20 @@ fn shop_ids_of(body: &Value) -> Vec<i64> {
     out
 }
 
-async fn replace_area_shops(state: &AdminState, area_id: i64, shop_ids: &[i64]) -> Result<(), tigshop_core::Error> {
+async fn replace_area_shops(
+    state: &AdminState,
+    area_id: i64,
+    shop_ids: &[i64],
+) -> Result<(), tigshop_core::Error> {
     sqlx::query("DELETE FROM area_store_manager_shop WHERE area_store_manager_id = ?")
         .bind(area_id)
         .execute(&pool(state))
         .await
         .map_err(db)?;
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     for shop_id in shop_ids {
         sqlx::query("INSERT INTO area_store_manager_shop (area_store_manager_id, shop_id, create_time) VALUES (?, ?, ?)")
             .bind(area_id)
@@ -525,7 +678,9 @@ async fn h_area_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> 
     .fetch_optional(&pool(&state))
     .await
     .map_err(db)?;
-    let Some((mut obj,)) = row else { return ok(Value::Null) };
+    let Some((mut obj,)) = row else {
+        return ok(Value::Null);
+    };
     let shops: Vec<(i64,)> = sqlx::query_as(
         "SELECT shop_id FROM area_store_manager_shop WHERE area_store_manager_id = ? ORDER BY area_store_manager_shop_id",
     )
@@ -539,8 +694,14 @@ async fn h_area_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> 
 
 // post /o2o/areaStoreManager/create
 async fn h_area_create(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
-    let name = body.get("areaStoreName").and_then(Value::as_str).unwrap_or_default();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+    let name = body
+        .get("areaStoreName")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let sort = body.get("sortOrder").and_then(Value::as_i64).unwrap_or(50);
     let r = sqlx::query("INSERT INTO area_store_manager (area_store_name, sort_order, create_time, update_time) VALUES (?, ?, ?, ?)")
         .bind(name)
@@ -557,9 +718,18 @@ async fn h_area_create(State(state): State<AdminState>, Json(body): Json<Value>)
 
 // post /o2o/areaStoreManager/update
 async fn h_area_update(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
-    let id = body.get("areaStoreManagerId").and_then(Value::as_i64).unwrap_or(0);
-    let name = body.get("areaStoreName").and_then(Value::as_str).unwrap_or_default();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
+    let id = body
+        .get("areaStoreManagerId")
+        .and_then(Value::as_i64)
+        .unwrap_or(0);
+    let name = body
+        .get("areaStoreName")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let sort = body.get("sortOrder").and_then(Value::as_i64).unwrap_or(50);
     sqlx::query("UPDATE area_store_manager SET area_store_name = ?, sort_order = ?, update_time = ? WHERE area_store_manager_id = ?")
         .bind(name)
@@ -574,9 +744,18 @@ async fn h_area_update(State(state): State<AdminState>, Json(body): Json<Value>)
 }
 
 // post /o2o/areaStoreManager/bindShop
-async fn h_area_bind_shop(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let id = body.get("areaStoreManagerId").and_then(Value::as_i64).unwrap_or(0);
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+async fn h_area_bind_shop(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    let id = body
+        .get("areaStoreManagerId")
+        .and_then(Value::as_i64)
+        .unwrap_or(0);
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     for shop_id in shop_ids_of(&body) {
         sqlx::query("INSERT INTO area_store_manager_shop (area_store_manager_id, shop_id, create_time) VALUES (?, ?, ?)")
             .bind(id)
@@ -593,17 +772,27 @@ async fn h_area_bind_shop(State(state): State<AdminState>, Json(body): Json<Valu
 async fn h_area_batch(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
     let ids = json_ids(&body);
     if ids.is_empty() {
-        return Err(tigshop_security::web::AppError(Error::Validation("缺少 id".into())));
+        return Err(tigshop_security::web::AppError(Error::Validation(
+            "缺少 id".into(),
+        )));
     }
-    let list = ids.iter().map(ToString::to_string).collect::<Vec<_>>().join(",");
-    sqlx::query(&format!("DELETE FROM area_store_manager_shop WHERE area_store_manager_id IN ({list})"))
-        .execute(&pool(&state))
-        .await
-        .map_err(db)?;
-    sqlx::query(&format!("DELETE FROM area_store_manager WHERE area_store_manager_id IN ({list})"))
-        .execute(&pool(&state))
-        .await
-        .map_err(db)?;
+    let list = ids
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
+    sqlx::query(&format!(
+        "DELETE FROM area_store_manager_shop WHERE area_store_manager_id IN ({list})"
+    ))
+    .execute(&pool(&state))
+    .await
+    .map_err(db)?;
+    sqlx::query(&format!(
+        "DELETE FROM area_store_manager WHERE area_store_manager_id IN ({list})"
+    ))
+    .execute(&pool(&state))
+    .await
+    .map_err(db)?;
     ok(())
 }
 
@@ -642,11 +831,16 @@ async fn h_delivery_list(State(state): State<AdminState>, Query(q): Query<Pg>) -
     .fetch_all(&pool(&state))
     .await
     .map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
 // get /o2o/deliveryOrder/detail
-async fn h_delivery_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_delivery_detail(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let row: Option<(Value,)> = sqlx::query_as(&format!(
         "SELECT JSON_OBJECT({DELIVERY_JSON}) FROM delivery_order WHERE delivery_order_id = ?"
     ))
@@ -658,16 +852,23 @@ async fn h_delivery_detail(State(state): State<AdminState>, Query(q): Query<Pg>)
 }
 
 // post /o2o/deliveryOrder/dispatch
-async fn h_delivery_dispatch(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn h_delivery_dispatch(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let order_id = body.get("orderId").and_then(Value::as_i64).unwrap_or(0);
     let staff_id = body.get("staffId").and_then(Value::as_i64).unwrap_or(0);
-    let staff: Option<(String, String)> = sqlx::query_as("SELECT name, phone FROM service_staff WHERE id = ? AND is_delete = 0")
-        .bind(staff_id)
-        .fetch_optional(&pool(&state))
-        .await
-        .map_err(db)?;
+    let staff: Option<(String, String)> =
+        sqlx::query_as("SELECT name, phone FROM service_staff WHERE id = ? AND is_delete = 0")
+            .bind(staff_id)
+            .fetch_optional(&pool(&state))
+            .await
+            .map_err(db)?;
     let (name, phone) = staff.unwrap_or_default();
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     sqlx::query("UPDATE delivery_order SET staff_id = ?, staff_name = ?, staff_phone = ?, status = 20, dispatch_mode = 2, dispatch_time = ? WHERE delivery_order_id = ?")
         .bind(staff_id)
         .bind(name)
@@ -681,10 +882,22 @@ async fn h_delivery_dispatch(State(state): State<AdminState>, Json(body): Json<V
 }
 
 // post /o2o/deliveryOrder/cancel
-async fn h_delivery_cancel(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let id = body.get("deliveryOrderId").and_then(Value::as_i64).unwrap_or(0);
-    let reason = body.get("cancelReason").and_then(Value::as_str).unwrap_or_default();
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+async fn h_delivery_cancel(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    let id = body
+        .get("deliveryOrderId")
+        .and_then(Value::as_i64)
+        .unwrap_or(0);
+    let reason = body
+        .get("cancelReason")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     sqlx::query("UPDATE delivery_order SET status = 50, cancel_reason = ?, cancel_time = ? WHERE delivery_order_id = ?")
         .bind(reason)
         .bind(now)
@@ -704,19 +917,24 @@ async fn insert_product_org(
     org_id: i64,
     now: i64,
 ) -> Result<(), Error> {
-    sqlx::query("INSERT INTO product_org (product_id, org_type, org_id, add_time) VALUES (?, ?, ?, ?)")
-        .bind(product_id)
-        .bind(org_type)
-        .bind(org_id)
-        .bind(now)
-        .execute(&pool(state))
-        .await
-        .map_err(db)?;
+    sqlx::query(
+        "INSERT INTO product_org (product_id, org_type, org_id, add_time) VALUES (?, ?, ?, ?)",
+    )
+    .bind(product_id)
+    .bind(org_type)
+    .bind(org_id)
+    .bind(now)
+    .execute(&pool(state))
+    .await
+    .map_err(db)?;
     Ok(())
 }
 
 // get /o2o/productOrg/info/{productId}
-async fn h_product_org_info(State(state): State<AdminState>, Path(product_id): Path<i64>) -> ApiResult<Value> {
+async fn h_product_org_info(
+    State(state): State<AdminState>,
+    Path(product_id): Path<i64>,
+) -> ApiResult<Value> {
     let rows: Vec<(i64, i64)> = sqlx::query_as(
         "SELECT org_type, org_id FROM product_org WHERE product_id = ? ORDER BY product_org_id",
     )
@@ -736,9 +954,15 @@ async fn h_product_org_info(State(state): State<AdminState>, Path(product_id): P
 }
 
 // post /o2o/productOrg/distribution
-async fn h_product_org_distribution(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn h_product_org_distribution(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let product_id = body.get("productId").and_then(Value::as_i64).unwrap_or(0);
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     sqlx::query("DELETE FROM product_org WHERE product_id = ?")
         .bind(product_id)
         .execute(&pool(&state))
@@ -748,7 +972,12 @@ async fn h_product_org_distribution(State(state): State<AdminState>, Json(body):
     if let Some(items) = body.get("orgItems").and_then(Value::as_array) {
         for item in items {
             let org_type = item.get("orgType").and_then(Value::as_i64).unwrap_or(1);
-            for org_id in item.get("orgIds").and_then(Value::as_array).into_iter().flatten() {
+            for org_id in item
+                .get("orgIds")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
                 if let Some(org_id) = org_id.as_i64() {
                     pending.push((org_type, org_id));
                 }
@@ -756,7 +985,12 @@ async fn h_product_org_distribution(State(state): State<AdminState>, Json(body):
         }
     }
     for (key, org_type) in [("regionOrgIds", 2i64), ("shopOrgIds", 1i64)] {
-        for org_id in body.get(key).and_then(Value::as_array).into_iter().flatten() {
+        for org_id in body
+            .get(key)
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
             if let Some(org_id) = org_id.as_i64() {
                 pending.push((org_type, org_id));
             }
@@ -771,7 +1005,10 @@ async fn h_product_org_distribution(State(state): State<AdminState>, Json(body):
 // ————————————————————— O2O 配送员钱包后台 —————————————————————
 
 // get /o2o/serviceStaffWallet/detail
-async fn h_staff_wallet_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_staff_wallet_detail(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let staff_id = q.staff_id.unwrap_or(0);
     let row: Option<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('walletId', wallet_id, 'staffId', staff_id, 'balance', balance, 'frozenBalance', frozen_balance, 'totalIncome', total_income, 'createTime', create_time, 'updateTime', update_time) FROM service_staff_wallet WHERE staff_id = ?",
@@ -793,14 +1030,20 @@ async fn h_staff_wallet_detail(State(state): State<AdminState>, Query(q): Query<
 }
 
 // get /o2o/serviceStaffWallet/logList
-async fn h_staff_wallet_log_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_staff_wallet_log_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let (p, s, off) = page_of(&q);
     let staff_id = q.staff_id.unwrap_or(0);
-    let (total,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM service_staff_wallet_log WHERE (? = 0 OR staff_id = ?)")
-        .bind(staff_id).bind(staff_id)
-        .fetch_one(&pool(&state))
-        .await
-        .map_err(db)?;
+    let (total,): (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM service_staff_wallet_log WHERE (? = 0 OR staff_id = ?)",
+    )
+    .bind(staff_id)
+    .bind(staff_id)
+    .fetch_one(&pool(&state))
+    .await
+    .map_err(db)?;
     let rows: Vec<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('logId', log_id, 'staffId', staff_id, 'orderId', order_id, 'withdrawId', withdraw_id, 'transactionSn', transaction_sn, 'amount', amount, 'balanceAfter', balance_after, 'frozenAfter', frozen_after, 'businessType', business_type, 'type', type, 'remark', remark, 'createTime', create_time) FROM service_staff_wallet_log WHERE (? = 0 OR staff_id = ?) ORDER BY log_id DESC LIMIT ? OFFSET ?",
     )
@@ -808,7 +1051,9 @@ async fn h_staff_wallet_log_list(State(state): State<AdminState>, Query(q): Quer
     .fetch_all(&pool(&state))
     .await
     .map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "size": s, "current": p, "pages": (total as u64 + s - 1) / s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "size": s, "current": p, "pages": (total as u64 + s - 1) / s}),
+    )
 }
 
 // ————————————————————— 财务：员工提现/钱包 —————————————————————
@@ -825,13 +1070,35 @@ async fn finance_withdraw_list(
     let staff_id = q.staff_id.unwrap_or(0);
     let count_sql = "SELECT COUNT(*) FROM service_staff_withdraw w LEFT JOIN service_staff s ON s.id = w.staff_id WHERE w.is_delete = 0 AND (? = 0 OR w.business_type = ?) AND (? = -1 OR w.status = ?) AND (? = 0 OR w.staff_id = ?) AND (w.withdraw_sn LIKE ? OR s.name LIKE ?)".to_string();
     let (total,): (i64,) = sqlx::query_as(&count_sql)
-        .bind(btype).bind(btype).bind(status).bind(status).bind(staff_id).bind(staff_id).bind(&kw).bind(&kw)
-        .fetch_one(&pool(state)).await.map_err(db)?;
+        .bind(btype)
+        .bind(btype)
+        .bind(status)
+        .bind(status)
+        .bind(staff_id)
+        .bind(staff_id)
+        .bind(&kw)
+        .bind(&kw)
+        .fetch_one(&pool(state))
+        .await
+        .map_err(db)?;
     let list_sql = "SELECT JSON_OBJECT('withdrawId', w.withdraw_id, 'withdrawSn', w.withdraw_sn, 'staffId', w.staff_id, 'staffName', s.name, 'staffPhone', s.phone, 'businessType', w.business_type, 'amount', w.amount, 'status', w.status, 'accountId', w.account_id, 'accountType', w.account_type, 'accountName', w.account_name, 'accountNo', w.account_no, 'bankName', w.bank_name, 'adminRemark', w.admin_remark, 'paymentVoucher', w.payment_voucher, 'rejectReason', w.reject_reason, 'applyTime', w.apply_time, 'auditTime', w.audit_time) FROM service_staff_withdraw w LEFT JOIN service_staff s ON s.id = w.staff_id WHERE w.is_delete = 0 AND (? = 0 OR w.business_type = ?) AND (? = -1 OR w.status = ?) AND (? = 0 OR w.staff_id = ?) AND (w.withdraw_sn LIKE ? OR s.name LIKE ?) ORDER BY w.withdraw_id DESC LIMIT ? OFFSET ?".to_string();
     let rows: Vec<(Value,)> = sqlx::query_as(&list_sql)
-        .bind(btype).bind(btype).bind(status).bind(status).bind(staff_id).bind(staff_id).bind(&kw).bind(&kw).bind(s).bind(off)
-        .fetch_all(&pool(state)).await.map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+        .bind(btype)
+        .bind(btype)
+        .bind(status)
+        .bind(status)
+        .bind(staff_id)
+        .bind(staff_id)
+        .bind(&kw)
+        .bind(&kw)
+        .bind(s)
+        .bind(off)
+        .fetch_all(&pool(state))
+        .await
+        .map_err(db)?;
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
 async fn finance_withdraw_detail(state: &AdminState, q: &Pg) -> ApiResult<Value> {
@@ -844,21 +1111,41 @@ async fn finance_withdraw_detail(state: &AdminState, q: &Pg) -> ApiResult<Value>
 }
 
 async fn finance_withdraw_audit(state: &AdminState, body: &Value) -> ApiResult<()> {
-    let withdraw_id = body.get("withdrawId").or_else(|| body.get("id")).and_then(Value::as_i64).unwrap_or(0);
+    let withdraw_id = body
+        .get("withdrawId")
+        .or_else(|| body.get("id"))
+        .and_then(Value::as_i64)
+        .unwrap_or(0);
     let status = body.get("status").and_then(Value::as_i64).unwrap_or(0);
-    let remark = body.get("adminRemark").and_then(Value::as_str).unwrap_or_default();
-    let voucher = body.get("paymentVoucher").and_then(Value::as_str).unwrap_or_default();
-    let reject = body.get("rejectReason").and_then(Value::as_str).unwrap_or_default();
+    let remark = body
+        .get("adminRemark")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let voucher = body
+        .get("paymentVoucher")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let reject = body
+        .get("rejectReason")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let row: Option<(i64, rust_decimal::Decimal, i64, i64)> = sqlx::query_as(
         "SELECT staff_id, amount, business_type, status FROM service_staff_withdraw WHERE withdraw_id = ? AND is_delete = 0",
     ).bind(withdraw_id).fetch_optional(&pool(state)).await.map_err(db)?;
     let Some((staff_id, amount, business_type, old_status)) = row else {
-        return Err(tigshop_security::web::AppError(Error::Validation("提现单不存在".into())));
+        return Err(tigshop_security::web::AppError(Error::Validation(
+            "提现单不存在".into(),
+        )));
     };
     if old_status != 0 {
-        return Err(tigshop_security::web::AppError(Error::Validation("该提现单已审核".into())));
+        return Err(tigshop_security::web::AppError(Error::Validation(
+            "该提现单已审核".into(),
+        )));
     }
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64;
     sqlx::query("UPDATE service_staff_withdraw SET status = ?, admin_remark = ?, payment_voucher = ?, reject_reason = ?, audit_time = ?, update_time = ? WHERE withdraw_id = ?")
         .bind(status).bind(remark).bind(voucher).bind(reject).bind(now).bind(now).bind(withdraw_id)
         .execute(&pool(state)).await.map_err(db)?;
@@ -879,24 +1166,57 @@ async fn finance_withdraw_audit(state: &AdminState, body: &Value) -> ApiResult<(
 }
 
 // GET /finance/staffFundWithdraw/list | /deliveryStaffWithdraw/list | /serverStaffWithdraw/list
-async fn h_fin_staff_withdraw_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { finance_withdraw_list(&state, None, &q).await }
-async fn h_fin_delivery_withdraw_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { finance_withdraw_list(&state, Some(1), &q).await }
-async fn h_fin_server_withdraw_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { finance_withdraw_list(&state, Some(2), &q).await }
-async fn h_fin_staff_withdraw_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { finance_withdraw_detail(&state, &q).await }
-async fn h_fin_staff_withdraw_audit(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> { finance_withdraw_audit(&state, &body).await }
+async fn h_fin_staff_withdraw_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
+    finance_withdraw_list(&state, None, &q).await
+}
+async fn h_fin_delivery_withdraw_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
+    finance_withdraw_list(&state, Some(1), &q).await
+}
+async fn h_fin_server_withdraw_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
+    finance_withdraw_list(&state, Some(2), &q).await
+}
+async fn h_fin_staff_withdraw_detail(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
+    finance_withdraw_detail(&state, &q).await
+}
+async fn h_fin_staff_withdraw_audit(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    finance_withdraw_audit(&state, &body).await
+}
 
 // GET /finance/staffFundWallet/overview|ranking|staffList|incomeTrend
 async fn h_fin_wallet_overview(State(state): State<AdminState>) -> ApiResult<Value> {
     let row: Option<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('totalIncome', COALESCE(SUM(total_income),0), 'availableBalance', COALESCE(SUM(balance),0), 'frozenBalance', COALESCE(SUM(frozen_balance),0)) FROM service_staff_wallet",
     ).fetch_optional(&pool(&state)).await.map_err(db)?;
-    let (withdrawn,): (Value,) = sqlx::query_as("SELECT COALESCE(SUM(ABS(amount)),0) FROM service_staff_wallet_log WHERE type = 2").fetch_one(&pool(&state)).await.map_err(db)?;
+    let (withdrawn,): (Value,) = sqlx::query_as(
+        "SELECT COALESCE(SUM(ABS(amount)),0) FROM service_staff_wallet_log WHERE type = 2",
+    )
+    .fetch_one(&pool(&state))
+    .await
+    .map_err(db)?;
     let mut obj = row.map(|(v,)| v).unwrap_or_else(|| serde_json::json!({}));
     obj["totalWithdrawn"] = withdrawn;
     ok(obj)
 }
 
-async fn h_fin_wallet_staff_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_fin_wallet_staff_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let (p, s, off) = page_of(&q);
     let kw = format!("%{}%", q.keyword.clone().unwrap_or_default().trim());
     let btype = q.business_type.unwrap_or(0);
@@ -906,14 +1226,22 @@ async fn h_fin_wallet_staff_list(State(state): State<AdminState>, Query(q): Quer
     let rows: Vec<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('staffId', s.id, 'staffName', s.name, 'staffPhone', s.phone, 'type', s.type, 'status', s.status, 'workStatus', s.work_status, 'balance', COALESCE(w.balance,0), 'frozenBalance', COALESCE(w.frozen_balance,0), 'totalIncome', COALESCE(w.total_income,0)) FROM service_staff s LEFT JOIN service_staff_wallet w ON w.staff_id = s.id WHERE s.is_delete = 0 AND (? = 0 OR s.type = ?) AND s.name LIKE ? ORDER BY s.id DESC LIMIT ? OFFSET ?",
     ).bind(btype).bind(btype).bind(&kw).bind(s).bind(off).fetch_all(&pool(&state)).await.map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
-async fn h_fin_wallet_ranking(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_fin_wallet_ranking(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     h_fin_wallet_staff_list(State(state), Query(q)).await
 }
 
-async fn h_fin_wallet_log_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_fin_wallet_log_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let (p, s, off) = page_of(&q);
     let btype = q.business_type.unwrap_or(0);
     let (total,): (i64,) = sqlx::query_as(
@@ -922,10 +1250,15 @@ async fn h_fin_wallet_log_list(State(state): State<AdminState>, Query(q): Query<
     let rows: Vec<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('logId', l.log_id, 'staffId', l.staff_id, 'staffName', s.name, 'orderId', l.order_id, 'withdrawId', l.withdraw_id, 'transactionSn', l.transaction_sn, 'amount', l.amount, 'balanceAfter', l.balance_after, 'frozenAfter', l.frozen_after, 'businessType', l.business_type, 'type', l.type, 'remark', l.remark, 'createTime', l.create_time) FROM service_staff_wallet_log l LEFT JOIN service_staff s ON s.id = l.staff_id WHERE (? = 0 OR l.business_type = ?) ORDER BY l.log_id DESC LIMIT ? OFFSET ?",
     ).bind(btype).bind(btype).bind(s).bind(off).fetch_all(&pool(&state)).await.map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
-async fn h_fin_wallet_log_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_fin_wallet_log_detail(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let row: Option<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('staffId', id, 'walletId', w.wallet_id, 'balance', w.balance, 'frozenBalance', w.frozen_balance, 'totalIncome', w.total_income, 'staffName', name, 'staffPhone', phone) FROM service_staff s LEFT JOIN service_staff_wallet w ON w.staff_id = s.id WHERE s.id = ?",
     ).bind(q.staff_id.unwrap_or(0)).fetch_optional(&pool(&state)).await.map_err(db)?;
@@ -940,17 +1273,19 @@ async fn h_fin_wallet_income_trend(State(state): State<AdminState>) -> ApiResult
 }
 
 // GET /finance/statement/getStatementDownloadList
-async fn h_statement_download_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_statement_download_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let (p, s, off) = page_of(&q);
     let kw = format!("%{}%", q.keyword.clone().unwrap_or_default().trim());
-    let (total,): (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM statement_download WHERE (? = '%%' OR remark LIKE ?)",
-    )
-    .bind(&kw)
-    .bind(&kw)
-    .fetch_one(&pool(&state))
-    .await
-    .map_err(db)?;
+    let (total,): (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM statement_download WHERE (? = '%%' OR remark LIKE ?)")
+            .bind(&kw)
+            .bind(&kw)
+            .fetch_one(&pool(&state))
+            .await
+            .map_err(db)?;
     let rows: Vec<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('statementDownloadId', statement_download_id, 'vendorId', vendor_id, 'shopId', shop_id, 'gmtCreate', gmt_create, 'startTime', start_time, 'endTime', end_time, 'remark', remark) FROM statement_download WHERE (? = '%%' OR remark LIKE ?) ORDER BY statement_download_id DESC LIMIT ? OFFSET ?",
     )
@@ -961,21 +1296,25 @@ async fn h_statement_download_list(State(state): State<AdminState>, Query(q): Qu
     .fetch_all(&pool(&state))
     .await
     .map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
 // GET /pos/order/OrderReservation/list
-async fn h_order_reservation_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_order_reservation_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let (p, s, off) = page_of(&q);
     let order_id = q.order_id.unwrap_or(0);
-    let (total,): (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM order_reservations WHERE (? = 0 OR order_id = ?)",
-    )
-    .bind(order_id)
-    .bind(order_id)
-    .fetch_one(&pool(&state))
-    .await
-    .map_err(db)?;
+    let (total,): (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM order_reservations WHERE (? = 0 OR order_id = ?)")
+            .bind(order_id)
+            .bind(order_id)
+            .fetch_one(&pool(&state))
+            .await
+            .map_err(db)?;
     let rows: Vec<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('orderReservationsId', order_reservations_id, 'orderId', order_id, 'productReservationTimeId', product_reservation_time_id, 'skuId', sku_id, 'reservationDate', reservation_date, 'startTime', start_time, 'endTime', end_time, 'timeSlotDescription', time_slot_description, 'addTime', add_time) FROM order_reservations WHERE (? = 0 OR order_id = ?) ORDER BY order_reservations_id DESC LIMIT ? OFFSET ?",
     )
@@ -986,7 +1325,9 @@ async fn h_order_reservation_list(State(state): State<AdminState>, Query(q): Que
     .fetch_all(&pool(&state))
     .await
     .map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
 // 财务提现设置（JSON 配置表）
@@ -1002,22 +1343,40 @@ async fn h_supplier_list(State(state): State<AdminState>, Query(q): Query<Pg>) -
     let kw = format!("%{}%", q.keyword.clone().unwrap_or_default().trim());
     let (total,): (i64,) = sqlx::query_as(
         "SELECT COUNT(*) FROM suppliers WHERE suppliers_name LIKE ? OR contact_name LIKE ?",
-    ).bind(&kw).bind(&kw).fetch_one(&pool(&state)).await.map_err(db)?;
+    )
+    .bind(&kw)
+    .bind(&kw)
+    .fetch_one(&pool(&state))
+    .await
+    .map_err(db)?;
     let rows: Vec<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('suppliersId', suppliers_id, 'suppliersName', suppliers_name, 'suppliersDesc', suppliers_desc, 'isCheck', is_check, 'country', country, 'province', province, 'city', city, 'district', district, 'contactName', contact_name, 'contactPhone', contact_phone, 'contactAddress', contact_address, 'isShow', is_show, 'shopId', shop_id) FROM suppliers WHERE suppliers_name LIKE ? OR contact_name LIKE ? ORDER BY suppliers_id DESC LIMIT ? OFFSET ?",
     ).bind(&kw).bind(&kw).bind(s).bind(off).fetch_all(&pool(&state)).await.map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "total": total, "page": p, "size": s}),
+    )
 }
 
-async fn h_supplier_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn h_supplier_detail(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let row: Option<(Value,)> = sqlx::query_as(
         "SELECT JSON_OBJECT('suppliersId', suppliers_id, 'suppliersName', suppliers_name, 'suppliersDesc', suppliers_desc, 'isCheck', is_check, 'country', country, 'province', province, 'city', city, 'district', district, 'contactName', contact_name, 'contactPhone', contact_phone, 'contactAddress', contact_address, 'isShow', is_show, 'shopId', shop_id) FROM suppliers WHERE suppliers_id = ?",
     ).bind(q.id.unwrap_or(0)).fetch_optional(&pool(&state)).await.map_err(db)?;
     ok(row.map(|(v,)| v).unwrap_or(Value::Null))
 }
 
-async fn h_supplier_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
-    let gs = |k: &str| body.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
+async fn h_supplier_save(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<i64> {
+    let gs = |k: &str| {
+        body.get(k)
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_string()
+    };
     let gi = |k: &str| body.get(k).and_then(Value::as_i64).unwrap_or(0);
     let id = gi("suppliersId");
     if id > 0 {
@@ -1038,21 +1397,45 @@ async fn h_supplier_save(State(state): State<AdminState>, Json(body): Json<Value
     ok(r.last_insert_id() as i64)
 }
 
-async fn h_supplier_update_field(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn h_supplier_update_field(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
-    let field = body.get("field").and_then(Value::as_str).unwrap_or_default();
+    let field = body
+        .get("field")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
     let column = match field {
         "isCheck" | "is_check" => "is_check",
         "isShow" | "is_show" => "is_show",
         "suppliersName" | "suppliers_name" => "suppliers_name",
-        other => return Err(tigshop_security::web::AppError(Error::Validation(format!("不支持字段 {other}")))),
+        other => {
+            return Err(tigshop_security::web::AppError(Error::Validation(format!(
+                "不支持字段 {other}"
+            ))))
+        }
     };
-    let val = body.get("val").cloned().or_else(|| body.get("value").cloned()).unwrap_or(Value::Null);
+    let val = body
+        .get("val")
+        .cloned()
+        .or_else(|| body.get("value").cloned())
+        .unwrap_or(Value::Null);
     let sql = format!("UPDATE suppliers SET {column} = ? WHERE suppliers_id = ?");
     if matches!(column, "is_check" | "is_show") {
-        sqlx::query(&sql).bind(val.as_i64().unwrap_or(0)).bind(id).execute(&pool(&state)).await.map_err(db)?;
+        sqlx::query(&sql)
+            .bind(val.as_i64().unwrap_or(0))
+            .bind(id)
+            .execute(&pool(&state))
+            .await
+            .map_err(db)?;
     } else {
-        sqlx::query(&sql).bind(val.as_str().unwrap_or_default()).bind(id).execute(&pool(&state)).await.map_err(db)?;
+        sqlx::query(&sql)
+            .bind(val.as_str().unwrap_or_default())
+            .bind(id)
+            .execute(&pool(&state))
+            .await
+            .map_err(db)?;
     }
     ok(())
 }
@@ -1060,54 +1443,113 @@ async fn h_supplier_update_field(State(state): State<AdminState>, Json(body): Js
 async fn h_supplier_del(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
     let ids = json_ids(&body);
     if ids.is_empty() {
-        return Err(tigshop_security::web::AppError(Error::Validation("缺少 id".into())));
+        return Err(tigshop_security::web::AppError(Error::Validation(
+            "缺少 id".into(),
+        )));
     }
-    let list = ids.iter().map(ToString::to_string).collect::<Vec<_>>().join(",");
-    sqlx::query(&format!("DELETE FROM suppliers WHERE suppliers_id IN ({list})"))
-        .execute(&pool(&state)).await.map_err(db)?;
+    let list = ids
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
+    sqlx::query(&format!(
+        "DELETE FROM suppliers WHERE suppliers_id IN ({list})"
+    ))
+    .execute(&pool(&state))
+    .await
+    .map_err(db)?;
     ok(())
 }
 
-async fn h_supplier_batch(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn h_supplier_batch(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     h_supplier_del(State(state), Json(body)).await
 }
 
 // POST /promotion/lotteryActivity/updateStatus
-async fn h_lottery_update_status(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let id = body.get("activityId").or_else(|| body.get("id")).and_then(Value::as_i64).unwrap_or(0);
+async fn h_lottery_update_status(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    let id = body
+        .get("activityId")
+        .or_else(|| body.get("id"))
+        .and_then(Value::as_i64)
+        .unwrap_or(0);
     let status = body.get("status").and_then(Value::as_i64).unwrap_or(0);
     sqlx::query("UPDATE lottery_activity SET status = ? WHERE activity_id = ?")
-        .bind(status).bind(id)
-        .execute(&pool(&state)).await.map_err(db)?;
+        .bind(status)
+        .bind(id)
+        .execute(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(())
 }
 
 // post /pos/table/cart/list
-async fn h_22(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<tigshop_core::models::pos::cashier::PosCartVO> {
-    ok(state.pos.cashier.cart(0, 0, q.id.unwrap_or(0) as i32).await?)
+async fn h_22(
+    State(state): State<AdminState>,
+    Json(q): Json<Pg>,
+) -> ApiResult<tigshop_core::models::pos::cashier::PosCartVO> {
+    ok(state
+        .pos
+        .cashier
+        .cart(0, 0, q.id.unwrap_or(0) as i32)
+        .await?)
 }
 
 // post /pos/table/cart/addToCart
 async fn h_23(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<i64> {
     use tigshop_core::models::pos::cashier::PosCartAddDTO;
-    ok(state.pos.cashier.add_to_cart(0, &PosCartAddDTO {
-        product_id: q.product_id.unwrap_or(0),
-        table_id: q.id.map(|v| v as i32),
-        ..Default::default()
-    }).await?)
+    ok(state
+        .pos
+        .cashier
+        .add_to_cart(
+            0,
+            &PosCartAddDTO {
+                product_id: q.product_id.unwrap_or(0),
+                table_id: q.id.map(|v| v as i32),
+                ..Default::default()
+            },
+        )
+        .await?)
 }
 
 // post /pos/table/cart/removeItem
 async fn h_24(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     use tigshop_core::models::pos::cashier::PosCartRemoveDTO;
-    state.pos.cashier.remove_items(0, &PosCartRemoveDTO { item_ids: q.ids.clone(), ..Default::default() }).await?;
+    state
+        .pos
+        .cashier
+        .remove_items(
+            0,
+            &PosCartRemoveDTO {
+                item_ids: q.ids.clone(),
+                ..Default::default()
+            },
+        )
+        .await?;
     ok(())
 }
 
 // post /pos/table/cart/updateItem
 async fn h_25(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     use tigshop_core::models::pos::cashier::PosCartUpdateDTO;
-    state.pos.cashier.update_item(0, &PosCartUpdateDTO { item_id: q.id, quantity: q.status, is_checked: None, ..Default::default() }).await?;
+    state
+        .pos
+        .cashier
+        .update_item(
+            0,
+            &PosCartUpdateDTO {
+                item_id: q.id,
+                quantity: q.status,
+                is_checked: None,
+                ..Default::default()
+            },
+        )
+        .await?;
     ok(())
 }
 
@@ -1171,15 +1613,23 @@ async fn h_39(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult
 del_ids!(h_40, "message_type", "message_id");
 
 // post /setting/messageType/miniProgramMessageTemplateSync
-async fn h_41(_state: State<AdminState>) -> ApiResult<()> { ok(()) }
+async fn h_41(_state: State<AdminState>) -> ApiResult<()> {
+    ok(())
+}
 
 // post /setting/messageType/wechatMessageTemplateSync
-async fn h_42(_state: State<AdminState>) -> ApiResult<()> { ok(()) }
+async fn h_42(_state: State<AdminState>) -> ApiResult<()> {
+    ok(())
+}
 
 // post /content/articleCategory/moveCat
 async fn h_43(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     sqlx::query("UPDATE article_category SET parent_id = ? WHERE article_category_id = ?")
-        .bind(q.parent_id.unwrap_or(0)).bind(q.id.unwrap_or(0)).execute(&pool(&state)).await.map_err(db)?;
+        .bind(q.parent_id.unwrap_or(0))
+        .bind(q.id.unwrap_or(0))
+        .execute(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(())
 }
 
@@ -1187,7 +1637,11 @@ async fn h_43(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<(
 async fn h_44(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
     // shop 商品分类表按 shop_id 区分（表名 shop_product_category，主键 product_category_id）
     sqlx::query("UPDATE shop_product_category SET parent_id = ? WHERE product_category_id = ?")
-        .bind(q.parent_id.unwrap_or(0)).bind(q.id.unwrap_or(0)).execute(&pool(&state)).await.map_err(db)?;
+        .bind(q.parent_id.unwrap_or(0))
+        .bind(q.id.unwrap_or(0))
+        .execute(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(())
 }
 
@@ -1199,7 +1653,10 @@ list_pg!(h_46, "merchant", "merchant_id", "'merchant_id', merchant_id, 'merchant
 
 // get /merchant/merchant/userCount
 async fn h_47(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
-    let (c,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user").fetch_one(&pool(&state)).await.map_err(db)?;
+    let (c,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM user")
+        .fetch_one(&pool(&state))
+        .await
+        .map_err(db)?;
     ok(serde_json::json!({ "count": c }))
 }
 
@@ -1208,7 +1665,14 @@ cfg_get!(h_48, "platformAllocation");
 
 // post /order/aftersales/batch
 async fn h_49(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<()> {
-    set_status(&state, "aftersales", "aftersales_id", &q, q.status.unwrap_or(0)).await?;
+    set_status(
+        &state,
+        "aftersales",
+        "aftersales_id",
+        &q,
+        q.status.unwrap_or(0),
+    )
+    .await?;
     ok(())
 }
 
@@ -1216,7 +1680,12 @@ async fn h_49(State(state): State<AdminState>, Json(q): Json<Pg>) -> ApiResult<(
 // get /order/aftersales/returnGoodsStatus —— 见 trade::aftersales（重复，未挂载）
 
 // post /order/aftersales/updateField
-upd_field!(h_52, "aftersales", "aftersale_id", ["status", "adminRemark"]);
+upd_field!(
+    h_52,
+    "aftersales",
+    "aftersale_id",
+    ["status", "adminRemark"]
+);
 
 // post /order/order/updateField
 upd_field!(h_53, "order", "order_id", ["order_status", "admin_remark"]);
@@ -1250,12 +1719,16 @@ del_ids!(h_62, "unipush_log", "unipush_log_id");
 
 // get /user/oauth/render
 async fn h_63(_state: State<AdminState>, Query(_q): Query<Pg>) -> ApiResult<()> {
-    Err(tigshop_security::web::AppError(Error::Validation("OAuth 未配置".into())))
+    Err(tigshop_security::web::AppError(Error::Validation(
+        "OAuth 未配置".into(),
+    )))
 }
 
 // get /user/oauth/callback
 async fn h_64(_state: State<AdminState>) -> ApiResult<()> {
-    Err(tigshop_security::web::AppError(Error::Validation("OAuth 未配置".into())))
+    Err(tigshop_security::web::AppError(Error::Validation(
+        "OAuth 未配置".into(),
+    )))
 }
 
 // get /finance/serverFundManagement/settings/detail
@@ -1274,7 +1747,12 @@ list_pg!(h_68, "decorate", "decorate_id", "'decorate_id', decorate_id, 'decorate
 del_ids!(h_69, "decorate", "decorate_id");
 
 // post /decorate/mobileDecorate/updateField
-upd_field!(h_70, "decorate", "decorate_id", ["decorate_title", "is_home"]);
+upd_field!(
+    h_70,
+    "decorate",
+    "decorate_id",
+    ["decorate_title", "is_home"]
+);
 
 // post /decorate/decorateRequest/productList
 async fn h_71(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
@@ -1282,7 +1760,9 @@ async fn h_71(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult
     let kw = format!("%{}%", q.keyword.clone().unwrap_or_default().trim());
     let rows: Vec<(Value,)> = sqlx::query_as("SELECT JSON_OBJECT('productId', product_id, 'productName', product_name, 'picThumb', pic_thumb, 'productPrice', product_price) FROM product WHERE product_name LIKE ? ORDER BY product_id DESC LIMIT ? OFFSET ?")
         .bind(&kw).bind(s).bind(off).fetch_all(&pool(&state)).await.map_err(db)?;
-    ok(serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "page": p, "size": s}))
+    ok(
+        serde_json::json!({"records": rows.into_iter().map(|(v,)| v).collect::<Vec<_>>(), "page": p, "size": s}),
+    )
 }
 
 /// 域路由（挂载于 /adminapi 下）。
@@ -1303,37 +1783,109 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/o2o/deliveryOrder/dispatch", post(h_delivery_dispatch))
         .route("/o2o/deliveryOrder/cancel", post(h_delivery_cancel))
         .route("/o2o/productOrg/info/{productId}", get(h_product_org_info))
-        .route("/o2o/productOrg/distribution", post(h_product_org_distribution))
+        .route(
+            "/o2o/productOrg/distribution",
+            post(h_product_org_distribution),
+        )
         .route("/o2o/serviceStaffWallet/detail", get(h_staff_wallet_detail))
-        .route("/o2o/serviceStaffWallet/logList", get(h_staff_wallet_log_list))
-        .route("/finance/staffFundWithdraw/list", get(h_fin_staff_withdraw_list))
-        .route("/finance/staffFundWithdraw/detail", get(h_fin_staff_withdraw_detail))
-        .route("/finance/staffFundWithdraw/audit", post(h_fin_staff_withdraw_audit))
-        .route("/finance/deliveryStaffWithdraw/list", get(h_fin_delivery_withdraw_list))
-        .route("/finance/deliveryStaffWithdraw/detail", get(h_fin_staff_withdraw_detail))
-        .route("/finance/deliveryStaffWithdraw/audit", post(h_fin_staff_withdraw_audit))
-        .route("/finance/serverStaffWithdraw/list", get(h_fin_server_withdraw_list))
-        .route("/finance/serverStaffWithdraw/detail", get(h_fin_staff_withdraw_detail))
-        .route("/finance/serverStaffWithdraw/audit", post(h_fin_staff_withdraw_audit))
-        .route("/finance/staffFundWallet/overview", get(h_fin_wallet_overview))
-        .route("/finance/staffFundWallet/staffList", get(h_fin_wallet_staff_list))
-        .route("/finance/staffFundWallet/ranking", get(h_fin_wallet_ranking))
-        .route("/finance/staffFundWallet/incomeTrend", get(h_fin_wallet_income_trend))
-        .route("/finance/staffFundWalletLog/list", get(h_fin_wallet_log_list))
-        .route("/finance/staffFundWalletLog/walletDetail", get(h_fin_wallet_log_detail))
-        .route("/finance/deliveryFundManagement/settings/detail", get(h_fin_delivery_cfg))
-        .route("/finance/deliveryFundManagement/settings/save", post(h_fin_delivery_cfg_save))
-        .route("/finance/serverFundManagement/settings/save", post(h_fin_server_cfg_save))
-        .route("/finance/statement/getStatementDownloadList", get(h_statement_download_list))
-        .route("/pos/order/OrderReservation/list", get(h_order_reservation_list))
+        .route(
+            "/o2o/serviceStaffWallet/logList",
+            get(h_staff_wallet_log_list),
+        )
+        .route(
+            "/finance/staffFundWithdraw/list",
+            get(h_fin_staff_withdraw_list),
+        )
+        .route(
+            "/finance/staffFundWithdraw/detail",
+            get(h_fin_staff_withdraw_detail),
+        )
+        .route(
+            "/finance/staffFundWithdraw/audit",
+            post(h_fin_staff_withdraw_audit),
+        )
+        .route(
+            "/finance/deliveryStaffWithdraw/list",
+            get(h_fin_delivery_withdraw_list),
+        )
+        .route(
+            "/finance/deliveryStaffWithdraw/detail",
+            get(h_fin_staff_withdraw_detail),
+        )
+        .route(
+            "/finance/deliveryStaffWithdraw/audit",
+            post(h_fin_staff_withdraw_audit),
+        )
+        .route(
+            "/finance/serverStaffWithdraw/list",
+            get(h_fin_server_withdraw_list),
+        )
+        .route(
+            "/finance/serverStaffWithdraw/detail",
+            get(h_fin_staff_withdraw_detail),
+        )
+        .route(
+            "/finance/serverStaffWithdraw/audit",
+            post(h_fin_staff_withdraw_audit),
+        )
+        .route(
+            "/finance/staffFundWallet/overview",
+            get(h_fin_wallet_overview),
+        )
+        .route(
+            "/finance/staffFundWallet/staffList",
+            get(h_fin_wallet_staff_list),
+        )
+        .route(
+            "/finance/staffFundWallet/ranking",
+            get(h_fin_wallet_ranking),
+        )
+        .route(
+            "/finance/staffFundWallet/incomeTrend",
+            get(h_fin_wallet_income_trend),
+        )
+        .route(
+            "/finance/staffFundWalletLog/list",
+            get(h_fin_wallet_log_list),
+        )
+        .route(
+            "/finance/staffFundWalletLog/walletDetail",
+            get(h_fin_wallet_log_detail),
+        )
+        .route(
+            "/finance/deliveryFundManagement/settings/detail",
+            get(h_fin_delivery_cfg),
+        )
+        .route(
+            "/finance/deliveryFundManagement/settings/save",
+            post(h_fin_delivery_cfg_save),
+        )
+        .route(
+            "/finance/serverFundManagement/settings/save",
+            post(h_fin_server_cfg_save),
+        )
+        .route(
+            "/finance/statement/getStatementDownloadList",
+            get(h_statement_download_list),
+        )
+        .route(
+            "/pos/order/OrderReservation/list",
+            get(h_order_reservation_list),
+        )
         .route("/authority/suppliers/list", get(h_supplier_list))
         .route("/authority/suppliers/detail", get(h_supplier_detail))
         .route("/authority/suppliers/create", post(h_supplier_save))
         .route("/authority/suppliers/update", post(h_supplier_save))
-        .route("/authority/suppliers/updateField", post(h_supplier_update_field))
+        .route(
+            "/authority/suppliers/updateField",
+            post(h_supplier_update_field),
+        )
         .route("/authority/suppliers/del", post(h_supplier_del))
         .route("/authority/suppliers/batch", post(h_supplier_batch))
-        .route("/promotion/lotteryActivity/updateStatus", post(h_lottery_update_status))
+        .route(
+            "/promotion/lotteryActivity/updateStatus",
+            post(h_lottery_update_status),
+        )
         .route("/o2o/decorate/decorate/detail", get(h_4))
         .route("/o2o/decorate/decorate/update", post(h_5))
         .route("/o2o/dispatch/assign", post(h_6))
@@ -1343,7 +1895,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/o2o/homeService/saveConfig", post(h_10))
         .route("/o2o/localDelivery/saveConfig", post(h_11))
         .route("/o2o/intraCityDelivery/platformConfig/getConfig", get(h_12))
-        .route("/o2o/intraCityDelivery/platformConfig/saveConfig", post(h_13))
+        .route(
+            "/o2o/intraCityDelivery/platformConfig/saveConfig",
+            post(h_13),
+        )
         .route("/o2o/reservationTpl/batch", post(h_14))
         .route("/o2o/shopPickupConfig/saveShopPickupTpl", post(h_15))
         .route("/o2o/storeProduct/writeOff", post(h_16))
@@ -1383,7 +1938,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/setting/gallery/updateField", post(h_38))
         .route("/setting/region/getChildRegion", get(h_39))
         .route("/setting/messageType/batch", post(h_40))
-        .route("/setting/messageType/miniProgramMessageTemplateSync", post(h_41))
+        .route(
+            "/setting/messageType/miniProgramMessageTemplateSync",
+            post(h_41),
+        )
         .route("/setting/messageType/wechatMessageTemplateSync", post(h_42))
         .route("/content/articleCategory/moveCat", post(h_43))
         .route("/merchant/shopProductCategory/moveCat", post(h_44))

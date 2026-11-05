@@ -42,7 +42,9 @@ use axum::{
     Extension, Router,
 };
 use serde::{Deserialize, Serialize};
-use tigshop_core::models::member::user_manage::{UserItemVO, UserListQuery, UserMemberTagVO, UserVO};
+use tigshop_core::models::member::user_manage::{
+    UserItemVO, UserListQuery, UserMemberTagVO, UserVO,
+};
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, TenantContext};
 
@@ -126,7 +128,11 @@ async fn proxy_shopping_user_list(
     Query(q): Query<UserListQuery>,
 ) -> ApiResult<PageResult<MemberVO>> {
     let admin_type = current_admin_type(&tenant);
-    let page = state.trade.proxy_shopping_user.list(&q, admin_type.as_deref()).await?;
+    let page = state
+        .trade
+        .proxy_shopping_user
+        .list(&q, admin_type.as_deref())
+        .await?;
     let list: Vec<MemberVO> = page.list.into_iter().map(MemberVO::from).collect();
     ok(PageResult {
         total: page.total,
@@ -148,9 +154,8 @@ async fn proxy_shopping_user_detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<MemberItemVO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("会员ID不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("会员ID不能为空".into()))?;
     let UserItemVO { user, member_tags } = state.trade.proxy_shopping_user.detail(id).await?;
     ok(MemberItemVO {
         user: MemberVO::from(user),

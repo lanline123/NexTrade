@@ -49,7 +49,11 @@ use crate::AdminState;
 /// 抽成常量是为了让单测能直接断言路径逐字符正确
 /// （与 area_code 的 `ROUTE_TABLE` 同一做法）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/decorate/mobileCatNav/list", "MobileCatNavController.list"),
+    (
+        "GET",
+        "/decorate/mobileCatNav/list",
+        "MobileCatNavController.list",
+    ),
     (
         "GET",
         "/decorate/mobileCatNav/detail",
@@ -65,7 +69,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
         "/decorate/mobileCatNav/update",
         "MobileCatNavController.update",
     ),
-    ("POST", "/decorate/mobileCatNav/del", "MobileCatNavController.del"),
+    (
+        "POST",
+        "/decorate/mobileCatNav/del",
+        "MobileCatNavController.del",
+    ),
     (
         "POST",
         "/decorate/mobileCatNav/updateField",
@@ -226,7 +234,9 @@ mod tests {
         }
 
         // 控制器前缀**没有**重复段（对比 /product/product、/order/order）
-        assert!(paths.iter().all(|p| p.starts_with("/decorate/mobileCatNav/")));
+        assert!(paths
+            .iter()
+            .all(|p| p.starts_with("/decorate/mobileCatNav/")));
         assert!(!paths.iter().any(|p| p.starts_with("/decorate/decorate")));
     }
 

@@ -648,7 +648,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -702,10 +705,7 @@ impl SyncQuery {
     pub fn overwrite_name(&self) -> bool {
         match self.overwrite_name.as_deref().map(str::trim) {
             None | Some("") => true,
-            Some(v) => matches!(
-                v.to_ascii_lowercase().as_str(),
-                "1" | "true" | "yes" | "on"
-            ),
+            Some(v) => matches!(v.to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"),
         }
     }
 
@@ -876,17 +876,16 @@ pub fn resolve_kuaidi100_code(logistics_code: Option<&str>) -> Option<String> {
         return None;
     }
     let upper = code.to_uppercase();
-    if let Some((_, mapped)) = kdniao_to_kuaidi100()
-        .iter()
-        .find(|(k, _)| *k == upper)
-    {
+    if let Some((_, mapped)) = kdniao_to_kuaidi100().iter().find(|(k, _)| *k == upper) {
         return Some((*mapped).to_string());
     }
     // 已是小写拼音编码时直接复用
     let lower = code.to_lowercase();
     if code == lower
         && !code.is_empty()
-        && code.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        && code
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
     {
         return Some(code.to_string());
     }
@@ -1100,7 +1099,10 @@ mod tests {
             Err(MSG_INVALID_FIELD_VALUE.to_string())
         );
         // 完全无法识别 ⇒ 归一失败
-        assert_eq!(resolve_update_field("nope"), Err(MSG_INVALID_FIELD_VALUE.to_string()));
+        assert_eq!(
+            resolve_update_field("nope"),
+            Err(MSG_INVALID_FIELD_VALUE.to_string())
+        );
         // status 在白名单里却不是真实列 ⇒ 同样拒绝
         assert_eq!(
             resolve_update_field("status"),
@@ -1141,7 +1143,10 @@ mod tests {
             sort_order: Some("ascending".into()),
             ..Default::default()
         };
-        assert_eq!(q.order_clause(), " ORDER BY is_enabled DESC, logistics_id DESC");
+        assert_eq!(
+            q.order_clause(),
+            " ORDER BY is_enabled DESC, logistics_id DESC"
+        );
     }
 
     /// 未识别 `sortField` 静默回退主键列（防注入）。
@@ -1177,7 +1182,7 @@ mod tests {
         for (input, expected) in [
             (Some(0), Some(0)),
             (Some(1), Some(1)),
-            (Some(5), None),   // 真实店铺 ID 反而被丢弃
+            (Some(5), None), // 真实店铺 ID 反而被丢弃
             (Some(100), None),
             (Some(-1), None),
             (None, None),
@@ -1278,12 +1283,27 @@ mod tests {
     /// `resolve` 三分支：受控映射 → 已是小写拼音 → null。
     #[test]
     fn resolve_kuaidi100_code_branches() {
-        assert_eq!(resolve_kuaidi100_code(Some("SF")).as_deref(), Some("shunfeng"));
-        assert_eq!(resolve_kuaidi100_code(Some(" sf ")).as_deref(), Some("shunfeng"));
-        assert_eq!(resolve_kuaidi100_code(Some("STO_EXPRESS")).as_deref(), Some("shentong"));
+        assert_eq!(
+            resolve_kuaidi100_code(Some("SF")).as_deref(),
+            Some("shunfeng")
+        );
+        assert_eq!(
+            resolve_kuaidi100_code(Some(" sf ")).as_deref(),
+            Some("shunfeng")
+        );
+        assert_eq!(
+            resolve_kuaidi100_code(Some("STO_EXPRESS")).as_deref(),
+            Some("shentong")
+        );
         // 已是小写拼音编码 → 直接复用
-        assert_eq!(resolve_kuaidi100_code(Some("shunfeng")).as_deref(), Some("shunfeng"));
-        assert_eq!(resolve_kuaidi100_code(Some("abc123")).as_deref(), Some("abc123"));
+        assert_eq!(
+            resolve_kuaidi100_code(Some("shunfeng")).as_deref(),
+            Some("shunfeng")
+        );
+        assert_eq!(
+            resolve_kuaidi100_code(Some("abc123")).as_deref(),
+            Some("abc123")
+        );
         // 大写但不在映射表里 → null
         assert_eq!(resolve_kuaidi100_code(Some("UNKNOWNX")), None);
         // 混合大小写拼音 → 既不在映射表，也不等于全小写 → null
@@ -1296,9 +1316,18 @@ mod tests {
     /// `reverseResolve`：一个快递100 编码可对应多个快递鸟别名。
     #[test]
     fn reverse_resolve_returns_all_aliases() {
-        assert_eq!(reverse_resolve_kdniao(Some("shunfeng")), vec!["SF", "SF_EXPRESS"]);
-        assert_eq!(reverse_resolve_kdniao(Some(" SHUNFENG ")), vec!["SF", "SF_EXPRESS"]);
-        assert_eq!(reverse_resolve_kdniao(Some("shentong")), vec!["STO", "STO_EXPRESS"]);
+        assert_eq!(
+            reverse_resolve_kdniao(Some("shunfeng")),
+            vec!["SF", "SF_EXPRESS"]
+        );
+        assert_eq!(
+            reverse_resolve_kdniao(Some(" SHUNFENG ")),
+            vec!["SF", "SF_EXPRESS"]
+        );
+        assert_eq!(
+            reverse_resolve_kdniao(Some("shentong")),
+            vec!["STO", "STO_EXPRESS"]
+        );
         // 单别名
         assert_eq!(reverse_resolve_kdniao(Some("yuantong")), vec!["YTO"]);
         // 未知 / 空

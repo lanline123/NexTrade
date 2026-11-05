@@ -340,7 +340,10 @@ mod tests {
 
     #[test]
     fn statistics_periods_for_day_month_year() {
-        assert_eq!(statistics_periods("DAY", "2026-10-18"), vec![(2026, 10, 18)]);
+        assert_eq!(
+            statistics_periods("DAY", "2026-10-18"),
+            vec![(2026, 10, 18)]
+        );
         assert_eq!(statistics_periods("MONTH", "2026-10"), vec![(2026, 10, 0)]);
         assert_eq!(statistics_periods("YEAR", "2026"), vec![(2026, 0, 0)]);
         assert!(statistics_periods("DAY", "2026-10").is_empty());

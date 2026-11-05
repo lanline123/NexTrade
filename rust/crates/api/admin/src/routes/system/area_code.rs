@@ -50,7 +50,7 @@ use tigshop_core::models::system::area_code::{
     UpdateFieldDTO,
 };
 use tigshop_core::types::PageResult;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::AdminState;
 
@@ -60,16 +60,32 @@ use crate::AdminState;
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
     // (HTTP method, 本模块路径, 原 Java handler)
     ("GET", "/setting/areaCode/list", "AreaCodeController.list"),
-    ("GET", "/setting/areaCode/detail", "AreaCodeController.detail"),
-    ("POST", "/setting/areaCode/create", "AreaCodeController.create"),
-    ("POST", "/setting/areaCode/update", "AreaCodeController.update"),
+    (
+        "GET",
+        "/setting/areaCode/detail",
+        "AreaCodeController.detail",
+    ),
+    (
+        "POST",
+        "/setting/areaCode/create",
+        "AreaCodeController.create",
+    ),
+    (
+        "POST",
+        "/setting/areaCode/update",
+        "AreaCodeController.update",
+    ),
     ("POST", "/setting/areaCode/del", "AreaCodeController.del"),
     (
         "POST",
         "/setting/areaCode/updateField",
         "AreaCodeController.updateField",
     ),
-    ("POST", "/setting/areaCode/batch", "AreaCodeController.batch"),
+    (
+        "POST",
+        "/setting/areaCode/batch",
+        "AreaCodeController.batch",
+    ),
 ];
 
 /// 区号管理域路由（挂载于 `/adminapi` 下，全局 `require_auth` 已生效）。
@@ -139,10 +155,9 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<AreaCodeVO> {
-    let id = q
-        .id
-        .filter(|v| *v > 0)
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.filter(|v| *v > 0)
+            .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.system.area_code.detail(id).await?)
 }
 
@@ -275,7 +290,10 @@ mod tests {
     #[test]
     fn every_route_documents_java_handler() {
         for (_, path, java) in ROUTE_TABLE {
-            assert!(java.starts_with("AreaCodeController."), "{path} 缺少 Java 对照");
+            assert!(
+                java.starts_with("AreaCodeController."),
+                "{path} 缺少 Java 对照"
+            );
         }
     }
 }

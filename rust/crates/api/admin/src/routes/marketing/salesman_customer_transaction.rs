@@ -10,7 +10,11 @@
 //! # 权限
 //! Java 仅登录（无 `@PreAuthorize`）；Rust 全局 `require_auth` 只校验登录态。
 
-use axum::{extract::{Query, State}, routing::get, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Router,
+};
 use tigshop_core::models::marketing::salesman_customer_transaction::{
     CustomerTransactionQuery, CustomerTransactionVO,
 };

@@ -1,4 +1,4 @@
-﻿//! 管理端订单管理路由（trade::order_admin）。
+//! 管理端订单管理路由（trade::order_admin）。
 //!
 //! 对应原 Java `com.tigshop.adminapi.controller.order.OrderController`
 //! （`@RequestMapping("/adminapi/order/order")`，34 条接口：wave1 已实现 4 条 +
@@ -61,13 +61,12 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::trade::order_admin::{
-    AftersalesApplyAdminParam, DeliverOrderParam, ExportItemSaveParam,
-    LogisticsApiLogVO, OrderAdminNoteParam, OrderBatchParam, OrderChangeStatusParam,
-    OrderDeliverImportErrorVO, OrderDeliverImportResultVO, OrderDeliverTemplateVO,
-    OrderExportItemVO, OrderExportVO, OrderIdParam, OrderListQuery, OrderModifyConsigneeParam,
-    OrderModifyMoneyParam, OrderModifyProductParam, OrderModifyShippingParam,
-    OrderPageConfigVO, OrderStatusCountVO, OrderVO, ParentOrderDetailVO, ProductAddInfoVO,
-    ProductIdsParam, ShippingInfoVO,
+    AftersalesApplyAdminParam, DeliverOrderParam, ExportItemSaveParam, LogisticsApiLogVO,
+    OrderAdminNoteParam, OrderBatchParam, OrderChangeStatusParam, OrderDeliverImportErrorVO,
+    OrderDeliverImportResultVO, OrderDeliverTemplateVO, OrderExportItemVO, OrderExportVO,
+    OrderIdParam, OrderListQuery, OrderModifyConsigneeParam, OrderModifyMoneyParam,
+    OrderModifyProductParam, OrderModifyShippingParam, OrderPageConfigVO, OrderStatusCountVO,
+    OrderVO, ParentOrderDetailVO, ProductAddInfoVO, ProductIdsParam, ShippingInfoVO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
@@ -79,35 +78,131 @@ use crate::AdminState;
 /// 未含该端点，见 `view/admin/src/api/order/order.ts#writeOffOrder`）。
 const ROUTE_TABLE: [(&str, &str, &str); 35] = [
     ("GET", "/order/order/list", "OrderController.list"),
-    ("GET", "/order/order/statusCount", "OrderController.statusCount"),
+    (
+        "GET",
+        "/order/order/statusCount",
+        "OrderController.statusCount",
+    ),
     ("GET", "/order/order/detail", "OrderController.detail"),
-    ("POST", "/order/order/setAdminNote", "OrderController.setAdminNote"),
-    ("GET", "/order/order/parentDetail", "OrderController.parentOrderDetail"),
-    ("POST", "/order/order/setConfirm", "OrderController.setConfirm"),
-    ("POST", "/order/order/splitStoreOrder", "OrderController.splitStoreOrder"),
+    (
+        "POST",
+        "/order/order/setAdminNote",
+        "OrderController.setAdminNote",
+    ),
+    (
+        "GET",
+        "/order/order/parentDetail",
+        "OrderController.parentOrderDetail",
+    ),
+    (
+        "POST",
+        "/order/order/setConfirm",
+        "OrderController.setConfirm",
+    ),
+    (
+        "POST",
+        "/order/order/splitStoreOrder",
+        "OrderController.splitStoreOrder",
+    ),
     ("POST", "/order/order/setPaid", "OrderController.setPaid"),
-    ("POST", "/order/order/cancelOrder", "OrderController.cancelOrder"),
+    (
+        "POST",
+        "/order/order/cancelOrder",
+        "OrderController.cancelOrder",
+    ),
     ("POST", "/order/order/delOrder", "OrderController.delOrder"),
-    ("POST", "/order/order/modifyMoney", "OrderController.modifyMoney"),
-    ("POST", "/order/order/modifyConsignee", "OrderController.modifyConsignee"),
-    ("POST", "/order/order/confirmReceipt", "OrderController.confirmReceipt"),
-    ("POST", "/order/order/modifyShipping", "OrderController.modifyShipping"),
-    ("POST", "/order/order/modifyProduct", "OrderController.modifyProduct"),
-    ("POST", "/order/order/getAddProductInfo", "OrderController.getAddProductInfo"),
+    (
+        "POST",
+        "/order/order/modifyMoney",
+        "OrderController.modifyMoney",
+    ),
+    (
+        "POST",
+        "/order/order/modifyConsignee",
+        "OrderController.modifyConsignee",
+    ),
+    (
+        "POST",
+        "/order/order/confirmReceipt",
+        "OrderController.confirmReceipt",
+    ),
+    (
+        "POST",
+        "/order/order/modifyShipping",
+        "OrderController.modifyShipping",
+    ),
+    (
+        "POST",
+        "/order/order/modifyProduct",
+        "OrderController.modifyProduct",
+    ),
+    (
+        "POST",
+        "/order/order/getAddProductInfo",
+        "OrderController.getAddProductInfo",
+    ),
     ("POST", "/order/order/deliver", "OrderController.deliver"),
-    ("GET", "/order/order/orderPrint", "OrderController.orderPrint"),
-    ("GET", "/order/order/orderPrintBill", "OrderController.orderPrintWaybill"),
-    ("GET", "/order/order/severalDetail", "OrderController.severalDetail"),
+    (
+        "GET",
+        "/order/order/orderPrint",
+        "OrderController.orderPrint",
+    ),
+    (
+        "GET",
+        "/order/order/orderPrintBill",
+        "OrderController.orderPrintWaybill",
+    ),
+    (
+        "GET",
+        "/order/order/severalDetail",
+        "OrderController.severalDetail",
+    ),
     ("POST", "/order/order/batch", "OrderController.batch"),
-    ("GET", "/order/order/printSeveral", "OrderController.printSeveral"),
-    ("GET", "/order/order/getExportItemList", "OrderController.getExportItemList"),
-    ("GET", "/order/order/exportItemInfo", "OrderController.exportItemInfo"),
-    ("POST", "/order/order/saveExportItem", "OrderController.saveExportItem"),
-    ("GET", "/order/order/orderExport", "OrderController.exportItemInfo"),
-    ("GET", "/order/order/shippingInfo", "OrderController.shippingInfo"),
-    ("GET", "/order/order/getOrderPageConfig", "OrderController.getOrderPageConfig"),
-    ("POST", "/order/order/changeOrderStatus", "OrderController.changeOrderStatus"),
-    ("POST", "/order/order/remindDeliver", "OrderController.remindDeliver"),
+    (
+        "GET",
+        "/order/order/printSeveral",
+        "OrderController.printSeveral",
+    ),
+    (
+        "GET",
+        "/order/order/getExportItemList",
+        "OrderController.getExportItemList",
+    ),
+    (
+        "GET",
+        "/order/order/exportItemInfo",
+        "OrderController.exportItemInfo",
+    ),
+    (
+        "POST",
+        "/order/order/saveExportItem",
+        "OrderController.saveExportItem",
+    ),
+    (
+        "GET",
+        "/order/order/orderExport",
+        "OrderController.exportItemInfo",
+    ),
+    (
+        "GET",
+        "/order/order/shippingInfo",
+        "OrderController.shippingInfo",
+    ),
+    (
+        "GET",
+        "/order/order/getOrderPageConfig",
+        "OrderController.getOrderPageConfig",
+    ),
+    (
+        "POST",
+        "/order/order/changeOrderStatus",
+        "OrderController.changeOrderStatus",
+    ),
+    (
+        "POST",
+        "/order/order/remindDeliver",
+        "OrderController.remindDeliver",
+    ),
     (
         "POST",
         "/order/order/cancelOrderByAdmin",
@@ -128,11 +223,7 @@ const ROUTE_TABLE: [(&str, &str, &str); 35] = [
         "/order/order/downloadDeliverTemplate",
         "OrderController.downloadDeliverTemplate",
     ),
-    (
-        "POST",
-        "/order/order/writeOff",
-        "OrderController.writeOff",
-    ),
+    ("POST", "/order/order/writeOff", "OrderController.writeOff"),
 ];
 
 /// 订单管理域路由（挂载于 `/adminapi` 下，外层统一套 `require_auth`）。
@@ -166,11 +257,20 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/order/order/saveExportItem", post(save_export_item))
         .route("/order/order/orderExport", get(order_export))
         .route("/order/order/shippingInfo", get(shipping_info))
-        .route("/order/order/getOrderPageConfig", get(get_order_page_config))
+        .route(
+            "/order/order/getOrderPageConfig",
+            get(get_order_page_config),
+        )
         .route("/order/order/changeOrderStatus", post(change_order_status))
         .route("/order/order/remindDeliver", post(remind_deliver))
-        .route("/order/order/cancelOrderByAdmin", post(order_cancel_by_admin))
-        .route("/order/order/batchDeliverImport", post(batch_deliver_import))
+        .route(
+            "/order/order/cancelOrderByAdmin",
+            post(order_cancel_by_admin),
+        )
+        .route(
+            "/order/order/batchDeliverImport",
+            post(batch_deliver_import),
+        )
         .route("/order/order/writeOff", post(write_off))
         .route(
             "/order/order/getBatchDeliverImportErrorData",
@@ -223,8 +323,9 @@ impl IdsQuery {
             .map(str::trim)
             .filter(|s| !s.is_empty())
             .map(|s| {
-                s.parse::<i32>()
-                    .map_err(|_| AppError(tigshop_core::Error::Validation(format!("#ids 错误: {s}"))))
+                s.parse::<i32>().map_err(|_| {
+                    AppError(tigshop_core::Error::Validation(format!("#ids 错误: {s}")))
+                })
             })
             .collect()
     }
@@ -254,11 +355,11 @@ fn request_host(headers: &HeaderMap) -> String {
 
 /// 读取 multipart 上传文件（字段名 `file`，Java `@RequestParam("file")`）。
 async fn read_upload(multipart: &mut Multipart) -> Result<(Option<String>, Vec<u8>), AppError> {
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e| AppError(tigshop_core::Error::Validation(format!("上传解析失败: {e}"))))?
-    {
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        AppError(tigshop_core::Error::Validation(format!(
+            "上传解析失败: {e}"
+        )))
+    })? {
         let name = field.name().map(str::to_string);
         let file_name = field.file_name().map(str::to_string);
         if name.as_deref() != Some("file") && file_name.is_none() {
@@ -267,11 +368,17 @@ async fn read_upload(multipart: &mut Multipart) -> Result<(Option<String>, Vec<u
         let bytes = field
             .bytes()
             .await
-            .map_err(|e| AppError(tigshop_core::Error::Validation(format!("读取文件失败: {e}"))))?
+            .map_err(|e| {
+                AppError(tigshop_core::Error::Validation(format!(
+                    "读取文件失败: {e}"
+                )))
+            })?
             .to_vec();
         return Ok((file_name, bytes));
     }
-    Err(AppError(tigshop_core::Error::Validation("请上传文件".into())))
+    Err(AppError(tigshop_core::Error::Validation(
+        "请上传文件".into(),
+    )))
 }
 
 // ————————————————————— 列表 / 统计 / 详情 —————————————————————
@@ -317,7 +424,10 @@ async fn order_detail(
     let order = state.trade.order_admin.detail(q.id).await?;
     if let Some(shop_id) = auth.scoped_shop_id() {
         if order.shop_id != shop_id {
-            return Err(AppError(tigshop_core::Error::biz(403, "无权查看其他商户订单")));
+            return Err(AppError(tigshop_core::Error::biz(
+                403,
+                "无权查看其他商户订单",
+            )));
         }
     }
     ok(order)
@@ -354,11 +464,7 @@ async fn parent_detail(
 ///
 /// 所有订单写操作（改价/改收货人/发货/确认/取消/删除/状态流转/打印/催发货/售后关单）
 /// 都必须先经过这里，避免仅靠列表过滤造成越权写。
-async fn ensure_order_access(
-    state: &AdminState,
-    auth: &AuthUser,
-    id: i32,
-) -> Result<(), AppError> {
+async fn ensure_order_access(state: &AdminState, auth: &AuthUser, id: i32) -> Result<(), AppError> {
     let order = state.trade.order_admin.detail(id).await?;
     auth.ensure_shop_access(order.shop_id)?;
     Ok(())
@@ -488,11 +594,7 @@ async fn confirm_receipt(
         .id
         .ok_or_else(|| AppError(tigshop_core::Error::Validation("订单 ID不能为空".into())))?;
     ensure_order_access(&state, &auth, id).await?;
-    state
-        .trade
-        .order_admin
-        .confirm_receipt(id, auth.id)
-        .await?;
+    state.trade.order_admin.confirm_receipt(id, auth.id).await?;
     ok(())
 }
 
@@ -510,7 +612,11 @@ async fn write_off(
         .pickup_sn
         .filter(|s| !s.trim().is_empty())
         .ok_or_else(|| AppError(tigshop_core::Error::Validation("核销码不能为空".into())))?;
-    ok(state.trade.order_admin.write_off(&pickup_sn, auth.id).await?)
+    ok(state
+        .trade
+        .order_admin
+        .write_off(&pickup_sn, auth.id)
+        .await?)
 }
 
 /// `POST /adminapi/order/order/modifyShipping`：修改配送信息。
@@ -688,7 +794,9 @@ async fn order_export(
         .order_admin
         .order_export_xlsx(&q, platform_view(&auth))
         .await?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, &file_name))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes, &file_name,
+    ))
 }
 
 /// `GET /adminapi/order/order/shippingInfo?id=`：物流信息。
@@ -702,9 +810,7 @@ async fn shipping_info(
 }
 
 /// `GET /adminapi/order/order/getOrderPageConfig`：订单列表页配置。
-async fn get_order_page_config(
-    State(state): State<AdminState>,
-) -> ApiResult<OrderPageConfigVO> {
+async fn get_order_page_config(State(state): State<AdminState>) -> ApiResult<OrderPageConfigVO> {
     ok(state.trade.order_admin.order_page_config().await?)
 }
 
@@ -783,7 +889,9 @@ async fn get_batch_deliver_import_error_data(
         .order_admin
         .batch_deliver_import_error_xlsx(&bytes)
         .await?;
-    Ok(crate::support::excel_response::xlsx_response(data, &file_name))
+    Ok(crate::support::excel_response::xlsx_response(
+        data, &file_name,
+    ))
 }
 
 /// `GET /adminapi/order/order/downloadDeliverTemplate?ids=1,2`：批量发货模板（xlsx 下载）。
@@ -797,7 +905,9 @@ async fn download_deliver_template(
         .order_admin
         .download_deliver_template_xlsx(&ids)
         .await?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, &file_name))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes, &file_name,
+    ))
 }
 
 #[cfg(test)]
@@ -819,7 +929,11 @@ mod tests {
                 "/adminapi/order/order/statusCount",
                 "OrderController.statusCount",
             ),
-            ("GET", "/adminapi/order/order/detail", "OrderController.detail"),
+            (
+                "GET",
+                "/adminapi/order/order/detail",
+                "OrderController.detail",
+            ),
             (
                 "POST",
                 "/adminapi/order/order/setAdminNote",
@@ -905,7 +1019,11 @@ mod tests {
                 "/adminapi/order/order/severalDetail",
                 "OrderController.severalDetail",
             ),
-            ("POST", "/adminapi/order/order/batch", "OrderController.batch"),
+            (
+                "POST",
+                "/adminapi/order/order/batch",
+                "OrderController.batch",
+            ),
             (
                 "GET",
                 "/adminapi/order/order/printSeveral",
@@ -1037,7 +1155,9 @@ mod tests {
         assert_eq!(registered.len(), ROUTE_TABLE.len());
         for (method, path) in registered {
             assert!(
-                ROUTE_TABLE.iter().any(|(m, p, _)| *m == method && *p == path),
+                ROUTE_TABLE
+                    .iter()
+                    .any(|(m, p, _)| *m == method && *p == path),
                 "{method} {path} 不在 ROUTE_TABLE 内"
             );
         }

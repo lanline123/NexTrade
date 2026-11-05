@@ -16,11 +16,8 @@ use tigshop_services::payment::credit_order::{CreditOrderListQuery, CreditOrderV
 
 use crate::AdminState;
 
-const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
-    "GET",
-    "/credit/order/list",
-    "CreditOrderController.list",
-)];
+const ROUTE_TABLE: [(&str, &str, &str); 1] =
+    [("GET", "/credit/order/list", "CreditOrderController.list")];
 
 /// 账期订单路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {

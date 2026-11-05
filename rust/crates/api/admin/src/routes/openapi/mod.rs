@@ -9,8 +9,7 @@ use super::super::AdminState;
 /// 需登录的域路由（外层统一套 require_auth）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new()
-        .merge(workbuddy::routes(state))
+    Router::new().merge(workbuddy::routes(state))
 }
 
 /// 免登录的域路由（对应 Java `URL_WHITELIST`，外层不套 require_auth）。

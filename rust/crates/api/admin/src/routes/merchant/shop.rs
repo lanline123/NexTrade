@@ -42,8 +42,8 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
         .route("/merchant/shopWithdraw/detail", get(withdraw_detail))
         .route("/merchant/shopWithdraw/config", get(withdraw_config))
         .route("/merchant/shopWithdraw/audit", post(withdraw_audit))
-        // `shopProductCategory/*` 已由 shop_product_category 接管（见 routes/shop_product_category.rs），
-        // 此处不再注册，否则同一 (method, path) 重复注册会让 axum 启动时 panic。
+    // `shopProductCategory/*` 已由 shop_product_category 接管（见 routes/shop_product_category.rs），
+    // 此处不再注册，否则同一 (method, path) 重复注册会让 axum 启动时 panic。
 }
 
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
@@ -101,7 +101,10 @@ async fn shop_list(
     // 多租户：店铺账号只能看到自己店铺（返回单条分页）；平台可见全部。
     if let Some(shop_id) = auth.scoped_shop_id() {
         let vo = state.merchant.shop.detail(shop_id).await?;
-        let page = PageQuery { page: 1, page_size: 1 };
+        let page = PageQuery {
+            page: 1,
+            page_size: 1,
+        };
         return ok(PageResult::new(1, vec![vo], &page));
     }
     ok(state.merchant.shop.list(&q).await?)
@@ -177,7 +180,10 @@ async fn withdraw_detail(
     let detail = state.merchant.shop.withdraw_detail(q.id).await?;
     if let Some(shop_id) = auth.scoped_shop_id() {
         if detail.shop_id != shop_id {
-            return Err(AppError(tigshop_core::Error::biz(403, "无权查看其他店铺提现记录")));
+            return Err(AppError(tigshop_core::Error::biz(
+                403,
+                "无权查看其他店铺提现记录",
+            )));
         }
     }
     ok(detail)
@@ -197,9 +203,14 @@ async fn withdraw_audit(
     Json(dto): Json<ShopWithdrawAuditDTO>,
 ) -> ApiResult<&'static str> {
     if !auth.is_platform() {
-        return Err(AppError(tigshop_core::Error::biz(403, "仅平台管理员可审核商户提现")));
+        return Err(AppError(tigshop_core::Error::biz(
+            403,
+            "仅平台管理员可审核商户提现",
+        )));
     }
-    state.merchant.shop
+    state
+        .merchant
+        .shop
         .withdraw_audit(&dto, auth.admin_type.as_deref())
         .await?;
     ok("操作成功")

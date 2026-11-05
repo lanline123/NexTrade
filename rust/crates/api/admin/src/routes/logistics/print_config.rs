@@ -72,8 +72,8 @@ use tigshop_core::models::logistics::print_config::{
 };
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 本域全部 3 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 ///
@@ -164,7 +164,11 @@ async fn get_configs_by_print_id(
         .find_by_id_and_shop(print_id, shop_id)
         .await?;
     owned.ok_or_else(|| tigshop_core::Error::Forbidden("无权访问该打印机配置".into()))?;
-    ok(state.logistics.print_config.get_configs_by_print_id(print_id).await?)
+    ok(state
+        .logistics
+        .print_config
+        .get_configs_by_print_id(print_id)
+        .await?)
 }
 
 /// `POST /adminapi/print/printConfig/update`：更新打印配置。
@@ -215,7 +219,11 @@ async fn print(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<PrintOrdersDTO>,
 ) -> ApiResult<bool> {
-    ok(state.logistics.print_config.print_orders(&dto, tenant::platform_or_shop_id(&auth)).await?)
+    ok(state
+        .logistics
+        .print_config
+        .print_orders(&dto, tenant::platform_or_shop_id(&auth))
+        .await?)
 }
 
 /// 本模块当前使用的店铺 ID。

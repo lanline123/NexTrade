@@ -152,6 +152,9 @@ mod tests {
         let m: MoveCatDTO = serde_json::from_str(r#"{"id":5,"targetCatId":9}"#).unwrap();
         assert_eq!((m.id, m.target_cat_id), (Some(5), Some(9)));
         let back = serde_json::to_string(&m).unwrap();
-        assert!(back.contains("targetCatId"), "序列化应保持 camelCase: {back}");
+        assert!(
+            back.contains("targetCatId"),
+            "序列化应保持 camelCase: {back}"
+        );
     }
 }

@@ -1,4 +1,4 @@
-﻿//! 店铺账户 —— 管理端路由（merchant::shop_account_log）—— wave9。
+//! 店铺账户 —— 管理端路由（merchant::shop_account_log）—— wave9。
 //!
 //! 原 Java `com.tigshop.adminapi.controller.shop.AccountController`
 //! （`@RequestMapping("/adminapi/merchant/shopAccount")`）：
@@ -9,7 +9,8 @@
 
 use axum::{
     extract::{Query, State},
-    routing::get, Extension, Router,
+    routing::get,
+    Extension, Router,
 };
 use tigshop_core::models::merchant::shop_account_log::{ShopAccountQuery, ShopAccountVO};
 use tigshop_security::web::{ok, ApiResult, AuthUser};

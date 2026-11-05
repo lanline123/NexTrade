@@ -455,7 +455,10 @@ impl OperateDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -478,7 +481,8 @@ impl UpdateFieldDTO {
             .val
             .as_deref()
             .ok_or_else(|| MSG_FIELD_VALUE_REQUIRED.to_string())?;
-        let column = resolve_update_column(field).ok_or_else(|| MSG_INVALID_FIELD_VALUE.to_string())?;
+        let column =
+            resolve_update_column(field).ok_or_else(|| MSG_INVALID_FIELD_VALUE.to_string())?;
         debug_assert_eq!(column, "status");
         let status: i32 = val.parse().map_err(|_| MSG_INVALID_STATUS.to_string())?;
         Ok(CreditUserFieldUpdate {
@@ -784,7 +788,11 @@ mod tests {
                 field: Some(field.into()),
                 val: Some("1".into()),
             };
-            assert_eq!(dto.validate().unwrap_err(), MSG_INVALID_FIELD_VALUE, "{field}");
+            assert_eq!(
+                dto.validate().unwrap_err(),
+                MSG_INVALID_FIELD_VALUE,
+                "{field}"
+            );
         }
         assert_eq!(resolve_update_column("status"), Some("status"));
         assert_eq!(resolve_update_column("status "), None);
@@ -798,7 +806,10 @@ mod tests {
             page_type: None,
         };
         assert_eq!(dto.validate_id().unwrap(), 11);
-        assert_eq!(OperateDTO::default().validate_id().unwrap_err(), MSG_ID_REQUIRED);
+        assert_eq!(
+            OperateDTO::default().validate_id().unwrap_err(),
+            MSG_ID_REQUIRED
+        );
         assert_eq!(validate_settlement_type(1).unwrap(), 1);
         assert_eq!(validate_settlement_type(2).unwrap(), 2);
         assert_eq!(

@@ -28,7 +28,7 @@ use axum::{
 use tigshop_core::models::system::mail_templates::{MailTemplatesDTO, MailTemplatesVO};
 use tigshop_security::web::{client_ip, ok, ApiResult, AppError, AuthUser};
 
-use crate::support::tenant::{platform_only};
+use crate::support::tenant::platform_only;
 
 use crate::AdminState;
 

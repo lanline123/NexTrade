@@ -347,15 +347,19 @@ mod tests {
             serde_json::from_value(serde_json::json!({"productId":1,"sortField":"createTime"}))
                 .unwrap();
         assert_eq!(q.order(), ("add_time", false));
-        let q: FeedbackListQuery =
-            serde_json::from_value(serde_json::json!({"productId":1,"sortField":"addTime","sortOrder":"asc"}))
-                .unwrap();
+        let q: FeedbackListQuery = serde_json::from_value(
+            serde_json::json!({"productId":1,"sortField":"addTime","sortOrder":"asc"}),
+        )
+        .unwrap();
         assert_eq!(q.order(), ("add_time", true)); // feedback 只有 add_time；方向取 sortOrder
     }
 
     #[test]
     fn html_escape_handles_xss_chars() {
-        assert_eq!(html_escape("<a href=\"x\">A&B</a>"), "&lt;a href=&quot;x&quot;&gt;A&amp;B&lt;/a&gt;");
+        assert_eq!(
+            html_escape("<a href=\"x\">A&B</a>"),
+            "&lt;a href=&quot;x&quot;&gt;A&amp;B&lt;/a&gt;"
+        );
     }
 
     #[test]

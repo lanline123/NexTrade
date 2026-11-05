@@ -60,17 +60,61 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/lang/currency/list", "CurrencyController.list"),
-        ("GET", "/adminapi/lang/currency/detail", "CurrencyController.detail"),
-        ("POST", "/adminapi/lang/currency/create", "CurrencyController.create"),
-        ("POST", "/adminapi/lang/currency/updateField", "CurrencyController.updateField"),
-        ("POST", "/adminapi/lang/currency/del", "CurrencyController.del"),
-        ("POST", "/adminapi/lang/currency/batch", "CurrencyController.batch"),
-        ("GET", "/adminapi/lang/currency/config", "CurrencyController.config"),
-        ("GET", "/adminapi/lang/currency/exchangeRateConfig", "CurrencyController.exchangeRateConfig"),
-        ("POST", "/adminapi/lang/currency/saveExchangeRateConfig", "CurrencyController.saveExchangeRateConfig"),
-        ("POST", "/adminapi/lang/currency/syncExchangeRateNow", "CurrencyController.syncExchangeRateNow"),
-        ("POST", "/adminapi/lang/currency/translation", "CurrencyController.translation"),
+        (
+            "GET",
+            "/adminapi/lang/currency/list",
+            "CurrencyController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/lang/currency/detail",
+            "CurrencyController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/create",
+            "CurrencyController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/updateField",
+            "CurrencyController.updateField",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/del",
+            "CurrencyController.del",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/batch",
+            "CurrencyController.batch",
+        ),
+        (
+            "GET",
+            "/adminapi/lang/currency/config",
+            "CurrencyController.config",
+        ),
+        (
+            "GET",
+            "/adminapi/lang/currency/exchangeRateConfig",
+            "CurrencyController.exchangeRateConfig",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/saveExchangeRateConfig",
+            "CurrencyController.saveExchangeRateConfig",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/syncExchangeRateNow",
+            "CurrencyController.syncExchangeRateNow",
+        ),
+        (
+            "POST",
+            "/adminapi/lang/currency/translation",
+            "CurrencyController.translation",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -139,9 +183,12 @@ async fn dictionary(State(state): State<AdminState>) -> ApiResult<serde_json::Va
     .fetch_all(&state.repos.pool)
     .await
     .map_err(|e| tigshop_security::web::AppError(tigshop_core::Error::Database(e.to_string())))?;
-    ok(serde_json::json!(rows.into_iter().map(|(id,name,code,numeric_code)| serde_json::json!({
-        "id": id, "name": name, "code": code, "numericCode": numeric_code
-    })).collect::<Vec<_>>()))
+    ok(serde_json::json!(rows
+        .into_iter()
+        .map(|(id, name, code, numeric_code)| serde_json::json!({
+            "id": id, "name": name, "code": code, "numericCode": numeric_code
+        }))
+        .collect::<Vec<_>>()))
 }
 
 async fn update_field(
@@ -176,7 +223,11 @@ async fn save_exchange_rate_config(
     State(state): State<AdminState>,
     Json(value): Json<serde_json::Value>,
 ) -> ApiResult<()> {
-    state.lang.currency().save_exchange_rate_config(value).await?;
+    state
+        .lang
+        .currency()
+        .save_exchange_rate_config(value)
+        .await?;
     ok(())
 }
 
@@ -208,7 +259,9 @@ mod tests {
         let docs = implemented_routes();
         assert_eq!(docs.len(), 11);
         assert_eq!(docs[0].path, "/adminapi/lang/currency/list");
-        assert!(docs.iter().any(|d| d.path == "/adminapi/lang/currency/translation"));
+        assert!(docs
+            .iter()
+            .any(|d| d.path == "/adminapi/lang/currency/translation"));
     }
 
     #[test]

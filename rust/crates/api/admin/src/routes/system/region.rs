@@ -156,9 +156,7 @@ struct RegionIdQuery {
 /// 数组，根 = `parentId == 0`，`deep = 8`。
 /// 版本开关 `tigshop.is-overseas` 决定 `level >= 0`（跨境版）还是
 /// `level > 0`（国内版，本仓默认）。
-async fn get_all_region_tree(
-    State(state): State<AdminState>,
-) -> ApiResult<Vec<RegionTreeNode>> {
+async fn get_all_region_tree(State(state): State<AdminState>) -> ApiResult<Vec<RegionTreeNode>> {
     ok(state.system.region.region_tree().await?)
 }
 
@@ -194,10 +192,9 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<RegionListVO> {
-    let id = q
-        .id
-        .filter(|v| *v > 0)
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.filter(|v| *v > 0)
+            .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.system.region.detail(id).await?)
 }
 
@@ -309,7 +306,11 @@ async fn get_location_by_region_id(
         .region_id
         .filter(|v| *v > 0)
         .ok_or_else(|| tigshop_core::Error::Validation("regionId不能为空".into()))?;
-    ok(state.system.region.get_location_by_region_id(region_id).await?)
+    ok(state
+        .system
+        .region
+        .get_location_by_region_id(region_id)
+        .await?)
 }
 
 #[cfg(test)]
@@ -428,7 +429,10 @@ mod tests {
             assert!(all.contains(&p), "缺少批量接口 {p}");
         }
         // 8 条 Java 契约 + 1 条前端契约（getLocationByRegionId 为只读）
-        assert_eq!(read_paths.len() + update_manage.len() + batch_manage.len(), 8);
+        assert_eq!(
+            read_paths.len() + update_manage.len() + batch_manage.len(),
+            8
+        );
         assert_eq!(ROUTE_TABLE.len(), 9);
     }
 

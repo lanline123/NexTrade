@@ -132,7 +132,8 @@ mod tests {
 
     #[test]
     fn list_query_defaults() {
-        let q: DepositPayeeAccountListQuery = serde_json::from_value(serde_json::json!({})).unwrap();
+        let q: DepositPayeeAccountListQuery =
+            serde_json::from_value(serde_json::json!({})).unwrap();
         assert_eq!(q.page_query().page_size, 15);
         assert_eq!(q.account_type, None);
     }

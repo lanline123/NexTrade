@@ -34,11 +34,7 @@
 //! > 本实现照抄该行为（见 `services/paylog_batch.rs` 模块头第 3 条），
 //! > 不伪造列、不放宽白名单。
 
-use axum::{
-    extract::State,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, routing::post, Json, Router};
 use tigshop_core::models::{BatchDTO, OperateDTO, UpdateFieldDTO};
 use tigshop_security::web::{ok, ApiResult};
 

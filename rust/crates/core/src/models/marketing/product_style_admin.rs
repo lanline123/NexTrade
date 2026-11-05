@@ -228,7 +228,8 @@ impl ProductStyleVO {
     /// 由调用方传入以便单测可控。
     #[must_use]
     pub fn from_entity(s: &ProductStyle, product_count: i32, now: i64) -> Self {
-        let activity_status = calc_activity_status(i64::from(s.start_time), i64::from(s.end_time), now);
+        let activity_status =
+            calc_activity_status(i64::from(s.start_time), i64::from(s.end_time), now);
         Self {
             style_id: s.style_id,
             style_name: s.style_name.clone(),
@@ -629,7 +630,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -791,7 +795,9 @@ pub fn validate_save(base: &ProductStyleSaveDTO) -> Result<(String, i32, String)
         return Err(MSG_STYLE_NAME_MAX_SIZE.to_string());
     }
 
-    let style_type = base.style_type.ok_or_else(|| MSG_STYLE_TYPE_NOT_NULL.to_string())?;
+    let style_type = base
+        .style_type
+        .ok_or_else(|| MSG_STYLE_TYPE_NOT_NULL.to_string())?;
 
     let style_image = base
         .style_image
@@ -912,17 +918,29 @@ fn parse_datetime(s: &str, ok_lens: &[usize], with_time: bool) -> Result<i64, St
     if !matches!(bytes[4], b'-') || !matches!(bytes[7], b'-') {
         return Err(format!("时间格式不合法: {s}"));
     }
-    let year: i64 = s[0..4].parse().map_err(|_| format!("时间格式不合法: {s}"))?;
-    let month: i64 = s[5..7].parse().map_err(|_| format!("时间格式不合法: {s}"))?;
-    let day: i64 = s[8..10].parse().map_err(|_| format!("时间格式不合法: {s}"))?;
+    let year: i64 = s[0..4]
+        .parse()
+        .map_err(|_| format!("时间格式不合法: {s}"))?;
+    let month: i64 = s[5..7]
+        .parse()
+        .map_err(|_| format!("时间格式不合法: {s}"))?;
+    let day: i64 = s[8..10]
+        .parse()
+        .map_err(|_| format!("时间格式不合法: {s}"))?;
 
     let (hour, minute, second) = if with_time {
         if !matches!(bytes[10], b' ') || !matches!(bytes[13], b':') || !matches!(bytes[16], b':') {
             return Err(format!("时间格式不合法: {s}"));
         }
-        let h: i64 = s[11..13].parse().map_err(|_| format!("时间格式不合法: {s}"))?;
-        let mi: i64 = s[14..16].parse().map_err(|_| format!("时间格式不合法: {s}"))?;
-        let sec: i64 = s[17..19].parse().map_err(|_| format!("时间格式不合法: {s}"))?;
+        let h: i64 = s[11..13]
+            .parse()
+            .map_err(|_| format!("时间格式不合法: {s}"))?;
+        let mi: i64 = s[14..16]
+            .parse()
+            .map_err(|_| format!("时间格式不合法: {s}"))?;
+        let sec: i64 = s[17..19]
+            .parse()
+            .map_err(|_| format!("时间格式不合法: {s}"))?;
         (h, mi, sec)
     } else {
         (0, 0, 0)
@@ -931,7 +949,8 @@ fn parse_datetime(s: &str, ok_lens: &[usize], with_time: bool) -> Result<i64, St
     if !(1..=12).contains(&month) || !(1..=31).contains(&day) {
         return Err(format!("时间格式不合法: {s}"));
     }
-    if with_time && (!(0..=23).contains(&hour) || !(0..=59).contains(&minute) || !(0..=60).contains(&second))
+    if with_time
+        && (!(0..=23).contains(&hour) || !(0..=59).contains(&minute) || !(0..=60).contains(&second))
     {
         return Err(format!("时间格式不合法: {s}"));
     }
@@ -1130,19 +1149,40 @@ mod tests {
     #[test]
     fn calc_activity_status_boundaries() {
         // now 严格小于 start ⇒ 未开始
-        assert_eq!(calc_activity_status(100, 200, 99), Some(ACTIVITY_STATUS_NOT_STARTED));
+        assert_eq!(
+            calc_activity_status(100, 200, 99),
+            Some(ACTIVITY_STATUS_NOT_STARTED)
+        );
         // now == start ⇒ 进行中（Java 是 `now < startTime` 才判未开始）
-        assert_eq!(calc_activity_status(100, 200, 100), Some(ACTIVITY_STATUS_IN_PROGRESS));
+        assert_eq!(
+            calc_activity_status(100, 200, 100),
+            Some(ACTIVITY_STATUS_IN_PROGRESS)
+        );
         // 区间内 ⇒ 进行中
-        assert_eq!(calc_activity_status(100, 200, 150), Some(ACTIVITY_STATUS_IN_PROGRESS));
+        assert_eq!(
+            calc_activity_status(100, 200, 150),
+            Some(ACTIVITY_STATUS_IN_PROGRESS)
+        );
         // now == end ⇒ 进行中（Java 是 `now > endTime` 才判已结束）
-        assert_eq!(calc_activity_status(100, 200, 200), Some(ACTIVITY_STATUS_IN_PROGRESS));
+        assert_eq!(
+            calc_activity_status(100, 200, 200),
+            Some(ACTIVITY_STATUS_IN_PROGRESS)
+        );
         // now 严格大于 end ⇒ 已结束
-        assert_eq!(calc_activity_status(100, 200, 201), Some(ACTIVITY_STATUS_ENDED));
+        assert_eq!(
+            calc_activity_status(100, 200, 201),
+            Some(ACTIVITY_STATUS_ENDED)
+        );
         // start == end：now 等于它时仍算进行中
-        assert_eq!(calc_activity_status(100, 100, 100), Some(ACTIVITY_STATUS_IN_PROGRESS));
+        assert_eq!(
+            calc_activity_status(100, 100, 100),
+            Some(ACTIVITY_STATUS_IN_PROGRESS)
+        );
         // start == end == 0（Java 未填写时间时落 0）：now > 0 ⇒ 已结束
-        assert_eq!(calc_activity_status(0, 0, 1_700_000_000), Some(ACTIVITY_STATUS_ENDED));
+        assert_eq!(
+            calc_activity_status(0, 0, 1_700_000_000),
+            Some(ACTIVITY_STATUS_ENDED)
+        );
     }
 
     // ————————————————————— 纯逻辑：updateField 白名单 —————————————————————
@@ -1196,14 +1236,20 @@ mod tests {
             sort_order: Some("asc".into()),
             ..Default::default()
         };
-        assert_eq!(q.order_clause(), " ORDER BY product_count ASC, ps.style_id DESC");
+        assert_eq!(
+            q.order_clause(),
+            " ORDER BY product_count ASC, ps.style_id DESC"
+        );
 
         let q = ProductStyleListQuery {
             sort_field: Some("product_count".into()),
             sort_order: Some("desc".into()),
             ..Default::default()
         };
-        assert_eq!(q.order_clause(), " ORDER BY product_count DESC, ps.style_id DESC");
+        assert_eq!(
+            q.order_clause(),
+            " ORDER BY product_count DESC, ps.style_id DESC"
+        );
     }
 
     /// 普通字段：一律带 `ps.` 前缀；`asc` 大小写不敏感；
@@ -1305,13 +1351,20 @@ mod tests {
         assert_eq!(validate_save(&empty).unwrap_err(), MSG_STYLE_NAME_NOT_BLANK);
 
         // 有名称但缺类型
-        let no_type: ProductStyleSaveDTO = serde_json::from_str(r#"{"styleName":"新年","styleImage":"a.png"}"#).unwrap();
-        assert_eq!(validate_save(&no_type).unwrap_err(), MSG_STYLE_TYPE_NOT_NULL);
+        let no_type: ProductStyleSaveDTO =
+            serde_json::from_str(r#"{"styleName":"新年","styleImage":"a.png"}"#).unwrap();
+        assert_eq!(
+            validate_save(&no_type).unwrap_err(),
+            MSG_STYLE_TYPE_NOT_NULL
+        );
 
         // 有名称与类型但缺图片
         let no_image: ProductStyleSaveDTO =
             serde_json::from_str(r#"{"styleName":"新年","styleType":1}"#).unwrap();
-        assert_eq!(validate_save(&no_image).unwrap_err(), MSG_STYLE_IMAGE_NOT_BLANK);
+        assert_eq!(
+            validate_save(&no_image).unwrap_err(),
+            MSG_STYLE_IMAGE_NOT_BLANK
+        );
 
         // 120 字符边界合法；121 字符报错
         let ok = ProductStyleSaveDTO {
@@ -1407,7 +1460,10 @@ mod tests {
             start_time: Some("2026-01-01 00:00:00".into()),
             ..Default::default()
         };
-        assert_eq!(validate_activity_time(&no_end).unwrap_err(), MSG_END_TIME_REQUIRED);
+        assert_eq!(
+            validate_activity_time(&no_end).unwrap_err(),
+            MSG_END_TIME_REQUIRED
+        );
 
         // end == start ⇒ 报错（Java `end > start` 严格大于）
         let equal = ProductStyleSaveDTO {
@@ -1455,7 +1511,10 @@ mod tests {
         // 1970-01-01 08:00:00 UTC+8 == Unix 0
         assert_eq!(parse_time_hms("1970-01-01 08:00:00").unwrap(), 0);
         // 2026-01-01 00:00:00 UTC+8 == 1767196800
-        assert_eq!(parse_time_hms("2026-01-01 00:00:00").unwrap(), 1_767_196_800);
+        assert_eq!(
+            parse_time_hms("2026-01-01 00:00:00").unwrap(),
+            1_767_196_800
+        );
         // 相邻两天相差 86400
         assert_eq!(
             parse_time_hms("2026-01-02 00:00:00").unwrap()
@@ -1531,8 +1590,14 @@ mod tests {
     /// 可空时间归一：空白 ⇒ 0；非空白 ⇒ 解析值。
     #[test]
     fn parse_time_opt_hms_semantics() {
-        assert_eq!(parse_time_opt_hms(None, MSG_START_TIME_REQUIRED).unwrap(), 0);
-        assert_eq!(parse_time_opt_hms(Some(""), MSG_START_TIME_REQUIRED).unwrap(), 0);
+        assert_eq!(
+            parse_time_opt_hms(None, MSG_START_TIME_REQUIRED).unwrap(),
+            0
+        );
+        assert_eq!(
+            parse_time_opt_hms(Some(""), MSG_START_TIME_REQUIRED).unwrap(),
+            0
+        );
         assert_eq!(
             parse_time_opt_hms(Some("   "), MSG_START_TIME_REQUIRED).unwrap(),
             0
@@ -1589,14 +1654,16 @@ mod tests {
 
         // 空数组也算「空」（Java `CollUtil.isNotEmpty` 判据）
         let dto: ProductStyleItemBatchDTO =
-            serde_json::from_str(r#"{"styleId":7,"productIds":[],"groupIds":[],"brandIds":[]}"#).unwrap();
+            serde_json::from_str(r#"{"styleId":7,"productIds":[],"groupIds":[],"brandIds":[]}"#)
+                .unwrap();
         assert!(dto.is_empty());
     }
 
     /// `BatchDTO` / `UpdateFieldDTO` / `OperateDTO` 的反序列化。
     #[test]
     fn common_dtos_deserialize() {
-        let dto: BatchDTO = serde_json::from_str(r#"{"ids":[1,2],"type":"del","value":0}"#).unwrap();
+        let dto: BatchDTO =
+            serde_json::from_str(r#"{"ids":[1,2],"type":"del","value":0}"#).unwrap();
         assert_eq!(dto.r#type, "del");
         assert_eq!(dto.ids, vec![1, 2]);
 
@@ -1629,7 +1696,10 @@ mod tests {
         assert_eq!(q.activity_status, Some(2));
         assert_eq!(q.page_query().page, 2);
         assert_eq!(q.page_query().page_size, 30);
-        assert_eq!(q.order_clause(), " ORDER BY product_count ASC, ps.style_id DESC");
+        assert_eq!(
+            q.order_clause(),
+            " ORDER BY product_count ASC, ps.style_id DESC"
+        );
         assert_eq!(q.parsed_start_time().unwrap(), Some(1_767_196_800));
     }
 
@@ -1711,7 +1781,10 @@ mod tests {
             "activityStatus",
             "activityStatusName",
         ] {
-            assert!(json.contains(&format!("\"{key}\"")), "缺少字段 {key}: {json}");
+            assert!(
+                json.contains(&format!("\"{key}\"")),
+                "缺少字段 {key}: {json}"
+            );
         }
         // 不出现 snake_case 泄漏
         assert!(!json.contains("style_id"));
@@ -1840,8 +1913,20 @@ mod public_active_style_tests {
     #[test]
     fn apply_row_keeps_first_per_style_type() {
         let mut vo = ProductActiveStyleVO::default();
-        vo.apply_row(STYLE_TYPE_BORDER_ACTIVE, 3, Some("边框"), Some("b.png"), Some("b_pc.png"));
-        vo.apply_row(STYLE_TYPE_BORDER_ACTIVE, 9, Some("边框2"), Some("x.png"), None);
+        vo.apply_row(
+            STYLE_TYPE_BORDER_ACTIVE,
+            3,
+            Some("边框"),
+            Some("b.png"),
+            Some("b_pc.png"),
+        );
+        vo.apply_row(
+            STYLE_TYPE_BORDER_ACTIVE,
+            9,
+            Some("边框2"),
+            Some("x.png"),
+            None,
+        );
         assert_eq!(vo.border_style_id, Some(3));
         assert_eq!(vo.border_image.as_deref(), Some("b.png"));
         // 边框不落 styleName（Java 行为）

@@ -115,7 +115,11 @@ async fn create(
     Json(dto): Json<WechatVideoAccountCreateDTO>,
 ) -> ApiResult<i32> {
     let shop = current_shop_id(&headers);
-    ok(state.content.wechat_video_account.create(shop, &dto).await?)
+    ok(state
+        .content
+        .wechat_video_account
+        .create(shop, &dto)
+        .await?)
 }
 
 /// `POST /adminapi/content/wechatVideoAccount/update`：更新视频号账号。
@@ -125,15 +129,16 @@ async fn update(
     Json(dto): Json<WechatVideoAccountUpdateDTO>,
 ) -> ApiResult<()> {
     let shop = current_shop_id(&headers);
-    state.content.wechat_video_account.update(shop, &dto).await?;
+    state
+        .content
+        .wechat_video_account
+        .update(shop, &dto)
+        .await?;
     ok(())
 }
 
 /// `POST /adminapi/content/wechatVideoAccount/delete`：删除视频号账号。
-async fn delete(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<()> {
+async fn delete(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<()> {
     state.content.wechat_video_account.delete(&dto).await?;
     ok(())
 }
@@ -179,8 +184,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");
@@ -211,8 +218,10 @@ mod tests {
         );
         // 店铺身份 → Some(本店)
         let shop = TenantScope::for_shop(9);
-        let seen = with_tenant_scope(shop, async { current_shop_id(&headers(&[("x-shop-id", "3")])) })
-            .await;
+        let seen = with_tenant_scope(shop, async {
+            current_shop_id(&headers(&[("x-shop-id", "3")]))
+        })
+        .await;
         assert_eq!(seen, Some(9));
     }
 }

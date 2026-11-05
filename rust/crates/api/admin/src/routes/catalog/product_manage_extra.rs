@@ -28,8 +28,8 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::catalog::product_manage_extra::{
-    ProductAuditDTO, ProductBatchOperationDTO, ProductDescImageVO, ProductPostVO, ProductRecycleDTO,
-    ProductSkuListQuery, ProductUpdateFieldDTO,
+    ProductAuditDTO, ProductBatchOperationDTO, ProductDescImageVO, ProductPostVO,
+    ProductRecycleDTO, ProductSkuListQuery, ProductUpdateFieldDTO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
@@ -38,17 +38,57 @@ use crate::AdminState;
 
 /// 本文件 12 条路由（去 `/adminapi` 前缀的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 12] = [
-    ("GET", "/product/product/getWaitingCheckedCount", "ProductController.getWaitingCheckedCount"),
-    ("GET", "/product/product/descImages", "ProductController.descImages"),
-    ("GET", "/product/product/skuList", "ProductController.skuList"),
-    ("GET", "/product/product/shippingTplList", "ProductController.shippingTplList"),
-    ("POST", "/product/product/updateField", "ProductController.updateField"),
-    ("POST", "/product/product/batch", "ProductController.batchOperation"),
-    ("POST", "/product/product/recycle", "ProductController.recycle"),
+    (
+        "GET",
+        "/product/product/getWaitingCheckedCount",
+        "ProductController.getWaitingCheckedCount",
+    ),
+    (
+        "GET",
+        "/product/product/descImages",
+        "ProductController.descImages",
+    ),
+    (
+        "GET",
+        "/product/product/skuList",
+        "ProductController.skuList",
+    ),
+    (
+        "GET",
+        "/product/product/shippingTplList",
+        "ProductController.shippingTplList",
+    ),
+    (
+        "POST",
+        "/product/product/updateField",
+        "ProductController.updateField",
+    ),
+    (
+        "POST",
+        "/product/product/batch",
+        "ProductController.batchOperation",
+    ),
+    (
+        "POST",
+        "/product/product/recycle",
+        "ProductController.recycle",
+    ),
     ("POST", "/product/product/audit", "ProductController.audit"),
-    ("POST", "/product/product/auditAgain", "ProductController.auditAgain"),
-    ("POST", "/product/product/getParticiple", "ProductController.getParticiple"),
-    ("POST", "/product/product/initAllToEs", "ProductController.initAllToEs"),
+    (
+        "POST",
+        "/product/product/auditAgain",
+        "ProductController.auditAgain",
+    ),
+    (
+        "POST",
+        "/product/product/getParticiple",
+        "ProductController.getParticiple",
+    ),
+    (
+        "POST",
+        "/product/product/initAllToEs",
+        "ProductController.initAllToEs",
+    ),
     ("GET", "/product/product/post", "ProductController.post"),
 ];
 
@@ -56,7 +96,10 @@ const ROUTE_TABLE: [(&str, &str, &str); 12] = [
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
-        .route("/product/product/getWaitingCheckedCount", get(get_waiting_checked_count))
+        .route(
+            "/product/product/getWaitingCheckedCount",
+            get(get_waiting_checked_count),
+        )
         .route("/product/product/descImages", get(desc_images))
         .route("/product/product/skuList", get(sku_list))
         .route("/product/product/shippingTplList", get(shipping_tpl_list))
@@ -101,7 +144,11 @@ struct AuditAgainQuery {
 
 /// `GET /adminapi/product/product/getWaitingCheckedCount`
 async fn get_waiting_checked_count(State(state): State<AdminState>) -> ApiResult<i64> {
-    ok(state.catalog.product_manage_extra.waiting_checked_count().await?)
+    ok(state
+        .catalog
+        .product_manage_extra
+        .waiting_checked_count()
+        .await?)
 }
 
 /// `GET /adminapi/product/product/descImages?productId=`
@@ -109,7 +156,11 @@ async fn desc_images(
     State(state): State<AdminState>,
     Query(q): Query<ProductIdQuery>,
 ) -> ApiResult<Vec<ProductDescImageVO>> {
-    ok(state.catalog.product_manage_extra.desc_images(q.product_id).await?)
+    ok(state
+        .catalog
+        .product_manage_extra
+        .desc_images(q.product_id)
+        .await?)
 }
 
 /// `GET /adminapi/product/product/skuList`
@@ -122,7 +173,11 @@ async fn sku_list(
 
 /// `GET /adminapi/product/product/shippingTplList`
 async fn shipping_tpl_list(State(state): State<AdminState>) -> ApiResult<Vec<serde_json::Value>> {
-    ok(state.catalog.product_manage_extra.shipping_tpl_list().await?)
+    ok(state
+        .catalog
+        .product_manage_extra
+        .shipping_tpl_list()
+        .await?)
 }
 
 /// `POST /adminapi/product/product/updateField`
@@ -130,7 +185,11 @@ async fn update_field(
     State(state): State<AdminState>,
     Json(dto): Json<ProductUpdateFieldDTO>,
 ) -> ApiResult<String> {
-    ok(state.catalog.product_manage_extra.update_field(&dto).await?)
+    ok(state
+        .catalog
+        .product_manage_extra
+        .update_field(&dto)
+        .await?)
 }
 
 /// `POST /adminapi/product/product/batch`
@@ -195,7 +254,11 @@ async fn post_page(
     State(state): State<AdminState>,
     Query(q): Query<ProductIdQuery>,
 ) -> ApiResult<ProductPostVO> {
-    ok(state.catalog.product_manage_extra.post(q.product_id).await?)
+    ok(state
+        .catalog
+        .product_manage_extra
+        .post(q.product_id)
+        .await?)
 }
 
 #[cfg(test)]
@@ -207,7 +270,10 @@ mod tests {
         assert_eq!(ROUTE_TABLE.len(), 12);
         let docs = implemented_routes();
         assert_eq!(docs.len(), 12);
-        assert_eq!(docs[0].path, "/adminapi/product/product/getWaitingCheckedCount");
+        assert_eq!(
+            docs[0].path,
+            "/adminapi/product/product/getWaitingCheckedCount"
+        );
         assert_eq!(docs[11].path, "/adminapi/product/product/post");
         assert!(ROUTE_TABLE.iter().all(|(_, p, _)| !p.contains("/adminapi")));
     }

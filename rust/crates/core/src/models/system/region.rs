@@ -470,7 +470,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -667,7 +670,10 @@ pub fn pinyin_first_letter(name: &str) -> String {
 /// 「限制向下递归层数」并非逐字等价，但对正常的地区树
 /// （深度 4 左右）结果一致；已记入 `uncertain_points`。
 #[must_use]
-pub fn build_region_tree(mut nodes: Vec<RegionTreeNode>, root_parent_id: i32) -> Vec<RegionTreeNode> {
+pub fn build_region_tree(
+    mut nodes: Vec<RegionTreeNode>,
+    root_parent_id: i32,
+) -> Vec<RegionTreeNode> {
     // 按 parent_id 分桶，保持输入顺序
     let mut children_of: std::collections::HashMap<i32, Vec<RegionTreeNode>> =
         std::collections::HashMap::new();
@@ -1031,7 +1037,10 @@ mod tests {
     /// `parentId` 必填（Java `@NotNull`）。
     #[test]
     fn parent_id_required() {
-        assert_eq!(validate_parent_id(None).unwrap_err(), MSG_PARENT_ID_REQUIRED);
+        assert_eq!(
+            validate_parent_id(None).unwrap_err(),
+            MSG_PARENT_ID_REQUIRED
+        );
         assert_eq!(validate_parent_id(Some(0)).unwrap(), 0);
         assert_eq!(validate_parent_id(Some(500100)).unwrap(), 500100);
     }
@@ -1121,10 +1130,7 @@ mod tests {
     /// 根 id 可配置（Java 传字面量 0，但语义是「哪个父级算根」）。
     #[test]
     fn build_tree_root_id_is_parameter() {
-        let tree = build_region_tree(
-            vec![node(1, 0, "中国"), node(110000, 1, "北京市")],
-            1,
-        );
+        let tree = build_region_tree(vec![node(1, 0, "中国"), node(110000, 1, "北京市")], 1);
         assert_eq!(tree.len(), 1);
         assert_eq!(tree[0].region_name, "北京市");
     }
@@ -1141,9 +1147,8 @@ mod tests {
     #[test]
     fn build_tree_depth_cap_and_cycle_safe() {
         // 20 层深链：从 1 到 20
-        let chain: Vec<RegionTreeNode> = (1..=20)
-            .map(|i| node(i, i - 1, &format!("n{i}")))
-            .collect();
+        let chain: Vec<RegionTreeNode> =
+            (1..=20).map(|i| node(i, i - 1, &format!("n{i}"))).collect();
         let tree = build_region_tree(chain, 0);
         assert_eq!(tree.len(), 1);
         // 逐层下钻，层数不超过 TREE_MAX_DEEP
@@ -1157,7 +1162,10 @@ mod tests {
 
         // 环：1 -> 2 -> 1（2 的父是 1，1 的父是 2；都没有 parent==0 的根）
         // 这里用「根之下出现回指」构造：3 是根，3 的子 4 的子又指回 3
-        let tree = build_region_tree(vec![node(3, 0, "a"), node(4, 3, "b"), node(3, 4, "a-again")], 0);
+        let tree = build_region_tree(
+            vec![node(3, 0, "a"), node(4, 3, "b"), node(3, 4, "a-again")],
+            0,
+        );
         assert_eq!(tree.len(), 1);
         // 不 panic、不死循环即通过
         assert!(tree[0].children.len() <= 1);

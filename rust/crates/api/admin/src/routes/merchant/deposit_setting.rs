@@ -14,8 +14,16 @@ use tigshop_security::web::{ok, ApiResult, AppError, TenantContext};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 2] = [
-    ("GET", "/deposit/setting/detail", "DepositSettingController.detail"),
-    ("POST", "/deposit/setting/save", "DepositSettingController.save"),
+    (
+        "GET",
+        "/deposit/setting/detail",
+        "DepositSettingController.detail",
+    ),
+    (
+        "POST",
+        "/deposit/setting/save",
+        "DepositSettingController.save",
+    ),
 ];
 
 /// 保证金设置路由。

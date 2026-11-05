@@ -153,7 +153,10 @@ pub struct BatchDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -161,7 +164,9 @@ pub struct UpdateFieldDTO {
 #[must_use]
 pub fn format_time(secs: Option<i32>) -> String {
     use chrono::TimeZone;
-    let Some(secs) = secs else { return String::new() };
+    let Some(secs) = secs else {
+        return String::new();
+    };
     if secs == 0 {
         return String::new();
     }
@@ -195,7 +200,10 @@ pub fn normalize_field(field: &str) -> Option<&'static str> {
             snake.push(ch);
         }
     }
-    SALESMAN_MATERIAL_FIELDS.iter().copied().find(|f| *f == snake)
+    SALESMAN_MATERIAL_FIELDS
+        .iter()
+        .copied()
+        .find(|f| *f == snake)
 }
 
 #[cfg(test)]

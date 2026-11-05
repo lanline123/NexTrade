@@ -361,7 +361,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名）
     pub field: Option<String>,
     /// 值（Java 为 `String`，由 MySQL 隐式转换到目标列类型）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -380,12 +383,8 @@ pub fn authority_list_from_json(raw: &str) -> Result<Vec<String>> {
     if trimmed.is_empty() || trimmed == "null" {
         return Ok(Vec::new());
     }
-    serde_json::from_str::<Vec<String>>(trimmed).map_err(|e| {
-        Error::biz(
-            SERVICE_DATA_ERROR,
-            format!("权限列表 JSON 解析失败: {e}"),
-        )
-    })
+    serde_json::from_str::<Vec<String>>(trimmed)
+        .map_err(|e| Error::biz(SERVICE_DATA_ERROR, format!("权限列表 JSON 解析失败: {e}")))
 }
 
 /// DTO 的 `Vec<String>` → 实体 `authority_list`（JSON 文本）。
@@ -399,9 +398,7 @@ pub fn authority_list_from_json(raw: &str) -> Result<Vec<String>> {
 pub fn authority_list_to_json(list: Option<&[String]>) -> String {
     match list {
         None => "null".to_string(),
-        Some(items) => {
-            serde_json::to_string(items).unwrap_or_else(|_| "null".to_string())
-        }
+        Some(items) => serde_json::to_string(items).unwrap_or_else(|_| "null".to_string()),
     }
 }
 
@@ -411,11 +408,23 @@ mod tests {
 
     #[test]
     fn admin_type_from_code_matches_java_enum() {
-        assert_eq!(AdminType::from_code(Some("admin")).unwrap(), AdminType::Admin);
+        assert_eq!(
+            AdminType::from_code(Some("admin")).unwrap(),
+            AdminType::Admin
+        );
         assert_eq!(AdminType::from_code(Some("shop")).unwrap(), AdminType::Shop);
-        assert_eq!(AdminType::from_code(Some("vendor")).unwrap(), AdminType::Vendor);
-        assert_eq!(AdminType::from_code(Some("store")).unwrap(), AdminType::Store);
-        assert_eq!(AdminType::from_code(Some("pickup")).unwrap(), AdminType::Pickup);
+        assert_eq!(
+            AdminType::from_code(Some("vendor")).unwrap(),
+            AdminType::Vendor
+        );
+        assert_eq!(
+            AdminType::from_code(Some("store")).unwrap(),
+            AdminType::Store
+        );
+        assert_eq!(
+            AdminType::from_code(Some("pickup")).unwrap(),
+            AdminType::Pickup
+        );
         assert_eq!(AdminType::from_code(Some("pos")).unwrap(), AdminType::Pos);
         // code 大小写敏感（Java `type.getCode().equals(code)`）
         assert!(AdminType::from_code(Some("Admin")).is_err());
@@ -537,9 +546,15 @@ mod tests {
             r#"["all","posCheckout"]"#
         );
 
-        assert_eq!(authority_list_from_json("null").unwrap(), Vec::<String>::new());
+        assert_eq!(
+            authority_list_from_json("null").unwrap(),
+            Vec::<String>::new()
+        );
         assert_eq!(authority_list_from_json("").unwrap(), Vec::<String>::new());
-        assert_eq!(authority_list_from_json("[]").unwrap(), Vec::<String>::new());
+        assert_eq!(
+            authority_list_from_json("[]").unwrap(),
+            Vec::<String>::new()
+        );
         assert_eq!(authority_list_from_json(r#"["a"]"#).unwrap(), vec!["a"]);
         // 种子数据里的转义写法
         assert_eq!(authority_list_from_json(r#"["all"]"#).unwrap(), vec!["all"]);
@@ -552,7 +567,10 @@ mod tests {
         // 属性名
         assert_eq!(role_field_to_column(Some("roleName")), "role_name");
         assert_eq!(role_field_to_column(Some("roleDesc")), "role_desc");
-        assert_eq!(role_field_to_column(Some("authorityList")), "authority_list");
+        assert_eq!(
+            role_field_to_column(Some("authorityList")),
+            "authority_list"
+        );
         assert_eq!(role_field_to_column(Some("adminType")), "admin_type");
         assert_eq!(role_field_to_column(Some("merchantId")), "merchant_id");
         assert_eq!(role_field_to_column(Some("shopId")), "shop_id");
@@ -563,7 +581,10 @@ mod tests {
         assert_eq!(role_field_to_column(Some("role_id")), "role_id");
         assert_eq!(role_field_to_column(Some("roleId")), "role_id");
         // 未知 / 空 → 主键列（防注入兜底）
-        assert_eq!(role_field_to_column(Some("role_name; DROP TABLE admin_role")), "role_id");
+        assert_eq!(
+            role_field_to_column(Some("role_name; DROP TABLE admin_role")),
+            "role_id"
+        );
         assert_eq!(role_field_to_column(Some("")), "role_id");
         assert_eq!(role_field_to_column(None), "role_id");
     }
@@ -572,11 +593,17 @@ mod tests {
     fn role_fields_allow_list_contains_only_role_name() {
         // CheckFieldConstants.ROLE_FIELDS = {"role_name"}
         assert_eq!(ROLE_FIELDS, ["role_name"]);
-        assert!(is_role_field_allowed(&role_field_to_column(Some("roleName"))));
+        assert!(is_role_field_allowed(&role_field_to_column(Some(
+            "roleName"
+        ))));
         assert!(is_role_field_allowed("role_name"));
         // 其它列被映射出来但不在白名单
-        assert!(!is_role_field_allowed(&role_field_to_column(Some("roleDesc"))));
-        assert!(!is_role_field_allowed(&role_field_to_column(Some("isSystem"))));
+        assert!(!is_role_field_allowed(&role_field_to_column(Some(
+            "roleDesc"
+        ))));
+        assert!(!is_role_field_allowed(&role_field_to_column(Some(
+            "isSystem"
+        ))));
         assert!(!is_role_field_allowed(&role_field_to_column(Some("nope"))));
     }
 

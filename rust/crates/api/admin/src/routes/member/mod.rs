@@ -38,8 +38,7 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 /// 免登录的域路由（对应 Java `URL_WHITELIST`，外层不套 require_auth）。
 pub fn public_routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new()
-        .merge(shop_member::public_routes(state))
+    Router::new().merge(shop_member::public_routes(state))
 }
 
 /// 本域已实现路由（覆盖率统计用）。

@@ -4,11 +4,7 @@
 //! status 置回待处理（0）。最小实现（无 Java 参考可迁移），逐条注释表名。
 //! 经 `ConfigBasicRepository::pool_clone` 直连执行（轻量 UPDATE）。
 
-use axum::{
-    extract::State,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, routing::post, Json, Router};
 use serde::Deserialize;
 use tigshop_core::Error;
 use tigshop_security::web::{ok, ApiResult};
@@ -42,10 +38,12 @@ async fn recall_rows(state: &AdminState, table: &str, ids: &[i32]) -> Result<(),
         .collect::<Vec<_>>()
         .join(",");
     let pool = state.system.config_basic.repo().pool_clone();
-    sqlx::query(&format!("UPDATE `{table}` SET status = 0 WHERE id IN ({list})"))
-        .execute(&pool)
-        .await
-        .map_err(|e| Error::Database(e.to_string()))?;
+    sqlx::query(&format!(
+        "UPDATE `{table}` SET status = 0 WHERE id IN ({list})"
+    ))
+    .execute(&pool)
+    .await
+    .map_err(|e| Error::Database(e.to_string()))?;
     Ok(())
 }
 
@@ -129,26 +127,26 @@ async fn paylog_recall(
     ok(())
 }
 recall_route!(feedback_recall, "user/feedback/recall", "feedback");
-async fn user_recall(
-    State(state): State<AdminState>,
-    Json(dto): Json<RecallDTO>,
-) -> ApiResult<()> {
+async fn user_recall(State(state): State<AdminState>, Json(dto): Json<RecallDTO>) -> ApiResult<()> {
     recall_invoice(&state, "user", "user_id", &ids_of(&dto)).await?;
     ok(())
 }
-async fn user_rank_recall_inner(
-    state: &AdminState,
-    ids: &[i32],
-) -> Result<(), Error> {
+async fn user_rank_recall_inner(state: &AdminState, ids: &[i32]) -> Result<(), Error> {
     if ids.is_empty() {
         return Err(Error::Validation("缺少 id".into()));
     }
-    let list = ids.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(",");
+    let list = ids
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
     let pool = state.system.config_basic.repo().pool_clone();
-    sqlx::query(&format!("UPDATE `user_rank` SET status = 0 WHERE `rank_id` IN ({list})"))
-        .execute(&pool)
-        .await
-        .map_err(|e| Error::Database(e.to_string()))?;
+    sqlx::query(&format!(
+        "UPDATE `user_rank` SET status = 0 WHERE `rank_id` IN ({list})"
+    ))
+    .execute(&pool)
+    .await
+    .map_err(|e| Error::Database(e.to_string()))?;
     Ok(())
 }
 
@@ -174,14 +172,8 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/finance/orderInvoice/recall", post(order_invoice_recall))
         .route("/finance/payLog/recall", post(paylog_recall))
         .route("/finance/userInvoice/recall", post(user_invoice_recall))
-        .route(
-            "/finance/userRechargeOrder/recall",
-            post(recharge_recall),
-        )
-        .route(
-            "/finance/userWithdrawApply/recall",
-            post(withdraw_recall),
-        )
+        .route("/finance/userRechargeOrder/recall", post(recharge_recall))
+        .route("/finance/userWithdrawApply/recall", post(withdraw_recall))
         .route("/user/feedback/recall", post(feedback_recall))
         .route("/user/user/recall", post(user_recall))
         .route("/user/userRank/recall", post(user_rank_recall))

@@ -24,16 +24,31 @@ pub struct SeckillListQuery {
 pub struct SeckillItemDTO {
     /// 更新场景下已有明细的主键；新增时为空
     pub rec_id: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub product_id: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub sku_id: Option<i32>,
     pub seckill_price: Option<Decimal>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub seckill_stock: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub seckill_start_time: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub seckill_end_time: Option<i32>,
 }
 
@@ -42,16 +57,31 @@ pub struct SeckillItemDTO {
 #[serde(rename_all = "camelCase", default)]
 pub struct SeckillCreateDTO {
     pub seckill_name: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub seckill_start_time: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub seckill_end_time: Option<i32>,
     /// 每人限购数量（0 或空表示不限）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub seckill_limit_num: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub product_id: Option<i32>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_i32"
+    )]
     pub shop_id: Option<i32>,
     #[serde(default)]
     pub seckill_item: Vec<SeckillItemDTO>,
@@ -211,10 +241,8 @@ mod tests {
 
     #[test]
     fn update_dto_flattens_base() {
-        let d: SeckillUpdateDTO = serde_json::from_str(
-            r#"{"seckillId":7,"seckillName":"改后名称","shopId":2}"#,
-        )
-        .unwrap();
+        let d: SeckillUpdateDTO =
+            serde_json::from_str(r#"{"seckillId":7,"seckillName":"改后名称","shopId":2}"#).unwrap();
         assert_eq!(d.seckill_id, 7);
         assert_eq!(d.base.seckill_name.as_deref(), Some("改后名称"));
         assert_eq!(d.base.shop_id, Some(2));

@@ -80,7 +80,10 @@ impl WithdrawAccountListQuery {
     #[must_use]
     pub fn limit_offset(&self) -> (u64, u64) {
         let p = self.page_query();
-        (u64::from(p.page_size), u64::from(p.page - 1) * u64::from(p.page_size))
+        (
+            u64::from(p.page_size),
+            u64::from(p.page - 1) * u64::from(p.page_size),
+        )
     }
 }
 
@@ -226,8 +229,7 @@ mod tests {
         assert_eq!(q.limit_offset(), (15, 0));
 
         let q: WithdrawAccountListQuery =
-            serde_json::from_value(serde_json::json!({"page":3,"size":10,"accountId":7}))
-                .unwrap();
+            serde_json::from_value(serde_json::json!({"page":3,"size":10,"accountId":7})).unwrap();
         assert_eq!(q.limit_offset(), (10, 20));
         assert_eq!(q.account_id, Some(7));
     }

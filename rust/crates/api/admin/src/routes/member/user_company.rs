@@ -51,7 +51,7 @@ use tigshop_core::models::member::user_company::{
     OperateDTO, UserCompanyAuditDTO, UserCompanyDetailVO, UserCompanyListQuery, UserCompanyListVO,
 };
 use tigshop_core::types::PageResult;
-use tigshop_security::web::{ok, ApiResult, AuthUser, AppError};
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::support::tenant::{platform_only, require_platform};
 
@@ -65,13 +65,21 @@ use crate::AdminState;
 /// 最后一条 `batch` 来自新版管理端前端契约（Java 控制器未含）。
 const ROUTE_TABLE: [(&str, &str, &str); 5] = [
     // (HTTP method, 本模块路径, 原 Java handler)
-    ("GET", "/user/userCompany/list", "UserCompanyController.list"),
+    (
+        "GET",
+        "/user/userCompany/list",
+        "UserCompanyController.list",
+    ),
     (
         "GET",
         "/user/userCompany/detail",
         "UserCompanyController.detail",
     ),
-    ("POST", "/user/userCompany/audit", "UserCompanyController.audit"),
+    (
+        "POST",
+        "/user/userCompany/audit",
+        "UserCompanyController.audit",
+    ),
     ("POST", "/user/userCompany/del", "UserCompanyController.del"),
     (
         "POST",
@@ -143,10 +151,9 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<UserCompanyDetailVO> {
-    let id = q
-        .id
-        .filter(|v| *v > 0)
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.filter(|v| *v > 0)
+            .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.member.user_company.detail(id).await?)
 }
 
@@ -196,7 +203,11 @@ async fn batch(
     State(state): State<AdminState>,
     Json(dto): Json<UserCompanyBatchDTO>,
 ) -> ApiResult<bool> {
-    ok(state.member.user_company.batch(&dto.batch_type, &dto.ids).await?)
+    ok(state
+        .member
+        .user_company
+        .batch(&dto.batch_type, &dto.ids)
+        .await?)
 }
 
 #[cfg(test)]
@@ -302,7 +313,21 @@ mod tenant_tests {
 
     #[test]
     fn platform_only_helper_rejects_shop_identity() {
-        assert!(require_platform(&AuthUser::new(1, "a".into(), None, Some("admin".into()), Some(0))).is_ok());
-        assert!(require_platform(&AuthUser::new(2, "s".into(), None, Some("shop".into()), Some(7))).is_err());
+        assert!(require_platform(&AuthUser::new(
+            1,
+            "a".into(),
+            None,
+            Some("admin".into()),
+            Some(0)
+        ))
+        .is_ok());
+        assert!(require_platform(&AuthUser::new(
+            2,
+            "s".into(),
+            None,
+            Some("shop".into()),
+            Some(7)
+        ))
+        .is_err());
     }
 }

@@ -22,9 +22,9 @@ use axum::{
 use serde::Deserialize;
 use tigshop_core::models::lang::locales::LocalesVO;
 use tigshop_core::models::lang::translations::{
-    MultipleTranslationDTO, TranslationsBatchParam, TranslationsCreateParam,
-    TranslationsDetailVO, TranslationsGetDTO, TranslationsListQuery, TranslationsVO,
-    TranslationTextDTO, TranslationTextVO,
+    MultipleTranslationDTO, TranslationTextDTO, TranslationTextVO, TranslationsBatchParam,
+    TranslationsCreateParam, TranslationsDetailVO, TranslationsGetDTO, TranslationsListQuery,
+    TranslationsVO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
@@ -48,14 +48,26 @@ const ROUTE_TABLE: [(&str, &str, &str); 12] = [
         "/lang/translations/createTranslations",
         "TranslationsController.createTranslations",
     ),
-    ("GET", "/lang/translations/list", "TranslationsController.list"),
+    (
+        "GET",
+        "/lang/translations/list",
+        "TranslationsController.list",
+    ),
     (
         "GET",
         "/lang/translations/detail",
         "TranslationsController.detail",
     ),
-    ("POST", "/lang/translations/batch", "TranslationsController.batch"),
-    ("POST", "/lang/translations/del", "TranslationsController.del"),
+    (
+        "POST",
+        "/lang/translations/batch",
+        "TranslationsController.batch",
+    ),
+    (
+        "POST",
+        "/lang/translations/del",
+        "TranslationsController.del",
+    ),
     (
         "GET",
         "/lang/translations/getLocalesLimit3",
@@ -71,7 +83,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 12] = [
         "/lang/translations/translation",
         "TranslationsController.translation",
     ),
-    ("GET", "/lang/translations/config", "TranslationsController.config"),
+    (
+        "GET",
+        "/lang/translations/config",
+        "TranslationsController.config",
+    ),
     (
         "POST",
         "/lang/translations/batchCreateTranslations",
@@ -158,11 +174,7 @@ async fn get_translations_query(
     State(state): State<AdminState>,
     Query(q): Query<TranslationsGetQuery>,
 ) -> ApiResult<TranslationsDetailVO> {
-    ok(state
-        .lang
-        .translations
-        .get_translations(&q.into())
-        .await?)
+    ok(state.lang.translations.get_translations(&q.into()).await?)
 }
 
 /// `POST /adminapi/lang/translations/createTranslations`：创建/更新业务翻译。
@@ -283,7 +295,11 @@ async fn batch_create(
             translation_source: None,
         })
         .collect();
-    state.lang.translations.batch_create_translations(&list).await?;
+    state
+        .lang
+        .translations
+        .batch_create_translations(&list)
+        .await?;
     ok(())
 }
 

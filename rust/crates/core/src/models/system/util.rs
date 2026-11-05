@@ -18,9 +18,11 @@ use serde::Deserialize;
 /// 二维码生成未迁移（Java `QrCodeUtil.generateAsBase64`）。
 pub const MSG_QRCODE_NOT_MIGRATED: &str = "二维码生成功能未迁移（QrCodeUtil.generateAsBase64）";
 /// 小程序码生成未迁移（Java `WechatOAuthService.getMiniCode`）。
-pub const MSG_MINI_CODE_NOT_MIGRATED: &str = "小程序码生成功能未迁移（WechatOAuthService.getMiniCode）";
+pub const MSG_MINI_CODE_NOT_MIGRATED: &str =
+    "小程序码生成功能未迁移（WechatOAuthService.getMiniCode）";
 /// 小程序码 scene 解析未迁移（Java `WechatOAuthService.resolveMiniScene`）。
-pub const MSG_MINI_SCENE_NOT_MIGRATED: &str = "小程序码 scene 解析未迁移（WechatOAuthService.resolveMiniScene）";
+pub const MSG_MINI_SCENE_NOT_MIGRATED: &str =
+    "小程序码 scene 解析未迁移（WechatOAuthService.resolveMiniScene）";
 /// `url` 参数缺失（Java `@RequestParam String url` 必填）。
 pub const MSG_URL_REQUIRED: &str = "url不能为空";
 /// `path` 参数缺失（Java `@RequestParam String path` 必填）。
@@ -66,7 +68,8 @@ mod tests {
 
     #[test]
     fn qr_query_is_optional_camel_case() {
-        let q: QrCodeQuery = serde_json::from_value(serde_json::json!({"url":"https://a"})).unwrap();
+        let q: QrCodeQuery =
+            serde_json::from_value(serde_json::json!({"url":"https://a"})).unwrap();
         assert_eq!(q.url.as_deref(), Some("https://a"));
         let empty: QrCodeQuery = serde_json::from_value(serde_json::json!({})).unwrap();
         assert!(empty.url.is_none());

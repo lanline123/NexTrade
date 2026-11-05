@@ -287,11 +287,20 @@ mod tests {
             PromotionTimeStatus::Forthcoming
         );
         // 边界：等于开始时间 → 进行中
-        assert_eq!(PromotionTimeStatus::of(200, 200, 300), PromotionTimeStatus::On);
+        assert_eq!(
+            PromotionTimeStatus::of(200, 200, 300),
+            PromotionTimeStatus::On
+        );
         // 边界：等于结束时间 → 进行中
-        assert_eq!(PromotionTimeStatus::of(300, 200, 300), PromotionTimeStatus::On);
+        assert_eq!(
+            PromotionTimeStatus::of(300, 200, 300),
+            PromotionTimeStatus::On
+        );
         // 已结束
-        assert_eq!(PromotionTimeStatus::of(301, 200, 300), PromotionTimeStatus::Off);
+        assert_eq!(
+            PromotionTimeStatus::of(301, 200, 300),
+            PromotionTimeStatus::Off
+        );
     }
 
     #[test]

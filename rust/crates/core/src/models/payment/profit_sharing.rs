@@ -106,8 +106,7 @@ pub fn parse_finish_status(raw: Option<&str>) -> Option<i32> {
 /// 是否可完结（Java `canFinish`：未完结 && status ∈ {成功, 分账中}）。
 #[must_use]
 pub fn can_finish(status: i32, finish_status: i32) -> bool {
-    finish_status != FINISH_FINISHED
-        && (status == STATUS_SUCCESS || status == STATUS_PROCESSING)
+    finish_status != FINISH_FINISHED && (status == STATUS_SUCCESS || status == STATUS_PROCESSING)
 }
 
 /// 是否可作废（Java `canCancel`：待分账且无渠道交易号）。

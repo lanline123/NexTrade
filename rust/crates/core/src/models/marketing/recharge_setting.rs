@@ -5,7 +5,13 @@
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-pub const COLUMNS: [&str; 5] = ["recharge_id", "money", "discount_money", "sort_order", "is_show"];
+pub const COLUMNS: [&str; 5] = [
+    "recharge_id",
+    "money",
+    "discount_money",
+    "sort_order",
+    "is_show",
+];
 pub const KEY_COLUMN: &str = "recharge_id";
 pub const UPDATE_FIELDS: [&str; 4] = ["money", "discount_money", "sort_order", "is_show"];
 
@@ -152,7 +158,9 @@ pub struct RechargeSettingUpdate {
 
 impl RechargeSettingUpdateDTO {
     pub fn validate(&self) -> Result<RechargeSettingUpdate, String> {
-        let recharge_id = self.recharge_id.ok_or_else(|| MSG_ID_REQUIRED.to_string())?;
+        let recharge_id = self
+            .recharge_id
+            .ok_or_else(|| MSG_ID_REQUIRED.to_string())?;
         let money = self.money.ok_or_else(|| MSG_MONEY_REQUIRED.to_string())?;
         let discount_money = self
             .discount_money
@@ -188,7 +196,10 @@ impl OperateDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -203,10 +214,20 @@ pub struct FieldUpdate {
 impl UpdateFieldDTO {
     pub fn validate(&self) -> Result<FieldUpdate, String> {
         let id = self.id.ok_or_else(|| "id不能为空".to_string())?;
-        let field = self.field.as_deref().ok_or_else(|| "字段名不能为空".to_string())?;
-        let val = self.val.as_deref().ok_or_else(|| "值不能为空".to_string())?;
+        let field = self
+            .field
+            .as_deref()
+            .ok_or_else(|| "字段名不能为空".to_string())?;
+        let val = self
+            .val
+            .as_deref()
+            .ok_or_else(|| "值不能为空".to_string())?;
         let column = resolve_update_field(field).ok_or_else(|| "field 的值有误".to_string())?;
-        Ok(FieldUpdate { id, column, val: val.to_string() })
+        Ok(FieldUpdate {
+            id,
+            column,
+            val: val.to_string(),
+        })
     }
 }
 

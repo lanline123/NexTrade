@@ -24,13 +24,41 @@ use crate::AdminState;
 /// 本域 7 条 admin 路由。最后一条 `batch` 来自
 /// 新版管理端前端契约（`view/admin/src/api/salesman/product.ts`）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/salesman/product/list", "SalesmanProductController.list"),
-    ("GET", "/salesman/product/detail", "SalesmanProductController.detail"),
-    ("POST", "/salesman/product/create", "SalesmanProductController.create"),
-    ("POST", "/salesman/product/update", "SalesmanProductController.update"),
-    ("GET", "/salesman/product/config", "SalesmanProductController.config"),
-    ("GET", "/salesman/product/analysis", "SalesmanProductController.analysis"),
-    ("POST", "/salesman/product/batch", "SalesmanProductController.batch"),
+    (
+        "GET",
+        "/salesman/product/list",
+        "SalesmanProductController.list",
+    ),
+    (
+        "GET",
+        "/salesman/product/detail",
+        "SalesmanProductController.detail",
+    ),
+    (
+        "POST",
+        "/salesman/product/create",
+        "SalesmanProductController.create",
+    ),
+    (
+        "POST",
+        "/salesman/product/update",
+        "SalesmanProductController.update",
+    ),
+    (
+        "GET",
+        "/salesman/product/config",
+        "SalesmanProductController.config",
+    ),
+    (
+        "GET",
+        "/salesman/product/analysis",
+        "SalesmanProductController.analysis",
+    ),
+    (
+        "POST",
+        "/salesman/product/batch",
+        "SalesmanProductController.batch",
+    ),
 ];
 
 /// 分销商品管理路由（挂载于 `/adminapi` 下，外层统一套 `require_auth`）。
@@ -85,11 +113,7 @@ async fn create(
     State(state): State<AdminState>,
     Json(param): Json<SalesmanProductSaveParam>,
 ) -> ApiResult<()> {
-    state
-        .marketing
-        .salesman_product
-        .create(&param)
-        .await?;
+    state.marketing.salesman_product.create(&param).await?;
     ok(())
 }
 
@@ -104,9 +128,13 @@ async fn update(
 /// `GET /adminapi/salesman/product/config`：分销商品类型映射（Java `Map<Integer,String>`）。
 async fn config() -> ApiResult<serde_json::Value> {
     let mut map = serde_json::Map::new();
-    for (code, name) in tigshop_services::marketing::salesman_product::SalesmanProductService::config()
+    for (code, name) in
+        tigshop_services::marketing::salesman_product::SalesmanProductService::config()
     {
-        map.insert(code.to_string(), serde_json::Value::String(name.to_string()));
+        map.insert(
+            code.to_string(),
+            serde_json::Value::String(name.to_string()),
+        );
     }
     ok(serde_json::Value::Object(map))
 }
@@ -115,11 +143,7 @@ async fn analysis(
     State(state): State<AdminState>,
     Query(q): Query<SalesmanProductAnalysisQuery>,
 ) -> ApiResult<PageResult<serde_json::Value>> {
-    ok(state
-        .marketing
-        .salesman_product
-        .analysis(&q)
-        .await?)
+    ok(state.marketing.salesman_product.analysis(&q).await?)
 }
 
 /// `POST /adminapi/salesman/product/batch`：批量操作。
@@ -175,7 +199,10 @@ mod tests {
             ("POST", "/adminapi/salesman/product/batch"),
         ];
         for (method, path) in expected {
-            assert!(docs.iter().any(|d| d.method == method && d.path == path), "缺少 {method} {path}");
+            assert!(
+                docs.iter().any(|d| d.method == method && d.path == path),
+                "缺少 {method} {path}"
+            );
         }
         let mut keys: Vec<String> = docs.iter().map(tigshop_openapi::RouteDoc::key).collect();
         let mut unique = keys.clone();

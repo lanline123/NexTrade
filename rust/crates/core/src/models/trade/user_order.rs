@@ -243,7 +243,10 @@ mod tests {
     fn reason_config_parse_matches_java() {
         assert_eq!(
             parse_reason_list(Some(r#"["多拍/拍错/不喜欢","未按约定时间发货"]"#)),
-            vec!["多拍/拍错/不喜欢".to_string(), "未按约定时间发货".to_string()]
+            vec![
+                "多拍/拍错/不喜欢".to_string(),
+                "未按约定时间发货".to_string()
+            ]
         );
         // 非法/空 → Java 默认 5 项
         assert_eq!(
@@ -321,14 +324,14 @@ mod tests {
 
     #[test]
     fn order_id_dto_accepts_java_names() {
-        let dto: OrderIdDTO = serde_json::from_str(r#"{"id":12,"description":"不想要了"}"#).unwrap();
+        let dto: OrderIdDTO =
+            serde_json::from_str(r#"{"id":12,"description":"不想要了"}"#).unwrap();
         assert_eq!(dto.id, Some(12));
         assert_eq!(dto.description.as_deref(), Some("不想要了"));
         let dto: OrderIdDTO = serde_json::from_str("{}").unwrap();
         assert_eq!(dto.id, None);
     }
 }
-
 
 #[cfg(test)]
 mod tolerant_order_id_tests {
@@ -342,8 +345,7 @@ mod tolerant_order_id_tests {
             serde_json::from_str(r#"{"id":"29","description":"不想要了"}"#).expect("string id ok");
         assert_eq!(dto.id, Some(29));
         assert_eq!(dto.description.as_deref(), Some("不想要了"));
-        let dto: OrderIdDTO =
-            serde_json::from_str(r#"{"id":29}"#).expect("numeric id ok");
+        let dto: OrderIdDTO = serde_json::from_str(r#"{"id":29}"#).expect("numeric id ok");
         assert_eq!(dto.id, Some(29));
     }
 }

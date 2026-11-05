@@ -206,9 +206,7 @@ pub fn page_query(page: Option<u64>, size: Option<u64>) -> PageQuery {
 #[must_use]
 pub fn refund_sort_column(field: Option<&str>) -> &'static str {
     match field.map(str::trim).filter(|f| !f.is_empty()) {
-        Some("shopDepositRefundId") | Some("shop_deposit_refund_id") => {
-            "shop_deposit_refund_id"
-        }
+        Some("shopDepositRefundId") | Some("shop_deposit_refund_id") => "shop_deposit_refund_id",
         Some("ownerType") | Some("owner_type") => "owner_type",
         Some("ownerId") | Some("owner_id") => "owner_id",
         Some("type") | Some("r#type") => "type",
@@ -247,7 +245,10 @@ pub fn deposit_change(
         }
         let after = paid + amount;
         if after < Decimal::ZERO {
-            return Err(Error::biz(DEPOSIT_BALANCE_NOT_ENOUGH, MSG_BALANCE_NOT_ENOUGH));
+            return Err(Error::biz(
+                DEPOSIT_BALANCE_NOT_ENOUGH,
+                MSG_BALANCE_NOT_ENOUGH,
+            ));
         }
         return Ok((amount, after));
     }
@@ -258,7 +259,10 @@ pub fn deposit_change(
         return Ok((amount, paid + amount));
     }
     if paid < amount {
-        return Err(Error::biz(DEPOSIT_BALANCE_NOT_ENOUGH, MSG_BALANCE_NOT_ENOUGH));
+        return Err(Error::biz(
+            DEPOSIT_BALANCE_NOT_ENOUGH,
+            MSG_BALANCE_NOT_ENOUGH,
+        ));
     }
     Ok((-amount, paid - amount))
 }

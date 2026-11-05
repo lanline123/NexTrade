@@ -1,4 +1,4 @@
-﻿//! 管理端品牌路由。
+//! 管理端品牌路由。
 //! 对应原 Java `com.tigshop.adminapi.controller.product.BrandController`
 //! （`@RequestMapping("/adminapi/product/brand")`）。
 //!
@@ -82,15 +82,15 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::catalog::brand::{
-    BrandAuditDTO, BrandDTO, BrandListQuery, BrandSearchVO, BrandVO, BatchDTO, OperateDTO,
+    BatchDTO, BrandAuditDTO, BrandDTO, BrandListQuery, BrandSearchVO, BrandVO, OperateDTO,
     UpdateFieldDTO,
 };
 use tigshop_core::types::PageResult;
-use tigshop_security::web::{ok, ApiResult};
 use tigshop_security::web::AuthUser;
+use tigshop_security::web::{ok, ApiResult};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 品牌域全部 12 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java 方法名）。
 ///
@@ -106,13 +106,29 @@ const ROUTE_TABLE: [(&str, &str, &str); 12] = [
     ("POST", "/product/brand/del", "BrandController.del"),
     ("POST", "/product/brand/create", "BrandController.create"),
     ("POST", "/product/brand/update", "BrandController.update"),
-    ("POST", "/product/brand/updateField", "BrandController.updateField"),
+    (
+        "POST",
+        "/product/brand/updateField",
+        "BrandController.updateField",
+    ),
     ("POST", "/product/brand/batch", "BrandController.batch"),
     ("GET", "/product/brand/search", "BrandController.search"),
-    ("POST", "/product/brand/updateFirstWord", "BrandController.updateFirstWord"),
-    ("GET", "/product/brand/auditList", "BrandController.auditList"),
+    (
+        "POST",
+        "/product/brand/updateFirstWord",
+        "BrandController.updateFirstWord",
+    ),
+    (
+        "GET",
+        "/product/brand/auditList",
+        "BrandController.auditList",
+    ),
     ("POST", "/product/brand/audit", "BrandController.audit"),
-    ("GET", "/product/brand/auditWaitNum", "BrandController.auditWaitNum"),
+    (
+        "GET",
+        "/product/brand/auditWaitNum",
+        "BrandController.auditWaitNum",
+    ),
 ];
 
 /// 品牌域路由（挂载于 `/adminapi` 下）。
@@ -132,7 +148,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/product/brand/updateField", post(brand_update_field))
         .route("/product/brand/batch", post(brand_batch))
         .route("/product/brand/search", get(brand_search))
-        .route("/product/brand/updateFirstWord", post(brand_update_first_word))
+        .route(
+            "/product/brand/updateFirstWord",
+            post(brand_update_first_word),
+        )
         .route("/product/brand/auditList", get(brand_audit_list))
         .route("/product/brand/audit", post(brand_audit))
         .route("/product/brand/auditWaitNum", get(brand_audit_wait_num))
@@ -297,7 +316,11 @@ async fn brand_batch(
             tenant::ensure_row_shop_opt(&auth, detail.shop_id)?;
         }
     }
-    ok(state.catalog.brand.batch(&ids, dto.r#type.as_deref()).await?)
+    ok(state
+        .catalog
+        .brand
+        .batch(&ids, dto.r#type.as_deref())
+        .await?)
 }
 
 /// `GET /adminapi/product/brand/search`：品牌搜索（下拉数据）。
@@ -400,7 +423,11 @@ mod tests {
         let mut unique = actual.clone();
         unique.sort();
         unique.dedup();
-        assert_eq!(unique.len(), actual.len(), "implemented_routes() 存在重复项");
+        assert_eq!(
+            unique.len(),
+            actual.len(),
+            "implemented_routes() 存在重复项"
+        );
     }
 
     /// 回归守卫：本模块的路径表必须**恰好** 12 条且互不重复，
@@ -458,16 +485,25 @@ mod tests {
     /// 多租户隔离：店铺账号跨店 shopId 必须 403，列表强制本店过滤。
     #[test]
     fn tenant_scope_rejects_cross_shop_and_forces_list_filter() {
-        let shop = AuthUser { id: 7, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(3) };
+        let shop = AuthUser {
+            id: 7,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(3),
+        };
         assert_eq!(tenant::list_scope(&shop, None).unwrap(), Some(3));
         assert!(tenant::list_scope(&shop, Some(9)).is_err());
         assert!(tenant::ensure_row_shop_opt(&shop, Some(9)).is_err());
         assert!(tenant::ensure_row_shop_opt(&shop, Some(3)).is_ok());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert_eq!(tenant::list_scope(&platform, None).unwrap(), None);
         assert_eq!(tenant::list_scope(&platform, Some(9)).unwrap(), Some(9));
     }
-
 }

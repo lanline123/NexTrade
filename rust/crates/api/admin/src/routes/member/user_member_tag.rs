@@ -235,8 +235,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");
@@ -269,10 +271,7 @@ mod tests {
             3
         );
         // 缺失/非法 → 0（Java null → 0）
-        assert_eq!(
-            current_shop_id(&headers(&[("x-admin-type", "shop")])),
-            0
-        );
+        assert_eq!(current_shop_id(&headers(&[("x-admin-type", "shop")])), 0);
         assert_eq!(
             current_shop_id(&headers(&[("x-admin-type", "shop"), ("x-shop-id", "abc")])),
             0

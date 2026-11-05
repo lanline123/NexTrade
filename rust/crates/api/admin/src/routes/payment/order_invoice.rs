@@ -32,7 +32,11 @@ use crate::AdminState;
 
 /// 本域 7 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/finance/orderInvoice/list", "OrderInvoiceController.list"),
+    (
+        "GET",
+        "/finance/orderInvoice/list",
+        "OrderInvoiceController.list",
+    ),
     (
         "GET",
         "/finance/orderInvoice/detail",
@@ -48,7 +52,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
         "/finance/orderInvoice/update",
         "OrderInvoiceController.update",
     ),
-    ("POST", "/finance/orderInvoice/del", "OrderInvoiceController.del"),
+    (
+        "POST",
+        "/finance/orderInvoice/del",
+        "OrderInvoiceController.del",
+    ),
     (
         "POST",
         "/finance/orderInvoice/updateField",
@@ -99,9 +107,8 @@ async fn ensure_invoice_access(
     invoice_id: Option<i32>,
 ) -> Result<(), AppError> {
     if auth.scoped_shop_id().is_some() {
-        let id = invoice_id.ok_or_else(|| {
-            AppError(tigshop_core::Error::Validation("发票ID不能为空".into()))
-        })?;
+        let id = invoice_id
+            .ok_or_else(|| AppError(tigshop_core::Error::Validation("发票ID不能为空".into())))?;
         state
             .payment
             .order_invoice

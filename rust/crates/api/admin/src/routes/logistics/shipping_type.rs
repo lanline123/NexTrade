@@ -42,16 +42,16 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use tigshop_security::web::AuthUser;
 use tigshop_core::models::logistics::shipping_type::{
     BatchDTO, OperateDTO, ShippingTypeCreateDTO, ShippingTypeListQuery, ShippingTypeUpdateDTO,
     ShippingTypeVO, UpdateFieldDTO, MSG_ID_REQUIRED,
 };
 use tigshop_core::types::PageResult;
+use tigshop_security::web::AuthUser;
 use tigshop_security::web::{ok, ApiResult, AppError};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 本域全部 7 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 ///
@@ -308,7 +308,11 @@ mod tests {
     #[test]
     fn implemented_routes_match_contract_paths() {
         let docs = implemented_routes();
-        assert_eq!(docs.len(), 7, "本域应有 7 条路由（含 slices.json 漏掉的 /list）");
+        assert_eq!(
+            docs.len(),
+            7,
+            "本域应有 7 条路由（含 slices.json 漏掉的 /list）"
+        );
 
         let keys: Vec<String> = docs.iter().map(|d| d.key()).collect();
         let expected = [
@@ -425,15 +429,24 @@ mod tests {
     /// 店铺账号跨店读写必须被拒（detail/update/del 均先做归属校验）。
     #[test]
     fn cross_shop_access_is_rejected() {
-        let shop = AuthUser { id: 2, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(6) };
+        let shop = AuthUser {
+            id: 2,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(6),
+        };
         assert!(tenant::ensure_row_shop(&shop, 9).is_err());
         assert!(tenant::ensure_row_shop(&shop, 6).is_ok());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert!(tenant::ensure_row_shop(&platform, 9).is_ok());
         assert_eq!(tenant::platform_or_shop_id(&shop), 6);
         assert_eq!(tenant::platform_or_shop_id(&platform), 0);
     }
-
 }

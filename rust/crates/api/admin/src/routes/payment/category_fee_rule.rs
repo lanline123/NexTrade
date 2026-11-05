@@ -90,7 +90,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/finance/categoryFeeRule/update", post(update))
         .route("/finance/categoryFeeRule/updateStatus", post(update_status))
         .route("/finance/categoryFeeRule/del", post(del))
-        .route("/finance/categoryFeeRule/checkConflict", post(check_conflict))
+        .route(
+            "/finance/categoryFeeRule/checkConflict",
+            post(check_conflict),
+        )
         .layer(axum::middleware::from_fn(platform_only))
 }
 

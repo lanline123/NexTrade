@@ -31,7 +31,8 @@ use crate::AdminState;
 /// 域路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new().route("/common/cacheManage/cleanup", post(cleanup))
+    Router::new()
+        .route("/common/cacheManage/cleanup", post(cleanup))
         .layer(axum::middleware::from_fn(platform_only))
 }
 

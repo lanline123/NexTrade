@@ -458,7 +458,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（驼峰属性名；服务层经 `StrUtil.toUnderlineCase` 归一为列名）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -501,7 +504,8 @@ pub fn to_underline_case(field: &str) -> String {
     let chars: Vec<char> = field.chars().collect();
     for (i, ch) in chars.iter().enumerate() {
         if ch.is_ascii_uppercase() {
-            let prev_is_lower_or_digit = i > 0 && (chars[i - 1].is_ascii_lowercase() || chars[i - 1].is_ascii_digit());
+            let prev_is_lower_or_digit =
+                i > 0 && (chars[i - 1].is_ascii_lowercase() || chars[i - 1].is_ascii_digit());
             let next_is_lower = chars.get(i + 1).is_some_and(char::is_ascii_lowercase);
             let prev_is_upper = i > 0 && chars[i - 1].is_ascii_uppercase();
             // Hutool：小写/数字后跟大写 ⇒ 插下划线；连续大写后接小写（如 `HTMLPage`）⇒ 在最后一个大写前插
@@ -667,7 +671,13 @@ mod tests {
         // 与 `CATEGORY_FIELDS` 前 5 项完全相同 —— 这正说明 Java 常量是照抄来的
         assert_eq!(
             SHOP_PRODUCT_CATEGORY_FIELDS,
-            ["category_name", "measure_unit", "is_hot", "is_show", "sort_order"]
+            [
+                "category_name",
+                "measure_unit",
+                "is_hot",
+                "is_show",
+                "sort_order"
+            ]
         );
     }
 

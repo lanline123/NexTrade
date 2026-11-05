@@ -52,13 +52,21 @@ const ROUTE_TABLE: [(&str, &str, &str); 5] = [
         "/setting/config/showSettings",
         "ConfigController.getShowSettings",
     ),
-    ("POST", "/setting/config/saveShow", "ConfigController.saveShow"),
+    (
+        "POST",
+        "/setting/config/saveShow",
+        "ConfigController.saveShow",
+    ),
     (
         "GET",
         "/setting/config/apiSettings",
         "ConfigController.getApiSettings",
     ),
-    ("POST", "/setting/config/saveApi", "ConfigController.saveApi"),
+    (
+        "POST",
+        "/setting/config/saveApi",
+        "ConfigController.saveApi",
+    ),
     (
         "POST",
         "/setting/config/saveLayoutThemeSwitch",
@@ -109,12 +117,7 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
 
 /// 读取一组 JSON 配置：缺失 / 空 / 非法 JSON 一律回空对象。
 async fn read_group(state: &AdminState, code: &str) -> tigshop_core::Result<Value> {
-    let raw = state
-        .system
-        .config_basic
-        .repo()
-        .find_by_code(code)
-        .await?;
+    let raw = state.system.config_basic.repo().find_by_code(code).await?;
     let value = raw
         .and_then(|s| serde_json::from_str::<Value>(&s).ok())
         .unwrap_or_else(|| Value::Object(Map::new()));

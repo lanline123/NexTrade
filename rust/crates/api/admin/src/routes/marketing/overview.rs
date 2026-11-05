@@ -15,8 +15,16 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 2] = [
-    ("GET", "/salesman/overview/coreTrend", "OverviewController.coreTrend"),
-    ("GET", "/salesman/overview/coreSummary", "OverviewController.coreSummary"),
+    (
+        "GET",
+        "/salesman/overview/coreTrend",
+        "OverviewController.coreTrend",
+    ),
+    (
+        "GET",
+        "/salesman/overview/coreSummary",
+        "OverviewController.coreSummary",
+    ),
 ];
 
 /// 分销概览域路由（挂载于 `/adminapi` 下，外层 `require_auth`）。
@@ -96,7 +104,10 @@ mod tests {
     #[test]
     fn shop_id_three_states() {
         let mut h = axum::http::HeaderMap::new();
-        h.insert("x-admin-type", axum::http::HeaderValue::from_static("admin"));
+        h.insert(
+            "x-admin-type",
+            axum::http::HeaderValue::from_static("admin"),
+        );
         assert_eq!(current_shop_id(&h), Some(0));
         let mut h = axum::http::HeaderMap::new();
         h.insert("x-admin-type", axum::http::HeaderValue::from_static("shop"));

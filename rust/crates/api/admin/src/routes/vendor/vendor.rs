@@ -23,11 +23,9 @@ use axum::{
     Extension, Json, Router,
 };
 use serde::Deserialize;
-use tigshop_core::models::vendor::vendor::{
-    VendorConfigParam, VendorCreateParam, VendorListQuery,
-};
-use tigshop_core::types::PageResult;
 use tigshop_core::models::vendor::vendor::VendorListVO;
+use tigshop_core::models::vendor::vendor::{VendorConfigParam, VendorCreateParam, VendorListQuery};
+use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AuthUser, TenantContext};
 
 use crate::AdminState;
@@ -125,9 +123,9 @@ async fn setting(
     Extension(tenant): Extension<TenantContext>,
     Json(p): Json<VendorConfigParam>,
 ) -> ApiResult<&'static str> {
-    let vendor_id = tenant.vendor_scope().ok_or_else(|| {
-        tigshop_core::Error::biz(401, "无法获取当前供应商信息")
-    })?;
+    let vendor_id = tenant
+        .vendor_scope()
+        .ok_or_else(|| tigshop_core::Error::biz(401, "无法获取当前供应商信息"))?;
     state.vendor.vendor.setting(vendor_id, &p).await?;
     ok("保存成功")
 }

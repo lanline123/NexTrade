@@ -20,11 +20,11 @@
 //! 2. 路径变量做了目录穿越校验（Java 未做），非法入参返回「文件不存在」。
 
 use axum::{
+    body::Body,
     extract::{Path, State},
     http::{header, StatusCode},
     response::{IntoResponse, Response},
     routing::get,
-    body::Body,
     Router,
 };
 

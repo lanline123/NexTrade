@@ -44,17 +44,21 @@ use tigshop_core::models::catalog::product_group::{
     ProductGroupVO, UpdateFieldDTO,
 };
 use tigshop_core::types::PageResult;
-use tigshop_security::web::{ok, ApiResult};
 use tigshop_security::web::AuthUser;
+use tigshop_security::web::{ok, ApiResult};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 商品分组域全部 8 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java 方法名）。
 ///
 /// 顺序与原 Java `ProductGroupController` 一致；`implemented_routes()` 唯一来源。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/product/productGroup/list", "ProductGroupController.list"),
+    (
+        "GET",
+        "/product/productGroup/list",
+        "ProductGroupController.list",
+    ),
     (
         "GET",
         "/product/productGroup/detail",
@@ -70,7 +74,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "/product/productGroup/update",
         "ProductGroupController.update",
     ),
-    ("POST", "/product/productGroup/del", "ProductGroupController.del"),
+    (
+        "POST",
+        "/product/productGroup/del",
+        "ProductGroupController.del",
+    ),
     (
         "POST",
         "/product/productGroup/updateField",
@@ -407,18 +415,27 @@ mod tests {
     /// 多租户：分组详情/更新/删除必须校验归属（跨店 403；列表由请求头强制过滤）。
     #[test]
     fn tenant_scope_isolation() {
-        let shop = AuthUser { id: 3, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(5) };
+        let shop = AuthUser {
+            id: 3,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(5),
+        };
         assert_eq!(shop_id_from_headers_from_auth(&shop), Some(5));
         assert!(tenant::ensure_row_shop_opt(&shop, Some(5)).is_ok());
         assert!(tenant::ensure_row_shop_opt(&shop, Some(7)).is_err());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert!(tenant::ensure_row_shop_opt(&platform, Some(7)).is_ok());
     }
 
     fn shop_id_from_headers_from_auth(auth: &AuthUser) -> Option<i32> {
         auth.scoped_shop_id()
     }
-
 }

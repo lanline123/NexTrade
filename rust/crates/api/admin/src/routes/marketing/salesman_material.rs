@@ -34,7 +34,11 @@ use crate::AdminState;
 
 /// 本域 7 条管理端路由（去掉 `/adminapi` 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/salesman/material/list", "SalesmanMaterialController.list"),
+    (
+        "GET",
+        "/salesman/material/list",
+        "SalesmanMaterialController.list",
+    ),
     (
         "GET",
         "/salesman/material/detail",
@@ -50,7 +54,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
         "/salesman/material/update",
         "SalesmanMaterialController.update",
     ),
-    ("POST", "/salesman/material/del", "SalesmanMaterialController.del"),
+    (
+        "POST",
+        "/salesman/material/del",
+        "SalesmanMaterialController.del",
+    ),
     (
         "POST",
         "/salesman/material/updateField",
@@ -104,9 +112,8 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<Option<SalesmanMaterialVO>> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.marketing.salesman_material.detail(id).await?)
 }
 
@@ -178,7 +185,9 @@ mod tests {
             assert!(d.path.starts_with("/adminapi/salesman/material/"));
             assert!(d.java_ref.starts_with("SalesmanMaterialController."));
         }
-        assert!(docs.iter().any(|d| d.path == "/adminapi/salesman/material/updateField"));
+        assert!(docs
+            .iter()
+            .any(|d| d.path == "/adminapi/salesman/material/updateField"));
     }
 
     #[test]
@@ -200,10 +209,8 @@ mod tests {
 
     #[test]
     fn queries_parse_camel_case() {
-        let q: SalesmanMaterialListQuery = serde_json::from_str(
-            r#"{"categoryId":2,"isShow":1,"from":"user","size":20}"#,
-        )
-        .unwrap();
+        let q: SalesmanMaterialListQuery =
+            serde_json::from_str(r#"{"categoryId":2,"isShow":1,"from":"user","size":20}"#).unwrap();
         assert_eq!(q.category_id, Some(2));
         assert_eq!(q.page_size, Some(20));
         let b: BatchDTO = serde_json::from_str(r#"{"ids":[1,2],"type":"del"}"#).unwrap();

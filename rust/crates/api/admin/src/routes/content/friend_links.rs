@@ -35,8 +35,16 @@ use crate::AdminState;
 
 /// 本域路由清单（去掉 `/adminapi` 前缀 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/setting/friendLinks/list", "FriendLinksController.list"),
-    ("GET", "/setting/friendLinks/detail", "FriendLinksController.detail"),
+    (
+        "GET",
+        "/setting/friendLinks/list",
+        "FriendLinksController.list",
+    ),
+    (
+        "GET",
+        "/setting/friendLinks/detail",
+        "FriendLinksController.detail",
+    ),
     (
         "POST",
         "/setting/friendLinks/create",
@@ -47,13 +55,21 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
         "/setting/friendLinks/update",
         "FriendLinksController.update",
     ),
-    ("POST", "/setting/friendLinks/del", "FriendLinksController.del"),
+    (
+        "POST",
+        "/setting/friendLinks/del",
+        "FriendLinksController.del",
+    ),
     (
         "POST",
         "/setting/friendLinks/updateField",
         "FriendLinksController.updateField",
     ),
-    ("POST", "/setting/friendLinks/batch", "FriendLinksController.batch"),
+    (
+        "POST",
+        "/setting/friendLinks/batch",
+        "FriendLinksController.batch",
+    ),
 ];
 
 /// 友情链接路由（挂载于 `/adminapi` 下）。
@@ -121,10 +137,7 @@ async fn update(
 }
 
 /// `POST /adminapi/setting/friendLinks/del`：删除友情链接。
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<FriendLinksIdDTO>,
-) -> ApiResult<()> {
+async fn del(State(state): State<AdminState>, Json(dto): Json<FriendLinksIdDTO>) -> ApiResult<()> {
     state.content.friend_links.delete(&dto).await?;
     ok(())
 }
@@ -166,8 +179,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");

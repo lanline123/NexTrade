@@ -111,8 +111,14 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/setting/logisticsCompanyConfig/create", post(create))
         .route("/setting/logisticsCompanyConfig/update", post(update))
         .route("/setting/logisticsCompanyConfig/del", post(del))
-        .route("/setting/logisticsCompanyConfig/setDefault", post(set_default))
-        .route("/setting/logisticsCompanyConfig/updateField", post(update_field))
+        .route(
+            "/setting/logisticsCompanyConfig/setDefault",
+            post(set_default),
+        )
+        .route(
+            "/setting/logisticsCompanyConfig/updateField",
+            post(update_field),
+        )
 }
 
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
@@ -245,7 +251,9 @@ async fn list(
     Query(q): Query<LogisticsCompanyConfigListQuery>,
 ) -> ApiResult<PageResult<LogisticsCompanyConfigVO>> {
     let tenant = resolve_tenant(&headers, &auth);
-    ok(state.logistics.logistics_company_config
+    ok(state
+        .logistics
+        .logistics_company_config
         .list(&q, tenant.shop_id, tenant.vendor_id)
         .await?)
 }
@@ -262,15 +270,21 @@ async fn detail(
 ) -> ApiResult<Option<LogisticsCompanyConfigVO>> {
     let tenant = resolve_tenant(&headers, &auth);
     let scope = match q.id {
-        Some(id) => state
-            .logistics
-            .logistics_company_config
-            .scope_of(id)
-            .await?,
+        Some(id) => {
+            state
+                .logistics
+                .logistics_company_config
+                .scope_of(id)
+                .await?
+        }
         None => None,
     };
     ensure_config_access(&tenant, scope)?;
-    ok(state.logistics.logistics_company_config.detail(q.id).await?)
+    ok(state
+        .logistics
+        .logistics_company_config
+        .detail(q.id)
+        .await?)
 }
 
 /// `POST /adminapi/setting/logisticsCompanyConfig/create`：绑定物流公司。
@@ -284,7 +298,9 @@ async fn create(
     Json(dto): Json<LogisticsCompanyConfigCreateDTO>,
 ) -> ApiResult<i32> {
     let tenant = resolve_tenant(&headers, &auth);
-    ok(state.logistics.logistics_company_config
+    ok(state
+        .logistics
+        .logistics_company_config
         .create(&dto, tenant.shop_id, tenant.vendor_id)
         .await?)
 }
@@ -308,7 +324,11 @@ async fn update(
         .scope_of(id)
         .await?;
     ensure_config_access(&tenant, scope)?;
-    state.logistics.logistics_company_config.update(&dto).await?;
+    state
+        .logistics
+        .logistics_company_config
+        .update(&dto)
+        .await?;
     ok("更新成功")
 }
 
@@ -323,15 +343,21 @@ async fn del(
 ) -> ApiResult<&'static str> {
     let tenant = resolve_tenant(&headers, &auth);
     let scope = match dto.id {
-        Some(id) => state
-            .logistics
-            .logistics_company_config
-            .scope_of(id)
-            .await?,
+        Some(id) => {
+            state
+                .logistics
+                .logistics_company_config
+                .scope_of(id)
+                .await?
+        }
         None => None,
     };
     ensure_config_access(&tenant, scope)?;
-    state.logistics.logistics_company_config.delete(dto.id).await?;
+    state
+        .logistics
+        .logistics_company_config
+        .delete(dto.id)
+        .await?;
     ok("删除成功")
 }
 
@@ -345,9 +371,8 @@ async fn set_default(
     headers: HeaderMap,
     Query(q): Query<SetDefaultQuery>,
 ) -> ApiResult<&'static str> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("配置ID不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("配置ID不能为空".into()))?;
     let tenant = resolve_tenant(&headers, &auth);
     let scope = state
         .logistics
@@ -355,7 +380,11 @@ async fn set_default(
         .scope_of(id)
         .await?;
     ensure_config_access(&tenant, scope)?;
-    state.logistics.logistics_company_config.set_default(id).await?;
+    state
+        .logistics
+        .logistics_company_config
+        .set_default(id)
+        .await?;
     ok("设置成功")
 }
 
@@ -379,7 +408,11 @@ async fn update_field(
         .scope_of(id)
         .await?;
     ensure_config_access(&tenant, scope)?;
-    state.logistics.logistics_company_config.update_field(&dto).await?;
+    state
+        .logistics
+        .logistics_company_config
+        .update_field(&dto)
+        .await?;
     ok("更新成功")
 }
 
@@ -420,7 +453,13 @@ mod tests {
             ]),
             &auth_with_type(None),
         );
-        assert_eq!(t, TenantScope { shop_id: 0, vendor_id: 0 });
+        assert_eq!(
+            t,
+            TenantScope {
+                shop_id: 0,
+                vendor_id: 0
+            }
+        );
     }
 
     #[test]
@@ -475,7 +514,10 @@ mod tests {
 
     #[test]
     fn jwt_admin_type_is_fallback_when_header_missing() {
-        let t = resolve_tenant(&headers(&[("x-shop-id", "5")]), &auth_with_type(Some("shop")));
+        let t = resolve_tenant(
+            &headers(&[("x-shop-id", "5")]),
+            &auth_with_type(Some("shop")),
+        );
         assert_eq!(t.shop_id, 5);
 
         // 请求头优先于 JWT
@@ -511,7 +553,9 @@ mod tests {
         let docs = implemented_routes();
         assert_eq!(docs.len(), 7);
         for d in &docs {
-            assert!(d.path.starts_with("/adminapi/setting/logisticsCompanyConfig/"));
+            assert!(d
+                .path
+                .starts_with("/adminapi/setting/logisticsCompanyConfig/"));
         }
     }
 
@@ -532,13 +576,18 @@ mod tests {
     /// 跨店物流配置访问必须被拒；平台账号放行。
     #[test]
     fn config_scope_isolation() {
-        let shop_tenant = TenantScope { shop_id: 6, vendor_id: 0 };
+        let shop_tenant = TenantScope {
+            shop_id: 6,
+            vendor_id: 0,
+        };
         assert!(ensure_config_access(&shop_tenant, Some((6, 0))).is_ok());
         assert!(ensure_config_access(&shop_tenant, Some((9, 0))).is_err());
         // 配置不存在：交给服务层原有语义
         assert!(ensure_config_access(&shop_tenant, None).is_ok());
-        let platform = TenantScope { shop_id: 0, vendor_id: 0 };
+        let platform = TenantScope {
+            shop_id: 0,
+            vendor_id: 0,
+        };
         assert!(ensure_config_access(&platform, Some((9, 0))).is_ok());
     }
-
 }

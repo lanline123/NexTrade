@@ -19,7 +19,9 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use tigshop_core::models::marketing::seckill::{SeckillCreateDTO, SeckillListQuery, SeckillUpdateDTO, SeckillVO};
+use tigshop_core::models::marketing::seckill::{
+    SeckillCreateDTO, SeckillListQuery, SeckillUpdateDTO, SeckillVO,
+};
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
 
@@ -40,11 +42,31 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/promotion/seckill/list", "SeckillController.list"),
-        ("GET", "/adminapi/promotion/seckill/detail", "SeckillController.detail"),
-        ("POST", "/adminapi/promotion/seckill/create", "SeckillController.create"),
-        ("POST", "/adminapi/promotion/seckill/update", "SeckillController.update"),
-        ("POST", "/adminapi/promotion/seckill/del", "SeckillController.del"),
+        (
+            "GET",
+            "/adminapi/promotion/seckill/list",
+            "SeckillController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/promotion/seckill/detail",
+            "SeckillController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/seckill/create",
+            "SeckillController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/seckill/update",
+            "SeckillController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/seckill/del",
+            "SeckillController.del",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -65,10 +87,7 @@ struct IdQuery {
     id: i32,
 }
 
-async fn detail(
-    State(state): State<AdminState>,
-    Query(q): Query<IdQuery>,
-) -> ApiResult<SeckillVO> {
+async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<SeckillVO> {
     ok(state.marketing.seckill.detail(q.id).await?)
 }
 
@@ -97,10 +116,7 @@ struct DelDTO {
     seckill_id: i32,
 }
 
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<DelDTO>,
-) -> ApiResult<&'static str> {
+async fn del(State(state): State<AdminState>, Json(dto): Json<DelDTO>) -> ApiResult<&'static str> {
     state.marketing.seckill.delete(dto.seckill_id).await?;
     ok("删除成功")
 }

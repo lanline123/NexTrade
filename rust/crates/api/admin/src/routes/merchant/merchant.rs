@@ -48,16 +48,32 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "MerchantController.uploadLicense",
     ),
     ("GET", "/merchant/merchant/list", "MerchantController.list"),
-    ("GET", "/merchant/merchant/detail", "MerchantController.detail"),
-    ("POST", "/merchant/merchant/create", "MerchantController.create"),
-    ("POST", "/merchant/merchant/update", "MerchantController.update"),
+    (
+        "GET",
+        "/merchant/merchant/detail",
+        "MerchantController.detail",
+    ),
+    (
+        "POST",
+        "/merchant/merchant/create",
+        "MerchantController.create",
+    ),
+    (
+        "POST",
+        "/merchant/merchant/update",
+        "MerchantController.update",
+    ),
     ("POST", "/merchant/merchant/del", "MerchantController.del"),
     (
         "POST",
         "/merchant/merchant/updateField",
         "MerchantController.updateField",
     ),
-    ("POST", "/merchant/merchant/batch", "MerchantController.batch"),
+    (
+        "POST",
+        "/merchant/merchant/batch",
+        "MerchantController.batch",
+    ),
 ];
 
 /// 商户管理路由（`/adminapi` 下，全局 `require_auth` 已生效）。
@@ -123,9 +139,8 @@ async fn detail(
     Query(q): Query<IdQuery>,
 ) -> ApiResult<MerchantVO> {
     require_platform(&tenant)?;
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.merchant.merchant.detail(id).await?)
 }
 
@@ -208,7 +223,11 @@ mod tests {
         let docs = implemented_routes();
         assert_eq!(docs.len(), 8);
         for d in &docs {
-            assert!(d.path.starts_with("/adminapi/merchant/merchant/"), "{}", d.path);
+            assert!(
+                d.path.starts_with("/adminapi/merchant/merchant/"),
+                "{}",
+                d.path
+            );
         }
     }
 }

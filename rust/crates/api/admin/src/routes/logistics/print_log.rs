@@ -38,18 +38,15 @@ use tigshop_core::models::logistics::print_log::{PrintLogPageQuery, PrintLogVO};
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 本域全部 1 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 ///
 /// **这是 [`implemented_routes`] 的唯一来源**，与 [`routes`] 里的注册一一对应；
 /// 单测 `route_table_matches_java_contract` 守住两边不漂移。
-const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
-    "GET",
-    "/print/printLog/list",
-    "PrintLogController.list",
-)];
+const ROUTE_TABLE: [(&str, &str, &str); 1] =
+    [("GET", "/print/printLog/list", "PrintLogController.list")];
 
 /// 打印日志域路由（挂载于 `/adminapi` 下，全局 `require_auth` 已生效）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -168,11 +165,21 @@ mod tests {
     /// 店铺日志列表按登录态店铺强制过滤（平台为 0）。
     #[test]
     fn print_log_list_uses_auth_shop_scope() {
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert_eq!(tenant::platform_or_shop_id(&platform), 0);
-        let shop = AuthUser { id: 3, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(7) };
+        let shop = AuthUser {
+            id: 3,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(7),
+        };
         assert_eq!(tenant::platform_or_shop_id(&shop), 7);
     }
 }

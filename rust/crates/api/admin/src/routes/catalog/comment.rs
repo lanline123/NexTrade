@@ -41,8 +41,8 @@ use tigshop_core::types::PageResult;
 use tigshop_openapi::RouteDoc;
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 评价域全部 8 条路由（`/adminapi` 前缀之后的路径 + 原 Java 方法名）。
 ///
@@ -51,8 +51,16 @@ use super::tenant;
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
     ("GET", "/product/comment/list", "CommentController.list"),
     ("GET", "/product/comment/detail", "CommentController.detail"),
-    ("POST", "/product/comment/create", "CommentController.create"),
-    ("POST", "/product/comment/update", "CommentController.update"),
+    (
+        "POST",
+        "/product/comment/create",
+        "CommentController.create",
+    ),
+    (
+        "POST",
+        "/product/comment/update",
+        "CommentController.update",
+    ),
     ("POST", "/product/comment/del", "CommentController.del"),
     (
         "POST",
@@ -236,7 +244,11 @@ mod tests {
             .map(|d| (d.method.clone(), d.path.clone(), d.java_ref.clone()))
             .collect();
         let expected = [
-            ("GET", "/adminapi/product/comment/list", "CommentController.list"),
+            (
+                "GET",
+                "/adminapi/product/comment/list",
+                "CommentController.list",
+            ),
             (
                 "GET",
                 "/adminapi/product/comment/detail",
@@ -252,7 +264,11 @@ mod tests {
                 "/adminapi/product/comment/update",
                 "CommentController.update",
             ),
-            ("POST", "/adminapi/product/comment/del", "CommentController.del"),
+            (
+                "POST",
+                "/adminapi/product/comment/del",
+                "CommentController.del",
+            ),
             (
                 "POST",
                 "/adminapi/product/comment/updateField",
@@ -281,7 +297,11 @@ mod tests {
         let mut unique = actual.clone();
         unique.sort();
         unique.dedup();
-        assert_eq!(unique.len(), actual.len(), "implemented_routes() 存在重复项");
+        assert_eq!(
+            unique.len(),
+            actual.len(),
+            "implemented_routes() 存在重复项"
+        );
     }
 
     /// `routes()` 注册的路径必须与 [`ROUTE_TABLE`] 完全一致（8/8），
@@ -302,7 +322,9 @@ mod tests {
         assert_eq!(registered.len(), ROUTE_TABLE.len());
         for (method, path) in registered {
             assert!(
-                ROUTE_TABLE.iter().any(|(m, p, _)| *m == method && *p == path),
+                ROUTE_TABLE
+                    .iter()
+                    .any(|(m, p, _)| *m == method && *p == path),
                 "{method} {path} 不在 ROUTE_TABLE 内"
             );
         }
@@ -320,7 +342,10 @@ mod tests {
     fn route_table_is_well_formed() {
         assert_eq!(ROUTE_TABLE.len(), 8);
         for (i, (method, path, handler)) in ROUTE_TABLE.iter().enumerate() {
-            assert!(path.starts_with("/product/comment/"), "路径前缀错误: {path}");
+            assert!(
+                path.starts_with("/product/comment/"),
+                "路径前缀错误: {path}"
+            );
             assert!(*method == "GET" || *method == "POST");
             assert!(handler.starts_with("CommentController."));
             for (m2, p2, _) in ROUTE_TABLE.iter().skip(i + 1) {
@@ -331,14 +356,23 @@ mod tests {
     /// 多租户隔离：列表强制过滤 + 跨店详情被拒。
     #[test]
     fn tenant_scope_isolation() {
-        let shop = AuthUser { id: 4, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(2) };
+        let shop = AuthUser {
+            id: 4,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(2),
+        };
         assert_eq!(tenant::list_scope(&shop, None).unwrap(), Some(2));
         assert!(tenant::list_scope(&shop, Some(8)).is_err());
         assert!(tenant::ensure_row_shop_opt(&shop, Some(8)).is_err());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert!(tenant::ensure_row_shop_opt(&platform, Some(8)).is_ok());
     }
-
 }

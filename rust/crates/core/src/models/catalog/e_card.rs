@@ -324,7 +324,10 @@ pub struct UpdateFieldDTO {
     /// 字段名
     pub field: Option<String>,
     /// 值
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -439,10 +442,8 @@ mod tests {
             "空 field 跳过；非 asc 一律降序"
         );
         // 未识别字段回退主键列
-        let q: ECardPageQuery = serde_json::from_str(
-            r#"{"sortItems":[{"field":"nope","order":"desc"}]}"#,
-        )
-        .unwrap();
+        let q: ECardPageQuery =
+            serde_json::from_str(r#"{"sortItems":[{"field":"nope","order":"desc"}]}"#).unwrap();
         assert_eq!(q.order_clause(), " ORDER BY card_id DESC");
         // 全部无效项 ⇒ 不追加 ORDER BY
         let q: ECardPageQuery =
@@ -564,19 +565,17 @@ mod tests {
 
     #[test]
     fn save_and_edit_params_parse() {
-        let s: ECardSaveParam = serde_json::from_str(
-            r#"{"cardNumber":"SN","cardPwd":"PW","groupId":2,"isUse":1}"#,
-        )
-        .unwrap();
+        let s: ECardSaveParam =
+            serde_json::from_str(r#"{"cardNumber":"SN","cardPwd":"PW","groupId":2,"isUse":1}"#)
+                .unwrap();
         assert_eq!(s.card_number.as_deref(), Some("SN"));
         assert_eq!(s.card_pwd.as_deref(), Some("PW"));
         assert_eq!(s.group_id, Some(2));
         assert_eq!(s.is_use, Some(1));
 
-        let e: ECardEditParam = serde_json::from_str(
-            r#"{"cardId":9,"cardNumber":"SN","cardPwd":"PW","groupId":2}"#,
-        )
-        .unwrap();
+        let e: ECardEditParam =
+            serde_json::from_str(r#"{"cardId":9,"cardNumber":"SN","cardPwd":"PW","groupId":2}"#)
+                .unwrap();
         assert_eq!(e.card_id, Some(9));
         assert_eq!(e.is_use, None);
     }

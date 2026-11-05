@@ -316,7 +316,10 @@ mod tests {
         assert_eq!(format_english_text("A\tB\nC"), "a-b-c");
         // 特殊字符被删除，字母数字与中划线保留
         assert_eq!(format_english_text("Sony WH-1000XM4!"), "sony-wh-1000xm4");
-        assert_eq!(format_english_text("iPhone 15 Pro (2024)"), "iphone-15-pro-2024");
+        assert_eq!(
+            format_english_text("iPhone 15 Pro (2024)"),
+            "iphone-15-pro-2024"
+        );
         // 中文字符非 [a-z0-9-] → 全部删除
         assert_eq!(format_english_text("手机"), "");
         // 已经是小写 / 空串
@@ -350,7 +353,10 @@ mod tests {
     fn article_last_update_seconds_are_converted_to_millis() {
         assert_eq!(article_last_update_millis(0), None);
         assert_eq!(article_last_update_millis(-1), None);
-        assert_eq!(article_last_update_millis(1_700_000_000), Some(1_700_000_000_000));
+        assert_eq!(
+            article_last_update_millis(1_700_000_000),
+            Some(1_700_000_000_000)
+        );
         // i32 上限仍小于 10^10 → 恒走秒→毫秒分支
         assert_eq!(
             article_last_update_millis(i32::MAX),

@@ -590,7 +590,8 @@ impl From<&MobileCatNav> for MobileCatNavVO {
                 .and_then(|v| serde_json::from_value::<Vec<i32>>(v).ok())
                 .unwrap_or_default(),
             is_show: Some(n.is_show),
-            img_url: parse_json_opt(&Some(n.img_url.clone())).unwrap_or_else(|| serde_json::json!([])),
+            img_url: parse_json_opt(&Some(n.img_url.clone()))
+                .unwrap_or_else(|| serde_json::json!([])),
             sort_order: Some(i32::from(n.sort_order)),
             cat_name_alias: n.cat_name_alias.clone(),
         }
@@ -774,9 +775,10 @@ mod tests {
 
     #[test]
     fn create_dto_accepts_original_string_numbers() {
-        let dto: DecorateCreateDTO =
-            serde_json::from_str(r#"{"decorateTitle":"测试","sortOrder":"1","decorateType":"2","status":"0"}"#)
-                .expect("原版前端把排序/类型作为字符串提交");
+        let dto: DecorateCreateDTO = serde_json::from_str(
+            r#"{"decorateTitle":"测试","sortOrder":"1","decorateType":"2","status":"0"}"#,
+        )
+        .expect("原版前端把排序/类型作为字符串提交");
         assert_eq!(dto.sort_order, Some(1));
         assert_eq!(dto.decorate_type, Some(2));
         assert_eq!(dto.status, Some(0));

@@ -67,8 +67,14 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
     Router::new()
         .route("/o2o/stockCalendar/pageList", get(page_list))
         .route("/o2o/stockCalendar/getDailyStock", get(daily_stock))
-        .route("/o2o/stockCalendar/updateDailyStock", post(update_daily_stock))
-        .route("/o2o/stockCalendar/setUnifiedStock", post(set_unified_stock))
+        .route(
+            "/o2o/stockCalendar/updateDailyStock",
+            post(update_daily_stock),
+        )
+        .route(
+            "/o2o/stockCalendar/setUnifiedStock",
+            post(set_unified_stock),
+        )
         .route(
             "/o2o/stockCalendar/setTimeSlotStock",
             post(set_time_slot_stock),

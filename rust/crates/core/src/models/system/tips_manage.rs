@@ -90,10 +90,7 @@ mod tests {
         // 无配置行 ⇒ getConfigVal 空串 ⇒ url.contains("") = true
         assert!(domain_bind_status("https://admin.example.com", None));
         // 行存在但 biz_val = NULL ⇒ contains(url, null) = false
-        assert!(!domain_bind_status(
-            "https://admin.example.com",
-            Some(None)
-        ));
+        assert!(!domain_bind_status("https://admin.example.com", Some(None)));
         // 正常包含
         assert!(domain_bind_status(
             "https://admin.example.com/login",
@@ -104,7 +101,10 @@ mod tests {
             Some(Some("shop.example.com"))
         ));
         // 配置值为空串 ⇒ contains 恒 true（与 Java 一致）
-        assert!(domain_bind_status("https://admin.example.com", Some(Some(""))));
+        assert!(domain_bind_status(
+            "https://admin.example.com",
+            Some(Some(""))
+        ));
     }
 
     // ———————————————— 缓存 key ————————————————

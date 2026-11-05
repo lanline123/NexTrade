@@ -73,11 +73,9 @@ mod tests {
     #[test]
     fn permission_table_lookup_consistent() {
         // 有权限要求的契约端点应能命中生成表
-        assert!(generated_permissions::required(
-            "GET",
-            "/adminapi/authority/adminRole/list"
-        )
-        .is_some());
+        assert!(
+            generated_permissions::required("GET", "/adminapi/authority/adminRole/list").is_some()
+        );
         // 无权限要求的端点（如登录）不应命中
         assert!(generated_permissions::required("POST", "/adminapi/login/signin").is_none());
     }

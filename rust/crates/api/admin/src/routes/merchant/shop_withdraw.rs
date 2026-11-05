@@ -143,11 +143,7 @@ async fn create(
     Json(dto): Json<ShopWithdrawCreateDTO>,
 ) -> ApiResult<()> {
     let shop_id = require_shop(&tenant)?;
-    state
-        .merchant
-        .shop_withdraw
-        .create(shop_id, &dto)
-        .await?;
+    state.merchant.shop_withdraw.create(shop_id, &dto).await?;
     ok(())
 }
 
@@ -202,7 +198,11 @@ async fn upload_pay_voucher(
     Json(dto): Json<ShopWithdrawPayVoucherDTO>,
 ) -> ApiResult<()> {
     require_platform(&tenant)?;
-    state.merchant.shop_withdraw.upload_pay_voucher(&dto).await?;
+    state
+        .merchant
+        .shop_withdraw
+        .upload_pay_voucher(&dto)
+        .await?;
     ok(())
 }
 
@@ -222,11 +222,7 @@ async fn dual_balance(
     Extension(tenant): Extension<TenantContext>,
 ) -> ApiResult<DualBalanceVO> {
     let shop_id = require_shop(&tenant)?;
-    ok(state
-        .merchant
-        .shop_withdraw
-        .dual_balance(shop_id)
-        .await?)
+    ok(state.merchant.shop_withdraw.dual_balance(shop_id).await?)
 }
 
 #[cfg(test)]
@@ -270,7 +266,10 @@ mod tests {
             "/merchant/shopWithdraw/config",
             "/merchant/shopWithdraw/audit",
         ] {
-            assert!(!owned.contains(&path), "{path} 属于 merchant::shop，不应重复");
+            assert!(
+                !owned.contains(&path),
+                "{path} 属于 merchant::shop，不应重复"
+            );
         }
     }
 

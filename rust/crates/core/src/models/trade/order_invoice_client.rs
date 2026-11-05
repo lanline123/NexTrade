@@ -1,4 +1,4 @@
-﻿//! 前台用户订单发票域（trade::order_invoice_client）DTO / VO / 纯函数。
+//! 前台用户订单发票域（trade::order_invoice_client）DTO / VO / 纯函数。
 //!
 //! 对应原 Java `com.tigshop.api.controller.user.OrderInvoiceClientController`
 //! （`/api/user/orderInvoice`，3 个端点：detail / create / update）。
@@ -144,9 +144,15 @@ mod tests {
     #[test]
     fn create_requires_company_name() {
         let mut param = OrderInvoiceSaveParam::default();
-        assert_eq!(validate_create(&param).unwrap_err(), MSG_COMPANY_NAME_REQUIRED);
+        assert_eq!(
+            validate_create(&param).unwrap_err(),
+            MSG_COMPANY_NAME_REQUIRED
+        );
         param.company_name = Some("  ".into());
-        assert_eq!(validate_create(&param).unwrap_err(), MSG_COMPANY_NAME_REQUIRED);
+        assert_eq!(
+            validate_create(&param).unwrap_err(),
+            MSG_COMPANY_NAME_REQUIRED
+        );
         param.company_name = Some("某某公司".into());
         assert!(validate_create(&param).is_ok());
     }

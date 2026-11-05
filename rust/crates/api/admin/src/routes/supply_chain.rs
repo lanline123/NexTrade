@@ -9,10 +9,10 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use std::str::FromStr;
 use serde_json::{json, Map, Value};
 use sqlx::mysql::MySqlRow;
 use sqlx::{Column, MySql, QueryBuilder, Row, TypeInfo};
+use std::str::FromStr;
 use tigshop_core::Error;
 use tigshop_infrastructure::db::repo::marketing::tenant::TenantScope;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
@@ -29,12 +29,21 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/supplyChain/supplier/update", post(supplier_update))
         .route("/supplyChain/supplier/status", post(supplier_status))
         .route("/supplyChain/supplier/delete", post(supplier_delete))
-        .route("/supplyChain/supplier/qualification/upload", post(qualification_upload))
+        .route(
+            "/supplyChain/supplier/qualification/upload",
+            post(qualification_upload),
+        )
         // category
         .route("/supplyChain/supplierCategory/list", get(category_list))
         .route("/supplyChain/supplierCategory/save", post(category_save))
-        .route("/supplyChain/supplierCategory/status", post(category_status))
-        .route("/supplyChain/supplierCategory/delete", post(category_delete))
+        .route(
+            "/supplyChain/supplierCategory/status",
+            post(category_status),
+        )
+        .route(
+            "/supplyChain/supplierCategory/delete",
+            post(category_delete),
+        )
         // supplier product
         .route("/supplyChain/supplierProduct/list", get(product_list))
         .route("/supplyChain/supplierProduct/summary", get(product_list))
@@ -42,9 +51,15 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/supplyChain/supplierProduct/detail", get(product_detail))
         .route("/supplyChain/supplierProduct/status", post(product_status))
         .route("/supplyChain/supplierProduct/delete", post(product_delete))
-        .route("/supplyChain/supplierProduct/batchDelete", post(product_batch_delete))
+        .route(
+            "/supplyChain/supplierProduct/batchDelete",
+            post(product_batch_delete),
+        )
         .route("/supplyChain/supplierProduct/save", post(product_save))
-        .route("/supplyChain/supplierProduct/batchSave", post(product_batch_save))
+        .route(
+            "/supplyChain/supplierProduct/batchSave",
+            post(product_batch_save),
+        )
         // purchase order
         .route("/supplyChain/purchaseOrder/list", get(order_list))
         .route("/supplyChain/purchaseOrder/detail", get(order_detail))
@@ -56,16 +71,46 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/supplyChain/purchaseReceipt/detail", get(receipt_detail))
         .route("/supplyChain/purchaseReceipt/save", post(receipt_save))
         // reconciliation
-        .route("/supplyChain/purchaseReconciliation/list", get(reconciliation_list))
-        .route("/supplyChain/purchaseReconciliation/detail", get(reconciliation_detail))
-        .route("/supplyChain/purchaseReconciliation/candidates", get(reconciliation_candidates))
-        .route("/supplyChain/purchaseReconciliation/export", get(reconciliation_export))
-        .route("/supplyChain/purchaseReconciliation/create", post(reconciliation_create))
-        .route("/supplyChain/purchaseReconciliation/update", post(reconciliation_update))
-        .route("/supplyChain/purchaseReconciliation/approve", post(reconciliation_approve))
-        .route("/supplyChain/purchaseReconciliation/reject", post(reconciliation_reject))
-        .route("/supplyChain/purchaseReconciliation/resubmit", post(reconciliation_resubmit))
-        .route("/supplyChain/purchaseReconciliation/void", post(reconciliation_void))
+        .route(
+            "/supplyChain/purchaseReconciliation/list",
+            get(reconciliation_list),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/detail",
+            get(reconciliation_detail),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/candidates",
+            get(reconciliation_candidates),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/export",
+            get(reconciliation_export),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/create",
+            post(reconciliation_create),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/update",
+            post(reconciliation_update),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/approve",
+            post(reconciliation_approve),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/reject",
+            post(reconciliation_reject),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/resubmit",
+            post(reconciliation_resubmit),
+        )
+        .route(
+            "/supplyChain/purchaseReconciliation/void",
+            post(reconciliation_void),
+        )
         // return
         .route("/supplyChain/purchaseReturn/list", get(return_list))
         .route("/supplyChain/purchaseReturn/detail", get(return_detail))
@@ -157,8 +202,10 @@ async fn list_table(
     supplier_only: bool,
 ) -> Result<Value, AppError> {
     let (page, size, offset) = page_of(q);
-    let mut cq: QueryBuilder<'_, MySql> = QueryBuilder::new(format!("SELECT COUNT(*) FROM {table} WHERE 1=1"));
-    let mut rq: QueryBuilder<'_, MySql> = QueryBuilder::new(format!("SELECT * FROM {table} WHERE 1=1"));
+    let mut cq: QueryBuilder<'_, MySql> =
+        QueryBuilder::new(format!("SELECT COUNT(*) FROM {table} WHERE 1=1"));
+    let mut rq: QueryBuilder<'_, MySql> =
+        QueryBuilder::new(format!("SELECT * FROM {table} WHERE 1=1"));
     if table != "vendor" {
         cq.push(" AND is_del = 0");
         rq.push(" AND is_del = 0");
@@ -175,14 +222,32 @@ async fn list_table(
         cq.push(" AND status = ").push_bind(status);
         rq.push(" AND status = ").push_bind(status);
     }
-    if let Some(kw) = q.keyword.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(kw) = q
+        .keyword
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         let like = format!("%{kw}%");
-        let col = if table == "vendor" { "vendor_name" } else { "category_name" };
+        let col = if table == "vendor" {
+            "vendor_name"
+        } else {
+            "category_name"
+        };
         cq.push(format!(" AND {col} LIKE ")).push_bind(like.clone());
         rq.push(format!(" AND {col} LIKE ")).push_bind(like);
     }
-    rq.push(" ORDER BY ").push(if table == "vendor" { "vendor_id" } else { "id" }).push(" DESC LIMIT ").push_bind(size as i64).push(" OFFSET ").push_bind(offset);
-    let (total,): (i64,) = cq.build_query_as().fetch_one(&state.repos.pool).await.map_err(db)?;
+    rq.push(" ORDER BY ")
+        .push(if table == "vendor" { "vendor_id" } else { "id" })
+        .push(" DESC LIMIT ")
+        .push_bind(size as i64)
+        .push(" OFFSET ")
+        .push_bind(offset);
+    let (total,): (i64,) = cq
+        .build_query_as()
+        .fetch_one(&state.repos.pool)
+        .await
+        .map_err(db)?;
     let rows = rq.build().fetch_all(&state.repos.pool).await.map_err(db)?;
     let records: Vec<Value> = rows.iter().map(row_to_json).collect();
     Ok(json!({"records": records, "total": total, "page": page, "size": size}))
@@ -216,7 +281,11 @@ async fn soft_delete(state: &AdminState, table: &str, id: i64) -> Result<(), App
     } else {
         format!("UPDATE {table} SET is_del = 1 WHERE {key} = ?")
     };
-    sqlx::query(&sql).bind(id).execute(&state.repos.pool).await.map_err(db)?;
+    sqlx::query(&sql)
+        .bind(id)
+        .execute(&state.repos.pool)
+        .await
+        .map_err(db)?;
     Ok(())
 }
 
@@ -230,18 +299,27 @@ pub(crate) fn row_to_json(row: &MySqlRow) -> Value {
         let name = col.name();
         let type_name = col.type_info().name().to_ascii_uppercase();
         let value = if type_name.contains("INT") {
-            row.try_get::<Option<i64>, _>(idx).ok().flatten().map(Value::from)
+            row.try_get::<Option<i64>, _>(idx)
+                .ok()
+                .flatten()
+                .map(Value::from)
         } else if type_name.contains("DECIMAL") || type_name.contains("NUMERIC") {
             row.try_get::<Option<rust_decimal::Decimal>, _>(idx)
                 .ok()
                 .flatten()
                 .map(|v| Value::String(v.to_string()))
         } else if type_name.contains("FLOAT") || type_name.contains("DOUBLE") {
-            row.try_get::<Option<f64>, _>(idx).ok().flatten().map(Value::from)
+            row.try_get::<Option<f64>, _>(idx)
+                .ok()
+                .flatten()
+                .map(Value::from)
         } else if type_name.contains("JSON") {
             row.try_get::<Option<Value>, _>(idx).ok().flatten()
         } else {
-            row.try_get::<Option<String>, _>(idx).ok().flatten().map(Value::from)
+            row.try_get::<Option<String>, _>(idx)
+                .ok()
+                .flatten()
+                .map(Value::from)
         };
         map.insert(name.to_string(), value.unwrap_or(Value::Null));
     }
@@ -255,9 +333,18 @@ async fn supplier_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> 
 async fn supplier_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
     ok(detail_table(&state, "vendor", q.id.unwrap_or(0)).await?)
 }
-async fn supplier_create(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
-    let name = body.get("vendorName").and_then(Value::as_str).unwrap_or("").trim();
-    if name.is_empty() { return Err(AppError(Error::biz(400, "供应商名称不能为空"))); }
+async fn supplier_create(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<i64> {
+    let name = body
+        .get("vendorName")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim();
+    if name.is_empty() {
+        return Err(AppError(Error::biz(400, "供应商名称不能为空")));
+    }
     let now = tigshop_common::utils::now_seconds() as i64;
     let r = sqlx::query(
         "INSERT INTO vendor(source_type, shop_id, vendor_code, vendor_name, contact_mobile, purchase_category_id, vendor_logo, description, status, add_time) VALUES(2,?,?,?,?,?,?,?,?,?)",
@@ -274,8 +361,15 @@ async fn supplier_create(State(state): State<AdminState>, Json(body): Json<Value
     .execute(&state.repos.pool).await.map_err(db)?;
     ok(r.last_insert_id() as i64)
 }
-async fn supplier_update(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let id = body.get("vendorId").or_else(|| body.get("id")).and_then(Value::as_i64).unwrap_or(0);
+async fn supplier_update(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    let id = body
+        .get("vendorId")
+        .or_else(|| body.get("id"))
+        .and_then(Value::as_i64)
+        .unwrap_or(0);
     sqlx::query("UPDATE vendor SET vendor_name=COALESCE(NULLIF(?,''),vendor_name), contact_mobile=COALESCE(NULLIF(?,''),contact_mobile) WHERE vendor_id=? AND source_type=2")
         .bind(body.get("vendorName").and_then(Value::as_str).unwrap_or(""))
         .bind(body.get("contactMobile").and_then(Value::as_str).unwrap_or(""))
@@ -283,14 +377,25 @@ async fn supplier_update(State(state): State<AdminState>, Json(body): Json<Value
         .execute(&state.repos.pool).await.map_err(db)?;
     ok(())
 }
-async fn supplier_status(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn supplier_status(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
     let status = body.get("status").and_then(Value::as_i64).unwrap_or(1) as i32;
     set_status(&state, "vendor", id, status).await?;
     ok(())
 }
-async fn supplier_delete(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    soft_delete(&state, "vendor", body.get("id").and_then(Value::as_i64).unwrap_or(0)).await?;
+async fn supplier_delete(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    soft_delete(
+        &state,
+        "vendor",
+        body.get("id").and_then(Value::as_i64).unwrap_or(0),
+    )
+    .await?;
     ok(())
 }
 async fn qualification_upload(
@@ -321,19 +426,41 @@ async fn qualification_upload(
         return Err(AppError(Error::Validation("资质图片不能为空".into())));
     };
     if bytes.len() > 10 * 1024 * 1024 {
-        return Err(AppError(Error::Validation("单张资质图片不能超过10MB".into())));
+        return Err(AppError(Error::Validation(
+            "单张资质图片不能超过10MB".into(),
+        )));
     }
-    if !matches!(content_type.as_deref(), Some("image/png" | "image/jpeg" | "image/jpg")) {
-        return Err(AppError(Error::Validation("资质图片仅支持png、jpg、jpeg格式".into())));
+    if !matches!(
+        content_type.as_deref(),
+        Some("image/png" | "image/jpeg" | "image/jpg")
+    ) {
+        return Err(AppError(Error::Validation(
+            "资质图片仅支持png、jpg、jpeg格式".into(),
+        )));
     }
     let size = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
     let shop_id = TenantScope::current().write_shop_id(None)?;
     let vo = state
         .content
         .gallery_pic
-        .upload_img(None, content_type.as_deref(), size, file_name.as_deref(), &bytes, shop_id, auth.id)
+        .upload_img(
+            None,
+            content_type.as_deref(),
+            size,
+            file_name.as_deref(),
+            &bytes,
+            shop_id,
+            auth.id,
+        )
         .await?;
-    ok(serde_json::to_value(vo).ok().and_then(|v| v.get("url").and_then(Value::as_str).map(ToString::to_string)).unwrap_or_default())
+    ok(serde_json::to_value(vo)
+        .ok()
+        .and_then(|v| {
+            v.get("url")
+                .and_then(Value::as_str)
+                .map(ToString::to_string)
+        })
+        .unwrap_or_default())
 }
 
 // ————————————————— category —————————————————
@@ -342,7 +469,11 @@ async fn category_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> 
 }
 async fn category_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
-    let name = body.get("categoryName").and_then(Value::as_str).unwrap_or("").trim();
+    let name = body
+        .get("categoryName")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim();
     let now = tigshop_common::utils::now_seconds() as i64;
     if id > 0 {
         sqlx::query("UPDATE purchase_supplier_category SET category_name=?, sort_order=?, status=?, remark=?, update_time=? WHERE id=?")
@@ -365,12 +496,29 @@ async fn category_save(State(state): State<AdminState>, Json(body): Json<Value>)
         ok(r.last_insert_id() as i64)
     }
 }
-async fn category_status(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    set_status(&state, "purchase_supplier_category", body.get("id").and_then(Value::as_i64).unwrap_or(0), body.get("status").and_then(Value::as_i64).unwrap_or(1) as i32).await?;
+async fn category_status(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    set_status(
+        &state,
+        "purchase_supplier_category",
+        body.get("id").and_then(Value::as_i64).unwrap_or(0),
+        body.get("status").and_then(Value::as_i64).unwrap_or(1) as i32,
+    )
+    .await?;
     ok(())
 }
-async fn category_delete(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    soft_delete(&state, "purchase_supplier_category", body.get("id").and_then(Value::as_i64).unwrap_or(0)).await?;
+async fn category_delete(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    soft_delete(
+        &state,
+        "purchase_supplier_category",
+        body.get("id").and_then(Value::as_i64).unwrap_or(0),
+    )
+    .await?;
     ok(())
 }
 
@@ -384,29 +532,63 @@ async fn product_detail(State(state): State<AdminState>, Query(q): Query<Pg>) ->
 async fn product_status(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
     let status = body.get("status").and_then(Value::as_i64).unwrap_or(1) as i32;
-    sqlx::query("UPDATE vendor_product SET product_state=? WHERE id=?").bind(status).bind(id).execute(&state.repos.pool).await.map_err(db)?;
+    sqlx::query("UPDATE vendor_product SET product_state=? WHERE id=?")
+        .bind(status)
+        .bind(id)
+        .execute(&state.repos.pool)
+        .await
+        .map_err(db)?;
     ok(())
 }
 async fn product_delete(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    sqlx::query("UPDATE vendor_product SET is_del=1 WHERE id=?").bind(body.get("id").and_then(Value::as_i64).unwrap_or(0)).execute(&state.repos.pool).await.map_err(db)?;
+    sqlx::query("UPDATE vendor_product SET is_del=1 WHERE id=?")
+        .bind(body.get("id").and_then(Value::as_i64).unwrap_or(0))
+        .execute(&state.repos.pool)
+        .await
+        .map_err(db)?;
     ok(())
 }
-async fn product_batch_delete(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let ids = body.get("ids").and_then(Value::as_array).cloned().unwrap_or_default();
-    for id in ids { let _ = sqlx::query("UPDATE vendor_product SET is_del=1 WHERE id=?").bind(id.as_i64().unwrap_or(0)).execute(&state.repos.pool).await; }
+async fn product_batch_delete(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    let ids = body
+        .get("ids")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    for id in ids {
+        let _ = sqlx::query("UPDATE vendor_product SET is_del=1 WHERE id=?")
+            .bind(id.as_i64().unwrap_or(0))
+            .execute(&state.repos.pool)
+            .await;
+    }
     ok(())
 }
 async fn product_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
     save_supplier_product(&state, &body).await
 }
 
-async fn product_batch_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
-    let products = body.get("products").and_then(Value::as_array).cloned().unwrap_or_default();
+async fn product_batch_save(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
+    let products = body
+        .get("products")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     for item in products {
         let mut single = item.clone();
         if let Some(obj) = single.as_object_mut() {
-            obj.insert("vendorId".into(), body.get("vendorId").cloned().unwrap_or(Value::Null));
-            obj.insert("shopId".into(), body.get("shopId").cloned().unwrap_or(Value::Null));
+            obj.insert(
+                "vendorId".into(),
+                body.get("vendorId").cloned().unwrap_or(Value::Null),
+            );
+            obj.insert(
+                "shopId".into(),
+                body.get("shopId").cloned().unwrap_or(Value::Null),
+            );
         }
         save_supplier_product(&state, &single).await?;
     }
@@ -419,14 +601,23 @@ async fn save_supplier_product(state: &AdminState, body: &Value) -> ApiResult<i6
     if vendor_id <= 0 || product_id <= 0 {
         return Err(AppError(Error::biz(400, "请选择供应商和商品")));
     }
-    let vendor = sqlx::query("SELECT vendor_id FROM vendor WHERE vendor_id=? AND source_type=2 AND status=1 LIMIT 1")
-        .bind(vendor_id).fetch_optional(&state.repos.pool).await.map_err(db)?
-        .ok_or_else(|| AppError(Error::biz(400, "供应商不存在或已停用")))?;
+    let vendor = sqlx::query(
+        "SELECT vendor_id FROM vendor WHERE vendor_id=? AND source_type=2 AND status=1 LIMIT 1",
+    )
+    .bind(vendor_id)
+    .fetch_optional(&state.repos.pool)
+    .await
+    .map_err(db)?
+    .ok_or_else(|| AppError(Error::biz(400, "供应商不存在或已停用")))?;
     let _ = vendor;
     let product = sqlx::query("SELECT product_id, product_name, product_sn, category_id, pic_url, pic_thumb, pic_original, pic_large, product_brief FROM product WHERE product_id=? AND is_delete=0 LIMIT 1")
         .bind(product_id).fetch_optional(&state.repos.pool).await.map_err(db)?
         .ok_or_else(|| AppError(Error::biz(400, "商品不存在")))?;
-    let skus = body.get("skus").and_then(Value::as_array).cloned().unwrap_or_default();
+    let skus = body
+        .get("skus")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     if skus.is_empty() {
         return Err(AppError(Error::biz(400, "请选择采购规格")));
     }
@@ -448,8 +639,11 @@ async fn save_supplier_product(state: &AdminState, body: &Value) -> ApiResult<i6
             .bind(if skus.len() > 1 { 2 } else { 1 })
             .bind(now).bind(existing_id)
             .execute(&mut *tx).await.map_err(db)?;
-        sqlx::query("DELETE FROM vendor_product_sku WHERE vendor_product_id=?").bind(existing_id)
-            .execute(&mut *tx).await.map_err(db)?;
+        sqlx::query("DELETE FROM vendor_product_sku WHERE vendor_product_id=?")
+            .bind(existing_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db)?;
         existing_id
     } else {
         let duplicate: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM vendor_product WHERE vendor_id=? AND source_product_id=? AND is_del=0")
@@ -475,11 +669,19 @@ async fn save_supplier_product(state: &AdminState, body: &Value) -> ApiResult<i6
     for sku in skus {
         let source_sku_id = sku.get("skuId").and_then(Value::as_i64).filter(|v| *v > 0);
         let price = rust_decimal::Decimal::from_str(
-            &sku.get("supplyPrice").and_then(Value::as_str).unwrap_or("0"),
-        ).unwrap_or(rust_decimal::Decimal::ZERO);
-        let min_qty = sku.get("minPurchaseQty").and_then(Value::as_i64).unwrap_or(1);
+            &sku.get("supplyPrice")
+                .and_then(Value::as_str)
+                .unwrap_or("0"),
+        )
+        .unwrap_or(rust_decimal::Decimal::ZERO);
+        let min_qty = sku
+            .get("minPurchaseQty")
+            .and_then(Value::as_i64)
+            .unwrap_or(1);
         let mut attr = "默认".to_string();
-        let mut sn = product.try_get::<Option<String>, _>("product_sn").unwrap_or_default();
+        let mut sn = product
+            .try_get::<Option<String>, _>("product_sn")
+            .unwrap_or_default();
         if let Some(source_sku_id) = source_sku_id {
             if let Some(row) = sqlx::query("SELECT sku_value, sku_sn, sku_tsn, sku_weight, sku_stock FROM product_sku WHERE sku_id=? LIMIT 1")
                 .bind(source_sku_id).fetch_optional(&mut *tx).await.map_err(db)?
@@ -511,11 +713,12 @@ async fn order_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> Api
 async fn order_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
     let id = q.id.unwrap_or(0);
     let mut order = detail_table(&state, "purchase_order", id).await?;
-    let rows = sqlx::query("SELECT * FROM purchase_order_item WHERE order_id=? AND is_del=0 ORDER BY id")
-        .bind(id)
-        .fetch_all(&state.repos.pool)
-        .await
-        .map_err(db)?;
+    let rows =
+        sqlx::query("SELECT * FROM purchase_order_item WHERE order_id=? AND is_del=0 ORDER BY id")
+            .bind(id)
+            .fetch_all(&state.repos.pool)
+            .await
+            .map_err(db)?;
     let items: Vec<Value> = rows.iter().map(row_to_json).collect();
     if let Some(obj) = order.as_object_mut() {
         obj.insert("items".into(), Value::Array(items));
@@ -536,7 +739,11 @@ async fn order_create(State(state): State<AdminState>, Json(body): Json<Value>) 
     let vendor_code: String = vendor.try_get("vendor_code").unwrap_or_default();
     let vendor_contact: String = vendor.try_get("contact_mobile").unwrap_or_default();
     let shop_id: i32 = vendor.try_get("shop_id").unwrap_or(0);
-    let items = body.get("items").and_then(Value::as_array).cloned().unwrap_or_default();
+    let items = body
+        .get("items")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     if items.is_empty() {
         return Err(AppError(Error::biz(400, "请选择采购商品")));
     }
@@ -565,11 +772,18 @@ async fn order_create(State(state): State<AdminState>, Json(body): Json<Value>) 
     let mut total_amount = rust_decimal::Decimal::ZERO;
     let mut total_qty = 0i64;
     for item in items {
-        let sku_id = item.get("vendorProductSkuId").and_then(Value::as_i64).unwrap_or(0);
+        let sku_id = item
+            .get("vendorProductSkuId")
+            .and_then(Value::as_i64)
+            .unwrap_or(0);
         let qty = item.get("quantity").and_then(Value::as_i64).unwrap_or(0);
         let price = rust_decimal::Decimal::from_str(
-            &item.get("purchasePrice").and_then(Value::as_str).unwrap_or("0"),
-        ).unwrap_or(rust_decimal::Decimal::ZERO);
+            &item
+                .get("purchasePrice")
+                .and_then(Value::as_str)
+                .unwrap_or("0"),
+        )
+        .unwrap_or(rust_decimal::Decimal::ZERO);
         if sku_id <= 0 || qty <= 0 {
             return Err(AppError(Error::biz(400, "采购商品或数量不合法")));
         }
@@ -605,8 +819,12 @@ async fn order_create(State(state): State<AdminState>, Json(body): Json<Value>) 
         total_qty += qty;
     }
     sqlx::query("UPDATE purchase_order SET product_amount=?, ordered_quantity=? WHERE id=?")
-        .bind(total_amount).bind(total_qty).bind(order_id)
-        .execute(&mut *tx).await.map_err(db)?;
+        .bind(total_amount)
+        .bind(total_qty)
+        .bind(order_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db)?;
     tx.commit().await.map_err(db)?;
     ok(order_id)
 }
@@ -638,28 +856,43 @@ async fn order_finish(State(state): State<AdminState>, Json(body): Json<Value>) 
 
 fn rand_suffix() -> u32 {
     use std::time::{SystemTime, UNIX_EPOCH};
-    (SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.subsec_nanos()).unwrap_or(0)) % 10000
+    (SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.subsec_nanos())
+        .unwrap_or(0))
+        % 10000
 }
 
 // ————————————————— receipt / reconciliation / return —————————————————
-async fn receipt_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { ok(list_table(&state, "purchase_receipt", &q, false).await?) }
+async fn receipt_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+    ok(list_table(&state, "purchase_receipt", &q, false).await?)
+}
 async fn receipt_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
     let id = q.id.unwrap_or(0);
     let mut receipt = detail_table(&state, "purchase_receipt", id).await?;
-    let rows = sqlx::query("SELECT * FROM purchase_receipt_item WHERE receipt_id=? AND is_del=0 ORDER BY id")
-        .bind(id)
-        .fetch_all(&state.repos.pool)
-        .await
-        .map_err(db)?;
+    let rows = sqlx::query(
+        "SELECT * FROM purchase_receipt_item WHERE receipt_id=? AND is_del=0 ORDER BY id",
+    )
+    .bind(id)
+    .fetch_all(&state.repos.pool)
+    .await
+    .map_err(db)?;
     if let Some(obj) = receipt.as_object_mut() {
-        obj.insert("items".into(), Value::Array(rows.iter().map(row_to_json).collect()));
+        obj.insert(
+            "items".into(),
+            Value::Array(rows.iter().map(row_to_json).collect()),
+        );
     }
     ok(receipt)
 }
 async fn receipt_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
     use std::str::FromStr;
     let mut order_id = body.get("orderId").and_then(Value::as_i64).unwrap_or(0);
-    let mut inputs = body.get("items").and_then(Value::as_array).cloned().unwrap_or_default();
+    let mut inputs = body
+        .get("items")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     if inputs.is_empty() {
         return Err(AppError(Error::biz(400, "请选择入库商品")));
     }
@@ -682,7 +915,10 @@ async fn receipt_save(State(state): State<AdminState>, Json(body): Json<Value>) 
             .ok_or_else(|| AppError(Error::biz(400, "采购单创建失败")))?;
         let mut mapped = Vec::new();
         for input in inputs {
-            let sku_id = input.get("vendorProductSkuId").and_then(Value::as_i64).unwrap_or(0);
+            let sku_id = input
+                .get("vendorProductSkuId")
+                .and_then(Value::as_i64)
+                .unwrap_or(0);
             let qty = input.get("quantity").and_then(Value::as_i64).unwrap_or(0);
             let row = sqlx::query("SELECT id FROM purchase_order_item WHERE order_id=? AND vendor_product_sku_id=? AND is_del=0 ORDER BY id DESC LIMIT 1")
                 .bind(order_id).bind(sku_id)
@@ -697,7 +933,9 @@ async fn receipt_save(State(state): State<AdminState>, Json(body): Json<Value>) 
     }
     let order = sqlx::query("SELECT * FROM purchase_order WHERE id=? AND is_del=0 LIMIT 1")
         .bind(order_id)
-        .fetch_optional(&state.repos.pool).await.map_err(db)?
+        .fetch_optional(&state.repos.pool)
+        .await
+        .map_err(db)?
         .ok_or_else(|| AppError(Error::biz(400, "采购订单不存在")))?;
     let status: i32 = order.try_get("status").unwrap_or(0);
     if status != 1 && status != 2 {
@@ -723,26 +961,42 @@ async fn receipt_save(State(state): State<AdminState>, Json(body): Json<Value>) 
     let mut total_qty = 0i64;
     let mut total_amount = rust_decimal::Decimal::ZERO;
     for input in inputs {
-        let order_item_id = input.get("orderItemId").and_then(Value::as_i64).unwrap_or(0);
+        let order_item_id = input
+            .get("orderItemId")
+            .and_then(Value::as_i64)
+            .unwrap_or(0);
         let qty = input.get("quantity").and_then(Value::as_i64).unwrap_or(0);
         if order_item_id <= 0 || qty <= 0 {
             return Err(AppError(Error::biz(400, "入库商品或数量不合法")));
         }
-        let item = sqlx::query("SELECT * FROM purchase_order_item WHERE id=? AND order_id=? AND is_del=0 LIMIT 1")
-            .bind(order_item_id).bind(order_id)
-            .fetch_optional(&mut *tx).await.map_err(db)?
-            .ok_or_else(|| AppError(Error::biz(400, "入库商品不属于采购订单")))?;
+        let item = sqlx::query(
+            "SELECT * FROM purchase_order_item WHERE id=? AND order_id=? AND is_del=0 LIMIT 1",
+        )
+        .bind(order_item_id)
+        .bind(order_id)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db)?
+        .ok_or_else(|| AppError(Error::biz(400, "入库商品不属于采购订单")))?;
         let ordered: i32 = item.try_get("quantity").unwrap_or(0);
         let received: i32 = item.try_get("received_quantity").unwrap_or(0);
         if received + qty as i32 > ordered {
             return Err(AppError(Error::biz(400, "入库数量超过剩余采购数量")));
         }
-        let price = item.try_get::<rust_decimal::Decimal, _>("purchase_price").unwrap_or_default();
+        let price = item
+            .try_get::<rust_decimal::Decimal, _>("purchase_price")
+            .unwrap_or_default();
         let amount = price * rust_decimal::Decimal::from(qty);
         let product_id: i32 = item.try_get("product_id").unwrap_or(0);
         let sku_id: i32 = item.try_get("sku_id").unwrap_or(0);
-        sqlx::query("UPDATE purchase_order_item SET received_quantity=received_quantity+? WHERE id=?")
-            .bind(qty as i32).bind(order_item_id).execute(&mut *tx).await.map_err(db)?;
+        sqlx::query(
+            "UPDATE purchase_order_item SET received_quantity=received_quantity+? WHERE id=?",
+        )
+        .bind(qty as i32)
+        .bind(order_item_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db)?;
         sqlx::query(
             "INSERT INTO purchase_receipt_item(receipt_id,order_item_id,product_id,sku_id,product_name,sku_name,product_sn,sku_sn,pic_thumb,product_unit,quantity,returned_quantity,purchase_price,amount,create_time,update_time) VALUES(?,?,?,?,?,?,?,?,?,?,?,0,?,?,?,?)",
         )
@@ -757,10 +1011,18 @@ async fn receipt_save(State(state): State<AdminState>, Json(body): Json<Value>) 
         .execute(&mut *tx).await.map_err(db)?;
         // 平台商品库存增加；SKU 与商品汇总同时更新。
         sqlx::query("UPDATE product SET product_stock=product_stock+? WHERE product_id=?")
-            .bind(qty as i32).bind(product_id).execute(&mut *tx).await.map_err(db)?;
+            .bind(qty as i32)
+            .bind(product_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db)?;
         if sku_id > 0 {
             sqlx::query("UPDATE product_sku SET sku_stock=COALESCE(sku_stock,0)+? WHERE sku_id=?")
-                .bind(qty as i32).bind(sku_id).execute(&mut *tx).await.map_err(db)?;
+                .bind(qty as i32)
+                .bind(sku_id)
+                .execute(&mut *tx)
+                .await
+                .map_err(db)?;
         }
         total_qty += qty;
         total_amount += amount;
@@ -778,8 +1040,16 @@ async fn receipt_save(State(state): State<AdminState>, Json(body): Json<Value>) 
     ok(receipt_id)
 }
 
-async fn reconciliation_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { ok(list_table(&state, "purchase_reconciliation", &q, false).await?) }
-async fn reconciliation_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn reconciliation_list(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
+    ok(list_table(&state, "purchase_reconciliation", &q, false).await?)
+}
+async fn reconciliation_detail(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let id = q.id.unwrap_or(0);
     let mut rec = detail_table(&state, "purchase_reconciliation", id).await?;
     let sources = sqlx::query(
@@ -791,13 +1061,27 @@ async fn reconciliation_detail(State(state): State<AdminState>, Query(q): Query<
         .bind(id)
         .fetch_all(&state.repos.pool).await.map_err(db)?;
     if let Some(obj) = rec.as_object_mut() {
-        obj.insert("sources".into(), Value::Array(sources.iter().map(row_to_json).collect()));
-        obj.insert("items".into(), Value::Array(items.iter().map(row_to_json).collect()));
+        obj.insert(
+            "sources".into(),
+            Value::Array(sources.iter().map(row_to_json).collect()),
+        );
+        obj.insert(
+            "items".into(),
+            Value::Array(items.iter().map(row_to_json).collect()),
+        );
     }
     ok(rec)
 }
-async fn reconciliation_candidates(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { ok(list_table(&state, "purchase_receipt", &q, false).await?) }
-async fn reconciliation_export(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+async fn reconciliation_candidates(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
+    ok(list_table(&state, "purchase_receipt", &q, false).await?)
+}
+async fn reconciliation_export(
+    State(state): State<AdminState>,
+    Query(q): Query<Pg>,
+) -> ApiResult<Value> {
     let mut qb: QueryBuilder<'_, MySql> =
         QueryBuilder::new("SELECT * FROM purchase_reconciliation WHERE is_del=0");
     if let Some(shop_id) = q.shop_id {
@@ -810,10 +1094,16 @@ async fn reconciliation_export(State(state): State<AdminState>, Query(q): Query<
     let rows = qb.build().fetch_all(&state.repos.pool).await.map_err(db)?;
     ok(json!(rows.iter().map(row_to_json).collect::<Vec<_>>()))
 }
-async fn reconciliation_create(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
+async fn reconciliation_create(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<i64> {
     save_reconciliation(&state, body, false).await
 }
-async fn reconciliation_update(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn reconciliation_update(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     save_reconciliation(&state, body, true).await?;
     ok(())
 }
@@ -827,7 +1117,11 @@ async fn save_reconciliation(state: &AdminState, body: Value, is_update: bool) -
         .bind(vendor_id).fetch_optional(&state.repos.pool).await.map_err(db)?
         .ok_or_else(|| AppError(Error::biz(400, "供应商不存在")))?;
     let shop_id: i32 = vendor.try_get("shop_id").unwrap_or(0);
-    let sources = body.get("sources").and_then(Value::as_array).cloned().unwrap_or_default();
+    let sources = body
+        .get("sources")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     if sources.is_empty() {
         return Err(AppError(Error::biz(400, "请选择对账来源单据")));
     }
@@ -835,15 +1129,28 @@ async fn save_reconciliation(state: &AdminState, body: Value, is_update: bool) -
     let existing_id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
     let mut tx = state.repos.pool.begin().await.map_err(db)?;
     let reconciliation_id = if is_update && existing_id > 0 {
-        let row = sqlx::query("SELECT status FROM purchase_reconciliation WHERE id=? AND is_del=0 LIMIT 1")
-            .bind(existing_id).fetch_optional(&mut *tx).await.map_err(db)?
-            .ok_or_else(|| AppError(Error::biz(400, "采购对账单不存在")))?;
+        let row = sqlx::query(
+            "SELECT status FROM purchase_reconciliation WHERE id=? AND is_del=0 LIMIT 1",
+        )
+        .bind(existing_id)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db)?
+        .ok_or_else(|| AppError(Error::biz(400, "采购对账单不存在")))?;
         let status: i32 = row.try_get("status").unwrap_or(0);
         if status != 3 {
             return Err(AppError(Error::biz(400, "只有已驳回采购对账单可以修改")));
         }
-        sqlx::query("DELETE FROM purchase_reconciliation_source WHERE reconciliation_id=?").bind(existing_id).execute(&mut *tx).await.map_err(db)?;
-        sqlx::query("DELETE FROM purchase_reconciliation_item WHERE reconciliation_id=?").bind(existing_id).execute(&mut *tx).await.map_err(db)?;
+        sqlx::query("DELETE FROM purchase_reconciliation_source WHERE reconciliation_id=?")
+            .bind(existing_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db)?;
+        sqlx::query("DELETE FROM purchase_reconciliation_item WHERE reconciliation_id=?")
+            .bind(existing_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db)?;
         sqlx::query("UPDATE purchase_reconciliation SET vendor_id=?, shop_id=?, remark=?, status=1, update_time=? WHERE id=?")
             .bind(vendor_id).bind(shop_id).bind(body.get("remark").and_then(Value::as_str).unwrap_or("")).bind(now).bind(existing_id)
             .execute(&mut *tx).await.map_err(db)?;
@@ -855,7 +1162,8 @@ async fn save_reconciliation(state: &AdminState, body: Value, is_update: bool) -
             "vendorName": vendor.try_get::<String,_>("vendor_name").unwrap_or_default(),
             "vendorCode": vendor.try_get::<String,_>("vendor_code").unwrap_or_default(),
             "contactMobile": vendor.try_get::<String,_>("contact_mobile").unwrap_or_default()
-        }).to_string();
+        })
+        .to_string();
         sqlx::query("INSERT INTO purchase_reconciliation(reconciliation_sn,shop_id,vendor_id,status,receipt_amount,return_amount,total_amount,supplier_snapshot,remark,version,create_time,update_time) VALUES(?,?,?,1,0,0,0,?,?,0,?,?)")
             .bind(&sn).bind(shop_id).bind(vendor_id).bind(snapshot)
             .bind(body.get("remark").and_then(Value::as_str).unwrap_or(""))
@@ -865,7 +1173,10 @@ async fn save_reconciliation(state: &AdminState, body: Value, is_update: bool) -
     let mut receipt_amount = rust_decimal::Decimal::ZERO;
     let mut return_amount = rust_decimal::Decimal::ZERO;
     for source in sources {
-        let source_type = source.get("sourceType").and_then(Value::as_i64).unwrap_or(0) as i32;
+        let source_type = source
+            .get("sourceType")
+            .and_then(Value::as_i64)
+            .unwrap_or(0) as i32;
         let source_id = source.get("sourceId").and_then(Value::as_i64).unwrap_or(0);
         let row = if source_type == 1 {
             sqlx::query("SELECT id, receipt_sn, business_date, total_amount FROM purchase_receipt WHERE id=? AND vendor_id=? AND status=2 AND is_del=0 LIMIT 1")
@@ -886,7 +1197,11 @@ async fn save_reconciliation(state: &AdminState, body: Value, is_update: bool) -
             .bind(row.try_get::<i64,_>("business_date").unwrap_or(0))
             .bind(amount).bind(now).bind(now)
             .execute(&mut *tx).await.map_err(db)?;
-        if source_type == 1 { receipt_amount += amount; } else { return_amount += amount; }
+        if source_type == 1 {
+            receipt_amount += amount;
+        } else {
+            return_amount += amount;
+        }
     }
     let total = receipt_amount - return_amount;
     sqlx::query("UPDATE purchase_reconciliation SET receipt_amount=?, return_amount=?, total_amount=? WHERE id=?")
@@ -895,7 +1210,10 @@ async fn save_reconciliation(state: &AdminState, body: Value, is_update: bool) -
     tx.commit().await.map_err(db)?;
     ok(reconciliation_id)
 }
-async fn reconciliation_approve(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn reconciliation_approve(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
     sqlx::query("UPDATE purchase_reconciliation SET status=2, review_remark=?, review_time=?, update_time=? WHERE id=? AND status=1")
         .bind(body.get("remark").and_then(Value::as_str).unwrap_or(""))
@@ -904,9 +1222,16 @@ async fn reconciliation_approve(State(state): State<AdminState>, Json(body): Jso
         .bind(id).execute(&state.repos.pool).await.map_err(db)?;
     ok(())
 }
-async fn reconciliation_reject(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn reconciliation_reject(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
-    let remark = body.get("remark").and_then(Value::as_str).unwrap_or("").trim();
+    let remark = body
+        .get("remark")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim();
     if remark.is_empty() {
         return Err(AppError(Error::biz(400, "请填写驳回原因")));
     }
@@ -915,14 +1240,20 @@ async fn reconciliation_reject(State(state): State<AdminState>, Json(body): Json
         .bind(remark).bind(now).bind(now).bind(id).execute(&state.repos.pool).await.map_err(db)?;
     ok(())
 }
-async fn reconciliation_resubmit(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn reconciliation_resubmit(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
     sqlx::query("UPDATE purchase_reconciliation SET status=1, review_remark=NULL, review_time=NULL, update_time=? WHERE id=? AND status=3")
         .bind(tigshop_common::utils::now_seconds() as i64).bind(id)
         .execute(&state.repos.pool).await.map_err(db)?;
     ok(())
 }
-async fn reconciliation_void(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+async fn reconciliation_void(
+    State(state): State<AdminState>,
+    Json(body): Json<Value>,
+) -> ApiResult<()> {
     let id = body.get("id").and_then(Value::as_i64).unwrap_or(0);
     let now = tigshop_common::utils::now_seconds() as i64;
     sqlx::query("UPDATE purchase_reconciliation SET status=4, review_remark=?, review_time=?, update_time=? WHERE id=? AND status=3")
@@ -931,20 +1262,32 @@ async fn reconciliation_void(State(state): State<AdminState>, Json(body): Json<V
     ok(())
 }
 
-async fn return_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { ok(list_table(&state, "purchase_return", &q, false).await?) }
-async fn return_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> { ok(detail_table(&state, "purchase_return", q.id.unwrap_or(0)).await?) }
+async fn return_list(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+    ok(list_table(&state, "purchase_return", &q, false).await?)
+}
+async fn return_detail(State(state): State<AdminState>, Query(q): Query<Pg>) -> ApiResult<Value> {
+    ok(detail_table(&state, "purchase_return", q.id.unwrap_or(0)).await?)
+}
 async fn return_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<i64> {
     let receipt_id = body.get("receiptId").and_then(Value::as_i64).unwrap_or(0);
     if receipt_id <= 0 {
         return Err(AppError(Error::biz(400, "采购入库单不能为空")));
     }
-    let receipt = sqlx::query("SELECT * FROM purchase_receipt WHERE id=? AND is_del=0 AND status=2 LIMIT 1")
-        .bind(receipt_id).fetch_optional(&state.repos.pool).await.map_err(db)?
-        .ok_or_else(|| AppError(Error::biz(400, "采购入库单不存在或未确认")))?;
+    let receipt =
+        sqlx::query("SELECT * FROM purchase_receipt WHERE id=? AND is_del=0 AND status=2 LIMIT 1")
+            .bind(receipt_id)
+            .fetch_optional(&state.repos.pool)
+            .await
+            .map_err(db)?
+            .ok_or_else(|| AppError(Error::biz(400, "采购入库单不存在或未确认")))?;
     let shop_id: i32 = receipt.try_get("shop_id").unwrap_or(0);
     let vendor_id: i32 = receipt.try_get("vendor_id").unwrap_or(0);
     let order_id: i64 = receipt.try_get("order_id").unwrap_or(0);
-    let inputs = body.get("items").and_then(Value::as_array).cloned().unwrap_or_default();
+    let inputs = body
+        .get("items")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
     if inputs.is_empty() {
         return Err(AppError(Error::biz(400, "请选择退货商品")));
     }
@@ -963,23 +1306,38 @@ async fn return_save(State(state): State<AdminState>, Json(body): Json<Value>) -
     let mut total_qty = 0i64;
     let mut total_amount = rust_decimal::Decimal::ZERO;
     for input in inputs {
-        let item_id = input.get("receiptItemId").and_then(Value::as_i64).unwrap_or(0);
+        let item_id = input
+            .get("receiptItemId")
+            .and_then(Value::as_i64)
+            .unwrap_or(0);
         let qty = input.get("quantity").and_then(Value::as_i64).unwrap_or(0);
         if item_id <= 0 || qty <= 0 {
             return Err(AppError(Error::biz(400, "退货商品或数量不合法")));
         }
-        let item = sqlx::query("SELECT * FROM purchase_receipt_item WHERE id=? AND receipt_id=? AND is_del=0 LIMIT 1")
-            .bind(item_id).bind(receipt_id).fetch_optional(&mut *tx).await.map_err(db)?
-            .ok_or_else(|| AppError(Error::biz(400, "退货明细不属于入库单")))?;
+        let item = sqlx::query(
+            "SELECT * FROM purchase_receipt_item WHERE id=? AND receipt_id=? AND is_del=0 LIMIT 1",
+        )
+        .bind(item_id)
+        .bind(receipt_id)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db)?
+        .ok_or_else(|| AppError(Error::biz(400, "退货明细不属于入库单")))?;
         let q: i32 = item.try_get("quantity").unwrap_or(0);
         let returned: i32 = item.try_get("returned_quantity").unwrap_or(0);
         if returned + qty as i32 > q {
             return Err(AppError(Error::biz(400, "退货数量超过可退数量")));
         }
-        let original_price = item.try_get::<rust_decimal::Decimal, _>("purchase_price").unwrap_or_default();
+        let original_price = item
+            .try_get::<rust_decimal::Decimal, _>("purchase_price")
+            .unwrap_or_default();
         let return_price = rust_decimal::Decimal::from_str(
-            &input.get("returnPrice").and_then(Value::as_str).unwrap_or("0"),
-        ).unwrap_or(original_price);
+            &input
+                .get("returnPrice")
+                .and_then(Value::as_str)
+                .unwrap_or("0"),
+        )
+        .unwrap_or(original_price);
         let amount = return_price * rust_decimal::Decimal::from(qty);
         let product_id: i32 = item.try_get("product_id").unwrap_or(0);
         let sku_id: i32 = item.try_get("sku_id").unwrap_or(0);
@@ -998,10 +1356,20 @@ async fn return_save(State(state): State<AdminState>, Json(body): Json<Value>) -
         .bind(input.get("reason").and_then(Value::as_str).unwrap_or(""))
         .bind(now).bind(now)
         .execute(&mut *tx).await.map_err(db)?;
-        sqlx::query("UPDATE purchase_receipt_item SET returned_quantity=returned_quantity+? WHERE id=?")
-            .bind(qty as i32).bind(item_id).execute(&mut *tx).await.map_err(db)?;
+        sqlx::query(
+            "UPDATE purchase_receipt_item SET returned_quantity=returned_quantity+? WHERE id=?",
+        )
+        .bind(qty as i32)
+        .bind(item_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db)?;
         sqlx::query("UPDATE product SET product_stock=product_stock-? WHERE product_id=?")
-            .bind(qty as i32).bind(product_id).execute(&mut *tx).await.map_err(db)?;
+            .bind(qty as i32)
+            .bind(product_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(db)?;
         if sku_id > 0 {
             sqlx::query("UPDATE product_sku SET sku_stock=GREATEST(COALESCE(sku_stock,0)-?,0) WHERE sku_id=?")
                 .bind(qty as i32).bind(sku_id).execute(&mut *tx).await.map_err(db)?;
@@ -1010,16 +1378,41 @@ async fn return_save(State(state): State<AdminState>, Json(body): Json<Value>) -
         total_amount += amount;
     }
     sqlx::query("UPDATE purchase_return SET total_quantity=?, total_amount=? WHERE id=?")
-        .bind(total_qty).bind(total_amount).bind(return_id).execute(&mut *tx).await.map_err(db)?;
+        .bind(total_qty)
+        .bind(total_amount)
+        .bind(return_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(db)?;
     tx.commit().await.map_err(db)?;
     ok(return_id)
 }
-async fn return_confirm(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> { set_status(&state, "purchase_return", body.get("id").and_then(Value::as_i64).unwrap_or(0), 1).await?; ok(()) }
-async fn return_delete(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> { soft_delete(&state, "purchase_return", body.get("id").and_then(Value::as_i64).unwrap_or(0)).await?; ok(()) }
+async fn return_confirm(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+    set_status(
+        &state,
+        "purchase_return",
+        body.get("id").and_then(Value::as_i64).unwrap_or(0),
+        1,
+    )
+    .await?;
+    ok(())
+}
+async fn return_delete(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {
+    soft_delete(
+        &state,
+        "purchase_return",
+        body.get("id").and_then(Value::as_i64).unwrap_or(0),
+    )
+    .await?;
+    ok(())
+}
 
 // ————————————————— setting —————————————————
 async fn setting_detail(State(state): State<AdminState>) -> ApiResult<Value> {
-    let row = sqlx::query("SELECT * FROM purchase_setting WHERE is_del=0 ORDER BY id DESC LIMIT 1").fetch_optional(&state.repos.pool).await.map_err(db)?;
+    let row = sqlx::query("SELECT * FROM purchase_setting WHERE is_del=0 ORDER BY id DESC LIMIT 1")
+        .fetch_optional(&state.repos.pool)
+        .await
+        .map_err(db)?;
     ok(row.as_ref().map(row_to_json).unwrap_or(Value::Null))
 }
 async fn setting_save(State(state): State<AdminState>, Json(body): Json<Value>) -> ApiResult<()> {

@@ -1,4 +1,4 @@
-﻿//! 店铺端保证金聚合（`merchant::deposit_shop`）DTO / VO / 纯函数。
+//! 店铺端保证金聚合（`merchant::deposit_shop`）DTO / VO / 纯函数。
 //!
 //! 对应原 Java：
 //! - `com.tigshop.adminapi.controller.deposit.DepositShopController`
@@ -163,12 +163,16 @@ pub fn format_payee_display(
         Some(3) => "微信",
         _ => "",
     };
-    [type_text, account_name.unwrap_or(""), account_no.unwrap_or("")]
-        .iter()
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .collect::<Vec<_>>()
-        .join(" ")
+    [
+        type_text,
+        account_name.unwrap_or(""),
+        account_no.unwrap_or(""),
+    ]
+    .iter()
+    .map(|s| s.trim())
+    .filter(|s| !s.is_empty())
+    .collect::<Vec<_>>()
+    .join(" ")
 }
 
 /// 店铺端流水/冻结明细查询（Java `DepositShopLogQueryParam` + BasePage）。

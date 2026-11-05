@@ -28,7 +28,11 @@ use crate::AdminState;
 
 /// 本域 3 条路由（去掉 `/adminapi` 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 3] = [
-    ("POST", "/promotion/seckill/batch", "SeckillController.batch"),
+    (
+        "POST",
+        "/promotion/seckill/batch",
+        "SeckillController.batch",
+    ),
     (
         "GET",
         "/promotion/seckill/listForDecorate",
@@ -69,9 +73,7 @@ async fn batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> Ap
     ok(())
 }
 
-async fn list_for_decorate(
-    State(state): State<AdminState>,
-) -> ApiResult<Vec<SeckillPromotionVO>> {
+async fn list_for_decorate(State(state): State<AdminState>) -> ApiResult<Vec<SeckillPromotionVO>> {
     ok(state.marketing.seckill_batch.list_for_decorate().await?)
 }
 
@@ -114,10 +116,7 @@ mod tests {
         assert_eq!(docs.len(), 3);
         assert_eq!(docs[0].method, "POST");
         assert_eq!(docs[0].path, "/adminapi/promotion/seckill/batch");
-        assert_eq!(
-            docs[1].path,
-            "/adminapi/promotion/seckill/listForDecorate"
-        );
+        assert_eq!(docs[1].path, "/adminapi/promotion/seckill/listForDecorate");
         assert_eq!(
             docs[2].path,
             "/adminapi/promotion/seckill/listForHomePreview"
@@ -136,8 +135,8 @@ mod tests {
 
     #[test]
     fn batch_dto_accepts_camel_case_payload() {
-        let dto: BatchDTO = serde_json::from_value(serde_json::json!({"ids":[1,2],"type":"del"}))
-            .unwrap();
+        let dto: BatchDTO =
+            serde_json::from_value(serde_json::json!({"ids":[1,2],"type":"del"})).unwrap();
         assert_eq!(dto.ids, Some(vec![1, 2]));
         assert_eq!(dto.r#type.as_deref(), Some("del"));
     }

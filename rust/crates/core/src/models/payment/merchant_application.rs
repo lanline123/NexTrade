@@ -97,7 +97,8 @@ pub const MSG_ORG_TYPE_INVALID: &str = "主体类型不合法，允许值: 2(企
 pub const MSG_CONTACT_TYPE_INVALID: &str = "超管类型不合法，允许值: 65(经营者/法人), 66(经办人)";
 pub const MSG_BANK_ACCOUNT_TYPE_INVALID: &str = "银行账户类型不合法，允许值: 74(对公), 75(对私)";
 pub const MSG_SETTLEMENT_ID_INVALID: &str = "结算规则ID必须为数字";
-pub const MSG_LICENSED_FIELDS_REQUIRED: &str = "请填写商户名称、商户简称、营业执照号及法人/经营者姓名";
+pub const MSG_LICENSED_FIELDS_REQUIRED: &str =
+    "请填写商户名称、商户简称、营业执照号及法人/经营者姓名";
 pub const MSG_ID_CARD_REQUIRED: &str = "请填写法人/经营者身份证姓名、号码和有效期";
 pub const MSG_ID_CARD_NAME_MISMATCH: &str = "身份证姓名必须与法人/经营者姓名一致";
 pub const MSG_BANK_REQUIRED: &str = "请填写结算账户类型、开户名称、账号和开户银行";
@@ -105,7 +106,8 @@ pub const MSG_COMPANY_BANK_ONLY_PUBLIC: &str = "企业主体仅支持对公结�
 pub const MSG_BANK_NAME_MISMATCH_PUBLIC: &str = "对公账户名称必须与营业执照名称一致";
 pub const MSG_BANK_NAME_MISMATCH_PRIVATE: &str = "对私账户开户名必须与经营者身份证姓名一致";
 pub const MSG_CONTACT_REQUIRED: &str = "请填写超级管理员类型、姓名、身份证号和手机号";
-pub const MSG_CONTACT_PROXY_UNSUPPORTED: &str = "暂不支持经办人进件，请选择法人/经营者作为超级管理员";
+pub const MSG_CONTACT_PROXY_UNSUPPORTED: &str =
+    "暂不支持经办人进件，请选择法人/经营者作为超级管理员";
 pub const MSG_CONTACT_MISMATCH: &str = "超级管理员姓名和身份证号必须与法人/经营者一致";
 pub const MSG_PERSONAL_CHANNEL_ONLY: &str = "个人主体目前仅支持微信进件";
 pub const MSG_PERSONAL_ID_REQUIRED: &str = "请填写个人身份证姓名、号码和有效期";
@@ -126,8 +128,7 @@ pub const MSG_CHANNEL_UNSUPPORTED: &str = "暂不支持的支付渠道";
 pub const MSG_CHANNEL_UNMIGRATED: &str =
     "支付渠道进件客户端尚未迁移到 Rust 侧（微信/汇付），当前操作未提交到渠道";
 /// 媒体服务未迁移（证件上传/下载/归一化）。
-pub const MSG_MEDIA_UNMIGRATED: &str =
-    "进件媒体服务（证件上传/原图预览）尚未迁移到 Rust 侧";
+pub const MSG_MEDIA_UNMIGRATED: &str = "进件媒体服务（证件上传/原图预览）尚未迁移到 Rust 侧";
 
 /// 渠道异常原因前缀（Java `buildChannelErrorReason`）。
 pub const CHANNEL_ERROR_PREFIX: &str = "进件渠道提交失败：";
@@ -402,7 +403,10 @@ mod tests {
         assert_eq!(status_desc(Some("pending_review")), Some("待审核"));
         assert_eq!(status_desc(Some("REJECTED")), Some("已驳回"));
         assert_eq!(status_desc(Some("APPLYMENT_STATE_FINISHED")), Some("完成"));
-        assert_eq!(status_desc(Some("APPLYMENT_STATE_TO_BE_SIGNED")), Some("待签约"));
+        assert_eq!(
+            status_desc(Some("APPLYMENT_STATE_TO_BE_SIGNED")),
+            Some("待签约")
+        );
         assert_eq!(status_desc(Some("UNKNOWN")), None);
         assert_eq!(status_desc(None), None);
     }
@@ -422,7 +426,9 @@ mod tests {
         assert_eq!(resolve_channel(Some(" ")).unwrap(), CHANNEL_WECHAT);
         assert_eq!(resolve_channel(Some("huifu")).unwrap(), CHANNEL_HUIFU);
         assert_eq!(resolve_channel(Some("ALIPAY")).unwrap(), CHANNEL_ALIPAY);
-        assert!(resolve_channel(Some("PAYPAL")).unwrap_err().contains("暂不支持的支付渠道"));
+        assert!(resolve_channel(Some("PAYPAL"))
+            .unwrap_err()
+            .contains("暂不支持的支付渠道"));
     }
 
     #[test]
@@ -442,9 +448,15 @@ mod tests {
         };
         assert_eq!(
             q.status_values(),
-            vec!["DRAFT".to_string(), "PENDING_REVIEW".to_string(), "FINISH".to_string()]
+            vec![
+                "DRAFT".to_string(),
+                "PENDING_REVIEW".to_string(),
+                "FINISH".to_string()
+            ]
         );
-        assert!(MerchantApplicationPageQuery::default().status_values().is_empty());
+        assert!(MerchantApplicationPageQuery::default()
+            .status_values()
+            .is_empty());
     }
 
     #[test]

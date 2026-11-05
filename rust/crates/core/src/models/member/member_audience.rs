@@ -8,8 +8,8 @@
 //! Java `upgrade()` 还把 DTO 升维为 `SendUserTargetDTO` 并复用营销发送逻辑；
 //! 本实现直接按 audienceType 统计/描述（结果口径一致，未迁移 `SendUserTargetDTO` 互斥归一细节）。
 
-use serde::{Deserialize, Serialize};
 use crate::{Error, Result};
+use serde::{Deserialize, Serialize};
 
 pub const SERVICE_DATA_ERROR: i32 = 1001;
 pub const TYPE_ALL: i32 = 0;
@@ -97,7 +97,10 @@ mod tests {
 
     #[test]
     fn resolve_defaults_to_all() {
-        assert_eq!(resolve(&MemberAudienceDTO::default()).unwrap(), Audience::All);
+        assert_eq!(
+            resolve(&MemberAudienceDTO::default()).unwrap(),
+            Audience::All
+        );
         let dto = MemberAudienceDTO {
             audience_type: Some(TYPE_ALL),
             ..Default::default()
@@ -149,7 +152,11 @@ mod tests {
     fn describe_matches_java_phrasing() {
         assert_eq!(describe_text(&Audience::All, &[], &[]), "全部会员");
         assert_eq!(
-            describe_text(&Audience::Ranks(vec![1, 2]), &["VIP1".into(), "VIP2".into()], &[]),
+            describe_text(
+                &Audience::Ranks(vec![1, 2]),
+                &["VIP1".into(), "VIP2".into()],
+                &[]
+            ),
             "会员等级：VIP1、VIP2"
         );
         assert_eq!(

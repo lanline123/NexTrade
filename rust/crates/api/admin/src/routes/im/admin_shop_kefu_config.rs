@@ -85,7 +85,11 @@ async fn detail(
     Query(q): Query<KefuAccessConfigQuery>,
 ) -> ApiResult<KefuAccessConfigVO> {
     let shop_id = resolve_shop_id(&headers, q.shop_id)?;
-    ok(state.im.admin_shop_kefu_config.get_access_config(shop_id).await?)
+    ok(state
+        .im
+        .admin_shop_kefu_config
+        .get_access_config(shop_id)
+        .await?)
 }
 
 /// `POST /adminapi/im/shopKefuConfig/accessConfig/save`：保存接入规则。
@@ -111,7 +115,10 @@ mod tests {
         assert_eq!(ROUTE_TABLE[0].1, "/im/shopKefuConfig/accessConfig/detail");
         assert_eq!(ROUTE_TABLE[1].1, "/im/shopKefuConfig/accessConfig/save");
         let docs = implemented_routes();
-        assert_eq!(docs[0].path, "/adminapi/im/shopKefuConfig/accessConfig/detail");
+        assert_eq!(
+            docs[0].path,
+            "/adminapi/im/shopKefuConfig/accessConfig/detail"
+        );
         assert_eq!(docs[1].method, "POST");
     }
 

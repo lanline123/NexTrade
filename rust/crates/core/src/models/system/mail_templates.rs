@@ -315,7 +315,10 @@ mod tests {
         };
         let vo = MailTemplatesVO::from(&row);
         assert_eq!(vo.template_id, 7);
-        assert_eq!(vo.template_name.as_deref(), Some("订单确认模板 [order_confirm]"));
+        assert_eq!(
+            vo.template_name.as_deref(),
+            Some("订单确认模板 [order_confirm]")
+        );
         // Java BeanUtils 因 Long→Integer 不可赋值而跳过 ⇒ 恒 null
         assert_eq!(vo.last_modify, None);
         assert_eq!(vo.last_send, None);

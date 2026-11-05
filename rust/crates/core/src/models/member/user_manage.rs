@@ -107,7 +107,10 @@ impl UserListQuery {
     #[must_use]
     pub fn page_params(&self) -> (u64, u64) {
         let page = self.page.unwrap_or(1).max(1);
-        let size = self.size.unwrap_or(DEFAULT_PAGE_SIZE).clamp(1, MAX_PAGE_SIZE);
+        let size = self
+            .size
+            .unwrap_or(DEFAULT_PAGE_SIZE)
+            .clamp(1, MAX_PAGE_SIZE);
         (page, size)
     }
 
@@ -382,7 +385,13 @@ impl FundManagementParam {
     /// 上述任一校验不通过时返回 [`tigshop_core::Error::Biz`]（`code = 0`）。
     pub fn valid_param(&self) -> crate::Result<()> {
         use crate::Error;
-        if self.change_desc.as_deref().map(str::trim).unwrap_or_default().is_empty() {
+        if self
+            .change_desc
+            .as_deref()
+            .map(str::trim)
+            .unwrap_or_default()
+            .is_empty()
+        {
             return Err(Error::biz_msg("请填写资金变动说明"));
         }
         if self.balance.is_none()
@@ -500,7 +509,10 @@ impl UserFundDetailQuery {
     #[must_use]
     pub fn page_params(&self) -> (u64, u64) {
         let page = self.page.unwrap_or(1).max(1);
-        let size = self.size.unwrap_or(DEFAULT_PAGE_SIZE).clamp(1, MAX_PAGE_SIZE);
+        let size = self
+            .size
+            .unwrap_or(DEFAULT_PAGE_SIZE)
+            .clamp(1, MAX_PAGE_SIZE);
         (page, size)
     }
 

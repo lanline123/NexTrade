@@ -66,7 +66,11 @@ impl DepositSetting {
     /// 由配置行组装（缺失项 default：整数 0、文本空）。
     #[must_use]
     pub fn from_rows(rows: &[(String, String)]) -> Self {
-        let get = |code: &str| rows.iter().find(|(c, _)| c == code).map(|(_, v)| v.as_str());
+        let get = |code: &str| {
+            rows.iter()
+                .find(|(c, _)| c == code)
+                .map(|(_, v)| v.as_str())
+        };
         let int = |code: &str| get(code).and_then(|v| v.parse::<i32>().ok());
         Self {
             deposit_enable: int(CODE_DEPOSIT_ENABLE),
@@ -94,9 +98,18 @@ impl DepositSetting {
         push_i(CODE_COLLECT_RULE, self.deposit_collect_rule);
         push_i(CODE_COLLECT_NODE, self.deposit_collect_node);
         push_i(CODE_COLLECT_BUFFER_DAYS, self.deposit_collect_buffer_days);
-        push_i(CODE_COLLECT_BUFFER_ACTION, self.deposit_collect_buffer_action);
-        push_i(CODE_SUPPLEMENT_BUFFER_DAYS, self.deposit_supplement_buffer_days);
-        push_i(CODE_SUPPLEMENT_BUFFER_ACTION, self.deposit_supplement_buffer_action);
+        push_i(
+            CODE_COLLECT_BUFFER_ACTION,
+            self.deposit_collect_buffer_action,
+        );
+        push_i(
+            CODE_SUPPLEMENT_BUFFER_DAYS,
+            self.deposit_supplement_buffer_days,
+        );
+        push_i(
+            CODE_SUPPLEMENT_BUFFER_ACTION,
+            self.deposit_supplement_buffer_action,
+        );
         push_i(CODE_PROTOCOL_ENABLE, self.deposit_protocol_enable);
         if let Some(v) = &self.deposit_protocol_content {
             out.push((CODE_PROTOCOL_CONTENT.to_string(), v.clone()));

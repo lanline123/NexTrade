@@ -96,7 +96,8 @@ pub const ENTITY_VENDOR: &str = "供应商";
 /// 超期未缴足文案
 /// （Java `VendorDepositShopServiceImpl#buildWarningMessages` 场景 3 与兜底分支，
 /// 两处字面量完全相同）。
-pub const MSG_WARNING_EXPIRED: &str = "超过限缴存周期仍未缴足保证金，当前无法发布全新商品(根据设置)，存量商品可正常成交，请立即补缴";
+pub const MSG_WARNING_EXPIRED: &str =
+    "超过限缴存周期仍未缴足保证金，当前无法发布全新商品(根据设置)，存量商品可正常成交，请立即补缴";
 
 /// 未建账户时的默认账户状态（Java `account != null ? account.getStatus() : 1`）。
 pub const DEFAULT_ACCOUNT_STATUS: i32 = 1;
@@ -561,7 +562,10 @@ pub fn format_payee_display(
 /// ⚠️ Java 在快照非空但 JSON 非法时会让 `JSON.parseObject` 抛异常（HTTP 500）；
 /// 本实现解析失败即回退到类型文案（更健壮），见 `uncertain_points`。
 #[must_use]
-pub fn format_recharge_pay_account(payee_account_type: i32, payee_snapshot: Option<&str>) -> String {
+pub fn format_recharge_pay_account(
+    payee_account_type: i32,
+    payee_snapshot: Option<&str>,
+) -> String {
     if let Some(raw) = payee_snapshot.filter(|v| !v.trim().is_empty()) {
         if let Ok(payee) = serde_json::from_str::<DepositPayeeAccountSnapshot>(raw) {
             return format_payee_display(
@@ -605,15 +609,10 @@ pub fn resolve_source_dest(
     match log_type {
         LOG_TYPE_RECHARGE => {
             let source = match recharge {
-                Some((payee_type, snapshot)) => {
-                    format_recharge_pay_account(payee_type, snapshot)
-                }
+                Some((payee_type, snapshot)) => format_recharge_pay_account(payee_type, snapshot),
                 None => String::new(),
             };
-            (
-                Some(source),
-                Some(ACCOUNT_DEPOSIT_BALANCE.to_string()),
-            )
+            (Some(source), Some(ACCOUNT_DEPOSIT_BALANCE.to_string()))
         }
         LOG_TYPE_DEDUCT => (
             Some(ACCOUNT_DEPOSIT_BALANCE.to_string()),
@@ -717,10 +716,7 @@ mod tests {
             2
         );
         // 收取为 0 → 用补缴
-        assert_eq!(
-            resolve_buffer_days(0, now + 3 * SECS_PER_DAY, now),
-            3
-        );
+        assert_eq!(resolve_buffer_days(0, now + 3 * SECS_PER_DAY, now), 3);
         // 两者都为 0 → 0
         assert_eq!(resolve_buffer_days(0, 0, now), 0);
         // 都过期 → 0
@@ -739,13 +735,8 @@ mod tests {
     fn warning_message_expired_wins_over_others() {
         let now = 1_000_000_i64;
         // 收取缓冲已过期 + 补缴缓冲未过期 → 仍是「超期未缴足」
-        let msgs = build_warning_messages(
-            true,
-            now - 10,
-            now + 5 * SECS_PER_DAY,
-            ENTITY_VENDOR,
-            now,
-        );
+        let msgs =
+            build_warning_messages(true, now - 10, now + 5 * SECS_PER_DAY, ENTITY_VENDOR, now);
         assert_eq!(msgs.len(), 1);
         assert_eq!(msgs[0], MSG_WARNING_EXPIRED);
     }
@@ -929,7 +920,10 @@ mod tests {
         // 缺户名/账号 → 只剩类型文案
         assert_eq!(format_payee_display(Some(2), None, None), "支付宝");
         // 空白段跳过
-        assert_eq!(format_payee_display(Some(3), Some("  "), Some("wx1")), "微信/wx1");
+        assert_eq!(
+            format_payee_display(Some(3), Some("  "), Some("wx1")),
+            "微信/wx1"
+        );
         // 未知类型 → 无类型文案
         assert_eq!(format_payee_display(None, Some("甲"), None), "甲");
         assert_eq!(format_payee_display(Some(9), None, None), "");
@@ -952,7 +946,10 @@ mod tests {
 
     #[test]
     fn refund_dest_trims_payee_info() {
-        assert_eq!(format_refund_payee_account(Some("  张三 6222  ")), "张三 6222");
+        assert_eq!(
+            format_refund_payee_account(Some("  张三 6222  ")),
+            "张三 6222"
+        );
         assert_eq!(format_refund_payee_account(Some("   ")), "");
         assert_eq!(format_refund_payee_account(None), "");
     }

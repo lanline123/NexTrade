@@ -306,7 +306,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -425,10 +428,7 @@ mod tests {
     fn update_field_column_normalization() {
         assert_eq!(map_update_field_column("code"), Some("code"));
         assert_eq!(map_update_field_column("name"), Some("name"));
-        assert_eq!(
-            map_update_field_column("isAvailable"),
-            Some("is_available")
-        );
+        assert_eq!(map_update_field_column("isAvailable"), Some("is_available"));
         assert_eq!(
             map_update_field_column("is_available"),
             Some("is_available")
@@ -524,7 +524,10 @@ mod tests {
             name: Some("中国".into()),
             ..Default::default()
         };
-        assert_eq!(validate_save(&blank_code).unwrap_err(), MSG_AREA_CODE_NOT_BLANK);
+        assert_eq!(
+            validate_save(&blank_code).unwrap_err(),
+            MSG_AREA_CODE_NOT_BLANK
+        );
 
         let blank_name = AreaCodeSaveDTO {
             code: Some("86".into()),
@@ -541,7 +544,10 @@ mod tests {
             name: Some("中国".into()),
             ..Default::default()
         };
-        assert_eq!(validate_save(&long_code).unwrap_err(), MSG_AREA_CODE_MAX_SIZE);
+        assert_eq!(
+            validate_save(&long_code).unwrap_err(),
+            MSG_AREA_CODE_MAX_SIZE
+        );
 
         // 恰好 64 字符是合法的（注解 max = 64）
         let edge = AreaCodeSaveDTO {
@@ -564,9 +570,10 @@ mod tests {
 
     #[test]
     fn edit_dto_flattens_base_fields() {
-        let dto: AreaCodeEditDTO =
-            serde_json::from_str(r#"{"id":9,"code":"86","name":"中国","isAvailable":1,"isDefault":0}"#)
-                .unwrap();
+        let dto: AreaCodeEditDTO = serde_json::from_str(
+            r#"{"id":9,"code":"86","name":"中国","isAvailable":1,"isDefault":0}"#,
+        )
+        .unwrap();
         assert_eq!(dto.id, Some(9));
         assert_eq!(dto.as_save().code.as_deref(), Some("86"));
         assert_eq!(dto.as_save().is_available, Some(1));
@@ -588,9 +595,10 @@ mod tests {
     #[test]
     fn list_query_deserializes_java_param_names() {
         // Java 侧查询参数名是 `size`（BasePage），不是项目通用 `pageSize`
-        let q: AreaCodeListQuery =
-            serde_json::from_str(r#"{"name":"中","page":2,"size":30,"sortField":"code","sortOrder":"asc"}"#)
-                .unwrap();
+        let q: AreaCodeListQuery = serde_json::from_str(
+            r#"{"name":"中","page":2,"size":30,"sortField":"code","sortOrder":"asc"}"#,
+        )
+        .unwrap();
         assert_eq!(q.name.as_deref(), Some("中"));
         assert_eq!(q.page_query().page, 2);
         assert_eq!(q.page_query().page_size, 30);

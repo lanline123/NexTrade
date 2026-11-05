@@ -255,14 +255,21 @@ pub fn sort_is_asc(order: Option<&str>) -> bool {
 /// - 其它（WITHDRAW / REFUND / DEDUCT）：`(-amount, paid - amount)`，余额不足报错
 ///
 /// 错误码与文案逐字对齐 Java：`5401 保证金金额非法` / `5402 保证金余额不足`。
-pub fn deposit_change(paid: Decimal, amount: Decimal, log_type: i32) -> Result<(Decimal, Decimal), Error> {
+pub fn deposit_change(
+    paid: Decimal,
+    amount: Decimal,
+    log_type: i32,
+) -> Result<(Decimal, Decimal), Error> {
     if log_type == LOG_TYPE_ADJUST {
         if amount == Decimal::ZERO {
             return Err(Error::biz(DEPOSIT_AMOUNT_INVALID, MSG_AMOUNT_INVALID));
         }
         let after = paid + amount;
         if after < Decimal::ZERO {
-            return Err(Error::biz(DEPOSIT_BALANCE_NOT_ENOUGH, MSG_BALANCE_NOT_ENOUGH));
+            return Err(Error::biz(
+                DEPOSIT_BALANCE_NOT_ENOUGH,
+                MSG_BALANCE_NOT_ENOUGH,
+            ));
         }
         return Ok((amount, after));
     }
@@ -273,7 +280,10 @@ pub fn deposit_change(paid: Decimal, amount: Decimal, log_type: i32) -> Result<(
         return Ok((amount, paid + amount));
     }
     if paid < amount {
-        return Err(Error::biz(DEPOSIT_BALANCE_NOT_ENOUGH, MSG_BALANCE_NOT_ENOUGH));
+        return Err(Error::biz(
+            DEPOSIT_BALANCE_NOT_ENOUGH,
+            MSG_BALANCE_NOT_ENOUGH,
+        ));
     }
     Ok((-amount, paid - amount))
 }
@@ -608,10 +618,7 @@ mod tests {
     #[test]
     fn sort_whitelist_and_direction() {
         assert_eq!(recharge_sort_column(None), "shop_deposit_recharge_id");
-        assert_eq!(
-            recharge_sort_column(Some("addTime")),
-            "add_time"
-        );
+        assert_eq!(recharge_sort_column(Some("addTime")), "add_time");
         assert_eq!(recharge_sort_column(Some("amount")), "amount");
         // 非法字段回退主键（防注入）
         assert_eq!(
@@ -674,8 +681,7 @@ mod tests {
         assert_eq!(q.size, Some(30));
 
         // shopId 兼容入参
-        let q: DepositRechargeListQuery =
-            serde_json::from_str(r#"{"shopId":8}"#).unwrap();
+        let q: DepositRechargeListQuery = serde_json::from_str(r#"{"shopId":8}"#).unwrap();
         assert_eq!(q.effective_owner_id(), Some(8));
 
         let dto: DepositRechargeApplyDTO =

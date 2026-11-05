@@ -1,4 +1,4 @@
-﻿//! 管理端全局搜索路由（catalog::search_admin，2 条）。
+//! 管理端全局搜索路由（catalog::search_admin，2 条）。
 //!
 //! 对应原 Java `com.tigshop.adminapi.controller.search.SearchController`
 //! （`@RequestMapping("/adminapi/search")`，类级
@@ -22,11 +22,7 @@
 //! > 这里直接复用 `catalog/product_manage` 的 `admin_list`
 //! > （`ProductListDTO` / `ProductListResDTO` 的迁移对应物），不重复实现列表 SQL。
 
-use axum::{
-    extract::State,
-    routing::get,
-    Router,
-};
+use axum::{extract::State, routing::get, Router};
 // `AdminProductListQuery` 含数组字段（`productTypes` / `idList` / `brandIds` …），
 // axum 内置 serde_urlencoded 不支持序列类型；与 product_manage 一致改用
 // axum-extra 的 serde_html_form Query。
@@ -35,11 +31,11 @@ use axum_extra::extract::Query;
 use tigshop_core::models::catalog::product_manage::{AdminProductListQuery, ProductListItemVO};
 use tigshop_core::types::PageResult;
 use tigshop_openapi::RouteDoc;
-use tigshop_security::web::{ok, ApiResult};
 use tigshop_security::web::AuthUser;
+use tigshop_security::web::{ok, ApiResult};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 综合搜索商品预览默认条数（Java `AGGREGATE_PRODUCT_PREVIEW_SIZE`）。
 pub const AGGREGATE_PRODUCT_PREVIEW_SIZE: u64 = 5;
@@ -104,8 +100,16 @@ mod tests {
         let docs = implemented_routes();
         assert_eq!(docs.len(), 2);
         let expected = [
-            ("GET", "/adminapi/search/aggregate", "SearchController.aggregate"),
-            ("GET", "/adminapi/search/product", "SearchController.product"),
+            (
+                "GET",
+                "/adminapi/search/aggregate",
+                "SearchController.aggregate",
+            ),
+            (
+                "GET",
+                "/adminapi/search/product",
+                "SearchController.product",
+            ),
         ];
         for (method, path, handler) in expected {
             assert!(
@@ -122,7 +126,9 @@ mod tests {
         assert_eq!(registered.len(), ROUTE_TABLE.len());
         for (method, path) in registered {
             assert!(
-                ROUTE_TABLE.iter().any(|(m, p, _)| *m == method && *p == path),
+                ROUTE_TABLE
+                    .iter()
+                    .any(|(m, p, _)| *m == method && *p == path),
                 "{method} {path} 不在 ROUTE_TABLE 内"
             );
         }
@@ -141,13 +147,22 @@ mod tests {
     /// 多租户：店铺账号搜索必须强制本店过滤。
     #[test]
     fn tenant_scope_forces_shop_filter() {
-        let shop = AuthUser { id: 3, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(5) };
+        let shop = AuthUser {
+            id: 3,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(5),
+        };
         assert_eq!(tenant::list_scope(&shop, None).unwrap(), Some(5));
         assert!(tenant::list_scope(&shop, Some(7)).is_err());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert_eq!(tenant::list_scope(&platform, None).unwrap(), None);
     }
-
 }

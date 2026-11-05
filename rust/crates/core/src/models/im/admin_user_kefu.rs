@@ -240,7 +240,8 @@ mod tests {
 
     #[test]
     fn batch_dto_reads_type_keyword() {
-        let d: KefuBatchDTO = serde_json::from_value(serde_json::json!({"ids":[1,2],"type":"del"})).unwrap();
+        let d: KefuBatchDTO =
+            serde_json::from_value(serde_json::json!({"ids":[1,2],"type":"del"})).unwrap();
         assert_eq!(d.ids, vec![1, 2]);
         assert_eq!(d.type_.as_deref(), Some("del"));
     }

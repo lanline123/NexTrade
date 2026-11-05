@@ -588,10 +588,8 @@ pub fn belongs_to_sku(row_sku_id: i32, sku_id: i32) -> bool {
 /// `rust_decimal::Decimal::round_dp_with_strategy` 在 `scale <= 2` 时**不补零**，
 /// 因此这里先按 HALF_UP 收敛到 ≤2 位，再显式补齐两位，保证与 Java 逐字符一致。
 fn format_2dp(value: Decimal) -> String {
-    let scaled = value.round_dp_with_strategy(
-        2,
-        rust_decimal::RoundingStrategy::MidpointAwayFromZero,
-    );
+    let scaled =
+        value.round_dp_with_strategy(2, rust_decimal::RoundingStrategy::MidpointAwayFromZero);
     let text = scaled.to_string();
     let (int_part, frac) = match text.split_once('.') {
         Some((int_part, frac)) => (int_part, frac),
@@ -621,7 +619,11 @@ pub fn format_discount(value: Decimal) -> String {
 
 /// 零售价区间（Java `formatRetailRange`）：SKU 价 min/max；无 SKU 回退商品价。
 #[must_use]
-pub fn format_retail_range(sku_prices: &[Decimal], product_price: Option<Decimal>, currency: &str) -> String {
+pub fn format_retail_range(
+    sku_prices: &[Decimal],
+    product_price: Option<Decimal>,
+    currency: &str,
+) -> String {
     let mut prices: Vec<Decimal> = sku_prices.to_vec();
     if prices.is_empty() {
         if let Some(p) = product_price {
@@ -636,7 +638,11 @@ pub fn format_retail_range(sku_prices: &[Decimal], product_price: Option<Decimal
     if min == max {
         format_money(currency, min)
     } else {
-        format!("{}-{}", format_money(currency, min), format_money(currency, max))
+        format!(
+            "{}-{}",
+            format_money(currency, min),
+            format_money(currency, max)
+        )
     }
 }
 
@@ -649,11 +655,7 @@ pub fn build_hint(dimension: i32, moq: i32, multiples: &[Option<i32>]) -> String
     } else {
         format!("按 SKU 起订，每规格 {moq} 件起")
     };
-    let multiple = multiples
-        .iter()
-        .filter_map(|m| *m)
-        .filter(|m| *m > 1)
-        .min();
+    let multiple = multiples.iter().filter_map(|m| *m).filter(|m| *m > 1).min();
     if let Some(m) = multiple {
         sb.push_str(&format!("，需按 {m} 的倍数购买"));
     }
@@ -680,15 +682,9 @@ mod tests {
             format_retail_range(&[price("10"), price("99")], None, "¥"),
             "¥10.00-¥99.00"
         );
-        assert_eq!(
-            format_retail_range(&[price("10")], None, "¥"),
-            "¥10.00"
-        );
+        assert_eq!(format_retail_range(&[price("10")], None, "¥"), "¥10.00");
         // 无 SKU → 商品价
-        assert_eq!(
-            format_retail_range(&[], Some(price("8.5")), "¥"),
-            "¥8.50"
-        );
+        assert_eq!(format_retail_range(&[], Some(price("8.5")), "¥"), "¥8.50");
         // 无任何价格 → `—`
         assert_eq!(format_retail_range(&[], None, "¥"), EMPTY_DISPLAY);
     }
@@ -707,7 +703,10 @@ mod tests {
             MSG_MOQ_DIMENSION_INVALID
         );
         assert_eq!(require_price_mode(Some(2)).unwrap(), 2);
-        assert_eq!(require_price_mode(None).unwrap_err(), MSG_PRICE_MODE_INVALID);
+        assert_eq!(
+            require_price_mode(None).unwrap_err(),
+            MSG_PRICE_MODE_INVALID
+        );
 
         assert!(is_discount_in_range(Some(price("0.10"))));
         assert!(is_discount_in_range(Some(price("9.99"))));
@@ -808,16 +807,18 @@ mod tests {
     /// 阶梯校验：空 / 非法 mode / 重复 minQty。
     #[test]
     fn validate_tiers_rules() {
-        assert_eq!(
-            validate_tiers(&[], 1).unwrap_err(),
-            MSG_TIERS_REQUIRED
-        );
+        assert_eq!(validate_tiers(&[], 1).unwrap_err(), MSG_TIERS_REQUIRED);
         let tier = WholesaleBatchTierDTO {
             min_qty: Some(10),
             discount: Some(price("5.0")),
             wholesale_price: None,
         };
-        assert_eq!(validate_tiers(std::slice::from_ref(&tier), 1).unwrap().len(), 1);
+        assert_eq!(
+            validate_tiers(std::slice::from_ref(&tier), 1)
+                .unwrap()
+                .len(),
+            1
+        );
         assert_eq!(
             validate_tiers(&[tier.clone(), tier], 1).unwrap_err(),
             "阶梯起量 minQty 重复：10"

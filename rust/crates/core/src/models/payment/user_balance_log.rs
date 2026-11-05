@@ -10,9 +10,9 @@
 //! - 出参 `com.tigshop.bean.vo.finance.UserBalanceLogVO`
 //!   （`java/tigshop-bean/src/main/java/com/tigshop/bean/vo/finance/UserBalanceLogVO.java`）
 
+use crate::types::PageQuery;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use crate::types::PageQuery;
 
 /// Java `BasePage` 默认页大小（`getSize()` 缺省 15）。
 pub const DEFAULT_PAGE_SIZE: u64 = 15;
@@ -210,7 +210,10 @@ mod tests {
 
     #[test]
     fn page_defaults_and_cap_match_java_base_page() {
-        assert_eq!(q(serde_json::json!({})).page_params(), (1, DEFAULT_PAGE_SIZE));
+        assert_eq!(
+            q(serde_json::json!({})).page_params(),
+            (1, DEFAULT_PAGE_SIZE)
+        );
         assert_eq!(q(serde_json::json!({"size": 101})).page_params(), (1, 100));
         assert_eq!(q(serde_json::json!({"size": 100})).page_params(), (1, 100));
         assert_eq!(q(serde_json::json!({"page": 0})).page_params(), (1, 15));

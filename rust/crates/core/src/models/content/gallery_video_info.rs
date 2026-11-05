@@ -398,7 +398,10 @@ pub fn extract_extension(name: Option<&str>) -> String {
 ///
 /// # Errors
 /// 空文件 → 「文件不能为空」；扩展名 / content-type 非法 → 「不支持的文件类型」。
-pub fn validate_upload_file(file_name: Option<&str>, content_type: Option<&str>) -> Result<(), String> {
+pub fn validate_upload_file(
+    file_name: Option<&str>,
+    content_type: Option<&str>,
+) -> Result<(), String> {
     let name = file_name.map(str::trim).unwrap_or("");
     if name.is_empty() {
         return Err(MSG_FILE_EMPTY.to_string());
@@ -440,7 +443,10 @@ mod tests {
             video_name: None,
             ..Default::default()
         };
-        assert_eq!(validate_required(&dto).unwrap_err(), MSG_VIDEO_NAME_REQUIRED);
+        assert_eq!(
+            validate_required(&dto).unwrap_err(),
+            MSG_VIDEO_NAME_REQUIRED
+        );
         let dto = GalleryVideoInfoDTO {
             video_url: Some(" https://a.com/v.mp4 ".into()),
             video_name: Some(" 宣传 ".into()),
@@ -448,10 +454,7 @@ mod tests {
         };
         assert_eq!(
             validate_required(&dto).unwrap(),
-            (
-                "https://a.com/v.mp4".to_string(),
-                "宣传".to_string()
-            )
+            ("https://a.com/v.mp4".to_string(), "宣传".to_string())
         );
     }
 
@@ -473,10 +476,7 @@ mod tests {
             validate_external_video_url(Some("https://a.com/v.m3u8")).unwrap_err(),
             MSG_EXTERNAL_URL_EXT
         );
-        assert!(validate_external_video_url(Some(
-            "https://cdn.a.com/v.MP4?sign=1#t=1"
-        ))
-        .is_ok());
+        assert!(validate_external_video_url(Some("https://cdn.a.com/v.MP4?sign=1#t=1")).is_ok());
     }
 
     #[test]

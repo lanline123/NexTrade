@@ -168,8 +168,7 @@ pub fn format_create_time(secs: Option<i64>) -> String {
         // Java: `timestamp > 0` 之外的分支 → `gen.writeString("")`
         return String::new();
     }
-    match chrono::FixedOffset::east_opt(8 * 3600)
-        .and_then(|tz| tz.timestamp_opt(secs, 0).single())
+    match chrono::FixedOffset::east_opt(8 * 3600).and_then(|tz| tz.timestamp_opt(secs, 0).single())
     {
         Some(dt) => dt.format("%Y-%m-%d %H:%M:%S").to_string(),
         // Java 的 catch 分支「解析失败原样输出」；对合法 i64 秒数不可达，
@@ -307,7 +306,9 @@ impl MemberTagDelDTO {
 /// # Errors
 /// 入参不满足上述两条约束时返回错误文案。
 pub fn validate_create(dto: &MemberTagCreateDTO) -> std::result::Result<(i64, String), String> {
-    let group_id = dto.group_id.ok_or_else(|| MSG_GROUP_ID_REQUIRED.to_string())?;
+    let group_id = dto
+        .group_id
+        .ok_or_else(|| MSG_GROUP_ID_REQUIRED.to_string())?;
     let tag_name = dto
         .tag_name
         .as_deref()
@@ -447,7 +448,10 @@ mod tests {
     /// （早先此处误写成 14:13:20，是把 UTC 小时数 22 当成 +8 前的值再减 8 了）。
     #[test]
     fn format_create_time_uses_east8() {
-        assert_eq!(format_create_time(Some(1_700_000_000)), "2023-11-15 06:13:20");
+        assert_eq!(
+            format_create_time(Some(1_700_000_000)),
+            "2023-11-15 06:13:20"
+        );
         // Unix 纪元 + 1 秒 = 1970-01-01 00:00:01 UTC = 1970-01-01 08:00:01 +08:00
         // （注意不是 08:00:00；`Some(0)` 走的是 `<= 0` 分支返回空串）
         assert_eq!(format_create_time(Some(1)), "1970-01-01 08:00:01");
@@ -571,7 +575,10 @@ mod tests {
 
         let overflow: std::result::Result<MemberTagDelDTO, _> =
             serde_json::from_str(r#"{"id":2147483648}"#);
-        assert!(overflow.is_err(), "超 i32 应反序列化失败（Java Integer 语义）");
+        assert!(
+            overflow.is_err(),
+            "超 i32 应反序列化失败（Java Integer 语义）"
+        );
 
         // 冗余字段被忽略
         let dto: MemberTagDelDTO =

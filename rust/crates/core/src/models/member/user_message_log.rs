@@ -311,7 +311,10 @@ mod tests {
             ("message_title", Some(true))
         );
         // 非 asc/desc → 不设 ORDER BY；未知字段回退主键
-        assert_eq!(resolve_sort(Some("send_time"), Some("x")), ("send_time", None));
+        assert_eq!(
+            resolve_sort(Some("send_time"), Some("x")),
+            ("send_time", None)
+        );
         assert_eq!(
             resolve_sort(Some("1=1 --"), Some("asc")),
             ("message_log_id", Some(false))
@@ -320,8 +323,7 @@ mod tests {
 
     #[test]
     fn page_defaults_follow_java_base_page() {
-        let q: UserMessageLogListQuery =
-            serde_json::from_value(serde_json::json!({})).unwrap();
+        let q: UserMessageLogListQuery = serde_json::from_value(serde_json::json!({})).unwrap();
         assert_eq!(q.page_params(), (1, 15));
         let q: UserMessageLogListQuery =
             serde_json::from_value(serde_json::json!({"page": 3, "size": 1000})).unwrap();
@@ -332,10 +334,7 @@ mod tests {
     fn send_time_format_matches_handel_time() {
         assert_eq!(format_send_time(0), "");
         assert_eq!(format_send_time(-1), "");
-        assert_eq!(
-            format_send_time(1_700_000_000),
-            "2023-11-15 06:13:20"
-        );
+        assert_eq!(format_send_time(1_700_000_000), "2023-11-15 06:13:20");
     }
 
     #[test]

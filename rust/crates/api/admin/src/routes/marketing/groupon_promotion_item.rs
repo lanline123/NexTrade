@@ -116,20 +116,22 @@ struct IdQuery {
 }
 
 /// `POST /adminapi/promotion/groupon/item/create`：创建拼团商品。
-async fn create(
-    State(state): State<AdminState>,
-    Json(param): Json<CreateParam>,
-) -> ApiResult<()> {
-    state.marketing.groupon_promotion_item.create(&param).await?;
+async fn create(State(state): State<AdminState>, Json(param): Json<CreateParam>) -> ApiResult<()> {
+    state
+        .marketing
+        .groupon_promotion_item
+        .create(&param)
+        .await?;
     ok(())
 }
 
 /// `POST /adminapi/promotion/groupon/item/update`：更新拼团商品。
-async fn update(
-    State(state): State<AdminState>,
-    Json(param): Json<UpdateParam>,
-) -> ApiResult<()> {
-    state.marketing.groupon_promotion_item.update(&param).await?;
+async fn update(State(state): State<AdminState>, Json(param): Json<UpdateParam>) -> ApiResult<()> {
+    state
+        .marketing
+        .groupon_promotion_item
+        .update(&param)
+        .await?;
     ok(())
 }
 

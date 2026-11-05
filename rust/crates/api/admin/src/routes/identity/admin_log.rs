@@ -55,11 +55,8 @@ use tigshop_security::web::{ok, ApiResult, AuthUser};
 use crate::AdminState;
 
 /// 本域 1 条路由（去 `/adminapi` 前缀的路径 + 原 Java handler）。
-const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
-    "GET",
-    "/authority/adminLog/list",
-    "AdminLogController.page",
-)];
+const ROUTE_TABLE: [(&str, &str, &str); 1] =
+    [("GET", "/authority/adminLog/list", "AdminLogController.page")];
 
 /// 管理员日志路由（挂载于 `/adminapi` 下）。
 ///
@@ -168,7 +165,10 @@ mod tests {
     #[test]
     fn admin_header_sees_all() {
         assert_eq!(
-            resolve_scope(&headers(&[("x-admin-type", "admin")]), &auth_with_type(None)),
+            resolve_scope(
+                &headers(&[("x-admin-type", "admin")]),
+                &auth_with_type(None)
+            ),
             Scope::All
         );
     }
@@ -215,7 +215,10 @@ mod tests {
         }
         // vendor 缺 vendor_id
         assert_eq!(
-            resolve_scope(&headers(&[("x-admin-type", "vendor")]), &auth_with_type(None)),
+            resolve_scope(
+                &headers(&[("x-admin-type", "vendor")]),
+                &auth_with_type(None)
+            ),
             Scope::Nothing
         );
         assert_eq!(
@@ -230,7 +233,10 @@ mod tests {
     #[test]
     fn unknown_type_or_no_type_yields_empty_page() {
         assert_eq!(
-            resolve_scope(&headers(&[("x-admin-type", "legacy")]), &auth_with_type(Some("admin"))),
+            resolve_scope(
+                &headers(&[("x-admin-type", "legacy")]),
+                &auth_with_type(Some("admin"))
+            ),
             // 请求头优先，legacy 不属于任何可见分支 → 空页
             Scope::Nothing
         );
@@ -240,7 +246,10 @@ mod tests {
         );
         // 大小写敏感（Java equals）
         assert_eq!(
-            resolve_scope(&headers(&[("x-admin-type", "Admin")]), &auth_with_type(None)),
+            resolve_scope(
+                &headers(&[("x-admin-type", "Admin")]),
+                &auth_with_type(None)
+            ),
             Scope::Nothing
         );
     }
@@ -253,7 +262,10 @@ mod tests {
             Scope::All
         );
         assert_eq!(
-            resolve_scope(&headers(&[("x-shop-id", "3")]), &auth_with_type(Some("shop"))),
+            resolve_scope(
+                &headers(&[("x-shop-id", "3")]),
+                &auth_with_type(Some("shop"))
+            ),
             Scope::Shop { shop_id: 3 }
         );
     }

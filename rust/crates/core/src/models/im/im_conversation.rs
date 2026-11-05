@@ -589,7 +589,10 @@ pub struct UpdateFieldDTO {
     /// 字段名
     pub field: Option<String>,
     /// 值
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -926,7 +929,10 @@ mod tests {
         assert_eq!(status_filter(Some(-2)), StatusFilter::None);
         assert_eq!(
             status_filter(Some(-1)),
-            StatusFilter::In(vec![CONVERSATION_STATUS_IN_PROGRESS, CONVERSATION_STATUS_CLOSED])
+            StatusFilter::In(vec![
+                CONVERSATION_STATUS_IN_PROGRESS,
+                CONVERSATION_STATUS_CLOSED
+            ])
         );
         assert_eq!(status_filter(Some(0)), StatusFilter::Eq(0));
         assert_eq!(status_filter(Some(2)), StatusFilter::Eq(2));
@@ -983,10 +989,7 @@ mod tests {
     #[test]
     fn parse_datetime_supports_java_date_to_timestamp_example() {
         // dateToTimestampExample：无冒号 ⇒ 当天 00:00:00
-        assert_eq!(
-            parse_timestamp_datetime("2024-01-02"),
-            Some(1_704_124_800)
-        );
+        assert_eq!(parse_timestamp_datetime("2024-01-02"), Some(1_704_124_800));
         // 到分钟补 :00
         assert_eq!(
             parse_timestamp_datetime("2024-01-02 03:04"),

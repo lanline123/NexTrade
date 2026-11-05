@@ -141,7 +141,8 @@ fn xlsx_response(bytes: Vec<u8>) -> Response {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ),
     );
-    let disposition = "attachment; filename=\"vendor_product.xlsx\"; filename*=UTF-8''vendor_product.xlsx";
+    let disposition =
+        "attachment; filename=\"vendor_product.xlsx\"; filename*=UTF-8''vendor_product.xlsx";
     if let Ok(value) = HeaderValue::from_str(disposition) {
         headers.insert(header::CONTENT_DISPOSITION, value);
     }
@@ -251,15 +252,12 @@ async fn vendor_max_price(
     State(state): State<AdminState>,
     Query(q): Query<SkuIdQuery>,
 ) -> ApiResult<rust_decimal::Decimal> {
-    let sku_id = q
-        .vendor_product_sku_id
-        .filter(|x| *x > 0)
-        .ok_or_else(|| AppError(tigshop_core::Error::Validation("vendorProductSkuId 不能为空".into())))?;
-    ok(state
-        .vendor
-        .vendor_product
-        .vendor_max_price(sku_id)
-        .await?)
+    let sku_id = q.vendor_product_sku_id.filter(|x| *x > 0).ok_or_else(|| {
+        AppError(tigshop_core::Error::Validation(
+            "vendorProductSkuId 不能为空".into(),
+        ))
+    })?;
+    ok(state.vendor.vendor_product.vendor_max_price(sku_id).await?)
 }
 
 /// `POST /adminapi/product/product/vendorProductImport`：vendor_product → product。

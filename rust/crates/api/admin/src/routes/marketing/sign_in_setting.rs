@@ -17,13 +17,41 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/promotion/signInSetting/list", "SignInSettingController.list"),
-    ("GET", "/promotion/signInSetting/detail", "SignInSettingController.detail"),
-    ("POST", "/promotion/signInSetting/create", "SignInSettingController.create"),
-    ("POST", "/promotion/signInSetting/update", "SignInSettingController.update"),
-    ("POST", "/promotion/signInSetting/del", "SignInSettingController.del"),
-    ("POST", "/promotion/signInSetting/updateField", "SignInSettingController.updateField"),
-    ("POST", "/promotion/signInSetting/batch", "SignInSettingController.batch"),
+    (
+        "GET",
+        "/promotion/signInSetting/list",
+        "SignInSettingController.list",
+    ),
+    (
+        "GET",
+        "/promotion/signInSetting/detail",
+        "SignInSettingController.detail",
+    ),
+    (
+        "POST",
+        "/promotion/signInSetting/create",
+        "SignInSettingController.create",
+    ),
+    (
+        "POST",
+        "/promotion/signInSetting/update",
+        "SignInSettingController.update",
+    ),
+    (
+        "POST",
+        "/promotion/signInSetting/del",
+        "SignInSettingController.del",
+    ),
+    (
+        "POST",
+        "/promotion/signInSetting/updateField",
+        "SignInSettingController.updateField",
+    ),
+    (
+        "POST",
+        "/promotion/signInSetting/batch",
+        "SignInSettingController.batch",
+    ),
 ];
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -59,7 +87,10 @@ async fn list(
     ok(state.marketing.sign_in_setting.list(&q).await?)
 }
 
-async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<SignInSettingVO> {
+async fn detail(
+    State(state): State<AdminState>,
+    Query(q): Query<IdQuery>,
+) -> ApiResult<SignInSettingVO> {
     ok(state.marketing.sign_in_setting.detail(q.id).await?)
 }
 

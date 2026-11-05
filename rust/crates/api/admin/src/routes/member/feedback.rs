@@ -164,11 +164,17 @@ fn tenant_scope(headers: &HeaderMap, auth: &AuthUser) -> Result<TenantScope, App
 /// - `shop` / `store` → 店铺作用域，`shop_id` 必须来自 JWT 且 > 0；
 /// - 其它（`pickup` / `vendor` / 缺失）→「无权访问会员留言」。
 fn trusted_tenant_scope(auth: &AuthUser) -> Result<TenantScope, AppError> {
-    let admin_type = auth
-        .admin_type
-        .as_deref()
-        .ok_or_else(|| AppError(tigshop_core::Error::biz(SERVICE_DATA_ERROR, MSG_MISSING_TENANT)))?;
-    let shop_id = if auth.is_platform() { None } else { auth.scoped_shop_id() };
+    let admin_type = auth.admin_type.as_deref().ok_or_else(|| {
+        AppError(tigshop_core::Error::biz(
+            SERVICE_DATA_ERROR,
+            MSG_MISSING_TENANT,
+        ))
+    })?;
+    let shop_id = if auth.is_platform() {
+        None
+    } else {
+        auth.scoped_shop_id()
+    };
     TenantScope::resolve(Some(admin_type), None, shop_id)
         .map_err(|msg| AppError(tigshop_core::Error::biz(SERVICE_DATA_ERROR, msg)))
 }
@@ -382,7 +388,10 @@ mod tests {
 
         for (_, path, _) in ROUTE_TABLE {
             assert!(path.starts_with('/'), "{path} 应以 / 开头");
-            assert!(!path.starts_with("/adminapi"), "{path} 不得自带 /adminapi 前缀");
+            assert!(
+                !path.starts_with("/adminapi"),
+                "{path} 不得自带 /adminapi 前缀"
+            );
             assert!(path.starts_with("/user/feedback/"), "{path} 前缀错误");
         }
     }
@@ -464,8 +473,8 @@ mod tests {
     #[test]
     fn admin_type_falls_back_to_jwt_then_errors() {
         // JWT 提供 admin → 平台
-        let scope = tenant_scope(&headers(&[]), &auth_with_type(Some("admin")))
-            .expect("JWT admin 应通过");
+        let scope =
+            tenant_scope(&headers(&[]), &auth_with_type(Some("admin"))).expect("JWT admin 应通过");
         assert_eq!(scope, TenantScope::Platform);
 
         // 请求头优先于 JWT

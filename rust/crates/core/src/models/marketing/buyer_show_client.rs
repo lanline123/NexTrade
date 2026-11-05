@@ -672,11 +672,15 @@ macro_rules! opt_num_de {
                 // `@RequestParam Integer` 同时接受数字与数字字符串，
                 // 故这里把 JSON 数字直接转成目标类型（越界走 `try_from`）。
                 fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<Self::Value, E> {
-                    <$ty>::try_from(v).map(Some).map_err(serde::de::Error::custom)
+                    <$ty>::try_from(v)
+                        .map(Some)
+                        .map_err(serde::de::Error::custom)
                 }
 
                 fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
-                    <$ty>::try_from(v).map(Some).map_err(serde::de::Error::custom)
+                    <$ty>::try_from(v)
+                        .map(Some)
+                        .map_err(serde::de::Error::custom)
                 }
             }
 
@@ -756,10 +760,7 @@ pub fn parse_comment_images(comment_pic: Option<&str>) -> Vec<String> {
     let trimmed = raw.trim();
     if trimmed.starts_with('[') {
         if let Ok(list) = serde_json::from_str::<Vec<String>>(trimmed) {
-            return list
-                .into_iter()
-                .filter(|s| !s.trim().is_empty())
-                .collect();
+            return list.into_iter().filter(|s| !s.trim().is_empty()).collect();
         }
     }
     vec![raw.to_string()]
@@ -797,7 +798,10 @@ pub fn format_price(price: Option<Decimal>) -> String {
 /// `sort_order` 归一：`None` 视为默认值 `0`
 /// （Java `normSortOrder`，与 `videoFeed` SQL 的 `COALESCE(v.sort_order, 0)` 一致）。
 #[must_use]
-pub fn is_video_buyer_show(img_list: &[BuyerShowGalleryVO], video_list: &[BuyerShowVideoVO]) -> bool {
+pub fn is_video_buyer_show(
+    img_list: &[BuyerShowGalleryVO],
+    video_list: &[BuyerShowVideoVO],
+) -> bool {
     if video_list.is_empty() {
         return false;
     }
@@ -973,20 +977,11 @@ mod tests {
         // 有视频无图 → true
         assert!(is_video_buyer_show(&[], &[video(1, 5)]));
         // 视频 sort 更小 → true
-        assert!(is_video_buyer_show(
-            &[gallery(1, 3)],
-            &[video(1, 1)]
-        ));
+        assert!(is_video_buyer_show(&[gallery(1, 3)], &[video(1, 1)]));
         // 图片 sort 更小 → false
-        assert!(!is_video_buyer_show(
-            &[gallery(1, 1)],
-            &[video(1, 3)]
-        ));
+        assert!(!is_video_buyer_show(&[gallery(1, 1)], &[video(1, 3)]));
         // 平局：视频优先 → true
-        assert!(is_video_buyer_show(
-            &[gallery(1, 2)],
-            &[video(1, 2)]
-        ));
+        assert!(is_video_buyer_show(&[gallery(1, 2)], &[video(1, 2)]));
         // 多素材取各自最小值
         assert!(is_video_buyer_show(
             &[gallery(1, 9), gallery(2, 4)],

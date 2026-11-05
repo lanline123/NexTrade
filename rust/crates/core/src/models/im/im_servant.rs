@@ -257,8 +257,14 @@ mod tests {
         assert_eq!(ImServantScope::Shop(0).shop_id(), Some(0));
         assert_eq!(ImServantScope::Shop(9).shop_id(), Some(9));
         assert_eq!(ImServantScope::Unscoped.shop_id(), None);
-        assert_eq!(ImServantScope::from_optional(None), ImServantScope::Unscoped);
-        assert_eq!(ImServantScope::from_optional(Some(0)), ImServantScope::Shop(0));
+        assert_eq!(
+            ImServantScope::from_optional(None),
+            ImServantScope::Unscoped
+        );
+        assert_eq!(
+            ImServantScope::from_optional(Some(0)),
+            ImServantScope::Shop(0)
+        );
     }
 
     #[test]
@@ -274,7 +280,16 @@ mod tests {
 
     #[test]
     fn vo_serializes_camelcase_and_null_user() {
-        let vo = servant_vo(7, Some(3), Some(1), Some(0), Some(2), Some(0), Some(0), None);
+        let vo = servant_vo(
+            7,
+            Some(3),
+            Some(1),
+            Some(0),
+            Some(2),
+            Some(0),
+            Some(0),
+            None,
+        );
         let json = serde_json::to_value(&vo).unwrap();
         assert_eq!(json["id"], 7);
         assert_eq!(json["servantId"], 3);

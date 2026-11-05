@@ -136,7 +136,9 @@ async fn list_by_group(
     let group_id = q
         .group_id
         .ok_or_else(|| tigshop_core::Error::Validation(MSG_GROUP_ID_REQUIRED.into()))?;
-    ok(state.member.member_tag
+    ok(state
+        .member
+        .member_tag
         .list_by_group(group_id, shop_scope(&auth))
         .await?)
 }
@@ -153,7 +155,11 @@ async fn create(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<MemberTagCreateDTO>,
 ) -> ApiResult<serde_json::Value> {
-    let id = state.member.member_tag.create(&dto, shop_scope(&auth)).await?;
+    let id = state
+        .member
+        .member_tag
+        .create(&dto, shop_scope(&auth))
+        .await?;
     ok(serde_json::json!({ "id": id }))
 }
 
@@ -169,7 +175,11 @@ async fn update(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<MemberTagUpdateDTO>,
 ) -> ApiResult<bool> {
-    ok(state.member.member_tag.update(&dto, shop_scope(&auth)).await?)
+    ok(state
+        .member
+        .member_tag
+        .update(&dto, shop_scope(&auth))
+        .await?)
 }
 
 /// `POST /adminapi/user/memberTag/del`：删除标签。
@@ -265,7 +275,10 @@ mod tests {
                 "POST".to_string(),
                 "/adminapi/user/memberTag/update".to_string(),
             ),
-            ("POST".to_string(), "/adminapi/user/memberTag/del".to_string()),
+            (
+                "POST".to_string(),
+                "/adminapi/user/memberTag/del".to_string(),
+            ),
         ];
         assert_eq!(got, want);
 
@@ -292,7 +305,10 @@ mod tests {
     #[test]
     fn every_route_documents_java_handler() {
         for (_, path, java) in ROUTE_TABLE {
-            assert!(java.starts_with("MemberTagController."), "{path} 缺少 Java 对照");
+            assert!(
+                java.starts_with("MemberTagController."),
+                "{path} 缺少 Java 对照"
+            );
         }
         // handler 名与路径末段一致（Java 方法名 = 路径末段）
         for (_, path, java) in ROUTE_TABLE {
@@ -312,5 +328,4 @@ mod tests {
         let broken = AuthUser::new(3, "s".into(), None, Some("shop".into()), None);
         assert_eq!(shop_scope(&broken), 0);
     }
-
 }

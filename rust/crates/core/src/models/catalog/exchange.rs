@@ -246,13 +246,9 @@ pub struct ExchangeProductToCartVO {
 ///
 /// # Errors
 /// 返回与 Java 注解 `message` 逐字符一致的文案。
-pub fn validate_add_to_cart(
-    dto: &AddToCartDTO,
-) -> std::result::Result<(i32, i32), String> {
+pub fn validate_add_to_cart(dto: &AddToCartDTO) -> std::result::Result<(i32, i32), String> {
     let id = dto.id.ok_or_else(|| MSG_ID_REQUIRED.to_string())?;
-    let number = dto
-        .number
-        .ok_or_else(|| MSG_NUMBER_REQUIRED.to_string())?;
+    let number = dto.number.ok_or_else(|| MSG_NUMBER_REQUIRED.to_string())?;
     Ok((id, number))
 }
 
@@ -286,9 +282,7 @@ pub fn effective_product_price(
 /// 折后价格（Java：`productPrice != null ? productPrice - deducted : 0`）。
 #[must_use]
 pub fn discounts_price(product_price: Option<Decimal>, deducted: Decimal) -> Decimal {
-    product_price
-        .map(|p| p - deducted)
-        .unwrap_or(Decimal::ZERO)
+    product_price.map(|p| p - deducted).unwrap_or(Decimal::ZERO)
 }
 
 /// 把商品详情的规格列表收敛到本次活动指定的 SKU
@@ -373,14 +367,20 @@ mod tests {
             Some(price("88"))
         );
         // SKU 行命中但 sku_price 为 NULL → Java 覆盖成 null
-        assert_eq!(effective_product_price(Some(price("100")), true, None), None);
+        assert_eq!(
+            effective_product_price(Some(price("100")), true, None),
+            None
+        );
         // SKU 未命中 / 活动未指定 SKU → 商品价
         assert_eq!(
             effective_product_price(Some(price("100")), false, Some(price("88"))),
             Some(price("100"))
         );
         // 折后价 = 有效价 - 抵扣金额
-        assert_eq!(discounts_price(Some(price("100")), price("20")), price("80"));
+        assert_eq!(
+            discounts_price(Some(price("100")), price("20")),
+            price("80")
+        );
         // 无价格 → 0（Java `BigDecimal.ZERO`）
         assert_eq!(discounts_price(None, price("20")), Decimal::ZERO);
     }

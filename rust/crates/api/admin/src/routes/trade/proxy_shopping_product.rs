@@ -96,7 +96,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
             "/proxyShopping/product/getProductAvailability",
             get(proxy_get_product_availability),
         )
-        .route("/proxyShopping/product/getProduct", post(proxy_product_list))
+        .route(
+            "/proxyShopping/product/getProduct",
+            post(proxy_product_list),
+        )
 }
 
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
@@ -133,7 +136,11 @@ async fn proxy_product_detail(
     if let Some(scope) = shop_scope(&auth) {
         q.shop_id = Some(scope);
     }
-    ok(state.trade.proxy_shopping_product.product_detail(&q).await?)
+    ok(state
+        .trade
+        .proxy_shopping_product
+        .product_detail(&q)
+        .await?)
 }
 
 /// `GET /adminapi/proxyShopping/product/getProductAvailability`：商品可用数据。
@@ -155,7 +162,11 @@ async fn proxy_get_product_availability(
     if let Some(scope) = shop_scope(&auth) {
         q.shop_id = Some(scope);
     }
-    ok(state.trade.proxy_shopping_product.get_product_availability(&q).await?)
+    ok(state
+        .trade
+        .proxy_shopping_product
+        .get_product_availability(&q)
+        .await?)
 }
 
 /// `POST /adminapi/proxyShopping/product/getProduct`：商品列表。
@@ -172,7 +183,11 @@ async fn proxy_product_list(
     Json(dto): Json<AdminProductListQuery>,
 ) -> ApiResult<PageResult<ProductListItemVO>> {
     let shop_id = shop_scope(&auth);
-    ok(state.trade.proxy_shopping_product.product_list(&dto, shop_id).await?)
+    ok(state
+        .trade
+        .proxy_shopping_product
+        .product_list(&dto, shop_id)
+        .await?)
 }
 
 #[cfg(test)]

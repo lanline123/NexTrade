@@ -1,10 +1,6 @@
-﻿//! 管理端会员人群圈选路由（member::member_audience）。2 端点，需登录。
+//! 管理端会员人群圈选路由（member::member_audience）。2 端点，需登录。
 
-use axum::{
-    extract::State,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, routing::post, Json, Router};
 use serde_json::Value;
 use tigshop_core::models::member::member_audience::MemberAudienceDTO;
 use tigshop_security::web::{ok, ApiResult};
@@ -12,8 +8,16 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 2] = [
-    ("POST", "/user/memberAudience/estimate", "MemberAudienceController.estimate"),
-    ("POST", "/user/memberAudience/describe", "MemberAudienceController.describe"),
+    (
+        "POST",
+        "/user/memberAudience/estimate",
+        "MemberAudienceController.estimate",
+    ),
+    (
+        "POST",
+        "/user/memberAudience/describe",
+        "MemberAudienceController.describe",
+    ),
 ];
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {

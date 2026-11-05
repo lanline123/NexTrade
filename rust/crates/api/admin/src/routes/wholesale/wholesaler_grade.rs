@@ -37,8 +37,16 @@ use crate::AdminState;
 
 /// 本域全部 4 条路由（去掉 `/adminapi` 前缀后的路径 + 原 Java handler）。
 const ROUTE_TABLE: [(&str, &str, &str); 4] = [
-    ("GET", "/wholesale/grade/list", "WholesalerGradeController.list"),
-    ("POST", "/wholesale/grade/save", "WholesalerGradeController.save"),
+    (
+        "GET",
+        "/wholesale/grade/list",
+        "WholesalerGradeController.list",
+    ),
+    (
+        "POST",
+        "/wholesale/grade/save",
+        "WholesalerGradeController.save",
+    ),
     (
         "POST",
         "/wholesale/grade/setStatus",
@@ -170,8 +178,14 @@ mod tests {
         assert_eq!(
             actual,
             vec![
-                ("GET".to_string(), "/adminapi/wholesale/grade/list".to_string()),
-                ("POST".to_string(), "/adminapi/wholesale/grade/save".to_string()),
+                (
+                    "GET".to_string(),
+                    "/adminapi/wholesale/grade/list".to_string()
+                ),
+                (
+                    "POST".to_string(),
+                    "/adminapi/wholesale/grade/save".to_string()
+                ),
                 (
                     "POST".to_string(),
                     "/adminapi/wholesale/grade/setStatus".to_string()
@@ -211,8 +225,7 @@ mod tests {
     /// query 参数 camelCase：`gradeId` / `status` / `withUserCount`。
     #[test]
     fn query_params_parse_camel_case() {
-        let q: SetStatusQuery =
-            serde_json::from_str(r#"{"gradeId":3,"status":1}"#).unwrap();
+        let q: SetStatusQuery = serde_json::from_str(r#"{"gradeId":3,"status":1}"#).unwrap();
         assert_eq!(q.grade_id, Some(3));
         assert_eq!(q.status, Some(1));
         let d: DeleteQuery = serde_json::from_str(r#"{"gradeId":3}"#).unwrap();

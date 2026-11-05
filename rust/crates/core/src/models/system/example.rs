@@ -387,7 +387,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -474,7 +477,10 @@ mod tests {
     /// Java `IsShowType.fromTypeCode` 的语义：只有 0/1 命中，null 与其它值都 null。
     #[test]
     fn is_show_type_from_type_code_matches_java() {
-        assert_eq!(IsShowType::from_type_code(Some(0)), Some(IsShowType::NotShow));
+        assert_eq!(
+            IsShowType::from_type_code(Some(0)),
+            Some(IsShowType::NotShow)
+        );
         assert_eq!(IsShowType::from_type_code(Some(1)), Some(IsShowType::Show));
         // 未匹配 → None（Java 返回 null）
         assert_eq!(IsShowType::from_type_code(Some(2)), None);
@@ -568,10 +574,7 @@ mod tests {
             Err("示例名称不能为空".to_string())
         );
         // 纯空白 → @NotBlank 不通过
-        assert_eq!(
-            validate_name("   "),
-            Err("示例名称不能为空".to_string())
-        );
+        assert_eq!(validate_name("   "), Err("示例名称不能为空".to_string()));
         assert_eq!(validate_name(""), Err("示例名称不能为空".to_string()));
         // 边界：50 通过，51 不通过
         assert!(validate_name(&"a".repeat(NAME_MAX_LEN)).is_ok());
@@ -598,10 +601,9 @@ mod tests {
     /// （Java 契约如此，不是漏写）：传了也应被忽略。
     #[test]
     fn update_dto_has_no_example_desc_field() {
-        let dto: ExampleUpdateDTO = serde_json::from_str(
-            r#"{"exampleId":3,"exampleName":"n","exampleDesc":"IGNORED"}"#,
-        )
-        .expect("应能解析（未知字段被忽略）");
+        let dto: ExampleUpdateDTO =
+            serde_json::from_str(r#"{"exampleId":3,"exampleName":"n","exampleDesc":"IGNORED"}"#)
+                .expect("应能解析（未知字段被忽略）");
         assert_eq!(dto.example_id, Some(3));
         assert_eq!(dto.example_name.as_deref(), Some("n"));
         // 结构体里根本没有该字段，因此无法表达 —— 这是有意的
@@ -610,8 +612,7 @@ mod tests {
     /// `update` 的主键键名是 `exampleId`（不是 `id`）。
     #[test]
     fn update_dto_uses_example_id_key() {
-        let dto: ExampleUpdateDTO =
-            serde_json::from_str(r#"{"exampleId":8}"#).expect("应能解析");
+        let dto: ExampleUpdateDTO = serde_json::from_str(r#"{"exampleId":8}"#).expect("应能解析");
         assert_eq!(dto.example_id, Some(8));
         // 传 `id` 不会被解析到 exampleId
         let dto2: ExampleUpdateDTO = serde_json::from_str(r#"{"id":8}"#).expect("应能解析");

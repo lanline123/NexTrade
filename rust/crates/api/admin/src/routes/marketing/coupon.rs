@@ -40,12 +40,36 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/promotion/coupon/list", "CouponController.list"),
-        ("GET", "/adminapi/promotion/coupon/listByIds", "CouponController.listByIds"),
-        ("GET", "/adminapi/promotion/coupon/detail", "CouponController.detail"),
-        ("GET", "/adminapi/promotion/coupon/validList", "CouponController.validList"),
-        ("GET", "/adminapi/promotion/coupon/issue/users", "CouponController.issueUsers"),
-        ("POST", "/adminapi/promotion/coupon/issue/send", "CouponController.issueSend"),
+        (
+            "GET",
+            "/adminapi/promotion/coupon/list",
+            "CouponController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/promotion/coupon/listByIds",
+            "CouponController.listByIds",
+        ),
+        (
+            "GET",
+            "/adminapi/promotion/coupon/detail",
+            "CouponController.detail",
+        ),
+        (
+            "GET",
+            "/adminapi/promotion/coupon/validList",
+            "CouponController.validList",
+        ),
+        (
+            "GET",
+            "/adminapi/promotion/coupon/issue/users",
+            "CouponController.issueUsers",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/coupon/issue/send",
+            "CouponController.issueSend",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -103,7 +127,10 @@ async fn coupon_detail(
     let vo = state.marketing.coupon.detail_vo(q.id).await?;
     if let Some(shop_id) = auth.scoped_shop_id() {
         if vo.shop_id != shop_id && vo.shop_id != 0 {
-            return Err(AppError(tigshop_core::Error::biz(403, "无权查看其他店铺的优惠券")));
+            return Err(AppError(tigshop_core::Error::biz(
+                403,
+                "无权查看其他店铺的优惠券",
+            )));
         }
     }
     ok(vo)
@@ -129,8 +156,14 @@ async fn issue_users(
     State(state): State<AdminState>,
     Query(q): Query<MemberSearchQuery>,
 ) -> ApiResult<PageResult<serde_json::Value>> {
-    let page = state.member.member_lists
-        .paginate_users(q.keyword.as_deref(), q.page.unwrap_or(1), q.page_size.unwrap_or(20))
+    let page = state
+        .member
+        .member_lists
+        .paginate_users(
+            q.keyword.as_deref(),
+            q.page.unwrap_or(1),
+            q.page_size.unwrap_or(20),
+        )
         .await?;
     let list: Vec<serde_json::Value> = page
         .list
@@ -180,10 +213,19 @@ async fn issue_send(
     let mut success = 0u32;
     let mut fail = 0u32;
     for user_id in dto.user_ids.iter().copied().filter(|id| *id > 0) {
-        match state.marketing.coupon.issue_to_user(dto.coupon_id, user_id).await {
+        match state
+            .marketing
+            .coupon
+            .issue_to_user(dto.coupon_id, user_id)
+            .await
+        {
             Ok(_) => success += 1,
             Err(e) => {
-                tracing::warn!("手动发放优惠券失败 coupon_id={} user_id={}: {e}", dto.coupon_id, user_id);
+                tracing::warn!(
+                    "手动发放优惠券失败 coupon_id={} user_id={}: {e}",
+                    dto.coupon_id,
+                    user_id
+                );
                 fail += 1;
             }
         }

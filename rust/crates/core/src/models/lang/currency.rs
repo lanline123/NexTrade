@@ -26,7 +26,10 @@ impl CurrencyListQuery {
     /// 分页参数（Java `BasePage` 口径）。
     #[must_use]
     pub fn page_params(&self) -> (u64, u64) {
-        (self.page.unwrap_or(1).max(1), self.size.unwrap_or(15).clamp(1, 100))
+        (
+            self.page.unwrap_or(1).max(1),
+            self.size.unwrap_or(15).clamp(1, 100),
+        )
     }
 }
 

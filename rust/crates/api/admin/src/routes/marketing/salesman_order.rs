@@ -28,8 +28,16 @@ use crate::AdminState;
 
 /// 本域 3 条管理端路由（去掉 `/adminapi` 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 3] = [
-    ("GET", "/salesman/order/list", "SalesmanOrderController.list"),
-    ("POST", "/salesman/order/batch", "SalesmanOrderController.batch"),
+    (
+        "GET",
+        "/salesman/order/list",
+        "SalesmanOrderController.list",
+    ),
+    (
+        "POST",
+        "/salesman/order/batch",
+        "SalesmanOrderController.batch",
+    ),
     (
         "POST",
         "/salesman/order/settlement",

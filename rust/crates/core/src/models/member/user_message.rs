@@ -362,8 +362,7 @@ mod tests {
 
     #[test]
     fn id_dto_accepts_camel_case() {
-        let d: UserMessageIdDTO =
-            serde_json::from_value(serde_json::json!({"id": 7})).unwrap();
+        let d: UserMessageIdDTO = serde_json::from_value(serde_json::json!({"id": 7})).unwrap();
         assert_eq!(d.id, Some(7));
         let d: UserMessageIdDTO = serde_json::from_value(serde_json::json!({})).unwrap();
         assert_eq!(d.id, None);

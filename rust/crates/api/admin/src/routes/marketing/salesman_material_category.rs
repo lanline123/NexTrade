@@ -59,17 +59,41 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/salesman/category/list", "SalesmanMaterialCategoryController.list"),
-        ("GET", "/adminapi/salesman/category/detail", "SalesmanMaterialCategoryController.detail"),
-        ("POST", "/adminapi/salesman/category/create", "SalesmanMaterialCategoryController.create"),
-        ("POST", "/adminapi/salesman/category/update", "SalesmanMaterialCategoryController.update"),
-        ("POST", "/adminapi/salesman/category/del", "SalesmanMaterialCategoryController.del"),
+        (
+            "GET",
+            "/adminapi/salesman/category/list",
+            "SalesmanMaterialCategoryController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/salesman/category/detail",
+            "SalesmanMaterialCategoryController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/salesman/category/create",
+            "SalesmanMaterialCategoryController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/salesman/category/update",
+            "SalesmanMaterialCategoryController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/salesman/category/del",
+            "SalesmanMaterialCategoryController.del",
+        ),
         (
             "POST",
             "/adminapi/salesman/category/updateField",
             "SalesmanMaterialCategoryController.updateField",
         ),
-        ("POST", "/adminapi/salesman/category/batch", "SalesmanMaterialCategoryController.batch"),
+        (
+            "POST",
+            "/adminapi/salesman/category/batch",
+            "SalesmanMaterialCategoryController.batch",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -99,7 +123,11 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<SalesmanMaterialCategoryVO> {
-    ok(state.marketing.salesman_material_category.detail(q.id).await?)
+    ok(state
+        .marketing
+        .salesman_material_category
+        .detail(q.id)
+        .await?)
 }
 
 /// `POST /adminapi/salesman/category/create`：创建素材分类。
@@ -111,7 +139,11 @@ async fn create(
     State(state): State<AdminState>,
     Json(param): Json<SalesmanMaterialCategorySaveParam>,
 ) -> ApiResult<i32> {
-    ok(state.marketing.salesman_material_category.create(&param).await?)
+    ok(state
+        .marketing
+        .salesman_material_category
+        .create(&param)
+        .await?)
 }
 
 /// `POST /adminapi/salesman/category/update`：更新素材分类。
@@ -122,7 +154,11 @@ async fn update(
     State(state): State<AdminState>,
     Json(param): Json<SalesmanMaterialCategoryEditParam>,
 ) -> ApiResult<&'static str> {
-    state.marketing.salesman_material_category.update(&param).await?;
+    state
+        .marketing
+        .salesman_material_category
+        .update(&param)
+        .await?;
     ok("更新成功")
 }
 
@@ -135,7 +171,11 @@ async fn del(
     State(state): State<AdminState>,
     Json(dto): Json<OperateDTO>,
 ) -> ApiResult<&'static str> {
-    state.marketing.salesman_material_category.delete(&dto).await?;
+    state
+        .marketing
+        .salesman_material_category
+        .delete(&dto)
+        .await?;
     ok("删除成功")
 }
 
@@ -147,7 +187,11 @@ async fn update_field(
     State(state): State<AdminState>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
-    state.marketing.salesman_material_category.update_field(&dto).await?;
+    state
+        .marketing
+        .salesman_material_category
+        .update_field(&dto)
+        .await?;
     ok(true)
 }
 
@@ -156,7 +200,11 @@ async fn update_field(
 /// 对应 Java `SalesmanMaterialCategoryController#batch`
 /// （仅 `type == "del"` 生效，其余返回 `false`）。
 async fn batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<bool> {
-    ok(state.marketing.salesman_material_category.batch(&dto).await?)
+    ok(state
+        .marketing
+        .salesman_material_category
+        .batch(&dto)
+        .await?)
 }
 
 #[cfg(test)]

@@ -18,8 +18,8 @@ use tigshop_core::models::{ShippingTplListQuery, ShippingTplVO};
 use tigshop_core::types::{PageQuery, PageResult};
 use tigshop_security::web::{ok, ApiResult, AuthUser};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 物流域路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -33,8 +33,16 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/setting/shippingTpl/list", "ShippingTplController.list"),
-        ("GET", "/adminapi/setting/logisticsCompany/list", "LogisticsCompanyController.list"),
+        (
+            "GET",
+            "/adminapi/setting/shippingTpl/list",
+            "ShippingTplController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/setting/logisticsCompany/list",
+            "LogisticsCompanyController.list",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))

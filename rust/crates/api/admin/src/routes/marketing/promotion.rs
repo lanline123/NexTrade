@@ -29,7 +29,11 @@ use crate::AdminState;
 
 /// 本域 4 条路由（去掉 `/adminapi` 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 4] = [
-    ("GET", "/promotion/promotion/list", "PromotionController.list"),
+    (
+        "GET",
+        "/promotion/promotion/list",
+        "PromotionController.list",
+    ),
     (
         "GET",
         "/promotion/promotion/getPromotionCount",
@@ -136,10 +140,9 @@ mod tests {
 
     #[test]
     fn list_query_parses_types_csv_and_camel_case() {
-        let q: PromotionListQuery = serde_json::from_str(
-            r#"{"keyword":"国庆","type":"1,2","timeType":1,"size":20}"#,
-        )
-        .unwrap();
+        let q: PromotionListQuery =
+            serde_json::from_str(r#"{"keyword":"国庆","type":"1,2","timeType":1,"size":20}"#)
+                .unwrap();
         assert_eq!(q.r#type.as_deref(), Some("1,2"));
         assert_eq!(q.time_type, Some(1));
         assert_eq!(q.page_size, Some(20));

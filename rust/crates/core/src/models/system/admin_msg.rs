@@ -135,13 +135,15 @@ pub fn msg_type_parent(msg_type: i32) -> i32 {
 pub fn visible_types(vendor: bool) -> Vec<(i32, &'static str, i32)> {
     MSG_TYPES
         .iter()
-        .filter(|(_, _, _, shop_show, vendor_show)| {
-            if vendor {
-                *vendor_show
-            } else {
-                *shop_show
-            }
-        })
+        .filter(
+            |(_, _, _, shop_show, vendor_show)| {
+                if vendor {
+                    *vendor_show
+                } else {
+                    *shop_show
+                }
+            },
+        )
         .map(|(t, name, parent, _, _)| (*t, *name, *parent))
         .collect()
 }
@@ -296,7 +298,10 @@ pub struct AdminMsgUpdateDTO {
 
 /// 智能构建分类树（与 Java `getAdminMsgTypeList` 相同的「父分类累加子分类未读数」）。
 #[must_use]
-pub fn build_type_tree(vendor: bool, unread: &std::collections::HashMap<i32, i32>) -> Vec<AdminMsgTypeListVO> {
+pub fn build_type_tree(
+    vendor: bool,
+    unread: &std::collections::HashMap<i32, i32>,
+) -> Vec<AdminMsgTypeListVO> {
     let mut tree: Vec<AdminMsgTypeListVO> = Vec::new();
     for (cat_id, cat_name) in MSG_CATEGORIES {
         let child: Vec<AdminMsgTypeChildVO> = visible_types(vendor)
@@ -351,7 +356,10 @@ mod tests {
         let tree = build_type_tree(false, &unread);
         let transaction = tree.iter().find(|t| t.cat_id == 1).unwrap();
         assert_eq!(transaction.unread_count, 5);
-        assert!(transaction.child.iter().any(|c| c.msg_type == 11 && c.unread_count == 2));
+        assert!(transaction
+            .child
+            .iter()
+            .any(|c| c.msg_type == 11 && c.unread_count == 2));
         // 未读为 0 的分类仍返回（Java 树包含空分类）
         let finance = tree.iter().find(|t| t.cat_id == 6).unwrap();
         assert_eq!(finance.unread_count, 0);
@@ -359,8 +367,16 @@ mod tests {
 
     #[test]
     fn scope_helpers_and_time_format() {
-        assert!(MsgScope::Shop { shop_id: 0, platform: true }.is_platform());
-        assert!(!MsgScope::Shop { shop_id: 3, platform: false }.is_platform());
+        assert!(MsgScope::Shop {
+            shop_id: 0,
+            platform: true
+        }
+        .is_platform());
+        assert!(!MsgScope::Shop {
+            shop_id: 3,
+            platform: false
+        }
+        .is_platform());
         assert!(MsgScope::Vendor { vendor_id: 3 }.is_vendor());
         assert_eq!(format_time(Some(1_700_000_000)), "2023-11-15 06:13:20");
         assert_eq!(format_time(None), "");

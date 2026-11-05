@@ -88,8 +88,7 @@ mod tests {
 
     #[test]
     fn batch_dto_accepts_ids_and_type() {
-        let dto: BatchDTO =
-            serde_json::from_str(r#"{"ids":[1,2,3],"type":"del"}"#).unwrap();
+        let dto: BatchDTO = serde_json::from_str(r#"{"ids":[1,2,3],"type":"del"}"#).unwrap();
         assert_eq!(dto.ids.as_deref(), Some(&[1, 2, 3][..]));
         assert_eq!(dto.r#type.as_deref(), Some("del"));
     }

@@ -141,10 +141,7 @@ pub fn is_reservation_order(order_type: Option<i32>) -> bool {
 
 /// 配置读取辅助：值非空且为 1。
 fn enabled(configs: &HashMap<String, String>, key: &str) -> bool {
-    configs
-        .get(key)
-        .map(|v| v.trim() == "1")
-        .unwrap_or(false)
+    configs.get(key).map(|v| v.trim() == "1").unwrap_or(false)
 }
 
 /// 配置文本（缺失返回空串）。
@@ -264,7 +261,13 @@ pub fn available_payments(
         let mut keyed: Vec<(usize, usize, String)> = list
             .iter()
             .enumerate()
-            .map(|(idx, method)| (payment_order_index(&order_list, method), idx, method.clone()))
+            .map(|(idx, method)| {
+                (
+                    payment_order_index(&order_list, method),
+                    idx,
+                    method.clone(),
+                )
+            })
             .collect();
         keyed.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)));
         list = keyed.into_iter().map(|(_, _, method)| method).collect();
@@ -287,12 +290,13 @@ pub fn offline_payment_list(
     if !offline {
         return map;
     }
-    let push = |map: &mut BTreeMap<String, String>, enable_key: &str, text_key: &str, name: &str| {
-        if enabled(configs, enable_key) {
-            let text = value(configs, text_key).replace("{$order_sn}", order_sn);
-            map.insert(name.to_string(), text);
-        }
-    };
+    let push =
+        |map: &mut BTreeMap<String, String>, enable_key: &str, text_key: &str, name: &str| {
+            if enabled(configs, enable_key) {
+                let text = value(configs, text_key).replace("{$order_sn}", order_sn);
+                map.insert(name.to_string(), text);
+            }
+        };
     push(
         &mut map,
         CFG_OFFLINE_PAY_BANK_ENABLE,
@@ -514,8 +518,9 @@ mod tests {
             (CFG_APPLE_PROCESSING_KEY, "1"),
         ]);
         assert!(available_payments(&configs, "pc", "checkout").contains(&"applepay".to_string()));
-        assert!(!available_payments(&configs, "wechat", "checkout")
-            .contains(&"applepay".to_string()));
+        assert!(
+            !available_payments(&configs, "wechat", "checkout").contains(&"applepay".to_string())
+        );
         // provider=generic 且未上传处理私钥 ⇒ 不完整
         let mut configs = configs;
         configs.insert(CFG_APPLE_PROCESSING_KEY.into(), "0".into());
@@ -559,8 +564,7 @@ mod tests {
 
     #[test]
     fn pay_queries_deserialize_camel_case() {
-        let q: CheckStatusQuery =
-            serde_json::from_str(r#"{"id": 5, "paylogId": 9}"#).unwrap();
+        let q: CheckStatusQuery = serde_json::from_str(r#"{"id": 5, "paylogId": 9}"#).unwrap();
         assert_eq!(q.id, Some(5));
         assert_eq!(q.paylog_id, Some(9));
         let q: PayCreateQuery =

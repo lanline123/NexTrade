@@ -11,9 +11,9 @@
 
 use std::collections::HashMap;
 
+use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::{Error, Result};
 
 /// 同步方向：入站回调（Java `DIRECTION_INBOUND = "INBOUND"`）。
 pub const DIRECTION_INBOUND: &str = "INBOUND";
@@ -171,7 +171,8 @@ impl WechatLiveSyncCallbackDTO {
             Some(p) if !p.is_empty() => p,
             _ => return false,
         };
-        !extract_order_item_payload(payload).is_empty() || to_int(payload.get("productId")).is_some()
+        !extract_order_item_payload(payload).is_empty()
+            || to_int(payload.get("productId")).is_some()
     }
 
     /// 目标订单ID（Java `resolveOrderId` 的第一优先级：body 里直接带的 `orderId`）。
@@ -283,13 +284,11 @@ pub fn to_int(value: Option<&Value>) -> Option<i32> {
 #[must_use]
 pub fn apply_last_callback(order_extension: Option<&str>, snapshot: &Value) -> String {
     let mut base = match order_extension {
-        Some(raw) if !raw.trim().is_empty() => {
-            serde_json::from_str::<Value>(raw)
-                .ok()
-                .filter(|v| v.is_object())
-                .and_then(|v| v.as_object().cloned())
-                .unwrap_or_default()
-        }
+        Some(raw) if !raw.trim().is_empty() => serde_json::from_str::<Value>(raw)
+            .ok()
+            .filter(|v| v.is_object())
+            .and_then(|v| v.as_object().cloned())
+            .unwrap_or_default(),
         _ => serde_json::Map::new(),
     };
     if snapshot.as_object().is_some_and(|m| !m.is_empty()) {
@@ -321,9 +320,7 @@ mod tests {
 
     #[test]
     fn validate_messages_match_java_annotations() {
-        let err = dto(serde_json::json!({}))
-            .validate()
-            .unwrap_err();
+        let err = dto(serde_json::json!({})).validate().unwrap_err();
         match err {
             Error::Biz { code, msg } => {
                 assert_eq!(code, SERVICE_DATA_ERROR);
@@ -374,27 +371,31 @@ mod tests {
     #[test]
     fn should_auto_create_order_follows_java_branches() {
         // 无 payload
-        assert!(!dto(serde_json::json!({"eventType":"E","idempotentKey":"K"}))
-            .should_auto_create_order());
+        assert!(
+            !dto(serde_json::json!({"eventType":"E","idempotentKey":"K"}))
+                .should_auto_create_order()
+        );
         // 空 payload
-        assert!(!dto(serde_json::json!({"eventType":"E","idempotentKey":"K","payload":{}}))
-            .should_auto_create_order());
+        assert!(
+            !dto(serde_json::json!({"eventType":"E","idempotentKey":"K","payload":{}}))
+                .should_auto_create_order()
+        );
         // items 里有 Map 元素
         assert!(dto(serde_json::json!({"eventType":"E","idempotentKey":"K",
             "payload":{"items":[{"productId":1}]}}))
-            .should_auto_create_order());
+        .should_auto_create_order());
         // items 全是非 Map → 视为空，再看 productId
         assert!(!dto(serde_json::json!({"eventType":"E","idempotentKey":"K",
             "payload":{"items":["a","b"]}}))
-            .should_auto_create_order());
+        .should_auto_create_order());
         // 顶层 productId
         assert!(dto(serde_json::json!({"eventType":"E","idempotentKey":"K",
             "payload":{"productId":"9"}}))
-            .should_auto_create_order());
+        .should_auto_create_order());
         // productId 不可转 int → toInt=null → 不自动建单
         assert!(!dto(serde_json::json!({"eventType":"E","idempotentKey":"K",
             "payload":{"productId":{"a":1}}}))
-            .should_auto_create_order());
+        .should_auto_create_order());
     }
 
     #[test]
@@ -433,14 +434,20 @@ mod tests {
         let out = apply_last_callback(Some(r#"{"subSource":"wechatLive"}"#), &snap);
         let v: Value = serde_json::from_str(&out).unwrap();
         assert_eq!(v["subSource"], "wechatLive");
-        assert_eq!(v[ORDER_EXTENSION_WECHAT_LIVE_LAST_CALLBACK]["eventType"], "E");
+        assert_eq!(
+            v[ORDER_EXTENSION_WECHAT_LIVE_LAST_CALLBACK]["eventType"],
+            "E"
+        );
 
         // 空白 / 非法 JSON → 退化为空对象（Java parseObject 的 catch 分支）
         for bad in [None, Some(""), Some("   "), Some("not-json"), Some("[1,2]")] {
             let out = apply_last_callback(bad, &snap);
             let v: Value = serde_json::from_str(&out).unwrap();
             assert!(v.is_object(), "{bad:?} → {out}");
-            assert_eq!(v[ORDER_EXTENSION_WECHAT_LIVE_LAST_CALLBACK]["eventType"], "E");
+            assert_eq!(
+                v[ORDER_EXTENSION_WECHAT_LIVE_LAST_CALLBACK]["eventType"],
+                "E"
+            );
         }
 
         // 空快照不写入（Java `!callbackSnapshot.isEmpty()`）
@@ -461,6 +468,9 @@ mod tests {
         assert_eq!(DIRECTION_INBOUND, "INBOUND");
         assert_eq!(SYNC_STATUS_SUCCESS, 1);
         assert_eq!(SYNC_STATUS_PARTIAL, 4);
-        assert_eq!(CALLBACK_ACCEPTED_RESPONSE, r#"{"message":"callback accepted"}"#);
+        assert_eq!(
+            CALLBACK_ACCEPTED_RESPONSE,
+            r#"{"message":"callback accepted"}"#
+        );
     }
 }

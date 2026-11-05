@@ -85,10 +85,7 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
-        .route(
-            "/admin/adminAccount/getMainAccount",
-            get(get_main_account),
-        )
+        .route("/admin/adminAccount/getMainAccount", get(get_main_account))
         .route(
             "/admin/adminAccount/pageShopOrVendor",
             get(page_shop_or_vendor),
@@ -304,9 +301,10 @@ mod tests {
         assert_eq!(q.id, Some(9));
         assert_eq!(q.r#type.as_deref(), Some("shop"));
 
-        let q: ShopOrVendorPageParam =
-            serde_json::from_str(r#"{"adminId":3,"type":"store","page":2,"size":30,"keyword":"A"}"#)
-                .unwrap();
+        let q: ShopOrVendorPageParam = serde_json::from_str(
+            r#"{"adminId":3,"type":"store","page":2,"size":30,"keyword":"A"}"#,
+        )
+        .unwrap();
         assert_eq!(q.admin_id, Some(3));
         assert_eq!(q.r#type.as_deref(), Some("store"));
         assert_eq!(q.page, Some(2));
@@ -326,10 +324,9 @@ mod tests {
     /// 请求体按 Java 名（camelCase）解析。
     #[test]
     fn body_params_accept_java_names() {
-        let p: ShopOrVendorBindParam = serde_json::from_str(
-            r#"{"id":9,"type":"shop","adminData":{"type":2,"adminId":5}}"#,
-        )
-        .unwrap();
+        let p: ShopOrVendorBindParam =
+            serde_json::from_str(r#"{"id":9,"type":"shop","adminData":{"type":2,"adminId":5}}"#)
+                .unwrap();
         assert_eq!(p.id, Some(9));
         let info = p.admin_data.expect("adminData");
         assert_eq!(info.r#type, Some(2));

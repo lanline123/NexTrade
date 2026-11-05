@@ -53,8 +53,16 @@ const ROUTE_TABLE: [(&str, &str, &str); 7] = [
     // (HTTP method, 本模块路径, 原 Java handler)
     ("GET", "/example/example/list", "ExampleController.list"),
     ("GET", "/example/example/detail", "ExampleController.detail"),
-    ("POST", "/example/example/create", "ExampleController.create"),
-    ("POST", "/example/example/update", "ExampleController.update"),
+    (
+        "POST",
+        "/example/example/create",
+        "ExampleController.create",
+    ),
+    (
+        "POST",
+        "/example/example/update",
+        "ExampleController.update",
+    ),
     ("POST", "/example/example/del", "ExampleController.del"),
     (
         "POST",

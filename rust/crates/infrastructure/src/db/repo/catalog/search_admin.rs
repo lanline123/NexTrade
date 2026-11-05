@@ -17,6 +17,7 @@ use sqlx::mysql::MySqlPool;
 use sqlx::{MySql, QueryBuilder};
 
 use tigshop_core::entities::{Brand, Category, Product};
+use tigshop_core::models::catalog::search_admin::SearchAttrObj;
 use tigshop_core::types::PageQuery;
 use tigshop_core::{Error, Result};
 
@@ -40,6 +41,9 @@ pub struct ProductSearchFilter {
     /// 排序字段（白名单：`virtual_sales` / `product_price` / `product_id` / `sort_order`）
     pub sort_field: Option<String>,
     pub sort_order: Option<String>,
+    /// 属性筛选（PC 搜索页 `attrs: [{attrName, attrValue[]}]`；
+    /// 对应 Java ES 分支的 nested 属性查询，MySQL 回退用 `product_attributes` EXISTS）。
+    pub attrs: Vec<SearchAttrObj>,
 }
 
 /// 属性计数行：`(attr_name, attr_value, count)`。
@@ -228,6 +232,22 @@ impl SearchAdminRepository {
     }
 }
 
+/// 属性值归一化：支持逗号分隔（`","` / `"，"`），去空白、去空串，
+/// 返回 `LIKE` 绑定参数 `%value%`（对应 Java ES 属性查询的 wildcard）。
+#[must_use]
+fn normalize_attr_values(values: &Option<Vec<String>>) -> Vec<String> {
+    let mut out = Vec::new();
+    for raw in values.iter().flatten() {
+        for v in raw.split([',', '，']) {
+            let v = v.trim();
+            if !v.is_empty() {
+                out.push(format!("%{v}%"));
+            }
+        }
+    }
+    out
+}
+
 /// 追加公共 WHERE（顺序与 Java `buildProductListDTO` / 属性建议查询一致）。
 fn push_filters(qb: &mut QueryBuilder<'_, MySql>, f: &ProductSearchFilter) {
     qb.push(" WHERE is_delete = 0");
@@ -288,6 +308,35 @@ fn push_filters(qb: &mut QueryBuilder<'_, MySql>, f: &ProductSearchFilter) {
             qb.push(" AND is_best = 1");
         }
         _ => {}
+    }
+    // 属性筛选：对齐 Java ES 分支（原型 attributes nested 查询）。
+    // - 每个 attrName 一条 EXISTS（多属性之间 AND）；
+    // - 同一属性多值之间 OR；
+    // - 值支持逗号分隔（Java 对 `,` / `，` 拆分后 trim）；
+    // - 只匹配普通属性 `attr_type = 0`，名称/值均为 `LIKE %...%`（ES wildcard 等价）。
+    for attr in &f.attrs {
+        let Some(name) = attr
+            .attr_name
+            .as_deref()
+            .map(str::trim)
+            .filter(|n| !n.is_empty())
+        else {
+            continue;
+        };
+        let values = normalize_attr_values(&attr.attr_value);
+        if values.is_empty() {
+            continue;
+        }
+        qb.push(" AND EXISTS (SELECT 1 FROM product_attributes pa WHERE pa.product_id = product.product_id AND pa.attr_type = 0 AND pa.attr_name LIKE ")
+            .push_bind(format!("%{name}%"))
+            .push(" AND (");
+        for (i, v) in values.iter().enumerate() {
+            if i > 0 {
+                qb.push(" OR ");
+            }
+            qb.push("pa.attr_value LIKE ").push_bind(v.clone());
+        }
+        qb.push("))");
     }
 }
 
@@ -397,5 +446,75 @@ mod tests {
         let sql = qb.sql().to_string();
         qb.build();
         assert!(sql.contains("ORDER BY product_id DESC"));
+    }
+}
+
+#[cfg(test)]
+mod attr_filter_tests {
+    use super::*;
+
+    fn build_sql(f: &ProductSearchFilter) -> String {
+        let mut qb = QueryBuilder::<MySql>::new("SELECT COUNT(*) FROM product");
+        push_filters(&mut qb, f);
+        let sql = qb.sql().to_string();
+        qb.build();
+        sql
+    }
+
+    #[test]
+    fn attr_filter_uses_exists_and_binds() {
+        let f = ProductSearchFilter {
+            attrs: vec![SearchAttrObj {
+                attr_name: Some("颜色".into()),
+                attr_value: Some(vec!["红,蓝".into()]),
+            }],
+            ..Default::default()
+        };
+        let sql = build_sql(&f);
+        assert!(sql.contains("EXISTS (SELECT 1 FROM product_attributes pa"));
+        assert!(sql.contains("pa.attr_type = 0"));
+        assert!(sql.contains("pa.attr_name LIKE ?"));
+        assert!(sql.contains("pa.attr_value LIKE ? OR pa.attr_value LIKE ?"));
+        // 属性名 1 + 两个值 = 3 个绑定参数，且值不能内联
+        assert_eq!(sql.matches('?').count(), 3);
+        assert!(!sql.contains("颜色"));
+        assert!(!sql.contains("红"));
+    }
+
+    #[test]
+    fn attr_values_split_commas_and_trim() {
+        assert_eq!(
+            normalize_attr_values(&Some(vec![" 红,蓝 ，绿 ".into()])),
+            vec!["%红%".to_string(), "%蓝%".to_string(), "%绿%".to_string()]
+        );
+        assert!(normalize_attr_values(&None).is_empty());
+        assert!(normalize_attr_values(&Some(vec![" , ，".into()])).is_empty());
+    }
+
+    #[test]
+    fn multiple_attrs_add_one_exists_each() {
+        let f = ProductSearchFilter {
+            attrs: vec![
+                SearchAttrObj { attr_name: Some("颜色".into()), attr_value: Some(vec!["红".into()]) },
+                SearchAttrObj { attr_name: Some("尺寸".into()), attr_value: Some(vec!["L".into()]) },
+            ],
+            ..Default::default()
+        };
+        let sql = build_sql(&f);
+        assert_eq!(sql.matches("EXISTS (SELECT 1 FROM product_attributes pa").count(), 2);
+        // 2 属性名 + 2 值
+        assert_eq!(sql.matches('?').count(), 4);
+    }
+
+    #[test]
+    fn blank_attr_name_or_values_are_ignored() {
+        let f = ProductSearchFilter {
+            attrs: vec![
+                SearchAttrObj { attr_name: Some("  ".into()), attr_value: Some(vec!["红".into()]) },
+                SearchAttrObj { attr_name: Some("颜色".into()), attr_value: Some(vec![" ,  ".into()]) },
+            ],
+            ..Default::default()
+        };
+        assert_eq!(build_sql(&f).matches('?').count(), 0);
     }
 }

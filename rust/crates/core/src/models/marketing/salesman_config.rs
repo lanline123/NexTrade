@@ -93,11 +93,17 @@ pub fn normalize_distribution_mode(value: &mut Value) -> std::result::Result<(),
         .and_then(|v| i32::try_from(v).ok())
         .unwrap_or(DISTRIBUTION_MODE_PROMOTER);
     if mode != DISTRIBUTION_MODE_WECHAT_BIZ {
-        obj.insert("distributionMode".into(), Value::from(DISTRIBUTION_MODE_PROMOTER));
+        obj.insert(
+            "distributionMode".into(),
+            Value::from(DISTRIBUTION_MODE_PROMOTER),
+        );
         obj.insert("recruitMethods".into(), Value::Null);
         return Ok(());
     }
-    obj.insert("distributionMode".into(), Value::from(DISTRIBUTION_MODE_WECHAT_BIZ));
+    obj.insert(
+        "distributionMode".into(),
+        Value::from(DISTRIBUTION_MODE_WECHAT_BIZ),
+    );
     let methods = obj
         .get("recruitMethods")
         .and_then(Value::as_array)

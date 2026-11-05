@@ -911,8 +911,14 @@ mod tests {
         .unwrap();
         assert_eq!(d.allocate_id, Some(5));
         assert_eq!(d.stock_allocate_record_details.len(), 1);
-        assert_eq!(d.stock_allocate_record_details[0].stock_out_quantity, Some(4));
-        assert_eq!(d.stock_allocate_record_details[0].stock_in_quantity, Some(3));
+        assert_eq!(
+            d.stock_allocate_record_details[0].stock_out_quantity,
+            Some(4)
+        );
+        assert_eq!(
+            d.stock_allocate_record_details[0].stock_in_quantity,
+            Some(3)
+        );
     }
 
     #[test]

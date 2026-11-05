@@ -284,7 +284,10 @@ mod tests {
 
     #[test]
     fn normalize_channel_trims_and_uppercases() {
-        assert_eq!(normalize_channel(Some(" wechat ")).as_deref(), Some("WECHAT"));
+        assert_eq!(
+            normalize_channel(Some(" wechat ")).as_deref(),
+            Some("WECHAT")
+        );
         // 空白视为 None（对应 Java normalizeOptionalProfitSharingChannel）
         assert_eq!(normalize_channel(Some("   ")), None);
         assert_eq!(normalize_channel(None), None);

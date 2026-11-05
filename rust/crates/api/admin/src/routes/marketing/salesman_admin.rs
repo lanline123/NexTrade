@@ -29,9 +29,9 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::marketing::salesman_admin::{
-    CustomerListQuery, SalesmanDetailVO, SalesmanEditDTO, SalesmanRankingQuery,
-    SalesmanRankingVO, SalesmanSaveDTO, SalesmanSelectVO, SalesmanStatisticalQuery,
-    SalesmanStatisticalVO, CommissionDetailsVO, CustomerListVO,
+    CommissionDetailsVO, CustomerListQuery, CustomerListVO, SalesmanDetailVO, SalesmanEditDTO,
+    SalesmanRankingQuery, SalesmanRankingVO, SalesmanSaveDTO, SalesmanSelectVO,
+    SalesmanStatisticalQuery, SalesmanStatisticalVO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
@@ -40,9 +40,21 @@ use crate::AdminState;
 
 /// 本域 8 条路由（去掉 `/adminapi` 前缀）。不含基线已注册的 `list`。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/salesman/salesman/detail", "SalesmanController.detail"),
-    ("POST", "/salesman/salesman/create", "SalesmanController.create"),
-    ("POST", "/salesman/salesman/update", "SalesmanController.update"),
+    (
+        "GET",
+        "/salesman/salesman/detail",
+        "SalesmanController.detail",
+    ),
+    (
+        "POST",
+        "/salesman/salesman/create",
+        "SalesmanController.create",
+    ),
+    (
+        "POST",
+        "/salesman/salesman/update",
+        "SalesmanController.update",
+    ),
     (
         "GET",
         "/salesman/salesman/statisticalDetails",
@@ -53,7 +65,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "/salesman/salesman/commissionDetails",
         "SalesmanController.commissionDetails",
     ),
-    ("GET", "/salesman/salesman/ranking", "SalesmanController.ranking"),
+    (
+        "GET",
+        "/salesman/salesman/ranking",
+        "SalesmanController.ranking",
+    ),
     (
         "GET",
         "/salesman/salesman/salesmanList",
@@ -120,9 +136,8 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<SalesmanDetailVO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("id不能为空".into()))?;
     ok(state.marketing.salesman_admin.detail(id).await?)
 }
 
@@ -146,7 +161,11 @@ async fn statistical_details(
     State(state): State<AdminState>,
     Query(q): Query<SalesmanStatisticalQuery>,
 ) -> ApiResult<PageResult<SalesmanStatisticalVO>> {
-    ok(state.marketing.salesman_admin.statistical_details(&q).await?)
+    ok(state
+        .marketing
+        .salesman_admin
+        .statistical_details(&q)
+        .await?)
 }
 
 async fn commission_details(
@@ -266,13 +285,13 @@ mod tests {
     fn queries_parse_camel_case() {
         let q: SalesmanIdQuery = serde_json::from_str(r#"{"salesmanId":7}"#).unwrap();
         assert_eq!(q.salesman_id, Some(7));
-        let c: CustomerListQuery =
-            serde_json::from_str(r#"{"salesmanId":7,"size":20}"#).unwrap();
+        let c: CustomerListQuery = serde_json::from_str(r#"{"salesmanId":7,"size":20}"#).unwrap();
         assert_eq!(c.salesman_id, Some(7));
         assert_eq!(c.page_size, Some(20));
-        let r: SalesmanRankingQuery =
-            serde_json::from_str(r#"{"dateType":2,"searchStartTime":"2023-11-01","searchEndTime":"2023-11-30"}"#)
-                .unwrap();
+        let r: SalesmanRankingQuery = serde_json::from_str(
+            r#"{"dateType":2,"searchStartTime":"2023-11-01","searchEndTime":"2023-11-30"}"#,
+        )
+        .unwrap();
         assert_eq!(r.date_type, Some(2));
         assert_eq!(r.search_start_time.as_deref(), Some("2023-11-01"));
     }

@@ -480,7 +480,10 @@ pub fn get_range_date(
                 format!("{y:04}-{m:02}-{last:02}"),
             ))
         }
-        Some(3) => Some((format!("{norm_start} 00:00:00"), format!("{} 23:59:59", end?))),
+        Some(3) => Some((
+            format!("{norm_start} 00:00:00"),
+            format!("{} 23:59:59", end?),
+        )),
         _ => Some((norm_start, end?.to_string())),
     }
 }
@@ -556,8 +559,10 @@ pub fn get_growth_rate(prev: Option<Decimal>, current: Option<Decimal>) -> Decim
         };
     }
     let ratio = (current - prev) / prev;
-    let rounded =
-        ratio.round_dp_with_strategy(GROWTH_RATE_SCALE, rust_decimal::RoundingStrategy::MidpointAwayFromZero);
+    let rounded = ratio.round_dp_with_strategy(
+        GROWTH_RATE_SCALE,
+        rust_decimal::RoundingStrategy::MidpointAwayFromZero,
+    );
     rounded * Decimal::from(100)
 }
 
@@ -565,7 +570,10 @@ pub fn get_growth_rate(prev: Option<Decimal>, current: Option<Decimal>) -> Decim
 /// = `setScale(2, HALF_UP)`；`null → ZERO`。
 #[must_use]
 pub fn to_decimal_convert(value: Decimal) -> Decimal {
-    value.round_dp_with_strategy(PERCENT_SCALE, rust_decimal::RoundingStrategy::MidpointAwayFromZero)
+    value.round_dp_with_strategy(
+        PERCENT_SCALE,
+        rust_decimal::RoundingStrategy::MidpointAwayFromZero,
+    )
 }
 
 #[cfg(test)]
@@ -631,7 +639,10 @@ mod tests {
         assert_eq!(datetime_secs_str("1970-01-01 08:00:00"), Some(0));
         assert_eq!(parse_flexible_secs("1970-01-01 08:00:00"), Some(0));
         assert_eq!(parse_flexible_secs("1970-01-01"), Some(-28_800));
-        assert_eq!(parse_datetime("2024-05-06 10:30:00"), Some((2024, 5, 6, 10, 30, 0)));
+        assert_eq!(
+            parse_datetime("2024-05-06 10:30:00"),
+            Some((2024, 5, 6, 10, 30, 0))
+        );
         assert_eq!(parse_datetime("2024-05-06 24:00:00"), None);
         assert_eq!(datetime_secs_str("not-a-datetime"), None);
     }
@@ -741,7 +752,10 @@ mod tests {
     fn growth_rate_matches_java() {
         assert_eq!(get_growth_rate(None, Some(dec("10"))), Decimal::ZERO);
         assert_eq!(get_growth_rate(Some(dec("10")), None), Decimal::ZERO);
-        assert_eq!(get_growth_rate(Some(dec("0")), Some(dec("0"))), Decimal::ZERO);
+        assert_eq!(
+            get_growth_rate(Some(dec("0")), Some(dec("0"))),
+            Decimal::ZERO
+        );
         assert_eq!(get_growth_rate(Some(dec("0")), Some(dec("5"))), dec("100"));
         assert_eq!(
             get_growth_rate(Some(dec("100")), Some(dec("120"))),
@@ -752,7 +766,10 @@ mod tests {
             dec("-20.0000")
         );
         // (1-3)/3 = -0.666666… → scale4 HALF_UP → -0.6667 → ×100 = -66.6700
-        assert_eq!(get_growth_rate(Some(dec("3")), Some(dec("1"))), dec("-66.6700"));
+        assert_eq!(
+            get_growth_rate(Some(dec("3")), Some(dec("1"))),
+            dec("-66.6700")
+        );
     }
 
     /// `toDecimalConvert` 保留 2 位并 HALF_UP。

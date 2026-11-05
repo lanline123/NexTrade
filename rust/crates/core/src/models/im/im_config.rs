@@ -156,7 +156,9 @@ mod tests {
         assert_eq!(ConfigDataDTO::from_json_str(Some("")), None);
         assert_eq!(ConfigDataDTO::from_json_str(Some("   ")), None);
         assert_eq!(ConfigDataDTO::from_json_str(Some("not json")), None);
-        assert!(ConfigDataDTO::from_json_str(Some(" {\"activate\":true} ")).is_some_and(|d| d.activate));
+        assert!(
+            ConfigDataDTO::from_json_str(Some(" {\"activate\":true} ")).is_some_and(|d| d.activate)
+        );
     }
 
     #[test]
@@ -171,8 +173,14 @@ mod tests {
     #[test]
     fn scope_from_optional_is_three_state() {
         assert_eq!(ImConfigScope::from_optional(None), ImConfigScope::Unscoped);
-        assert_eq!(ImConfigScope::from_optional(Some(0)), ImConfigScope::Shop(0));
-        assert_eq!(ImConfigScope::from_optional(Some(7)), ImConfigScope::Shop(7));
+        assert_eq!(
+            ImConfigScope::from_optional(Some(0)),
+            ImConfigScope::Shop(0)
+        );
+        assert_eq!(
+            ImConfigScope::from_optional(Some(7)),
+            ImConfigScope::Shop(7)
+        );
         assert_eq!(ImConfigScope::from_optional(Some(7)).shop_id(), Some(7));
         assert_eq!(ImConfigScope::Unscoped.shop_id(), None);
     }

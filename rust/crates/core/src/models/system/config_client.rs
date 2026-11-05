@@ -1092,19 +1092,16 @@ pub fn assemble_base(ctx: &BaseContext) -> serde_json::Map<String, serde_json::V
         "adminDomain".into(),
         opt_str(get_str(cfgs, BIZ_ADMIN_DOMAIN)),
     );
-    m.insert(
-        "shopIcpNo".into(),
-        opt_str(get_str(cfgs, BIZ_SHOP_ICP_NO)),
-    );
+    m.insert("shopIcpNo".into(), opt_str(get_str(cfgs, BIZ_SHOP_ICP_NO)));
     // `shopIcpNoUrl`：非空（非 blank）时**固定**为工信部链接，空则空串
     m.insert(
         "shopIcpNoUrl".into(),
-        Value::from(blank_fallback(get_str(cfgs, BIZ_SHOP_ICP_NO_URL), ICP_LINK_URL)),
+        Value::from(blank_fallback(
+            get_str(cfgs, BIZ_SHOP_ICP_NO_URL),
+            ICP_LINK_URL,
+        )),
     );
-    m.insert(
-        "shop110No".into(),
-        opt_str(get_str(cfgs, BIZ_SHOP_110_NO)),
-    );
+    m.insert("shop110No".into(), opt_str(get_str(cfgs, BIZ_SHOP_110_NO)));
     m.insert(
         "shop110Link".into(),
         Value::from(blank_fallback(
@@ -1163,11 +1160,7 @@ pub fn assemble_base(ctx: &BaseContext) -> serde_json::Map<String, serde_json::V
     );
     m.insert(
         "showMarketprice".into(),
-        Value::from(int_or(
-            cfgs,
-            BIZ_SHOW_MARKETPRICE,
-            DEFAULT_SHOW_MARKETPRICE,
-        )),
+        Value::from(int_or(cfgs, BIZ_SHOW_MARKETPRICE, DEFAULT_SHOW_MARKETPRICE)),
     );
 
     // 微信配置（Java 原样透传 String，未解析成 int）
@@ -1230,10 +1223,7 @@ pub fn assemble_base(ctx: &BaseContext) -> serde_json::Map<String, serde_json::V
         "growUpSetting".into(),
         grow_up_setting_value(ctx.grow_config_data.as_deref()),
     );
-    m.insert(
-        "canInvoice".into(),
-        opt_str(get_str(cfgs, BIZ_CAN_INVOICE)),
-    );
+    m.insert("canInvoice".into(), opt_str(get_str(cfgs, BIZ_CAN_INVOICE)));
     m.insert(
         "invoiceAdded".into(),
         opt_str(get_str(cfgs, BIZ_INVOICE_ADDED)),
@@ -1366,7 +1356,11 @@ pub fn assemble_init_extras(
     default_header_style: i32,
 ) -> InitConfigExtras {
     InitConfigExtras {
-        show_service: Some(if kefu_type.is_some_and(|v| v > 0) { 1 } else { 0 }),
+        show_service: Some(if kefu_type.is_some_and(|v| v > 0) {
+            1
+        } else {
+            0
+        }),
         version_type,
         storage_url,
         grow_up_setting: match grow_up_setting_value(grow_config_data) {
@@ -1598,8 +1592,14 @@ mod tests {
     /// 对照 Java `StorageType.fromTypeCode`（`code.equals(...)` 遍历）。
     #[test]
     fn storage_type_exact_match_only() {
-        assert_eq!(StorageType::from_type_code(Some("0")), Some(StorageType::Local));
-        assert_eq!(StorageType::from_type_code(Some("3")), Some(StorageType::Qiniu));
+        assert_eq!(
+            StorageType::from_type_code(Some("0")),
+            Some(StorageType::Local)
+        );
+        assert_eq!(
+            StorageType::from_type_code(Some("3")),
+            Some(StorageType::Qiniu)
+        );
         assert_eq!(StorageType::from_type_code(Some(" 1")), None);
         assert_eq!(StorageType::from_type_code(Some("")), None);
         assert_eq!(StorageType::from_type_code(None), None);
@@ -1677,11 +1677,18 @@ mod tests {
         let empty = ConfigIndex::new();
         assert_eq!(int_or(&empty, BIZ_AUTO_REDIRECT, DEFAULT_AUTO_REDIRECT), 1);
         assert_eq!(
-            int_or(&empty, BIZ_IS_OPEN_MOBILE_AREA_CODE, DEFAULT_IS_OPEN_MOBILE_AREA_CODE),
+            int_or(
+                &empty,
+                BIZ_IS_OPEN_MOBILE_AREA_CODE,
+                DEFAULT_IS_OPEN_MOBILE_AREA_CODE
+            ),
             0
         );
         assert_eq!(int_or(&empty, BIZ_CLOSE_ORDER, DEFAULT_CLOSE_ORDER), 0);
-        assert_eq!(int_or(&empty, BIZ_SHOP_REG_CLOSED, DEFAULT_SHOP_REG_CLOSED), 0);
+        assert_eq!(
+            int_or(&empty, BIZ_SHOP_REG_CLOSED, DEFAULT_SHOP_REG_CLOSED),
+            0
+        );
         assert_eq!(int_or(&empty, BIZ_IS_IDENTITY, DEFAULT_IS_IDENTITY), 0);
         assert_eq!(int_or(&empty, BIZ_IS_ENQUIRY, DEFAULT_IS_ENQUIRY), 0);
         assert_eq!(
@@ -1701,7 +1708,10 @@ mod tests {
             (BIZ_TYPE, "1"),
         ]);
         assert_eq!(int_or(&cfgs, BIZ_AUTO_REDIRECT, DEFAULT_AUTO_REDIRECT), 0);
-        assert_eq!(int_or(&cfgs, BIZ_SHOW_SELLED_COUNT, DEFAULT_SHOW_SELLED_COUNT), 0);
+        assert_eq!(
+            int_or(&cfgs, BIZ_SHOW_SELLED_COUNT, DEFAULT_SHOW_SELLED_COUNT),
+            0
+        );
         assert_eq!(int_or(&cfgs, BIZ_TYPE, DEFAULT_COMPANY_DATA_TYPE), 1);
     }
 
@@ -1813,10 +1823,7 @@ mod tests {
         // 用 `as_ref()` 借用取出：`expect()` 会**移动** `grow_up_setting`，
         // 之后 `e` 就成了部分移动的值，不能再整体传给 `apply_init_extras`
         // （E0382: use of partially moved value）。
-        let gs = e
-            .grow_up_setting
-            .as_ref()
-            .expect("成长值应解析成功");
+        let gs = e.grow_up_setting.as_ref().expect("成长值应解析成功");
         assert_eq!(gs.buy_order, Some(1));
         assert_eq!(gs.buy_order_number, Some(5));
         assert_eq!(gs.evpi, Some(0));

@@ -7,11 +7,7 @@
 //! `POST o2o/storeProduct/allocationProduct`，body
 //! `{type: "SHOPS"|"ALL"|"AREA", productIds, shopIds?}`）。
 
-use axum::{
-    extract::State,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, routing::post, Json, Router};
 use tigshop_core::models::o2o::store_product::{AllocationProductDTO, AllocationResultVO};
 use tigshop_security::web::{ok, ApiResult};
 

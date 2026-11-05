@@ -30,8 +30,16 @@ use crate::AdminState;
 
 /// 本域 2 条路由（去掉 `/adminapi` 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 2] = [
-    ("GET", "/salesman/config/detail", "SalesmanConfigController.detail"),
-    ("POST", "/salesman/config/save", "SalesmanConfigController.save"),
+    (
+        "GET",
+        "/salesman/config/detail",
+        "SalesmanConfigController.detail",
+    ),
+    (
+        "POST",
+        "/salesman/config/save",
+        "SalesmanConfigController.save",
+    ),
 ];
 
 /// 配置管理路由（`/adminapi` 下，全局 `require_auth` 已生效）。
@@ -60,10 +68,7 @@ struct CodeQuery {
     code: Option<String>,
 }
 
-async fn detail(
-    State(state): State<AdminState>,
-    Query(q): Query<CodeQuery>,
-) -> ApiResult<Value> {
+async fn detail(State(state): State<AdminState>, Query(q): Query<CodeQuery>) -> ApiResult<Value> {
     let code = q
         .code
         .ok_or_else(|| tigshop_core::Error::Validation("code不能为空".into()))?;

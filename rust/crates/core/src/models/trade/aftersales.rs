@@ -122,7 +122,11 @@ pub mod aftersales_status {
     ) -> Option<&'static str> {
         let supplier = is_supplier(vendor_id);
         match status {
-            IN_REVIEW => Some(if supplier { "店铺审核中" } else { "买家申请售后" }),
+            IN_REVIEW => Some(if supplier {
+                "店铺审核中"
+            } else {
+                "买家申请售后"
+            }),
             WAIT_FOR_SUPPLIER_AUDIT => Some("供应商审核中"),
             APPROVED_FOR_PROCESSING => {
                 if is_pay_return(aftersale_type) {
@@ -714,7 +718,10 @@ mod tests {
             aftersales_status::admin_name(Some(1), 7, Some(3), false),
             Some("售后已关闭")
         );
-        assert_eq!(aftersales_status::admin_name(Some(1), 99, None, false), None);
+        assert_eq!(
+            aftersales_status::admin_name(Some(1), 99, None, false),
+            None
+        );
     }
 
     #[test]
@@ -780,7 +787,11 @@ mod tests {
 
     #[test]
     fn resolve_list_status_name_prefers_finance_flags() {
-        let a = aftersale(aftersales_type::PAY_RETURN, aftersales_status::COMPLETE, None);
+        let a = aftersale(
+            aftersales_type::PAY_RETURN,
+            aftersales_status::COMPLETE,
+            None,
+        );
         // 常态：主单状态原文案
         assert_eq!(
             aftersales_status::resolve_list_status_name(&a, false, false),
@@ -826,8 +837,7 @@ mod tests {
         assert_eq!(q.user_id, Some(9));
         assert!(q.filter_by_live());
 
-        let q: AftersalesListQuery =
-            serde_json::from_str(r#"{"liveShareOpenId":"  "}"#).unwrap();
+        let q: AftersalesListQuery = serde_json::from_str(r#"{"liveShareOpenId":"  "}"#).unwrap();
         assert!(!q.filter_by_live());
     }
 

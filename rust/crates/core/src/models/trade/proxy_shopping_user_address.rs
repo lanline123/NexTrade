@@ -395,7 +395,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(dto.user_id, Some(7));
-        assert_eq!(dto.region_ids.as_deref(), Some([1, 110000, 110100, 110101].as_slice()));
+        assert_eq!(
+            dto.region_ids.as_deref(),
+            Some([1, 110000, 110100, 110101].as_slice())
+        );
         assert_eq!(dto.is_default, Some(1));
         assert_eq!(dto.latitude, Some("30.1".parse::<Decimal>().unwrap()));
         // Java `UserAddressCreateDTO` 有 isSystem，但控制器强制覆盖为 1，
@@ -481,7 +484,8 @@ mod tests {
     #[test]
     fn region_tree_node_serializes_with_children_always_array() {
         let mut root = RegionTreeNode::leaf(1, 0, "中国");
-        root.children.push(RegionTreeNode::leaf(110000, 1, "北京市"));
+        root.children
+            .push(RegionTreeNode::leaf(110000, 1, "北京市"));
         let json = serde_json::to_value(&root).unwrap();
         assert_eq!(json["regionId"], 1);
         assert_eq!(json["parentId"], 0);

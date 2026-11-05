@@ -1,4 +1,4 @@
-﻿//! 店铺保证金规则（`merchant::deposit_rule`）DTO / VO / 纯函数。
+//! 店铺保证金规则（`merchant::deposit_rule`）DTO / VO / 纯函数。
 //!
 //! 对应原 Java：
 //! - `com.tigshop.adminapi.controller.deposit.DepositRuleController`
@@ -159,7 +159,12 @@ impl DepositRuleDTO {
         {
             return Err(RULE_NAME_REQUIRED.to_string());
         }
-        if self.merchant_types.as_deref().unwrap_or_default().is_empty() {
+        if self
+            .merchant_types
+            .as_deref()
+            .unwrap_or_default()
+            .is_empty()
+        {
             return Err(MERCHANT_TYPES_REQUIRED.to_string());
         }
         if self.shop_types.as_deref().unwrap_or_default().is_empty() {

@@ -33,8 +33,8 @@ use tigshop_core::models::content::gallery_video_info::{
     GalleryVideoInfoDTO, GalleryVideoInfoListQuery, GalleryVideoInfoVO, OperateDTO,
     UploadVideoInfoVO,
 };
-use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 use tigshop_infrastructure::db::repo::marketing::tenant::TenantScope;
+use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::AdminState;
 
@@ -121,10 +121,7 @@ async fn detail(
 }
 
 /// `POST /adminapi/setting/galleryVideoInfo/del`：删除相册视频。
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<()> {
+async fn del(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<()> {
     state.content.gallery_video_info.delete(&dto).await?;
     ok(())
 }
@@ -135,11 +132,11 @@ async fn upload_video(
     mut multipart: Multipart,
 ) -> ApiResult<UploadVideoInfoVO> {
     let mut payload: Option<(Option<String>, Option<String>, Vec<u8>)> = None;
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e| AppError(tigshop_core::Error::Validation(format!("文件不能为空: {e}"))))?
-    {
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        AppError(tigshop_core::Error::Validation(format!(
+            "文件不能为空: {e}"
+        )))
+    })? {
         if field.name() != Some("file") {
             continue;
         }
@@ -148,7 +145,11 @@ async fn upload_video(
         let bytes = field
             .bytes()
             .await
-            .map_err(|e| AppError(tigshop_core::Error::Validation(format!("文件不能为空: {e}"))))?
+            .map_err(|e| {
+                AppError(tigshop_core::Error::Validation(format!(
+                    "文件不能为空: {e}"
+                )))
+            })?
             .to_vec();
         payload = Some((file_name, content_type, bytes));
         break;
@@ -249,8 +250,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");
@@ -260,7 +263,10 @@ mod tests {
     fn route_table_is_unique_and_prefixed() {
         assert_eq!(ROUTE_TABLE.len(), 6);
         for (i, (_, p, _)) in ROUTE_TABLE.iter().enumerate() {
-            assert!(p.starts_with("/setting/galleryVideoInfo/"), "路径前缀错误: {p}");
+            assert!(
+                p.starts_with("/setting/galleryVideoInfo/"),
+                "路径前缀错误: {p}"
+            );
             for (_, p2, _) in ROUTE_TABLE.iter().skip(i + 1) {
                 assert_ne!(p, p2, "重复路由声明会导致 merge panic");
             }
@@ -287,7 +293,10 @@ mod tests {
         assert_eq!(scope, VideoScope::shop(9));
         // 供应商仍按 x-vendor-id
         assert_eq!(
-            resolve_scope(&headers(&[("x-admin-type", "vendor"), ("x-vendor-id", "7")])),
+            resolve_scope(&headers(&[
+                ("x-admin-type", "vendor"),
+                ("x-vendor-id", "7")
+            ])),
             VideoScope::vendor(7)
         );
         assert_eq!(resolve_scope(&HeaderMap::new()), VideoScope::unscoped());

@@ -273,10 +273,20 @@ pub fn validate_create_param(p: &PromotionPromotionCreateParam) -> crate::Result
     if p.name.as_deref().map(str::trim).unwrap_or("").is_empty() {
         return Err(crate::Error::Validation(MSG_NAME_REQUIRED.into()));
     }
-    if p.start_time.as_deref().map(str::trim).unwrap_or("").is_empty() {
+    if p.start_time
+        .as_deref()
+        .map(str::trim)
+        .unwrap_or("")
+        .is_empty()
+    {
         return Err(crate::Error::Validation(MSG_START_REQUIRED.into()));
     }
-    if p.end_time.as_deref().map(str::trim).unwrap_or("").is_empty() {
+    if p.end_time
+        .as_deref()
+        .map(str::trim)
+        .unwrap_or("")
+        .is_empty()
+    {
         return Err(crate::Error::Validation(MSG_END_REQUIRED.into()));
     }
     if p.group_type.is_none() {
@@ -658,7 +668,8 @@ mod tests {
 
     #[test]
     fn json_helpers_parse_java_shapes() {
-        let nums = parse_group_nums(r#"[{"groupNumKey":1,"groupNum":2},{"groupNumKey":2,"groupNum":3}]"#);
+        let nums =
+            parse_group_nums(r#"[{"groupNumKey":1,"groupNum":2},{"groupNumKey":2,"groupNum":3}]"#);
         assert_eq!(nums.len(), 2);
         assert_eq!(nums[0].group_num, Some(2));
         let prices = parse_group_prices(r#"[{"groupNumKey":1,"price":9.90}]"#);
@@ -674,7 +685,10 @@ mod tests {
     fn validation_messages_match_java_annotations() {
         let mut p = PromotionPromotionCreateParam::default();
         assert_eq!(
-            validate_create_param(&p).unwrap_err().to_string().contains(MSG_NAME_REQUIRED),
+            validate_create_param(&p)
+                .unwrap_err()
+                .to_string()
+                .contains(MSG_NAME_REQUIRED),
             true
         );
         p.name = Some("活动".into());

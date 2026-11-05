@@ -351,7 +351,10 @@ pub struct OperateDTO {
 pub struct UpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -375,7 +378,8 @@ impl UpdateFieldDTO {
             .val
             .as_deref()
             .ok_or_else(|| MSG_FIELD_VALUE_REQUIRED.to_string())?;
-        let column = resolve_update_field(field).ok_or_else(|| MSG_INVALID_FIELD_VALUE.to_string())?;
+        let column =
+            resolve_update_field(field).ok_or_else(|| MSG_INVALID_FIELD_VALUE.to_string())?;
         Ok(RechargeFieldUpdate {
             id,
             column,
@@ -527,14 +531,8 @@ mod tests {
         assert_eq!(merged.order_id, 5);
         // 状态变更校验
         assert!(validate_status_change(1, 0).is_ok());
-        assert_eq!(
-            validate_status_change(1, 1).unwrap_err(),
-            MSG_STATUS_ERROR
-        );
-        assert_eq!(
-            validate_status_change(2, 1).unwrap_err(),
-            MSG_STATUS_ERROR
-        );
+        assert_eq!(validate_status_change(1, 1).unwrap_err(), MSG_STATUS_ERROR);
+        assert_eq!(validate_status_change(2, 1).unwrap_err(), MSG_STATUS_ERROR);
         assert!(validate_status_change(0, 1).is_ok());
     }
 

@@ -296,7 +296,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（`@NotNull`；驼峰属性名或库列名）
     pub field: Option<String>,
     /// 值（`@NotNull`，字符串形态）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 

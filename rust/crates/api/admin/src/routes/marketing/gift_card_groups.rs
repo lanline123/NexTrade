@@ -18,7 +18,12 @@
 //! > `TenantScope` 在 Service 层读取（不再解析请求头）。
 //! > 权限矩阵未迁移（只校验登录态）。
 
-use axum::{extract::Query, extract::State, routing::{get, post}, Json, Router};
+use axum::{
+    extract::Query,
+    extract::State,
+    routing::{get, post},
+    Json, Router,
+};
 use serde::Deserialize;
 use tigshop_core::models::marketing::gift_card_groups::{
     GiftCardGroupIdParam, GiftCardGroupsCreateParam, GiftCardGroupsListQuery,
@@ -78,7 +83,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
         .route("/promotion/giftCardGroups/list", get(list))
-        .route("/promotion/giftCardGroups/updateStatus", post(update_status))
+        .route(
+            "/promotion/giftCardGroups/updateStatus",
+            post(update_status),
+        )
         .route("/promotion/giftCardGroups/create", post(create))
         .route("/promotion/giftCardGroups/update", post(update))
         .route("/promotion/giftCardGroups/detail", get(detail))
@@ -130,7 +138,11 @@ async fn update_status(
     State(state): State<AdminState>,
     Json(param): Json<GiftCardGroupsUpdateParam>,
 ) -> ApiResult<()> {
-    state.marketing.gift_card_groups.update_status(&param).await?;
+    state
+        .marketing
+        .gift_card_groups
+        .update_status(&param)
+        .await?;
     ok(())
 }
 
@@ -154,7 +166,11 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<CardGroupsIdQuery>,
 ) -> ApiResult<GiftCardGroupsVO> {
-    ok(state.marketing.gift_card_groups.detail(q.card_groups_id).await?)
+    ok(state
+        .marketing
+        .gift_card_groups
+        .detail(q.card_groups_id)
+        .await?)
 }
 
 async fn get_gift_card_groups(
@@ -224,7 +240,10 @@ mod tests {
             ("POST", "/adminapi/promotion/giftCardGroups/create"),
             ("POST", "/adminapi/promotion/giftCardGroups/update"),
             ("GET", "/adminapi/promotion/giftCardGroups/detail"),
-            ("GET", "/adminapi/promotion/giftCardGroups/getGiftCardGroups"),
+            (
+                "GET",
+                "/adminapi/promotion/giftCardGroups/getGiftCardGroups",
+            ),
             ("POST", "/adminapi/promotion/giftCardGroups/delete"),
             (
                 "POST",

@@ -395,7 +395,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -523,7 +526,10 @@ mod tests {
     #[test]
     fn tpl_fields_are_real_columns() {
         for f in TPL_FIELDS {
-            assert!(TPL_COLUMNS.contains(&f), "{f} 不是 product_attributes_tpl 的真实列");
+            assert!(
+                TPL_COLUMNS.contains(&f),
+                "{f} 不是 product_attributes_tpl 的真实列"
+            );
         }
         assert_eq!(
             TPL_COLUMNS,
@@ -627,7 +633,14 @@ mod tests {
             assert!(TPL_FIELDS.contains(&c));
         }
         // 主键 / tplData / categoryId 能归一，但都不在白名单 ⇒ 「字段值不合法」
-        for input in ["tplId", "tpl_id", "tplData", "tpl_data", "categoryId", "category_id"] {
+        for input in [
+            "tplId",
+            "tpl_id",
+            "tplData",
+            "tpl_data",
+            "categoryId",
+            "category_id",
+        ] {
             let c = map_update_field_column(input).unwrap();
             assert!(!TPL_FIELDS.contains(&c), "{input} 不应在白名单内");
             assert!(TPL_COLUMNS.contains(&c), "{input} 应能归一为真实列");
@@ -698,7 +711,8 @@ mod tests {
     /// `decode_tpl_data` 正常解析 camelCase 的三类属性。
     #[test]
     fn decode_tpl_data_parses_camel_case() {
-        let raw = r#"{"normal":[{"attrName":"颜色","attrValues":["红","蓝"]}],"spe":[],"extra":null}"#;
+        let raw =
+            r#"{"normal":[{"attrName":"颜色","attrValues":["红","蓝"]}],"spe":[],"extra":null}"#;
         let d = decode_tpl_data(raw).unwrap();
         let normal = d.normal.unwrap();
         assert_eq!(normal.len(), 1);
@@ -821,7 +835,10 @@ mod tests {
             tpl_name: Some("手机模板".into()),
             ..Default::default()
         };
-        assert_eq!(validate_save(&no_cat).unwrap_err(), MSG_CATEGORY_ID_REQUIRED);
+        assert_eq!(
+            validate_save(&no_cat).unwrap_err(),
+            MSG_CATEGORY_ID_REQUIRED
+        );
 
         // categoryId = 0 是合法的（@NotNull 不排除 0）
         let zero_cat = AttributesTplSaveDTO {
@@ -829,7 +846,10 @@ mod tests {
             category_id: Some(0),
             ..Default::default()
         };
-        assert_eq!(validate_save(&zero_cat).unwrap(), ("手机模板".to_string(), 0));
+        assert_eq!(
+            validate_save(&zero_cat).unwrap(),
+            ("手机模板".to_string(), 0)
+        );
     }
 
     // ————————————————————— 纯逻辑：请求体反序列化 —————————————————————
@@ -843,7 +863,12 @@ mod tests {
         assert_eq!(dto.tpl_name.as_deref(), Some("手机模板"));
         assert_eq!(dto.shop_id, Some(5));
         assert_eq!(dto.category_id, Some(42));
-        assert_eq!(dto.tpl_data.unwrap().normal.unwrap()[0].attr_name.as_deref(), Some("颜色"));
+        assert_eq!(
+            dto.tpl_data.unwrap().normal.unwrap()[0]
+                .attr_name
+                .as_deref(),
+            Some("颜色")
+        );
     }
 
     /// 删除请求缺 `id`（Java 控制器无 `@Valid` ⇒ 不是 400）。

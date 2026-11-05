@@ -384,7 +384,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（属性名或列名，必填）
     pub field: Option<String>,
     /// 值（Java 侧统一按字符串 set，由 MySQL 按目标列类型隐式转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -459,22 +462,31 @@ mod tests {
     /// `keyword` 用 `isNotEmpty` 口径：纯空白**仍**是有效关键字。
     #[test]
     fn keyword_uses_is_not_empty_not_is_blank() {
-        assert_eq!(ShippingTypeListQuery {
-            keyword: Some("   ".into()),
-            ..Default::default()
-        }
-        .effective_keyword(), Some("   "));
-        assert_eq!(ShippingTypeListQuery {
-            keyword: Some("abc".into()),
-            ..Default::default()
-        }
-        .effective_keyword(), Some("abc"));
+        assert_eq!(
+            ShippingTypeListQuery {
+                keyword: Some("   ".into()),
+                ..Default::default()
+            }
+            .effective_keyword(),
+            Some("   ")
+        );
+        assert_eq!(
+            ShippingTypeListQuery {
+                keyword: Some("abc".into()),
+                ..Default::default()
+            }
+            .effective_keyword(),
+            Some("abc")
+        );
         // 空串才视为「没有关键字」
-        assert_eq!(ShippingTypeListQuery {
-            keyword: Some(String::new()),
-            ..Default::default()
-        }
-        .effective_keyword(), None);
+        assert_eq!(
+            ShippingTypeListQuery {
+                keyword: Some(String::new()),
+                ..Default::default()
+            }
+            .effective_keyword(),
+            None
+        );
         assert_eq!(ShippingTypeListQuery::default().effective_keyword(), None);
     }
 

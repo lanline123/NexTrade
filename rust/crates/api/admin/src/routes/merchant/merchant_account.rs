@@ -24,13 +24,41 @@ use crate::AdminState;
 
 /// 本域 7 条路由（挂载路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/merchant/account/list", "MerchantAccountController.list"),
-    ("GET", "/merchant/account/config", "MerchantAccountController.config"),
-    ("GET", "/merchant/account/detail", "MerchantAccountController.detail"),
-    ("POST", "/merchant/account/create", "MerchantAccountController.create"),
-    ("POST", "/merchant/account/update", "MerchantAccountController.update"),
-    ("POST", "/merchant/account/del", "MerchantAccountController.del"),
-    ("POST", "/merchant/account/batch", "MerchantAccountController.batch"),
+    (
+        "GET",
+        "/merchant/account/list",
+        "MerchantAccountController.list",
+    ),
+    (
+        "GET",
+        "/merchant/account/config",
+        "MerchantAccountController.config",
+    ),
+    (
+        "GET",
+        "/merchant/account/detail",
+        "MerchantAccountController.detail",
+    ),
+    (
+        "POST",
+        "/merchant/account/create",
+        "MerchantAccountController.create",
+    ),
+    (
+        "POST",
+        "/merchant/account/update",
+        "MerchantAccountController.update",
+    ),
+    (
+        "POST",
+        "/merchant/account/del",
+        "MerchantAccountController.del",
+    ),
+    (
+        "POST",
+        "/merchant/account/batch",
+        "MerchantAccountController.batch",
+    ),
 ];
 
 /// 商户账户域路由（挂载于 `/adminapi` 下）。

@@ -44,8 +44,8 @@ use axum::{
 use serde::Deserialize;
 use tigshop_core::models::trade::aftersales::{
     admin_type, AfterSalesCompleteParam, AfterSalesRejectReceiveParam, AftersalesCreateParam,
-    AftersalesEditParam, AftersalesListQuery, AftersalesReceiveParam,
-    AftersalesRecordCreateParam, AftersalesVO,
+    AftersalesEditParam, AftersalesListQuery, AftersalesReceiveParam, AftersalesRecordCreateParam,
+    AftersalesVO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_core::{Error, Result};
@@ -225,7 +225,10 @@ async fn aftersales_return_goods_status(
     Extension(auth): Extension<AuthUser>,
 ) -> ApiResult<std::collections::BTreeMap<i32, String>> {
     let scope = resolve_scope(&auth);
-    ok(state.trade.aftersales.return_goods_status(scope.admin_type.as_deref()))
+    ok(state
+        .trade
+        .aftersales
+        .return_goods_status(scope.admin_type.as_deref()))
 }
 
 // ——————————————————————————————————————————————
@@ -243,7 +246,9 @@ async fn aftersales_list(
     Query(query): Query<AftersalesListQuery>,
 ) -> ApiResult<PageResult<AftersalesVO>> {
     let scope = resolve_scope(&auth);
-    ok(state.trade.aftersales
+    ok(state
+        .trade
+        .aftersales
         .list(
             &query,
             scope.filter_shop_id(),
@@ -317,10 +322,9 @@ async fn aftersales_create(
 ) -> ApiResult<serde_json::Value> {
     // 多租户：店铺账号只能为**本店订单**创建售后单；平台账号不限。
     if let Some(scope) = auth.scoped_shop_id() {
-        let order_id = param
-            .order_id
-            .filter(|id| *id > 0)
-            .ok_or_else(|| tigshop_core::Error::Forbidden("店铺账号创建售后必须指定本店订单".into()))?;
+        let order_id = param.order_id.filter(|id| *id > 0).ok_or_else(|| {
+            tigshop_core::Error::Forbidden("店铺账号创建售后必须指定本店订单".into())
+        })?;
         let order = state.trade.order_admin.detail(order_id).await?;
         if order.shop_id != scope {
             return Err(tigshop_core::Error::Forbidden(format!(
@@ -392,7 +396,9 @@ async fn aftersales_record(
     Json(param): Json<AftersalesRecordCreateParam>,
 ) -> ApiResult<&'static str> {
     ensure_aftersales_access(&state, &auth, param.aftersale_id).await?;
-    state.trade.aftersales
+    state
+        .trade
+        .aftersales
         .submit_record(&param, Some(auth.id), current_username(&auth))
         .await?;
     ok("提交成功")

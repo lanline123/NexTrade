@@ -1,12 +1,8 @@
-﻿//! 管理端装修推广短链路由（content::decorate_promote）。
+//! 管理端装修推广短链路由（content::decorate_promote）。
 //!
 //! 对应 Java `POST /adminapi/decorate/promote/generateShortLink`。
 
-use axum::{
-    extract::State,
-    routing::post,
-    Json, Router,
-};
+use axum::{extract::State, routing::post, Json, Router};
 use tigshop_core::models::content::decorate_promote::GenerateShortLinkDTO;
 use tigshop_openapi::RouteDoc;
 use tigshop_security::web::{ok, ApiResult};
@@ -23,7 +19,10 @@ const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
 /// 推广短链路由（挂载于 `/adminapi` 下）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new().route("/decorate/promote/generateShortLink", post(generate_short_link))
+    Router::new().route(
+        "/decorate/promote/generateShortLink",
+        post(generate_short_link),
+    )
 }
 
 /// 已实现路由（契约完整路径）。
@@ -40,7 +39,11 @@ async fn generate_short_link(
     State(state): State<AdminState>,
     Json(dto): Json<GenerateShortLinkDTO>,
 ) -> ApiResult<String> {
-    ok(state.content.decorate_promote.generate_short_link(&dto).await?)
+    ok(state
+        .content
+        .decorate_promote
+        .generate_short_link(&dto)
+        .await?)
 }
 
 #[cfg(test)]

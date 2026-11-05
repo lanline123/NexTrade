@@ -14,9 +14,7 @@ use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
-use tigshop_core::models::trade::order_log::{
-    OrderLogCreateDTO, OrderLogListQuery, OrderLogVO,
-};
+use tigshop_core::models::trade::order_log::{OrderLogCreateDTO, OrderLogListQuery, OrderLogVO};
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult, AuthUser, TenantContext};
 
@@ -25,7 +23,11 @@ use crate::AdminState;
 /// 本域 2 条路由。
 const ROUTE_TABLE: [(&str, &str, &str); 2] = [
     ("GET", "/order/orderLog/list", "OrderLogController.list"),
-    ("POST", "/order/orderLog/create", "OrderLogController.create"),
+    (
+        "POST",
+        "/order/orderLog/create",
+        "OrderLogController.create",
+    ),
 ];
 
 /// 订单日志路由（挂载于 `/adminapi` 下）。
@@ -52,11 +54,7 @@ async fn list(
     Query(q): Query<OrderLogListQuery>,
 ) -> ApiResult<PageResult<OrderLogVO>> {
     // 多租户：店铺账号强制过滤本店日志；平台可见全部。
-    ok(state
-        .trade
-        .order_log
-        .list(&q, tenant.shop_scope())
-        .await?)
+    ok(state.trade.order_log.list(&q, tenant.shop_scope()).await?)
 }
 
 /// `POST /adminapi/order/orderLog/create`

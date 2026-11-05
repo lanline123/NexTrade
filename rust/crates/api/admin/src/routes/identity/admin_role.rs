@@ -62,17 +62,41 @@ use crate::AdminState;
 /// `create` / `update` / `batch` / `updateField` / `del`）。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
     // (HTTP method, 本模块路径, 原 Java handler)
-    ("GET", "/authority/adminRole/list", "AdminRoleController.list"),
-    ("GET", "/authority/adminRole/detail", "AdminRoleController.detail"),
-    ("POST", "/authority/adminRole/create", "AdminRoleController.create"),
-    ("POST", "/authority/adminRole/update", "AdminRoleController.update"),
-    ("POST", "/authority/adminRole/batch", "AdminRoleController.batch"),
+    (
+        "GET",
+        "/authority/adminRole/list",
+        "AdminRoleController.list",
+    ),
+    (
+        "GET",
+        "/authority/adminRole/detail",
+        "AdminRoleController.detail",
+    ),
+    (
+        "POST",
+        "/authority/adminRole/create",
+        "AdminRoleController.create",
+    ),
+    (
+        "POST",
+        "/authority/adminRole/update",
+        "AdminRoleController.update",
+    ),
+    (
+        "POST",
+        "/authority/adminRole/batch",
+        "AdminRoleController.batch",
+    ),
     (
         "POST",
         "/authority/adminRole/updateField",
         "AdminRoleController.updateField",
     ),
-    ("POST", "/authority/adminRole/del", "AdminRoleController.del"),
+    (
+        "POST",
+        "/authority/adminRole/del",
+        "AdminRoleController.del",
+    ),
 ];
 
 /// 角色域路由（挂载于 `/adminapi` 下，外层统一套 `require_auth`）。
@@ -391,7 +415,11 @@ mod tests {
     fn resolve_scope_admin_forces_zero_shop_id() {
         let scope = resolve_scope(
             &auth(Some("admin")),
-            &headers(&[("x-admin-type", "admin"), ("x-shop-id", "9"), ("x-vendor-id", "3")]),
+            &headers(&[
+                ("x-admin-type", "admin"),
+                ("x-shop-id", "9"),
+                ("x-vendor-id", "3"),
+            ]),
             &ScopeQuery::default(),
         );
         assert_eq!(scope.admin_type.as_deref(), Some("admin"));

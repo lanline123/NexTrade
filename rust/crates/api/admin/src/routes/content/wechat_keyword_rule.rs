@@ -112,10 +112,7 @@ async fn save(
 }
 
 /// `POST /adminapi/wechat/keywordRule/del`：批量删除规则。
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<KeywordRuleDelDTO>,
-) -> ApiResult<()> {
+async fn del(State(state): State<AdminState>, Json(dto): Json<KeywordRuleDelDTO>) -> ApiResult<()> {
     state.content.wechat_keyword_rule.delete(&dto).await?;
     ok(())
 }
@@ -150,8 +147,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");

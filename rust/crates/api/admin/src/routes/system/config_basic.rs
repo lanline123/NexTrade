@@ -46,120 +46,548 @@ use tigshop_core::models::system::config_basic::{
 };
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
-use crate::support::tenant::{platform_only};
+use crate::support::tenant::platform_only;
 
 use crate::AdminState;
 
 /// 全部 102 条契约路由（挂载路径 + 原 Java 方法名，顺序 = Java 方法声明顺序）。
 const ROUTE_TABLE: [(&str, &str, &str); 108] = [
-    ("GET", "/setting/config/basicSettings", "ConfigController.getBasicSettings"),
-    ("POST", "/setting/config/saveBasic", "ConfigController.saveBasic"),
-    ("GET", "/setting/config/productSettings", "ConfigController.getProductSettings"),
-    ("POST", "/setting/config/saveProduct", "ConfigController.saveProduct"),
-    ("GET", "/setting/config/shoppingSettings", "ConfigController.getShoppingSettings"),
-    ("POST", "/setting/config/saveShopping", "ConfigController.saveShoppingSettings"),
-    ("GET", "/setting/config/orderSettings", "ConfigController.getOrderSettings"),
-    ("POST", "/setting/config/saveOrder", "ConfigController.saveOrderSettings"),
-    ("GET", "/setting/config/kefuSettings", "ConfigController.getKefuSettings"),
-    ("POST", "/setting/config/saveKefu", "ConfigController.saveKefuSettings"),
-    ("GET", "/setting/config/shippingSettings", "ConfigController.getShippingSettings"),
-    ("POST", "/setting/config/saveShipping", "ConfigController.saveShippingSettings"),
-    ("GET", "/setting/config/globalSettings", "ConfigController.getGlobalSettings"),
-    ("POST", "/setting/config/saveGlobal", "ConfigController.saveGlobalSettings"),
-    ("GET", "/setting/config/workbuddySettings", "ConfigController.getWorkBuddySettings"),
-    ("POST", "/setting/config/generateWorkbuddyKey", "ConfigController.generateWorkbuddyKey"),
-    ("POST", "/setting/config/revealWorkbuddyKey", "ConfigController.revealWorkbuddyKey"),
-    ("GET", "/setting/config/loginSettings", "ConfigController.getLoginSettings"),
-    ("POST", "/setting/config/saveLogin", "ConfigController.saveLoginSettings"),
-    ("GET", "/setting/config/basicPaySettings", "ConfigController.getBasicPaySettings"),
-    ("POST", "/setting/config/saveBasicPay", "ConfigController.saveBasicPaySettings"),
-    ("GET", "/setting/config/wechatPaySettings", "ConfigController.getWechatPaySettings"),
-    ("POST", "/setting/config/saveWechatPay", "ConfigController.saveWechatPaySettings"),
-    ("GET", "/setting/config/miniProgramRiskSettings", "ConfigController.getMiniProgramRiskSettings"),
-    ("POST", "/setting/config/saveMiniProgramRisk", "ConfigController.saveMiniProgramRiskSettings"),
-    ("GET", "/setting/config/wechatLiveSettings", "ConfigController.getWechatLiveSettings"),
-    ("POST", "/setting/config/saveWechatLive", "ConfigController.saveWechatLiveSettings"),
-    ("POST", "/setting/config/createPlatformCertificate", "ConfigController.createPlatformCertificate"),
-    ("POST", "/setting/config/uploadFile", "ConfigController.uploadFile"),
-    ("GET", "/setting/config/aliPaySettings", "ConfigController.getAliPaySettings"),
-    ("POST", "/setting/config/saveAliPay", "ConfigController.saveAliPaySettings"),
-    ("GET", "/setting/config/yaBandPaySettings", "ConfigController.getYaBandPaySettings"),
-    ("POST", "/setting/config/saveYaBandPay", "ConfigController.saveYaBandPaySettings"),
-    ("GET", "/setting/config/offlinePaySettings", "ConfigController.getOfflinePaySettings"),
-    ("POST", "/setting/config/saveOfflinePay", "ConfigController.saveOfflinePaySettings"),
-    ("GET", "/setting/config/payPalSettings", "ConfigController.getPayPalSettings"),
-    ("POST", "/setting/config/savePayPal", "ConfigController.savePayPalSettings"),
-    ("GET", "/setting/config/yunPaySettings", "ConfigController.getYunPaySettings"),
-    ("POST", "/setting/config/saveYunPay", "ConfigController.saveYunPaySettings"),
-    ("GET", "/setting/config/mailSettings", "ConfigController.getMailSettings"),
-    ("POST", "/setting/config/saveMail", "ConfigController.saveMail"),
-    ("POST", "/setting/config/sendTestEmail", "ConfigController.sendTestEmail"),
-    ("GET", "/setting/config/notifySettings", "ConfigController.getNotifySettings"),
-    ("POST", "/setting/config/saveNotify", "ConfigController.saveNotify"),
-    ("GET", "/setting/config/authSettings", "ConfigController.getAuthSettings"),
-    ("POST", "/setting/config/saveAuth", "ConfigController.saveAuth"),
-    ("GET", "/setting/config/afterSalesSettings", "ConfigController.getAfterSalesSettings"),
-    ("POST", "/setting/config/saveAfterSales", "ConfigController.saveAfterSales"),
-    ("GET", "/setting/config/themeStyleSettings", "ConfigController.getThemeStyleSettings"),
-    ("POST", "/setting/config/saveThemeStyle", "ConfigController.saveThemeStyle"),
-    ("GET", "/setting/config/categoryDecorateSettings", "ConfigController.getCategoryDecorateSettings"),
-    ("POST", "/setting/config/saveCategoryDecorate", "ConfigController.saveCategoryDecorate"),
-    ("GET", "/setting/config/productDetailStyleSettings", "ConfigController.getProductDetailStyleSettings"),
-    ("POST", "/setting/config/saveProductDetailStyle", "ConfigController.saveProductDetailStyle"),
-    ("GET", "/setting/config/searchStyleSettings", "ConfigController.getSearchStyleSettings"),
-    ("POST", "/setting/config/saveSearchStyle", "ConfigController.saveSearchStyle"),
-    ("GET", "/setting/config/mobileSearchStyleSettings", "ConfigController.getMobileSearchStyleSettings"),
-    ("POST", "/setting/config/saveMobileSearchStyle", "ConfigController.saveMobileSearchStyle"),
-    ("GET", "/setting/config/memberCenterDecorateSettings", "ConfigController.getMemberCenterDecorateSettings"),
-    ("POST", "/setting/config/saveMemberCenterDecorate", "ConfigController.saveMemberCenterDecorate"),
-    ("GET", "/setting/config/shopSettings", "ConfigController.getShopSettings"),
-    ("POST", "/setting/config/saveShop", "ConfigController.saveShop"),
-    ("GET", "/setting/config/buyerShowSettings", "ConfigController.getBuyerShowSettings"),
-    ("POST", "/setting/config/saveBuyerShow", "ConfigController.saveBuyerShow"),
-    ("GET", "/setting/config/merchantSettings", "ConfigController.getMerchantSettings"),
-    ("POST", "/setting/config/saveMerchant", "ConfigController.saveMerchant"),
-    ("GET", "/setting/config/getAdmin", "ConfigController.getAdmin"),
-    ("GET", "/setting/config/getAdminBase", "ConfigController.getAdminBase"),
-    ("GET", "/setting/config/basicConfig", "ConfigController.getBasicConfig"),
+    (
+        "GET",
+        "/setting/config/basicSettings",
+        "ConfigController.getBasicSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveBasic",
+        "ConfigController.saveBasic",
+    ),
+    (
+        "GET",
+        "/setting/config/productSettings",
+        "ConfigController.getProductSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveProduct",
+        "ConfigController.saveProduct",
+    ),
+    (
+        "GET",
+        "/setting/config/shoppingSettings",
+        "ConfigController.getShoppingSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveShopping",
+        "ConfigController.saveShoppingSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/orderSettings",
+        "ConfigController.getOrderSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveOrder",
+        "ConfigController.saveOrderSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/kefuSettings",
+        "ConfigController.getKefuSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveKefu",
+        "ConfigController.saveKefuSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/shippingSettings",
+        "ConfigController.getShippingSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveShipping",
+        "ConfigController.saveShippingSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/globalSettings",
+        "ConfigController.getGlobalSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveGlobal",
+        "ConfigController.saveGlobalSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/workbuddySettings",
+        "ConfigController.getWorkBuddySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/generateWorkbuddyKey",
+        "ConfigController.generateWorkbuddyKey",
+    ),
+    (
+        "POST",
+        "/setting/config/revealWorkbuddyKey",
+        "ConfigController.revealWorkbuddyKey",
+    ),
+    (
+        "GET",
+        "/setting/config/loginSettings",
+        "ConfigController.getLoginSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveLogin",
+        "ConfigController.saveLoginSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/basicPaySettings",
+        "ConfigController.getBasicPaySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveBasicPay",
+        "ConfigController.saveBasicPaySettings",
+    ),
+    (
+        "GET",
+        "/setting/config/wechatPaySettings",
+        "ConfigController.getWechatPaySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveWechatPay",
+        "ConfigController.saveWechatPaySettings",
+    ),
+    (
+        "GET",
+        "/setting/config/miniProgramRiskSettings",
+        "ConfigController.getMiniProgramRiskSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMiniProgramRisk",
+        "ConfigController.saveMiniProgramRiskSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/wechatLiveSettings",
+        "ConfigController.getWechatLiveSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveWechatLive",
+        "ConfigController.saveWechatLiveSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/createPlatformCertificate",
+        "ConfigController.createPlatformCertificate",
+    ),
+    (
+        "POST",
+        "/setting/config/uploadFile",
+        "ConfigController.uploadFile",
+    ),
+    (
+        "GET",
+        "/setting/config/aliPaySettings",
+        "ConfigController.getAliPaySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveAliPay",
+        "ConfigController.saveAliPaySettings",
+    ),
+    (
+        "GET",
+        "/setting/config/yaBandPaySettings",
+        "ConfigController.getYaBandPaySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveYaBandPay",
+        "ConfigController.saveYaBandPaySettings",
+    ),
+    (
+        "GET",
+        "/setting/config/offlinePaySettings",
+        "ConfigController.getOfflinePaySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveOfflinePay",
+        "ConfigController.saveOfflinePaySettings",
+    ),
+    (
+        "GET",
+        "/setting/config/payPalSettings",
+        "ConfigController.getPayPalSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/savePayPal",
+        "ConfigController.savePayPalSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/yunPaySettings",
+        "ConfigController.getYunPaySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveYunPay",
+        "ConfigController.saveYunPaySettings",
+    ),
+    (
+        "GET",
+        "/setting/config/mailSettings",
+        "ConfigController.getMailSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMail",
+        "ConfigController.saveMail",
+    ),
+    (
+        "POST",
+        "/setting/config/sendTestEmail",
+        "ConfigController.sendTestEmail",
+    ),
+    (
+        "GET",
+        "/setting/config/notifySettings",
+        "ConfigController.getNotifySettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveNotify",
+        "ConfigController.saveNotify",
+    ),
+    (
+        "GET",
+        "/setting/config/authSettings",
+        "ConfigController.getAuthSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveAuth",
+        "ConfigController.saveAuth",
+    ),
+    (
+        "GET",
+        "/setting/config/afterSalesSettings",
+        "ConfigController.getAfterSalesSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveAfterSales",
+        "ConfigController.saveAfterSales",
+    ),
+    (
+        "GET",
+        "/setting/config/themeStyleSettings",
+        "ConfigController.getThemeStyleSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveThemeStyle",
+        "ConfigController.saveThemeStyle",
+    ),
+    (
+        "GET",
+        "/setting/config/categoryDecorateSettings",
+        "ConfigController.getCategoryDecorateSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveCategoryDecorate",
+        "ConfigController.saveCategoryDecorate",
+    ),
+    (
+        "GET",
+        "/setting/config/productDetailStyleSettings",
+        "ConfigController.getProductDetailStyleSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveProductDetailStyle",
+        "ConfigController.saveProductDetailStyle",
+    ),
+    (
+        "GET",
+        "/setting/config/searchStyleSettings",
+        "ConfigController.getSearchStyleSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveSearchStyle",
+        "ConfigController.saveSearchStyle",
+    ),
+    (
+        "GET",
+        "/setting/config/mobileSearchStyleSettings",
+        "ConfigController.getMobileSearchStyleSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMobileSearchStyle",
+        "ConfigController.saveMobileSearchStyle",
+    ),
+    (
+        "GET",
+        "/setting/config/memberCenterDecorateSettings",
+        "ConfigController.getMemberCenterDecorateSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMemberCenterDecorate",
+        "ConfigController.saveMemberCenterDecorate",
+    ),
+    (
+        "GET",
+        "/setting/config/shopSettings",
+        "ConfigController.getShopSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveShop",
+        "ConfigController.saveShop",
+    ),
+    (
+        "GET",
+        "/setting/config/buyerShowSettings",
+        "ConfigController.getBuyerShowSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveBuyerShow",
+        "ConfigController.saveBuyerShow",
+    ),
+    (
+        "GET",
+        "/setting/config/merchantSettings",
+        "ConfigController.getMerchantSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMerchant",
+        "ConfigController.saveMerchant",
+    ),
+    (
+        "GET",
+        "/setting/config/getAdmin",
+        "ConfigController.getAdmin",
+    ),
+    (
+        "GET",
+        "/setting/config/getAdminBase",
+        "ConfigController.getAdminBase",
+    ),
+    (
+        "GET",
+        "/setting/config/basicConfig",
+        "ConfigController.getBasicConfig",
+    ),
     ("GET", "/setting/config/getIcon", "ConfigController.getIcon"),
-    ("GET", "/setting/config/getBase", "ConfigController.getBaseConfig"),
-    ("GET", "/setting/config/vendorSettings", "ConfigController.getVendorSettings"),
-    ("POST", "/setting/config/saveVendor", "ConfigController.saveVendor"),
-    ("GET", "/setting/config/getLoginProtocol", "ConfigController.getLoginProtocol"),
-    ("GET", "/setting/config/getLoginProtocolContent", "ConfigController.getLoginProtocolContentVO"),
-    ("POST", "/setting/config/saveLoginProtocol", "ConfigController.saveLoginProtocol"),
-    ("GET", "/setting/config/profitSharingSettings", "ConfigController.getProfitSharingSettings"),
-    ("POST", "/setting/config/saveProfitSharing", "ConfigController.saveProfitSharing"),
-    ("GET", "/setting/config/withdrawalSettings", "ConfigController.getWithdrawalSettings"),
-    ("POST", "/setting/config/saveWithdrawal", "ConfigController.saveWithdrawal"),
-    ("GET", "/setting/config/memberWithdrawalSettings", "ConfigController.getMemberWithdrawalSettings"),
-    ("POST", "/setting/config/saveMemberWithdrawal", "ConfigController.saveMemberWithdrawal"),
-    ("GET", "/setting/config/commissionWithdrawalSettings", "ConfigController.getCommissionWithdrawalSettings"),
-    ("POST", "/setting/config/saveCommissionWithdrawal", "ConfigController.saveCommissionWithdrawal"),
-    ("GET", "/setting/config/storeSettings", "ConfigController.getStoreSettings"),
-    ("POST", "/setting/config/saveStore", "ConfigController.saveStore"),
-    ("GET", "/setting/config/amapAllSettings", "ConfigController.amapAllSettings"),
-    ("POST", "/setting/config/saveAllAmapSettings", "ConfigController.saveAllAmapSettings"),
-    ("GET", "/setting/config/mapSettings", "ConfigController.mapSettings"),
-    ("POST", "/setting/config/saveMapSettings", "ConfigController.saveMapSettings"),
-    ("POST", "/setting/config/savePersonalizedSetting", "ConfigController.savePersonalizedSetting"),
-    ("GET", "/setting/config/getPersonalizedSetting", "ConfigController.getPersonalizedSetting"),
-    ("GET", "/setting/config/searchSettings", "ConfigController.getSearchSettings"),
-    ("POST", "/setting/config/saveSearch", "ConfigController.saveSearch"),
-    ("GET", "/setting/config/storeSelfOperatedSettings", "ConfigController.getStoreSelfOperatedSettings"),
-    ("POST", "/setting/config/saveStoreSelfOperated", "ConfigController.saveStore"),
-    ("POST", "/setting/config/saveDingConfig", "ConfigController.saveDingConfig"),
-    ("POST", "/setting/config/saveWXWorkConfig", "ConfigController.saveWXWorkConfig"),
-    ("GET", "/setting/config/getDingConfig", "ConfigController.getDingConfig"),
-    ("GET", "/setting/config/getWXWorkConfig", "ConfigController.getWXWorkConfig"),
-    ("GET", "/setting/config/getCashierOrderSettings", "ConfigController.getCashierOrderSettings"),
-    ("POST", "/setting/config/saveCashierOrderSettings", "ConfigController.saveCashierOrderSettings"),
-    ("GET", "/setting/config/stripeSettings", "ConfigController.getStripeSettings"),
-    ("POST", "/setting/config/saveStripe", "ConfigController.saveStripeSettings"),
-    ("GET", "/setting/config/xenditSettings", "ConfigController.getXenditSettings"),
-    ("POST", "/setting/config/saveXendit", "ConfigController.saveXenditSettings"),
-    ("GET", "/setting/config/antomSettings", "ConfigController.getAntomSettings"),
-    ("POST", "/setting/config/saveAntom", "ConfigController.saveAntomSettings"),
+    (
+        "GET",
+        "/setting/config/getBase",
+        "ConfigController.getBaseConfig",
+    ),
+    (
+        "GET",
+        "/setting/config/vendorSettings",
+        "ConfigController.getVendorSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveVendor",
+        "ConfigController.saveVendor",
+    ),
+    (
+        "GET",
+        "/setting/config/getLoginProtocol",
+        "ConfigController.getLoginProtocol",
+    ),
+    (
+        "GET",
+        "/setting/config/getLoginProtocolContent",
+        "ConfigController.getLoginProtocolContentVO",
+    ),
+    (
+        "POST",
+        "/setting/config/saveLoginProtocol",
+        "ConfigController.saveLoginProtocol",
+    ),
+    (
+        "GET",
+        "/setting/config/profitSharingSettings",
+        "ConfigController.getProfitSharingSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveProfitSharing",
+        "ConfigController.saveProfitSharing",
+    ),
+    (
+        "GET",
+        "/setting/config/withdrawalSettings",
+        "ConfigController.getWithdrawalSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveWithdrawal",
+        "ConfigController.saveWithdrawal",
+    ),
+    (
+        "GET",
+        "/setting/config/memberWithdrawalSettings",
+        "ConfigController.getMemberWithdrawalSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMemberWithdrawal",
+        "ConfigController.saveMemberWithdrawal",
+    ),
+    (
+        "GET",
+        "/setting/config/commissionWithdrawalSettings",
+        "ConfigController.getCommissionWithdrawalSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveCommissionWithdrawal",
+        "ConfigController.saveCommissionWithdrawal",
+    ),
+    (
+        "GET",
+        "/setting/config/storeSettings",
+        "ConfigController.getStoreSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveStore",
+        "ConfigController.saveStore",
+    ),
+    (
+        "GET",
+        "/setting/config/amapAllSettings",
+        "ConfigController.amapAllSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveAllAmapSettings",
+        "ConfigController.saveAllAmapSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/mapSettings",
+        "ConfigController.mapSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveMapSettings",
+        "ConfigController.saveMapSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/savePersonalizedSetting",
+        "ConfigController.savePersonalizedSetting",
+    ),
+    (
+        "GET",
+        "/setting/config/getPersonalizedSetting",
+        "ConfigController.getPersonalizedSetting",
+    ),
+    (
+        "GET",
+        "/setting/config/searchSettings",
+        "ConfigController.getSearchSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveSearch",
+        "ConfigController.saveSearch",
+    ),
+    (
+        "GET",
+        "/setting/config/storeSelfOperatedSettings",
+        "ConfigController.getStoreSelfOperatedSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveStoreSelfOperated",
+        "ConfigController.saveStore",
+    ),
+    (
+        "POST",
+        "/setting/config/saveDingConfig",
+        "ConfigController.saveDingConfig",
+    ),
+    (
+        "POST",
+        "/setting/config/saveWXWorkConfig",
+        "ConfigController.saveWXWorkConfig",
+    ),
+    (
+        "GET",
+        "/setting/config/getDingConfig",
+        "ConfigController.getDingConfig",
+    ),
+    (
+        "GET",
+        "/setting/config/getWXWorkConfig",
+        "ConfigController.getWXWorkConfig",
+    ),
+    (
+        "GET",
+        "/setting/config/getCashierOrderSettings",
+        "ConfigController.getCashierOrderSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveCashierOrderSettings",
+        "ConfigController.saveCashierOrderSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/stripeSettings",
+        "ConfigController.getStripeSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveStripe",
+        "ConfigController.saveStripeSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/xenditSettings",
+        "ConfigController.getXenditSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveXendit",
+        "ConfigController.saveXenditSettings",
+    ),
+    (
+        "GET",
+        "/setting/config/antomSettings",
+        "ConfigController.getAntomSettings",
+    ),
+    (
+        "POST",
+        "/setting/config/saveAntom",
+        "ConfigController.saveAntomSettings",
+    ),
 ];
 
 /// 查询参数（`getBase?code=` / `getLoginProtocolContent?code=` / `sendTestEmail?testMailAddress=`）。
@@ -199,9 +627,7 @@ async fn all_schemas() -> ApiResult<serde_json::Value> {
 }
 
 /// `GET /adminapi/setting/config/schema/detail?path=`：导出单个端点的表单 Schema。
-async fn single_schema(
-    Query(q): Query<PathQuery>,
-) -> ApiResult<serde_json::Value> {
+async fn single_schema(Query(q): Query<PathQuery>) -> ApiResult<serde_json::Value> {
     let spec = tigshop_core::models::system::config_basic::find_endpoint(&q.path)
         .ok_or_else(|| AppError(tigshop_core::Error::biz(404, "端点不存在")))?;
     ok(tigshop_core::models::system::config_basic::endpoint_form_schema(spec))
@@ -230,9 +656,11 @@ fn register(router: Router<AdminState>, ep: &'static EndpointSpec) -> Router<Adm
     match (ep.verb, ep.kind) {
         (Verb::Get, _) => router.route(
             ep.path,
-            get(move |State(state): State<AdminState>, Query(q): Query<CodeQuery>| async move {
-                get_endpoint(state, ep, q.code).await
-            }),
+            get(
+                move |State(state): State<AdminState>, Query(q): Query<CodeQuery>| async move {
+                    get_endpoint(state, ep, q.code).await
+                },
+            ),
         ),
         (Verb::Post, kind) if kind.has_json_body() => router.route(
             ep.path,
@@ -311,11 +739,11 @@ async fn upload_config_file(
     Query(q): Query<UploadFileQuery>,
     mut multipart: Multipart,
 ) -> ApiResult<String> {
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e| AppError(tigshop_core::Error::Validation(format!("解析上传表单失败: {e}"))))?
-    {
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        AppError(tigshop_core::Error::Validation(format!(
+            "解析上传表单失败: {e}"
+        )))
+    })? {
         if field.name() != Some("file") {
             continue;
         }
@@ -323,10 +751,16 @@ async fn upload_config_file(
         let bytes = field
             .bytes()
             .await
-            .map_err(|e| AppError(tigshop_core::Error::Validation(format!("读取上传文件失败: {e}"))))?
+            .map_err(|e| {
+                AppError(tigshop_core::Error::Validation(format!(
+                    "读取上传文件失败: {e}"
+                )))
+            })?
             .to_vec();
         if bytes.is_empty() {
-            return Err(AppError(tigshop_core::Error::Validation("文件不能为空".into())));
+            return Err(AppError(tigshop_core::Error::Validation(
+                "文件不能为空".into(),
+            )));
         }
         let stored = if let Some(pem) = pem_file_name(q.file_type) {
             pem.to_string()
@@ -347,7 +781,9 @@ async fn upload_config_file(
             .map_err(AppError)?;
         return ok(url);
     }
-    Err(AppError(tigshop_core::Error::Validation("文件不能为空".into())))
+    Err(AppError(tigshop_core::Error::Validation(
+        "文件不能为空".into(),
+    )))
 }
 
 /// `POST /adminapi/setting/config/sendTestEmail?testMailAddress=`：发送测试邮件。
@@ -440,7 +876,10 @@ mod tests {
             ("POST", "/adminapi/setting/config/saveSearchStyle"),
             ("GET", "/adminapi/setting/config/mobileSearchStyleSettings"),
             ("POST", "/adminapi/setting/config/saveMobileSearchStyle"),
-            ("GET", "/adminapi/setting/config/memberCenterDecorateSettings"),
+            (
+                "GET",
+                "/adminapi/setting/config/memberCenterDecorateSettings",
+            ),
             ("POST", "/adminapi/setting/config/saveMemberCenterDecorate"),
             ("GET", "/adminapi/setting/config/shopSettings"),
             ("POST", "/adminapi/setting/config/saveShop"),
@@ -464,7 +903,10 @@ mod tests {
             ("POST", "/adminapi/setting/config/saveWithdrawal"),
             ("GET", "/adminapi/setting/config/memberWithdrawalSettings"),
             ("POST", "/adminapi/setting/config/saveMemberWithdrawal"),
-            ("GET", "/adminapi/setting/config/commissionWithdrawalSettings"),
+            (
+                "GET",
+                "/adminapi/setting/config/commissionWithdrawalSettings",
+            ),
             ("POST", "/adminapi/setting/config/saveCommissionWithdrawal"),
             ("GET", "/adminapi/setting/config/storeSettings"),
             ("POST", "/adminapi/setting/config/saveStore"),

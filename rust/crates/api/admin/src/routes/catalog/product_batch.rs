@@ -29,7 +29,7 @@ use tigshop_core::models::catalog::product_batch::{
 };
 use tigshop_core::types::PageResult;
 use tigshop_openapi::RouteDoc;
-use tigshop_security::web::{ApiResult, AppError, ok};
+use tigshop_security::web::{ok, ApiResult, AppError};
 
 use crate::AdminState;
 
@@ -80,10 +80,25 @@ async fn product_batch_deal(
 ) -> std::result::Result<axum::response::Response, AppError> {
     let rows = state.catalog.product_batch.product_batch_deal(&q).await?;
     let headers = [
-        "商品编码", "商品名称", "商品图片", "商品分类", "配送方式", "快递运费模板",
-        "是否上架（默认1）", "商品规格", "商品规格图", "规格编码", "规格条码",
-        "商品详情图", "商品售价", "库存", "市场价", "商品条码", "搜索关键词",
-        "商品描述", "成本价",
+        "商品编码",
+        "商品名称",
+        "商品图片",
+        "商品分类",
+        "配送方式",
+        "快递运费模板",
+        "是否上架（默认1）",
+        "商品规格",
+        "商品规格图",
+        "规格编码",
+        "规格条码",
+        "商品详情图",
+        "商品售价",
+        "库存",
+        "市场价",
+        "商品条码",
+        "搜索关键词",
+        "商品描述",
+        "成本价",
     ];
     let data: Vec<Vec<String>> = rows
         .iter()
@@ -112,7 +127,10 @@ async fn product_batch_deal(
         })
         .collect();
     let bytes = tigshop_services::system::excel::build_xlsx(&headers, &data, "商品导出")?;
-    Ok(crate::support::excel_response::xlsx_response(bytes, "products.xlsx"))
+    Ok(crate::support::excel_response::xlsx_response(
+        bytes,
+        "products.xlsx",
+    ))
 }
 
 /// `GET /adminapi/product/productBatch/productService/list`：商品服务分页。
@@ -161,7 +179,9 @@ mod tests {
         assert_eq!(registered.len(), ROUTE_TABLE.len());
         for (method, path) in registered {
             assert!(
-                ROUTE_TABLE.iter().any(|(m, p, _)| *m == method && *p == path),
+                ROUTE_TABLE
+                    .iter()
+                    .any(|(m, p, _)| *m == method && *p == path),
                 "{method} {path} 不在 ROUTE_TABLE 内"
             );
         }

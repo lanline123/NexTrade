@@ -205,7 +205,9 @@ fn validate_level_one(node: &WxMenuNodeDTO, idx: usize) -> Result<(), String> {
         return Err(format!("第 {pos} 个一级菜单名称不能为空"));
     }
     if byte_len_gbk(name) > MAX_TOP_NAME_BYTES {
-        return Err(format!("一级菜单「{name}」名称超过 {MAX_TOP_NAME_BYTES} 字节"));
+        return Err(format!(
+            "一级菜单「{name}」名称超过 {MAX_TOP_NAME_BYTES} 字节"
+        ));
     }
     if !node.children.is_empty() {
         // 一级有 children 时完全忽略 rule（Java 同义）
@@ -229,10 +231,14 @@ fn validate_level_two(node: &WxMenuNodeDTO, parent_name: &str, idx: usize) -> Re
     let pos = idx + 1;
     let name = node.name.as_deref().map(str::trim).unwrap_or("");
     if name.is_empty() {
-        return Err(format!("「{parent_name}」下第 {pos} 个二级菜单名称不能为空"));
+        return Err(format!(
+            "「{parent_name}」下第 {pos} 个二级菜单名称不能为空"
+        ));
     }
     if byte_len_gbk(name) > MAX_SUB_NAME_BYTES {
-        return Err(format!("二级菜单「{name}」名称超过 {MAX_SUB_NAME_BYTES} 字节"));
+        return Err(format!(
+            "二级菜单「{name}」名称超过 {MAX_SUB_NAME_BYTES} 字节"
+        ));
     }
     if !node.children.is_empty() {
         return Err(format!("二级菜单「{name}」不允许再含子菜单"));
@@ -244,7 +250,12 @@ fn validate_level_two(node: &WxMenuNodeDTO, parent_name: &str, idx: usize) -> Re
 }
 
 fn validate_rule(rule: &WxMenuRuleDTO, node_name: &str) -> Result<(), String> {
-    let Some(rule_type) = rule.r#type.as_deref().map(str::trim).filter(|s| !s.is_empty()) else {
+    let Some(rule_type) = rule
+        .r#type
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    else {
         return Err(format!("菜单「{node_name}」响应规则类型不能为空"));
     };
     match rule_type {
@@ -285,7 +296,12 @@ fn validate_rule(rule: &WxMenuRuleDTO, node_name: &str) -> Result<(), String> {
                             .map(str::trim)
                             .unwrap_or("")
                             .is_empty()
-                        || rule.news_url.as_deref().map(str::trim).unwrap_or("").is_empty()
+                        || rule
+                            .news_url
+                            .as_deref()
+                            .map(str::trim)
+                            .unwrap_or("")
+                            .is_empty()
                     {
                         return Err(format!(
                             "菜单「{node_name}」图文消息的标题、摘要、封面、链接均不能为空"
@@ -320,7 +336,13 @@ fn validate_rule(rule: &WxMenuRuleDTO, node_name: &str) -> Result<(), String> {
             }
         }
         "miniprogram" => {
-            if rule.appid.as_deref().map(str::trim).unwrap_or("").is_empty() {
+            if rule
+                .appid
+                .as_deref()
+                .map(str::trim)
+                .unwrap_or("")
+                .is_empty()
+            {
                 return Err(format!("菜单「{node_name}」小程序 appid 不能为空"));
             }
             if !is_page_path(rule.pagepath.as_deref()) {
@@ -328,7 +350,11 @@ fn validate_rule(rule: &WxMenuRuleDTO, node_name: &str) -> Result<(), String> {
                     "菜单「{node_name}」小程序路径必须形如 pages/xxx/xxx"
                 ));
             }
-            if let Some(url) = rule.miniprogram_url.as_deref().map(str::trim).filter(|s| !s.is_empty())
+            if let Some(url) = rule
+                .miniprogram_url
+                .as_deref()
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
             {
                 if !is_http_url(Some(url)) {
                     return Err(format!("菜单「{node_name}」备用网页必须是 http/https URL"));

@@ -204,12 +204,18 @@ mod tests {
     /// 等级名校验文案逐字符对齐 Java 注解。
     #[test]
     fn grade_name_validation_messages_are_verbatim() {
-        assert_eq!(validate_grade_name(None).unwrap_err(), MSG_GRADE_NAME_REQUIRED);
+        assert_eq!(
+            validate_grade_name(None).unwrap_err(),
+            MSG_GRADE_NAME_REQUIRED
+        );
         assert_eq!(
             validate_grade_name(Some("   ")).unwrap_err(),
             MSG_GRADE_NAME_REQUIRED
         );
-        assert_eq!(validate_grade_name(Some(" 一级批发商 ")).unwrap(), "一级批发商");
+        assert_eq!(
+            validate_grade_name(Some(" 一级批发商 ")).unwrap(),
+            "一级批发商"
+        );
         // 50 字合法（按字符数）
         assert!(validate_grade_name(Some(&"等".repeat(50))).is_ok());
         assert_eq!(

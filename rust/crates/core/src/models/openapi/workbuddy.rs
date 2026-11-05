@@ -690,9 +690,7 @@ pub fn key_unauthorized_message(status: Option<&WorkBuddyKeyStatusVO>) -> &str {
 /// 只校验有效性，**不**按 `requiredScope` 拦截。
 ///
 /// → 返回 401 文案或 `Ok(())`。
-pub fn require_valid_key(
-    status: Option<&WorkBuddyKeyStatusVO>,
-) -> Result<(), String> {
+pub fn require_valid_key(status: Option<&WorkBuddyKeyStatusVO>) -> Result<(), String> {
     if key_authorized(status) {
         Ok(())
     } else {
@@ -799,19 +797,17 @@ impl ProductScope {
             _ => return Some(Self::default_scope()),
         };
         let normalized = raw.trim().to_uppercase().replace('-', "_");
-        Self::all()
-            .into_iter()
-            .find(|s| {
-                let name = match s {
-                    Self::OnSale => "ON_SALE",
-                    Self::OffSale => "OFF_SALE",
-                    Self::PendingAudit => "PENDING_AUDIT",
-                    Self::AuditFailed => "AUDIT_FAILED",
-                    Self::Recycled => "RECYCLED",
-                    Self::All => "ALL",
-                };
-                name == normalized
-            })
+        Self::all().into_iter().find(|s| {
+            let name = match s {
+                Self::OnSale => "ON_SALE",
+                Self::OffSale => "OFF_SALE",
+                Self::PendingAudit => "PENDING_AUDIT",
+                Self::AuditFailed => "AUDIT_FAILED",
+                Self::Recycled => "RECYCLED",
+                Self::All => "ALL",
+            };
+            name == normalized
+        })
     }
 
     /// Java `ProductScope.supportedValues()`：
@@ -961,12 +957,14 @@ impl ProductSortField {
 /// **不**沿用底层「静默回退主键」的行为）。
 pub fn resolve_sort_field(raw: Option<&str>) -> Result<Option<ProductSortField>, String> {
     match raw {
-        Some(r) if !r.trim().is_empty() => ProductSortField::parse(Some(r)).map(Some).ok_or_else(|| {
-            format!(
-                "排序字段「{r}」不支持，可用的有：{}",
-                ProductSortField::supported_values()
-            )
-        }),
+        Some(r) if !r.trim().is_empty() => {
+            ProductSortField::parse(Some(r)).map(Some).ok_or_else(|| {
+                format!(
+                    "排序字段「{r}」不支持，可用的有：{}",
+                    ProductSortField::supported_values()
+                )
+            })
+        }
         _ => Ok(None),
     }
 }
@@ -1435,9 +1433,10 @@ pub fn max_product_name_length(configured: Option<&str>) -> i32 {
 #[must_use]
 pub fn market_price_rate(configured: Option<&str>) -> Decimal {
     match configured {
-        Some(raw) if !raw.trim().is_empty() => {
-            raw.trim().parse::<Decimal>().unwrap_or_else(|_| dec(DEFAULT_MARKET_PRICE_RATE_STR))
-        }
+        Some(raw) if !raw.trim().is_empty() => raw
+            .trim()
+            .parse::<Decimal>()
+            .unwrap_or_else(|_| dec(DEFAULT_MARKET_PRICE_RATE_STR)),
         _ => dec(DEFAULT_MARKET_PRICE_RATE_STR),
     }
 }
@@ -1500,7 +1499,9 @@ pub fn media_image_urls(media: &[ProductMediaDraftDTO]) -> Vec<String> {
         }
         let role_ok = match m.role.as_deref() {
             None => true,
-            Some(r) => r.eq_ignore_ascii_case("main_image") || r.eq_ignore_ascii_case("gallery_image"),
+            Some(r) => {
+                r.eq_ignore_ascii_case("main_image") || r.eq_ignore_ascii_case("gallery_image")
+            }
         };
         if !role_ok {
             continue;
@@ -1769,7 +1770,8 @@ pub fn suggestion(value: serde_json::Value, source: &str, confidence: f64) -> se
     );
     map.insert(
         "confidence".to_string(),
-        serde_json::Number::from_f64(confidence).map_or(serde_json::Value::Null, serde_json::Value::Number),
+        serde_json::Number::from_f64(confidence)
+            .map_or(serde_json::Value::Null, serde_json::Value::Number),
     );
     serde_json::Value::Object(map)
 }
@@ -2045,7 +2047,9 @@ pub struct MediaGroupVO {
 
 /// Java `McpMediaUploadServiceImpl.normalizePlatformShopId`：
 /// 允许 `None` / `0`；负数或非 0 报错。
-pub fn normalize_platform_shop_id(shop_id: Option<i32>) -> Result<i32, (&'static str, &'static str)> {
+pub fn normalize_platform_shop_id(
+    shop_id: Option<i32>,
+) -> Result<i32, (&'static str, &'static str)> {
     match shop_id {
         None | Some(0) => Ok(0),
         Some(s) if s < 0 => Err((CODE_INVALID_SHOP_ID, "shopId must be non-negative")),
@@ -2153,7 +2157,9 @@ pub fn signature_valid(b: &[u8], mime: &str) -> bool {
 /// 解析 `50MB` / `100KB` / `1GB` / 裸字节数；失败回落 50MB。
 #[must_use]
 pub fn parse_size_bytes(raw: Option<&str>) -> i64 {
-    let s = raw.unwrap_or(DEFAULT_MULTIPART_MAX_FILE_SIZE).to_uppercase();
+    let s = raw
+        .unwrap_or(DEFAULT_MULTIPART_MAX_FILE_SIZE)
+        .to_uppercase();
     let s = s.trim();
     let parsed = if let Some(v) = s.strip_suffix("GB") {
         v.trim().parse::<i64>().ok().map(|n| n * 1_073_741_824)
@@ -2499,7 +2505,11 @@ pub fn batch_fingerprint(op: &str, ids: &[i32]) -> String {
     sorted.sort_unstable();
     format!(
         "{op}:{}",
-        sorted.iter().map(i32::to_string).collect::<Vec<_>>().join(",")
+        sorted
+            .iter()
+            .map(i32::to_string)
+            .collect::<Vec<_>>()
+            .join(",")
     )
 }
 
@@ -2704,7 +2714,11 @@ pub fn sorted_by_text(field: ProductSortField, ascending: bool) -> String {
     format!(
         "按{}{}",
         field.label(),
-        if ascending { "从低到高" } else { "从高到低" }
+        if ascending {
+            "从低到高"
+        } else {
+            "从高到低"
+        }
     )
 }
 
@@ -2873,7 +2887,11 @@ fn flatten_inner(
         };
         let mut result = CategoryImportNodeResult {
             path: Some(path.clone()),
-            name: if name.is_empty() { None } else { Some(name.clone()) },
+            name: if name.is_empty() {
+                None
+            } else {
+                Some(name.clone())
+            },
             id: raw.id,
             has_children: !raw.children.is_empty(),
             leaf: raw.children.is_empty(),
@@ -2934,7 +2952,10 @@ pub fn category_item_map(
     retryable: bool,
 ) -> serde_json::Value {
     let mut map = serde_json::Map::new();
-    map.insert("path".to_string(), serde_json::Value::String(path.to_string()));
+    map.insert(
+        "path".to_string(),
+        serde_json::Value::String(path.to_string()),
+    );
     map.insert("success".to_string(), serde_json::Value::Bool(success));
     if let Some(id) = id {
         map.insert("categoryId".to_string(), serde_json::Value::from(id));
@@ -3225,11 +3246,15 @@ mod tests {
 
         // 1) key 或 expected 空白
         assert_eq!(
-            evaluate_key_status(None, Some("k"), Some("1800000000"), now).message.as_deref(),
+            evaluate_key_status(None, Some("k"), Some("1800000000"), now)
+                .message
+                .as_deref(),
             Some(MSG_KEY_MISSING)
         );
         assert_eq!(
-            evaluate_key_status(Some("k"), None, Some("1800000000"), now).message.as_deref(),
+            evaluate_key_status(Some("k"), None, Some("1800000000"), now)
+                .message
+                .as_deref(),
             Some(MSG_KEY_MISSING)
         );
         assert_eq!(
@@ -3310,10 +3335,7 @@ mod tests {
         // 同一个有效密钥对任意 scope 都放行（Java 的 requiredScope 仅保留签名）
         assert!(require_valid_key(Some(&ok)).is_ok());
         assert!(require_valid_key(None).is_err());
-        assert_eq!(
-            require_valid_key(None).unwrap_err(),
-            MSG_KEY_INVALID
-        );
+        assert_eq!(require_valid_key(None).unwrap_err(), MSG_KEY_INVALID);
     }
 
     /// Java 401 文案兜底：message 为空时用「MCP密钥无效」。
@@ -3649,7 +3671,10 @@ mod tests {
         );
         assert_eq!(normalize_batch_operation(Some(" UP ")).unwrap(), "up");
         assert_eq!(normalize_batch_operation(Some("Del")).unwrap(), "del");
-        assert_eq!(normalize_batch_operation(Some("restore")).unwrap(), "restore");
+        assert_eq!(
+            normalize_batch_operation(Some("restore")).unwrap(),
+            "restore"
+        );
     }
 
     /// ids 空 ⇒ EMPTY_PRODUCT_IDS；去 null 去重且保序。
@@ -3762,9 +3787,7 @@ mod tests {
             "商品名称、商品货号、价格、库存、多规格库存、排序值"
         );
         let err = require_editable_field("isDelete").unwrap_err();
-        assert!(err.starts_with(
-            "这里只能改：商品名称、商品货号、价格、库存、多规格库存、排序值。"
-        ));
+        assert!(err.starts_with("这里只能改：商品名称、商品货号、价格、库存、多规格库存、排序值。"));
         assert!(err.ends_with("上下架、移入回收站、还原和删除各有专门的操作。"));
         assert_eq!(require_editable_field("productPrice").unwrap(), "价格");
     }
@@ -3932,7 +3955,9 @@ mod tests {
         );
         // 空白 keyword 等同未提供
         assert_eq!(
-            validate_context_params(Some("   "), None, None).unwrap_err().0,
+            validate_context_params(Some("   "), None, None)
+                .unwrap_err()
+                .0,
             CODE_MISSING_FILTER
         );
         assert_eq!(
@@ -3944,11 +3969,15 @@ mod tests {
             CODE_INVALID_CATEGORY_ID
         );
         assert_eq!(
-            validate_context_params(None, Some(1), Some(0)).unwrap_err().0,
+            validate_context_params(None, Some(1), Some(0))
+                .unwrap_err()
+                .0,
             CODE_INVALID_SAMPLE_SIZE
         );
         assert_eq!(
-            validate_context_params(None, Some(1), Some(101)).unwrap_err().0,
+            validate_context_params(None, Some(1), Some(101))
+                .unwrap_err()
+                .0,
             CODE_INVALID_SAMPLE_SIZE
         );
         // 边界 1 / 100 合法
@@ -3981,10 +4010,7 @@ mod tests {
             Some(d("2"))
         );
         assert_eq!(price_median(&[d("1.00"), d("2.00")]), Some(d("1.5")));
-        assert_eq!(
-            price_median(&[d("10.00"), d("10.01")]),
-            Some(d("10.005"))
-        );
+        assert_eq!(price_median(&[d("10.00"), d("10.01")]), Some(d("10.005")));
         // 奇数个保持原值（去尾零）
         assert_eq!(price_median(&[d("9.90")]), Some(d("9.9")));
     }
@@ -4318,7 +4344,10 @@ mod tests {
     /// 魔数校验（PNG / JPEG / GIF / WEBP / TIFF / MP4）。
     #[test]
     fn signature_matrix() {
-        assert!(signature_valid(&[137, 80, 78, 71, 13, 10, 26, 10], "image/png"));
+        assert!(signature_valid(
+            &[137, 80, 78, 71, 13, 10, 26, 10],
+            "image/png"
+        ));
         assert!(!signature_valid(&[137, 80, 78], "image/png"));
         assert!(signature_valid(&[255, 216, 255, 0], "image/jpeg"));
         assert!(!signature_valid(&[255, 216], "image/jpeg"));
@@ -4970,15 +4999,9 @@ mod tests {
         let v = capabilities_skeleton();
         assert_eq!(v["version"], "1.1");
         assert_eq!(v["supportedIntents"].as_array().unwrap().len(), 6);
-        assert_eq!(
-            v["supportedIntents"][0],
-            "create_product"
-        );
+        assert_eq!(v["supportedIntents"][0], "create_product");
         assert_eq!(v["product"]["maxBatchProducts"], 50);
-        assert_eq!(
-            v["product"]["createRequired"][3],
-            "categoryId|categoryName"
-        );
+        assert_eq!(v["product"]["createRequired"][3], "categoryId|categoryName");
         assert_eq!(v["product"]["confirmationFlow"][0], "prepare.validate");
         assert_eq!(v["unsupported"][0], "external_market_data");
     }

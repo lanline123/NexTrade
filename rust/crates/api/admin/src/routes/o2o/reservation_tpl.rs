@@ -53,7 +53,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 6] = [
         "/o2o/reservationTpl/update",
         "ReservationTplController.update",
     ),
-    ("POST", "/o2o/reservationTpl/del", "ReservationTplController.del"),
+    (
+        "POST",
+        "/o2o/reservationTpl/del",
+        "ReservationTplController.del",
+    ),
 ];
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {

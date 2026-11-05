@@ -423,10 +423,8 @@ mod tests {
         )
         .is_err());
         // 三者齐备、shopTitle/type 缺失 → 合法（Java 侧无 @NotNull）
-        let ok: MerchantApplyApplyParam = serde_json::from_str(
-            r#"{"baseData":{},"merchantData":{},"shopData":{}}"#,
-        )
-        .unwrap();
+        let ok: MerchantApplyApplyParam =
+            serde_json::from_str(r#"{"baseData":{},"merchantData":{},"shopData":{}}"#).unwrap();
         assert!(ok.shop_title.is_none());
         assert!(ok.r#type.is_none());
     }
@@ -460,7 +458,10 @@ mod tests {
         assert_eq!(param.shop_title.as_deref(), Some("测试店"));
         assert_eq!(param.r#type, Some(2));
         assert_eq!(param.base_data.company_name.as_deref(), Some("某某公司"));
-        assert_eq!(param.base_data.license_addr_province, vec![110_000, 110_100]);
+        assert_eq!(
+            param.base_data.license_addr_province,
+            vec![110_000, 110_100]
+        );
         assert_eq!(
             param.merchant_data.contact_phone.as_deref(),
             Some("13800008000")

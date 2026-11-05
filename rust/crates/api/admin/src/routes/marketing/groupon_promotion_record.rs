@@ -16,20 +16,46 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 5] = [
-    ("GET", "/promotion/groupon/record/openJoinList", "GrouponPromotionRecordController.openJoinList"),
-    ("GET", "/promotion/groupon/record/orderList", "GrouponPromotionRecordController.orderList"),
-    ("GET", "/promotion/groupon/record/groupMemberList", "GrouponPromotionRecordController.groupMemberList"),
-    ("POST", "/promotion/groupon/record/manualGroup", "GrouponPromotionRecordController.manualGroup"),
-    ("POST", "/promotion/groupon/record/batchGroup", "GrouponPromotionRecordController.batchManualGroup"),
+    (
+        "GET",
+        "/promotion/groupon/record/openJoinList",
+        "GrouponPromotionRecordController.openJoinList",
+    ),
+    (
+        "GET",
+        "/promotion/groupon/record/orderList",
+        "GrouponPromotionRecordController.orderList",
+    ),
+    (
+        "GET",
+        "/promotion/groupon/record/groupMemberList",
+        "GrouponPromotionRecordController.groupMemberList",
+    ),
+    (
+        "POST",
+        "/promotion/groupon/record/manualGroup",
+        "GrouponPromotionRecordController.manualGroup",
+    ),
+    (
+        "POST",
+        "/promotion/groupon/record/batchGroup",
+        "GrouponPromotionRecordController.batchManualGroup",
+    ),
 ];
 
 /// 拼团活动记录域路由（挂载于 `/adminapi` 下，外层 `require_auth`）。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
-        .route("/promotion/groupon/record/openJoinList", get(open_join_list))
+        .route(
+            "/promotion/groupon/record/openJoinList",
+            get(open_join_list),
+        )
         .route("/promotion/groupon/record/orderList", get(order_list))
-        .route("/promotion/groupon/record/groupMemberList", get(group_member_list))
+        .route(
+            "/promotion/groupon/record/groupMemberList",
+            get(group_member_list),
+        )
         .route("/promotion/groupon/record/manualGroup", post(manual_group))
         .route("/promotion/groupon/record/batchGroup", post(batch_group))
 }
@@ -47,36 +73,53 @@ async fn open_join_list(
     State(state): State<AdminState>,
     Query(q): Query<OpenJoinListQuery>,
 ) -> ApiResult<PageResult<GrouponRecordOpenJonPageVO>> {
-    ok(state.marketing.groupon_promotion_record.open_join_list(&q).await?)
+    ok(state
+        .marketing
+        .groupon_promotion_record
+        .open_join_list(&q)
+        .await?)
 }
 
 async fn order_list(
     State(state): State<AdminState>,
     Query(q): Query<OrderListQuery>,
 ) -> ApiResult<PageResult<GrouponRecordOrderPageVO>> {
-    ok(state.marketing.groupon_promotion_record.order_list(&q).await?)
+    ok(state
+        .marketing
+        .groupon_promotion_record
+        .order_list(&q)
+        .await?)
 }
 
 async fn group_member_list(
     State(state): State<AdminState>,
     Query(q): Query<GroupMemberQuery>,
 ) -> ApiResult<Vec<GrouponRecordOpenJoinMemberVO>> {
-    ok(state.marketing.groupon_promotion_record.group_member_list(&q).await?)
+    ok(state
+        .marketing
+        .groupon_promotion_record
+        .group_member_list(&q)
+        .await?)
 }
 
 async fn manual_group(
     State(state): State<AdminState>,
     Query(q): Query<ManualGroupQuery>,
 ) -> ApiResult<()> {
-    state.marketing.groupon_promotion_record.manual_group(&q).await?;
+    state
+        .marketing
+        .groupon_promotion_record
+        .manual_group(&q)
+        .await?;
     ok(())
 }
 
-async fn batch_group(
-    State(state): State<AdminState>,
-    Json(ids): Json<Vec<i64>>,
-) -> ApiResult<()> {
-    state.marketing.groupon_promotion_record.batch_group(&ids).await?;
+async fn batch_group(State(state): State<AdminState>, Json(ids): Json<Vec<i64>>) -> ApiResult<()> {
+    state
+        .marketing
+        .groupon_promotion_record
+        .batch_group(&ids)
+        .await?;
     ok(())
 }
 

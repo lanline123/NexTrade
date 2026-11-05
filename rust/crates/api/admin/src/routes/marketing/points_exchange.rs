@@ -8,8 +8,8 @@ use axum::{
 };
 use serde::Deserialize;
 use tigshop_core::models::marketing::points_exchange::{
-    BatchDTO, OperateDTO, PointsExchangeCreateDTO, PointsExchangeListQuery, PointsExchangeUpdateDTO,
-    PointsExchangeVO, UpdateFieldDTO,
+    BatchDTO, OperateDTO, PointsExchangeCreateDTO, PointsExchangeListQuery,
+    PointsExchangeUpdateDTO, PointsExchangeVO, UpdateFieldDTO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
@@ -17,13 +17,41 @@ use tigshop_security::web::{ok, ApiResult};
 use crate::AdminState;
 
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
-    ("GET", "/promotion/pointsExchange/list", "PointsExchangeController.list"),
-    ("GET", "/promotion/pointsExchange/detail", "PointsExchangeController.detail"),
-    ("POST", "/promotion/pointsExchange/create", "PointsExchangeController.create"),
-    ("POST", "/promotion/pointsExchange/update", "PointsExchangeController.update"),
-    ("POST", "/promotion/pointsExchange/del", "PointsExchangeController.del"),
-    ("POST", "/promotion/pointsExchange/updateField", "PointsExchangeController.updateField"),
-    ("POST", "/promotion/pointsExchange/batch", "PointsExchangeController.batch"),
+    (
+        "GET",
+        "/promotion/pointsExchange/list",
+        "PointsExchangeController.list",
+    ),
+    (
+        "GET",
+        "/promotion/pointsExchange/detail",
+        "PointsExchangeController.detail",
+    ),
+    (
+        "POST",
+        "/promotion/pointsExchange/create",
+        "PointsExchangeController.create",
+    ),
+    (
+        "POST",
+        "/promotion/pointsExchange/update",
+        "PointsExchangeController.update",
+    ),
+    (
+        "POST",
+        "/promotion/pointsExchange/del",
+        "PointsExchangeController.del",
+    ),
+    (
+        "POST",
+        "/promotion/pointsExchange/updateField",
+        "PointsExchangeController.updateField",
+    ),
+    (
+        "POST",
+        "/promotion/pointsExchange/batch",
+        "PointsExchangeController.batch",
+    ),
 ];
 
 pub fn routes(state: &AdminState) -> Router<AdminState> {
@@ -59,7 +87,10 @@ async fn list(
     ok(state.marketing.points_exchange.list(&q).await?)
 }
 
-async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<PointsExchangeVO> {
+async fn detail(
+    State(state): State<AdminState>,
+    Query(q): Query<IdQuery>,
+) -> ApiResult<PointsExchangeVO> {
     ok(state.marketing.points_exchange.detail(q.id).await?)
 }
 
@@ -121,6 +152,8 @@ mod tests {
     #[test]
     fn route_table_matches_registrations() {
         assert_eq!(ROUTE_TABLE.len(), 7);
-        assert!(ROUTE_TABLE.iter().all(|(_, p, _)| p.starts_with("/promotion/pointsExchange/")));
+        assert!(ROUTE_TABLE
+            .iter()
+            .all(|(_, p, _)| p.starts_with("/promotion/pointsExchange/")));
     }
 }

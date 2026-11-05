@@ -62,11 +62,7 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/im/config/config/detail",
             "IMConfigController.detail",
         ),
-        (
-            "POST",
-            "/im/config/config/save",
-            "IMConfigController.save",
-        ),
+        ("POST", "/im/config/config/save", "IMConfigController.save"),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))

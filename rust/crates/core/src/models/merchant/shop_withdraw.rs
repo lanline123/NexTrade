@@ -1,4 +1,4 @@
-﻿//! 商家提现（`merchant::shop_withdraw`）DTO / VO / 纯函数。
+//! 商家提现（`merchant::shop_withdraw`）DTO / VO / 纯函数。
 //!
 //! 对应原 Java：
 //! - `com.tigshop.adminapi.controller.shop.ShopWithdrawController`
@@ -263,7 +263,10 @@ mod tests {
         assert!(parse_date_start("2026-10-18") < parse_date_end("2026-10-18"));
         assert!(parse_date_start("not-a-date").is_none());
         assert!(parse_date_start("").is_none());
-        assert_eq!(resolve_summary_sort_column(Some("shopTitle")), "t.shop_title");
+        assert_eq!(
+            resolve_summary_sort_column(Some("shopTitle")),
+            "t.shop_title"
+        );
         assert_eq!(
             resolve_summary_sort_column(Some("pendingWithdrawAmount")),
             "pending_withdraw_amount"

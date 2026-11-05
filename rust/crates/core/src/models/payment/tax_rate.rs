@@ -482,7 +482,10 @@ mod tests {
     fn default_order_when_sort_field_blank() {
         let q = TaxRateListQuery::default();
         assert!(q.uses_default_order());
-        assert_eq!(default_order_clause(), " ORDER BY is_active DESC, create_time DESC");
+        assert_eq!(
+            default_order_clause(),
+            " ORDER BY is_active DESC, create_time DESC"
+        );
     }
 
     /// 属性名与列名都要能映射到真实列。
@@ -632,11 +635,17 @@ mod tests {
         assert_eq!(format_timestamp_secs(Some(0)), "");
         assert_eq!(format_timestamp_secs(Some(-1)), "");
         // 1700000000 = 2023-11-14 22:13:20 UTC → +8h = 2023-11-15 06:13:20
-        assert_eq!(format_timestamp_secs(Some(1_700_000_000)), "2023-11-15 06:13:20");
+        assert_eq!(
+            format_timestamp_secs(Some(1_700_000_000)),
+            "2023-11-15 06:13:20"
+        );
         // 边界：1970-01-01 00:00:01 UTC → 1970-01-01 08:00:01 (+08:00)
         assert_eq!(format_timestamp_secs(Some(1)), "1970-01-01 08:00:01");
         // 闰年 2024-02-29（UTC 2024-02-29 04:00:00 → +8h 同日 12:00）
-        assert_eq!(format_timestamp_secs(Some(1_709_179_200)), "2024-02-29 12:00:00");
+        assert_eq!(
+            format_timestamp_secs(Some(1_709_179_200)),
+            "2024-02-29 12:00:00"
+        );
     }
 
     /// VO 与实体同名映射；时间字段是**格式化字符串**而不是数字。

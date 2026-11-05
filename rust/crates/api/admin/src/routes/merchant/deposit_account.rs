@@ -22,16 +22,36 @@ use crate::AdminState;
 
 /// 本域 8 条路由。
 const ROUTE_TABLE: [(&str, &str, &str); 8] = [
-    ("GET", "/deposit/account/list", "DepositAccountController.list"),
-    ("GET", "/deposit/account/detail", "DepositAccountController.detail"),
-    ("GET", "/deposit/account/logList", "DepositAccountController.logList"),
+    (
+        "GET",
+        "/deposit/account/list",
+        "DepositAccountController.list",
+    ),
+    (
+        "GET",
+        "/deposit/account/detail",
+        "DepositAccountController.detail",
+    ),
+    (
+        "GET",
+        "/deposit/account/logList",
+        "DepositAccountController.logList",
+    ),
     (
         "GET",
         "/deposit/account/adjustLogList",
         "DepositAccountController.adjustLogList",
     ),
-    ("POST", "/deposit/account/adjust", "DepositAccountController.adjust"),
-    ("POST", "/deposit/account/deduct", "DepositAccountController.deduct"),
+    (
+        "POST",
+        "/deposit/account/adjust",
+        "DepositAccountController.adjust",
+    ),
+    (
+        "POST",
+        "/deposit/account/deduct",
+        "DepositAccountController.deduct",
+    ),
     (
         "POST",
         "/deposit/account/sendWarning",

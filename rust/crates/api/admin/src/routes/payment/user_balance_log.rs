@@ -56,7 +56,8 @@ const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
 /// 循环拼接会让覆盖率统计看不见这条路由。
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
-    Router::new().route("/finance/userBalanceLog/list", get(user_balance_log_list))
+    Router::new()
+        .route("/finance/userBalanceLog/list", get(user_balance_log_list))
         .layer(axum::middleware::from_fn(platform_only))
 }
 

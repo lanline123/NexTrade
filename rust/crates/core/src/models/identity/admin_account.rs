@@ -137,7 +137,10 @@ pub const MSG_ADMIN_DATA_REQUIRED: &str = "管理员信息（adminData）不能�
 /// **只接受**这三个值；`vendor` 会走「类型参数错误」分支（尽管文案写着支持 vendor）。
 #[must_use]
 pub fn is_shop_like_type(kind: &str) -> bool {
-    matches!(kind, admin_type::SHOP | admin_type::STORE | admin_type::PICKUP)
+    matches!(
+        kind,
+        admin_type::SHOP | admin_type::STORE | admin_type::PICKUP
+    )
 }
 
 /// 店铺类型 → 后台管理员类型（Java `AdminTypeEnum.resolveCodeByShopType`）。
@@ -245,9 +248,7 @@ impl ShopOrVendorPageParam {
     /// 有效关键词（Java `StrUtil.isNotBlank(keyword)`，`LIKE` 用原始值不 trim）。
     #[must_use]
     pub fn effective_keyword(&self) -> Option<&str> {
-        self.keyword
-            .as_deref()
-            .filter(|kw| !kw.trim().is_empty())
+        self.keyword.as_deref().filter(|kw| !kw.trim().is_empty())
     }
 }
 
@@ -522,10 +523,9 @@ mod tests {
 
     #[test]
     fn bind_param_accepts_java_field_names() {
-        let p: ShopOrVendorBindParam = serde_json::from_str(
-            r#"{"id":9,"type":"shop","adminData":{"type":1,"userId":7}}"#,
-        )
-        .unwrap();
+        let p: ShopOrVendorBindParam =
+            serde_json::from_str(r#"{"id":9,"type":"shop","adminData":{"type":1,"userId":7}}"#)
+                .unwrap();
         assert_eq!(p.id, Some(9));
         assert_eq!(p.r#type.as_deref(), Some("shop"));
         let info = p.admin_data.unwrap();

@@ -438,7 +438,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（Java `@NotNull(message = FIELD_NAME_CANNOT_BE_NULL)`）
     pub field: Option<String>,
     /// 值（Java `@NotNull(message = FIELD_VALUE_CANNOT_BE_NULL)`，字符串绑定）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 

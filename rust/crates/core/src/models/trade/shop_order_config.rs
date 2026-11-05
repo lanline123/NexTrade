@@ -1,4 +1,4 @@
-﻿//! 店铺订单配置域（trade::shop_order_config）DTO / 纯函数。
+//! 店铺订单配置域（trade::shop_order_config）DTO / 纯函数。
 //!
 //! 对应原 Java `com.tigshop.adminapi.controller.order.ShopOrderConfigController`
 //! （`/adminapi/order/config`，2 个端点）+ `OrderConfigServiceImpl`。
@@ -73,10 +73,22 @@ mod tests {
 
     #[test]
     fn validations_match_java_required_params() {
-        assert_eq!(validate_detail(None, Some("x")).unwrap_err(), MSG_SHOP_ID_REQUIRED);
-        assert_eq!(validate_detail(Some(0), Some("x")).unwrap_err(), MSG_SHOP_ID_REQUIRED);
-        assert_eq!(validate_detail(Some(1), None).unwrap_err(), MSG_CODE_REQUIRED);
-        assert_eq!(validate_detail(Some(1), Some(" ")).unwrap_err(), MSG_CODE_REQUIRED);
+        assert_eq!(
+            validate_detail(None, Some("x")).unwrap_err(),
+            MSG_SHOP_ID_REQUIRED
+        );
+        assert_eq!(
+            validate_detail(Some(0), Some("x")).unwrap_err(),
+            MSG_SHOP_ID_REQUIRED
+        );
+        assert_eq!(
+            validate_detail(Some(1), None).unwrap_err(),
+            MSG_CODE_REQUIRED
+        );
+        assert_eq!(
+            validate_detail(Some(1), Some(" ")).unwrap_err(),
+            MSG_CODE_REQUIRED
+        );
         assert!(validate_detail(Some(1), Some("order")).is_ok());
     }
 
@@ -89,7 +101,10 @@ mod tests {
             use_day: Some("7".into()),
         };
         let json = build_config_json(&dto);
-        assert_eq!(json, r#"{"code":"order","dateType":1,"shopId":2,"useDay":"7"}"#);
+        assert_eq!(
+            json,
+            r#"{"code":"order","dateType":1,"shopId":2,"useDay":"7"}"#
+        );
         let empty = build_config_json(&OrderConfigDTO::default());
         assert_eq!(empty, "{}");
         let parsed = parse_config_json(Some(&json)).unwrap();

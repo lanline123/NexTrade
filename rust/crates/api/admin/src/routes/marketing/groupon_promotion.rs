@@ -93,7 +93,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/promotion/groupon/del", post(del))
         .route("/promotion/groupon/detail", get(detail))
         .route("/promotion/groupon/list", get(list))
-        .route("/promotion/groupon/promotionPromote", get(promotion_promote))
+        .route(
+            "/promotion/groupon/promotionPromote",
+            get(promotion_promote),
+        )
         .route("/promotion/groupon/clientList", get(client_list))
 }
 
@@ -118,9 +121,7 @@ fn shop_id_from_headers(headers: &HeaderMap) -> Option<i32> {
     };
     match header_str("x-admin-type").as_deref() {
         Some("admin") => Some(0),
-        Some("shop" | "pos") => {
-            header_str("x-shop-id").and_then(|v| v.trim().parse::<i32>().ok())
-        }
+        Some("shop" | "pos") => header_str("x-shop-id").and_then(|v| v.trim().parse::<i32>().ok()),
         _ => None,
     }
 }
@@ -151,10 +152,7 @@ async fn update(
 }
 
 /// `POST /adminapi/promotion/groupon/finish`：立即结束。
-async fn finish(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<()> {
+async fn finish(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<()> {
     state.marketing.groupon_promotion.finish(&dto).await?;
     ok(())
 }
@@ -170,11 +168,11 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<GrouponPromotionIdQuery>,
 ) -> ApiResult<tigshop_core::models::marketing::groupon_promotion::GrouponPromotionDetailVO> {
-    let id = q
-        .groupon_promotion_id
-        .ok_or_else(|| tigshop_security::web::AppError(tigshop_core::Error::Validation(
+    let id = q.groupon_promotion_id.ok_or_else(|| {
+        tigshop_security::web::AppError(tigshop_core::Error::Validation(
             "grouponPromotionId不能为空".into(),
-        )))?;
+        ))
+    })?;
     ok(state.marketing.groupon_promotion.detail(id).await?)
 }
 
@@ -193,11 +191,11 @@ async fn promotion_promote(
     State(state): State<AdminState>,
     Query(q): Query<GrouponPromotionIdQuery>,
 ) -> ApiResult<tigshop_core::models::marketing::groupon_promotion::GrouponPostVO> {
-    let id = q
-        .groupon_promotion_id
-        .ok_or_else(|| tigshop_security::web::AppError(tigshop_core::Error::Validation(
+    let id = q.groupon_promotion_id.ok_or_else(|| {
+        tigshop_security::web::AppError(tigshop_core::Error::Validation(
             "grouponPromotionId不能为空".into(),
-        )))?;
+        ))
+    })?;
     ok(state.marketing.groupon_promotion.post(id).await?)
 }
 

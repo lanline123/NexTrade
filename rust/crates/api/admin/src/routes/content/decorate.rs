@@ -27,9 +27,9 @@ use serde::Deserialize;
 use tigshop_core::models::content::decorate::{
     DecorateCreateDTO, DecorateDiscreteUpdateParam, DecorateDiscreteVO, DecorateListQuery,
     DecorateMemberDataVO, DecorateSaveDTO, DecorateShareInfoDTO, DecorateShareInfoVO,
-    DecorateShareListQuery, DecorateShareVO, DecorateUpdateDTO, DecorateVO,
-    PcCatFloorCreateDTO, PcCatFloorListQuery, PcCatFloorUpdateDTO, PcCatFloorVO, PcNavTreeVO,
-    PcNavigationCreateDTO, PcNavigationListQuery, PcNavigationUpdateDTO, PcNavigationVO,
+    DecorateShareListQuery, DecorateShareVO, DecorateUpdateDTO, DecorateVO, PcCatFloorCreateDTO,
+    PcCatFloorListQuery, PcCatFloorUpdateDTO, PcCatFloorVO, PcNavTreeVO, PcNavigationCreateDTO,
+    PcNavigationListQuery, PcNavigationUpdateDTO, PcNavigationVO,
 };
 use tigshop_core::models::{BatchDTO, OperateDTO, UpdateFieldDTO};
 use tigshop_core::types::PageResult;
@@ -50,14 +50,23 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
             post(decorate_update_custom),
         )
         .route("/decorate/decorate/del", post(decorate_del))
-        .route("/decorate/decorate/updateField", post(decorate_update_field))
+        .route(
+            "/decorate/decorate/updateField",
+            post(decorate_update_field),
+        )
         .route("/decorate/decorate/batch", post(decorate_batch))
         .route("/decorate/decorate/copy", post(decorate_copy))
         .route("/decorate/decorate/setHome", post(decorate_set_home))
         .route("/decorate/decorate/saveDraft", post(decorate_save_draft))
         .route("/decorate/decorate/publish", post(decorate_publish))
-        .route("/decorate/decorate/loadDraftData", get(decorate_load_draft_data))
-        .route("/decorate/decorate/getH5DecorateList", get(decorate_h5_list))
+        .route(
+            "/decorate/decorate/loadDraftData",
+            get(decorate_load_draft_data),
+        )
+        .route(
+            "/decorate/decorate/getH5DecorateList",
+            get(decorate_h5_list),
+        )
         .route(
             "/decorate/decorate/getCustomDecorateList",
             get(decorate_custom_list),
@@ -70,7 +79,10 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
             "/decorate/decorate/bindingCustomDecorate",
             post(decorate_binding_custom),
         )
-        .route("/decorate/decorate/cancelBinding", post(decorate_cancel_binding))
+        .route(
+            "/decorate/decorate/cancelBinding",
+            post(decorate_cancel_binding),
+        )
         // PC 导航 PcNavigationController
         .route("/decorate/pcNavigation/list", get(nav_list))
         .route("/decorate/pcNavigation/detail", get(nav_detail))
@@ -106,12 +118,18 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
         .route("/decorate/decorateShare/create", post(share_create))
         .route("/decorate/decorateShare/update", post(share_update))
         .route("/decorate/decorateShare/del", post(share_del))
-        .route("/decorate/decorateShare/updateField", post(share_update_field))
+        .route(
+            "/decorate/decorateShare/updateField",
+            post(share_update_field),
+        )
         .route("/decorate/decorateShare/batch", post(share_batch))
         .route("/decorate/decorateShare/share", get(share_generate))
         .route("/decorate/decorateShare/import", get(share_import))
         // 推广 DecoratePromoteController
-        .route("/decorate/promote/saveShareInfo", post(promote_save_share_info))
+        .route(
+            "/decorate/promote/saveShareInfo",
+            post(promote_save_share_info),
+        )
         .route("/decorate/promote/shareInfo", get(promote_share_info))
 }
 
@@ -119,56 +137,252 @@ pub fn routes(_state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/decorate/decorate/list", "DecorateController.list"),
-        ("GET", "/adminapi/decorate/decorate/detail", "DecorateController.detail"),
-        ("POST", "/adminapi/decorate/decorate/create", "DecorateController.create"),
-        ("POST", "/adminapi/decorate/decorate/update", "DecorateController.update"),
-        ("POST", "/adminapi/decorate/decorate/updateCustomDecorate", "DecorateController.updateCustomDecorate"),
-        ("POST", "/adminapi/decorate/decorate/del", "DecorateController.del"),
-        ("POST", "/adminapi/decorate/decorate/updateField", "DecorateController.updateField"),
-        ("POST", "/adminapi/decorate/decorate/batch", "DecorateController.batch"),
-        ("POST", "/adminapi/decorate/decorate/copy", "DecorateController.copy"),
-        ("POST", "/adminapi/decorate/decorate/setHome", "DecorateController.setHome"),
-        ("POST", "/adminapi/decorate/decorate/saveDraft", "DecorateController.saveDraft"),
-        ("POST", "/adminapi/decorate/decorate/publish", "DecorateController.publish"),
-        ("GET", "/adminapi/decorate/decorate/loadDraftData", "DecorateController.loadDraftData"),
-        ("GET", "/adminapi/decorate/decorate/getH5DecorateList", "DecorateController.getH5DecorateList"),
-        ("GET", "/adminapi/decorate/decorate/getCustomDecorateList", "DecorateController.getCustomDecorateList"),
-        ("POST", "/adminapi/decorate/decorate/bindingH5Decorate", "DecorateController.bindingH5Decorate"),
-        ("POST", "/adminapi/decorate/decorate/bindingCustomDecorate", "DecorateController.bindingCustomDecorate"),
-        ("POST", "/adminapi/decorate/decorate/cancelBinding", "DecorateController.cancelBinding"),
-        ("GET", "/adminapi/decorate/pcNavigation/list", "PcNavigationController.list"),
-        ("GET", "/adminapi/decorate/pcNavigation/detail", "PcNavigationController.detail"),
-        ("POST", "/adminapi/decorate/pcNavigation/create", "PcNavigationController.create"),
-        ("POST", "/adminapi/decorate/pcNavigation/update", "PcNavigationController.update"),
-        ("POST", "/adminapi/decorate/pcNavigation/del", "PcNavigationController.del"),
-        ("POST", "/adminapi/decorate/pcNavigation/updateField", "PcNavigationController.updateField"),
-        ("POST", "/adminapi/decorate/pcNavigation/batch", "PcNavigationController.batch"),
-        ("GET", "/adminapi/decorate/pcNavigation/selectLink", "PcNavigationController.selectLink"),
-        ("GET", "/adminapi/decorate/pcNavigation/getParentNav", "PcNavigationController.getParentNav"),
-        ("GET", "/adminapi/decorate/pcCatFloor/list", "PcCatFloorController.list"),
-        ("GET", "/adminapi/decorate/pcCatFloor/detail", "PcCatFloorController.detail"),
-        ("POST", "/adminapi/decorate/pcCatFloor/create", "PcCatFloorController.create"),
-        ("POST", "/adminapi/decorate/pcCatFloor/update", "PcCatFloorController.update"),
-        ("POST", "/adminapi/decorate/pcCatFloor/del", "PcCatFloorController.del"),
-        ("POST", "/adminapi/decorate/pcCatFloor/updateField", "PcCatFloorController.updateField"),
-        ("POST", "/adminapi/decorate/pcCatFloor/batch", "PcCatFloorController.batch"),
-        ("POST", "/adminapi/decorate/pcCatFloor/clearCache", "PcCatFloorController.clearCache"),
+        (
+            "GET",
+            "/adminapi/decorate/decorate/list",
+            "DecorateController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorate/detail",
+            "DecorateController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/create",
+            "DecorateController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/update",
+            "DecorateController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/updateCustomDecorate",
+            "DecorateController.updateCustomDecorate",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/del",
+            "DecorateController.del",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/updateField",
+            "DecorateController.updateField",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/batch",
+            "DecorateController.batch",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/copy",
+            "DecorateController.copy",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/setHome",
+            "DecorateController.setHome",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/saveDraft",
+            "DecorateController.saveDraft",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/publish",
+            "DecorateController.publish",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorate/loadDraftData",
+            "DecorateController.loadDraftData",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorate/getH5DecorateList",
+            "DecorateController.getH5DecorateList",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorate/getCustomDecorateList",
+            "DecorateController.getCustomDecorateList",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/bindingH5Decorate",
+            "DecorateController.bindingH5Decorate",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/bindingCustomDecorate",
+            "DecorateController.bindingCustomDecorate",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorate/cancelBinding",
+            "DecorateController.cancelBinding",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/pcNavigation/list",
+            "PcNavigationController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/pcNavigation/detail",
+            "PcNavigationController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcNavigation/create",
+            "PcNavigationController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcNavigation/update",
+            "PcNavigationController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcNavigation/del",
+            "PcNavigationController.del",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcNavigation/updateField",
+            "PcNavigationController.updateField",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcNavigation/batch",
+            "PcNavigationController.batch",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/pcNavigation/selectLink",
+            "PcNavigationController.selectLink",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/pcNavigation/getParentNav",
+            "PcNavigationController.getParentNav",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/pcCatFloor/list",
+            "PcCatFloorController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/pcCatFloor/detail",
+            "PcCatFloorController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcCatFloor/create",
+            "PcCatFloorController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcCatFloor/update",
+            "PcCatFloorController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcCatFloor/del",
+            "PcCatFloorController.del",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcCatFloor/updateField",
+            "PcCatFloorController.updateField",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcCatFloor/batch",
+            "PcCatFloorController.batch",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/pcCatFloor/clearCache",
+            "PcCatFloorController.clearCache",
+        ),
         // mobileCatNav 的 7 条 RouteDoc 已移交 content::mobile_cat_nav（见其 implemented_routes()）
-        ("GET", "/adminapi/decorate/decorateDiscrete/detail", "DecorateDiscreteController.detail"),
-        ("POST", "/adminapi/decorate/decorateDiscrete/update", "DecorateDiscreteController.update"),
-        ("GET", "/adminapi/decorate/decorateDiscrete/memberDecorateData", "DecorateDiscreteController.memberDecorateData"),
-        ("GET", "/adminapi/decorate/decorateShare/list", "DecorateShareController.list"),
-        ("GET", "/adminapi/decorate/decorateShare/detail", "DecorateShareController.detail"),
-        ("POST", "/adminapi/decorate/decorateShare/create", "DecorateShareController.create"),
-        ("POST", "/adminapi/decorate/decorateShare/update", "DecorateShareController.update"),
-        ("POST", "/adminapi/decorate/decorateShare/del", "DecorateShareController.del"),
-        ("POST", "/adminapi/decorate/decorateShare/updateField", "DecorateShareController.updateField"),
-        ("POST", "/adminapi/decorate/decorateShare/batch", "DecorateShareController.batch"),
-        ("GET", "/adminapi/decorate/decorateShare/share", "DecorateShareController.share"),
-        ("GET", "/adminapi/decorate/decorateShare/import", "DecorateShareController.import"),
-        ("POST", "/adminapi/decorate/promote/saveShareInfo", "DecoratePromoteController.saveShareInfo"),
-        ("GET", "/adminapi/decorate/promote/shareInfo", "DecoratePromoteController.shareInfo"),
+        (
+            "GET",
+            "/adminapi/decorate/decorateDiscrete/detail",
+            "DecorateDiscreteController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorateDiscrete/update",
+            "DecorateDiscreteController.update",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorateDiscrete/memberDecorateData",
+            "DecorateDiscreteController.memberDecorateData",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorateShare/list",
+            "DecorateShareController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorateShare/detail",
+            "DecorateShareController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorateShare/create",
+            "DecorateShareController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorateShare/update",
+            "DecorateShareController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorateShare/del",
+            "DecorateShareController.del",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorateShare/updateField",
+            "DecorateShareController.updateField",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/decorateShare/batch",
+            "DecorateShareController.batch",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorateShare/share",
+            "DecorateShareController.share",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/decorateShare/import",
+            "DecorateShareController.import",
+        ),
+        (
+            "POST",
+            "/adminapi/decorate/promote/saveShareInfo",
+            "DecoratePromoteController.saveShareInfo",
+        ),
+        (
+            "GET",
+            "/adminapi/decorate/promote/shareInfo",
+            "DecoratePromoteController.shareInfo",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -251,7 +465,9 @@ async fn decorate_detail(
     State(state): State<AdminState>,
     Query(q): Query<DetailQuery>,
 ) -> ApiResult<DecorateVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .detail(q.id, q.locale_id, q.parent_id, q.decorate_type)
         .await?)
 }
@@ -335,7 +551,11 @@ async fn decorate_set_home(
     Json(body): Json<SetHomeBody>,
 ) -> ApiResult<bool> {
     let operate = OperateDTO { id: body.id };
-    ok(state.content.decorate.set_home(&operate, body.page_type).await?)
+    ok(state
+        .content
+        .decorate
+        .set_home(&operate, body.page_type)
+        .await?)
 }
 
 /// `POST /adminapi/decorate/decorate/saveDraft`：保存草稿。
@@ -359,7 +579,9 @@ async fn decorate_load_draft_data(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<serde_json::Value> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .load_draft_data(q.id.unwrap_or_default())
         .await?)
 }
@@ -423,7 +645,9 @@ async fn nav_detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<PcNavigationVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .pc_navigation_detail(q.id.unwrap_or_default())
         .await?)
 }
@@ -446,10 +670,7 @@ async fn nav_update(
 }
 
 /// `POST /adminapi/decorate/pcNavigation/del`：删除 PC 导航。
-async fn nav_del(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<bool> {
+async fn nav_del(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<bool> {
     ok(state.content.decorate.pc_navigation_del(&dto).await?)
 }
 
@@ -458,14 +679,15 @@ async fn nav_update_field(
     State(state): State<AdminState>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
-    ok(state.content.decorate.pc_navigation_update_field(&dto).await?)
+    ok(state
+        .content
+        .decorate
+        .pc_navigation_update_field(&dto)
+        .await?)
 }
 
 /// `POST /adminapi/decorate/pcNavigation/batch`：批量操作。
-async fn nav_batch(
-    State(state): State<AdminState>,
-    Json(dto): Json<BatchDTO>,
-) -> ApiResult<bool> {
+async fn nav_batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<bool> {
     ok(state.content.decorate.pc_navigation_batch(&dto).await?)
 }
 
@@ -479,7 +701,9 @@ async fn nav_parent_tree(
     State(state): State<AdminState>,
     Query(q): Query<TypeQuery>,
 ) -> ApiResult<Vec<PcNavTreeVO>> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .pc_navigation_parent_nav(q.r#type.unwrap_or(0))
         .await?)
 }
@@ -499,7 +723,9 @@ async fn floor_detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<PcCatFloorVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .pc_cat_floor_detail(q.id.unwrap_or_default())
         .await?)
 }
@@ -534,7 +760,11 @@ async fn floor_update_field(
     State(state): State<AdminState>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
-    ok(state.content.decorate.pc_cat_floor_update_field(&dto).await?)
+    ok(state
+        .content
+        .decorate
+        .pc_cat_floor_update_field(&dto)
+        .await?)
 }
 
 /// `POST /adminapi/decorate/pcCatFloor/batch`：批量操作。
@@ -556,7 +786,6 @@ async fn floor_clear_cache(State(state): State<AdminState>) -> ApiResult<bool> {
 // 原先此处内联实现了 7 个 `mobileCatNav/*` handler（引导期占位）。content::mobile_cat_nav 已
 // 按契约正式实现该控制器（含 DTO 校验与单测），故本文件删除这批 handler，
 // 避免同一路径被 `Router::merge` 注册两次而在服务启动时 panic。
-
 
 // ————————————————————— 装修组件 —————————————————————
 
@@ -597,7 +826,9 @@ async fn share_detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<DecorateShareVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .decorate_share_detail(q.id.unwrap_or_default())
         .await?)
 }
@@ -607,7 +838,9 @@ async fn share_create(
     State(state): State<AdminState>,
     Json(body): Json<ShareCreateBody>,
 ) -> ApiResult<DecorateShareVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .decorate_share_create(body.decorate_id.unwrap_or_default())
         .await?)
 }
@@ -617,7 +850,9 @@ async fn share_update(
     State(state): State<AdminState>,
     Json(body): Json<ShareUpdateBody>,
 ) -> ApiResult<bool> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .decorate_share_update(
             body.share_id.unwrap_or_default(),
             body.decorate_id.unwrap_or_default(),
@@ -638,7 +873,11 @@ async fn share_update_field(
     State(state): State<AdminState>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
-    ok(state.content.decorate.decorate_share_update_field(&dto).await?)
+    ok(state
+        .content
+        .decorate
+        .decorate_share_update_field(&dto)
+        .await?)
 }
 
 /// `POST /adminapi/decorate/decorateShare/batch`：批量操作。
@@ -654,7 +893,9 @@ async fn share_generate(
     State(state): State<AdminState>,
     Query(q): Query<ShareIdQuery>,
 ) -> ApiResult<DecorateShareVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .share(q.decorate_id.unwrap_or_default())
         .await?)
 }
@@ -683,7 +924,9 @@ async fn promote_share_info(
     State(state): State<AdminState>,
     Query(q): Query<ShareIdQuery>,
 ) -> ApiResult<DecorateShareInfoVO> {
-    ok(state.content.decorate
+    ok(state
+        .content
+        .decorate
         .share_info(q.decorate_id.unwrap_or_default())
         .await?)
 }

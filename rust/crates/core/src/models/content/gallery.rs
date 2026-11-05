@@ -63,7 +63,8 @@ pub const ERR_TARGET_IS_DESCENDANT: &str = "目标分组不能是来源分组的
 /// Java `ResultTextConstants.UNSELECTED_ITEM`。
 pub const ERR_UNSELECTED_ITEM: &str = "未选择项目";
 /// 视频素材域未迁移的业务错误文案（本批次范围外，见模块头第 1 条）。
-pub const ERR_VIDEO_NOT_MIGRATED: &str = "视频素材域（content/gallery_video）尚未迁移，本接口的 video 类型暂不可用";
+pub const ERR_VIDEO_NOT_MIGRATED: &str =
+    "视频素材域（content/gallery_video）尚未迁移，本接口的 video 类型暂不可用";
 
 /// 相册名称长度上限（Java `GalleryDTO @Size(max = 100)`）。
 pub const GALLERY_NAME_MAX_LEN: usize = 100;
@@ -460,12 +461,10 @@ pub fn build_gallery_tree(
         node_map: &mut HashMap<i32, GalleryTreeNodeVO>,
         children_of: &HashMap<i32, Vec<i32>>,
     ) -> GalleryTreeNodeVO {
-        let mut node = node_map
-            .remove(&id)
-            .unwrap_or_else(|| GalleryTreeNodeVO {
-                id,
-                ..Default::default()
-            });
+        let mut node = node_map.remove(&id).unwrap_or_else(|| GalleryTreeNodeVO {
+            id,
+            ..Default::default()
+        });
         if let Some(children) = children_of.get(&id) {
             node.children = children
                 .iter()
@@ -522,10 +521,7 @@ mod tests {
 
     #[test]
     fn name_validation_messages_match_java_verbatim() {
-        assert_eq!(
-            validate_gallery_name(None).unwrap_err(),
-            "相册名称不能为空"
-        );
+        assert_eq!(validate_gallery_name(None).unwrap_err(), "相册名称不能为空");
         assert_eq!(
             validate_gallery_name(Some("   ")).unwrap_err(),
             "相册名称不能为空"

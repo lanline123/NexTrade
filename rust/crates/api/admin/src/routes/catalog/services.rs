@@ -65,7 +65,11 @@ use crate::AdminState;
 /// 对应；单测 `route_table_matches_java_contract` 守住两边不漂移。
 const ROUTE_TABLE: [(&str, &str, &str); 7] = [
     // (HTTP method, 本模块路径, 原 Java handler)
-    ("GET", "/product/productServices/list", "ServicesController.list"),
+    (
+        "GET",
+        "/product/productServices/list",
+        "ServicesController.list",
+    ),
     (
         "GET",
         "/product/productServices/detail",
@@ -150,19 +154,15 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<ServicesDTO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation(MSG_ID_REQUIRED.into()))?;
     ok(state.catalog.services.detail(id).await?)
 }
 
 /// `POST /adminapi/product/productServices/create`：新增商品服务。
 ///
 /// 对应 Java `ServicesController.create(@RequestBody ServicesDTO)`（返回 `void`）。
-async fn create(
-    State(state): State<AdminState>,
-    Json(dto): Json<ServicesDTO>,
-) -> ApiResult<()> {
+async fn create(State(state): State<AdminState>, Json(dto): Json<ServicesDTO>) -> ApiResult<()> {
     state.catalog.services.create(&dto).await?;
     ok(())
 }
@@ -170,10 +170,7 @@ async fn create(
 /// `POST /adminapi/product/productServices/update`：编辑商品服务。
 ///
 /// 对应 Java `ServicesController.update(@RequestBody ServicesDTO)`（返回 `void`）。
-async fn update(
-    State(state): State<AdminState>,
-    Json(dto): Json<ServicesDTO>,
-) -> ApiResult<()> {
+async fn update(State(state): State<AdminState>, Json(dto): Json<ServicesDTO>) -> ApiResult<()> {
     state.catalog.services.update(&dto).await?;
     ok(())
 }
@@ -181,10 +178,7 @@ async fn update(
 /// `POST /adminapi/product/productServices/del`：删除商品服务。
 ///
 /// 对应 Java `ServicesController.del(@RequestBody OperateDTO)`（返回 `void`）。
-async fn delete(
-    State(state): State<AdminState>,
-    Json(dto): Json<OperateDTO>,
-) -> ApiResult<()> {
+async fn delete(State(state): State<AdminState>, Json(dto): Json<OperateDTO>) -> ApiResult<()> {
     state.catalog.services.delete(&dto).await?;
     ok(())
 }
@@ -192,10 +186,7 @@ async fn delete(
 /// `POST /adminapi/product/productServices/batch`：批量操作（仅 `del`）。
 ///
 /// 对应 Java `ServicesController.batch(@RequestBody BatchDTO)`（返回 `void`）。
-async fn batch(
-    State(state): State<AdminState>,
-    Json(dto): Json<BatchDTO>,
-) -> ApiResult<()> {
+async fn batch(State(state): State<AdminState>, Json(dto): Json<BatchDTO>) -> ApiResult<()> {
     state.catalog.services.batch(&dto).await?;
     ok(())
 }
@@ -276,7 +267,11 @@ mod tests {
         let mut unique = actual.clone();
         unique.sort();
         unique.dedup();
-        assert_eq!(unique.len(), actual.len(), "implemented_routes() 存在重复项");
+        assert_eq!(
+            unique.len(),
+            actual.len(),
+            "implemented_routes() 存在重复项"
+        );
     }
 
     /// method 与 Java 注解一致：`list` / `detail` 是 `@GetMapping`，

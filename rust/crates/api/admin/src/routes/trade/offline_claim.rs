@@ -26,9 +26,21 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/api/order/offlinePaymentClaim/list", "OfflinePaymentClaimController.list"),
-        ("GET", "/api/order/offlinePaymentClaim/detail", "OfflinePaymentClaimController.detail"),
-        ("POST", "/api/order/offlinePaymentClaim/audit", "OfflinePaymentClaimController.audit"),
+        (
+            "GET",
+            "/api/order/offlinePaymentClaim/list",
+            "OfflinePaymentClaimController.list",
+        ),
+        (
+            "GET",
+            "/api/order/offlinePaymentClaim/detail",
+            "OfflinePaymentClaimController.detail",
+        ),
+        (
+            "POST",
+            "/api/order/offlinePaymentClaim/audit",
+            "OfflinePaymentClaimController.audit",
+        ),
     ]
     .iter()
     .map(|(m, p, h)| tigshop_openapi::RouteDoc::new(m, p, h))
@@ -58,10 +70,14 @@ async fn detail(
     State(state): State<AdminState>,
     Query(q): Query<ClaimQuery>,
 ) -> ApiResult<OfflinePaymentClaimVO> {
-    let claim_id = q
-        .claim_id
-        .ok_or_else(|| tigshop_security::web::AppError(tigshop_core::Error::biz(400, "认款单不存在")))?;
-    ok(state.trade.order.offline_claim_admin_detail(claim_id).await?)
+    let claim_id = q.claim_id.ok_or_else(|| {
+        tigshop_security::web::AppError(tigshop_core::Error::biz(400, "认款单不存在"))
+    })?;
+    ok(state
+        .trade
+        .order
+        .offline_claim_admin_detail(claim_id)
+        .await?)
 }
 
 async fn audit(
@@ -69,10 +85,6 @@ async fn audit(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<OfflinePaymentClaimAuditDTO>,
 ) -> ApiResult<()> {
-    state
-        .trade
-        .order
-        .offline_claim_audit(auth.id, dto)
-        .await?;
+    state.trade.order.offline_claim_audit(auth.id, dto).await?;
     ok(())
 }

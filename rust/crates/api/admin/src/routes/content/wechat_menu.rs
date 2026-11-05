@@ -11,7 +11,11 @@
 //! 合并注意：并入 `crates/api/admin/src/routes/content/mod.rs` 的 `routes()` 与
 //! `implemented_routes()`（`/wechat/menu` 与 keywordRule 的 `capability` 不冲突）。
 
-use axum::{extract::State, routing::{get, post}, Json, Router};
+use axum::{
+    extract::State,
+    routing::{get, post},
+    Json, Router,
+};
 use tigshop_core::models::content::wechat_menu::{SaveAndPublishVO, WxMenuSaveDTO, WxMenuVO};
 use tigshop_security::web::{ok, ApiResult};
 
@@ -78,8 +82,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");

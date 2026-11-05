@@ -506,7 +506,10 @@ mod tests {
 
     #[test]
     fn add_time_is_raw_seconds_string() {
-        assert_eq!(seconds_text(Some(1_733_000_000)).as_deref(), Some("1733000000"));
+        assert_eq!(
+            seconds_text(Some(1_733_000_000)).as_deref(),
+            Some("1733000000")
+        );
         assert_eq!(seconds_text(None), None);
         // 格式化函数与 Java handelTime 一致（0 → ""）
         assert_eq!(format_unix_time(Some(0)), "");

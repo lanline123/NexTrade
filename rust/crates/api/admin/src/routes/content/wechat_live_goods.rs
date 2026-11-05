@@ -1,4 +1,4 @@
-﻿//! 管理端微信直播商品库路由（content::wechat_live_goods）。
+//! 管理端微信直播商品库路由（content::wechat_live_goods）。
 //!
 //! Java 来源：`WechatLiveGoodsController`（`/adminapi/content/wechatLiveGoods`）
 //! 的 `POST import`、`GET list`、`GET query`；以及新版管理端前端契约
@@ -61,7 +61,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/content/wechatLiveGoods/list", get(list))
         .route("/content/wechatLiveGoods/query", get(query))
         .route("/content/wechatLiveGoods/addToRoom", post(add_to_room))
-        .route("/content/wechatLiveGoods/removeFromRoom", post(remove_from_room))
+        .route(
+            "/content/wechatLiveGoods/removeFromRoom",
+            post(remove_from_room),
+        )
 }
 
 /// 已实现路由（契约完整路径）。
@@ -124,7 +127,11 @@ async fn remove_from_room(
     let goods_id = q
         .goods_id
         .ok_or_else(|| tigshop_core::Error::Validation("goodsId不能为空".into()))?;
-    state.content.wechat_live.remove_goods(room_id, goods_id).await?;
+    state
+        .content
+        .wechat_live
+        .remove_goods(room_id, goods_id)
+        .await?;
     ok(())
 }
 
@@ -140,7 +147,10 @@ mod tests {
         assert_eq!(docs[1].path, "/adminapi/content/wechatLiveGoods/list");
         assert_eq!(docs[2].path, "/adminapi/content/wechatLiveGoods/query");
         assert_eq!(docs[3].path, "/adminapi/content/wechatLiveGoods/addToRoom");
-        assert_eq!(docs[4].path, "/adminapi/content/wechatLiveGoods/removeFromRoom");
+        assert_eq!(
+            docs[4].path,
+            "/adminapi/content/wechatLiveGoods/removeFromRoom"
+        );
         assert_eq!(docs[0].method, "POST");
         assert_eq!(docs[1].method, "GET");
         assert_eq!(docs[2].method, "GET");

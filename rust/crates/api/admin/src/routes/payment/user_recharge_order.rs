@@ -109,7 +109,10 @@ async fn list(
     ok(state.payment.user_recharge_order.list(&q).await?)
 }
 
-async fn detail(State(state): State<AdminState>, Query(q): Query<IdQuery>) -> ApiResult<UserRechargeOrderVO> {
+async fn detail(
+    State(state): State<AdminState>,
+    Query(q): Query<IdQuery>,
+) -> ApiResult<UserRechargeOrderVO> {
     ok(state.payment.user_recharge_order.detail(q.id).await?)
 }
 

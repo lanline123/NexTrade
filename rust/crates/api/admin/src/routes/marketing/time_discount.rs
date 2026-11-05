@@ -41,11 +41,31 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 #[must_use]
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/promotion/timeDiscount/list", "TimeDiscountController.list"),
-        ("GET", "/adminapi/promotion/timeDiscount/detail", "TimeDiscountController.detail"),
-        ("POST", "/adminapi/promotion/timeDiscount/create", "TimeDiscountController.create"),
-        ("POST", "/adminapi/promotion/timeDiscount/update", "TimeDiscountController.update"),
-        ("POST", "/adminapi/promotion/timeDiscount/del", "TimeDiscountController.del"),
+        (
+            "GET",
+            "/adminapi/promotion/timeDiscount/list",
+            "TimeDiscountController.list",
+        ),
+        (
+            "GET",
+            "/adminapi/promotion/timeDiscount/detail",
+            "TimeDiscountController.detail",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/timeDiscount/create",
+            "TimeDiscountController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/timeDiscount/update",
+            "TimeDiscountController.update",
+        ),
+        (
+            "POST",
+            "/adminapi/promotion/timeDiscount/del",
+            "TimeDiscountController.del",
+        ),
     ]
     .iter()
     .map(|(m, p, j)| tigshop_openapi::RouteDoc::new(m, p, j))
@@ -98,10 +118,11 @@ struct DelDTO {
     discount_id: i32,
 }
 
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<DelDTO>,
-) -> ApiResult<&'static str> {
-    state.marketing.time_discount.delete(dto.discount_id).await?;
+async fn del(State(state): State<AdminState>, Json(dto): Json<DelDTO>) -> ApiResult<&'static str> {
+    state
+        .marketing
+        .time_discount
+        .delete(dto.discount_id)
+        .await?;
     ok("删除成功")
 }

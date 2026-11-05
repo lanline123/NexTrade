@@ -513,7 +513,13 @@ impl UserCompanyListQuery {
     /// Java `StringUtils.isBlank` ⇔ `null` 或全空白（Rust 侧用 `trim().is_empty()`）。
     /// **原地修改**以保持与 Java `listDTO.setKeyword(...)` 相同的可观测语义。
     pub fn apply_keyword_fallback(&mut self) {
-        if self.keyword.as_deref().map(str::trim).unwrap_or("").is_empty() {
+        if self
+            .keyword
+            .as_deref()
+            .map(str::trim)
+            .unwrap_or("")
+            .is_empty()
+        {
             self.keyword = self.username.clone();
         }
     }
@@ -652,7 +658,12 @@ pub fn validate_audit(dto: &UserCompanyAuditDTO) -> Result<(), String> {
     // Java: Assert.isFalse(FAIL.equals(status) && StringUtils.isEmpty(auditRemark), ...)
     // 注意 `StringUtils.isEmpty` 是 trim 后判空（`NULL_STR.equals(str.trim())`）。
     if dto.status == Some(STATUS_FAIL)
-        && dto.audit_remark.as_deref().map(str::trim).unwrap_or("").is_empty()
+        && dto
+            .audit_remark
+            .as_deref()
+            .map(str::trim)
+            .unwrap_or("")
+            .is_empty()
     {
         return Err(MSG_AUDIT_REMARK_NOT_NULL.to_string());
     }
@@ -794,7 +805,10 @@ mod tests {
         // 负数在 Java 里不会被拦（只有 null 与 0），会格式化成 1970 前的日期；
         // 本实现同样不拦，仅断言非空避免依赖本地时区。
         assert!(!format_time(Some(1_700_000_000)).is_empty());
-        assert_eq!(format_time(Some(1_700_000_000)).len(), "2023-11-15 06:13:20".len());
+        assert_eq!(
+            format_time(Some(1_700_000_000)).len(),
+            "2023-11-15 06:13:20".len()
+        );
     }
 
     // ————————————————————— audit 校验 —————————————————————
@@ -1065,7 +1079,12 @@ mod tests {
             assert!(list.get(k).is_none(), "列表不应有 {k}");
         }
         // 共有键两边都在
-        for k in ["corporateName", "companyName", "contactPhone", "licenseAddrProvince"] {
+        for k in [
+            "corporateName",
+            "companyName",
+            "contactPhone",
+            "licenseAddrProvince",
+        ] {
             assert!(detail.get(k).is_some(), "详情缺少共有键 {k}");
             assert!(list.get(k).is_some(), "列表缺少共有键 {k}");
         }

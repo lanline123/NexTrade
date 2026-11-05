@@ -54,8 +54,8 @@ use tigshop_core::models::member::user_manage::{
     UserBatchParam, UserCreateVO, UserFundDetailQuery, UserImportRow, UserImportSuccessVO,
     UserItemVO, UserListQuery, UserSearchVO, UserVO,
 };
-use tigshop_core::Error;
 use tigshop_core::types::PageResult;
+use tigshop_core::Error;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 
 use crate::AdminState;
@@ -82,7 +82,10 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
         .route("/user/user/updateField", post(user_update_field))
         .route("/user/user/batch", post(user_batch))
         .route("/user/user/batchImport", post(user_batch_import))
-        .route("/user/user/getImportErrorData", post(user_import_error_data))
+        .route(
+            "/user/user/getImportErrorData",
+            post(user_import_error_data),
+        )
         .route(
             "/user/user/downloadUserImportTemplate",
             get(user_download_import_template),
@@ -100,8 +103,16 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
         ("GET", "/adminapi/user/user/list", "UserController.list"),
         ("GET", "/adminapi/user/user/detail", "UserController.detail"),
-        ("POST", "/adminapi/user/user/create", "UserController.create"),
-        ("POST", "/adminapi/user/user/update", "UserController.update"),
+        (
+            "POST",
+            "/adminapi/user/user/create",
+            "UserController.create",
+        ),
+        (
+            "POST",
+            "/adminapi/user/user/update",
+            "UserController.update",
+        ),
         ("POST", "/adminapi/user/user/del", "UserController.del"),
         (
             "POST",
@@ -124,7 +135,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/adminapi/user/user/downloadUserImportTemplate",
             "UserController.getImportErrorData",
         ),
-        ("POST", "/adminapi/user/user/search", "UserController.searchByMobile"),
+        (
+            "POST",
+            "/adminapi/user/user/search",
+            "UserController.searchByMobile",
+        ),
         (
             "POST",
             "/adminapi/user/user/fundManagement",
@@ -135,7 +150,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/adminapi/user/user/userFundDetail",
             "UserController.userFundDetail",
         ),
-        ("POST", "/adminapi/user/user/logout", "UserController.logout"),
+        (
+            "POST",
+            "/adminapi/user/user/logout",
+            "UserController.logout",
+        ),
         (
             "POST",
             "/adminapi/user/user/setAdminNote",
@@ -181,9 +200,8 @@ async fn user_detail(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<IdQuery>,
 ) -> ApiResult<UserItemVO> {
-    let id = q
-        .id
-        .ok_or_else(|| tigshop_core::Error::Validation("会员ID不能为空".into()))?;
+    let id =
+        q.id.ok_or_else(|| tigshop_core::Error::Validation("会员ID不能为空".into()))?;
     state
         .member
         .user_manage
@@ -245,7 +263,9 @@ async fn user_update_field(
     Json(param): Json<UpdateFieldDTO>,
 ) -> ApiResult<&'static str> {
     require_platform(&auth)?;
-    state.member.user_manage
+    state
+        .member
+        .user_manage
         .update_field(param.id, param.field.as_deref(), param.val.as_deref())
         .await?;
     ok("更新成功")
@@ -304,13 +324,7 @@ async fn user_import_error_data(
         .user_manage
         .get_user_import_error_data(&rows)
         .await?;
-    let headers = [
-        "用户名*",
-        "手机号*",
-        "邮箱",
-        "昵称",
-        "错误信息",
-    ];
+    let headers = ["用户名*", "手机号*", "邮箱", "昵称", "错误信息"];
     let data: Vec<Vec<String>> = errors
         .iter()
         .map(|e| {
@@ -341,7 +355,8 @@ async fn user_download_import_template(
 ) -> std::result::Result<axum::response::Response, AppError> {
     require_platform(&auth)?;
     let _ = &state;
-    let headers = tigshop_services::member::user_manage::UserManageService::import_template_headers();
+    let headers =
+        tigshop_services::member::user_manage::UserManageService::import_template_headers();
     let bytes = tigshop_services::system::excel::build_xlsx(&headers, &[], "会员导入模板")?;
     Ok(crate::support::excel_response::xlsx_response(
         bytes,
@@ -351,9 +366,11 @@ async fn user_download_import_template(
 
 /// 读取 multipart 中的 `file` 字段。
 async fn read_upload_file(multipart: &mut Multipart) -> Result<Vec<u8>, AppError> {
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError(Error::Validation(format!("读取上传文件失败: {e}")))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError(Error::Validation(format!("读取上传文件失败: {e}"))))?
+    {
         if field.name() == Some("file") {
             return field
                 .bytes()
@@ -485,7 +502,10 @@ async fn user_logout(
     headers: axum::http::HeaderMap,
 ) -> ApiResult<&'static str> {
     require_platform(&auth)?;
-    if let Some(raw) = headers.get(axum::http::header::AUTHORIZATION).and_then(|v| v.to_str().ok()) {
+    if let Some(raw) = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+    {
         let bare = raw.trim().strip_prefix("Bearer ").unwrap_or(raw.trim());
         if let Ok(claims) = state.jwt.decode(bare) {
             tigshop_security::token_revocation::revoke(bare, claims.exp);

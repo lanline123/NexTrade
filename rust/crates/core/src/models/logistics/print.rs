@@ -295,7 +295,10 @@ pub struct UpdateFieldDTO {
     /// 字段名（必填；驼峰属性名或数据库列名）
     pub field: Option<String>,
     /// 值（必填；按字符串传入，由 MySQL 按列类型转换）
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
@@ -621,9 +624,15 @@ mod tests {
     #[test]
     fn mask_middle_half_matches_java_algorithm() {
         // len=10, half=5, start=2, end=7
-        assert_eq!(mask_middle_half(Some("1234567890")).as_deref(), Some("12*****890"));
+        assert_eq!(
+            mask_middle_half(Some("1234567890")).as_deref(),
+            Some("12*****890")
+        );
         // len=7, half=3, start=2, end=5
-        assert_eq!(mask_middle_half(Some("1234567")).as_deref(), Some("12***67"));
+        assert_eq!(
+            mask_middle_half(Some("1234567")).as_deref(),
+            Some("12***67")
+        );
         // len=2, half=1, start=0, end=1
         assert_eq!(mask_middle_half(Some("ab")).as_deref(), Some("*b"));
         // 长度 < 2 → 全 `*`（长度不变）
@@ -653,20 +662,14 @@ mod tests {
             Some("1234567890".to_string())
         );
         // 前端改了 → 用前端值
-        assert_eq!(
-            resolve_secret(db, Some("9999")),
-            Some("9999".to_string())
-        );
+        assert_eq!(resolve_secret(db, Some("9999")), Some("9999".to_string()));
         // 前端未传 → None（随后由 pick_secret_for_update 回落 DB 值）
         assert_eq!(resolve_secret(db, None), None);
         assert_eq!(pick_secret_for_update(db, None), db.map(str::to_string));
         // DB 与前端都为 None → None
         assert_eq!(resolve_secret(None, None), None);
         // DB 为 None、前端传值 → 前端值
-        assert_eq!(
-            resolve_secret(None, Some("abc")),
-            Some("abc".to_string())
-        );
+        assert_eq!(resolve_secret(None, Some("abc")), Some("abc".to_string()));
     }
 
     // ———————— 默认值 ————————
@@ -729,7 +732,10 @@ mod tests {
         dto.print_id = Some(9);
         assert_eq!(validate_update(&dto).unwrap_err(), MSG_PRINT_NAME_REQUIRED);
         dto.print_name = Some("前台打印机".into());
-        assert_eq!(validate_update(&dto).unwrap_err(), MSG_THIRD_ACCOUNT_REQUIRED);
+        assert_eq!(
+            validate_update(&dto).unwrap_err(),
+            MSG_THIRD_ACCOUNT_REQUIRED
+        );
         dto.third_account = Some("acc".into());
         assert_eq!(validate_update(&dto).unwrap_err(), MSG_THIRD_KEY_REQUIRED);
         dto.third_key = Some("key".into());

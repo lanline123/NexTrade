@@ -24,11 +24,11 @@ use tigshop_core::models::catalog::product_inventory_log::{
 };
 use tigshop_core::types::PageResult;
 use tigshop_openapi::RouteDoc;
-use tigshop_security::web::{ok, ApiResult};
 use tigshop_security::web::AuthUser;
+use tigshop_security::web::{ok, ApiResult};
 
-use crate::AdminState;
 use super::tenant;
+use crate::AdminState;
 
 /// 本域全部路由（`/adminapi` 前缀之后的路径 + 原 Java 方法名）。
 const ROUTE_TABLE: [(&str, &str, &str); 1] = [(
@@ -83,26 +83,40 @@ mod tests {
         assert_eq!(registered.len(), ROUTE_TABLE.len());
         for (method, path) in registered {
             assert!(
-                ROUTE_TABLE.iter().any(|(m, p, _)| *m == method && *p == path),
+                ROUTE_TABLE
+                    .iter()
+                    .any(|(m, p, _)| *m == method && *p == path),
                 "{method} {path} 不在 ROUTE_TABLE 内"
             );
         }
         let mut unique = ROUTE_TABLE;
         unique.sort();
         for i in 1..unique.len() {
-            assert_ne!((unique[i - 1].0, unique[i - 1].1), (unique[i].0, unique[i].1));
+            assert_ne!(
+                (unique[i - 1].0, unique[i - 1].1),
+                (unique[i].0, unique[i].1)
+            );
         }
     }
     /// 多租户：库存日志列表按登录态店铺强制过滤（跨店 shopId 403）。
     #[test]
     fn tenant_scope_forces_shop_filter() {
-        let shop = AuthUser { id: 3, username: "shop".into(), role_id: None,
-            admin_type: Some("shop".into()), shop_id: Some(5) };
+        let shop = AuthUser {
+            id: 3,
+            username: "shop".into(),
+            role_id: None,
+            admin_type: Some("shop".into()),
+            shop_id: Some(5),
+        };
         assert_eq!(tenant::list_scope(&shop, None).unwrap(), Some(5));
         assert!(tenant::list_scope(&shop, Some(7)).is_err());
-        let platform = AuthUser { id: 1, username: "admin".into(), role_id: None,
-            admin_type: Some("admin".into()), shop_id: Some(0) };
+        let platform = AuthUser {
+            id: 1,
+            username: "admin".into(),
+            role_id: None,
+            admin_type: Some("admin".into()),
+            shop_id: Some(0),
+        };
         assert_eq!(tenant::list_scope(&platform, Some(7)).unwrap(), Some(7));
     }
-
 }

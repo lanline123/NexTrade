@@ -77,12 +77,16 @@ pub struct PosDeviceWritePayload {
 pub struct PosDeviceUpdateFieldDTO {
     pub id: Option<i32>,
     pub field: Option<String>,
-    #[serde(default, deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish")]
+    #[serde(
+        default,
+        deserialize_with = "crate::models::serde_helpers::deserialize_opt_stringish"
+    )]
     pub val: Option<String>,
 }
 
 /// 可通过 updateField 修改的白名单字段（蛇形列名）。
-pub const POS_DEVICE_UPDATE_FIELDS: [&str; 4] = ["status", "device_name", "device_code", "last_used_time"];
+pub const POS_DEVICE_UPDATE_FIELDS: [&str; 4] =
+    ["status", "device_name", "device_code", "last_used_time"];
 
 /// `POST pos/device/del` 入参（`id` 或 `ids` 逗号分隔二选一）。
 #[derive(Debug, Clone, Default, Deserialize)]

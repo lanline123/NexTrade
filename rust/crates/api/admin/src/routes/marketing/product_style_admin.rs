@@ -219,7 +219,11 @@ async fn update_field(
     State(state): State<AdminState>,
     Json(dto): Json<UpdateFieldDTO>,
 ) -> ApiResult<bool> {
-    ok(state.marketing.product_style_admin.update_field(&dto).await?)
+    ok(state
+        .marketing
+        .product_style_admin
+        .update_field(&dto)
+        .await?)
 }
 
 /// `POST /adminapi/promotion/productStyle/del`：删除商品样式。
@@ -251,7 +255,11 @@ async fn add_products(
     State(state): State<AdminState>,
     Json(dto): Json<ProductStyleItemBatchDTO>,
 ) -> ApiResult<u64> {
-    ok(state.marketing.product_style_admin.add_products(&dto).await?)
+    ok(state
+        .marketing
+        .product_style_admin
+        .add_products(&dto)
+        .await?)
 }
 
 /// `POST /adminapi/promotion/productStyle/removeProducts`：批量移除关联商品。
@@ -264,7 +272,11 @@ async fn remove_products(
     State(state): State<AdminState>,
     Json(dto): Json<ProductStyleItemBatchDTO>,
 ) -> ApiResult<u64> {
-    ok(state.marketing.product_style_admin.remove_products(&dto).await?)
+    ok(state
+        .marketing
+        .product_style_admin
+        .remove_products(&dto)
+        .await?)
 }
 
 /// `GET /adminapi/promotion/productStyle/brandList?keyword=`：品牌列表（含商品数）。
@@ -285,7 +297,11 @@ async fn brand_list(
     State(state): State<AdminState>,
     Query(q): Query<BrandListQuery>,
 ) -> ApiResult<Vec<BrandProductCountVO>> {
-    ok(state.marketing.product_style_admin.brand_list(q.keyword.as_deref()).await?)
+    ok(state
+        .marketing
+        .product_style_admin
+        .brand_list(q.keyword.as_deref())
+        .await?)
 }
 
 #[cfg(test)]
@@ -339,7 +355,10 @@ mod tests {
     /// Java 引用名逐条正确（用于覆盖率报告与人工对照）。
     #[test]
     fn java_refs_are_correct() {
-        let refs: Vec<String> = implemented_routes().into_iter().map(|r| r.java_ref).collect();
+        let refs: Vec<String> = implemented_routes()
+            .into_iter()
+            .map(|r| r.java_ref)
+            .collect();
         assert_eq!(
             refs,
             vec![
@@ -372,7 +391,10 @@ mod tests {
                 !path.contains("/productStyle/productStyle"),
                 "段重复: {path}"
             );
-            assert!(!path.contains("/adminapi"), "本表不应含 /adminapi 前缀: {path}");
+            assert!(
+                !path.contains("/adminapi"),
+                "本表不应含 /adminapi 前缀: {path}"
+            );
         }
     }
 

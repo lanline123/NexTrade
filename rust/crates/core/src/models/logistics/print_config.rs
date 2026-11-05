@@ -220,10 +220,7 @@ pub struct PrintTemplateItem {
 
 /// 构造模板项（Java `PrintTemplateConstant#createTemplateItem`）。
 #[must_use]
-pub fn create_template_item(
-    title: &str,
-    options: Vec<PrintTemplateOption>,
-) -> PrintTemplateItem {
+pub fn create_template_item(title: &str, options: Vec<PrintTemplateOption>) -> PrintTemplateItem {
     PrintTemplateItem {
         title: Some(title.to_string()),
         options: Some(options),
@@ -299,7 +296,11 @@ pub fn default_receipt_template() -> Vec<PrintTemplateItem> {
         ),
         create_template_item(
             "底部公告",
-            vec![create_option("底部公告", true, "感谢您的惠顾，欢迎再次光临！")],
+            vec![create_option(
+                "底部公告",
+                true,
+                "感谢您的惠顾，欢迎再次光临！",
+            )],
         ),
     ]
 }
@@ -444,7 +445,8 @@ pub fn format_time(secs: Option<i32>) -> String {
     if secs == 0 {
         return String::new();
     }
-    match chrono::FixedOffset::east_opt(8 * 3600).and_then(|tz| tz.timestamp_opt(i64::from(secs), 0).single())
+    match chrono::FixedOffset::east_opt(8 * 3600)
+        .and_then(|tz| tz.timestamp_opt(i64::from(secs), 0).single())
     {
         Some(dt) => dt.format("%Y-%m-%d %H:%M:%S").to_string(),
         None => String::new(),
@@ -535,9 +537,7 @@ pub struct PrintOrdersDTO {
 pub fn validate_update(
     dto: &PrintConfigUpdateDTO,
 ) -> std::result::Result<(i32, Vec<PrintTemplateItem>), String> {
-    let id = dto
-        .id
-        .ok_or_else(|| MSG_CONFIG_ID_REQUIRED.to_string())?;
+    let id = dto.id.ok_or_else(|| MSG_CONFIG_ID_REQUIRED.to_string())?;
     let template = dto
         .template
         .clone()
@@ -554,7 +554,9 @@ pub fn validate_update(
 /// # Errors
 /// `ids == null` 时返回 [`MSG_ORDER_IDS_REQUIRED`]。
 pub fn validate_print(dto: &PrintOrdersDTO) -> std::result::Result<Vec<i32>, String> {
-    dto.ids.clone().ok_or_else(|| MSG_ORDER_IDS_REQUIRED.to_string())
+    dto.ids
+        .clone()
+        .ok_or_else(|| MSG_ORDER_IDS_REQUIRED.to_string())
 }
 
 /// 设备码归一（Java `StrUtil.isBlank(x) ? null : x.trim()`）。
@@ -694,14 +696,14 @@ mod tests {
             Some("感谢您的惠顾，欢迎再次光临！")
         );
         // 其余选项 value 均为空串
-        assert_eq!(
-            t[0].options.as_ref().unwrap()[0].value.as_deref(),
-            Some("")
-        );
+        assert_eq!(t[0].options.as_ref().unwrap()[0].value.as_deref(), Some(""));
         // 配送信息已自带「手机号模糊」
-        let has_mobile = t[1].options.as_ref().unwrap().iter().any(|o| {
-            o.choose_title.as_deref() == Some(OPTION_MOBILE_MASKED)
-        });
+        let has_mobile = t[1]
+            .options
+            .as_ref()
+            .unwrap()
+            .iter()
+            .any(|o| o.choose_title.as_deref() == Some(OPTION_MOBILE_MASKED));
         assert!(has_mobile);
 
         // 序列化键名必须是 camelCase（chooseTitle / options / title）
@@ -737,7 +739,10 @@ mod tests {
         fill_qr_code(&mut items);
         assert_eq!(items.len(), 2);
         assert_eq!(
-            items.iter().filter(|i| i.title.as_deref() == Some("二维码")).count(),
+            items
+                .iter()
+                .filter(|i| i.title.as_deref() == Some("二维码"))
+                .count(),
             1
         );
     }
@@ -771,10 +776,7 @@ mod tests {
     #[test]
     fn fill_mobile_is_idempotent_and_scoped() {
         let mut items = vec![
-            create_template_item(
-                "配送信息",
-                vec![create_option("手机号模糊", true, "")],
-            ),
+            create_template_item("配送信息", vec![create_option("手机号模糊", true, "")]),
             create_template_item("商品信息", vec![create_option("商品基础信息", true, "")]),
         ];
         assert_eq!(fill_mobile(&mut items), Some(()));

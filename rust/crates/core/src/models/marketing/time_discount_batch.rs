@@ -80,7 +80,10 @@ mod tests {
             r#type: Some("del".into()),
             ..Default::default()
         };
-        assert_eq!(validate_batch(&dto).unwrap(), (vec![1, 2], "del".to_string()));
+        assert_eq!(
+            validate_batch(&dto).unwrap(),
+            (vec![1, 2], "del".to_string())
+        );
     }
 
     #[test]

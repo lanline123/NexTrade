@@ -84,8 +84,7 @@ mod tests {
 
     #[test]
     fn page_query_caps_at_fifty() {
-        let q: GuessLikeQuery =
-            serde_json::from_value(serde_json::json!({"size": 999})).unwrap();
+        let q: GuessLikeQuery = serde_json::from_value(serde_json::json!({"size": 999})).unwrap();
         assert_eq!(q.page_query().page_size, u64::from(MAX_GUESS_LIMIT));
     }
 

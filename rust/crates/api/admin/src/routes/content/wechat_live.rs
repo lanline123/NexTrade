@@ -35,8 +35,8 @@ use axum::{
 };
 use tigshop_core::models::content::wechat_live::{
     WechatLiveDeleteParam, WechatLiveGoodsAddDTO, WechatLiveGoodsVO, WechatLiveListQuery,
-    WechatLivePromoteVO, WechatLivePushUrlVO, WechatLiveRemoveGoodsQuery,
-    WechatLiveRoomCreateDTO, WechatLiveUpdateDTO, WechatLiveVO,
+    WechatLivePromoteVO, WechatLivePushUrlVO, WechatLiveRemoveGoodsQuery, WechatLiveRoomCreateDTO,
+    WechatLiveUpdateDTO, WechatLiveVO,
 };
 use tigshop_core::types::PageResult;
 use tigshop_openapi::RouteDoc;
@@ -50,12 +50,36 @@ use crate::AdminState;
 /// （`view/admin/src/api/promotion/live.ts`；Java 控制器只挂
 /// `content/wechatLive`，前端新版本改用 promotion 前缀）。
 const ROUTE_TABLE: [(&str, &str, &str); 17] = [
-    ("GET", "/content/wechatLive/list", "WechatLiveController.list"),
-    ("GET", "/content/wechatLive/detail", "WechatLiveController.detail"),
-    ("POST", "/content/wechatLive/update", "WechatLiveController.update"),
-    ("GET", "/content/wechatLive/refresh", "WechatLiveController.refresh"),
-    ("POST", "/content/wechatLive/create", "WechatLiveController.create"),
-    ("POST", "/content/wechatLive/delete", "WechatLiveController.delete"),
+    (
+        "GET",
+        "/content/wechatLive/list",
+        "WechatLiveController.list",
+    ),
+    (
+        "GET",
+        "/content/wechatLive/detail",
+        "WechatLiveController.detail",
+    ),
+    (
+        "POST",
+        "/content/wechatLive/update",
+        "WechatLiveController.update",
+    ),
+    (
+        "GET",
+        "/content/wechatLive/refresh",
+        "WechatLiveController.refresh",
+    ),
+    (
+        "POST",
+        "/content/wechatLive/create",
+        "WechatLiveController.create",
+    ),
+    (
+        "POST",
+        "/content/wechatLive/delete",
+        "WechatLiveController.delete",
+    ),
     (
         "GET",
         "/content/wechatLive/pushUrl/{roomId}",
@@ -96,7 +120,11 @@ const ROUTE_TABLE: [(&str, &str, &str); 17] = [
         "/content/wechatLive/finderLiveRecord",
         "WechatLiveController.getFinderLiveRecord",
     ),
-    ("GET", "/promotion/wechatLive/list", "WechatLiveController.list"),
+    (
+        "GET",
+        "/promotion/wechatLive/list",
+        "WechatLiveController.list",
+    ),
     (
         "GET",
         "/promotion/wechatLive/refresh",

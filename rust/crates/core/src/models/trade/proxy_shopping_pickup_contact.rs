@@ -185,14 +185,12 @@ mod tests {
 
     #[test]
     fn page_size_is_capped_at_100() {
-        let q: PickupContactListQuery =
-            serde_json::from_str(r#"{"page":2,"size":500}"#).unwrap();
+        let q: PickupContactListQuery = serde_json::from_str(r#"{"page":2,"size":500}"#).unwrap();
         assert_eq!(q.page_no(), 2);
         assert_eq!(q.page_size(), 100);
 
         // `pageSize` 别名（前端两种写法都接受）
-        let q: PickupContactListQuery =
-            serde_json::from_str(r#"{"pageSize":3}"#).unwrap();
+        let q: PickupContactListQuery = serde_json::from_str(r#"{"pageSize":3}"#).unwrap();
         assert_eq!(q.page_size(), 3);
     }
 

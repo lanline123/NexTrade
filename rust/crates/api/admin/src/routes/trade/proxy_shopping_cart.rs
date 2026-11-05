@@ -122,7 +122,11 @@ async fn add_to_cart(
     // 购物车行的 shop_id 来自商品所属店铺：店铺账号强制自身店铺（跨店商品服务层 403），
     // 平台账号由商品决定归属。
     let scope = auth.scoped_shop_id();
-    ok(state.trade.proxy_shopping_cart.add_to_cart(&dto, scope).await?)
+    ok(state
+        .trade
+        .proxy_shopping_cart
+        .add_to_cart(&dto, scope)
+        .await?)
 }
 
 /// `POST /adminapi/proxyShopping/cart/clearCart`：清空购物车。
@@ -132,7 +136,11 @@ async fn clear_cart(
     Json(dto): Json<ProxyClearCartDTO>,
 ) -> ApiResult<()> {
     let scope = auth.scoped_shop_id();
-    state.trade.proxy_shopping_cart.clear_cart(&dto, scope).await?;
+    state
+        .trade
+        .proxy_shopping_cart
+        .clear_cart(&dto, scope)
+        .await?;
     ok(())
 }
 
@@ -143,7 +151,11 @@ async fn remove_item(
     Json(dto): Json<ProxyRemoveItemDTO>,
 ) -> ApiResult<()> {
     let scope = auth.scoped_shop_id();
-    state.trade.proxy_shopping_cart.remove_item(&dto, scope).await?;
+    state
+        .trade
+        .proxy_shopping_cart
+        .remove_item(&dto, scope)
+        .await?;
     ok(())
 }
 
@@ -154,7 +166,11 @@ async fn update_item(
     Json(dto): Json<ProxyUpdateItemDTO>,
 ) -> ApiResult<()> {
     let scope = auth.scoped_shop_id();
-    state.trade.proxy_shopping_cart.update_item(&dto, scope).await?;
+    state
+        .trade
+        .proxy_shopping_cart
+        .update_item(&dto, scope)
+        .await?;
     ok(())
 }
 
@@ -165,7 +181,11 @@ async fn update_check(
     Json(dto): Json<ProxyUpdateCheckDTO>,
 ) -> ApiResult<()> {
     let scope = auth.scoped_shop_id();
-    state.trade.proxy_shopping_cart.update_check(&dto, scope).await?;
+    state
+        .trade
+        .proxy_shopping_cart
+        .update_check(&dto, scope)
+        .await?;
     ok(())
 }
 
@@ -185,7 +205,13 @@ mod tests {
     use tigshop_openapi::RouteDoc;
 
     fn shop_account(shop_id: i32) -> AuthUser {
-        AuthUser::new(1, "shop-user".into(), None, Some("shop".into()), Some(shop_id))
+        AuthUser::new(
+            1,
+            "shop-user".into(),
+            None,
+            Some("shop".into()),
+            Some(shop_id),
+        )
     }
 
     fn platform() -> AuthUser {

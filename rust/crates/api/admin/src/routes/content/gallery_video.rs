@@ -53,13 +53,21 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
         "/setting/galleryVideo/treeList",
         "GalleryVideoController.treeList",
     ),
-    ("GET", "/setting/galleryVideo/list", "GalleryVideoController.list"),
+    (
+        "GET",
+        "/setting/galleryVideo/list",
+        "GalleryVideoController.list",
+    ),
     (
         "GET",
         "/setting/galleryVideo/detail",
         "GalleryVideoController.detail",
     ),
-    ("POST", "/setting/galleryVideo/del", "GalleryVideoController.del"),
+    (
+        "POST",
+        "/setting/galleryVideo/del",
+        "GalleryVideoController.del",
+    ),
     (
         "POST",
         "/setting/galleryVideo/create",
@@ -81,7 +89,10 @@ const ROUTE_TABLE: [(&str, &str, &str); 8] = [
 pub fn routes(state: &AdminState) -> Router<AdminState> {
     let _ = state;
     Router::new()
-        .route("/setting/galleryVideo/getAllCategory", get(get_all_category))
+        .route(
+            "/setting/galleryVideo/getAllCategory",
+            get(get_all_category),
+        )
         .route("/setting/galleryVideo/treeList", get(get_all_category))
         .route("/setting/galleryVideo/list", get(list))
         .route("/setting/galleryVideo/detail", get(detail))
@@ -160,10 +171,7 @@ async fn update(
 }
 
 /// `POST /adminapi/setting/galleryVideo/del`：删除视频相册。
-async fn del(
-    State(state): State<AdminState>,
-    Json(dto): Json<GalleryDelDTO>,
-) -> ApiResult<()> {
+async fn del(State(state): State<AdminState>, Json(dto): Json<GalleryDelDTO>) -> ApiResult<()> {
     state.content.gallery_video.delete(&dto).await?;
     ok(())
 }
@@ -256,8 +264,10 @@ mod tests {
                 "缺少 {method} {path}"
             );
         }
-        let mut unique: Vec<(String, String)> =
-            docs.iter().map(|d| (d.method.clone(), d.path.clone())).collect();
+        let mut unique: Vec<(String, String)> = docs
+            .iter()
+            .map(|d| (d.method.clone(), d.path.clone()))
+            .collect();
         unique.sort();
         unique.dedup();
         assert_eq!(unique.len(), docs.len(), "implemented_routes() 存在重复项");

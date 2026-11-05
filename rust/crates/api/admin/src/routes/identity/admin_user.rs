@@ -88,7 +88,11 @@ pub fn routes(state: &AdminState) -> Router<AdminState> {
 /// 本域已实现路由（用于 `/openapi/coverage` 覆盖率统计）。
 pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
     [
-        ("GET", "/adminapi/authority/adminUser/list", "AdminUserController.list"),
+        (
+            "GET",
+            "/adminapi/authority/adminUser/list",
+            "AdminUserController.list",
+        ),
         (
             "GET",
             "/adminapi/authority/adminUser/mineDetail",
@@ -109,7 +113,11 @@ pub fn implemented_routes() -> Vec<tigshop_openapi::RouteDoc> {
             "/adminapi/authority/adminUser/update",
             "AdminUserController.update",
         ),
-        ("POST", "/adminapi/authority/adminUser/del", "AdminUserController.del"),
+        (
+            "POST",
+            "/adminapi/authority/adminUser/del",
+            "AdminUserController.del",
+        ),
         (
             "POST",
             "/adminapi/authority/adminUser/batch",
@@ -170,7 +178,11 @@ fn header_str(headers: &HeaderMap, name: &str) -> Option<String> {
 /// Java `BaseServiceImpl#getAdminType/getShopId/getVendorId` **只读请求头**；
 /// Rust 侧 JWT 已含 `admin_type`，故 `adminType` 缺失时回退 JWT；
 /// `shopId` / `vendorId` 额外接受同名查询参数（JWT 尚未签发这两个字段）。
-fn resolve_admin_type(headers: &HeaderMap, auth: &AuthUser, fallback: Option<&str>) -> Option<String> {
+fn resolve_admin_type(
+    headers: &HeaderMap,
+    auth: &AuthUser,
+    fallback: Option<&str>,
+) -> Option<String> {
     header_str(headers, "x-admin-type")
         .or_else(|| auth.admin_type.clone())
         .or_else(|| fallback.map(ToString::to_string))
@@ -190,7 +202,9 @@ async fn list(
     Extension(auth): Extension<AuthUser>,
     Query(q): Query<AdminUserListQuery>,
 ) -> ApiResult<PageResult<AdminUserDTO>> {
-    ok(state.identity.admin_user
+    ok(state
+        .identity
+        .admin_user
         .list(
             q.admin_user_type.as_deref(),
             q.keyword.as_deref(),
@@ -219,7 +233,8 @@ async fn mine_detail(
 
 /// 管理端租户校验：店铺账号只能操作本店管理员（`shop_id=0` 的平台管理员不可见）。
 fn check_admin_scope(auth: &AuthUser, admin: &AdminUserDTO) -> Result<(), AppError> {
-    auth.ensure_shop_access(admin.shop_id.unwrap_or(0)).map_err(AppError)
+    auth.ensure_shop_access(admin.shop_id.unwrap_or(0))
+        .map_err(AppError)
 }
 
 /// `GET /adminapi/authority/adminUser/detail?id=`：管理员详情。
@@ -315,7 +330,11 @@ async fn modify_manage_accounts(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<AdminUserModifyManageAccountsDTO>,
 ) -> ApiResult<&'static str> {
-    state.identity.admin_user.modify_manage_accounts(&dto, auth.id).await?;
+    state
+        .identity
+        .admin_user
+        .modify_manage_accounts(&dto, auth.id)
+        .await?;
     ok("操作成功")
 }
 
@@ -345,7 +364,11 @@ async fn config(
             .and_then(|v| v.parse::<i32>().ok())
             .or(q.vendor_id),
     };
-    ok(state.identity.admin_user.get_config(&effective, admin_type.as_deref()).await?)
+    ok(state
+        .identity
+        .admin_user
+        .get_config(&effective, admin_type.as_deref())
+        .await?)
 }
 
 /// `GET /adminapi/authority/adminUser/getCode`：获取短信验证码。
@@ -375,7 +398,11 @@ async fn api_token_generate(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<AdminApiTokenGenerateDTO>,
 ) -> ApiResult<AdminApiTokenGenerateVO> {
-    ok(state.identity.admin_user.generate_api_token(auth.id, &dto).await?)
+    ok(state
+        .identity
+        .admin_user
+        .generate_api_token(auth.id, &dto)
+        .await?)
 }
 
 /// `GET /adminapi/authority/adminUser/apiToken/list`：查询当前管理员的 Token 列表。
@@ -397,7 +424,11 @@ async fn api_token_revoke(
     Extension(auth): Extension<AuthUser>,
     Json(dto): Json<OperateDTO>,
 ) -> ApiResult<&'static str> {
-    state.identity.admin_user.revoke_api_token(dto.id, auth.id).await?;
+    state
+        .identity
+        .admin_user
+        .revoke_api_token(dto.id, auth.id)
+        .await?;
     ok("吊销成功")
 }
 
@@ -501,7 +532,10 @@ mod tests {
         let mut headers = HeaderMap::new();
         assert_eq!(header_str(&headers, "x-admin-type"), None);
         headers.insert("x-admin-type", "  admin  ".parse().unwrap());
-        assert_eq!(header_str(&headers, "x-admin-type").as_deref(), Some("admin"));
+        assert_eq!(
+            header_str(&headers, "x-admin-type").as_deref(),
+            Some("admin")
+        );
         headers.insert("x-admin-type", "   ".parse().unwrap());
         assert_eq!(header_str(&headers, "x-admin-type"), None);
     }

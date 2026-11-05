@@ -440,7 +440,10 @@ mod tests {
     fn time_parse_and_format() {
         let ts = parse_time_to_unix(Some("2023-11-15 06:13:20")).unwrap();
         assert_eq!(ts, 1_700_000_000);
-        assert_eq!(format_time(Some(ts)).as_deref(), Some("2023-11-15 06:13:20"));
+        assert_eq!(
+            format_time(Some(ts)).as_deref(),
+            Some("2023-11-15 06:13:20")
+        );
         assert_eq!(parse_time_to_unix(None), None);
         assert_eq!(parse_time_to_unix(Some("  ")), None);
         assert_eq!(parse_time_to_unix(Some("2023-11-15")), None);
