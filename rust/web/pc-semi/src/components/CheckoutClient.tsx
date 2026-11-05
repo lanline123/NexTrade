@@ -161,7 +161,7 @@ export default function CheckoutClient({ cartIds }: { cartIds: number[] }) {
             ) : (
               <div>
                 <b>请选择收货地址</b>
-                <p>暂无收货地址，请先在会员中心添加。</p>
+                <p>暂无收货地址，<Link href="/member/address">去添加地址</Link>。</p>
               </div>
             )}
           </div>
