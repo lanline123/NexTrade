@@ -5023,3 +5023,11 @@ img {
 .cert-options button { height: 34px; padding: 0 20px; border: 1px solid #dcdfe6; border-radius: 6px; background: #fff; color: #333; cursor: pointer; }
 .cert-options button.is-active { border-color: #e1251b; background: #e1251b; color: #fff; }
 .cert-form select { height: 38px; padding: 0 10px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff; }
+
+
+/* 礼品卡兑换 */
+.giftcard-exchange h2 { margin: 0 0 8px; color: #1a1a1a; font-size: 18px; }
+.giftcard-exchange__hint { margin: 0 0 18px; color: #8a919f; font-size: 13px; }
+.giftcard-exchange .security-form { max-width: 520px; }
+.giftcard-exchange__result { margin-top: 20px; padding: 16px; border-radius: 8px; background: #f6fbf7; color: #2f9e44; }
+.giftcard-exchange__result pre { margin: 8px 0 0; max-height: 260px; overflow: auto; color: #333; font-size: 12px; }
