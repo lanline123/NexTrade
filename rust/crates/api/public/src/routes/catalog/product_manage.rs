@@ -21,21 +21,18 @@
 //! [`tigshop_services::catalog::product_manage::ProductManageService::client_detail`]。
 
 use axum::{
-    body::Body,
-    extract::{Extension, Query, Request, State},
-    http::{header, HeaderMap, StatusCode},
+    extract::{Query, Request, State},
+    http::header,
     middleware::{self, Next},
     response::Response,
     routing::get,
     Router,
 };
 use serde::Deserialize;
-use std::io::{Cursor, Write};
 use tigshop_core::models::catalog::product_manage::ClientProductDetailVO;
 use tigshop_core::Error;
 use tigshop_security::web::{ok, ApiResult, AppError, AuthUser};
 use tigshop_security::JwtService;
-use zip::write::SimpleFileOptions;
 
 use crate::PublicState;
 
@@ -43,7 +40,10 @@ use crate::PublicState;
 pub fn routes(state: &PublicState) -> Router<PublicState> {
     Router::new()
         .route("/product/product/detail", get(product_detail))
-        .route("/product/product/downloadRawImages", get(download_raw_images))
+        .route(
+            "/product/product/downloadRawImages",
+            get(super::product_raw_image::download_raw_images),
+        )
         .layer(middleware::from_fn_with_state(state.jwt.clone(), optional_auth))
 }
 
@@ -95,149 +95,6 @@ struct DetailQuery {
     id: Option<i32>,
     shop_id: Option<i32>,
     nearest_shop_id: Option<i32>,
-}
-
-/// `GET /api/product/product/detail?sn=`（或 `?id=`）：前台商品详情。
-///
-/// 对应 Java `ProductController.detail` / `detailById`。
-#[derive(Debug, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-struct RawQuery {
-    id: Option<i32>,
-    shop_id: Option<i32>,
-    nearest_shop_id: Option<i32>,
-}
-
-/// `GET /api/product/product/downloadRawImages?id=`：登录后下载商品原图。
-async fn download_raw_images(
-    State(state): State<PublicState>,
-    auth: Option<Extension<AuthUser>>,
-    headers: HeaderMap,
-    Query(q): Query<RawQuery>,
-) -> Result<Response, AppError> {
-    let user_id = auth.as_ref().map(|Extension(a)| a.id).unwrap_or(0);
-    if user_id <= 0 {
-        return Err(AppError(Error::biz(401, "请先登录后下载商品原图")));
-    }
-    let product_id = q.id.unwrap_or(0);
-    if product_id <= 0 || q.shop_id.is_some_and(|v| v < 0) || q.nearest_shop_id.is_some_and(|v| v < 0) {
-        return Err(AppError(Error::biz(400, "商品或门店参数不合法")));
-    }
-    let product = sqlx::query("SELECT product_name, product_sn, pic_url, pic_thumb, pic_original, pic_large FROM product WHERE product_id=? AND is_delete=0 LIMIT 1")
-        .bind(product_id)
-        .fetch_optional(&state.repos.pool)
-        .await
-        .map_err(|e| AppError(Error::Database(e.to_string())))?
-        .ok_or_else(|| AppError(Error::biz(400, "商品不存在")))?;
-    use sqlx::Row;
-    let name = product.try_get::<String, _>("product_name").unwrap_or_default();
-    let sn = product.try_get::<Option<String>, _>("product_sn").unwrap_or_default().unwrap_or_default();
-    let mut urls: Vec<String> = Vec::new();
-    for key in ["pic_url", "pic_original", "pic_large", "pic_thumb"] {
-        if let Ok(v) = product.try_get::<Option<String>, _>(key) {
-            if let Some(v) = v.filter(|s| !s.trim().is_empty()) {
-                urls.push(v);
-            }
-        }
-    }
-    if let Ok(rows) = sqlx::query("SELECT pic_url FROM product_gallery WHERE product_id=? ORDER BY sort_order, pic_id")
-        .bind(product_id)
-        .fetch_all(&state.repos.pool)
-        .await
-    {
-        for row in rows {
-            if let Ok(Some(url)) = row.try_get::<Option<String>, _>("pic_url") {
-                if !url.trim().is_empty() {
-                    urls.push(url);
-                }
-            }
-        }
-    }
-    let host = headers.get(header::HOST).and_then(|v| v.to_str().ok()).unwrap_or("127.0.0.1");
-    let proto = headers
-        .get("x-forwarded-proto")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("http");
-    let base = format!("{proto}://{host}/");
-    urls = urls
-        .into_iter()
-        .map(|u| {
-            if u.starts_with("http://") || u.starts_with("https://") {
-                u
-            } else {
-                format!("{base}{}", u.trim_start_matches('/'))
-            }
-        })
-        .collect();
-    urls.sort();
-    urls.dedup();
-    if urls.is_empty() {
-        return Err(AppError(Error::biz(400, "该商品没有可下载的原图")));
-    }
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(25))
-        .build()
-        .map_err(|e| AppError(Error::Internal(e.to_string())))?;
-    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-    let mut written = 0;
-    for (index, url) in urls.iter().take(120).enumerate() {
-        let response = match client.get(url).send().await {
-            Ok(r) if r.status().is_success() => r,
-            _ => continue,
-        };
-        if response.content_length().is_some_and(|n| n > 20 * 1024 * 1024) {
-            continue;
-        }
-        let Ok(bytes) = response.bytes().await else { continue; };
-        if bytes.is_empty() || bytes.len() > 20 * 1024 * 1024 {
-            continue;
-        }
-        let ext = url
-            .split('?')
-            .next()
-            .and_then(|u| std::path::Path::new(u).extension())
-            .and_then(|e| e.to_str())
-            .filter(|e| matches!(e.to_ascii_lowercase().as_str(), "jpg" | "jpeg" | "png" | "webp" | "gif" | "bmp"))
-            .unwrap_or("jpg");
-        zip.start_file(format!("images/{:03}.{ext}", index + 1), options)
-            .map_err(|e| AppError(Error::Internal(e.to_string())))?;
-        zip.write_all(&bytes)
-            .map_err(|e| AppError(Error::Internal(e.to_string())))?;
-        written += 1;
-    }
-    if written == 0 {
-        return Err(AppError(Error::biz(400, "原图下载失败，请稍后重试")));
-    }
-    let data = zip.finish()
-        .map_err(|e| AppError(Error::Internal(e.to_string())))?
-        .into_inner();
-    let ascii_code = sn.chars().filter(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-')).collect::<String>();
-    let encoded = percent_encode(&format!("{name}_{sn}_原图.zip"));
-    let disposition = format!(
-        "attachment; filename=\"product_{}_raw_images.zip\"; filename*=UTF-8''{}",
-        if ascii_code.is_empty() { product_id.to_string() } else { ascii_code },
-        encoded
-    );
-    Response::builder()
-        .status(StatusCode::OK)
-        .header(header::CONTENT_TYPE, "application/zip")
-        .header(header::CONTENT_LENGTH, data.len())
-        .header(header::CONTENT_DISPOSITION, disposition)
-        .header(header::CACHE_CONTROL, "no-store")
-        .body(Body::from(data))
-        .map_err(|e| AppError(Error::Internal(e.to_string())))
-}
-
-fn percent_encode(input: &str) -> String {
-    let mut out = String::new();
-    for byte in input.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(byte as char),
-            _ => out.push_str(&format!("%{byte:02X}")),
-        }
-    }
-    out
 }
 
 async fn product_detail(

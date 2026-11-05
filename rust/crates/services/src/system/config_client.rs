@@ -77,7 +77,9 @@ use std::sync::Arc;
 
 use tigshop_core::models::system::config_client::{
     assemble_base, assemble_init_extras, apply_init_extras, extract_header_style, get_bool, get_int,
-    get_str, index_from_configs, page_module_of, style_type_from_raw, AfterSalesSettingsVO,
+    get_str, get_string_list_with_java_default, index_from_configs, page_module_of,
+    style_type_from_raw,
+    AfterSalesSettingsVO,
     BaseContext, ConfigIndex, GetLoginProtocolContentVO, GetLoginProtocolVO, InitConfigSettingsVO,
     PreviewIdQuery, ProtocolKind, StorageType, ThemeSettingsVO, BIZ_AFTER_SALES_SERVICE,
     BIZ_AFTER_SALES_SERVICE_SHOW, BIZ_IS_OPEN_MOBILE_AREA_CODE, BIZ_KEFU_TYPE,
@@ -86,7 +88,10 @@ use tigshop_core::models::system::config_client::{
     BIZ_SHOP_TITLE_SUFFIX, BIZ_SHOP_DESC, BIZ_SHOW_TEMPLATE_CONTENT, BIZ_STORAGE_TYPE,
     BIZ_TEMPLATE_CONTENT, BIZ_THEME_STYLE, BIZ_CAN_INVOICE, BIZ_INVOICE_ADDED, BIZ_USE_SURPLUS,
     BIZ_USE_POINTS, BIZ_USE_COUPON, BIZ_AUTO_REDIRECT, BIZ_H5_DOMAIN, BIZ_PC_DOMAIN,
-    BIZ_ADMIN_DOMAIN, DEFAULT_AUTO_REDIRECT,
+    BIZ_ADMIN_DOMAIN, BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS,
+    DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS, DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES,
+    BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED, BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES,
+    DEFAULT_AUTO_REDIRECT,
     DEFAULT_HEADER_STYLE, MOBILE_SEARCH_STYLE_DEFAULT_RAW,
 };
 use tigshop_core::{Error, Result};
@@ -524,6 +529,23 @@ fn effective_str(configs: &ConfigIndex, biz_code: &str) -> Option<String> {
 pub fn assemble_init_config_settings(configs: &ConfigIndex) -> InitConfigSettingsVO {
     // 已核对 bizCode 的字段（对应 Java VO 上有 @ConfigItemField 且本片确认过）
     let mut vo = InitConfigSettingsVO {
+        // 商品原图批量下载：Java `InitConfigSettingsVO` 三项 @ConfigItemField，
+        // 用户端 `normalizeRawImageConfig(res)` 依赖这三个字段决定是否展示入口。
+        // Java `SettingsHelper#getRaw` 对缺失行回落 SettingsEnum.defaultValue；
+        // 行存在但值为空时 parse(JSON_ARRAY, blank) 返回 null，不回落。
+        product_raw_image_download_enabled: Some(
+            get_int(configs, BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED).unwrap_or(0),
+        ),
+        product_raw_image_download_channels: get_string_list_with_java_default(
+            configs,
+            BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS,
+            &DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS,
+        ),
+        product_raw_image_download_scopes: get_string_list_with_java_default(
+            configs,
+            BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES,
+            &DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES,
+        ),
         shop_logo: get_str(configs, BIZ_SHOP_LOGO),
         shop_name: get_str(configs, BIZ_SHOP_NAME),
         shop_title_suffix: get_str(configs, BIZ_SHOP_TITLE_SUFFIX),
@@ -688,6 +710,60 @@ mod tests {
         // 未核对的字段保持 None（不编造）
         assert_eq!(vo.amap_web_key, None);
         assert_eq!(vo.map_provider, None);
+    }
+
+    /// 商品原图批量下载三项配置：JSON 数组解析、装配与 camelCase 序列化。
+    #[test]
+    fn assemble_raw_image_download_settings() {
+        let cfgs = index(&[
+            (BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED, "1"),
+            (
+                BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS,
+                r#"["pc","h5","miniProgram","app"]"#,
+            ),
+            (
+                BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES,
+                r#"["main","sku","detail"]"#,
+            ),
+        ]);
+        let vo = assemble_init_config_settings(&cfgs);
+        assert_eq!(vo.product_raw_image_download_enabled, Some(1));
+        assert_eq!(
+            vo.product_raw_image_download_channels.as_deref(),
+            Some(&["pc".to_owned(), "h5".to_owned(), "miniProgram".to_owned(), "app".to_owned()][..])
+        );
+        assert_eq!(
+            vo.product_raw_image_download_scopes.as_deref(),
+            Some(&["main".to_owned(), "sku".to_owned(), "detail".to_owned()][..])
+        );
+        let json = serde_json::to_value(&vo).expect("VO 可序列化");
+        assert_eq!(json["productRawImageDownloadEnabled"], 1);
+        assert!(json["productRawImageDownloadChannels"].is_array());
+        assert!(json["productRawImageDownloadScopes"].is_array());
+
+        // 配置行缺失：Java `SettingsHelper#getRaw` 回落 SettingsEnum.defaultValue。
+        let off = assemble_init_config_settings(&index(&[(
+            BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED,
+            "0",
+        )]));
+        assert_eq!(off.product_raw_image_download_enabled, Some(0));
+        assert_eq!(
+            off.product_raw_image_download_channels.as_deref(),
+            Some(&["pc".to_owned(), "h5".to_owned(), "miniProgram".to_owned(), "app".to_owned()][..])
+        );
+        assert_eq!(
+            off.product_raw_image_download_scopes.as_deref(),
+            Some(&["main".to_owned(), "sku".to_owned(), "detail".to_owned()][..])
+        );
+
+        // 行存在但值为空：Java parse(JSON_ARRAY, blank) = null，不回落默认值。
+        let blank = assemble_init_config_settings(&index(&[
+            (BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED, "1"),
+            (BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS, ""),
+            (BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES, "  "),
+        ]));
+        assert_eq!(blank.product_raw_image_download_channels, None);
+        assert_eq!(blank.product_raw_image_download_scopes, None);
     }
 
     /// `getBase` 的关键整型/字符串兜底（对照 Java 常量）。

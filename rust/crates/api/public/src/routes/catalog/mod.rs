@@ -7,6 +7,7 @@ pub mod exchange;
 pub mod image_search;
 pub mod product_manage;
 pub mod product_manage_client;
+pub mod product_raw_image;
 pub mod product_search;
 pub mod search_admin;
 

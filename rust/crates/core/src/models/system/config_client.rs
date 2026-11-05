@@ -183,6 +183,27 @@ pub const BIZ_USE_COUPON: &str = "useCoupon";
 pub const BIZ_MEMBER_WITHDRAWAL_ENABLED: &str = "memberWithdrawalEnabled";
 /// `SettingsEnum.COMMISSION_WITHDRAWAL_ENABLED.bizCode`
 pub const BIZ_COMMISSION_WITHDRAWAL_ENABLED: &str = "commissionWithdrawalEnabled";
+/// `SettingsEnum.PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED.bizCode`
+/// —— 商品原图批量下载总开关（0-关闭，1-开启）。
+pub const BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED: &str = "productRawImageDownloadEnabled";
+/// `SettingsEnum.PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS.bizCode`
+/// —— 开放渠道 JSON 数组：`pc` / `h5` / `miniProgram` / `app`。
+pub const BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS: &str = "productRawImageDownloadChannels";
+/// `SettingsEnum.PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES.bizCode`
+/// —— 打包范围 JSON 数组：`main` / `sku` / `detail`。
+pub const BIZ_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES: &str = "productRawImageDownloadScopes";
+/// `SettingsEnum.PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED.defaultValue`。
+/// 配置行缺失时 Java `SettingsHelper#getRaw` 回落到此值。
+pub const DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_ENABLED: i32 = 0;
+/// `SettingsEnum.PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS.defaultValue`。
+pub const DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_CHANNELS: [&str; 4] =
+    ["pc", "h5", "miniProgram", "app"];
+/// `SettingsEnum.PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES.defaultValue`。
+pub const DEFAULT_PRODUCT_RAW_IMAGE_DOWNLOAD_SCOPES: [&str; 3] =
+    ["main", "sku", "detail"];
+/// `SettingsEnum.STORE_ASSIGN_PRODUCT_IMAGE.bizCode`
+/// —— 门店是否使用独立商品主图（Java `ProductRawImageDownloadService#collect`）。
+pub const BIZ_STORE_ASSIGN_PRODUCT_IMAGE: &str = "storeAssignProductImage";
 /// `SettingsEnum.TIPS.bizCode`
 pub const BIZ_TIPS: &str = "tips";
 /// `SettingsEnum.ENABLE_ATTRIBUTE_FILTER.bizCode`
@@ -476,6 +497,14 @@ pub type DecoratePageConfig = serde_json::Value;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct InitConfigSettingsVO {
+    // *** 商品原图批量下载（Java `InitConfigSettingsVO` 的 @ConfigItemField 三项）***
+    /// 总开关；0-关闭，1-开启，默认关闭。
+    pub product_raw_image_download_enabled: Option<i32>,
+    /// 开放渠道：`["pc","h5","miniProgram","app"]`。
+    pub product_raw_image_download_channels: Option<Vec<String>>,
+    /// 自动打包范围：`["main","sku","detail"]`。
+    pub product_raw_image_download_scopes: Option<Vec<String>>,
+
     // *** 商城信息 ***
     /// 客户下单配送方式（`storeCustomSubmitShippingType`）
     pub store_custom_submit_shipping_type: Option<i32>,
@@ -936,6 +965,65 @@ pub fn get_json(values: &ConfigIndex, biz_code: &str) -> Option<serde_json::Valu
     match ConfigValue::parse(ValueType::Json, values.raw(biz_code)) {
         ConfigValue::Json(v) => v,
         _ => None,
+    }
+}
+
+/// 把配置中以 JSON 数组 / 逗号分隔保存的字符串列表解析成 `Vec<String>`。
+///
+/// 后台「商品设置」把 `productRawImageDownloadChannels` / `Scopes`
+/// 存成 `["pc","h5"]` 形式的 JSON 数组字符串；兼容历史逗号分隔值。
+/// `None` / 空白 / 空数组 ⇒ `None`（对应 Java 的 `null`，调用方据此拒绝下载）。
+#[must_use]
+pub fn parse_config_string_list(raw: Option<&str>) -> Option<Vec<String>> {
+    let value = raw?.trim();
+    if value.is_empty() {
+        return None;
+    }
+    let parsed: Vec<String> = if value.starts_with('[') {
+        match serde_json::from_str::<serde_json::Value>(value) {
+            Ok(serde_json::Value::Array(items)) => items
+                .iter()
+                .filter_map(|v| v.as_str())
+                .map(|s| s.trim().to_owned())
+                .filter(|s| !s.is_empty())
+                .collect(),
+            // 非法 JSON 数组退化为逗号分隔，避免整个配置读不出来。
+            _ => value
+                .trim_matches(&['[', ']'][..])
+                .split(',')
+                .map(|s| s.trim().trim_matches('"').to_owned())
+                .filter(|s| !s.is_empty())
+                .collect(),
+        }
+    } else {
+        value
+            .split(',')
+            .map(|s| s.trim().trim_matches('"').to_owned())
+            .filter(|s| !s.is_empty())
+            .collect()
+    };
+    (!parsed.is_empty()).then_some(parsed)
+}
+
+/// 取「字符串列表型」配置值（见 [`parse_config_string_list`]）。
+#[must_use]
+pub fn get_string_list(values: &ConfigIndex, biz_code: &str) -> Option<Vec<String>> {
+    parse_config_string_list(values.raw(biz_code))
+}
+
+/// 取字符串列表型配置值，并复刻 Java `SettingsHelper#getRaw` 的缺省回落：
+/// 配置行**缺失** ⇒ 返回 `SettingsEnum.defaultValue`；
+/// 配置行**存在但值空白/非法** ⇒ `parse(JSON_ARRAY, blank)` 返回 `null`，保持 `None`。
+#[must_use]
+pub fn get_string_list_with_java_default(
+    values: &ConfigIndex,
+    biz_code: &str,
+    defaults: &[&str],
+) -> Option<Vec<String>> {
+    match get_string_list(values, biz_code) {
+        Some(list) => Some(list),
+        None if values.contains(biz_code) => None,
+        None => Some(defaults.iter().map(|v| (*v).to_owned()).collect()),
     }
 }
 
