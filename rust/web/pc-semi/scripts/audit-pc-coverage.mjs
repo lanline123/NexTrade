@@ -46,13 +46,24 @@ const missing = [...new Set(oldRoutes)]
   .filter((route) => !route.includes('/src/') && !route.includes('/components/'))
   .filter((route) => !newSet.has(normalize(route)))
   .sort();
+
+// 旧版 activity 下的 pc* 是装修内部模块（多数为空壳/组件），不是独立用户路由；
+// index.v1 是旧版本组件入口。它们由 /activity/[...slug] 兜底，不计入业务缺页。
+const isInternalModule = (route) => /^\/activity\/pc/.test(route) || /\/index\.v1$/.test(route);
+const internalModules = missing.filter(isInternalModule);
+const businessMissing = missing.filter((route) => !isInternalModule(route));
 const extra = [...new Set(newRoutes)].filter((route) => !oldRoutes.some((oldRoute) => normalize(oldRoute) === normalize(route))).sort();
 
 console.log(`old page files: ${oldRoutes.length}`);
 console.log(`new routes:     ${newRoutes.length}`);
 console.log(`old routes:     ${new Set(oldRoutes).size}`);
-console.log(`business missing: ${missing.length} (excluding src/ and components/)`);
+console.log(`business missing: ${businessMissing.length} (excluding src/, components/ and internal modules)`);
+console.log(`internal module paths: ${internalModules.length} (handled by /activity/[...slug] or legacy redirects)`);
 console.log('\nMissing old routes (first 120):');
-for (const route of missing.slice(0, 120)) console.log(`  ${route}`);
+for (const route of businessMissing.slice(0, 120)) console.log(`  ${route}`);
+if (internalModules.length) {
+  console.log('\nInternal module paths (not user routes):');
+  for (const route of internalModules) console.log(`  ${route}`);
+}
 console.log('\nExtra new routes:');
 for (const route of extra) console.log(`  ${route}`);

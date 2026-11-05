@@ -14,7 +14,7 @@
 ```text
 pcHome 装修模块：20/20 已注册
 业务路由：静态页面 117 个
-路由审计：13 个缺失均为 activity 内部组件路径，由 /activity/[...slug] 兜底
+路由审计：business missing 0；13 个 activity 内部组件路径不计入业务缺页，由 /activity/[...slug] 兜底
 路由兼容：order 支付渠道、member 登录/注册、pin、旧内部路由均已映射
 i18next：全量接入，中文原文作 key
 语言包：zh_cn 230 条，en_us 1692 条
@@ -43,7 +43,7 @@ typecheck：通过
 build：通过
 静态路由 SSR：91/91 通过（早期批次）
 路由巡检：109 个，异常均为预期 307 重定向或无效测试 ID
-最新路由审计：117 个新路由，仅 13 个 activity 内部组件路径未单独建页
+最新路由审计：117 个新路由，business missing 0；13 个 activity 内部组件路径由 catch-all 承载
 i18n 静态覆盖率：97.8%
 ```
 
