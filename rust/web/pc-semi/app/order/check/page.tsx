@@ -23,6 +23,10 @@ export default async function CheckoutPage({
     .split(',')
     .map((item) => Number(item))
     .filter((item) => Number.isFinite(item) && item > 0);
+  // 旧版确认页通过 query.flowType 区分普通/礼品卡/预售等结算流程（默认 1）
+  const flowRaw = searchParams?.flowType;
+  const flowText = Array.isArray(flowRaw) ? flowRaw[0] || '' : flowRaw || '';
+  const flowType = Number(flowText) > 0 ? Number(flowText) : 1;
   const header = await getPcHeader().catch(() => null);
 
   return (
@@ -38,7 +42,7 @@ export default async function CheckoutPage({
             <span>确认订单</span>
           </nav>
           <h1 className="pc-cart-title">确认订单</h1>
-          <CheckoutClient cartIds={cartIds} />
+          <CheckoutClient cartIds={cartIds} flowType={flowType} />
         </div>
       </main>
       <PcFooter />

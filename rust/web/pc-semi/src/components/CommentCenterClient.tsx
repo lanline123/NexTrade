@@ -36,16 +36,33 @@ interface OrderRow {
   items?: OrderItem[];
 }
 
+interface CommentReply {
+  commentId?: number;
+  content?: string;
+  addTime?: string;
+  kefuName?: string;
+}
+
 interface CommentRow {
   commentId?: number;
   productId?: number;
   productName?: string;
+  productSn?: string;
   picThumb?: string;
   commentRank?: number;
   content?: string;
   addTime?: string;
   status?: number;
   statusText?: string;
+  username?: string;
+  isAnonymous?: number;
+  avatar?: string;
+  commentTag?: string[];
+  skuData?: Array<{ name?: string; value?: string }>;
+  showPics?: Array<{ picUrl?: string; picThumb?: string }>;
+  replies?: CommentReply[];
+  kefuName?: string;
+  isShowed?: number;
 }
 
 interface SubNum {
@@ -186,12 +203,46 @@ export default function CommentCenterClient() {
                 <div className="comment-list__product">
                   <img src={item.picThumb || ''} alt={item.productName || ''} />
                   <Link href={item.productId ? `/product/${item.productId}` : '/search'}>{item.productName || '商品'}</Link>
+                  {item.productSn ? <span className="comment-list__sn">货号：{item.productSn}</span> : null}
+                </div>
+                <div className="comment-list__head">
+                  {item.avatar ? <img src={item.avatar} alt="" className="comment-list__avatar" /> : null}
+                  <span>{item.isAnonymous === 1 ? '匿名用户' : item.username || '会员'}</span>
+                  <span>{item.addTime || ''}</span>
                 </div>
                 <div className="comment-list__rank">评分：{item.commentRank ?? '-'}</div>
+                {(item.commentTag || []).length ? (
+                  <div className="comment-list__tags">
+                    {(item.commentTag || []).map((tag) => <span key={tag}>{tag}</span>)}
+                  </div>
+                ) : null}
+                {item.skuData?.length ? (
+                  <div className="comment-list__sku">
+                    {item.skuData.map((sku, skuIndex) => <span key={skuIndex}>{sku.name}：{sku.value}</span>)}
+                  </div>
+                ) : null}
                 <div className="comment-list__content">{item.content || ''}</div>
+                {(item.showPics || []).length ? (
+                  <div className="comment-list__pics">
+                    {(item.showPics || []).map((pic, picIndex) => (
+                      <img key={picIndex} src={pic.picUrl || pic.picThumb || ''} alt="" />
+                    ))}
+                  </div>
+                ) : null}
+                {(item.replies || []).length ? (
+                  <div className="comment-list__replies">
+                    {(item.replies || []).map((reply, replyIndex) => (
+                      <div key={reply.commentId || replyIndex} className="comment-list__reply">
+                        <b>{reply.kefuName || item.kefuName || '商家'}：</b>
+                        <span>{reply.content}</span>
+                        {reply.addTime ? <small>{reply.addTime}</small> : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 <div className="comment-list__foot">
                   <span>{item.addTime || ''}</span>
-                  {item.statusText ? <span>{item.statusText}</span> : null}
+                  <span>{item.isShowed === 1 ? '已晒单' : item.statusText || ''}</span>
                 </div>
               </article>
             ))}

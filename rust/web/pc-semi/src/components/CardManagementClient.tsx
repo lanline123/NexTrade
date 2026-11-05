@@ -26,7 +26,7 @@ export default function CardManagementClient() {
   const [rows, setRows] = useState<AccountCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ accountName: '', accountNo: '', bankName: '' });
+  const [form, setForm] = useState({ accountName: '', accountNo: '', bankName: '', identity: '' });
   const [saving, setSaving] = useState(false);
 
   const load = () => {
@@ -49,11 +49,12 @@ export default function CardManagementClient() {
         accountType: type,
         accountName: form.accountName.trim(),
         accountNo: form.accountNo.trim(),
+        identity: form.identity.trim() || undefined,
         bankName: type === 1 ? form.bankName.trim() : '',
       });
       Toast.success({ content: '添加成功' });
       setOpen(false);
-      setForm({ accountName: '', accountNo: '', bankName: '' });
+      setForm({ accountName: '', accountNo: '', bankName: '', identity: '' });
       load();
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '添加失败' });
@@ -103,6 +104,8 @@ export default function CardManagementClient() {
           <input value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} placeholder="请输入真实姓名" />
           <label>{TYPE_LABELS[type]}账号</label>
           <input value={form.accountNo} onChange={(event) => setForm({ ...form, accountNo: event.target.value })} placeholder={`请输入${TYPE_LABELS[type]}账号`} />
+          <label>身份证号（选填）</label>
+          <input value={form.identity} onChange={(event) => setForm({ ...form, identity: event.target.value })} placeholder="请输入身份证号" />
           {type === 1 ? (
             <>
               <label>银行卡详情</label>

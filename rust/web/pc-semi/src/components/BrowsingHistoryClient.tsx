@@ -34,7 +34,7 @@ export default function BrowsingHistoryClient() {
 
   const remove = async (productId: number) => {
     try {
-      await apiPost('user/collectProduct/cancel', { productId });
+      await apiPost('user/user/delHistoryProduct', { ids: [productId] });
       Toast.success({ content: '已删除足迹' });
       load();
     } catch {

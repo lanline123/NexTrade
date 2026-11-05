@@ -30,7 +30,7 @@ export default function InvoiceQualificationClient() {
       .then((result) => {
         const data = result || {};
         setForm(data);
-        setEditing(!data.companyName || Number(data.status) === 0 || Number(data.status) === 3);
+        setEditing(!data.companyName || Number(data.status) === 2);
       })
       .catch(() => setEditing(true))
       .finally(() => setLoading(false));
@@ -44,6 +44,7 @@ export default function InvoiceQualificationClient() {
 
   const submit = async () => {
     if (!form.companyName?.trim()) return Toast.error({ content: '请输入单位名称' });
+    if (!form.companyCode?.trim()) return Toast.error({ content: '请输入纳税人识别码' });
     if (!form.companyAddress?.trim()) return Toast.error({ content: '请输入注册地址' });
     if (!form.companyBank?.trim()) return Toast.error({ content: '请输入开户银行' });
     if (!agreed) return Toast.error({ content: '请先阅读并勾选协议' });
@@ -53,7 +54,7 @@ export default function InvoiceQualificationClient() {
       if (Number(form.status) === 0 || !form.invoiceId) {
         await apiPost('user/invoice/create', payload);
       } else {
-        await apiPost('user/invoice/update', { id: form.invoiceId, ...payload });
+        await apiPost('user/invoice/update', { invoiceId: form.invoiceId, ...payload });
       }
       Toast.success({ content: '提交成功，等待审核' });
       load();
@@ -65,14 +66,14 @@ export default function InvoiceQualificationClient() {
   };
 
   const status = Number(form.status || 0);
-  const statusText = status === 1 ? '审核通过' : status === 2 ? '已申请，待审核' : status === 3 ? '审核未通过' : '未申请专用发票';
+  const statusText = !form.companyName ? '未申请专用发票' : status === 1 ? '审核通过' : status === 2 ? '审核未通过' : '待审核';
 
   if (loading) return <Card className="member-card">加载中...</Card>;
 
   return (
     <Card className="member-card invoice-card">
       <div className={`invoice-status invoice-status--${status}`}>{statusText}</div>
-      {status === 3 && form.applyReply ? <div className="invoice-error">审核失败原因：{form.applyReply}</div> : null}
+      {status === 2 && form.applyReply ? <div className="invoice-error">审核未通过原因：{form.applyReply}</div> : null}
 
       {!editing && form.companyName ? (
         <div className="invoice-readonly">

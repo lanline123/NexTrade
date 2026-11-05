@@ -33,7 +33,10 @@ export default function CollectShopClient() {
 
   const cancel = async (item: CollectShop) => {
     try {
-      await apiPost('user/user/collectionShop/cancel', { id: item.collectId || item.id || item.shop.shopId });
+      await apiPost('user/user/collectionShop/cancel', {
+        id: item.collectId || item.id || 0,
+        shopId: item.shop.shopId || 0,
+      });
       Toast.success({ content: '已取消收藏' });
       load();
     } catch (error) {

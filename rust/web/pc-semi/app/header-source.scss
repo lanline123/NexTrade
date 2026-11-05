@@ -1898,3 +1898,307 @@
   padding-left: 0;
   padding-right: 0;
 }
+
+/* =========================================================================
+ * 语言/货币弹层对齐（CommonPopover：width 254 / padding 20 / 指定阴影）
+ * ========================================================================= */
+.language-bar .lang-box {
+  position: relative;
+}
+
+.language-bar .pc-locale-popover {
+  width: 254px;
+  padding: 20px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow:
+    rgb(14 18 22 / 35%) 0px 10px 38px -10px,
+    rgb(14 18 22 / 20%) 0px 10px 20px -15px;
+}
+
+.language-bar .pc-locale-popover .common-title {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.language-bar .pc-locale-popover .lang-list {
+  width: 100%;
+  padding-bottom: 5px;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  &.show-lang {
+    padding-bottom: 0;
+    border: none;
+  }
+
+  .lang-item {
+    height: 30px;
+    font-weight: 400 !important;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    input {
+      margin-right: 8px;
+    }
+
+    .lang-label {
+      font-size: 14px;
+      color: #1a1a1a;
+      font-weight: normal;
+    }
+  }
+}
+
+.language-bar .pc-locale-popover .currency-box {
+  position: relative;
+  padding: 18px 0 0 0;
+
+  .currency-text {
+    color: #1a1a1a;
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .currency-btn {
+    margin-top: 12px;
+    color: #1869f5;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .currency-select {
+    width: 230px;
+    height: 32px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    padding: 0 8px;
+    font-size: 14px;
+    color: #1a1a1a;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+  }
+}
+
+/* =========================================================================
+ * 头部浮层出现动画（对齐 el-popover / element transition 的淡入 + 上移）
+ * ========================================================================= */
+@keyframes pc-header-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pc-header-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.benefit-bar .pc-header-popover,
+.region-dropdown,
+.language-bar .pc-locale-popover,
+.image-search-popper,
+.pc-header-runtime .top-search .search-guess-box {
+  transform-origin: top center;
+  animation: pc-header-pop-in 0.18s ease-out;
+}
+
+.category-wrap .category-dropdown {
+  transform-origin: top center;
+  animation: pc-header-pop-in 0.18s ease-out;
+}
+
+/* hover 颜色统一过渡（源码依赖 element/首层样式，无显式 transition 的地方按交互需要补） */
+.benefit-bar .top-link,
+.benefit-bar .top-link__name,
+.language-bar .lang-box,
+.language-bar .lang-box .arrow,
+.pc-header-simple .pc-cart,
+.pc-header-runtime .car-bar .content {
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+/* =========================================================================
+ * AllCategoryNew：globals 未覆盖的二级分类/标题样式（按源码作用域补充）
+ * ========================================================================= */
+.category-wrap .right-wrap .cate-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.category-wrap .right-wrap .cate-item-wrap .cate-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.category-wrap .right-wrap .second-class-container {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.category-wrap .right-wrap .second-class-item {
+  box-sizing: border-box;
+  cursor: pointer;
+  width: 90px;
+  height: 130px;
+  margin-bottom: 8px;
+  padding: 4px 4px 6px 4px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+
+  &:hover {
+    border: 1px solid var(--main-bg);
+
+    .item-name {
+      color: var(--main-bg);
+    }
+  }
+
+  &.no-img {
+    align-self: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    background: #f5f7f8;
+
+    .item-name {
+      margin: 6px;
+    }
+
+    &:hover {
+      background: #fff;
+    }
+  }
+
+  .item-pic {
+    width: 82px;
+    height: 82px;
+    border-radius: 4px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .item-name {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: #1a1a1a;
+    margin: 4px 0 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    line-height: 1.35;
+    max-height: 2.7em;
+  }
+}
+
+/* =========================================================================
+ * ShopSearchInput（源码 pages/shop/src/ShopSearchInput.vue scoped less）
+ * ========================================================================= */
+.top-search .search-buttons {
+  display: flex;
+  align-items: center;
+  padding: 3px 2px;
+  gap: 3px;
+  height: 100%;
+
+  .search-btn {
+    border: none;
+    cursor: pointer;
+    height: 90%;
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+    outline: none;
+    border-radius: 5px;
+    white-space: nowrap;
+
+    &.shop-search {
+      background-color: var(--vice-bg);
+      color: var(--general);
+
+      &:hover {
+        background-color: #ffe0e0;
+      }
+    }
+
+    &.site-search {
+      background-color: var(--general);
+      color: #fff;
+      border-left: 1px solid var(--general);
+
+      &:hover {
+        background-color: var(--general);
+      }
+    }
+  }
+}
+
+.top-search .search-guess-box {
+  .search-guess-ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      line-height: 30px;
+      height: 30px;
+      padding: 0 10px;
+
+      .serlink {
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+
+        .name {
+          width: 260px;
+          height: 30px;
+          overflow: hidden;
+          display: inline-block;
+        }
+      }
+    }
+  }
+}

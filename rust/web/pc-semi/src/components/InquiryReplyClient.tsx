@@ -12,7 +12,7 @@ export default function InquiryReplyClient({ id }: { id: number }) {
     if (!content.trim()) return Toast.error({ content: '请输入回复内容' });
     setLoading(true);
     try {
-      await apiPost('user/priceInquiry/reply', { id, content: content.trim() });
+      await apiPost('user/priceInquiry/reply', { id, remark: content.trim() });
       Toast.success({ content: '回复成功' });
       window.location.reload();
     } catch (error) {

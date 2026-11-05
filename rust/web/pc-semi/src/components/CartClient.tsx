@@ -5,6 +5,21 @@ import Link from 'next/link';
 import { Button, Card, Checkbox, InputNumber, Modal, Toast } from '@douyinfe/semi-ui';
 import { IconDelete, IconShoppingBag } from '@douyinfe/semi-icons';
 
+/**
+ * 购物车（源码对照 java-b2b2c-overseas-v5.8.61/view/pc/pages/cart/index.vue）
+ *
+ * 对齐点：
+ * - `limitNumber` 限购 + `stock` 库存上限校验（旧版 pages/cart/src/InputNumber.vue）
+ * - 禁售/下架/已售罄/规格停用 → `isDisabled` 且取消勾选（旧版 utils/productSale.ts）
+ * - 全选/店铺勾选/单项勾选与 updateCheck 同步；不可用商品不参与结算
+ * - 清空购物车、批量删除已选、已选移入收藏
+ * - 结算前刷新销售状态，若已选商品下架/禁售则提示并排除
+ */
+
+interface CartSku {
+  isEnabled?: number | null;
+}
+
 interface CartItem {
   cartId: number;
   productId?: number;
@@ -15,6 +30,16 @@ interface CartItem {
   isChecked?: boolean;
   isDisabled?: boolean;
   skuData?: Array<{ name?: string; value?: string }>;
+  /** 旧版限购数量（0/空表示不限购） */
+  limitNumber?: number;
+  /** 库存 */
+  stock?: number;
+  productStatus?: number;
+  saleStatus?: number | string;
+  effectiveSaleStatus?: number | string;
+  sku?: CartSku;
+  gift?: any[];
+  activityInfo?: any;
 }
 
 interface CartGroup {
@@ -30,6 +55,7 @@ interface Total {
   productAmount?: number;
   discounts?: number;
   discountAfter?: number;
+  serviceFee?: number;
 }
 
 interface CartResult {
@@ -60,24 +86,62 @@ function money(value: unknown): string {
   return Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+/** 旧版 `isSaleProhibited`：禁售/失效销售状态。 */
+function isSaleProhibited(item: CartItem): boolean {
+  return Number(item.saleStatus ?? item.effectiveSaleStatus ?? 1) === 0;
+}
+
+/** 旧版 `isProductUnavailable`：禁售或商品下架。 */
+function isProductUnavailable(item: CartItem): boolean {
+  return isSaleProhibited(item) || Number(item.productStatus ?? 1) === 0;
+}
+
+/** 旧版 `isDisabledData`：不可用 / 售罄 / 规格停用 / 后端禁用。 */
+function isDisabledData(item: CartItem): boolean {
+  return isProductUnavailable(item) || Number(item.stock ?? 1) <= 0 || item.isDisabled === true || item.sku?.isEnabled === 0;
+}
+
+/** 旧版 `applyCartSaleState`：保留原始状态，仅把不可用项置禁用并取消勾选。 */
+function applySaleState(result: CartResult): CartResult {
+  const groups = (result.cartList || []).map((group) => ({
+    ...group,
+    carts: (group.carts || []).map((item) =>
+      isDisabledData(item) ? { ...item, isDisabled: true, isChecked: false } : item,
+    ),
+  }));
+  return { cartList: groups, total: result.total || {} };
+}
+
+function cartQuantityMax(item: CartItem): number {
+  const stock = Number(item.stock ?? 0);
+  const limit = Number(item.limitNumber ?? 0);
+  const candidates = [stock > 0 ? stock : Number.POSITIVE_INFINITY, limit > 0 ? limit : Number.POSITIVE_INFINITY];
+  const max = Math.min(...candidates);
+  return Number.isFinite(max) ? Math.max(1, max) : 9999;
+}
+
 export default function CartClient() {
   const [groups, setGroups] = useState<CartGroup[]>([]);
   const [total, setTotal] = useState<Total>({});
   const [loading, setLoading] = useState(true);
   const [needLogin, setNeedLogin] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const result = await request<CartResult>('cart/cart/list');
-      setGroups(result.cartList || []);
-      setTotal(result.total || {});
+      const normalized = applySaleState({ cartList: result.cartList || [], total: result.total || {} });
+      setGroups(normalized.cartList);
+      setTotal(normalized.total);
       setNeedLogin(false);
+      return normalized.cartList;
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
       setNeedLogin(message.includes('登录') || message.includes('401'));
       setGroups([]);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -97,20 +161,21 @@ export default function CartClient() {
   }, [needLogin]);
 
   const checkedItems = useMemo(
-    () => groups.flatMap((group) => (group.carts || []).filter((item) => item.isChecked && !item.isDisabled)),
+    () => groups.flatMap((group) => (group.carts || []).filter((item) => item.isChecked && !isDisabledData(item))),
     [groups],
   );
   const checkedCount = checkedItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const productAmount = checkedItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
-  const allChecked = groups.length > 0 && groups.every((group) => (group.carts || []).filter((item) => !item.isDisabled).every((item) => item.isChecked));
+  const allChecked = groups.length > 0 && groups.every((group) => (group.carts || []).filter((item) => !isDisabledData(item)).every((item) => item.isChecked));
 
+  /** 与旧版 `updateCheckData` 对齐：提交全部商品的勾选态（不可用项恒为 0）。 */
   const syncCheck = async (nextGroups: CartGroup[]) => {
     setGroups(nextGroups);
     const data = nextGroups.flatMap((group) =>
-      (group.carts || []).map((item) => ({ cartId: item.cartId, isChecked: item.isChecked && !item.isDisabled ? 1 : 0 })),
+      (group.carts || []).map((item) => ({ cartId: item.cartId, isChecked: item.isChecked && !isDisabledData(item) ? 1 : 0 })),
     );
-    await request('cart/cart/updateCheck', { method: 'POST', body: JSON.stringify({ data } ) }).catch(() => undefined);
-    void load();
+    await request('cart/cart/updateCheck', { method: 'POST', body: JSON.stringify({ data }) }).catch(() => undefined);
+    await load();
   };
 
   const toggleAll = async (checked: boolean) => {
@@ -118,7 +183,7 @@ export default function CartClient() {
       groups.map((group) => ({
         ...group,
         isChecked: checked,
-        carts: (group.carts || []).map((item) => ({ ...item, isChecked: checked && !item.isDisabled })),
+        carts: (group.carts || []).map((item) => ({ ...item, isChecked: checked && !isDisabledData(item) })),
       })),
     );
   };
@@ -129,7 +194,7 @@ export default function CartClient() {
         ? {
             ...group,
             isChecked: checked,
-            carts: (group.carts || []).map((item) => ({ ...item, isChecked: checked && !item.isDisabled })),
+            carts: (group.carts || []).map((item) => ({ ...item, isChecked: checked && !isDisabledData(item) })),
           }
         : group,
     );
@@ -145,13 +210,24 @@ export default function CartClient() {
     await syncCheck(next);
   };
 
-  const changeQuantity = async (cartId: number, quantity: number) => {
-    if (quantity < 1) return;
+  const changeQuantity = async (item: CartItem, quantity: number) => {
+    if (updating) return;
+    const next = Math.floor(Number(quantity) || 1);
+    const max = cartQuantityMax(item);
+    if (next < 1) return;
+    if (next > max) {
+      const limit = Number(item.limitNumber ?? 0);
+      const stock = Number(item.stock ?? 0);
+      if (limit > 0 && max === limit) Toast.error({ content: `限购${limit}件，已达限购数` });
+      else if (stock > 0 && max === stock) Toast.error({ content: '库存不足' });
+      Toast.error({ content: `最多可购买 ${max} 件` });
+      return;
+    }
     setUpdating(true);
     try {
       await request('cart/cart/updateItem', {
         method: 'POST',
-        body: JSON.stringify({ cartId, data: { quantity } }),
+        body: JSON.stringify({ cartId: item.cartId, data: { quantity: next } }),
       });
       await load();
     } catch (error) {
@@ -161,16 +237,14 @@ export default function CartClient() {
     }
   };
 
-  const remove = (cartId: number) => {
+  const remove = (cartIds: number | number[]) => {
+    const ids = Array.isArray(cartIds) ? cartIds : [cartIds];
     Modal.confirm({
-      title: '删除商品',
+      title: '确认要删除指定的商品吗',
       content: '确认从购物车删除该商品？',
       onOk: async () => {
         try {
-          await request('cart/cart/removeItem', {
-            method: 'POST',
-            body: JSON.stringify({ cartIds: [cartId] }),
-          });
+          await request('cart/cart/removeItem', { method: 'POST', body: JSON.stringify({ cartIds: ids }) });
           Toast.success({ content: '删除成功' });
           await load();
         } catch (error) {
@@ -178,6 +252,98 @@ export default function CartClient() {
         }
       },
     });
+  };
+
+  const removeChecked = () => {
+    if (!checkedItems.length) {
+      Toast.warning({ content: '请至少选择一个宝贝' });
+      return;
+    }
+    remove(checkedItems.map((item) => item.cartId));
+  };
+
+  /** 旧版 `collectCheckedCartItem`：已选商品逐个收藏后从购物车移除。 */
+  const collectChecked = () => {
+    if (!checkedItems.length) {
+      Toast.warning({ content: '请至少选择一个宝贝' });
+      return;
+    }
+    Modal.confirm({
+      title: '确认将选中的商品移入收藏吗？',
+      onOk: async () => {
+        try {
+          await Promise.allSettled(
+            checkedItems.map((item) => request('user/collectProduct/save', { method: 'POST', body: JSON.stringify({ productId: item.productId }) })),
+          );
+          await request('cart/cart/removeItem', { method: 'POST', body: JSON.stringify({ cartIds: checkedItems.map((item) => item.cartId) }) });
+          Toast.success({ content: '已移入收藏' });
+          await load();
+        } catch (error) {
+          Toast.error({ content: error instanceof Error ? error.message : '移入收藏失败' });
+        }
+      },
+    });
+  };
+
+  /** 旧版 `onClearCart`：清空购物车。 */
+  const clearCart = () => {
+    Modal.confirm({
+      title: '确认要清空购物车吗？',
+      onOk: async () => {
+        try {
+          await request('cart/cart/clear', { method: 'POST' });
+          Toast.success({ content: '购物车已清空' });
+          await load();
+        } catch (error) {
+          Toast.error({ content: error instanceof Error ? error.message : '清空购物车失败' });
+        }
+      },
+    });
+  };
+
+  /**
+   * 旧版 `refreshSaleBeforeCheckout`：结算前拉最新购物车，已选商品若下架/禁售则提示并排除。
+   */
+  const refreshSaleBeforeCheckout = async (): Promise<number[] | null> => {
+    const selectedIds = new Set(checkedItems.map((item) => item.cartId));
+    try {
+      const fresh = await request<CartResult>('cart/cart/list');
+      const normalized = applySaleState({ cartList: fresh.cartList || [], total: fresh.total || {} });
+      const lines = normalized.cartList.flatMap((group) => group.carts || []);
+      const blocked = lines.some((line) => selectedIds.has(line.cartId) && isProductUnavailable(line));
+      if (blocked) {
+        const data = lines.map((line) => ({
+          cartId: line.cartId,
+          isChecked: line.isChecked && !isProductUnavailable(line) ? 1 : 0,
+        }));
+        await request('cart/cart/updateCheck', { method: 'POST', body: JSON.stringify({ data }) }).catch(() => undefined);
+        Toast.error({ content: '商品已下架' });
+        await load();
+        return null;
+      }
+      setGroups(normalized.cartList);
+      setTotal(normalized.total);
+      const ids = lines.filter((line) => line.isChecked && !isProductUnavailable(line)).map((line) => line.cartId);
+      return ids.length ? ids : null;
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '结算校验失败' });
+      return null;
+    }
+  };
+
+  const checkout = async () => {
+    if (!checkedItems.length || checkingOut) return;
+    setCheckingOut(true);
+    try {
+      const ids = await refreshSaleBeforeCheckout();
+      if (!ids) {
+        if (!checkedItems.length) Toast.warning({ content: '请选择要结算的商品' });
+        return;
+      }
+      window.location.href = `/order/check?cartIds=${ids.join(',')}`;
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   if (loading) {
@@ -232,46 +398,71 @@ export default function CartClient() {
           <div key={group.shopId ?? groupIndex} className="pc-cart__group">
             <div className="pc-cart__group-head">
               <Checkbox
-                checked={(group.carts || []).filter((item) => !item.isDisabled).every((item) => item.isChecked)}
+                checked={(group.carts || []).filter((item) => !isDisabledData(item)).every((item) => item.isChecked)}
                 onChange={(event) => void toggleGroup(groupIndex, Boolean(event.target.checked))}
               >
                 {group.shopId ? group.shopTitle || '店铺' : '官方自营'}
               </Checkbox>
             </div>
 
-            {(group.carts || []).map((item) => (
-              <div key={item.cartId} className={`pc-cart__row ${item.isDisabled ? 'is-disabled' : ''}`}>
-                <Checkbox
-                  checked={Boolean(item.isChecked)}
-                  disabled={Boolean(item.isDisabled)}
-                  onChange={(event) => void toggleItem(groupIndex, item.cartId, Boolean(event.target.checked))}
-                />
-                <div className="pc-cart__product">
-                  <img src={item.picThumb || ''} alt={item.productName || ''} />
-                  <div>
-                    <Link href={`/product/${item.productId || ''}`}>{item.productName || '商品'}</Link>
-                    {item.skuData?.length ? (
-                      <span className="pc-cart__sku">
-                        {item.skuData.map((sku) => `${sku.name || ''}：${sku.value || ''}`).join(' / ')}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-                <div className="pc-cart__price">¥ {money(item.price)}</div>
-                <div className="pc-cart__quantity">
-                  <InputNumber
-                    min={1}
-                    value={Number(item.quantity || 1)}
-                    disabled={updating || Boolean(item.isDisabled)}
-                    onChange={(value) => void changeQuantity(item.cartId, Number(value) || 1)}
+            {(group.carts || []).map((item) => {
+              const disabled = isDisabledData(item);
+              const soldOut = Number(item.stock ?? 1) <= 0;
+              const unavailable = isProductUnavailable(item);
+              const max = cartQuantityMax(item);
+              return (
+                <div key={item.cartId} className={`pc-cart__row ${disabled ? 'is-disabled' : ''}`}>
+                  <Checkbox
+                    checked={Boolean(item.isChecked)}
+                    disabled={disabled}
+                    onChange={(event) => void toggleItem(groupIndex, item.cartId, Boolean(event.target.checked))}
                   />
+                  <div className="pc-cart__product">
+                    <img src={item.picThumb || ''} alt={item.productName || ''} />
+                    <div>
+                      <Link href={`/product/${item.productId || ''}`}>{item.productName || '商品'}</Link>
+                      {item.skuData?.length ? (
+                        <span className="pc-cart__sku">
+                          {item.skuData.map((sku) => `${sku.name || ''}：${sku.value || ''}`).join(' / ')}
+                        </span>
+                      ) : null}
+                      {Array.isArray(item.activityInfo) && item.activityInfo.length ? (
+                        <span className="pc-cart__activity">
+                          {item.activityInfo.map((activity: any) => activity?.name || activity?.title || '').filter(Boolean).join(' · ')}
+                        </span>
+                      ) : null}
+                      {unavailable ? (
+                        <span className="pc-cart__disabled-reason">{soldOut ? '已售罄' : '商品已下架或禁售'}</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="pc-cart__price">¥ {money(item.price)}</div>
+                  <div className="pc-cart__quantity">
+                    <InputNumber
+                      min={1}
+                      max={max}
+                      value={Number(item.quantity || 1)}
+                      disabled={updating || disabled}
+                      onChange={(value) => void changeQuantity(item, Number(value) || 1)}
+                    />
+                    {Number(item.limitNumber ?? 0) > 0 ? (
+                      <span className="pc-cart__limit">限购 {item.limitNumber} 件</span>
+                    ) : null}
+                    {Number(item.stock ?? 0) > 0 ? <span className="pc-cart__stock">库存 {item.stock}</span> : null}
+                  </div>
+                  <div className="pc-cart__subtotal">¥ {money(Number(item.price || 0) * Number(item.quantity || 0))}</div>
+                  {Number(item.quantity || 1) <= 1 ? (
+                    <Button theme="borderless" type="danger" icon={<IconDelete />} onClick={() => remove(item.cartId)}>
+                      删除
+                    </Button>
+                  ) : (
+                    <Button theme="borderless" onClick={() => void changeQuantity(item, Number(item.quantity || 1) - 1)}>
+                      减少
+                    </Button>
+                  )}
                 </div>
-                <div className="pc-cart__subtotal">¥ {money(Number(item.price || 0) * Number(item.quantity || 0))}</div>
-                <Button theme="borderless" type="danger" icon={<IconDelete />} onClick={() => remove(item.cartId)}>
-                  删除
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ))}
       </div>
@@ -280,25 +471,35 @@ export default function CartClient() {
         <Checkbox checked={allChecked} onChange={(event) => void toggleAll(Boolean(event.target.checked))}>
           全选
         </Checkbox>
-        <Button
-          theme="borderless"
-          type="danger"
-          onClick={() => void syncCheck(groups.map((group) => ({ ...group, carts: [] })))}
-        >
-          清空已选
+        <Button theme="borderless" onClick={() => void removeChecked()}>
+          删除已选
+        </Button>
+        <Button theme="borderless" onClick={() => void collectChecked()}>
+          移入收藏
+        </Button>
+        <Button theme="borderless" type="danger" onClick={() => void clearCart()}>
+          清空购物车
         </Button>
         <div className="pc-cart__summary">
           <span>
             已选 <b>{checkedCount}</b> 件
           </span>
+          {Number(total.productAmount || 0) > 0 ? <span>商品金额：¥ {money(total.productAmount)}</span> : null}
+          {Number(total.discounts || 0) > 0 ? <span>优惠：-¥ {money(total.discounts)}</span> : null}
+          {Number(total.serviceFee || 0) > 0 ? <span>服务费：¥ {money(total.serviceFee)}</span> : null}
           <span>
             合计：<b>¥ {money(total.discountAfter ?? productAmount)}</b>
           </span>
-          <Link href={`/order/check?cartIds=${checkedItems.map((item) => item.cartId).join(',')}`}>
-            <Button theme="solid" type="primary" size="large" disabled={!checkedItems.length}>
-              去结算
-            </Button>
-          </Link>
+          <Button
+            theme="solid"
+            type="primary"
+            size="large"
+            disabled={!checkedItems.length}
+            loading={checkingOut}
+            onClick={() => void checkout()}
+          >
+            去结算
+          </Button>
         </div>
       </div>
     </div>

@@ -2410,3 +2410,248 @@
   font-size: 18px;
   line-height: 1;
 }
+
+
+/* ===================== task-91 交互补齐样式 ===================== */
+
+/* Hero：左类目 hover 态 + 子类目弹层（旧版 Teleport fixed 定位） */
+.dec-pc-home-hero__cate-sep {
+  margin: 0 4px;
+  color: #999;
+}
+
+.dec-pc-home-hero__cate-item.is-active {
+  background: #fff;
+
+  .dec-pc-home-hero__cate-title {
+    color: var(--dec-price-color, #e1251b);
+    font-weight: 700;
+  }
+}
+
+.dec-pc-home-hero__subCata {
+  box-sizing: border-box;
+  min-width: 640px;
+  max-width: 880px;
+  min-height: 320px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+}
+
+.dec-pc-home-hero__subCata.is-positioned {
+  position: fixed;
+}
+
+.dec-pc-home-hero__subView {
+  display: none;
+}
+
+.dec-pc-home-hero__subView.is-active {
+  display: block;
+}
+
+.dec-pc-home-hero__img-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px 12px;
+}
+
+.dec-pc-home-hero__img-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dec-pc-home-hero__img-pic {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f7f8fa;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.dec-pc-home-hero__img-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #eef0f3;
+}
+
+.dec-pc-home-hero__img-name {
+  max-width: 84px;
+  font-size: 12px;
+  color: #333;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hero：右侧登录态（is-authed）与资产区 */
+.dec-pc-home-hero__user-link {
+  font-size: 12px;
+  color: #666;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: #e1251b;
+  }
+}
+
+.dec-pc-home-hero__user-name.is-authed {
+  padding-bottom: 6px;
+}
+
+.dec-pc-home-hero__user-assets {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 4px 0 10px;
+}
+
+.dec-pc-home-hero__user-assets--wide {
+  grid-template-columns: repeat(3, minmax(0, 1.15fr));
+}
+
+.dec-pc-home-hero__asset-item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    .dec-pc-home-hero__asset-num {
+      color: #e1251b;
+    }
+  }
+}
+
+.dec-pc-home-hero__asset-num {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  line-height: 20px;
+}
+
+.dec-pc-home-hero__asset-label {
+  font-size: 12px;
+  color: #999;
+}
+
+/* ImageNav：navType=2 轮播分页 */
+.dec-pc-image-nav__carousel {
+  position: relative;
+  overflow: hidden;
+}
+
+.dec-pc-image-nav__carousel-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.dec-pc-image-nav__carousel-track {
+  display: flex;
+  transition: transform 0.45s ease;
+  will-change: transform;
+}
+
+.dec-pc-image-nav__dot,
+.dec-pc-image-nav__dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #d9d9d9;
+  cursor: pointer;
+
+  &.is-active {
+    width: 20px;
+    border-radius: 4px;
+    background: var(--dec-indicator-color, #e1251b);
+  }
+}
+
+.dec-pc-image-nav__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Coupon：领取按钮状态 */
+.mod_coupon .coupon_list .use_btn.is-disabled {
+  background: #f0f0f0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.mod_coupon .coupon_list .use_btn.is-loading {
+  opacity: 0.7;
+}
+
+/* 交易按钮：禁用态与 button 元素 reset */
+.dec-buy-btn.is-disabled,
+.dec-product-group__cart-btn.is-disabled,
+.view_detail.disabled,
+.dec-recommend-product__buy.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+button.dec-pc-product__buy,
+button.dec-product-group__cart-btn,
+button.dec-recommend-product__buy,
+button.view_detail {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.dec-product-group__cart-btn {
+  background: transparent;
+  padding: 0;
+}
+
+button.view_detail {
+  padding: 0;
+}
+
+.dec-recommend-product__buy {
+  border: 0;
+}
+
+.dec-recommend-product__end {
+  padding: 16px 0;
+  color: #999;
+  font-size: 13px;
+  text-align: center;
+}

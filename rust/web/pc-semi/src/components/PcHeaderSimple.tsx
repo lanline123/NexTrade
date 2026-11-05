@@ -55,6 +55,18 @@ function resolvePx(value: unknown): number | null {
   return Number.isFinite(number) ? Math.max(0, number) : null;
 }
 
+function resolveMainNavSpacingPx(config: Record<string, any>, dir: 'top' | 'bottom'): number | null {
+  const keys =
+    dir === 'top'
+      ? ['mainNavMarginTop', 'mainNavTopMargin', 'mainNavTopSpace', 'mainNavSpaceTop', 'mainNavPaddingTop', 'mainNavTopPadding', 'subNavMarginTop', 'subNavTopMargin', 'navMarginTop', 'navTopMargin']
+      : ['mainNavMarginBottom', 'mainNavBottomMargin', 'mainNavBottomSpace', 'mainNavSpaceBottom', 'mainNavPaddingBottom', 'mainNavBottomPadding', 'subNavMarginBottom', 'subNavBottomMargin', 'navMarginBottom', 'navBottomMargin', 'componentMarginBottom'];
+  for (const key of keys) {
+    const value = resolvePx(config[key]);
+    if (value != null) return value;
+  }
+  return null;
+}
+
 function navHref(item: Record<string, any>): string {
   const link = item?.link;
   if (!link) return '/';
@@ -79,6 +91,8 @@ export default function PcHeaderSimple({
   const [mainNav, setMainNav] = useState<Array<Record<string, any>> | null>(null);
   const [cartCount, setCartCount] = useState(0);
   const [logoAreaHeight, setLogoAreaHeight] = useState(60);
+  const [logoAreaShiftY, setLogoAreaShiftY] = useState(0);
+  const [searchExtraBottom, setSearchExtraBottom] = useState(0);
   const [navOffsetLeft, setNavOffsetLeft] = useState<number | null>(null);
   const [navOffsetRight, setNavOffsetRight] = useState<number | null>(null);
 
@@ -103,9 +117,9 @@ export default function PcHeaderSimple({
     Number(header.searchColorType ?? 1) === 2 ? String(header.searchColor || '#1a1a1a') : '';
 
   const dividerClass = useMemo(() => {
-    const keys = ['bottomDividerType', 'bottomDividerStyle', 'headerBottomDividerStyle', 'headerDividerStyle'];
+    const keys = ['bottomDividerType', 'bottomDividerStyle', 'headerBottomDividerStyle', 'headerDividerStyle', 'bottomLineStyle', 'headerBottomLineStyle', 'splitLineStyle'];
     const key = keys.find((item) => header[item] != null);
-    const style = normalizeDivider(key ? header[key] : undefined, 'shadow');
+    const style = normalizeDivider(key ? header[key] : undefined, 'border');
     return `pc-header-divider--${style}`;
   }, [header]);
 
@@ -182,6 +196,13 @@ export default function PcHeaderSimple({
       const rect = input.getBoundingClientRect();
       if (Number.isFinite(rect.top) && Number.isFinite(rect.bottom) && rect.bottom > rect.top) {
         setLogoAreaHeight(Math.max(40, Math.ceil(rect.bottom - rect.top)));
+        setSearchExtraBottom(0);
+        if (wrapperRect && Number.isFinite(wrapperRect.top) && Number.isFinite(wrapperRect.height) && wrapperRect.height > 0) {
+          const searchCenterY = (rect.top + rect.bottom) / 2;
+          const firstRowHeight = Math.min(wrapperRect.height, 60);
+          const wrapperCenterY = wrapperRect.top + firstRowHeight / 2;
+          setLogoAreaShiftY(Math.round(searchCenterY - wrapperCenterY));
+        }
       }
     };
     const schedule = () => {
@@ -209,6 +230,8 @@ export default function PcHeaderSimple({
 
   const headerVars: React.CSSProperties = {
     ['--pc-header-logo-area-h' as string]: `${logoAreaHeight}px`,
+    ['--pc-header-logo-area-shift-y' as string]: `${logoAreaShiftY}px`,
+    ['--pc-header-search-extra-bottom' as string]: `${searchExtraBottom}px`,
     ['--pc-header-padding-bottom' as string]: '0px',
   };
   const categoryNavStyle: React.CSSProperties = {
@@ -218,9 +241,9 @@ export default function PcHeaderSimple({
     ? ({ ['--pc-header-search-accent' as string]: searchAccentColor } as React.CSSProperties)
     : {};
   const mainNavSpacingVars: React.CSSProperties = {
-    ['--pc-header-main-nav-mt' as string]: `${resolvePx(header.mainNavMarginTop) ?? 0}px`,
-    ...(resolvePx(header.mainNavMarginBottom) != null
-      ? { ['--pc-header-main-nav-mb' as string]: `${resolvePx(header.mainNavMarginBottom)}px` }
+    ['--pc-header-main-nav-mt' as string]: `${resolveMainNavSpacingPx(header, 'top') ?? 0}px`,
+    ...(resolveMainNavSpacingPx(header, 'bottom') != null
+      ? { ['--pc-header-main-nav-mb' as string]: `${resolveMainNavSpacingPx(header, 'bottom')}px` }
       : {}),
     ...(navOffsetLeft != null ? { ['--pc-header-nav-offset-left' as string]: `${navOffsetLeft}px` } : {}),
     ...(navOffsetRight != null ? { ['--pc-header-nav-offset-right' as string]: `${navOffsetRight}px` } : {}),
@@ -328,3 +351,4 @@ export default function PcHeaderSimple({
     </div>
   );
 }
+

@@ -4,11 +4,15 @@ import { useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '@/lib/client-api';
 
+// 与后端 UserFeedbackType 枚举一致：0建议 / 1投诉 / 2商品 / 3其他 / 4店铺投诉 / 5订单问题 / 6订单咨询
 const TYPES = [
   { value: 0, label: '建议' },
   { value: 1, label: '投诉' },
+  { value: 2, label: '商品' },
   { value: 3, label: '其他' },
   { value: 4, label: '店铺投诉' },
+  { value: 5, label: '订单问题' },
+  { value: 6, label: '订单咨询' },
 ];
 
 export default function FeedbackFormClient({ orderId = 0, orderSn = '' }: { orderId?: number; orderSn?: string }) {

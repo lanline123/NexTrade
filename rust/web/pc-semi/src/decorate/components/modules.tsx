@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { Toast } from '@douyinfe/semi-ui';
+import { apiGet, apiPost } from '@/lib/client-api';
 import type { DecorateModule, PageModule } from '../types';
 import { imageUrl } from './common';
 import { CONTRACT_ADAPTERS, FLAT_FRAME, linkHref, type ContractRenderPlan } from './contract';
@@ -85,6 +88,225 @@ function useCarousel(length: number, delay = 3000) {
   }, [length, paused, delay]);
   return { index, setIndex, setPaused };
 }
+
+/* ======================= 交互增强（task-91：源码级补齐） ======================= */
+
+function isLoggedIn(): boolean {
+  if (typeof window === 'undefined') return false;
+  return Boolean(window.localStorage.getItem('accessToken'));
+}
+
+function goLogin(): void {
+  if (typeof window === 'undefined') return;
+  const redirect = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+  window.location.href = `/login?redirect=${redirect}`;
+}
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function showToast(kind: 'success' | 'error', message: string): void {
+  try {
+    if (kind === 'success') Toast.success(message);
+    else Toast.error(message);
+  } catch {
+    /* 无 Semi Toast 上下文（SSR/预览）时忽略 */
+  }
+}
+
+function productSkuList(product: any): any[] {
+  const raw = product?.productSku;
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === 'object') return [raw];
+  return [];
+}
+
+function isMultiSku(product: any): boolean {
+  const list = productSkuList(product);
+  if (list.length > 1) return true;
+  const first = list[0];
+  return Array.isArray(first?.skuData) && first.skuData.length > 1;
+}
+
+function firstSkuId(product: any): number | undefined {
+  const sku = productSkuList(product)[0];
+  const id = sku?.skuId ?? sku?.id;
+  return id === undefined || id === null || id === '' ? undefined : Number(id);
+}
+
+function productDetailHref(product: any): string {
+  const sn = product?.productSn || '';
+  return product?.seoLink || (sn ? `/product/${sn}` : `/product/${product?.productId ?? ''}`);
+}
+
+function productSoldOut(product: any): boolean {
+  return Number(product?.productStock ?? 1) === 0;
+}
+
+function needsProductDetail(product: any): boolean {
+  return Number(product?.productType ?? 1) !== 1 || isMultiSku(product);
+}
+
+/** 旧版 ProductBuy 口径：多规格/预约商品 → 商品详情；单规格 → 加购（未登录跳登录）。 */
+async function buyProduct(product: any, options: { isQuick?: number } = {}): Promise<void> {
+  if (needsProductDetail(product)) {
+    openLink(productDetailHref(product));
+    return;
+  }
+  if (productSoldOut(product)) return;
+  if (!isLoggedIn()) {
+    goLogin();
+    return;
+  }
+  try {
+    await apiPost('cart/cart/addToCart', {
+      id: Number(product?.productId),
+      number: 1,
+      skuId: firstSkuId(product),
+      isQuick: options.isQuick ?? 0,
+    });
+    showToast('success', '已加入购物车');
+  } catch (error) {
+    showToast('error', errorText(error));
+  }
+}
+
+/** 用户详情（旧版 useUserStore：nickname/avatar/coupon/balance/points）。 */
+function useUserProfile(): Record<string, any> | null {
+  const [profile, setProfile] = useState<Record<string, any> | null>(null);
+  useEffect(() => {
+    if (!isLoggedIn()) return undefined;
+    let alive = true;
+    apiGet<Record<string, any>>('user/user/detail')
+      .then((data) => {
+        if (alive && data) setProfile(data);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return profile;
+}
+
+/* ---- 旧版 commonStore.allCate：PC 分类楼层（/api/common/pc/getCatFloor） ---- */
+
+interface HeroCatTitleLink {
+  categoryTitleName: string;
+  link: string;
+}
+
+interface HeroCatItem {
+  id: string;
+  title: string;
+  iconFont?: string;
+  imageUrl?: string;
+  useImage?: number;
+  catFloorNames: HeroCatTitleLink[];
+  catList: any[];
+  entryLink: string;
+}
+
+function categoryListHref(categoryId: unknown, catFloorId: unknown, seoLink?: unknown): string {
+  const seo = seoLink ? String(seoLink) : '';
+  if (seo) return seo;
+  return `/list?categoryId=${encodeURIComponent(String(categoryId ?? ''))}&pId=${encodeURIComponent(String(catFloorId ?? ''))}`;
+}
+
+function resolveCategoryLink(rawLink: string, fallback: string): string {
+  const link = String(rawLink || '').trim();
+  if (!link || link === 'list') return fallback;
+  return navHref(link) || fallback;
+}
+
+function resolveCatNodeHref(cat: any, catFloorId: unknown): string {
+  const fallback = categoryListHref(cat?.categoryId ?? cat?.id, catFloorId, cat?.seoLink);
+  const custom = cat?.categoryLink;
+  return custom ? resolveCategoryLink(String(custom), fallback) : fallback;
+}
+
+function toHeroCatItem(floor: any, index: number): HeroCatItem | null {
+  if (!isRecord(floor)) return null;
+  const catList: any[] = Array.isArray(floor.catList) ? floor.catList : [];
+  if (!catList.length) return null;
+  const catFloorId = floor.catFloorId ?? index;
+  const rawNames: any[] = Array.isArray(floor.catFloorNames) ? floor.catFloorNames : [];
+  const firstCat = catList[0];
+  const firstFallback = categoryListHref(firstCat?.categoryId ?? firstCat?.id, catFloorId, firstCat?.seoLink);
+  const nameLinks: HeroCatTitleLink[] = rawNames
+    .map((name) => {
+      const title = String(name?.categoryTitleName ?? '').trim();
+      return { categoryTitleName: title, link: resolveCategoryLink(String(name?.categoryLink ?? ''), firstFallback) };
+    })
+    .filter((name) => name.categoryTitleName && name.categoryTitleName !== '-');
+  const floorEntry = catList.find((cat) => Boolean(cat?.categoryId ?? cat?.id) && (cat?.categoryName ?? cat?.name) !== '-');
+  const entryLink = floorEntry ? resolveCatNodeHref(floorEntry, catFloorId) : categoryListHref(catFloorId, catFloorId);
+  const floorName = String(floor.catFloorName ?? '')
+    .replace(/[，,、]/g, ' / ')
+    .replace(/\s*\/\s*/g, ' / ')
+    .trim();
+  const title = nameLinks.length ? nameLinks.slice(0, 3).map((name) => name.categoryTitleName).join(' / ') : floorName || '类目';
+  const firstPic = typeof firstCat?.pic === 'string' ? firstCat.pic : '';
+  const imageUrl = typeof floor.imageUrl === 'string' ? floor.imageUrl : typeof firstCat?.categoryPic === 'string' ? firstCat.categoryPic : firstPic;
+  return {
+    id: String(catFloorId),
+    title,
+    iconFont: typeof floor.floorIcoFont === 'string' ? floor.floorIcoFont : undefined,
+    imageUrl,
+    useImage: Number(floor.useImage ?? (imageUrl ? 1 : 0)),
+    catFloorNames: nameLinks,
+    catList,
+    entryLink,
+  };
+}
+
+function useHeroCatItems(): HeroCatItem[] {
+  const [items, setItems] = useState<HeroCatItem[]>([]);
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/common/pc/getCatFloor')
+      .then((response) => response.json())
+      .then((json) => {
+        if (!alive) return;
+        const raw = json?.data?.catFloor ?? json?.catFloor ?? [];
+        const list: HeroCatItem[] = Array.isArray(raw)
+          ? raw
+              .map((floor: any, index: number) => toHeroCatItem(floor, index))
+              .filter((item: HeroCatItem | null): item is HeroCatItem => item !== null)
+          : [];
+        setItems(list);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return items;
+}
+
+/** 旧版 `buildSubCataFixedStyle`：子类目弹层紧贴左侧面板右边缘、顶部对齐（fixed 视口坐标）。 */
+function subCataFixedStyle(rect: DOMRect): Record<string, string> {
+  if (!rect || !Number.isFinite(rect.top) || !Number.isFinite(rect.right)) return {};
+  return { position: 'fixed', top: `${Math.round(rect.top)}px`, left: `${Math.round(rect.right + 8)}px`, zIndex: '1000' };
+}
+
+/** 旧版 `getHotareaStyle` 兜底：后端 position 字符串（如 "left:10px;top:10px"）→ React style。 */
+function parseCssText(text: unknown): Record<string, string> {
+  if (typeof text !== 'string' || !text.trim()) return {};
+  const style: Record<string, string> = {};
+  text.split(';').forEach((part) => {
+    const index = part.indexOf(':');
+    if (index <= 0) return;
+    const key = part.slice(0, index).trim();
+    const value = part.slice(index + 1).trim();
+    if (!key || !value) return;
+    const camel = key.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase());
+    style[camel] = value;
+  });
+  return style;
+}
+
 
 /* ======================= 共享基础组件 ======================= */
 
@@ -381,9 +603,21 @@ function Product({ module }: ModuleProps) {
                             </div>
                           ) : null}
                           {buyBtnStyle > 0 ? (
-                            <div className={`dec-pc-product__buy dec-buy-btn dec-buy-btn--${buyBtnStyle}`} aria-hidden>
-                              {buyBtnStyle >= 5 ? <span className="dec-buy-btn__text">{buyBtnStyle === 8 ? '立即购买' : '加入购物车'}</span> : <i className="dec-buy-btn__icon">+</i>}
-                            </div>
+                            <button
+                              type="button"
+                              className={`dec-pc-product__buy dec-buy-btn dec-buy-btn--${buyBtnStyle}${productSoldOut(product) ? ' is-disabled' : ''}`}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                void buyProduct(product);
+                              }}
+                            >
+                              {buyBtnStyle >= 5 ? (
+                                <span className="dec-buy-btn__text">{needsProductDetail(product) ? '查看详情' : productSoldOut(product) ? '已售罄' : buyBtnStyle === 8 ? '立即购买' : '加入购物车'}</span>
+                              ) : (
+                                <i className="dec-buy-btn__icon">+</i>
+                              )}
+                            </button>
                           ) : null}
                         </div>
                       </div>
@@ -538,7 +772,6 @@ function HomeHero({ module }: ModuleProps) {
   const style = module.style || {};
   const banners: any[] = Array.isArray(center.banners) ? center.banners : [];
   const rawModules: any[] = Array.isArray(center.modules) ? center.modules : [];
-  const categories: any[] = Array.isArray(left.categories) ? left.categories : [];
   const shortcuts: any[] = Array.isArray(right.shortcuts) ? right.shortcuts : [];
   const showCount = Math.max(0, px(left.showCount, 12));
 
@@ -548,9 +781,90 @@ function HomeHero({ module }: ModuleProps) {
   const promoCards = allCards.slice(0, 2);
   const productCards = allCards.slice(2, 6);
 
-  // 站内暂未接入 commonStore.allCate 楼层数据（旧版前台左侧类目来源），
-  // 这里以装修配置 left.categories 兜底；hover 子类目弹层依赖楼层 catList，暂不迁移（见报告）。
-  const displayCategories = categories.slice(0, showCount);
+  /* ---- 左侧类目：旧版 commonStore.allCate（楼层接口）；失败时回退装修配置 ---- */
+  const apiCatItems = useHeroCatItems();
+  const fallbackCategories: any[] = Array.isArray(left.categories) ? left.categories : [];
+  const displayCategories: HeroCatItem[] = (apiCatItems.length
+    ? apiCatItems
+    : fallbackCategories.map((item: any, index: number) => ({
+        id: String(item.picId ?? item.picTitle ?? index),
+        title: item.picTitle || '类目',
+        iconFont: item.floorIcoFont,
+        imageUrl: item.imageUrl || item.picUrl || '',
+        useImage: Number(item.useImage ?? (item.imageUrl || item.picUrl ? 1 : 0)),
+        catFloorNames: [],
+        catList: [],
+        entryLink: navHref(item.picLink) || '',
+      }))
+  ).slice(0, showCount);
+
+  const leftRef = useRef<HTMLDivElement | null>(null);
+  const hideTimer = useRef<number | null>(null);
+  const [activeSub, setActiveSub] = useState<number | null>(null);
+  const [subStyle, setSubStyle] = useState<Record<string, string>>({});
+
+  const clearHideTimer = () => {
+    if (hideTimer.current !== null) {
+      window.clearTimeout(hideTimer.current);
+      hideTimer.current = null;
+    }
+  };
+
+  const syncSubPosition = () => {
+    const el = leftRef.current;
+    if (!el) return;
+    setSubStyle(subCataFixedStyle(el.getBoundingClientRect()));
+  };
+
+  const showSubView = (index: number) => {
+    clearHideTimer();
+    setActiveSub(index);
+    if (!displayCategories[index]?.catList?.length) {
+      setSubStyle({});
+      return;
+    }
+    syncSubPosition();
+  };
+
+  const scheduleHideSubView = () => {
+    clearHideTimer();
+    hideTimer.current = window.setTimeout(() => {
+      setActiveSub(null);
+      setSubStyle({});
+    }, 100);
+  };
+
+  useEffect(() => {
+    if (activeSub === null) return undefined;
+    const onViewportChange = () => syncSubPosition();
+    window.addEventListener('scroll', onViewportChange, { passive: true });
+    window.addEventListener('resize', onViewportChange);
+    return () => {
+      window.removeEventListener('scroll', onViewportChange);
+      window.removeEventListener('resize', onViewportChange);
+    };
+  }, [activeSub]);
+
+  useEffect(() => () => clearHideTimer(), []);
+
+  const activeFloor = activeSub !== null ? displayCategories[activeSub] : undefined;
+
+  /* ---- 右侧会员信息：旧版 useUserStore（登录后展示资产） ---- */
+  const profile = useUserProfile();
+  const authed = Boolean(profile);
+  const profileName = String(profile?.nickname || profile?.dimUsername || profile?.username || '');
+  const userDisplayName = authed ? profileName || '会员' : right.user?.nickname || '欢迎来商城！';
+  const userAvatarSrc = authed ? String(profile?.avatar || '') : picSrc(right.user?.avatar);
+  const assetNumber = (value: unknown): string => {
+    const num = Number(value ?? 0);
+    if (!Number.isFinite(num)) return '0';
+    return num >= 10000 ? `${(num / 10000).toFixed(1)}万` : String(num);
+  };
+  const assetMoney = (value: unknown): string => {
+    const num = Number(value ?? 0);
+    return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+  };
+  const needWideAssets = assetMoney(profile?.balance).length >= 7 || assetNumber(profile?.points).length >= 7;
 
   const { index: bannerIndex, setIndex: setBannerIndex, setPaused: setBannerPaused } = useCarousel(banners.length, 4500);
 
@@ -568,7 +882,6 @@ function HomeHero({ module }: ModuleProps) {
     moreLink: right.shopsMoreLink,
     textColor: right.shopsTextColor || '#a06a38',
   };
-
   const subTitleBg = (card: any) => `linear-gradient(${HERO_GRADIENT_DIR[card.moduleSubTitleBgType || 'leftRight'] || 'to right'}, ${card.moduleSubTitleBgColorA || HERO_DEFAULT_SUBTITLE_A}, ${card.moduleSubTitleBgColorB || HERO_DEFAULT_SUBTITLE_B})`;
 
   const cssVars: Record<string, any> = {
@@ -600,7 +913,14 @@ function HomeHero({ module }: ModuleProps) {
     <div className="dec-pc-home-hero__card-products">
       {Array.isArray(card.products) && card.products.length ? (
         card.products.slice(0, 2).map((product: any, index: number) => (
-          <div className="dec-pc-home-hero__card-product" key={index} onClick={(event) => { event.stopPropagation(); openLink((product as any).link); }}>
+          <div
+            className="dec-pc-home-hero__card-product"
+            key={index}
+            onClick={(event) => {
+              event.stopPropagation();
+              openLink(productDetailHref(product));
+            }}
+          >
             <div className="dec-pc-home-hero__card-img-box">
               <img className="dec-pc-home-hero__card-img" src={picSrc(product.pic)} alt={product.productName || ''} loading="lazy" />
               {product.label ? (
@@ -624,23 +944,89 @@ function HomeHero({ module }: ModuleProps) {
     </div>
   );
 
+  const renderSubCata = () => {
+    if (!activeFloor || !activeFloor.catList.length || typeof document === 'undefined') return null;
+    const nodes: Array<{ key: string; href: string; pic: string; name: string }> = [];
+    activeFloor.catList.forEach((cat: any, catIndex: number) => {
+      const children: any[] = Array.isArray(cat?.children) ? cat.children : [];
+      if (children.length) {
+        children.forEach((child: any, childIndex: number) => {
+          nodes.push({
+            key: `${catIndex}-${childIndex}`,
+            href: resolveCatNodeHref(child, activeFloor.id),
+            pic: String(child?.categoryPic || child?.pic || ''),
+            name: String(child?.categoryName ?? child?.name ?? ''),
+          });
+        });
+      } else if (cat?.categoryPic || cat?.pic || cat?.categoryName || cat?.name) {
+        nodes.push({
+          key: String(catIndex),
+          href: resolveCatNodeHref(cat, activeFloor.id),
+          pic: String(cat?.categoryPic || cat?.pic || ''),
+          name: String(cat?.categoryName ?? cat?.name ?? ''),
+        });
+      }
+    });
+    return createPortal(
+      <div
+        className="dec-pc-home-hero__subCata is-positioned"
+        style={subStyle}
+        onMouseEnter={clearHideTimer}
+        onMouseLeave={scheduleHideSubView}
+      >
+        <div className="dec-pc-home-hero__subView is-active">
+          <div className="dec-pc-home-hero__sub-left">
+            <div className="dec-pc-home-hero__nav_cata_bd">
+              <div className="dec-pc-home-hero__img-grid">
+                {nodes.map((node) => (
+                  <a className="dec-pc-home-hero__img-item" key={node.key} href={node.href} target="_blank" rel="noreferrer">
+                    <div className="dec-pc-home-hero__img-pic">
+                      {node.pic ? <img src={node.pic} alt="" loading="lazy" /> : <div className="dec-pc-home-hero__img-placeholder" />}
+                    </div>
+                    <div className="dec-pc-home-hero__img-name">{node.name}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    );
+  };
+
   return (
-    <div className="dec-pc-home-hero" style={cssVars}>
+    <div className={`dec-pc-home-hero${activeSub !== null ? ' is-cate-expanded' : ''}`} style={cssVars}>
       <div className="dec-pc-home-hero__layout">
-        <section className="dec-pc-home-hero__panel dec-pc-home-hero__left">
-          <div className="dec-pc-home-hero__cate-area">
+        <section className="dec-pc-home-hero__panel dec-pc-home-hero__left" ref={leftRef}>
+          <div className="dec-pc-home-hero__cate-area" onMouseLeave={scheduleHideSubView}>
             {displayCategories.length ? (
               <div className="dec-pc-home-hero__cate-list">
                 {displayCategories.map((item, index) => (
-                  <div className="dec-pc-home-hero__cate-item" key={String(item.picId ?? index)}>
+                  <div
+                    className={`dec-pc-home-hero__cate-item${activeSub === index ? ' is-active' : ''}`}
+                    key={String(item.id || index)}
+                    onMouseEnter={() => showSubView(index)}
+                  >
                     <span className="dec-pc-home-hero__cate-icon" aria-hidden="true">
-                      {item.floorIcoFont ? <i className={item.floorIcoFont} /> : null}
+                      {item.iconFont ? <i className={item.iconFont} /> : null}
                     </span>
                     <div className="dec-pc-home-hero__cate-text">
                       <div className="dec-pc-home-hero__cate-title">
-                        <span className="dec-pc-home-hero__cate-link" onClick={() => openLink(item.picLink)}>
-                          {item.picTitle || '类目'}
-                        </span>
+                        {item.catFloorNames.length ? (
+                          item.catFloorNames.map((name, nameIndex) => (
+                            <span key={`${name.categoryTitleName}-${nameIndex}`}>
+                              <a className="dec-pc-home-hero__cate-link" href={name.link} target="_blank" rel="noreferrer">
+                                {name.categoryTitleName}
+                              </a>
+                              {nameIndex < item.catFloorNames.length - 1 ? <span className="dec-pc-home-hero__cate-sep">/</span> : null}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="dec-pc-home-hero__cate-link" onClick={() => openLink(item.entryLink)}>
+                            {item.title || '类目'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -727,39 +1113,70 @@ function HomeHero({ module }: ModuleProps) {
                 {premiumMember.description ? <span className="dec-pc-home-hero__premium-member-desc">{premiumMember.description}</span> : null}
               </div>
             ) : null}
-            <div className={`dec-pc-home-hero__user-top${premiumShow ? ' has-premium-member' : ''}`}>
-              <img className="dec-pc-home-hero__avatar" src={picSrc(right.user?.avatar) || '/images/default-avatar.svg'} alt="" />
+            <div className={`dec-pc-home-hero__user-top${authed ? ' is-authed' : ''}${premiumShow ? ' has-premium-member' : ''}`}>
+              <img className="dec-pc-home-hero__avatar" src={userAvatarSrc} alt="" />
               <div className="dec-pc-home-hero__user-info">
-                <div className="dec-pc-home-hero__user-name" title={right.user?.nickname || ''}>{right.user?.nickname || '欢迎来商城！'}</div>
+                <div className={`dec-pc-home-hero__user-name${authed ? ' is-authed' : ''}`} title={userDisplayName}>{userDisplayName}</div>
                 <div className="dec-pc-home-hero__user-links">
-                  <span className="dec-pc-home-hero__user-link">注册</span>
-                  <span className="divider" />
-                  <span className="dec-pc-home-hero__user-link">入驻</span>
+                  {authed ? (
+                    <>
+                      <Link className="dec-pc-home-hero__user-link" href="/member/profile">账号设置</Link>
+                      <span className="divider" />
+                      <Link className="dec-pc-home-hero__user-link" href="/member/address">收货地址</Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link className="dec-pc-home-hero__user-link" href="/register">注册</Link>
+                      <span className="divider" />
+                      <Link className="dec-pc-home-hero__user-link" href="/join">入驻</Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-            <div className="dec-pc-home-hero__user-desc">
-              <div className="title">{right.user?.welcomeText || '登录后更多精彩'}</div>
-              <div className="subtitle">一键登录，福利好物全拥有</div>
-            </div>
-            <Link className="dec-pc-home-hero__login-btn" href="/member/login">立即登录</Link>
+
+            {authed ? (
+              <div className={`dec-pc-home-hero__user-assets${needWideAssets ? ' dec-pc-home-hero__user-assets--wide' : ''}`}>
+                <Link className="dec-pc-home-hero__asset-item" href="/member/coupon" title={`优惠券 ${assetNumber(profile?.coupon)}`}>
+                  <div className="dec-pc-home-hero__asset-num">{assetNumber(profile?.coupon)}</div>
+                  <div className="dec-pc-home-hero__asset-label">优惠券</div>
+                </Link>
+                <Link className="dec-pc-home-hero__asset-item" href="/member/balance" title={`余额 ¥${assetMoney(profile?.balance)}`}>
+                  <div className="dec-pc-home-hero__asset-num">{assetMoney(profile?.balance)}</div>
+                  <div className="dec-pc-home-hero__asset-label">余额</div>
+                </Link>
+                <Link className="dec-pc-home-hero__asset-item" href="/member/points" title={`积分 ${assetNumber(profile?.points)}`}>
+                  <div className="dec-pc-home-hero__asset-num">{assetNumber(profile?.points)}</div>
+                  <div className="dec-pc-home-hero__asset-label">积分</div>
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="dec-pc-home-hero__user-desc">
+                  <div className="title">{right.user?.welcomeText || '登录后更多精彩'}</div>
+                  <div className="subtitle">一键登录，福利好物全拥有</div>
+                </div>
+                <Link className="dec-pc-home-hero__login-btn" href="/member/login">立即登录</Link>
+              </>
+            )}
+
             <div className="dec-pc-home-hero__user-actions">
-              <div className="dec-pc-home-hero__action-item">
+              <Link className="dec-pc-home-hero__action-item" href="/member/order">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--order" />
                 <span>我的订单</span>
-              </div>
-              <div className="dec-pc-home-hero__action-item">
+              </Link>
+              <Link className="dec-pc-home-hero__action-item" href="/member/browsingHistory">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--history" />
                 <span>浏览记录</span>
-              </div>
-              <div className="dec-pc-home-hero__action-item">
+              </Link>
+              <Link className="dec-pc-home-hero__action-item" href="/member/favorite">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--wish" />
                 <span>心愿单</span>
-              </div>
-              <div className="dec-pc-home-hero__action-item">
+              </Link>
+              <Link className="dec-pc-home-hero__action-item" href="/member/collectShop">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--shop" />
                 <span>关注店铺</span>
-              </div>
+              </Link>
             </div>
           </div>
 
@@ -789,6 +1206,7 @@ function HomeHero({ module }: ModuleProps) {
           </div>
         </section>
       </div>
+      {renderSubCata()}
     </div>
   );
 }
@@ -800,6 +1218,7 @@ function HomeHero({ module }: ModuleProps) {
 function Coupon({ module }: ModuleProps) {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [claimingId, setClaimingId] = useState<number | null>(null);
   const frame = module.frame || {};
   const containerModule = {
     boxPaddingTop: frame.boxPaddingTop ?? 0,
@@ -811,10 +1230,10 @@ function Coupon({ module }: ModuleProps) {
   const showTitle = Number(module.showTitle) === 1;
 
   const load = () => {
-    fetch('/api/home/home/getCoupon')
-      .then((response) => response.json())
-      .then((json) => {
-        const list = json?.data || json?.records || [];
+    setLoading(true);
+    apiGet<any>('home/home/getCoupon')
+      .then((data) => {
+        const list = Array.isArray(data) ? data : (data as any)?.records ?? [];
         setCoupons(Array.isArray(list) ? list.slice(0, 4) : []);
       })
       .catch(() => undefined)
@@ -823,7 +1242,35 @@ function Coupon({ module }: ModuleProps) {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const claim = async (coupon: any) => {
+    if (!isLoggedIn()) {
+      goLogin();
+      return;
+    }
+    const couponId = Number(coupon?.couponId ?? 0);
+    setClaimingId(couponId);
+    try {
+      await apiPost('user/coupon/claim', { couponId });
+      showToast('success', '领取成功');
+      load();
+    } catch (error) {
+      showToast('error', errorText(error));
+    } finally {
+      setClaimingId(null);
+    }
+  };
+
+  const statusText = (coupon: any): string => {
+    if (Number(coupon?.isReceive) === 1) return '已领取';
+    const limit = Number(coupon?.limitNum ?? 0);
+    const received = Number(coupon?.receiveNum ?? 0);
+    if (limit > 0 && received >= limit) return '已抢光';
+    return '立即领取';
+  };
+  const claimable = (coupon: any): boolean => statusText(coupon) === '立即领取';
 
   if (loading || !coupons.length) return null;
 
@@ -861,7 +1308,16 @@ function Coupon({ module }: ModuleProps) {
                     <p>{coupon.couponDesc}</p>
                   </div>
                 </div>
-                <p className="use_btn">{coupon.isReceive ? '已领取' : '立即领取'}<em>&nbsp;&gt;</em></p>
+                <p
+                  className={`use_btn${claimable(coupon) ? '' : ' is-disabled'}${claimingId === Number(coupon.couponId) ? ' is-loading' : ''}`}
+                  aria-disabled={!claimable(coupon) || claimingId !== null}
+                  onClick={() => {
+                    if (!claimable(coupon) || claimingId !== null) return;
+                    void claim(coupon);
+                  }}
+                >
+                  {claimingId === Number(coupon.couponId) ? '领取中' : statusText(coupon)}<em>&nbsp;&gt;</em>
+                </p>
                 <div className="coupon_edge" />
               </div>
             ))}
@@ -1021,7 +1477,17 @@ function Seckill({ module }: ModuleProps) {
                             </div>
                             <div className="buy-container">
                               <div className="buy">
-                                <Link className="view_detail" href={product.seoLink || `/product/${product.productId ?? ''}`} target="_blank"><i className="iconfont-pc icon-tianjia" /></Link>
+                                <button
+                                  type="button"
+                                  className={`view_detail${productSoldOut(product) ? ' disabled' : ''}`}
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    void buyProduct(product, { isQuick: 0 });
+                                  }}
+                                >
+                                  <i className="iconfont-pc icon-tianjia" />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1206,7 +1672,17 @@ function Groupon({ module }: ModuleProps) {
                               {Number(item.productPrice) > 0 ? <s className="price price-origin">{formatPrice(item.productPrice)}</s> : null}
                             </div>
                             <div className="buy">
-                              <Link className="view_detail" href={item.seoLink || `/product/${item.productId ?? ''}`} target="_blank"><i className="iconfont-pc icon-tianjia" /></Link>
+                              <button
+                                type="button"
+                                className={`view_detail${productSoldOut(item) ? ' disabled' : ''}`}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  void buyProduct(item, { isQuick: 1 });
+                                }}
+                              >
+                                <i className="iconfont-pc icon-tianjia" />
+                              </button>
                             </div>
                           </div>
                         ) : null}
@@ -1229,7 +1705,6 @@ function Groupon({ module }: ModuleProps) {
  * rowNum(3~6)、colNum(1~3)、radioStyle(2 圆角)、picPageType、backgroundColor、frame。 */
 function ImageNav({ module }: ModuleProps) {
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
-  if (!pics.length) return null;
   const frame = module.frame || {};
   const navType = Number(module.navType ?? 1);
   const navStyle = Number(module.navStyle ?? 1);
@@ -1239,6 +1714,12 @@ function ImageNav({ module }: ModuleProps) {
   const showIcon = navStyle === 1 || navStyle === 2;
   const showText = navStyle === 1 || navStyle === 3;
   const radius = Number(module.radioStyle) === 2 ? 8 : 0;
+  const pages: any[][] = [];
+  for (let start = 0; start < pics.length; start += itemsPerPage) {
+    pages.push(pics.slice(start, start + itemsPerPage));
+  }
+  const { index, setIndex, setPaused } = useCarousel(Math.max(1, pages.length), 5000);
+  if (!pics.length) return null;
   const cssVars: Record<string, any> = {
     '--dec-box-padding': `${px(frame.boxPadding, 10)}px`,
     '--dec-box-padding-top': `${px(frame.boxPaddingTop, 5)}px`,
@@ -1247,6 +1728,7 @@ function ImageNav({ module }: ModuleProps) {
     '--dec-bg-color': frame.backgroundColor || '#ffffff',
     '--dec-content-bg': module.backgroundColor || '#ffffff',
     '--dec-item-radius': `${radius}px`,
+    '--dec-nav-cols': String(colNum),
   };
   const classes = [`dec-pc-image-nav--type-${navType}`, `dec-pc-image-nav--style-${navStyle}`, `dec-pc-image-nav--indicator-${module.picPageType ?? 1}`];
   if (Number(module.radioStyle) === 2) classes.push('dec-pc-image-nav--rounded');
@@ -1255,7 +1737,7 @@ function ImageNav({ module }: ModuleProps) {
       <div className="dec-pc-image-nav__content">
         {navType === 1 ? (
           <div className="dec-pc-image-nav__grid" style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))` }}>
-            {pics.slice(0, itemsPerPage).map((item, index) => (
+            {pages[0].map((item, index) => (
               <div className="dec-pc-image-nav__item" key={index}>
                 <a className="dec-pc-image-nav__link" href={navHref(item.picLink) || '#'} target="_blank" rel="noreferrer">
                   {showIcon ? (
@@ -1269,21 +1751,52 @@ function ImageNav({ module }: ModuleProps) {
             ))}
           </div>
         ) : (
-          <div className="dec-pc-image-nav__carousel">
-            <div className="dec-pc-image-nav__swiper-page" style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))` }}>
-              {pics.slice(0, itemsPerPage).map((item, index) => (
-                <div className="dec-pc-image-nav__item" key={index}>
-                  <a className="dec-pc-image-nav__link" href={navHref(item.picLink) || '#'} target="_blank" rel="noreferrer">
-                    {showIcon ? (
-                      <div className="dec-pc-image-nav__icon">
-                        <img className="dec-pc-image-nav__image" src={item.picUrl || item.picThumb || ''} alt={item.picTitle || ''} loading="lazy" />
-                      </div>
-                    ) : null}
-                    {showText ? <div className="dec-pc-image-nav__text">{item.picTitle}</div> : null}
-                  </a>
-                </div>
-              ))}
+          <div
+            className="dec-pc-image-nav__carousel"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+          >
+            <div className="dec-pc-image-nav__carousel-viewport">
+              <div className="dec-pc-image-nav__carousel-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+                {pages.map((page, pageIndex) => (
+                  <div
+                    className="dec-pc-image-nav__swiper-page"
+                    key={pageIndex}
+                    style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rowNum}, auto)` }}
+                  >
+                    {Array.from({ length: itemsPerPage }).map((_, cellIndex) => {
+                      const item = page[cellIndex];
+                      if (!item) return <div className="dec-pc-image-nav__item" key={`placeholder-${cellIndex}`} aria-hidden />;
+                      return (
+                        <div className="dec-pc-image-nav__item" key={cellIndex}>
+                          <a className="dec-pc-image-nav__link" href={navHref(item.picLink) || '#'} target="_blank" rel="noreferrer">
+                            {showIcon ? (
+                              <div className="dec-pc-image-nav__icon">
+                                <img className="dec-pc-image-nav__image" src={item.picUrl || item.picThumb || ''} alt={item.picTitle || ''} loading="lazy" />
+                              </div>
+                            ) : null}
+                            {showText ? <div className="dec-pc-image-nav__text">{item.picTitle}</div> : null}
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
+            {pages.length > 1 ? (
+              <div className="dec-pc-image-nav__dots">
+                {pages.map((_, dot) => (
+                  <button
+                    key={dot}
+                    type="button"
+                    className={dot === index ? 'is-active' : ''}
+                    onClick={() => setIndex(dot)}
+                    aria-label={`第 ${dot + 1} 页`}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
@@ -1324,9 +1837,50 @@ function ImageSquareAd({ module }: ModuleProps) {
  * imgPadding、title、frame（TotalContainer）；热区坐标基于 500px 基准，窄容器按比例缩放由 CSS 变量完成。 */
 function ImageHotarea({ module }: ModuleProps) {
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
-  if (!pics.length) return null;
   const frame = module.frame || {};
   const innerPad = px(frame.leftAndRightPadding ?? frame.innerPadding);
+  const wrapRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const [widths, setWidths] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    const elements = Object.values(wrapRefs.current).filter((el): el is HTMLDivElement => Boolean(el));
+    if (!elements.length || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver((entries) => {
+      setWidths((current) => {
+        const next = { ...current };
+        entries.forEach((entry) => {
+          const element = entry.target as HTMLDivElement;
+          const picIndex = Number(element.dataset.picIndex);
+          if (Number.isFinite(picIndex)) next[picIndex] = entry.contentRect.width;
+        });
+        return next;
+      });
+    });
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [pics.length]);
+
+  if (!pics.length) return null;
+  const HOTAREA_ORIGINAL_WIDTH = 500;
+  const scaleOf = (picIndex: number) => {
+    const width = widths[picIndex] || 0;
+    return width > 0 ? width / HOTAREA_ORIGINAL_WIDTH : 0;
+  };
+  const hotareaStyle = (sub: any, picIndex: number): Record<string, string> => {
+    const scale = scaleOf(picIndex);
+    if (!scale) return parseCssText(sub?.position);
+    const w = Number(sub?.width) || 0;
+    const h = Number(sub?.height) || 0;
+    const left = Number(sub?.left ?? sub?.pageX) || 0;
+    const top = Number(sub?.top ?? sub?.pageY) || 0;
+    return {
+      width: `${scale * w}px`,
+      height: `${scale * h}px`,
+      left: `${scale * left}px`,
+      top: `${scale * top}px`,
+    };
+  };
+
   return (
     <Container module={frame}>
       <ShopTitle title={module.title} rightText={module.title?.moreLink?.title} />
@@ -1335,20 +1889,21 @@ function ImageHotarea({ module }: ModuleProps) {
           {pics.map((item, picIndex) => (
             <div className="image-ad-item" key={item.picId ?? picIndex}>
               <div className="item-content" style={{ padding: `${px(module.imgPadding)}px` }}>
-                <div className="item-content-hotatrea">
+                <div
+                  className="item-content-hotatrea"
+                  data-pic-index={picIndex}
+                  ref={(element) => {
+                    wrapRefs.current[picIndex] = element;
+                  }}
+                >
                   <div className="item-img-a">
                     <img className="item-img" src={item.picUrl || ''} alt="" loading="lazy" />
                   </div>
-                  {(item.hotarea || []).map((sub: any, index: number) => (
+                  {(Array.isArray(item.hotarea) ? item.hotarea : []).map((sub: any, index: number) => (
                     <div
                       className="image-hotarea-link"
                       key={index}
-                      style={{
-                        width: `${px(sub.width) / 5}%`,
-                        height: `${px(sub.height) / 5}%`,
-                        left: `${px(sub.pageX ?? sub.left) / 5}%`,
-                        top: `${px(sub.pageY ?? sub.top) / 5}%`,
-                      }}
+                      style={hotareaStyle(sub, picIndex)}
                       onClick={() => openLink(sub.link)}
                     >
                       <span className="area_box_con_text">{sub.link?.name}</span>
@@ -1661,12 +2216,95 @@ function GroupBanner({ module }: ModuleProps) {
  * productTag,productNumber}、frame{columns 默认5,itemGap,boxPadding,boxPaddingTop,boxPaddingBottom,
  * boxRadius,backgroundColor}；滚动分页（本实现按 productNumber 一次取满，见报告）。 */
 function RecommendProduct({ module }: ModuleProps) {
-  const [products, setProducts] = useState<ProductItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const frame = module.frame || {};
   const config = module.products || {};
   const columns = Number(frame.columns) > 0 ? Number(frame.columns) : 5;
   const itemGap = Number(frame.itemGap) >= 0 ? Number(frame.itemGap) : 16;
+  const PAGE_SIZE = 20;
+  const selectType = Number(config.productSelectType);
+  const maxNum = selectType === 1
+    ? (Array.isArray(config.productIds) ? config.productIds.length : 0)
+    : Math.max(0, px(config.productNumber, 0));
+
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [noMore, setNoMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingRef = useRef(false);
+  const noMoreRef = useRef(false);
+  const countRef = useRef(0);
+  const pageRef = useRef(1);
+
+  const buildParams = (pageNo: number, size: number): Record<string, unknown> => {
+    const params: Record<string, unknown> = { page: pageNo, size };
+    if (selectType === 1) {
+      const ids = Array.isArray(config.productIds) ? config.productIds : [];
+      params.ids = ids.join(',');
+    } else if (selectType === 2) {
+      params.categoryId = config.productCategoryId;
+    } else if (selectType === 3) {
+      params.introType = config.productTag;
+    }
+    return params;
+  };
+
+  const requestPage = async (targetPage: number): Promise<void> => {
+    if (loadingRef.current || noMoreRef.current) return;
+    const remaining = maxNum - countRef.current;
+    if (remaining <= 0) {
+      noMoreRef.current = true;
+      setNoMore(true);
+      return;
+    }
+    const size = Math.min(PAGE_SIZE, remaining);
+    loadingRef.current = true;
+    setLoading(true);
+    try {
+      const data = await apiGet<{ records?: ProductItem[] }>('product/product/list', buildParams(targetPage, size));
+      const records = Array.isArray(data?.records) ? data.records : [];
+      setProducts((previous) => (targetPage === 1 ? records : [...previous, ...records]));
+      countRef.current = targetPage === 1 ? records.length : countRef.current + records.length;
+      if (records.length < size || countRef.current >= maxNum) {
+        noMoreRef.current = true;
+        setNoMore(true);
+      }
+      pageRef.current = targetPage;
+    } catch {
+      noMoreRef.current = true;
+      setNoMore(true);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    products.length; // 保持 lint 关闭时的显式引用
+    setProducts([]);
+    setNoMore(false);
+    loadingRef.current = false;
+    noMoreRef.current = false;
+    countRef.current = 0;
+    pageRef.current = 1;
+    void requestPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(config)]);
+
+  const requestRef = useRef(requestPage);
+  requestRef.current = requestPage;
+
+  useEffect(() => {
+    const onScroll = () => {
+      const element = sentinelRef.current;
+      if (!element) return;
+      if (window.scrollY + window.innerHeight >= element.offsetTop + 20) {
+        void requestRef.current(pageRef.current + 1);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const cssVars: Record<string, any> = {
     '--dec-box-padding': `${px(frame.boxPadding)}px`,
     '--dec-box-padding-top': `${px(frame.boxPaddingTop)}px`,
@@ -1677,47 +2315,6 @@ function RecommendProduct({ module }: ModuleProps) {
     '--dec-columns': String(columns),
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    const selectType = Number(config.productSelectType);
-    const params = new URLSearchParams({ page: '1' });
-    const maxNum = selectType === 1
-      ? (Array.isArray(config.productIds) ? config.productIds.length : 0)
-      : px(config.productNumber, 20);
-    if (selectType === 1) {
-      if (!maxNum) {
-        setLoading(false);
-        return undefined;
-      }
-      params.set('ids', (config.productIds as any[]).join(','));
-      params.set('size', String(maxNum));
-    } else if (selectType === 2) {
-      params.set('categoryId', String(config.productCategoryId ?? ''));
-      params.set('size', String(maxNum));
-    } else if (selectType === 3) {
-      params.set('introType', String(config.productTag ?? ''));
-      params.set('size', String(maxNum));
-    } else {
-      setLoading(false);
-      return undefined;
-    }
-    fetch(`/api/product/product/list?${params.toString()}`)
-      .then((response) => response.json())
-      .then((json) => {
-        if (cancelled) return;
-        const records = json?.data?.records || json?.data || json?.records || [];
-        setProducts(Array.isArray(records) ? records : []);
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(config)]);
-
   return (
     <div className="dec-recommend-product" style={cssVars}>
       {module.titleName ? <h3 className="dec-recommend-product__title">{module.titleName}</h3> : null}
@@ -1727,26 +2324,35 @@ function RecommendProduct({ module }: ModuleProps) {
             <div className="dec-recommend-product__card">
               <div className="dec-recommend-product__flip">
                 <div className="dec-recommend-product__pic">
-                  <Link className="dec-recommend-product__pic-link" href={product.seoLink || `/product/${product.productId ?? ''}`} target="_blank">
+                  <Link className="dec-recommend-product__pic-link" href={productDetailHref(product)} target="_blank">
                     <img src={product.picUrl || product.picThumb || ''} alt={product.productName || ''} loading="lazy" />
                   </Link>
                 </div>
                 <div className="dec-recommend-product__name">
-                  <Link href={product.seoLink || `/product/${product.productId ?? ''}`} target="_blank">{product.productName}</Link>
+                  <Link href={productDetailHref(product)} target="_blank">{product.productName}</Link>
                 </div>
                 <div className="dec-recommend-product__price">{formatPrice(product.productPrice)}</div>
               </div>
               <div className="dec-recommend-product__operate">
-                <Link className="dec-recommend-product__detail" href={product.seoLink || `/product/${product.productId ?? ''}`} target="_blank">查看详情</Link>
-                <Link href={product.seoLink || `/product/${product.productId ?? ''}`} target="_blank">
-                  <span className="dec-recommend-product__buy">立即购买</span>
-                </Link>
+                <Link className="dec-recommend-product__detail" href={productDetailHref(product)} target="_blank">查看详情</Link>
+                <button
+                  type="button"
+                  className={`dec-recommend-product__buy${productSoldOut(product) ? ' is-disabled' : ''}`}
+                  onClick={() => void buyProduct(product, { isQuick: Number((product as any).productType ?? 1) !== 1 ? 1 : 0 })}
+                >
+                  {needsProductDetail(product) ? '查看详情' : productSoldOut(product) ? '已售罄' : '立即购买'}
+                </button>
               </div>
             </div>
           </div>
         ))}
       </div>
-      {loading ? <div className="dec-recommend-product__loading"><div className="gif-loading" /></div> : null}
+      <div ref={sentinelRef}>
+        {loading ? (
+          <div className="dec-recommend-product__loading"><div className="gif-loading" /></div>
+        ) : null}
+        {noMore && products.length > 0 ? <div className="dec-recommend-product__end">没有更多喽~</div> : null}
+      </div>
     </div>
   );
 }
@@ -1882,7 +2488,19 @@ function ProductGroup({ module }: ModuleProps) {
                           {showPrice ? <span className="dec-product-group__price">{formatPrice(product.productPrice)}</span> : null}
                           {showCrossed ? <s className="dec-product-group__price-origin">{formatPrice((product as any).marketPrice)}</s> : null}
                         </div>
-                        {showBuy ? <div className="dec-product-group__cart-btn"><span className="dec-product-group__cart-inner">+</span></div> : null}
+                        {showBuy ? (
+                          <button
+                            type="button"
+                            className={`dec-product-group__cart-btn${productSoldOut(product) ? ' is-disabled' : ''}`}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              void buyProduct(product);
+                            }}
+                          >
+                            <span className="dec-product-group__cart-inner">+</span>
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </Link>

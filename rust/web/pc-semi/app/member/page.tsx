@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
-import MemberClient from '@/components/MemberClient';
+import MemberCenterClient from '@/components/MemberCenterClient';
 import { getPcHeader } from '@/lib/api';
 import PcFooter from '@/components/PcFooter';
 
@@ -25,7 +25,7 @@ export default async function MemberPage() {
             <span>会员中心</span>
           </nav>
           <h1 className="pc-cart-title">会员中心</h1>
-          <MemberClient />
+          <MemberCenterClient />
         </div>
       </main>
       <PcFooter />

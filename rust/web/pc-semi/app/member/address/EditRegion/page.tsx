@@ -1,5 +1,2 @@
-import { redirect } from 'next/navigation';
-
-export default function AddressEditRegionRedirect() {
-  redirect('/member/address');
-}
+export { default } from '../page';
+export const dynamic = 'force-dynamic';

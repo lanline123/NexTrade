@@ -13,6 +13,8 @@ interface PayInfo {
     orderSn?: string;
     unpaidAmount?: number | string;
     payTypeId?: number;
+    balanceAmount?: number | string;
+    orderAmount?: number | string;
   };
   paymentList?: PaymentMethod[];
   offlinePaymentList?: Record<string, unknown>;
@@ -26,6 +28,22 @@ const CHANNEL_LABELS: Record<string, string> = {
   stripe: 'Stripe',
   xendit: 'Xendit',
   antom: 'Antom',
+  yunpay: '云闪付',
+  yeepay: '易宝支付',
+  lakala: '拉卡拉',
+  huifu: '汇付天下',
+  yabanpay: '雅班支付',
+  applepay: 'Apple Pay',
+  offline: '线下汇款',
+  balance: '余额支付',
+};
+
+/** 旧版线下支付 Tab 文案（pages/order/pay.vue offlinePaymentList 键）。 */
+const OFFLINE_LABELS: Record<string, string> = {
+  thirdPartyPaymentTransfer: '第三方支付转账',
+  offlinePayBank: '银行汇款',
+  offlinePayCompany: '企业汇款',
+  otherPaymentRemittance: '其他汇款方式',
 };
 
 function normalizePaymentMethods(list: PaymentMethod[] | undefined): Array<{ type: string; label: string }> {
@@ -48,13 +66,14 @@ interface ChannelResult {
   [key: string]: any;
 }
 
-export default function PayClient({ orderId }: { orderId: number }) {
+export default function PayClient({ orderId, defaultChannel }: { orderId: number; defaultChannel?: string }) {
   const [info, setInfo] = useState<PayInfo | null>(null);
   const [payType, setPayType] = useState('');
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [qr, setQr] = useState('');
   const [qrTips, setQrTips] = useState('');
+  const [offlineTab, setOfflineTab] = useState('');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -70,14 +89,20 @@ export default function PayClient({ orderId }: { orderId: number }) {
     apiGet<PayInfo>('order/pay/index', { id: orderId })
       .then((result) => {
         setInfo(result);
-        setPayType(normalizePaymentMethods(result.paymentList)[0]?.type || '');
+        // 旧版渠道页（/order/alipay、/order/paypal、/order/stripe ...）默认选中对应渠道
+        const segments = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
+        const pathChannel = (segments[1] || '').toLowerCase();
+        const preferredChannel = String(defaultChannel || '').toLowerCase() || pathChannel;
+        const methods = normalizePaymentMethods(result.paymentList);
+        const preferred = methods.find((method) => method.type.toLowerCase() === preferredChannel);
+        setPayType(preferred?.type || methods[0]?.type || '');
       })
       .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '订单支付信息加载失败' }))
       .finally(() => setLoading(false));
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [orderId]);
+  }, [orderId, defaultChannel]);
 
   const stopPoll = () => {
     if (pollRef.current) {
@@ -190,20 +215,49 @@ export default function PayClient({ orderId }: { orderId: number }) {
   if (loading) return <Card className="cart-state">订单支付信息加载中...</Card>;
 
   const order = info?.order || {};
+  // 旧版：order.payTypeId >= 3 为线下支付（第三方转账/银行/企业/其他汇款），展示汇款信息而非在线支付
+  const offlineEntries = Object.entries(info?.offlinePaymentList || {}).filter(([key, value]) => OFFLINE_LABELS[key] && typeof value === 'string');
+  const offlineMode = Number(order.payTypeId || 0) >= 3 && offlineEntries.length > 0;
+  const activeOffline = offlineEntries.find(([key]) => key === offlineTab) || offlineEntries[0];
   return (
     <div className="pc-pay">
       <Card className="pc-pay__card">
         <div className="pc-pay__success">订单已成功提交，请完成付款</div>
         <div className="pc-pay__amount">
           <span>需支付</span>
-          <b>¥ {Number(order.unpaidAmount || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</b>
+          <b>¥ {Number(order.unpaidAmount ?? order.orderAmount ?? 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</b>
         </div>
         <div className="pc-pay__order">
           <span>订单号</span>
           <b>{order.orderSn || '-'}</b>
         </div>
 
-        {info?.paymentList?.length ? (
+        {offlineMode ? (
+          <div className="pc-pay__offline">
+            <div className="pc-pay__label">线下汇款方式</div>
+            <div className="pc-pay__offline-tabs">
+              {offlineEntries.map(([key]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={activeOffline && activeOffline[0] === key ? 'is-active' : ''}
+                  onClick={() => setOfflineTab(key)}
+                >
+                  {OFFLINE_LABELS[key]}
+                </button>
+              ))}
+            </div>
+            {activeOffline ? (
+              <div
+                className="pc-pay__offline-content"
+                dangerouslySetInnerHTML={{ __html: String(activeOffline[1]) }}
+              />
+            ) : null}
+            <p className="pc-pay__offline-tips">请按上方账户信息完成汇款，并联系客服确认到账。</p>
+          </div>
+        ) : null}
+
+        {!offlineMode && info?.paymentList?.length ? (
           <div className="pc-pay__methods">
             <div className="pc-pay__label">支付方式</div>
             <RadioGroup value={payType} onChange={(value) => setPayType(String(value))}>
@@ -236,9 +290,11 @@ export default function PayClient({ orderId }: { orderId: number }) {
         ) : null}
 
         <div className="pc-pay__actions">
-          <Button theme="solid" type="primary" size="large" loading={paying} disabled={!payType || !!qr} onClick={pay}>
-            立即支付
-          </Button>
+          {offlineMode ? null : (
+            <Button theme="solid" type="primary" size="large" loading={paying} disabled={!payType || !!qr} onClick={pay}>
+              立即支付
+            </Button>
+          )}
           <Link href="/member/order/list">
             <Button size="large">查看订单</Button>
           </Link>

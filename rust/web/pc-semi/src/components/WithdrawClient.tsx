@@ -27,6 +27,13 @@ export default function WithdrawClient() {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    apiGet<{ balance?: number | string }>('user/user/memberCenter')
+      .then((result) => setBalance(Number(result?.balance || 0)))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -65,6 +72,10 @@ export default function WithdrawClient() {
 
   return (
     <Card className="member-card withdraw-card" loading={loading}>
+      <div className="withdraw-balance" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#fff' }}>
+        <span>可提现余额</span>
+        <b style={{ color: '#e1251b', fontSize: 20 }}>¥ {balance.toFixed(2)}</b>
+      </div>
       <div className="withdraw-types">
         {[1, 2, 3].map((value) => (
           <button key={value} type="button" className={type === value ? 'is-active' : ''} onClick={() => setType(value)}>{TYPE_LABELS[value]}</button>
@@ -93,7 +104,10 @@ export default function WithdrawClient() {
       <div className="security-form withdraw-form">
         <label>提现金额</label>
         <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="请输入提现金额" inputMode="decimal" />
-        <Button theme="solid" type="primary" disabled={!accounts.length} loading={submitting} onClick={() => void submit()}>提交提现申请</Button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Button theme="solid" type="primary" disabled={!accounts.length} loading={submitting} onClick={() => void submit()}>提交提现申请</Button>
+          <Button onClick={() => setAmount(balance > 0 ? balance.toFixed(2) : '')}>全部提现</Button>
+        </div>
       </div>
     </Card>
   );

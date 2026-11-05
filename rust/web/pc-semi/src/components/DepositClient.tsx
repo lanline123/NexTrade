@@ -60,6 +60,7 @@ export default function DepositClient() {
         id: item?.rechargeId || 0,
         amount: chosenAmount,
         money: chosenAmount,
+        payType,
       });
       const id = Number(created?.orderId || created?.id || 0);
       if (!id) throw new Error('创建充值订单失败');

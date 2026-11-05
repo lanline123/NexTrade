@@ -15,6 +15,9 @@ export const metadata: Metadata = {
 export default async function PayPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const raw = searchParams?.id;
   const orderId = Number(Array.isArray(raw) ? raw[0] : raw) || 0;
+  // 旧版渠道页会带 type 参数（/order/paypal?id=&type=paypal），用于默认选中渠道
+  const typeRaw = searchParams?.type;
+  const defaultChannel = String(Array.isArray(typeRaw) ? typeRaw[0] || '' : typeRaw || '').trim();
   const header = await getPcHeader().catch(() => null);
 
   return (
@@ -27,7 +30,7 @@ export default async function PayPage({ searchParams }: { searchParams?: { [key:
             <span>/</span>
             <span>支付订单</span>
           </nav>
-          <PayClient orderId={orderId} />
+          <PayClient orderId={orderId} defaultChannel={defaultChannel} />
         </div>
       </main>
       <PcFooter />

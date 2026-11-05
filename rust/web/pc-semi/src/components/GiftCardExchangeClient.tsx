@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * 礼品卡兑换（对照旧版 `member/giftCard/exchange.vue`）。
+ *
+ * - 输入卡号、卡密兑换；储值卡兑换后自动充值到余额，兑换卡返回 flowType 后进入订单结算；
+ * - 兑换成功后：有 `exchangeProductToCart.flowType` → `/order/check?flowType=...`，
+ *   否则 → `/member/account/detail`（与旧版一致）。
+ */
 import { useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '@/lib/client-api';
@@ -8,19 +15,25 @@ export default function GiftCardExchangeClient() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardPassword, setCardPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Record<string, any> | null>(null);
 
   const submit = async () => {
-    if (!cardNumber.trim() || !cardPassword.trim()) return Toast.error({ content: '请输入卡号和卡密' });
+    if (!cardNumber.trim() || !cardPassword.trim()) {
+      Toast.error({ content: '请输入卡号和卡密' });
+      return;
+    }
     setLoading(true);
-    setResult(null);
     try {
       const data = await apiPost<Record<string, any>>('promotion/giftCardGroups/exchange', {
         cardNumber: cardNumber.trim(),
         cardPassword: cardPassword.trim(),
       });
-      setResult(data || {});
       Toast.success({ content: '兑换成功' });
+      const flowType = data?.exchangeProductToCart?.flowType;
+      if (flowType) {
+        window.location.href = `/order/check?flowType=${flowType}`;
+      } else {
+        window.location.href = '/member/account/detail';
+      }
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '兑换失败' });
     } finally {
@@ -31,20 +44,18 @@ export default function GiftCardExchangeClient() {
   return (
     <Card className="member-card giftcard-exchange" loading={loading}>
       <h2>礼品卡兑换</h2>
-      <p className="giftcard-exchange__hint">请输入礼品卡卡号与卡密，兑换成功后可在订单或账户中查看。</p>
       <div className="security-form">
         <label>卡号</label>
-        <input value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} placeholder="请输入礼品卡卡号" />
+        <input value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} placeholder="请输入卡号" />
         <label>卡密</label>
-        <input value={cardPassword} onChange={(event) => setCardPassword(event.target.value)} placeholder="请输入礼品卡卡密" type="password" />
+        <input value={cardPassword} onChange={(event) => setCardPassword(event.target.value)} placeholder="请输入卡密" type="password" />
         <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>立即兑换</Button>
       </div>
-      {result ? (
-        <div className="giftcard-exchange__result">
-          <h3>兑换成功</h3>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
-        </div>
-      ) : null}
+      <div className="giftcard-exchange__rules" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f2f4f7', color: '#667085', fontSize: 13, lineHeight: 2 }}>
+        <div style={{ fontWeight: 600, color: '#344054', marginBottom: 6 }}>兑换规则</div>
+        <p style={{ margin: 0 }}>1. 储值卡输入卡密进行兑换将自动充值到余额。</p>
+        <p style={{ margin: 0 }}>2. 兑换卡输入卡密进行兑换后将跳转至该商品详情页进行兑换。</p>
+      </div>
     </Card>
   );
 }
