@@ -40,3 +40,9 @@ tools/_tmp/
 
 # reference baseline, intentionally untracked
 java-b2b2c-overseas-v5.8.61/
+
+# local-only docs & AI collaboration config (kept on disk, removed from VCS 2026-11-06)
+docs/
+.skills/
+AGENTS.md
+.mcp.json
