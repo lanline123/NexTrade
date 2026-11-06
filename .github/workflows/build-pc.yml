@@ -49,7 +49,13 @@ jobs:
           cp -a .next "$OUT/.next"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
           cp -a package.json next.config.mjs "$OUT/"
-          cp -aL ../../node_modules "$OUT/node_modules"
+          NM=""
+          for cand in node_modules ../node_modules ../../node_modules; do
+            if [ -d "$cand" ]; then NM="$cand"; break; fi
+          done
+          if [ -z "$NM" ]; then echo "node_modules not found"; exit 1; fi
+          echo "node_modules from: $NM"
+          cp -aL "$NM" "$OUT/node_modules"
           cat > "$OUT/DEPLOY_INFO.txt" <<EOF
           commit ${GITHUB_SHA}
           build ${GITHUB_RUN_NUMBER}
