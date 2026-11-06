@@ -42,7 +42,8 @@ jobs:
           OUT=/tmp/pc-out
           rm -rf "$OUT"
           mkdir -p "$OUT"
-          cp -a .next/standalone/. "$OUT"/
+          # pnpm 的 node_modules 是符号链接，必须解引用成真实文件
+          cp -aL .next/standalone/. "$OUT"/
           mkdir -p "$OUT/.next"
           cp -a .next/static "$OUT/.next/static"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
@@ -51,7 +52,7 @@ jobs:
           build ${GITHUB_RUN_NUMBER}
           api https://battery.recy.cc
           EOF
-          tar -czf /tmp/nextrade-pc.tgz -C "$OUT" .
+          tar -czhf /tmp/nextrade-pc.tgz -C "$OUT" .
           ls -lh /tmp/nextrade-pc.tgz
           sha256sum /tmp/nextrade-pc.tgz > /tmp/nextrade-pc.tgz.sha256
           cat /tmp/nextrade-pc.tgz.sha256
