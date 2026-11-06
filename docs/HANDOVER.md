@@ -50,8 +50,8 @@ java/view/admin         旧 Vue 后台
 ### 生产状态（截至合并时）
 
 ```text
-Rust 后端：build-146，systemd 服务 tigshop
-PC 前端：pc-semi v20，systemd 服务 pc-semi
+Rust 后端：build-150+，systemd 服务 nextrade（二进制 /www/wwwroot/nextrade/nextrade）
+PC 前端：pc-semi（Next.js 14 SSR），systemd 服务 nextrade-pc（端口 3005）
 Admin：/admin/ 仍是旧 Vue 后台
        /admin-semi/ 尚未正式部署 React 版
 H5：已部署
@@ -438,7 +438,7 @@ java/view/admin/src/views/decorate/pcDecorate/
 域名：https://battery.recy.cc
 Rust：build-146
 systemd：tigshop
-目录：/www/wwwroot/tigshop-rust
+目录：/www/wwwroot/nextrade
 备份示例：/www/backup/tigshop.preB135.bak
 ```
 
@@ -494,22 +494,22 @@ Release：build-<run_number>
 ```text
 cat bXXX_* > bXXX.bin
 sha256sum -c
-systemctl stop tigshop
+systemctl stop nextrade
 cp 当前 tigshop -> /www/backup/tigshop.preBXXX.bak
-cp bXXX.bin -> /www/wwwroot/tigshop-rust/tigshop
+cp bXXX.bin -> /www/wwwroot/nextrade/nextrade
 chmod +x
-systemctl start tigshop
-curl /adminapi/health
+systemctl start nextrade
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/adminapi/health
 失败回滚
 ```
 
 回滚：
 
 ```bash
-systemctl stop tigshop
-cp -f /www/backup/tigshop.preBXXX.bak /www/wwwroot/tigshop-rust/tigshop
-chmod +x /www/wwwroot/tigshop-rust/tigshop
-systemctl start tigshop
+systemctl stop nextrade
+cp -f /www/backup/tigshop.preBXXX.bak /www/wwwroot/nextrade/nextrade
+chmod +x /www/wwwroot/nextrade/nextrade
+systemctl start nextrade
 ```
 
 ### 5.6 已实现范围
@@ -720,8 +720,10 @@ Token 通过本机凭据管理器获取，不写入仓库。
 站点根：/www/wwwroot/shop.recy.cc/public
 Nginx：/www/server/panel/vhost/nginx/html_shop.recy.cc.conf
 /admin/        旧 Vue 后台
-/adminapi      → 127.0.0.1:8080
-/              → 127.0.0.1:3005
+/adminapi      → 127.0.0.1:8080（nextrade，Rust）
+/api /static   → 127.0.0.1:8181（nextrade，Rust）
+/              → 127.0.0.1:3005（nextrade-pc，Next.js SSR）
+/pc/           旧静态 PC（保留）
 ```
 
 ### 10.2 Admin 静态部署
@@ -783,30 +785,55 @@ nginx -t
 nginx -s reload
 ```
 
-### 10.3 PC 部署
+### 10.3 PC 部署（nextrade-pc）
 
-```bash
-cd rust/web/pc-semi
-npm install
-npm run build
-```
-
-把 `.next/static`、`public` 放入 standalone 目录，然后：
-
-```bash
-PC_API_BASE=https://battery.recy.cc node server.js
-```
-
-宝塔 Node 项目：
+构建统一走 GitHub Actions（`build-pc.yml`，手动触发）：
 
 ```text
-目录：/www/wwwroot/shop.recy.cc/pc-semi
-启动：node server.js
-端口：3004
-环境变量：PC_API_BASE=https://battery.recy.cc
+产出：Release 资产 nextrade-pc.tgz（约 26 MB，含 .next + next/react 运行时）
+内容：.next（不含 cache/standalone/trace）、public、package.json、node_modules
 ```
 
-Nginx 反向代理 `/` → `127.0.0.1:3004`。
+服务器部署步骤：
+
+```bash
+# 1. 上传分片并合并（或让服务器直接下载 Release 资产）
+cat /www/backup/pcf_* > /www/backup/pc-runtime.tgz
+sha256sum /www/backup/pc-runtime.tgz    # 与 Release 的 .sha256 比对
+
+# 2. 解包
+rm -rf /www/wwwroot/nextrade-pc && mkdir -p /www/wwwroot/nextrade-pc
+tar -xzf /www/backup/pc-runtime.tgz -C /www/wwwroot/nextrade-pc
+chown -R www:www /www/wwwroot/nextrade-pc
+
+# 3. 服务（systemd：nextrade-pc）
+[Service]
+WorkingDirectory=/www/wwwroot/nextrade-pc
+Environment=NODE_ENV=production
+Environment=PC_API_BASE=https://battery.recy.cc
+ExecStart=/www/server/nodejs/v24.19.0/bin/node node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3005
+
+# 4. 启动与验证
+systemctl daemon-reload && systemctl restart nextrade-pc
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3005/
+curl -s -o /dev/null -w '%{http_code}' https://battery.recy.cc/
+```
+
+Nginx（`/www/server/panel/vhost/nginx/html_shop.recy.cc.conf`）：
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:3005;   # 必须是 3005（nextrade-pc）
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+> ⚠️ 历史坑：服务器上曾残留 `/www/backup/pc-*.sh` 之类的定时任务，
+> 每分钟会把部署回滚成旧包、并重写 systemd 单元。
+> 部署前先确认 `crontab -l` 与 `/www/server/cron/*` 没有引用 `/www/backup/*.sh` 的任务。
 
 ### 10.4 回滚
 
