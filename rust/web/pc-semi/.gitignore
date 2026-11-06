@@ -9,3 +9,7 @@ app/semi.css
 .env*.local
 .DS_Store
 npm-debug.log*
+.next-dev/
+.next.bak*/
+tsc*.log
+pc-deploy-r*/

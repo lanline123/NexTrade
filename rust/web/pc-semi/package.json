@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "predev": "node scripts/copy-semi-css.mjs",
-    "dev": "next dev -p 3004",
+    "dev": "node scripts/run-next.mjs dev -p 3004",
     "prebuild": "node scripts/copy-semi-css.mjs",
-    "build": "next build",
-    "start": "next start -p 3004",
+    "build": "node scripts/run-next.mjs build",
+    "start": "node scripts/run-next.mjs start -p 3004",
     "typecheck": "tsc --noEmit",
     "audit:pc": "node scripts/audit-pc-coverage.mjs",
     "audit:i18n": "node scripts/audit-i18n-coverage.mjs",
