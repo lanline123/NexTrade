@@ -49,7 +49,7 @@ jobs:
           cat > "$OUT/DEPLOY_INFO.txt" <<EOF
           commit ${GITHUB_SHA}
           build ${GITHUB_RUN_NUMBER}
-          api ${PC_API_BASE}
+          api https://battery.recy.cc
           EOF
           tar -czf /tmp/nextrade-pc.tgz -C "$OUT" .
           ls -lh /tmp/nextrade-pc.tgz
