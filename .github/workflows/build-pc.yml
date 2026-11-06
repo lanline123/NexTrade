@@ -24,6 +24,9 @@ jobs:
 
       - name: Install workspace deps
         working-directory: rust/web
+        env:
+          # pnpm 默认用软链接；Next standalone 需要真实文件，官方建议 hoisted
+          NPM_CONFIG_NODE_LINKER: hoisted
         run: pnpm install --no-frozen-lockfile
 
       - name: Build pc-semi
@@ -42,8 +45,7 @@ jobs:
           OUT=/tmp/pc-out
           rm -rf "$OUT"
           mkdir -p "$OUT"
-          # pnpm 的 node_modules 是符号链接，必须解引用成真实文件
-          cp -aL .next/standalone/. "$OUT"/
+          cp -a .next/standalone/. "$OUT"/
           mkdir -p "$OUT/.next"
           cp -a .next/static "$OUT/.next/static"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
