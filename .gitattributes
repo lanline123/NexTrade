@@ -1,0 +1,70 @@
+# 行尾统一治理
+#
+# 背景：仓库历史上 CRLF / LF 混用（2026-11-06 统计：2960 个 LF、276 个 CRLF、
+# 54 个 mixed）。Windows 本地开发 + Linux 容器构建（rockylinux:8 / Next.js），
+# 统一按 LF 存储与检出，避免同一文件在不同机器上产生整文件 diff。
+#
+# 本文件生效后：
+#   - 索引与工作区一律使用 LF（含 Windows 上的 PowerShell 脚本）
+#   - 二进制文件显式声明，避免 git 对其做文本转换
+#   - 未被显式声明的文件走 text=auto，由 git 自动判定是否为文本
+
+* text=auto eol=lf
+
+# ---- 源码 ----
+*.rs    text eol=lf
+*.toml  text eol=lf
+*.lock  text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.py    text eol=lf
+*.sh    text eol=lf
+*.sql   text eol=lf
+
+# ---- 样式与标记 ----
+*.scss  text eol=lf
+*.css   text eol=lf
+*.less  text eol=lf
+*.html  text eol=lf
+*.svg   text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.md    text eol=lf
+
+# ---- Windows 脚本 ----
+# 仓库内无 .bat/.cmd；PowerShell 现有 11 个文件均为 LF 且运行正常，
+# 故与全局规则保持一致，不单独切回 CRLF。
+*.ps1   text eol=lf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# ---- 二进制（不做行尾与 diff 转换）----
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.bmp   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+*.xlsx  binary
+*.xls   binary
+*.docx  binary
+*.pdf   binary
+*.zip   binary
+*.gz    binary
+*.tar   binary
+*.tgz   binary
+*.jar   binary
+*.so    binary
+*.dll   binary
+*.exe   binary
