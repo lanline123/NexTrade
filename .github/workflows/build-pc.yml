@@ -45,10 +45,16 @@ jobs:
           OUT=/tmp/pc-out
           rm -rf "$OUT"
           mkdir -p "$OUT"
-          cp -a .next/standalone/. "$OUT"/
+          # outputFileTracingRoot=rust/web，standalone 内按 rust/web/pc-semi 嵌套
+          STD=.next/standalone
+          APP_SUB=rust/web/pc-semi
+          cp -a "$STD/$APP_SUB/." "$OUT"/
+          if [ -d "$STD/node_modules" ]; then cp -a "$STD/node_modules" "$OUT/node_modules"; fi
           mkdir -p "$OUT/.next"
           cp -a .next/static "$OUT/.next/static"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
+          echo "node_modules entries: $(ls "$OUT/node_modules" 2>/dev/null | wc -l)"
+          du -sh "$OUT" 
           cat > "$OUT/DEPLOY_INFO.txt" <<EOF
           commit ${GITHUB_SHA}
           build ${GITHUB_RUN_NUMBER}

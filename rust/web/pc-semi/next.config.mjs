@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 /** @type {import('next').NextConfig} */
 const apiBase = (process.env.PC_API_BASE || 'https://battery.recy.cc').replace(/\/$/, '');
 
@@ -10,6 +12,9 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',
+  // pnpm workspace 会把依赖提升到 rust/web/node_modules；
+  // 指定 tracing root 后 standalone 才会把运行期依赖一起打包。
+  outputFileTracingRoot: fileURLToPath(new URL('../..', import.meta.url)),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
