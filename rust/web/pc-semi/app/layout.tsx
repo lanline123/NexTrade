@@ -6,6 +6,7 @@ import I18nTranslator from '@/components/I18nTranslator';
 import I18nProvider from '@/i18n/I18nProvider';
 import { getHeaderBootstrap } from '@/lib/api';
 import { PC_HEADER_BOOTSTRAP_ID } from '@/lib/header-bootstrap';
+import { loadTheme } from '@/lib/theme-server';
 
 const SITE_URL = (process.env.PC_SITE_URL || 'https://battery.recy.cc').replace(/\/$/, '');
 const SITE_NAME = '万物新生';
@@ -59,15 +60,19 @@ export const metadata: Metadata = {
 /**
  * 显式 viewport：保证移动端按设备宽度渲染，并补充主题色 / 刘海屏安全区。
  * - 不设置 maximumScale / userScalable:false，避免禁用缩放（可访问性要求）；
- * - themeColor 与 manifest.theme_color、PWA 一致（#165dff）。
+ * - themeColor 取后台「装修 → 主题风格」的 --general，与 manifest.theme_color、
+ *   页面主色同一来源；后台改色后移动端浏览器 UI（地址栏 / 状态栏）同步变化。
  */
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  colorScheme: 'light',
-  themeColor: '#165dff',
-};
+export async function generateViewport(): Promise<Viewport> {
+  const { primary } = await loadTheme();
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+    colorScheme: 'light',
+    themeColor: primary,
+  };
+}
 
 const organizationJsonLd = {
   '@context': 'https://schema.org',
@@ -104,11 +109,16 @@ function serializeHeaderBootstrap(data: unknown): string {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // 头部公共数据（Logo / 语言 / 货币）在服务端并发预取，随首屏 HTML 一起下发，
   // 避免客户端各子模块逐个请求导致 «我的/购物车已出现、语言与 Logo 后出现» 的观感。
-  const headerBootstrap = await getHeaderBootstrap();
+  // 主题风格同批预取：后台可自定义主题色，服务端直接渲染成 :root 变量，首屏即生效无闪烁。
+  const [headerBootstrap, theme] = await Promise.all([getHeaderBootstrap(), loadTheme()]);
+  const themeCss = theme.css;
 
   return (
     <html lang="zh-CN">
       <body>
+        {/* 后台主题风格 → :root CSS 变量。必须排在所有样式表之前，才能被
+            globals.scss / cart-modern.scss 里的 var(--general, …) 兜底链正确消费。 */}
+        {themeCss ? <style id="pc-theme-vars" dangerouslySetInnerHTML={{ __html: themeCss }} /> : null}
         {/* 平台图标字体：对齐旧版 view/pc/assets/css/global.css 顶部 @import。
             营销通栏左侧类目 / 全部分类下拉的 floorIcoFont（iconfont-tig、iconfont-pc）
             依赖这两份字体样式，缺失时 `<i class="iconfont-tig icon-xxx" />` 只留空白占位。

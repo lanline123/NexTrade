@@ -67,6 +67,31 @@ export async function getHeaderBootstrap(): Promise<PcHeaderBootstrap> {
   };
 }
 
+/**
+ * 后台「装修/设置 → 主题风格」配置。
+ *
+ * 返回 `{ themeStyle: "{\"--general\":\"#65c4aa\",...}" }`，`themeStyle` 是整串 CSS 变量
+ * 的字符串化 JSON，与旧版 `view/pc/store/common.ts#loadThemeSettings` 消费同一份数据。
+ * 这里不做解析，交由 `@/lib/theme-style` 统一处理（过滤 + 派生 `--general-rgb`）。
+ *
+ * 主题色属于低频变更的全站配置，用 300s ISR 缓存；接口不可用时返回 null，
+ * 页面自动回落到 globals.scss 的 `--pc-primary` 兜底值。
+ */
+export async function getThemeSettings(): Promise<{ themeStyle?: string } | null> {
+  try {
+    const response = await fetch(`${SERVER_API_BASE}/api/common/config/themeSettings`, {
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!response.ok) return null;
+    const json: any = await response.json().catch(() => null);
+    const data = json?.data ?? json ?? null;
+    return data && typeof data === 'object' ? (data as { themeStyle?: string }) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** PC 公共头部：通常已经包含在 pageModule.pcHeader 中，此接口用于独立刷新。 */
 export async function getPcHeader(previewId?: number): Promise<Record<string, unknown> | null> {
   const query = previewId ? `?previewId=${previewId}` : '';
