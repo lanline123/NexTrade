@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import PcHeader from '@/components/PcHeaderWithData';
 import CartClient from '@/components/CartClient';
 import { getPcHeader } from '@/lib/api';
@@ -17,14 +16,9 @@ export default async function CartPage() {
   return (
     <>
       <PcHeader config={header as any} />
+      {/* 原版 cart/index.vue 没有面包屑和独立 h1；「购物车」标题在列表卡片内（cartHeadTitle） */}
       <main className="pc-cart-page">
         <div className="pc-container">
-          <nav className="pc-breadcrumb">
-            <Link href="/">首页</Link>
-            <span>/</span>
-            <span>购物车</span>
-          </nav>
-          <h1 className="pc-cart-title">购物车</h1>
           <CartClient />
         </div>
       </main>
