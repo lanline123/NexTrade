@@ -38,34 +38,26 @@ jobs:
           node scripts/copy-semi-css.mjs
           npx next build
 
-      - name: Package standalone
+      - name: Package production bundle
         working-directory: rust/web/pc-semi
         run: |
           set -euo pipefail
           OUT=/tmp/pc-out
           rm -rf "$OUT"
           mkdir -p "$OUT"
-          # outputFileTracingRoot=rust/web：standalone 内目录层级随 tracing root 变化，
-          # 这里动态定位 server.js 所在的应用目录与 node_modules，避免写死路径。
-          STD=.next/standalone
-          SERVER=$(find "$STD" -maxdepth 6 -name server.js -type f | head -1)
-          if [ -z "$SERVER" ]; then echo "server.js not found in $STD"; ls -la "$STD"; exit 1; fi
-          APPDIR=$(dirname "$SERVER")
-          echo "app dir: $APPDIR"
-          cp -a "$APPDIR/." "$OUT"/
-          NM=$(find "$STD" -maxdepth 6 -type d -name node_modules | head -1)
-          if [ -n "$NM" ] && [ "$NM" != "$APPDIR/node_modules" ]; then cp -a "$NM" "$OUT/node_modules"; fi
-          mkdir -p "$OUT/.next"
-          cp -a .next/static "$OUT/.next/static"
+          # 不再依赖 standalone：直接打包 .next + 真实 node_modules，用 next start 启动
+          cp -a .next "$OUT/.next"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
-          echo "node_modules entries: $(ls "$OUT/node_modules" 2>/dev/null | wc -l)"
-          du -sh "$OUT" 
+          cp -a package.json next.config.mjs "$OUT/"
+          cp -aL ../../node_modules "$OUT/node_modules"
           cat > "$OUT/DEPLOY_INFO.txt" <<EOF
           commit ${GITHUB_SHA}
           build ${GITHUB_RUN_NUMBER}
           api https://battery.recy.cc
           EOF
-          tar -czhf /tmp/nextrade-pc.tgz -C "$OUT" .
+          echo "node_modules entries: $(ls "$OUT/node_modules" | wc -l)"
+          du -sh "$OUT" "$OUT/.next" "$OUT/node_modules"
+          tar -czf /tmp/nextrade-pc.tgz -C "$OUT" .
           ls -lh /tmp/nextrade-pc.tgz
           sha256sum /tmp/nextrade-pc.tgz > /tmp/nextrade-pc.tgz.sha256
           cat /tmp/nextrade-pc.tgz.sha256
