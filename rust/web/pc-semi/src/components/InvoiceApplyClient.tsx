@@ -45,7 +45,9 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
     setSaving(true);
     try {
       await apiPost('user/orderInvoice/create', {
-        id: orderId,
+        // OrderInvoiceSaveParam 的订单字段是 orderId（services/trade/order_invoice_client.rs::create
+        // 读 param.order_id）；传 id 会被当成发票记录主键而报「订单不存在」。
+        orderId,
         invoiceType: form.invoiceType,
         titleType: form.invoiceType === 2 ? 2 : form.titleType,
         amount: Number(form.amount),

@@ -164,7 +164,7 @@ export default function SecurityClient() {
   };
 
   return (
-    <Card className="member-card security-card" loading={loading}>
+    <Card className="member-card security-card" title="账户安全" loading={loading}>
       <ul className="security-list">
         <li>
           <span className="security-list__label">手机</span>

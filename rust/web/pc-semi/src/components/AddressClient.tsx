@@ -3,15 +3,30 @@
 /**
  * 收货地址管理（对照旧版 `view/pc/pages/member/address/List.vue` + `EditRegion.vue`）。
  *
- * 旧版能力：
- * - 列表分页（page/size），展示收货人、`+区号 手机号`、无效地址标记、省市区+详细地址、
- *   固定电话、邮箱，默认地址勾选；
- * - 新增 / 编辑弹窗（收货人、所在地区、详细地址、手机号、固定电话、邮箱）；
- * - 设为默认地址（setSelected）、删除（del）。
+ * 视觉/结构对齐原版：
+ * - 内容区白底圆角 8px，标题行 72px 高（「地址」18px 粗体 + 白底红边「添加新地址」）；
+ * - 两列卡片网格（gap 8px），卡片边框 1px #e0e1e5、padding 15px、圆角 4px，
+ *   默认地址卡片边框跟随主题色（--main-bg）；
+ * - 卡内：收货人 / 手机号（无效地址标记）、地区+详细地址（两行省略）、邮箱 / 固定电话、
+ *   「默认地址」方形勾选 + 编辑 / 删除图标；
+ * - 分页右对齐、「暂无收货地址」空状态图（/assets/images/empty-box.png）；
+ * - 新增 / 编辑弹窗：收货人、所在地区、详细地址、手机号码、固定电话、邮箱地址，
+ *   底部「确认修改地址 / 取消」。
+ *
+ * 数据接口（对齐旧版 api/user/address.ts）：
+ * - GET  user/address/list     列表
+ * - GET  user/address/detail   编辑回显（?id=）
+ * - POST user/address/create   新增
+ * - POST user/address/update   修改
+ * - POST user/address/setSelected 设为默认
+ * - POST user/address/del      删除
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button, Card, Input, Modal, Select, Tag, Toast } from '@douyinfe/semi-ui';
+import { Button, Input, Modal, Select, Toast } from '@douyinfe/semi-ui';
+import Edit from '@icon-park/react/es/icons/Edit';
+import Delete from '@icon-park/react/es/icons/Delete';
+import Plus from '@icon-park/react/es/icons/Plus';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 interface Address {
@@ -28,6 +43,7 @@ interface Address {
   formattedAddress?: string;
   fullAddress?: string;
   isSelected?: number;
+  isDefault?: number;
   isInvalid?: number;
 }
 
@@ -106,6 +122,11 @@ export default function AddressClient() {
     setOpen(true);
   };
 
+  const loadChildren = async (parentId: number): Promise<Region[]> => {
+    const list = await apiGet<Region[]>('sys/region/getRegionListByRegionId', { regionId: parentId }).catch(() => []);
+    return list || [];
+  };
+
   const openEdit = async (address: Address) => {
     setEditingId(address.addressId);
     setForm({
@@ -116,32 +137,41 @@ export default function AddressClient() {
       email: address.email || '',
       address: address.address || '',
     });
-    const ids = address.regionIds || [];
+    setRegionIds(address.regionIds || []);
+    setCities([]);
+    setDistricts([]);
+    setOpen(true);
+
+    // 旧版编辑弹窗走 detail 接口回显（列表 VO 不一定带 regionIds）
+    const detail = await apiGet<Address>('user/address/detail', { id: address.addressId }).catch(() => null);
+    const current = detail || address;
+    setForm({
+      consignee: current.consignee || '',
+      mobile: current.mobile || '',
+      mobileAreaCode: current.mobileAreaCode || '',
+      telephone: current.telephone || '',
+      email: current.email || '',
+      address: current.address || '',
+    });
+    const ids = current.regionIds || address.regionIds || [];
     setRegionIds(ids);
     if (ids[0]) {
-      const cityList = await apiGet<Region[]>('sys/region/getRegionListByRegionId', { regionId: ids[0] }).catch(() => []);
-      setCities(cityList || []);
-      if (ids[1]) {
-        const districtList = await apiGet<Region[]>('sys/region/getRegionListByRegionId', { regionId: ids[1] }).catch(() => []);
-        setDistricts(districtList || []);
-      }
+      setCities(await loadChildren(ids[0]));
+      if (ids[1]) setDistricts(await loadChildren(ids[1]));
     }
-    setOpen(true);
   };
 
   const onProvince = async (value: number) => {
     setRegionIds([value]);
     setCities([]);
     setDistricts([]);
-    const list = await apiGet<Region[]>('sys/region/getRegionListByRegionId', { regionId: value }).catch(() => []);
-    setCities(list || []);
+    setCities(await loadChildren(value));
   };
 
   const onCity = async (value: number) => {
     setRegionIds((current) => [current[0], value]);
     setDistricts([]);
-    const list = await apiGet<Region[]>('sys/region/getRegionListByRegionId', { regionId: value }).catch(() => []);
-    setDistricts(list || []);
+    setDistricts(await loadChildren(value));
   };
 
   const onDistrict = (value: number) => {
@@ -174,7 +204,7 @@ export default function AddressClient() {
   const setDefault = async (addressId: number) => {
     try {
       await apiPost('user/address/setSelected', { id: addressId });
-      Toast.success({ content: '已设为默认地址' });
+      Toast.success({ content: '操作成功' });
       load(page);
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '设置失败' });
@@ -206,108 +236,200 @@ export default function AddressClient() {
     return [names, address.address].filter(Boolean).join(' ');
   };
 
+  const pageNumbers = (): number[] => {
+    if (pages <= 7) return Array.from({ length: pages }, (_, index) => index + 1);
+    const start = Math.max(1, Math.min(page - 2, pages - 4));
+    return Array.from({ length: 5 }, (_, index) => start + index);
+  };
+
   if (needLogin) {
     return (
-      <Card className="cart-state">
+      <div className="member-address__login-state">
         <h2>登录后管理收货地址</h2>
         <p>请先登录账号再添加或修改地址。</p>
         <Link href="/login?redirect=/member/address">
           <Button theme="solid" type="primary" size="large">去登录</Button>
         </Link>
-      </Card>
+      </div>
     );
   }
 
   return (
     <div className="member-address">
       <div className="member-address__head">
-        <span>共 {total} 个收货地址</span>
-        <Button theme="solid" type="primary" onClick={openCreate}>新增地址</Button>
+        <span className="member-address__title">地址</span>
+        <Button className="member-address__add" icon={<Plus size={14} />} onClick={openCreate}>
+          添加新地址
+        </Button>
       </div>
+
       {loading ? (
-        <Card className="member-card">地址加载中...</Card>
+        <div className="member-address__loading">加载中...</div>
       ) : rows.length ? (
         <>
-          <div className="member-address__list">
+          <ul className="member-address__list">
             {rows.map((address) => {
               const selected = Number(address.isSelected) === 1;
               return (
-                <Card
-                  key={address.addressId}
-                  className="member-address__card"
-                  style={selected ? { border: '1px solid var(--pc-primary, #e1251b)' } : undefined}
-                >
-                  <div className="member-address__info">
-                    <div>
-                      <b>{address.consignee || '-'}</b>
+                <li key={address.addressId} className={`member-address__card${selected ? ' is-selected' : ''}`}>
+                  <div className="member-address__top">
+                    <div className="member-address__name">{address.consignee || '-'}</div>
+                    <div className="member-address__mobile">
                       <span>
                         {address.mobileAreaCode ? `+${address.mobileAreaCode} ` : ''}
                         {address.mobile || '-'}
                       </span>
-                      {selected ? <Tag color="green">默认</Tag> : null}
-                      {Number(address.isInvalid) === 1 ? <Tag color="red">无效地址</Tag> : null}
+                      {Number(address.isInvalid) === 1 ? <span className="member-address__invalid">无效地址</span> : null}
                     </div>
-                    <p>{regionText(address) || '-'}</p>
-                    <p>
-                      邮箱：{address.email || '-'}　固定电话：{address.telephone || '-'}
-                    </p>
                   </div>
-                  <div className="member-address__actions">
-                    <Button size="small" onClick={() => void openEdit(address)}>编辑</Button>
-                    <Button size="small" disabled={selected} onClick={() => void setDefault(address.addressId)}>
-                      {selected ? '默认地址' : '设为默认'}
-                    </Button>
-                    <Button size="small" theme="borderless" type="danger" onClick={() => remove(address.addressId)}>删除</Button>
+                  <div className="member-address__region">{regionText(address) || '-'}</div>
+                  <div className="member-address__other">
+                    <div>{address.email || '-'}</div>
+                    <div>{address.telephone || '-'}</div>
                   </div>
-                </Card>
+                  <div className="member-address__bottom">
+                    <button
+                      type="button"
+                      className={`member-address__default${selected ? ' is-checked' : ''}`}
+                      aria-pressed={selected}
+                      onClick={() => {
+                        if (!selected) void setDefault(address.addressId);
+                      }}
+                    >
+                      <span className="member-address__default-box" aria-hidden="true" />
+                      <span>默认地址</span>
+                    </button>
+                    <div className="member-address__ops">
+                      <button type="button" className="member-address__op" title="编辑" aria-label="编辑" onClick={() => void openEdit(address)}>
+                        <Edit size={20} />
+                      </button>
+                      <button type="button" className="member-address__op" title="删除" aria-label="删除" onClick={() => remove(address.addressId)}>
+                        <Delete size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
           {pages > 1 ? (
-            <div className="member-address__pager" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 16 }}>
-              <Button size="small" disabled={page <= 1} onClick={() => goPage(page - 1)}>上一页</Button>
-              <span style={{ color: '#667085', fontSize: 13 }}>{page} / {pages}</span>
-              <Button size="small" disabled={page >= pages} onClick={() => goPage(page + 1)}>下一页</Button>
+            <div className="member-address__pager">
+              <button
+                type="button"
+                className="member-address__page-btn"
+                disabled={page <= 1}
+                aria-label="上一页"
+                onClick={() => goPage(page - 1)}
+              >
+                ‹
+              </button>
+              {pageNumbers().map((number) => (
+                <button
+                  type="button"
+                  key={number}
+                  className={`member-address__page-btn${number === page ? ' is-active' : ''}`}
+                  onClick={() => goPage(number)}
+                >
+                  {number}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="member-address__page-btn"
+                disabled={page >= pages}
+                aria-label="下一页"
+                onClick={() => goPage(page + 1)}
+              >
+                ›
+              </button>
             </div>
           ) : null}
         </>
       ) : (
-        <Card className="member-card">暂无收货地址</Card>
+        <div className="member-address__empty">
+          <img className="member-address__empty-img" src="/assets/images/empty-box.png" alt="" />
+          <div className="member-address__empty-text">暂无收货地址</div>
+        </div>
       )}
 
       <Modal
-        title={editingId ? '编辑收货地址' : '新增收货地址'}
+        title={editingId ? '编辑收货地址' : '添加收货地址'}
         visible={open}
         onCancel={() => setOpen(false)}
-        onOk={() => void save()}
-        confirmLoading={saving}
-        width={560}
+        width={880}
+        maskClosable
+        footer={
+          <div className="member-address__modal-footer">
+            <Button className="member-address__modal-ok" loading={saving} onClick={() => void save()}>
+              确认修改地址
+            </Button>
+            <Button className="member-address__modal-cancel" onClick={() => setOpen(false)}>取消</Button>
+          </div>
+        }
       >
         <div className="member-address__form">
-          <label>收货人</label>
-          <Input value={form.consignee} onChange={(value) => setForm((current) => ({ ...current, consignee: value }))} placeholder="请输入收货人姓名" maxLength={20} />
-          <label>所在地区</label>
-          <div className="member-address__region">
-            <Select value={regionIds[0]} placeholder="省份" onChange={(value) => void onProvince(Number(value))} showClear={false}>
-              {provinces.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
-            </Select>
-            <Select value={regionIds[1]} placeholder="城市" onChange={(value) => void onCity(Number(value))} showClear={false} disabled={!cities.length}>
-              {cities.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
-            </Select>
-            <Select value={regionIds[2]} placeholder="区县" onChange={(value) => onDistrict(Number(value))} showClear={false} disabled={!districts.length}>
-              {districts.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
-            </Select>
+          <div className="member-address__field">
+            <label className="member-address__label">收货人：</label>
+            <Input
+              className="member-address__input"
+              value={form.consignee}
+              onChange={(value) => setForm((current) => ({ ...current, consignee: value }))}
+              placeholder="请您填写收货人姓名"
+              maxLength={20}
+            />
           </div>
-          <label>详细地址</label>
-          <Input value={form.address} onChange={(value) => setForm((current) => ({ ...current, address: value }))} placeholder="街道、门牌号" maxLength={100} />
-          <label>手机号码</label>
-          <Input value={form.mobile} onChange={(value) => setForm((current) => ({ ...current, mobile: value }))} placeholder="请输入收货人手机号码" maxLength={20} />
-          <label>区号（选填）</label>
-          <Input value={form.mobileAreaCode} onChange={(value) => setForm((current) => ({ ...current, mobileAreaCode: value }))} placeholder="如 86" maxLength={6} />
-          <label>固定电话（选填）</label>
-          <Input value={form.telephone} onChange={(value) => setForm((current) => ({ ...current, telephone: value }))} placeholder="请输入固定电话" maxLength={20} />
-          <label>邮箱（选填）</label>
-          <Input value={form.email} onChange={(value) => setForm((current) => ({ ...current, email: value }))} placeholder="用于接收订单通知" maxLength={50} />
+          <div className="member-address__field">
+            <label className="member-address__label">所在地区：</label>
+            <div className="member-address__region-select">
+              <Select value={regionIds[0]} placeholder="省份" onChange={(value) => void onProvince(Number(value))} showClear={false}>
+                {provinces.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
+              </Select>
+              <Select value={regionIds[1]} placeholder="城市" onChange={(value) => void onCity(Number(value))} showClear={false} disabled={!cities.length}>
+                {cities.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
+              </Select>
+              <Select value={regionIds[2]} placeholder="区县" onChange={(value) => onDistrict(Number(value))} showClear={false} disabled={!districts.length}>
+                {districts.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
+              </Select>
+            </div>
+          </div>
+          <div className="member-address__field">
+            <label className="member-address__label">详细地址：</label>
+            <Input
+              className="member-address__input"
+              value={form.address}
+              onChange={(value) => setForm((current) => ({ ...current, address: value }))}
+              placeholder="请您填写详细收货地址"
+              maxLength={100}
+            />
+          </div>
+          <div className="member-address__field">
+            <label className="member-address__label">手机号码：</label>
+            <Input
+              className="member-address__input"
+              value={form.mobile}
+              onChange={(value) => setForm((current) => ({ ...current, mobile: value }))}
+              placeholder="请您填写收货人手机号码"
+              maxLength={20}
+            />
+          </div>
+          <div className="member-address__field">
+            <label className="member-address__label">固定电话：</label>
+            <Input
+              className="member-address__input"
+              value={form.telephone}
+              onChange={(value) => setForm((current) => ({ ...current, telephone: value }))}
+              maxLength={20}
+            />
+          </div>
+          <div className="member-address__field">
+            <label className="member-address__label">邮箱地址：</label>
+            <Input
+              className="member-address__input"
+              value={form.email}
+              onChange={(value) => setForm((current) => ({ ...current, email: value }))}
+              maxLength={50}
+            />
+          </div>
         </div>
       </Modal>
     </div>

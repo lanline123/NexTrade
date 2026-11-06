@@ -41,7 +41,7 @@ export default async function CheckoutPage({
             <span>/</span>
             <span>确认订单</span>
           </nav>
-          <h1 className="pc-cart-title">确认订单</h1>
+          <h1 className="pc-cart-title">订单结算页</h1>
           <CheckoutClient cartIds={cartIds} flowType={flowType} />
         </div>
       </main>

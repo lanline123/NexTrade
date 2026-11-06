@@ -109,7 +109,7 @@ export default function WithdrawClient() {
       ) : null}
       <div className="withdraw-balance" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#fff' }}>
         <span>可提现余额</span>
-        <b style={{ color: '#e1251b', fontSize: 20 }}>¥ {balance.toFixed(2)}</b>
+        <b style={{ color: 'var(--price)', fontSize: 20 }}>¥ {balance.toFixed(2)}</b>
       </div>
       <div className="withdraw-types">
         {methods.map((value) => (

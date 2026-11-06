@@ -12,8 +12,10 @@
  *
  * 样式对齐 /member/order/list 的 pc-order-panel 面板（下划线 Tab / 发丝线卡片 / 数字分页）。
  *
- * 注意：Rust 端 `GET /api/user/order/list` 当前仅支持 orderStatus（MyOrderQuery），
- * commentStatus 参数会被忽略 —— 属后端缺口，前端保留旧版入参，报告中登记。
+ * 注意：三个 Tab 的角标与左侧会员导航角标不是同一个数：
+ * - Tab 角标来自 `user/comment/subNum`（待评价 / 待晒单 / 已评价），
+ * - 左侧「评价晒单」角标来自 `user/order/orderNum.awaitComment`（仅待评价）。
+ * 两者都由「已完成且未评价」订单驱动，需与后端 orderNum 口径保持一致。
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';

@@ -2,48 +2,72 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Button, Card, Checkbox, InputNumber, Modal, Radio, RadioGroup, Toast } from '@douyinfe/semi-ui';
-import { IconHome } from '@douyinfe/semi-icons';
+import { Button, Checkbox, InputNumber, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 /**
- * 确认订单（源码对照 java-b2b2c-overseas-v5.8.61/view/pc/pages/order/check.vue
- * + components/invoice/InvoiceDialog.vue）
+ * 确认订单（1:1 对照 java-b2b2c-overseas-v5.8.61/view/pc/pages/order/check.vue）
  *
- * 对齐点：
- * - 结算数据：POST order/check/index（flowType + formState）；
- *   支付方式 order/check/getAvailablePaymentType；配送方式 order/check/getStoreShippingType
- * - 提交参数：addressId / shippingType / payTypeId / usePoint / useBalance / useCredit /
- *   useCouponIds / selectUserCouponIds / buyerNote / invoiceData（旧版 formState）
- * - 发票：user/invoice/getStatus 资格查询 + InvoiceDialog 表单（个人/企业/专票）
- * - 优惠券：勾选 + 自动选券（POST order/check/updateCoupon，useDefaultCouponIds）
- * - 账期支付（creditPaymentInfo.canUseCredit，与余额互斥）
- * - 礼品卡 flowType=12、预售（productPresale/定金）、O2O 配送/自提信息
- * - 地址入口：管理地址 + 刷新地址
+ * 结构对齐：
+ * - 左栏 orderConfirmCon：收货地址 → 支付方式 → 商品（按店铺分组 + 每店配送 + 赠品）
+ *   → 预售 → 订单备注 → 优惠券 → 积分 → 余额 → 发票 → 账期
+ * - 右栏 money_info（368px sticky）：订单详情、商品总价/附加费用/余额/礼品卡/积分减免/
+ *   共优惠/商品总额/优惠券/其他优惠/快递(运费明细)/税费/合计、预计获得积分、仍需支付、下单按钮
+ *
+ * 逻辑对齐：
+ * - POST order/check/index 初始化；order/check/update 在地址/配送/积分/余额/账期变化后重算
+ * - order/check/updateCoupon 选券/自动选券；order/check/submit 提交 formState
+ * - 余额为勾选（全额抵扣），积分/账期与余额互斥；flowType=3 积分兑换、12 礼品卡
  */
 
 interface Address {
   addressId: number;
   consignee?: string;
   mobile?: string;
+  mobileAreaCode?: string;
   email?: string;
+  telephone?: string;
   regionName?: string;
   address?: string;
   fullAddress?: string;
+  formattedAddress?: string;
   isSelected?: number;
+  isInvalid?: number;
+}
+
+interface ExtraSku {
+  attrName?: string;
+  attrValue?: string;
+  attrPrice?: string | number;
+}
+
+interface ActivityItem {
+  type?: number;
+  promotionId?: number;
 }
 
 interface CheckoutItem {
   cartId: number;
+  productId?: number;
   productName?: string;
   picThumb?: string;
   price?: string | number;
   productPrice?: string | number;
   quantity?: number;
   skuData?: Array<{ name?: string; value?: string }>;
+  extraSkuData?: ExtraSku[] | null;
+  activityInfo?: ActivityItem[] | null;
   shopId?: number;
-  seckillPrice?: number | string;
   shopTitle?: string;
+  seckillPrice?: number | string;
+}
+
+interface CheckoutGroup {
+  shopId?: number;
+  shopTitle?: string;
+  carts?: CheckoutItem[];
+  noShipping?: number;
+  gift?: any[] | null;
 }
 
 interface PaymentType {
@@ -52,6 +76,7 @@ interface PaymentType {
   name?: string;
   disabled?: boolean;
   isShow?: boolean;
+  icon?: string;
 }
 
 interface CouponItem {
@@ -64,6 +89,7 @@ interface CouponItem {
   couponDiscount?: string;
   minOrderAmount?: string;
   shopId?: number;
+  startDate?: string;
   endDate?: string;
 }
 
@@ -111,7 +137,7 @@ interface DeliveryOption {
 
 interface CheckoutData {
   item?: Record<string, any>;
-  cartList?: Array<{ shopId?: number; shopTitle?: string; carts?: CheckoutItem[]; noShipping?: number }>;
+  cartList?: CheckoutGroup[];
   total?: Record<string, any>;
   couponList?: { enableCoupons?: CouponItem[]; disableCoupons?: CouponItem[] };
   flowType?: number;
@@ -148,13 +174,27 @@ function fieldValue(row: Record<string, any> | null | undefined, keys: string[])
   return '';
 }
 
+/** 旧版 calcDiscountPercent：折扣角标，原价与现价一致时不显示 */
+function discountPercent(price: unknown, origin: unknown): number {
+  const now = Number(price || 0);
+  const old = Number(origin || 0);
+  if (!now || !old || now >= old) return 0;
+  return Math.round(((old - now) / old) * 100);
+}
+
+/** 旧版 activityList：type 1=秒杀价，6=限时折扣 */
+function activityList(data: ActivityItem[] | null | undefined): ActivityItem[] {
+  if (!Array.isArray(data)) return [];
+  return data.filter((item) => Number(item?.type) === 1 || Number(item?.type) === 6);
+}
+
 export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: number[]; flowType?: number }) {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressId, setAddressId] = useState(0);
   const [data, setData] = useState<CheckoutData | null>(null);
   const [payments, setPayments] = useState<PaymentType[]>([]);
   const [payTypeId, setPayTypeId] = useState(0);
-  const [shippingType, setShippingType] = useState<Record<string, unknown>>({});
+  const [shippingType, setShippingType] = useState<Record<string, any>>({});
   const [shippingData, setShippingData] = useState<Record<string, ShippingTypeOption[]>>({});
   const [couponIds, setCouponIds] = useState<number[]>([]);
   const [userCouponIds, setUserCouponIds] = useState<number[]>([]);
@@ -162,12 +202,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const [useBalance, setUseBalance] = useState(0);
   const [useCredit, setUseCredit] = useState(0);
   const [buyerNote, setBuyerNote] = useState('');
-  const [autoCoupon, setAutoCoupon] = useState(false);
+  const [couponTab, setCouponTab] = useState(0);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(EMPTY_INVOICE);
   const [invoiceQualified, setInvoiceQualified] = useState(false);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [invoiceForm, setInvoiceForm] = useState<InvoiceData>(EMPTY_INVOICE);
+  const [addressOpen, setAddressOpen] = useState(false);
   const [couponBusy, setCouponBusy] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [needLogin, setNeedLogin] = useState(false);
@@ -195,7 +237,6 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
           apiPost<CheckoutData>('order/check/index', { flowType }),
           apiGet<PaymentType[]>('order/check/getAvailablePaymentType', { flowType }).catch(() => []),
           apiGet<Record<string, ShippingTypeOption[]>>('order/check/getStoreShippingType', { flowType }).catch(() => ({})),
-          // 旧版 commonStore.canInvoice + InvoiceDialog getInvoiceStatus（增值税专票资质）
           apiGet<{ item?: boolean }>('user/invoice/getStatus').catch(() => ({ item: false })),
         ]);
         if (cancelled) return;
@@ -207,11 +248,17 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         setShippingData((shippingResult || {}) as Record<string, ShippingTypeOption[]>);
         setCouponIds(Array.isArray(checkResult.useCouponIds) ? checkResult.useCouponIds.map(Number) : []);
         setUserCouponIds(Array.isArray(checkResult.selectUserCouponIds) ? checkResult.selectUserCouponIds.map(Number) : []);
-        // 后端 getStatus 返回 data: 0/1（旧版接口类型写成 { item: boolean }）
-        setInvoiceQualified(Boolean(((invoiceStatus as any)?.item ?? (invoiceStatus as any)) === true || Number((invoiceStatus as any)?.item ?? (invoiceStatus as any)) === 1));
+        setInvoiceQualified(Boolean(((invoiceStatus as any)?.item ?? invoiceStatus) === true || Number((invoiceStatus as any)?.item ?? invoiceStatus) === 1));
         const paymentList = (Array.isArray(paymentResult) ? paymentResult : []).filter((item) => item?.isShow !== false && !item?.disabled);
         setPayments(paymentList);
         setPayTypeId(Number(checkResult.item?.payTypeId || paymentList[0]?.typeId || 0));
+        setUsePoint(Number(checkResult.item?.usePoint || 0));
+        setUseBalance(Number(checkResult.item?.useBalance || 0));
+        setUseCredit(Number(checkResult.item?.useCredit || 0));
+        setBuyerNote(String(checkResult.item?.buyerNote || ''));
+        if (checkResult.item?.invoiceData && typeof checkResult.item.invoiceData === 'object') {
+          setInvoiceData({ ...EMPTY_INVOICE, ...(checkResult.item.invoiceData as InvoiceData) });
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : '';
         setNeedLogin(message.includes('登录') || message.includes('401'));
@@ -233,6 +280,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const amount = Number(total.unpaidAmount ?? total.paidAmount ?? total.discountAfter ?? total.productAmount ?? 0);
   const selectedAddress = addresses.find((item) => item.addressId === addressId);
   const coupons = data?.couponList?.enableCoupons || [];
+  const disableCoupons = data?.couponList?.disableCoupons || [];
   const availablePoints = Number(data?.availablePoints || total.exchangePoints || 0);
   const availableBalance = Number(total.balance || 0);
   const creditInfo = data?.creditPaymentInfo || null;
@@ -241,9 +289,16 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const presale = data?.productPresale || null;
   const deliveryOption = data?.deliveryOption || null;
   const selfPickup = Number(deliveryOption?.deliveryType || 0) === 2;
-  // O2O：deliveryType=2 门店自提 / flowType=9 预约到店；普通快递（1/3）不显示该卡片
   const showDeliveryOption = Boolean(deliveryOption) && (selfPickup || flowType === 9 || Number(deliveryOption?.deliveryType || 0) === 4);
   const needAddress = !selfPickup;
+  const isDepositPresale = Number(presale?.saleMode || 0) === 2;
+  const payAmount = isDepositPresale ? Number(total.actualPayDepositAmount ?? total.unpaidAmount ?? 0) : Number(total.unpaidAmount ?? 0);
+  const orderSendPoint = Number(total.orderSendPoint || 0);
+  const needShipping = (data?.cartList || []).some((group) => Number(group.noShipping) === 0);
+  const showTaxAmount = Number(total.taxRate || 0) > 0;
+  // 旧版 titleText：优惠券/积分/余额任一开启才显示余额区块
+  const titleText = !giftCardMode;
+  const creditDisabled = Number(creditInfo?.availableAmount || 0) <= 0 && useCredit === 0;
 
   const buildFormState = (overrides: Record<string, unknown> = {}) => ({
     addressId,
@@ -259,17 +314,56 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     ...overrides,
   });
 
-  /** 旧版 updateCouponData：重新计算优惠券（自动选券 useDefaultCouponIds=1）。 */
+  const mergeResult = (result: CheckoutData | null | undefined) => {
+    if (!result) return;
+    setData(result);
+    setCouponIds(Array.isArray(result.useCouponIds) ? result.useCouponIds.map(Number) : []);
+    setUserCouponIds(Array.isArray(result.selectUserCouponIds) ? result.selectUserCouponIds.map(Number) : []);
+  };
+
+  /** 旧版 updateOrderCheckData：地址/配送/积分/余额/账期变化后重算 */
+  const updateCheck = async (overrides: Record<string, unknown> = {}) => {
+    if (updating) return;
+    setUpdating(true);
+    try {
+      const result = await apiPost<CheckoutData>('order/check/update', { flowType, ...buildFormState(overrides) });
+      mergeResult(result);
+      if (result?.item) {
+        if (result.item.addressId !== undefined) setAddressId(Number(result.item.addressId));
+        if (result.item.shippingType) setShippingType(result.item.shippingType as Record<string, any>);
+        if (result.item.usePoint !== undefined) setUsePoint(Number(result.item.usePoint));
+        if (result.item.useBalance !== undefined) setUseBalance(Number(result.item.useBalance));
+        if (result.item.useCredit !== undefined) setUseCredit(Number(result.item.useCredit));
+      }
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '订单金额计算失败' });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const onChangeAddress = (id: number) => {
+    setAddressId(id);
+    setAddressOpen(false);
+    void updateCheck({ addressId: id });
+  };
+
+  const onChangeShipping = (shopId: number | undefined, option: ShippingTypeOption) => {
+    const typeId = Number(option.shippingTypeId || option.typeId || 0);
+    const next = {
+      ...shippingType,
+      [String(shopId)]: { typeId, shopId, typeName: option.shippingTypeName || option.typeName || '' },
+    };
+    setShippingType(next);
+    void updateCheck({ shippingType: next });
+  };
+
   const recalcCoupon = async (useDefault: boolean) => {
     if (couponBusy) return;
     setCouponBusy(true);
     try {
       const result = await apiPost<CheckoutData>('order/check/updateCoupon', buildFormState({ useDefaultCouponIds: useDefault ? 1 : 0 }));
-      if (!result) return;
-      setData(result);
-      setCouponIds(Array.isArray(result.useCouponIds) ? result.useCouponIds.map(Number) : []);
-      setUserCouponIds(Array.isArray(result.selectUserCouponIds) ? result.selectUserCouponIds.map(Number) : []);
-      setAutoCoupon(useDefault);
+      mergeResult(result);
       if (useDefault) Toast.success({ content: '已自动选择最优优惠券' });
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '优惠券计算失败' });
@@ -283,21 +377,42 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     const userCouponId = Number(item.userCouponId || 0);
     if (!couponId || !userCouponId) return;
     const checked = userCouponIds.includes(userCouponId);
-    setCouponIds((prev) => (checked ? prev.filter((id) => id !== couponId) : [...prev, couponId]));
-    setUserCouponIds((prev) => (checked ? prev.filter((id) => id !== userCouponId) : [...prev, userCouponId]));
-    setAutoCoupon(false);
+    const nextCouponIds = checked ? couponIds.filter((id) => id !== couponId) : [...couponIds, couponId];
+    const nextUserIds = checked ? userCouponIds.filter((id) => id !== userCouponId) : [...userCouponIds, userCouponId];
+    setCouponIds(nextCouponIds);
+    setUserCouponIds(nextUserIds);
+    void recalcCoupon(false);
   };
 
-  /** 账期支付与余额抵扣互斥（旧版 onUseBalance / 账期勾选）。 */
+  /** 旧版 handleCredit：与余额互斥 */
   const changeCredit = (checked: boolean) => {
-    setUseCredit(checked ? 1 : 0);
-    if (checked) setUseBalance(0);
+    if (checked && creditDisabled) return;
+    const next = checked ? 1 : 0;
+    setUseCredit(next);
+    const nextBalance = next === 1 ? 0 : useBalance;
+    setUseBalance(nextBalance);
+    void updateCheck({ useCredit: next, useBalance: nextBalance });
   };
 
-  const changeBalance = (value: number) => {
-    const next = Math.max(0, Math.min(availableBalance, Number(value) || 0));
+  /** 旧版 onUseBalance：勾选即用全部余额，与账期互斥 */
+  const toggleBalance = (checked: boolean) => {
+    const next = checked ? availableBalance : 0;
     setUseBalance(next);
-    if (next > 0) setUseCredit(0);
+    const nextCredit = next > 0 ? 0 : useCredit;
+    setUseCredit(nextCredit);
+    void updateCheck({ useBalance: next, useCredit: nextCredit });
+  };
+
+  const changePoint = (value: number | string) => {
+    let next = Math.floor(Number(value) || 0);
+    if (next > availablePoints) next = availablePoints;
+    if (next < 0) next = 0;
+    setUsePoint(next);
+    void updateCheck({ usePoint: next });
+  };
+
+  const changeNote = (value: string) => {
+    setBuyerNote(value.slice(0, 50));
   };
 
   const openInvoice = async () => {
@@ -310,7 +425,6 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     }
     setInvoiceForm(base);
     setInvoiceOpen(true);
-    // 旧版 fetcCheckInvoice：回填最近一次普通发票抬头（接口无数据时忽略）
     try {
       const last = await apiGet<Record<string, any> | null>('order/check/getInvoice', {
         invoiceType: Number(base.invoiceType) || 1,
@@ -378,11 +492,18 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
       Toast.warning({ content: '请先选择收货地址' });
       return;
     }
+    if (!payTypeId) {
+      Toast.warning({ content: '请选择支付方式' });
+      return;
+    }
+    if (!shippingType) {
+      Toast.warning({ content: '请选择配送方式' });
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await apiPost<{ orderId?: number; returnType?: number; grouponPromotionRecordId?: number }>(
         'order/check/submit',
-        // 旧版 onSubmit 提交的 body 就是 formState（不含 flowType/cartIds）
         {
           addressId,
           shippingType,
@@ -415,11 +536,11 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     }
   };
 
-  if (loading) return <Card className="cart-state">结算数据加载中...</Card>;
+  if (loading) return <div className="pc-co-state">结算数据加载中...</div>;
 
   if (needLogin) {
     return (
-      <Card className="cart-state">
+      <div className="pc-co-state">
         <h2>登录后结算</h2>
         <p>请先登录账号，再确认收货地址和支付方式。</p>
         <Link href="/login?redirect=/cart">
@@ -427,7 +548,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             去登录
           </Button>
         </Link>
-      </Card>
+      </div>
     );
   }
 
@@ -438,329 +559,572 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         ? '增值税专用发票'
         : '不开发票';
 
+  const submitDisabled = !items.length || (needAddress && !addressId) || !payTypeId || !shippingType;
+
   return (
-    <div className="pc-checkout">
-      {giftCardMode ? (
-        <Card className="pc-checkout__card" title="礼品卡兑换">
-          <p>当前为礼品卡兑换下单流程（flowType=12），将优先使用礼品卡抵扣。</p>
-          {Number(total.giftCardAmount || 0) > 0 ? <p>礼品卡抵扣：¥ {money(total.giftCardAmount)}</p> : null}
-        </Card>
-      ) : null}
-
-      {presale ? (
-        <Card className="pc-checkout__card" title="预售信息">
-          <div className="pc-checkout__fees">
-            {Number(total.actualPayDepositAmount || 0) > 0 ? (
-              <div><span>应付定金</span><b>¥ {money(total.actualPayDepositAmount)}</b></div>
-            ) : null}
-            {fieldValue(presale, ['depositAmount', 'presaleDepositAmount']) ? (
-              <div><span>定金</span><b>¥ {money(fieldValue(presale, ['depositAmount', 'presaleDepositAmount']))}</b></div>
-            ) : null}
-            {fieldValue(presale, ['presalePrice', 'presalePriceAmount']) ? (
-              <div><span>预售价</span><b>¥ {money(fieldValue(presale, ['presalePrice', 'presalePriceAmount']))}</b></div>
-            ) : null}
-            {fieldValue(presale, ['tailAmount', 'balanceAmount']) ? (
-              <div><span>尾款</span><b>¥ {money(fieldValue(presale, ['tailAmount', 'balanceAmount']))}</b></div>
-            ) : null}
-            <p className="pc-checkout__tips">预售订单按定金/尾款规则支付，具体时间以商品页说明为准。</p>
+    <div className="pc-co">
+      <div className="pc-co__main">
+        {/* 收货地址 */}
+        <section className="pc-co-card">
+          <div className="pc-co-card__head">
+            <h2>收货地址</h2>
+            <button type="button" className="pc-co-link" onClick={() => setAddressOpen(true)}>
+              更改 <span className="pc-co-caret">›</span>
+            </button>
           </div>
-        </Card>
-      ) : null}
-
-      {showDeliveryOption ? (
-        <Card className="pc-checkout__card" title="配送方式">
-          <p>
-            {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? '门店自提' : '配送')}
-            {fieldValue(deliveryOption, ['storeName', 'pickupName']) ? `：${fieldValue(deliveryOption, ['storeName', 'pickupName'])}` : ''}
-          </p>
-          {fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address']) ? (
-            <p>{fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address'])}</p>
-          ) : null}
-        </Card>
-      ) : null}
-
-      {needAddress ? (
-        <Card className="pc-checkout__card" title="收货信息">
-          <div className="pc-checkout__address">
-            <div className="pc-checkout__address-main">
-              <IconHome />
-              {selectedAddress ? (
-                <div>
-                  <b>
-                    {selectedAddress.consignee} {selectedAddress.mobile}
-                  </b>
-                  <p>{selectedAddress.fullAddress || `${selectedAddress.regionName || ''} ${selectedAddress.address || ''}`}</p>
-                </div>
-              ) : (
-                <div>
-                  <b>请选择收货地址</b>
-                  <p>暂无收货地址，<Link href="/member/address">去添加地址</Link>。</p>
-                </div>
-              )}
-            </div>
-            <div className="pc-checkout__address-actions">
-              {addresses.length > 1 ? (
-                <select
-                  className="pc-checkout__address-select"
-                  value={addressId}
-                  onChange={(event) => setAddressId(Number(event.target.value))}
-                >
-                  {addresses.map((address) => (
-                    <option key={address.addressId} value={address.addressId}>
-                      {address.consignee} {address.mobile} {address.regionName || ''}
-                      {address.address || ''}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
-              {/* 旧版 ModalRegion 地址新增/编辑入口 */}
-              <Link href="/member/address">管理地址</Link>
-              <Button size="small" theme="borderless" onClick={() => void loadAddresses()}>
-                刷新地址
-              </Button>
-            </div>
-          </div>
-        </Card>
-      ) : null}
-
-      <Card className="pc-checkout__card" title="商品清单">
-        <div className="pc-checkout__items">
-          {items.map((item) => (
-            <div key={item.cartId} className="pc-checkout__item">
-              <img src={item.picThumb || ''} alt={item.productName || ''} />
-              <div className="pc-checkout__item-main">
-                <span>{item.productName}</span>
-                {!item.shopId ? <em className="pc-checkout__self-tag">自营</em> : null}
-                {item.seckillPrice ? (
-                  <small className="pc-checkout__seckill">秒杀价 ¥ {money(item.seckillPrice)}</small>
-                ) : null}
-                {item.skuData?.length ? (
-                  <small>{item.skuData.map((sku) => `${sku.name || ''}：${sku.value || ''}`).join(' / ')}</small>
-                ) : null}
+          {selectedAddress ? (
+            <div className="pc-co-address">
+              <div className="pc-co-address__line">
+                <b>{selectedAddress.consignee || '-'}</b>
+                <span>
+                  {selectedAddress.mobileAreaCode ? `+${selectedAddress.mobileAreaCode} ` : ''}
+                  {selectedAddress.mobile || '-'}
+                </span>
+                {Number(selectedAddress.isInvalid) ? <em className="pc-co-invalid">无效地址</em> : null}
               </div>
-              <span>× {item.quantity}</span>
-              <b>¥ {money(item.price ?? item.productPrice)}</b>
+              <p>{selectedAddress.formattedAddress || selectedAddress.fullAddress || [selectedAddress.regionName, selectedAddress.address].filter(Boolean).join(' ')}</p>
+              {selectedAddress.email || selectedAddress.telephone ? (
+                <small>
+                  {selectedAddress.email || '-'} {selectedAddress.telephone ? ` / ${selectedAddress.telephone}` : ''}
+                </small>
+              ) : null}
             </div>
-          ))}
-          {!items.length ? <p>没有可结算商品，请返回购物车重新选择。</p> : null}
-        </div>
+          ) : (
+            <div className="pc-co-address pc-co-address--empty">
+              暂无收货地址，
+              <Link href="/member/address">去添加地址</Link>
+            </div>
+          )}
+          {showDeliveryOption ? (
+            <p className="pc-co-hint">
+              {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? '门店自提' : '配送')}
+              {fieldValue(deliveryOption, ['storeName', 'pickupName']) ? `：${fieldValue(deliveryOption, ['storeName', 'pickupName'])}` : ''}
+              {fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address']) ? ` · ${fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address'])}` : ''}
+            </p>
+          ) : null}
+        </section>
 
+        {/* 支付方式 */}
+        <section className="pc-co-card">
+          <div className="pc-co-card__head">
+            <h2>支付方式</h2>
+          </div>
+          {payments.length ? (
+            <div className="pc-co-pay">
+              {payments.map((payment) => (
+                <button
+                  key={payment.typeId}
+                  type="button"
+                  className={`pc-co-pay__item${payTypeId === payment.typeId ? ' is-active' : ''}`}
+                  onClick={() => setPayTypeId(payment.typeId)}
+                >
+                  {payment.icon ? <img src={payment.icon} alt="" /> : null}
+                  <span>{payment.typeName || payment.name || `支付方式 ${payment.typeId}`}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="pc-co-hint">暂无可用支付方式</p>
+          )}
+        </section>
+
+        {/* 商品：按店铺分组 */}
         {(data?.cartList || []).map((group) => {
-          const options =
+          const groupOptions =
             shippingData[String(group.shopId)] ||
             ((data?.item?.storeShippingType as Record<string, ShippingTypeOption[]>) || {})[String(group.shopId)] ||
             [];
-          if (!options.length) {
-            return (
-              <div key={`shipping-${group.shopId}`} className="pc-checkout__shipping">
-                <span>{group.shopTitle || '配送方式'}：</span>
-                <em className="pc-checkout__no-shipping">无需配送</em>
-              </div>
-            );
-          }
           const selected = (shippingType as Record<string, { typeId?: number }>)[String(group.shopId)];
           return (
-            <div key={`shipping-${group.shopId}`} className="pc-checkout__shipping">
-              <span>{group.shopTitle || '配送方式'}：</span>
-              {options.map((option) => {
-                const typeId = Number(option.shippingTypeId || option.typeId || 0);
-                const active = Number(selected?.typeId || 0) === typeId;
-                return (
-                  <Button
-                    key={typeId}
-                    size="small"
-                    theme={active ? 'solid' : 'light'}
-                    type={active ? 'primary' : 'tertiary'}
-                    onClick={() =>
-                      setShippingType((prev) => ({
-                        ...prev,
-                        [String(group.shopId)]: { typeId, shopId: group.shopId, typeName: option.shippingTypeName || option.typeName || '' },
-                      }))
-                    }
-                  >
-                    {option.shippingTypeName || option.typeName || `配送 ${typeId}`}
-                  </Button>
-                );
-              })}
-            </div>
+            <section className="pc-co-card" key={`shop-${group.shopId}`}>
+              <div className="pc-co-shop">
+                <span>{Number(group.shopId) === 0 ? '自营' : `商家：${group.shopTitle || ''}`}</span>
+              </div>
+
+              {Number(group.noShipping) === 1 ? (
+                <div className="pc-co-ship">
+                  <span className="pc-co-ship__label">配送</span>
+                  <em className="pc-co-ship__tab is-active">无需配送</em>
+                </div>
+              ) : groupOptions.length ? (
+                <div className="pc-co-ship">
+                  <span className="pc-co-ship__label">配送</span>
+                  {groupOptions.map((option, index) => {
+                    const typeId = Number(option.shippingTypeId || option.typeId || 0);
+                    const active = Number(selected?.typeId || 0) === typeId;
+                    return (
+                      <button
+                        key={`${typeId}-${index}`}
+                        type="button"
+                        className={`pc-co-ship__tab${active ? ' is-active' : ''}`}
+                        onClick={() => onChangeShipping(group.shopId, option)}
+                      >
+                        {option.shippingTypeName || option.typeName || `配送 ${typeId}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="pc-co-ship">
+                  <span className="pc-co-ship__label">配送</span>
+                  <em className="pc-co-ship__error">该收货地址不支持配送</em>
+                </div>
+              )}
+
+              <div className="pc-co-goods">
+                {(group.carts || []).map((product) => {
+                  const percent = discountPercent(product.price, product.productPrice);
+                  return (
+                    <div className="pc-co-goods__row" key={product.cartId}>
+                      <div className="pc-co-goods__main">
+                        <img src={product.picThumb || ''} alt={product.productName || ''} />
+                        <div className="pc-co-goods__info">
+                          <div className="pc-co-goods__name">
+                            {percent > 0 ? <em className="pc-co-badge">优惠{percent}%</em> : null}
+                            {product.productName}
+                          </div>
+                          {(product.skuData || []).length ? (
+                            <div className="pc-co-goods__sku">
+                              {(product.skuData || []).map((sku, index) => (
+                                <div key={`${sku.name}-${index}`}>
+                                  <span>{sku.name}：</span>
+                                  {sku.value}
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                          {(product.extraSkuData || []).length ? (
+                            <div className="pc-co-goods__extra">
+                              {(product.extraSkuData || []).map((attr, index) => (
+                                <div key={`${attr.attrName}-${index}`}>
+                                  <span>{attr.attrName}</span>
+                                  <i />
+                                  <b>{attr.attrValue}</b>
+                                  {Number(attr.attrPrice || 0) !== 0 ? <em>¥{money(attr.attrPrice)}</em> : null}
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
+                          {activityList(product.activityInfo).length ? (
+                            <div className="pc-co-goods__promo">
+                              {activityList(product.activityInfo).map((activity, index) => (
+                                <span key={`${activity.promotionId}-${index}`}>
+                                  {Number(activity.type) === 1 ? '秒杀价' : '限时折扣'}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="pc-co-goods__price">¥ {money(product.price)}</div>
+                      <div className="pc-co-goods__qty">x{product.quantity || 1}</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {(group.gift || []).length ? (
+                <div className="pc-co-gift">
+                  <div className="pc-co-gift__title">赠品</div>
+                  <div className="pc-co-gift__list">
+                    {(group.gift || []).map((gift, index) => (
+                      <div className="pc-co-gift__item" key={`${gift.giftId}-${index}`}>
+                        <img src={gift.picThumb || gift.image || ''} alt={gift.productName || ''} />
+                        <div>
+                          <p>{gift.productName}</p>
+                          {(gift.skuData || []).length ? <small>{(gift.skuData || []).map((sku: any) => sku.value).join(' / ')}</small> : null}
+                          <em>x{gift.num || 1}</em>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </section>
           );
         })}
-      </Card>
 
-      {!giftCardMode && coupons.length ? (
-        <Card className="pc-checkout__card" title="优惠券">
-          <div className="pc-checkout__coupons">
-            {coupons.map((coupon) => {
-              const userCouponId = Number(coupon.userCouponId || 0);
-              return (
-                <Checkbox key={userCouponId} checked={userCouponIds.includes(userCouponId)} onChange={() => toggleCoupon(coupon)}>
-                  {coupon.couponName || '优惠券'}
-                  {coupon.couponDesc ? `（${coupon.couponDesc}）` : ''}
-                  {Number(coupon.couponMoney || 0) > 0 ? ` -¥${money(coupon.couponMoney)}` : ''}
-                </Checkbox>
-              );
-            })}
-            <Checkbox checked={autoCoupon} onChange={() => void recalcCoupon(!autoCoupon)}>
-              自动选择最优优惠券
-            </Checkbox>
-            <Button size="small" loading={couponBusy} onClick={() => void recalcCoupon(autoCoupon)}>
-              重新计算
-            </Button>
+        {/* 预售 */}
+        {presale ? (
+          <section className="pc-co-card">
+            <div className="pc-co-card__head">
+              <h2>预售信息</h2>
+            </div>
+            <div className="pc-co-presale">
+              {Number(total.actualPayDepositAmount || 0) > 0 ? (
+                <div>
+                  <span>应付定金</span>
+                  <b>¥ {money(total.actualPayDepositAmount)}</b>
+                </div>
+              ) : null}
+              {fieldValue(presale, ['depositAmount', 'presaleDepositAmount']) ? (
+                <div>
+                  <span>定金</span>
+                  <b>¥ {money(fieldValue(presale, ['depositAmount', 'presaleDepositAmount']))}</b>
+                </div>
+              ) : null}
+              {fieldValue(presale, ['presalePrice', 'presalePriceAmount']) ? (
+                <div>
+                  <span>预售价</span>
+                  <b>¥ {money(fieldValue(presale, ['presalePrice', 'presalePriceAmount']))}</b>
+                </div>
+              ) : null}
+              {fieldValue(presale, ['tailAmount', 'balanceAmount']) ? (
+                <div>
+                  <span>尾款</span>
+                  <b>¥ {money(fieldValue(presale, ['tailAmount', 'balanceAmount']))}</b>
+                </div>
+              ) : null}
+            </div>
+            <p className="pc-co-hint">预售订单按定金/尾款规则支付，具体时间以商品页说明为准。</p>
+          </section>
+        ) : null}
+
+        {/* 订单备注 */}
+        <section className="pc-co-card">
+          <div className="pc-co-card__head">
+            <h2>订单备注</h2>
           </div>
-        </Card>
-      ) : null}
+          <div className="pc-co-note">
+            <textarea
+              rows={2}
+              maxLength={50}
+              value={buyerNote}
+              placeholder="提示：请勿填写有关支付、收货、发票方面的信息"
+              onChange={(event) => changeNote(event.target.value)}
+            />
+            <span>{buyerNote.length}/50</span>
+          </div>
+        </section>
 
-      {!giftCardMode ? (
-        <Card className="pc-checkout__card" title="抵扣">
-          {/* 源码 order/check.vue：积分（使用积分 / 如何获得积分） */}
-          {flowType === 1 ? (
-            <div className="pc-checkout__deduct">
-              <div className="pc-checkout__deduct-label">
-                <span>使用积分</span>
-                <span className="pc-checkout__deduct-sub">当前账户共 {availablePoints} 积分</span>
-                <button type="button" className="pc-checkout__deduct-help">如何获得积分</button>
+        {/* 优惠券（旧版 CouponInfo.vue：可用/不可用切换） */}
+        {!giftCardMode && data?.couponList ? (
+          <section className="pc-co-card">
+            <div className="pc-co-card__head">
+              <h2>优惠券</h2>
+              <div className="pc-co-tabs">
+                <button type="button" className={couponTab === 0 ? 'is-active' : ''} onClick={() => setCouponTab(0)}>
+                  可用 <em>{coupons.length}</em>
+                </button>
+                <button type="button" className={couponTab === 1 ? 'is-active' : ''} onClick={() => setCouponTab(1)}>
+                  不可用 <em>{disableCoupons.length}</em>
+                </button>
               </div>
+            </div>
+
+            {couponTab === 0 ? (
+              coupons.length ? (
+                <div className="pc-co-coupon-grid">
+                  {coupons.map((coupon) => {
+                    const userCouponId = Number(coupon.userCouponId || 0);
+                    const active = userCouponIds.includes(userCouponId);
+                    return (
+                      <label className={`pc-co-coupon${active ? ' is-active' : ''}`} key={userCouponId}>
+                        <Checkbox checked={active} onChange={() => toggleCoupon(coupon)} />
+                        <div className="pc-co-coupon__amount">
+                          {Number(coupon.couponType) === 1 || Number(coupon.couponMoney || 0) > 0 ? (
+                            <>
+                              <small>¥</small>
+                              <b>{money(coupon.couponMoney)}</b>
+                            </>
+                          ) : (
+                            <>
+                              <b>{coupon.couponDiscount || '-'}</b>
+                              <small>折</small>
+                            </>
+                          )}
+                        </div>
+                        <div className="pc-co-coupon__main">
+                          <b>{coupon.couponName || '优惠券'}</b>
+                          <small className="pc-co-coupon__time">
+                            {coupon.startDate ? `${coupon.startDate} 至 ${coupon.endDate || ''}` : `${coupon.endDate || ''} 前有效`}
+                          </small>
+                          {coupon.couponDesc ? <em>{coupon.couponDesc}</em> : null}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="pc-co-coupons__empty">没有可用的优惠券</div>
+              )
+            ) : disableCoupons.length ? (
+              <div className="pc-co-coupon-grid">
+                {disableCoupons.map((coupon, index) => (
+                  <div className="pc-co-coupon is-disabled" key={`${coupon.userCouponId}-${index}`}>
+                    <Checkbox checked={false} disabled />
+                    <div className="pc-co-coupon__amount">
+                      {Number(coupon.couponType) === 1 || Number(coupon.couponMoney || 0) > 0 ? (
+                        <>
+                          <small>¥</small>
+                          <b>{money(coupon.couponMoney)}</b>
+                        </>
+                      ) : (
+                        <>
+                          <b>{coupon.couponDiscount || '-'}</b>
+                          <small>折</small>
+                        </>
+                      )}
+                    </div>
+                    <div className="pc-co-coupon__main">
+                      <b>{coupon.couponName || '优惠券'}</b>
+                      <small className="pc-co-coupon__time">
+                        {coupon.startDate ? `${coupon.startDate} 至 ${coupon.endDate || ''}` : `${coupon.endDate || ''} 前有效`}
+                      </small>
+                      {coupon.couponDesc ? <em>{coupon.couponDesc}</em> : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="pc-co-coupons__empty">没有不可用的优惠券</div>
+            )}
+          </section>
+        ) : null}
+
+        {/* 积分 */}
+        {!giftCardMode && flowType === 1 ? (
+          <section className="pc-co-card">
+            <div className="pc-co-card__head">
+              <h2>使用积分</h2>
+              <span className="pc-co-card__sub">
+                当前账户共 <b>{availablePoints}</b> 积分
+              </span>
+            </div>
+            <div className="pc-co-points">
               <InputNumber
                 min={0}
                 max={availablePoints}
                 value={usePoint}
-                onChange={(value) => setUsePoint(Math.max(0, Math.min(availablePoints, Number(value) || 0)))}
+                disabled={availablePoints <= 0}
+                onChange={(value) => setUsePoint(Math.max(0, Math.min(availablePoints, Math.floor(Number(value) || 0))))}
+                onBlur={() => void updateCheck({ usePoint })}
               />
-            </div>
-          ) : null}
-
-          {/* 源码：使用余额 / 当前可用额度 / 当前账户余额 */}
-          {availableBalance > 0 ? (
-            <div className="pc-checkout__deduct">
-              <div className="pc-checkout__deduct-label">
-                <span>使用余额</span>
-                <span className="pc-checkout__deduct-sub">当前账户余额 ¥{money(availableBalance)}</span>
+              <div className="pc-co-points__tips">
+                {Number(total.pointsAmount || 0) > 0 ? <span>共抵扣 ¥ {money(total.pointsAmount)}</span> : null}
+                <span>该订单最多可用 {availablePoints} 积分</span>
+                <Link href="/article/issue?articleId=7" target="_blank" className="pc-co-link">
+                  【如何获得积分?】
+                </Link>
               </div>
-              <InputNumber min={0} max={availableBalance} value={useBalance} onChange={(value) => changeBalance(Number(value) || 0)} />
             </div>
-          ) : null}
+          </section>
+        ) : null}
 
-          {typeof creditInfo?.availableAmount !== 'undefined' ? (
-            <div className="pc-checkout__deduct-tip">当前可用额度 ¥{money(creditInfo?.availableAmount)}</div>
-          ) : null}
-
-          {availablePoints <= 0 && availableBalance <= 0 ? <p className="pc-checkout__tips">暂无可用积分或余额抵扣</p> : null}
-        </Card>
-      ) : null}
-
-      {canUseCredit ? (
-        <Card className="pc-checkout__card" title="账期支付">
-          <Checkbox checked={useCredit === 1} onChange={(event) => changeCredit(Boolean(event.target.checked))}>
-            使用账期支付
-          </Checkbox>
-          <div className="pc-checkout__credit">
-            {creditInfo?.settlementTypeText ? <span>结算方式：{creditInfo.settlementTypeText}</span> : null}
-            {Number(creditInfo?.availableAmount || 0) > 0 ? <span>可用额度：¥ {money(creditInfo?.availableAmount)}</span> : null}
-            {Number(creditInfo?.settlementDays || 0) > 0 ? <span>账期：{creditInfo?.settlementDays} 天</span> : null}
-          </div>
-          {useCredit === 1 ? <p className="pc-checkout__tips">账期支付与余额抵扣互斥，本单将使用账期结算。</p> : null}
-        </Card>
-      ) : null}
-
-      {!giftCardMode ? (
-        <Card className="pc-checkout__card" title="发票信息">
-          <div className="pc-checkout__invoice">
-            <span>{invoiceSummary}</span>
-            {invoiceData.companyName ? <span>{invoiceData.companyName}</span> : null}
-            <Button size="small" onClick={openInvoice}>
-              修改
-            </Button>
-          </div>
-          <p className="pc-checkout__tips">开企业抬头发票须填写纳税人识别号，以免影响报销。</p>
-        </Card>
-      ) : null}
-
-      <Card className="pc-checkout__card" title="支付方式">
-        {payments.length ? (
-          <RadioGroup value={payTypeId} onChange={(value) => setPayTypeId(Number(value))}>
-            {payments.map((payment) => (
-              <Radio key={payment.typeId} value={payment.typeId}>
-                {payment.typeName || payment.name || `支付方式 ${payment.typeId}`}
-              </Radio>
-            ))}
-          </RadioGroup>
-        ) : (
-          <p>暂无可用支付方式</p>
-        )}
-      </Card>
-
-      <Card className="pc-checkout__card" title="订单备注">
-        <textarea
-          className="pc-checkout__note"
-          rows={3}
-          value={buyerNote}
-          placeholder="选填：给商家留言"
-          onChange={(event) => setBuyerNote(event.target.value)}
-        />
-      </Card>
-
-      <Card className="pc-checkout__card" title="费用明细">
-        <div className="pc-checkout__fees">
-          <div><span>商品总额</span><b>¥ {money(total.productAmount)}</b></div>
-          {Number(total.shippingFee || 0) > 0 ? (
-            <div className="pc-checkout__fee-row">
-              <span>运费</span>
-              <b>{Number(total.shippingFee) > 0 ? `¥ ${money(total.shippingFee)}` : '包邮'}</b>
+        {/* 余额 */}
+        {!giftCardMode && titleText ? (
+          <section className="pc-co-card">
+            <div className="pc-co-card__head">
+              <h2>余额</h2>
             </div>
-          ) : null}
-          {Number(total.serviceFee || 0) > 0 ? <div><span>附加费用</span><b>+ ¥ {money(total.serviceFee)}</b></div> : null}
-          {Number(total.taxRate || 0) > 0 ? (
-            <>
-              <div><span>税费</span><b>¥ {money(total.taxRateAmount)}</b></div>
-              <p className="pc-checkout__tips">税费按所选地址所在国家/地区政策计算。</p>
-              <p className="pc-checkout__tips">税费会随订单一起支付，由商城统一代缴。</p>
-              <p className="pc-checkout__tips">选择地址后，系统自动计算税费，结算页显示税费金额。</p>
-            </>
-          ) : null}
+            <div className="pc-co-check">
+              <Checkbox checked={useBalance > 0} disabled={availableBalance <= 0} onChange={(event) => toggleBalance(Boolean(event.target.checked))}>
+                使用余额
+              </Checkbox>
+              <span className="pc-co-card__sub">
+                当前账户余额 <b>{money(availableBalance)}</b>
+              </span>
+            </div>
+          </section>
+        ) : null}
 
-          {Number(total.discounts || 0) > 0 ? <div className="pc-checkout__fee-discount"><span>共优惠</span><b>- ¥ {money(total.discounts)}</b></div> : null}
-          {Number(total.discountCouponAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>优惠券</span><b>- ¥ {money(total.discountCouponAmount)}</b></div> : null}
-          {Number(total.pointsAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>积分减免</span><b>- ¥ {money(total.pointsAmount)}</b></div> : null}
-          {Number(total.balanceAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>余额抵扣</span><b>- ¥ {money(total.balanceAmount)}</b></div> : null}
-          {Number(total.giftCardAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>礼品卡抵扣</span><b>- ¥ {money(total.giftCardAmount)}</b></div> : null}
-          {Number(total.discounts || 0) > 0 || Number(total.pointsAmount || 0) > 0 || Number(total.balanceAmount || 0) > 0 ? (
-            <div className="pc-checkout__fee-row pc-checkout__fee-row--total"><span>共抵扣</span><b>- ¥ {money(Number(total.discounts || 0) + Number(total.pointsAmount || 0) + Number(total.balanceAmount || 0))}</b></div>
-          ) : null}
+        {/* 发票 */}
+        {!giftCardMode ? (
+          <section className="pc-co-card">
+            <div className="pc-co-card__head">
+              <h2>发票信息</h2>
+              <span className="pc-co-card__sub">开企业抬头发票须填写纳税人识别号，以免影响报销</span>
+            </div>
+            <div className="pc-co-invoice">
+              <span>{invoiceSummary}</span>
+              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 1 ? <em>个人</em> : null}
+              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 2 ? <em>企业</em> : null}
+              {invoiceData.companyName ? <span>{invoiceData.companyName}</span> : null}
+              <button type="button" className="pc-co-link" onClick={() => void openInvoice()}>
+                修改
+              </button>
+            </div>
+          </section>
+        ) : null}
 
-          {Number(total.actualPayDepositAmount || 0) > 0 ? <div><span>应付定金</span><b>¥ {money(total.actualPayDepositAmount)}</b></div> : null}
-          <div className="pc-checkout__fees-total"><span>{Number(total.actualPayDepositAmount || 0) > 0 ? '仍需支付' : '应付金额'}</span><b>¥ {money(amount)}</b></div>
-          <p className="pc-checkout__tips">该订单最多可用 {availablePoints} 积分、余额 ¥ {money(availableBalance)} 抵扣，实际以提交时计算为准。</p>
-        </div>
-      </Card>
-
-      <div className="pc-checkout__footer">
-        <Link href="/cart">返回购物车</Link>
-        <div>
-          <span>
-            应付金额：<b>¥ {money(amount)}</b>
-          </span>
-          <Button
-            theme="solid"
-            type="primary"
-            size="large"
-            loading={submitting}
-            disabled={!items.length || (needAddress && !addressId) || !payTypeId}
-            onClick={submit}
-          >
-            {Number(total.actualPayDepositAmount || 0) > 0 ? '支付定金' : '立即下单'}
-          </Button>
-        </div>
+        {/* 账期 */}
+        {canUseCredit ? (
+          <section className="pc-co-card">
+            <div className="pc-co-card__head">
+              <h2>账期</h2>
+            </div>
+            <div className="pc-co-check">
+              <Checkbox checked={useCredit === 1} disabled={creditDisabled} onChange={(event) => changeCredit(Boolean(event.target.checked))}>
+                账期支付
+              </Checkbox>
+              <span className="pc-co-card__sub">
+                {creditInfo?.disableReason ? creditInfo.disableReason : <>当前可用额度 <b>{money(creditInfo?.availableAmount)}</b></>}
+              </span>
+              {Number(creditInfo?.settlementDays || 0) > 0 ? <span className="pc-co-card__sub">账期 {creditInfo?.settlementDays} 天</span> : null}
+            </div>
+          </section>
+        ) : null}
       </div>
 
-      <Modal
-        title="发票信息"
-        visible={invoiceOpen}
-        onCancel={() => setInvoiceOpen(false)}
-        onOk={confirmInvoice}
-        okText="保存"
-        cancelText="取消"
-        width={560}
-      >
+      {/* 右栏：订单详情 */}
+      <aside className="pc-co__summary">
+        <h2 className="pc-co-summary__title">订单详情</h2>
+        <div className="pc-co-summary__list">
+          <div className="pc-co-line pc-co-line--label">
+            <span>商品总价：</span>
+            <b>¥ {money(total.productAmount)}</b>
+          </div>
+          {Number(total.serviceFee || 0) > 0 ? (
+            <div className="pc-co-line">
+              <span>附加费用：</span>
+              <b>¥ {money(total.serviceFee)}</b>
+            </div>
+          ) : null}
+          {Number(total.balance || 0) > 0 && useBalance > 0 ? (
+            <div className="pc-co-line">
+              <span>使用余额：</span>
+              <b className="is-deduct">- ¥ {money(total.balance)}</b>
+            </div>
+          ) : null}
+          {Number(total.giftCardAmount || 0) > 0 ? (
+            <div className="pc-co-line">
+              <span>使用礼品卡：</span>
+              <b className="is-deduct">- ¥ {money(total.giftCardAmount)}</b>
+            </div>
+          ) : null}
+          {Number(total.pointsAmount || 0) > 0 && flowType !== 3 ? (
+            <div className="pc-co-line">
+              <span>积分减免：</span>
+              <b className="is-deduct">- ¥ {money(total.pointsAmount)}</b>
+            </div>
+          ) : null}
+          <div className="pc-co-line--group">
+            {Number(total.discounts || 0) > 0 ? (
+              <div className="pc-co-line">
+                <span>共优惠</span>
+                <b className="is-deduct">- ¥ {money(total.discounts)}</b>
+              </div>
+            ) : null}
+            <div className="pc-co-line">
+              <span>商品总额</span>
+              <b>¥ {money(total.productAmount)}</b>
+            </div>
+            {Number(total.discountCouponAmount || 0) > 0 ? (
+              <div className="pc-co-line">
+                <span>优惠券</span>
+                <b className="is-deduct">- ¥ {money(total.discountCouponAmount)}</b>
+              </div>
+            ) : null}
+            {Number(total.discountDiscountAmount || 0) > 0 ? (
+              <div className="pc-co-line">
+                <span>其他优惠</span>
+                <b className="is-deduct">- ¥ {money(total.discountDiscountAmount)}</b>
+              </div>
+            ) : null}
+            {needShipping ? (
+              <div className="pc-co-line">
+                <span>快递：</span>
+                {Number(total.shippingFee || 0) > 0 ? (
+                  <b>¥ {money(total.shippingFee)}</b>
+                ) : (
+                  <b className="is-free">{updating ? '-' : '包邮'}</b>
+                )}
+              </div>
+            ) : null}
+            {showTaxAmount ? (
+              <div className="pc-co-line">
+                <span>税费：</span>
+                <b>¥ {money(total.taxRateAmount)}</b>
+              </div>
+            ) : null}
+            {Number(total.discountAfter || 0) > 0 ? (
+              <div className="pc-co-line">
+                <span>合计</span>
+                <b>¥ {money(total.discountAfter)}</b>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {needShipping && Number(total.shippingFee || 0) <= 0 && total.storeShippingFee ? (
+          <p className="pc-co-summary__hint">
+            运费明细：
+            {Object.entries(total.storeShippingFee as Record<string, unknown>).map(([shopId, fee]) => (
+              <span key={shopId}>
+                {Number(shopId) === 0 ? '自营' : `店铺 ${shopId}`} ¥{money(fee)}
+              </span>
+            ))}
+          </p>
+        ) : null}
+
+        {orderSendPoint > 0 ? (
+          <p className="pc-co-summary__point">*该订单完成后，您将预计获得 {orderSendPoint} 积分</p>
+        ) : null}
+
+        <div className="pc-co-summary__total">
+          <span>仍需支付：</span>
+          {flowType === 3 ? (
+            <span className="pc-co-summary__exchange">
+              {total.exchangePoints} <small>积分</small> +
+            </span>
+          ) : null}
+          <b>¥ {money(payAmount)}</b>
+        </div>
+
+        <Button
+          className="pc-co-submit"
+          theme="solid"
+          type="primary"
+          size="large"
+          block
+          loading={submitting}
+          disabled={submitDisabled}
+          onClick={submit}
+        >
+          {isDepositPresale ? '支付定金' : '立即下单'}
+        </Button>
+      </aside>
+
+      {/* 地址选择弹窗（旧版 Address.vue） */}
+      <Modal title="收货地址" visible={addressOpen} onCancel={() => setAddressOpen(false)} footer={null} width={880}>
+        <p className="pc-co-hint">不同地区的配送选项和配送速度可能会有所不同</p>
+        <div className="pc-co-address-list">
+          {addresses.map((item) => (
+            <button
+              type="button"
+              key={item.addressId}
+              className={`pc-co-address-card${item.addressId === addressId ? ' is-active' : ''}`}
+              onClick={() => onChangeAddress(item.addressId)}
+            >
+              <div className="pc-co-address__line">
+                <b>{item.consignee || '-'}</b>
+                <span>
+                  {item.mobileAreaCode ? `+${item.mobileAreaCode} ` : ''}
+                  {item.mobile || '-'}
+                </span>
+                {Number(item.isInvalid) ? <em className="pc-co-invalid">无效地址</em> : null}
+              </div>
+              <p>{item.formattedAddress || item.fullAddress || [item.regionName, item.address].filter(Boolean).join(' ')}</p>
+              <small>
+                {item.email || '-'} / {item.telephone || '-'}
+              </small>
+              {Number(item.isSelected) === 1 ? <em className="pc-co-default">默认地址</em> : null}
+            </button>
+          ))}
+          {!addresses.length ? <p className="pc-co-hint">暂无收货地址</p> : null}
+        </div>
+        <div className="pc-co-address-actions">
+          <Link href="/member/address">
+            <Button theme="light">管理地址</Button>
+          </Link>
+          <Button theme="borderless" onClick={() => void loadAddresses()}>
+            刷新地址
+          </Button>
+        </div>
+      </Modal>
+
+      {/* 发票弹窗 */}
+      <Modal title="发票信息" visible={invoiceOpen} onCancel={() => setInvoiceOpen(false)} onOk={confirmInvoice} okText="保存" cancelText="取消" width={560}>
         <div className="pc-invoice-form">
           <div className="pc-invoice-form__row">
             <span>发票类型</span>
@@ -807,19 +1171,31 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                 <>
                   <div className="pc-invoice-form__row">
                     <span>单位地址</span>
-                    <input value={String(invoiceForm.companyAddress || '')} onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAddress: event.target.value }))} />
+                    <input
+                      value={String(invoiceForm.companyAddress || '')}
+                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAddress: event.target.value }))}
+                    />
                   </div>
                   <div className="pc-invoice-form__row">
                     <span>单位电话</span>
-                    <input value={String(invoiceForm.companyPhone || '')} onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyPhone: event.target.value }))} />
+                    <input
+                      value={String(invoiceForm.companyPhone || '')}
+                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyPhone: event.target.value }))}
+                    />
                   </div>
                   <div className="pc-invoice-form__row">
                     <span>开户银行</span>
-                    <input value={String(invoiceForm.companyBank || '')} onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyBank: event.target.value }))} />
+                    <input
+                      value={String(invoiceForm.companyBank || '')}
+                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyBank: event.target.value }))}
+                    />
                   </div>
                   <div className="pc-invoice-form__row">
                     <span>银行账户</span>
-                    <input value={String(invoiceForm.companyAccount || '')} onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAccount: event.target.value }))} />
+                    <input
+                      value={String(invoiceForm.companyAccount || '')}
+                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAccount: event.target.value }))}
+                    />
                   </div>
                 </>
               ) : null}
@@ -833,11 +1209,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               </div>
               <div className="pc-invoice-form__row">
                 <span>发票内容</span>
-                <input value={String(invoiceForm.invoiceContent || '')} onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceContent: event.target.value }))} />
+                <input
+                  value={String(invoiceForm.invoiceContent || '')}
+                  onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceContent: event.target.value }))}
+                />
               </div>
             </>
           ) : null}
-          {!invoiceQualified ? <p className="pc-checkout__tips">增值税专用发票需先在会员中心完成增票资质审核。</p> : null}
+          {!invoiceQualified ? <p className="pc-co-hint">增值税专用发票需先在会员中心完成增票资质审核。</p> : null}
         </div>
       </Modal>
     </div>

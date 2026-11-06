@@ -2077,5 +2077,14 @@
   "预售订单按定金/尾款规则支付，具体时间以商品页说明为准。": "预售订单按定金/尾款规则支付，具体时间以商品页说明为准。",
   "领券中心 &gt;": "领券中心 &gt;",
   "领取": "Claim",
-  "（需资质审核）": "（需资质审核）"
+  "（需资质审核）": "（需资质审核）",
+  "您还没有收藏的商品": "You have no favorite products yet",
+  "登录后查看心愿单": "Sign in to view your wishlist",
+  "取消收藏成功": "Removed from favorites",
+  "心愿单加载失败": "Failed to load wishlist",
+  "取消收藏失败": "Failed to remove from favorites",
+  "共": "Total",
+  "件商品": "items",
+  "已售": "Sold",
+  "更多操作": "More actions"
 }

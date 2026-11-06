@@ -936,7 +936,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;
           cursor: pointer; font-size: 14px; color: #1a1a1a;
         }
-        .pc-pay__method.is-active { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.12); }
+        .pc-pay__method.is-active { border-color: var(--pc-primary); box-shadow: 0 0 0 2px rgba(var(--general-rgb), 0.12); }
         .pc-pay__applepay-panel { margin-top: 16px; padding: 16px; border: 1px dashed #dcdcdc; border-radius: 8px; background: #fafbfc; }
         .pc-pay__applepay-grid {
           display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px;
@@ -949,7 +949,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           border: 1px solid #e5e7eb; border-radius: 6px; background: #fff;
           padding: 8px 16px; font-size: 14px; color: #1a1a1a; cursor: pointer;
         }
-        .pc-pay__offline-tabs button.is-active { border-color: #1677ff; color: #1677ff; background: #f5f8ff; }
+        .pc-pay__offline-tabs button.is-active { border-color: var(--pc-primary); color: var(--pc-primary); background: var(--pc-primary-soft); }
         .pc-pay__offline-content { padding: 12px; border: 1px solid #f0f0f0; border-radius: 8px; background: #fafbfc; font-size: 14px; line-height: 24px; color: #333; }
         .pc-pay__offline-claim-action { margin-top: 16px; }
         .pc-pay__offline-tips { margin-top: 10px; color: #8a919f; font-size: 12px; }
