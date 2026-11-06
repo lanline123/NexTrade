@@ -15,3 +15,13 @@ rust/Java-to-Rust-Realistic-Tools-Guide.md
 rust/MIGRATION-TOOLS-SUMMARY.md
 rust/rust-migration-assessment.md
 rust/rust-migration-plan.md
+
+# 本地临时产物（不进版本库）
+scratch/
+.opencode/
+.workbuddy/
+1113738357_20260714_cert/
+**/.next.bak*/
+**/.next.bak-*/
+rust/web/pc-semi/.next/
+**/*.tsbuildinfo
