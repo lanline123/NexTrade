@@ -117,4 +117,68 @@ impl RecommendRepository {
         .map_err(map_err)?;
         Ok(rows.into_iter().map(|(id,)| id).collect())
     }
+
+    /// 精品 + 热销商品 ID。
+    ///
+    /// 对应 Java `getRecommendedProductIds` 的第 1、2 段（`is_best = 1 LIMIT 10`
+    /// 与 `is_hot = 1 LIMIT 10`）。原版是两次查询后并集去重，这里合成一次，
+    /// 用 `is_best DESC` 保证精品始终排在热销之前。
+    pub async fn best_hot_ids(&self, limit: u32) -> Result<Vec<i32>> {
+        let rows: Vec<(i32,)> = sqlx::query_as(
+            "SELECT product_id FROM product WHERE is_delete = 0 AND product_status = 1 \
+             AND (is_best = 1 OR is_hot = 1) \
+             ORDER BY is_best DESC, click_count DESC, product_id DESC LIMIT ?",
+        )
+        .bind(i64::from(limit))
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_err)?;
+        Ok(rows.into_iter().map(|(id,)| id).collect())
+    }
+
+    /// 会员浏览记录中的商品 ID（Java `User.historyProductIds`，按最近在前截取）。
+    ///
+    /// Java 侧用 hutool `JSONUtil.toList(raw, Integer.class)` 解析，落库是 JSON 数组；
+    /// 这里兼容可能出现的逗号分隔写法，解析失败一律当作空。
+    pub async fn history_ids(&self, user_id: i32, limit: u32) -> Result<Vec<i32>> {
+        let row: Option<(Option<String>,)> =
+            sqlx::query_as("SELECT history_product_ids FROM user WHERE user_id = ?")
+                .bind(user_id)
+                .fetch_optional(&self.pool)
+                .await
+                .map_err(map_err)?;
+
+        let Some((Some(raw),)) = row else {
+            return Ok(Vec::new());
+        };
+        let raw = raw.trim();
+        if raw.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let mut ids: Vec<i32> = serde_json::from_str::<Vec<i32>>(raw).unwrap_or_else(|_| {
+            raw.split(',')
+                .filter_map(|s| s.trim().trim_matches('"').parse::<i32>().ok())
+                .collect()
+        });
+        ids.truncate(limit as usize);
+        Ok(ids)
+    }
+
+    /// 兜底热门商品 ID。
+    ///
+    /// 对应原版第 4 段「不足 40 个时补全」。原版用 `ORDER BY RAND()` 且只从
+    /// `is_hot = 1` 里取，本站热销商品仅 4 个、补不出量；这里改为按点击量取
+    /// 在售商品，结果稳定、可缓存，也避免每次请求都做全表随机排序。
+    pub async fn popular_ids(&self, limit: u32) -> Result<Vec<i32>> {
+        let rows: Vec<(i32,)> = sqlx::query_as(
+            "SELECT product_id FROM product WHERE is_delete = 0 AND product_status = 1 \
+             ORDER BY click_count DESC, product_id DESC LIMIT ?",
+        )
+        .bind(i64::from(limit))
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_err)?;
+        Ok(rows.into_iter().map(|(id,)| id).collect())
+    }
 }

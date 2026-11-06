@@ -11,8 +11,17 @@ use serde::{Deserialize, Serialize};
 
 /// 猜你喜欢分页上限（避免一次拉全表）。
 pub const MAX_GUESS_LIMIT: u32 = 50;
-/// 推荐 ID 串默认数量。
-pub const DEFAULT_ID_COUNT: u32 = 20;
+/// 推荐 ID 串目标数量。
+///
+/// 对齐 Java `ProductServiceImpl.getRecommendedProductIds` 的 `limit(40)`：
+/// 精品段 + 热销段 + 浏览记录段不足时继续补足，最终截断到 40。
+pub const DEFAULT_ID_COUNT: u32 = 40;
+/// 精品段上限（Java `is_best = 1 … LIMIT 10`）。
+pub const BEST_ID_COUNT: u32 = 10;
+/// 热销段上限（Java `is_hot = 1 … LIMIT 10`）。
+pub const HOT_ID_COUNT: u32 = 10;
+/// 浏览记录段上限（Java `historyProductIds.limit(20)`）。
+pub const HISTORY_ID_COUNT: u32 = 20;
 
 /// 猜你喜欢查询（Java `ProductListDTO` 的安全子集）。
 #[derive(Debug, Clone, Default, Deserialize)]

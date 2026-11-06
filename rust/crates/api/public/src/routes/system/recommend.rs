@@ -16,7 +16,7 @@ use axum::{
     middleware::{self, Next},
     response::Response,
     routing::get,
-    Router,
+    Extension, Router,
 };
 use tigshop_core::models::system::recommend::{GuessLikeQuery, RecommendProductVO};
 use tigshop_core::Error;
@@ -56,8 +56,15 @@ async fn guess_like(
 }
 
 /// `GET /api/common/recommend/getProductIds`
-async fn get_product_ids(State(state): State<PublicState>) -> ApiResult<String> {
-    ok(state.system.recommend.product_ids().await?)
+///
+/// 原版 `getProductIds` 内部取 `SecurityUtils.getCurrentUserId()`，登录会员会额外掺入
+/// 浏览记录段；游客按 0 处理。
+async fn get_product_ids(
+    State(state): State<PublicState>,
+    auth: Option<Extension<AuthUser>>,
+) -> ApiResult<String> {
+    let user_id = auth.as_ref().map(|Extension(a)| a.id).unwrap_or(0);
+    ok(state.system.recommend.product_ids(user_id).await?)
 }
 
 /// 可选登录态中间件（对应 Java `permitAll` + JWT 过滤器）。
