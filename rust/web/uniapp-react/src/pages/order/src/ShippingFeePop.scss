@@ -1,0 +1,52 @@
+/* 自旧 pages/order/src/shippingFeePop.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.popup-container {
+    height: 50vh;
+    border-radius: 18rpx 18rpx 0 0;
+    overflow: hidden;
+
+    .popup-content {
+        padding: 0 30rpx 30rpx;
+        display: flex;
+        flex-direction: column;
+        row-gap: 20rpx;
+
+        .shippingfee-item {
+            border-radius: 12rpx;
+            background-color: #f4f4f4;
+            padding: 25rpx 20rpx;
+            color: #9a9a9a;
+            font-size: 24rpx;
+            display: flex;
+            flex-direction: column;
+            row-gap: 20rpx;
+
+            .store-title {
+                font-weight: bold;
+                font-size: 28rpx;
+                color: #262626;
+            }
+
+            .delivery-rules {
+                display: flex;
+                flex-direction: column;
+                row-gap: 20rpx;
+
+                .rule-item {
+                    display: flex;
+                    width: 100%;
+
+                    text {
+                        word-break: keep-all;
+                        line-height: 36rpx;
+                    }
+                }
+            }
+        }
+
+        .num {
+            color: var(--general);
+            font-size: 24rpx;
+            padding: 0 8rpx;
+        }
+    }
+}

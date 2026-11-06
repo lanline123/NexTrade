@@ -9,8 +9,9 @@
 //!    `price` 的最小值；JSON 结构异常时返回 0（Java 可能抛异常）。
 //! 2. 关键词检索：Java 同时匹配订单号/收货人/订单商品名（含 OR 优先级缺陷）；
 //!    Rust 用 EXISTS 子查询匹配订单号/收货人/商品名（行为更严格，见模块注释）。
-//! 3. Java `dateType` 用 `DateTypeEnum` 时间范围；Rust 实现 1 今日 / 2 本周 /
-//!    3 本月 / 4 本年，其它不过滤。
+//! 3. `dateType` 已按 Java `DateTypeEnum` 对齐（0 全部 / 1 近三月 / 2 近六月 /
+//!    3 近十二月，未知回落全部）；旧实现曾误用「1 今日 / 2 本周 / 3 本月 / 4 本年」，
+//!    见 `infrastructure/.../groupon_records.rs::date_range`。
 //! 4. `startTime/endTime` Java 用时间戳字符串 + 序列化器格式化，Rust 直接输出
 //!    `yyyy-MM-dd HH:mm:ss`。
 

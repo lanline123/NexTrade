@@ -1,0 +1,75 @@
+/* 自旧 pages/shop/license.vue <style lang="scss" scoped> 原样拷出，去 scoped。
+   元素选择器 text（水印）与 view + view（脚注间距）保留，作用域收敛到本页 class 下，H5 端可能不命中。 */
+.license-page {
+    min-height: 100%;
+    padding: 32rpx 32rpx 60rpx;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.doc-title {
+    font-size: 36rpx;
+    font-weight: 700;
+    line-height: 50rpx;
+    color: #1a1a1a;
+}
+
+.doc-notice {
+    margin-top: 16rpx;
+    margin-bottom: 32rpx;
+    font-size: 24rpx;
+    line-height: 36rpx;
+    color: #1a1a1a;
+}
+
+.cert-box {
+    position: relative;
+    overflow: hidden;
+    padding: 24rpx;
+    min-height: 280rpx;
+}
+
+.watermark {
+    position: absolute;
+    inset: -80rpx;
+    z-index: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 80rpx 40rpx;
+    pointer-events: none;
+    transform: rotate(-22deg);
+
+    text {
+        font-size: 22rpx;
+        color: rgba(0, 0, 0, 0.06);
+        white-space: nowrap;
+        line-height: 1;
+    }
+}
+
+.cert-img {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+}
+
+.cert-empty {
+    position: relative;
+    z-index: 1;
+    padding: 80rpx 0;
+    text-align: center;
+    font-size: 26rpx;
+    color: #999;
+}
+
+.doc-notes {
+    margin-top: 40rpx;
+    font-size: 22rpx;
+    line-height: 36rpx;
+    color: #999;
+
+    view + view {
+        margin-top: 12rpx;
+    }
+}

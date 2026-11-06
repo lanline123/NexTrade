@@ -399,7 +399,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
             ) : null}
             {actionEnabled(actions, 'confirmReceipt') && orderType !== 9 && orderType !== 10 ? <Button onClick={confirm}>确认收货</Button> : null}
             {actionEnabled(actions, 'toAftersales', 'toAfterSales') && !giftCardBlocked && orderSource !== 'pos' && orderType !== 14 && !isPickupCompleted ? (
-              <Link href={`/member/return/Info?orderId=${detail.orderId || orderId}`}><Button>整单售后</Button></Link>
+              <Link href={`/member/return/info?orderId=${detail.orderId || orderId}`}><Button>整单售后</Button></Link>
             ) : null}
             {actionEnabled(actions, 'toAftersales', 'toAfterSales') ? (
               <Link href={`/member/aftersales/apply?orderId=${detail.orderId || orderId}`}><Button>按商品售后</Button></Link>
@@ -478,7 +478,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                             {Number(attr.attrPrice || 0) > 0 ? ` (+¥${money(attr.attrPrice)})` : ''}
                           </div>
                         ))}
-                        {item.productSn ? <div className="member-order__sn">货号：{item.productSn}</div> : null}
+                        {item.productSn ? <div className="member-order-detail__product-sn">货号：{item.productSn}</div> : null}
                       </div>
                     </div>
                   </td>
@@ -488,11 +488,11 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                   {showItemAftersalesAction ? (
                     <td>
                       {item.isGift === 0 && Number(item.quantity || 0) > Number(item.aftersalesNumber || 0) && !item.aftersalesItem ? (
-                        <Link href={`/member/return/Info?orderId=${detail.orderId || orderId}&itemId=${item.itemId || ''}`}>
+                        <Link href={`/member/return/info?orderId=${detail.orderId || orderId}&itemId=${item.itemId || ''}`}>
                           <Button size="small">申请售后</Button>
                         </Link>
                       ) : item.aftersalesItem ? (
-                        <Link href={`/member/return/LogInfo?id=${item.aftersalesItem.aftersaleId || ''}`}>
+                        <Link href={`/member/return/logInfo?id=${item.aftersalesItem.aftersaleId || ''}`}>
                           <Button size="small">售后详情</Button>
                         </Link>
                       ) : null}

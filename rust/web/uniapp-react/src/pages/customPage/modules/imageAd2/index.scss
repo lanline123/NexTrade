@@ -1,0 +1,190 @@
+/* 自旧 imageAd2/index.vue <style lang="scss" scoped> 原样平移（去 scoped） */
+.swiper-item-root {
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-main {
+    height: 100%;
+    display: grid;
+    /* 原 grid-template-columns: repeat(v-bind("columns"), 1fr) → 随 v-bind 转为 JSX 内联样式 gridTemplateColumns */
+    grid-template-columns: repeat(1, 1fr);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.module-image_ad .module-ad-content {
+    overflow: hidden;
+}
+.image-ad-warp {
+    position: relative;
+}
+.image-ad-warp .image-ad-con {
+    display: flex;
+    flex-wrap: wrap;
+}
+.image-ad-warp .image-ad-con .image-ad-item .item-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.ad-pic_type__1 .image-ad-warp .image-ad-con {
+    flex-wrap: wrap;
+}
+.ad-pic_type__1 .image-ad-warp .image-ad-con .image-ad-item {
+    width: 100%;
+}
+
+.ad-pic_type__2 .image-ad-warp {
+    overflow: hidden;
+    height: 100%;
+}
+.ad-pic_type__2 .image-ad-warp .image-ad-con {
+    display: block;
+    flex-wrap: nowrap;
+    padding: 0 !important;
+    height: 100%;
+}
+/* 原 swiper 标签选择器 → Taro Swiper 在 H5 渲染为 .taro-swiper（swiper 子元素），小程序端仍为 swiper 节点，两类选择器并列 */
+.ad-pic_type__2 .image-ad-warp swiper,
+.ad-pic_type__2 .image-ad-warp .taro-swiper {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+.ad-pic_type__2 .image-ad-warp .image-ad-con .image-ad-item {
+    flex: none;
+    width: 100%;
+    height: 100%;
+}
+.ad-pic_type__2 .image-ad-warp .image-ad-con .image-ad-item .item-content {
+    height: 100%;
+    box-sizing: border-box;
+}
+.ad-pic_type__2 .image-ad-warp .image-ad-con .item-img-a {
+    overflow: hidden;
+    display: block;
+    height: 100%;
+}
+
+.ad-pic_type__2.ad-pic_page_type__1 .image-ad-warp .swiper-pagination-con {
+    position: absolute;
+    bottom: 30rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.ad-pic_type__2.ad-pic_page_type__1 .image-ad-warp .swiper-pagination {
+    display: inline-block;
+    width: 24rpx;
+    border-radius: 0;
+    height: 4rpx;
+    margin: 0 2rpx;
+    background: #000;
+    opacity: 0.2;
+}
+.ad-pic_type__2.ad-pic_page_type__1 .image-ad-warp .swiper-pagination.active {
+    opacity: 1;
+    background-color: #fff;
+}
+.ad-pic_type__2.ad-pic_page_type__2 .image-ad-warp .swiper-pagination-con {
+    position: absolute;
+    bottom: 30rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.ad-pic_type__2.ad-pic_page_type__2 .image-ad-warp .swiper-pagination {
+    margin: 0 6rpx;
+    background: #333;
+    width: 12rpx;
+    height: 12rpx;
+    display: inline-block;
+    border-radius: 100%;
+    background: #000;
+    opacity: 0.2;
+}
+.ad-pic_type__2.ad-pic_page_type__2 .image-ad-warp .swiper-pagination.active {
+    opacity: 1;
+}
+.ad-pic_type__2.ad-pic_page_type__3 .image-ad-warp .swiper-pagination-con {
+    text-align: center;
+    right: 0;
+    position: absolute;
+    width: 110rpx;
+    bottom: 20rpx;
+}
+.ad-pic_type__2.ad-pic_page_type__3 .image-ad-warp .swiper-pagination {
+    position: absolute;
+    text-align: center;
+    z-index: 10;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+.ad-pic_type__2.ad-pic_page_type__3 .image-ad-warp .swiper-pagination {
+    text-align: right;
+    background: #000;
+    opacity: 0.3;
+    border-radius: 200rpx;
+    padding: 2rpx 10rpx;
+    display: inline-block;
+    width: auto;
+    color: #fff;
+    font-size: 24rpx;
+}
+
+.ad-pic_type__3 .image-ad-warp {
+    overflow: hidden;
+}
+.ad-pic_type__3 .image-ad-warp .image-ad-con {
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    margin-bottom: -40rpx;
+    padding-bottom: 40rpx !important;
+    -webkit-overflow-scrolling: touch;
+}
+.ad-pic_type__3 .image-ad-warp .image-ad-con .image-ad-item {
+    flex: none;
+    width: 80%;
+}
+.ad-pic_type__4 .image-ad-warp {
+    overflow: hidden;
+}
+.ad-pic_type__4 .image-ad-warp .image-ad-con {
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    margin-bottom: -40rpx;
+    padding-bottom: 40rpx !important;
+    -webkit-overflow-scrolling: touch;
+}
+.ad-pic_type__4 .image-ad-warp .image-ad-con .image-ad-item {
+    flex: none;
+    width: 40%;
+}
+.ad-pic_type__5 .image-ad-warp .image-ad-con {
+    flex-wrap: wrap;
+}
+.ad-pic_type__5 .image-ad-warp .image-ad-con .image-ad-item {
+    width: 50%;
+}
+.ad-pic_type__6 .image-ad-warp .image-ad-con {
+    flex-wrap: wrap;
+}
+.ad-pic_type__6 .image-ad-warp .image-ad-con .image-ad-item {
+    width: 33.33333%;
+}
+.ad-pic_type__7 .image-ad-warp .image-ad-con {
+    flex-wrap: wrap;
+}
+.ad-pic_type__7 .image-ad-warp .image-ad-con .image-ad-item {
+    width: 25%;
+}
+.ad-radio_style__2 .image-ad-warp .image-ad-con .item-img-a {
+    border-radius: 16rpx;
+    overflow: hidden;
+    display: block;
+    height: 100%;
+}

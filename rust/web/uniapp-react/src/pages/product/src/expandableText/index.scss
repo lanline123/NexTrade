@@ -1,0 +1,43 @@
+/* 自旧 expandableText.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.expandable-text {
+    display: inline;
+    word-break: break-all;
+
+    .expand-icon {
+        display: inline;
+        font-size: 28rpx;
+        line-height: 28rpx;
+        margin-left: 4rpx;
+        vertical-align: baseline;
+
+        &.rotate {
+            display: inline-block;
+            transform: rotate(180deg);
+        }
+    }
+
+    .rest-part {
+        &.fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+    }
+
+    .measure-canvas {
+        position: fixed;
+        left: -9999px;
+        top: -9999px;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

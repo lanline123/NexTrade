@@ -1,0 +1,117 @@
+/* 自旧 pages/member/components/termPay/termPayCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.delivery-card {
+    margin-top: 20rpx;
+    margin-bottom: 20rpx;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 18rpx;
+    overflow: hidden;
+
+    /* 标题栏 */
+    .delivery-card__title {
+        height: 88rpx;
+        padding-top: 0;
+        padding-right: 30rpx;
+        padding-bottom: 0;
+        padding-left: 30rpx;
+        font-size: 26rpx;
+        font-weight: bold;
+        border-bottom-width: 1px;
+        border-bottom-style: solid;
+        border-bottom-color: rgba(0, 0, 0, 0.05);
+
+        &.delivery-card__title--no-border {
+            border-bottom: none;
+        }
+
+        .delivery-card__title-text {
+            color: #ae5d34;
+            font-size: 26rpx;
+            font-weight: 600;
+        }
+
+        .delivery-card__title-left {
+            display: flex;
+            align-items: center;
+            column-gap: 12rpx;
+        }
+
+        .toggle-eye {
+            font-size: 30rpx;
+            color: #ae5d34;
+        }
+
+        .delivery-card__title-more {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8rpx 20rpx;
+            background-color: #fefdf4;
+            border-radius: 40rpx;
+            font-size: 22rpx;
+            color: #ae5d34;
+            font-weight: normal;
+            cursor: pointer;
+
+            .delivery-card__title-more-text {
+                margin-right: 8rpx;
+            }
+
+            .iconfont {
+                font-size: 20rpx;
+                padding-top: 2rpx;
+            }
+        }
+    }
+
+    /* 内容区域 */
+    .delivery-card__content {
+        position: relative;
+        min-height: 120rpx;
+        padding-top: 30rpx;
+        padding-bottom: 30rpx;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .delivery-card__wrap {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    .delivery-card__item {
+        position: relative;
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: 0%;
+        text-align: center;
+        cursor: pointer;
+        transition-property: opacity;
+        transition-duration: 0.2s;
+
+        &:active {
+            opacity: 0.7;
+        }
+
+        .delivery-card__item-number {
+            font-size: 28rpx;
+            font-weight: 600;
+            color: #ae5d34;
+            margin-bottom: 8rpx;
+            line-height: 1.2;
+            min-height: 44rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delivery-card__item-text {
+            font-size: 24rpx;
+            color: #ae5d34;
+            line-height: 1.5;
+        }
+    }
+}

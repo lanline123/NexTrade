@@ -1,0 +1,92 @@
+/* 自旧 pages/salesman/src/timeFilter.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped；v-bind 高度改内联 style） */
+.time-filter {
+    position: sticky;
+
+    .search-box {
+        background-color: #fff;
+        /* height 由内联 style 提供（旧 v-bind("height + 'px'")） */
+        .status-bar {
+            /* height 由内联 style 提供（旧 v-bind("statusBarHeight + 'px'")） */
+        }
+        .search-input-box {
+            /* height / width 由内联 style 提供（旧 v-bind） */
+            display: flex;
+            padding: 0 25rpx;
+            .input {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                align-items: center;
+            }
+
+            &--with-back {
+                padding-left: 25rpx;
+            }
+
+            .search-back {
+                flex: 0 0 60rpx;
+                width: 60rpx;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+
+                .icon-houtui {
+                    display: block;
+                    font-size: 40rpx;
+                    line-height: 1;
+                    color: #333;
+                }
+            }
+        }
+    }
+}
+.time-filter__inner {
+    padding: 20rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    font-size: 24rpx;
+    z-index: 998;
+    background-color: #fff;
+    box-shadow: 0 6rpx 12rpx rgba(125, 126, 128, 0.16);
+    .time-filter-tags {
+        min-width: 360rpx;
+        display: flex;
+        gap: 20rpx;
+        .time-filter-tags__item {
+            border-radius: 24rpx;
+            line-height: 44rpx;
+            padding: 0 20rpx;
+            display: inline-block;
+            box-sizing: border-box;
+            background-color: #f7f8fa;
+            color: #999;
+            &.time-filter-tags__item--active {
+                background-color: #fff0e6;
+                color: #ff720d;
+            }
+        }
+    }
+    .time-filter-custom {
+        display: flex;
+        align-items: center;
+        text-align: right;
+        color: #999;
+        gap: 8rpx;
+        .time-filter__txt {
+            display: flex;
+            flex-direction: column;
+            font-size: 20rpx;
+            line-height: 20rpx;
+            color: #333;
+        }
+        /* 旧 up-icon name="arrow-down" size="8" */
+        .time-filter-custom__arrow {
+            font-size: 16rpx;
+            line-height: 1;
+            color: #969799;
+        }
+    }
+}

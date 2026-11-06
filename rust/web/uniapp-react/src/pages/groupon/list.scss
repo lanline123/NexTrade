@@ -1,0 +1,198 @@
+/* 自旧 pages/groupon/list.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+.groupon-header {
+    // position: fixed;
+    width: 100%;
+    z-index: 99;
+    background: #fff;
+    height: 599rpx;
+    left: 0;
+
+    .header {
+        width: 100%;
+        height: 99rpx;
+        background-color: #fff;
+        display: flex;
+        padding-right: 20rpx;
+
+        .left {
+            width: 80rpx;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .icon-houtui {
+                font-size: 34rpx;
+            }
+        }
+
+        .input {
+            flex: 1;
+            height: 50rpx;
+            background-color: #f5f5f5;
+            border-radius: 50rpx;
+            box-sizing: border-box;
+            padding: 0 25rpx;
+
+            .iconfont-h5 {
+                font-size: 26rpx;
+                color: #8c8c8c;
+            }
+
+            .txt {
+                color: #8c8c8c;
+                width: 93%;
+                font-size: 26rpx;
+            }
+        }
+    }
+
+    .groupon-title {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .groupon-img {
+            width: 100%;
+            height: 400rpx;
+        }
+
+        .group-timeinfo {
+            width: 100%;
+            height: 100rpx;
+            padding: 0 20rpx;
+            padding-right: 10rpx;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 24rpx;
+
+            .countdown-title {
+                font-weight: bold;
+                color: #1a1a1a;
+                margin-right: 15rpx;
+            }
+
+            .countdown-text {
+                font-size: 22rpx;
+                font-weight: bold;
+                display: flex;
+                align-items: baseline;
+            }
+
+            .countdown-bg {
+                color: var(--ump-price);
+                background-color: var(--primary-light-9);
+                width: 32rpx;
+                height: 32rpx;
+                padding: 5rpx;
+                border-radius: 6rpx;
+                display: inline-flex;
+                overflow: hidden;
+                justify-content: center;
+            }
+
+            .group-desc {
+                color: #999;
+            }
+        }
+    }
+}
+
+.placeholder {
+    // height: 699rpx;
+}
+
+.tab-box {
+    margin-top: 20rpx;
+    background-color: #fff;
+    // position: fixed;
+    height: 80rpx;
+    width: 100%;
+    z-index: 99;
+    top: 599rpx;
+
+    .gap {
+        background-color: #f5f5f5;
+        height: 20rpx;
+    }
+
+    .item-list {
+        position: relative;
+        // padding: 30rpx 0;
+    }
+
+    .item {
+        height: 80rpx;
+        padding: 0 28rpx;
+        flex: 1;
+        color: #333;
+        font-size: 28rpx;
+        align-items: center;
+        justify-content: left;
+        cursor: pointer;
+
+        .price-ico-box {
+            margin-left: 10rpx;
+            gap: 0;
+        }
+
+        .sanjiaoright {
+            color: #c3c0c0 !important;
+            margin-left: 10rpx;
+        }
+    }
+
+    .active {
+        color: var(--general);
+
+        .iconfont-h5 {
+            color: #c3c0c0 !important;
+        }
+
+        .order {
+            color: var(--general) !important;
+        }
+    }
+
+    .layout-change-icon {
+        padding: 0 20rpx;
+        height: 80rpx;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        .icon {
+            height: 32rpx;
+            width: 32rpx;
+        }
+    }
+}
+
+.list-box {
+    height: calc(100vh - 699rpx);
+    background-color: #fff;
+
+    .list-scroll {
+        height: 100%;
+    }
+}
+
+.grouponpromotion-plain {
+    height: 60vh;
+    padding-top: 20rpx;
+
+    .popup-content {
+        padding: 30rpx;
+    }
+}
+
+.empty-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}

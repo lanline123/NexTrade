@@ -1,0 +1,54 @@
+/* 自旧 pages/order/src/pickupUserCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 `image` 标签选择器改为 .bg-img（Taro Image 无原生标签选择器） */
+.pickup-info-box {
+    background: #fff;
+    padding: 30rpx;
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    column-gap: 10rpx;
+    position: relative;
+
+    .pickup-bg {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 6rpx;
+
+        .bg-img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    }
+
+    .pickup-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        font-size: 28rpx;
+        color: #262626;
+
+        .info-content {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .info-tip {
+            color: #6a6a6a;
+        }
+    }
+
+    .icon-box {
+        display: flex;
+        align-items: center;
+
+        .icon-a-gengduo20 {
+            font-size: 19rpx;
+            color: #8c8c8c;
+        }
+    }
+}

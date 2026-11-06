@@ -1,0 +1,146 @@
+/* 自旧 pages/salesman/businessCard.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped） */
+.my-card {
+    padding: 30rpx;
+}
+.my-card--info-wrap {
+    background: #fff;
+    border-radius: 20rpx;
+    box-shadow: 0 0 20rpx 0 rgba(0, 0, 0, 0.05);
+}
+.user-info-card {
+    background: #fff;
+    border-radius: 20rpx;
+    .gray-color {
+        color: #969799;
+    }
+    .qr-icon {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        color: #969799;
+        /* 旧 up-icon name="arrow-right" color="#969799" size="16" */
+        .qr-arrow {
+            margin-left: 8rpx;
+            font-size: 32rpx;
+            line-height: 1;
+        }
+    }
+}
+.user-info-card--info-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 44rpx;
+    .user-info-card--avatar-wrap {
+        margin-right: 44rpx;
+        line-height: 0;
+    }
+    .user-info-card--info-intr {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        .user-info-card--section {
+            margin-bottom: 40rpx;
+            .user-info-card--info-intr-name {
+                line-height: 40rpx;
+                font-size: 36rpx;
+                font-weight: 500;
+                margin-bottom: 12rpx;
+            }
+            .user-info-card--info-intr-office {
+                font-size: 24rpx;
+                color: #969799;
+            }
+        }
+        .user-info-card--info-intr-wechat {
+            display: flex;
+            font-size: 24rpx;
+            line-height: 32rpx;
+            .user-info-card--info-intr-wechat-title {
+                min-width: 72rpx;
+            }
+            .user-info-card--info-intr-wechat-num {
+                max-width: 242rpx;
+            }
+        }
+    }
+}
+.user-info-card--cell-wrap {
+    border-radius: 20rpx;
+}
+
+.ellipsis-content {
+    overflow: hidden;
+    word-break: break-word;
+}
+.avatar {
+    display: inline-block;
+    box-sizing: border-box;
+    text-align: center;
+    color: #fff;
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+    font-size: 32rpx;
+    &.avatar--size-default {
+        width: 64rpx;
+        height: 64rpx;
+        line-height: 64rpx;
+    }
+    &.avatar--shape-circle {
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    &.avatar--type-image {
+        background: transparent;
+        .avatar-image {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    }
+}
+
+.van-cell {
+    position: relative;
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 20rpx 32rpx;
+    overflow: hidden;
+    color: #323233;
+    font-size: 28rpx;
+    line-height: 48rpx;
+    background-color: #fff;
+    .van-cell--clickable {
+        cursor: pointer;
+    }
+    .van-cell__title,
+    .van-cell__value {
+        flex: 1;
+    }
+    .van-cell__value {
+        position: relative;
+        overflow: hidden;
+        color: #969799;
+        text-align: right;
+        vertical-align: middle;
+        word-wrap: break-word;
+    }
+}
+[class*="van-hairline"]:after {
+    position: absolute;
+    box-sizing: border-box;
+    content: " ";
+    pointer-events: none;
+    top: -50%;
+    right: -50%;
+    bottom: -50%;
+    left: -50%;
+    border: 0 solid #ebedf0;
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+}
+.van-hairline--bottom:after {
+    border-bottom-width: 2rpx;
+}

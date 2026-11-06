@@ -1,0 +1,80 @@
+.promotion {
+    padding-bottom: 2rpx;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 20rpx;
+    margin-right: 5rpx;
+
+    .activity {
+        max-width: 250rpx;
+        /* 有主题色时用派生色；未传时保持原 solid 主色 */
+        background-color: var(--activity-theme-bg, var(--general));
+        color: var(--activity-theme-color, var(--main-text));
+        padding: 0 8rpx;
+        border-radius: 5rpx;
+        margin-right: 10rpx;
+        white-space: nowrap;
+    }
+    .ticket {
+        display: flex;
+        background-color: var(--activity-theme-bg, var(--tag-bg));
+        color: var(--activity-theme-color, var(--tag-text));
+        border-radius: 5rpx;
+        padding-bottom: 2rpx;
+        width: 100%;
+
+        .ticket-type {
+            padding: 0 6rpx;
+            position: relative;
+
+            .ticket-line {
+                position: absolute;
+                display: inline-block;
+                height: 100%;
+                opacity: 0.5;
+                width: 2px;
+                top: 0;
+                right: 0rpx;
+                transform: scaleY(0.7);
+                background: linear-gradient(
+                    to bottom,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 20%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 20%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 20%,
+                    rgba(255, 255, 255, 0) 20%,
+                    rgba(255, 255, 255, 0) 35%,
+                    var(--activity-theme-color-80, rgba(136, 76, 255, 1)) 35%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 35%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 35%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 60%,
+                    rgba(255, 255, 255, 0) 60%,
+                    rgba(255, 255, 255, 0) 55%,
+                    rgba(255, 255, 255, 0) 75%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 75%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 75%,
+                    var(--activity-theme-color-80, var(--ump-border, #c9c9ff)) 100%
+                );
+            }
+        }
+        .ticket-content {
+            padding: 0 8rpx;
+            max-width: 200rpx;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+    &.subbg {
+        margin: 10rpx;
+        margin-bottom: 0;
+        margin-left: 0;
+        padding: 0;
+        .activity {
+            background-color: var(--activity-theme-bg, var(--tag-bg));
+            color: var(--activity-theme-color, var(--tag-text));
+        }
+    }
+    &.promotion-disabled {
+        opacity: 0.5;
+    }
+}

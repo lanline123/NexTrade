@@ -1,0 +1,29 @@
+/* 自旧 pages/salesman/src/empty.vue 的 scoped 样式移植（去 scoped） */
+.van-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 64rpx 0;
+    padding-top: 150px;
+}
+
+.van-empty__image {
+    width: 150rpx;
+    height: 150rpx;
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.van-empty__description {
+    margin-top: 32rpx;
+    padding: 0 120rpx;
+    color: #969799;
+    font-size: 28rpx;
+    line-height: 40rpx;
+    text-align: center;
+}

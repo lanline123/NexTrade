@@ -1,0 +1,139 @@
+/* 自旧 pages/groupon/src/grouponItem.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+.product-card {
+    background-color: #fff;
+    display: flex;
+    gap: 11rpx;
+    padding: 30rpx 30rpx 30rpx 20rpx;
+
+    border-radius: 8rpx;
+
+    .image {
+        position: relative;
+        width: 200rpx;
+        height: 200rpx;
+        border-radius: 8rpx;
+        flex-shrink: 0;
+        overflow: hidden;
+        .product-style-border {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+    }
+
+    .detail {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+
+        .main-info {
+            row-gap: 20rpx;
+
+            .line2 {
+                padding-right: 30rpx;
+            }
+        }
+
+        .detail-title {
+            font-weight: bold;
+            font-size: 30rpx;
+            color: #2a2a2a;
+            text-overflow: ellipsis;
+            word-break: normal;
+        }
+
+        .group-num {
+            text-align: center;
+            padding: 4rpx 9rpx;
+            border-radius: 4rpx;
+            border: 1px solid var(--primary-light-3);
+            font-weight: 500;
+            font-size: 24rpx;
+            line-height: 24rpx;
+            color: var(--primary-light-3);
+            box-sizing: border-box;
+            display: inline-flex;
+        }
+
+        .detail-group {
+            display: flex;
+            align-items: baseline;
+            gap: 0 10rpx;
+
+            .num {
+                font-weight: 500;
+                font-size: 24rpx;
+                color: #9a9a9a;
+            }
+        }
+
+        .group-price {
+            font-weight: bold;
+            font-size: 24rpx;
+            line-height: 24rpx;
+            color: var(--price);
+
+            .price-text {
+                margin-right: 11rpx;
+            }
+        }
+
+        .original-price {
+            font-size: 24rpx;
+            line-height: 24rpx;
+            color: #9a9a9a;
+            margin-left: 16rpx;
+        }
+
+        .act-btn {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+        }
+    }
+}
+
+.waterfall-item {
+    .line2 {
+        line-height: 40rpx;
+    }
+
+    .group-num {
+        margin-right: 10rpx;
+    }
+
+    .product-card {
+        padding: 0;
+        flex-direction: column;
+        border-radius: 10rpx;
+        box-shadow: 0rpx 2rpx 14rpx 0rpx rgba(0, 0, 0, 0.06);
+        background: #fff;
+        overflow: hidden;
+        gap: 0;
+
+        .image {
+            width: 100%;
+            height: 345rpx;
+            border-radius: 0;
+            height: auto;
+        }
+
+        .detail {
+            padding: 20rpx;
+            display: flex;
+            flex-direction: column;
+            gap: 28rpx;
+
+            .detail-title {
+                font-size: 28rpx;
+                color: #333;
+            }
+        }
+    }
+}

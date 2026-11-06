@@ -1,0 +1,60 @@
+.tig-navbar {
+    .navbar-box {
+        width: 100%;
+        height: var(--nav-height);
+        z-index: 888;
+        background-color: #fff;
+
+        .navbar {
+            position: relative;
+            height: 100%;
+
+            .navbar-content {
+                position: absolute;
+                height: 100rpx;
+                bottom: 0;
+                left: 0;
+                display: flex;
+                align-items: center;
+                width: 100%;
+
+                .left {
+                    width: 100rpx;
+                    height: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    .icon-houtui {
+                        font-size: 40rpx;
+                    }
+                }
+                .middle {
+                    flex: 1;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: #000;
+                    overflow: hidden;
+                    .title {
+                        font-size: 32rpx;
+                    }
+                }
+
+                .right {
+                    padding-right: 16rpx;
+                    width: 100rpx;
+                }
+            }
+        }
+    }
+}
+
+.placeholder {
+    // 旧版此占位为空，保持一致
+}
+
+.line1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

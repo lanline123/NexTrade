@@ -23,6 +23,7 @@ import PcSearchBox from '@/components/PcSearchBox';
 import PcShopSearchInput from '@/components/PcShopSearchInput';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
+import type { PcHeaderBootstrap } from '@/lib/header-bootstrap';
 
 const FALLBACK_NAV = [
   { title: '首页', link: '/' },
@@ -79,15 +80,19 @@ export default function PcHeaderSimple({
   isWhite = true,
   page = '',
   shopSearch = false,
+  bootstrap = null,
 }: {
   config?: PcHeaderConfig | Record<string, any> | null;
   isWhite?: boolean;
   page?: string;
   shopSearch?: boolean;
+  /** 服务端预取的头部公共数据（Logo），首屏即渲染 */
+  bootstrap?: PcHeaderBootstrap | null;
 }) {
   const pathname = usePathname();
   const header = (config || {}) as Record<string, any>;
-  const [siteLogo, setSiteLogo] = useState('');
+  const bootstrapLogo = typeof bootstrap?.base?.shopLogo === 'string' ? bootstrap.base.shopLogo : '';
+  const [siteLogo, setSiteLogo] = useState(bootstrapLogo);
   const [mainNav, setMainNav] = useState<Array<Record<string, any>> | null>(null);
   const [cartCount, setCartCount] = useState(0);
   const [logoAreaHeight, setLogoAreaHeight] = useState(60);
@@ -124,7 +129,7 @@ export default function PcHeaderSimple({
   }, [header]);
 
   useEffect(() => {
-    if (logo) return;
+    if (logo || siteLogo) return;
     let cancelled = false;
     fetch('/api/common/config/base')
       .then((response) => response.json())
@@ -136,7 +141,7 @@ export default function PcHeaderSimple({
     return () => {
       cancelled = true;
     };
-  }, [logo]);
+  }, [logo, siteLogo]);
 
   useEffect(() => {
     let cancelled = false;

@@ -1,4 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+import { Toast } from '@douyinfe/semi-ui';
+import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
+import { apiPost } from '@/lib/client-api';
 import type { ProductListItem } from '@/lib/api';
 
 function money(value: unknown): string {
@@ -11,6 +16,15 @@ interface ProductGridProps {
   showSales?: boolean;
   /** 搜索装修 showShopTag：为 true 且商品带店铺信息时展示店铺标签。 */
   showShopTag?: boolean;
+}
+
+async function addToCartQuick(productId: number) {
+  try {
+    await apiPost('cart/cart/addToCart', { id: productId, number: 1 });
+    Toast.success({ content: '已加入购物车' });
+  } catch (error) {
+    Toast.error({ content: error instanceof Error ? error.message : '加入购物车失败' });
+  }
 }
 
 export default function ProductGrid({ products, showSales = false, showShopTag = false }: ProductGridProps) {
@@ -31,6 +45,18 @@ export default function ProductGrid({ products, showSales = false, showShopTag =
             <div className="pc-product-grid__image">
               <img src={product.picThumb || product.picUrl || ''} alt={product.productName || ''} loading="lazy" />
               {showShopTag && shopTitle ? <span className="pc-product-grid__shop-tag">{shopTitle}</span> : null}
+              <button
+                type="button"
+                className="pc-product-grid__quick"
+                aria-label="加入购物车"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void addToCartQuick(Number(product.productId));
+                }}
+              >
+                <ShoppingCart size={16} />
+              </button>
             </div>
             <div className="pc-product-grid__body">
               <div className="pc-product-grid__name">{product.productName}</div>

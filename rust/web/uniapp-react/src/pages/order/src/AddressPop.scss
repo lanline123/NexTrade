@@ -1,0 +1,45 @@
+/* 自旧 pages/order/src/addressPop.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 tig-button（plain / 默认主题）为等价补充样式 */
+.address-pop {
+    background-color: #fff;
+    width: 590rpx;
+    padding: 0 40rpx;
+    border-radius: 16rpx;
+    overflow: hidden;
+
+    .pop-center {
+        background-color: #fff;
+        padding: 70rpx 40rpx 50rpx;
+        font-size: 28rpx;
+        line-height: 46rpx;
+        text-align: center;
+    }
+
+    .pop-btns {
+        display: flex;
+        column-gap: 20rpx;
+        padding-bottom: 40rpx;
+
+        .btn {
+            flex: 1;
+            height: 65rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--general);
+            color: #fff;
+            font-size: 26rpx;
+            border-radius: 8rpx;
+
+            &:active {
+                opacity: 0.7;
+            }
+
+            &.btn--plain {
+                background-color: #fff;
+                color: var(--general);
+                border: 1rpx solid var(--general);
+            }
+        }
+    }
+}

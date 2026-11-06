@@ -1,0 +1,12 @@
+/* 自旧 components/imageSearchEntry/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.image-search-entry {
+    flex-shrink: 0;
+    align-self: stretch;
+    margin-left: auto;
+    padding: 0 16rpx;
+    display: flex;
+    align-items: center;
+}
+.image-search-entry--flush {
+    padding-right: 0;
+}

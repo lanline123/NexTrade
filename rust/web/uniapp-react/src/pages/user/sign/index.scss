@@ -1,0 +1,198 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/sign/index.vue 迁移：样式逐行保留（去 scoped；v-bind 背景改内联 style） */
+.qiandaoBox {
+    position: relative;
+
+    .title {
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+        color: #fff;
+        height: 50px;
+        line-height: 50px;
+        background: #e45363;
+    }
+
+    .wrap {
+        // 旧 background-image: v-bind(qiandaoBg) 已改为组件内联 style
+        background-repeat: no-repeat;
+        background-size: 100% 280px;
+        min-height: 300px;
+        padding: 40px 30px;
+        box-sizing: border-box;
+
+        .samll-title {
+            padding-left: 3%;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .samll-title span {
+            color: #dd9260;
+            margin: 0 3px;
+        }
+    }
+
+    .selected-scroll {
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    .selectedBox {
+        position: relative;
+        display: flex;
+        flex-wrap: nowrap;
+
+        .line {
+            position: absolute;
+            top: 18px;
+            left: 10%;
+            width: 80%;
+            height: 1px;
+            background: #d8d9d8;
+            z-index: 1;
+        }
+
+        .item {
+            display: inline-block;
+            width: 50px;
+            flex: none;
+            text-align: center;
+            position: relative;
+            height: 80px;
+
+            .item-content {
+                width: 100%;
+                height: 50px;
+                color: #dd9260;
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 2;
+                font-size: 12px;
+
+                .num {
+                    margin: 0 auto;
+                    width: 30px;
+                    height: 30px;
+                    line-height: 30px;
+                    background-image: url("https://demo.tigshop.cn/static/mini/images/user/qiandao/2.png");
+                    background-repeat: no-repeat;
+                    background-size: 100%;
+                    border-radius: 50%;
+                    margin-bottom: 10px;
+                }
+            }
+
+            &.selected .item-content .num {
+                background-image: url("https://demo.tigshop.cn/static/mini/images/user/qiandao/1.png");
+            }
+        }
+    }
+
+    .qiandaoBtnBox {
+        padding: 0 10px;
+        padding-top: 25px;
+
+        .qdBtn {
+            position: relative;
+            width: 100%;
+            max-width: 375px;
+            height: 40px;
+            line-height: 40px;
+            margin: 0 auto;
+            text-align: center;
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            background-image: url("https://demo.tigshop.cn/static/mini/images/user/qiandao/btn-def.png");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        }
+
+        .dk-now::after {
+            content: "";
+            position: absolute;
+            top: 14px;
+            margin-left: 5px;
+            width: 12px;
+            height: 12px;
+            background-image: url("https://demo.tigshop.cn/static/mini/images/user/qiandao/gif-icon.png");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        }
+    }
+}
+
+.recgoodsBox {
+    margin: 0 10px;
+    background: #fff;
+    border-radius: 9px;
+
+    .title {
+        display: flex;
+        flex-wrap: nowrap;
+        height: 50px;
+        line-height: 50px;
+        justify-content: space-between;
+
+        .bg {
+            // 旧 background-image: v-bind(hotBg) 已改为组件内联 style
+            width: 200px;
+            height: 50px;
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            padding-left: 100rpx;
+            font-weight: bold;
+            line-height: 55px;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+
+        .moregoods {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+            padding-top: 5px;
+            padding-right: 10px;
+        }
+    }
+
+    .wrapGoods {
+        padding: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        column-gap: 5px;
+        row-gap: 10px;
+
+        .item {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+
+            .rec-img {
+                width: 100%;
+                height: 80px;
+                border-radius: 9px;
+                border: 1px solid #efefef;
+            }
+
+            .name {
+                padding: 0 15px;
+                height: 20px;
+                line-height: 20px;
+                overflow: hidden;
+                font-weight: 500;
+                color: #333;
+                font-size: 12px;
+                margin-top: 4px;
+            }
+
+            .price {
+                font-size: 12px;
+                color: #e45363;
+            }
+        }
+    }
+}

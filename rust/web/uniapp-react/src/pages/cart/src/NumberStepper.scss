@@ -1,0 +1,46 @@
+/* 自旧 tig-number-stepper.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.tig-number-step {
+    background: #f7f8fc;
+    border-radius: 4px;
+
+    .value {
+        width: 61rpx;
+        height: 47rpx;
+        display: flex;
+        align-items: center;
+
+        input {
+            text-align: center;
+            height: 100%;
+        }
+    }
+
+    .minus {
+        /* 背景图改由 NumberStepper.tsx 内联 style 注入（原 .minus/.del/.disabled 三态背景图） */
+    }
+
+    .plus {
+        /* 背景图改由 NumberStepper.tsx 内联 style 注入 */
+    }
+
+    .btn {
+        width: 47rpx;
+        height: 47rpx;
+        justify-content: center;
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+        background-size: 21rpx 21rpx;
+        /* 扩大可点区域，避免小程序端点击命中困难 */
+        position: relative;
+        z-index: 1;
+    }
+}
+
+/* 原 flex / align-center 工具类（uniapp 全局 css 提供） */
+.flex {
+    display: flex;
+}
+
+.align-center {
+    align-items: center;
+}

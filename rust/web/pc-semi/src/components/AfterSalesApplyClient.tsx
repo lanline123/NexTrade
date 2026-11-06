@@ -160,7 +160,7 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
                 <div>
                   <b>{item.productName}</b>
                   <span>{item.skuData?.map((sku) => sku.value).filter(Boolean).join(' / ')}</span>
-                  <span>可申请数量：{max}</span>
+                  <span>可售后数量：{max}</span>
                 </div>
                 <span>¥ {Number(item.price || 0).toFixed(2)}</span>
                 <Input

@@ -1,0 +1,109 @@
+/* 自旧 tag-row-domestic.vue <style lang="scss" scoped> 原样拷出，去 scoped */
+.tag-row-domestic {
+    width: 100%;
+
+    &.embedded .tag-row {
+        background-color: transparent;
+        padding: 8rpx 4rpx 4rpx;
+
+        .tag-list .tag-item {
+            margin-bottom: 8rpx;
+        }
+
+        .tag-list .tag-interval {
+            margin-bottom: 8rpx;
+        }
+    }
+
+    &.embedded.in-row {
+        flex-shrink: 0;
+        /* 按内容撑开，不能相对 scroll-view 视口限宽，否则关键词会叠在 tag 上 */
+        width: max-content;
+        max-width: none;
+
+        .tag-row {
+            width: max-content;
+            padding: 0 8rpx 0 0;
+        }
+
+        .tag-list {
+            flex-wrap: nowrap;
+            width: max-content;
+            align-items: center;
+        }
+
+        .tag-list .tag-item {
+            margin-bottom: 0;
+            flex-shrink: 0;
+            padding: 4rpx 10rpx;
+            font-size: 22rpx;
+        }
+
+        .tag-list .mr10 {
+            margin-right: 8rpx;
+        }
+
+        .tag-list .tag-interval {
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+    }
+}
+
+.tag-row {
+    background-color: #fff;
+    padding: 0 30rpx;
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+
+        .tag-item {
+            display: flex;
+            align-items: center;
+            padding: 5rpx 10rpx;
+            text-align: center;
+            color: #232326;
+            background-color: #f7f7f7;
+            border: solid 1px #f0f2f5;
+            font-size: 24rpx;
+            border-radius: 27px;
+            vertical-align: middle;
+            margin-bottom: 20rpx;
+
+            text {
+                margin: 0 5rpx;
+            }
+        }
+
+        .mr10 {
+            margin-right: 10rpx;
+        }
+
+        .tag-interval {
+            margin: 0 10rpx 20rpx;
+            font-size: 18rpx;
+
+            .icon-gengduo1 {
+                font-size: 13rpx;
+                color: #999;
+                transform: translateY(-2rpx);
+                display: inline-block;
+            }
+        }
+
+        .tag-icon {
+            font-size: 18rpx;
+            color: #000;
+        }
+    }
+}
+
+/* 旧工程 App.vue 全局工具类（.flex/.align-center），React 工程无全局定义，组件内补齐 */
+.tag-row-domestic .flex {
+    display: flex;
+}
+.tag-row-domestic .align-center {
+    align-items: center;
+}

@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getPcHeader } from '@/lib/api';
+import MemberShell from '@/components/MemberShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,11 +18,9 @@ export default async function ReturnInfoRedirect({ searchParams }: { searchParam
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <div className="pc-container">
-          <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/member">会员中心</Link><span>/</span><span>退款详情</span></nav>
-          <h1 className="pc-cart-title">退款详情</h1>
-          <div className="comment-empty">缺少售后单号或订单号，无法打开退款详情。请从订单列表进入。</div>
-        </div>
+        <MemberShell title="退款详情">
+    <div className="comment-empty">缺少售后单号或订单号，无法打开退款详情。请从订单列表进入。</div>
+        </MemberShell>
       </main>
       <PcFooter />
     </>

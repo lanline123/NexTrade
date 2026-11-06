@@ -1,0 +1,377 @@
+/* 自旧 pages/user/userCertification/index.vue 的 <style> 与 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+
+/* 旧 uni 日期组件主题色（新实现已由 NutUI/Picker 替代，规则保留以备查） */
+.form-box .uni-datetime-picker--btn {
+    background-color: var(--general);
+}
+.form-box .uni-calendar-item__weeks-box .uni-calendar-item--checked {
+    background-color: var(--general);
+}
+.form-box .uni-calendar-item--multiple .uni-calendar-item--after-checked {
+    background-color: var(--general);
+}
+
+/* 旧 up-form 全局内边距（平铺到自绘 form-row） */
+.form-box .form-row {
+    padding: 15px 0;
+}
+.form-box .special-item {
+    padding-bottom: 5px;
+}
+.form-box .noflex .form-row-content {
+    display: block;
+}
+
+/* 旧 :deep(.uni-progress-bar) 平铺（H5 可能不命中，保留） */
+.uni-progress-bar {
+    display: none;
+}
+
+.input-text {
+    font-size: 15px;
+    width: 100%;
+    text-align: right;
+}
+
+.upload-box {
+    width: 80%;
+    padding-top: 20rpx;
+}
+
+.btn-box {
+    padding: 25rpx 15rpx;
+    height: 100%;
+
+    .btn {
+        height: 100%;
+        font-size: 28rpx;
+    }
+}
+
+.status-box {
+    background: none repeat scroll 0 0 #fffdee;
+    border: 1px solid #edd28b;
+    padding: 20rpx;
+    font-size: 28rpx;
+    margin: 20rpx 20rpx;
+    .status-text {
+        padding-bottom: 15rpx;
+        &:last-child {
+            padding-bottom: 0;
+        }
+    }
+}
+
+.specaial-text {
+    color: var(--general);
+}
+
+.form-box {
+    background-color: #fff;
+    border-radius: 20rpx;
+    padding: 20rpx 30rpx;
+    margin: 20rpx;
+    .type-text {
+        width: 100%;
+        display: flex;
+        justify-content: end;
+    }
+
+    .form-upload {
+        width: 149rpx;
+        height: 150rpx;
+        background: #fafafa;
+        border-radius: 20rpx;
+        margin-top: 20rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .certificate-validity-item {
+        display: flex;
+        height: 100rpx;
+        align-items: center;
+        padding-top: 10px;
+        &:first-child {
+            padding-top: 10px;
+        }
+    }
+
+    .validity-item-text {
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        width: 485rpx;
+        padding-left: 20rpx;
+    }
+    .period_end-box {
+        display: flex;
+        align-items: center;
+        width: 485rpx;
+        padding-left: 20rpx;
+        column-gap: 20rpx;
+    }
+
+    .form-title {
+        font-size: 30rpx;
+        font-weight: 600;
+        color: #333333;
+        display: flex;
+        align-items: center;
+        padding: 20rpx 0;
+        &::before {
+            content: "";
+            display: inline-block;
+            width: 6rpx;
+            height: 30rpx;
+            background: var(--general);
+            border-radius: 3rpx;
+            margin-right: 10rpx;
+        }
+    }
+    .image-box {
+        padding-top: 30rpx;
+        height: 200rpx;
+        width: 200rpx;
+    }
+}
+
+/* ===== 旧 up-form-item（label-width=100、required 星号）自绘 ===== */
+.form-list {
+    .form-row {
+        display: flex;
+        align-items: center;
+        font-size: 28rpx;
+        color: #333;
+
+        &.is-top {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .form-row-label {
+            width: 100px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            color: #333;
+
+            .form-required {
+                color: #ee0a24;
+                margin-right: 4rpx;
+            }
+        }
+
+        &.is-top .form-row-label {
+            width: 100%;
+            margin-bottom: 6rpx;
+        }
+
+        .form-row-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        &.is-top .form-row-content,
+        &.noflex .form-row-content {
+            display: block;
+            justify-content: flex-start;
+        }
+    }
+}
+
+.form-input {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+    font-size: 28rpx;
+    color: #333;
+    background-color: transparent;
+
+    &.right {
+        text-align: right;
+    }
+}
+
+.form-input-text {
+    width: 100%;
+    font-size: 28rpx;
+    color: #333;
+
+    &.right {
+        text-align: right;
+    }
+}
+
+.input-content {
+    width: 100%;
+    word-wrap: break-word;
+}
+
+/* ===== 旧 up-radio-group / up-radio（circle）自绘 ===== */
+.sex-box {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.radio-group {
+    display: flex;
+    align-items: center;
+
+    &.column {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.radio-item {
+    display: flex;
+    align-items: center;
+    margin-right: 20rpx;
+
+    &:last-child {
+        margin-right: 0;
+    }
+}
+
+.radio-dot {
+    width: 32rpx;
+    height: 32rpx;
+    border-radius: 50%;
+    border: 1px solid #c8c9cc;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: #fff;
+
+    &.checked {
+        border-color: var(--general);
+    }
+
+    .radio-dot-inner {
+        width: 20rpx;
+        height: 20rpx;
+        border-radius: 50%;
+        background-color: var(--general);
+    }
+}
+
+.radio-label {
+    margin-left: 8rpx;
+    font-size: 28rpx;
+    color: #333;
+}
+
+/* 旧 up-input 右侧箭头（#right 插槽） */
+.select-value {
+    width: 100%;
+    display: flex;
+    align-items: center;
+
+    .arrow-right {
+        /* 旧模板为 up-icon name="arrow-right"；新工程 iconfont 无 icon-arrowright，改用边框绘制右箭头 */
+        display: inline-block;
+        width: 14rpx;
+        height: 14rpx;
+        margin-left: 10rpx;
+        border-top: 2rpx solid #c0c4cc;
+        border-right: 2rpx solid #c0c4cc;
+        transform: rotate(45deg);
+        flex-shrink: 0;
+        font-size: 0;
+    }
+}
+
+/* 旧 up-alert（type=info, show-icon）自绘 */
+.alert-box {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #f4f4f5;
+    border-radius: 8rpx;
+    padding: 12rpx 16rpx;
+    font-size: 24rpx;
+    color: #909399;
+
+    .alert-icon {
+        width: 28rpx;
+        height: 28rpx;
+        border-radius: 50%;
+        background-color: #909399;
+        color: #fff;
+        font-size: 20rpx;
+        line-height: 28rpx;
+        text-align: center;
+        margin-right: 10rpx;
+        flex-shrink: 0;
+    }
+
+    .alert-desc {
+        flex: 1;
+        min-width: 0;
+        line-height: 1.5;
+    }
+}
+
+/* 旧 up-action-sheet（round）自绘 */
+.action-sheet {
+    background-color: #fff;
+    border-radius: 16rpx 16rpx 0 0;
+    overflow: hidden;
+
+    .action-sheet-title {
+        padding: 28rpx;
+        text-align: center;
+        font-size: 28rpx;
+        color: #999;
+    }
+
+    .action-sheet-item {
+        padding: 28rpx;
+        text-align: center;
+        font-size: 30rpx;
+        color: #333;
+        border-top: 1px solid #f2f2f2;
+
+        &:active {
+            background-color: #f5f5f5;
+        }
+    }
+
+    .action-sheet-cancel {
+        padding: 28rpx;
+        text-align: center;
+        font-size: 30rpx;
+        color: #333;
+        border-top: 8rpx solid #f5f5f5;
+    }
+}
+
+/* 旧 tig-fixed-placeholder（height=120rpx、背景白） */
+.fixed-placeholder {
+    .fixed-content {
+        width: 100%;
+        min-height: 120rpx;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        box-sizing: content-box;
+        padding-bottom: var(--safe-bottom);
+        box-shadow: 0 0 10px rgba(125, 126, 128, 0.16);
+    }
+
+    .fixed-placeholder-pad {
+        width: 100%;
+        height: 0;
+        padding-top: calc(120rpx + var(--safe-bottom));
+    }
+}

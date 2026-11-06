@@ -1,0 +1,16 @@
+/* 自旧 pages/groupon/src/grouponNav.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+.groupon-nav {
+    .groupon-nav__rigth-icon {
+        .click-placehoder {
+            width: 84rpx;
+            position: absolute;
+            top: 0;
+            right: 16rpx;
+            bottom: 0;
+        }
+
+        .icon-sousuo {
+            font-size: 40rpx;
+        }
+    }
+}

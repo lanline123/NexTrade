@@ -1,0 +1,123 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/collectionShop/index.vue 迁移：样式逐行保留（去 scoped） */
+.collection-content {
+    padding: 25rpx;
+
+    .move-item {
+        margin-bottom: 20rpx;
+    }
+
+    .shop-item {
+        padding: 30rpx 20rpx;
+        background-color: #fff;
+        border-radius: 20rpx;
+        display: flex;
+
+        .shop-item-left {
+            width: 130rpx;
+            height: 130rpx;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shop-item-right {
+            width: calc(100% - 150rpx);
+            padding-left: 20rpx;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 10rpx;
+
+            .shop-name {
+                font-size: 28rpx;
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .shop-desc {
+                font-size: 24rpx;
+                color: #999;
+                width: 100%;
+            }
+
+            .tipNames {
+                /* 标签最多显示两行，单行时不额外占用底部间距 */
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8rpx;
+                max-height: 68rpx;
+                overflow: hidden;
+
+                .tipName {
+                    display: block;
+                    align-items: center;
+                    height: 30rpx;
+                    line-height: 30rpx;
+                    font-size: 22rpx;
+                    font-weight: 400;
+                    color: #50607a;
+                    background-color: #f3f6f8;
+                    border-radius: 6rpx;
+                    box-sizing: border-box;
+                    padding: 0 10rpx;
+                    white-space: nowrap;
+                }
+            }
+
+            .shop-info {
+                font-size: 24rpx;
+                color: #999;
+
+                .shop-info-text {
+                    &:first-child {
+                        padding-right: 18rpx;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.collect-move-box {
+    width: 150rpx;
+    height: 100%;
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    display: flex;
+
+    text {
+        display: block;
+        position: absolute;
+        top: 50%;
+        margin-top: -20rpx;
+        font-size: 24rpx;
+        text-align: center;
+        width: 100%;
+    }
+
+    .btn-collect {
+        width: 150rpx;
+        background: var(--vice-bg);
+        color: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+
+    .btn-del {
+        width: 150rpx;
+        background: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+}

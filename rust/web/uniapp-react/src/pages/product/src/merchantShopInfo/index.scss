@@ -1,0 +1,56 @@
+/* 自旧 merchantShopInfo.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.merchant-shop-card {
+    margin-top: 14rpx;
+    padding: 24rpx 28rpx;
+    background-color: var(--product-content-bg, #fff);
+
+    &--o2o {
+        margin-top: 20rpx;
+        border-radius: 20rpx;
+    }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+    }
+
+    &__logo {
+        flex-shrink: 0;
+        width: 62rpx;
+        height: 62rpx;
+        margin-right: 20rpx;
+        overflow: hidden;
+        border-radius: 50%;
+    }
+
+    &__name {
+        flex: 1;
+        min-width: 0;
+        color: #1a1a1a;
+        font-size: 28rpx;
+        font-weight: 600;
+    }
+
+    &__actions {
+        display: flex;
+        gap: 32rpx;
+        margin-top: 24rpx;
+    }
+
+    &__button {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        height: 62rpx;
+        border: 1px solid #d7d7d7;
+        border-radius: 10rpx;
+        color: #686868;
+        font-size: 24rpx;
+
+        .icon-dianpu {
+            margin-right: 8rpx;
+        }
+    }
+}

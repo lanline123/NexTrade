@@ -1,0 +1,13 @@
+/* 自旧 pages/member/components/decorate/advertising/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.advertising-box {
+    border-radius: 18rpx;
+    overflow: hidden;
+    .advertising-content {
+        display: flex;
+        justify-content: center;
+
+        .advertising-image {
+            width: 100%;
+        }
+    }
+}

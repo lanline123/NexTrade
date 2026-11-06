@@ -1,0 +1,264 @@
+.bottom-bar-box {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 110rpx;
+    background-color: var(--product-content-bg, #fff);
+    border-top: 1rpx solid #f5f5f5;
+    box-sizing: content-box;
+    z-index: 10;
+
+    .bottom-bar {
+        height: 110rpx;
+        padding: 0 20rpx;
+        position: relative;
+        justify-content: center;
+
+        .product-status {
+            position: absolute;
+            top: -60rpx;
+            left: 0;
+            width: 100%;
+            height: 60rpx;
+            background-color: #fff7cc;
+            color: #f85;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24rpx;
+
+            &.member-restrict-status {
+                background-color: #fff0f0;
+                color: #ff4d4f;
+
+                .iconfont-h5 {
+                    margin-right: 6rpx;
+                    font-size: 26rpx;
+                }
+            }
+        }
+
+        .icon-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-box {
+            display: flex;
+            padding-left: 20rpx;
+            flex: 1;
+
+            .other-products-btn {
+                flex: 1;
+                font-weight: bold;
+                color: var(--main-text);
+                background-color: var(--main-bg);
+                height: 70rpx;
+                border-radius: 100rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28rpx;
+                column-gap: 5rpx;
+            }
+        }
+
+        .label {
+            font-size: 20rpx;
+            text-align: center;
+            width: 80rpx;
+
+            .img {
+                width: 35rpx;
+                height: 35rpx;
+            }
+
+            .cart-badge-wrap {
+                position: relative;
+                display: inline-block;
+
+                .cart-badge {
+                    position: absolute;
+                    top: -12rpx;
+                    right: -18rpx;
+                    min-width: 28rpx;
+                    height: 28rpx;
+                    padding: 0 6rpx;
+                    box-sizing: border-box;
+                    border-radius: 28rpx;
+                    background-color: var(--general);
+                    color: #fff;
+                    font-size: 18rpx;
+                    line-height: 28rpx;
+                    text-align: center;
+                }
+            }
+
+            .label-text {
+                padding-top: 5rpx;
+                color: #2f2f2f;
+                font-weight: 500;
+                font-size: 22rpx;
+            }
+        }
+
+        .btn {
+            flex: 1;
+            text-align: center;
+            line-height: 70rpx;
+            height: 70rpx;
+            color: #fff;
+            font-size: 24rpx;
+        }
+
+        .cart {
+            background: var(--vice-bg);
+            border-radius: 100rpx 0 0 100rpx;
+            color: var(--vice-text);
+        }
+
+        .buy {
+            background: var(--general);
+            border-radius: 0 100rpx 100rpx 0;
+            color: var(--main-text);
+        }
+
+        .btn-restricted {
+            opacity: 0.5;
+        }
+    }
+}
+
+.isBuyBtn {
+    flex: 1;
+    font-weight: 700;
+    height: 70rpx;
+    border-radius: 100rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28rpx;
+
+    // 旧 tig-button :disabled="true" → 置灰不可点
+    &.isBuyBtn--disabled {
+        color: var(--main-text);
+        background-color: var(--main-bg);
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+}
+
+/* A1 简约风：两个操作按钮分离，并跟随商城主题色。 */
+.bottom-bar-box--vortmall-simple {
+    .bottom-bar {
+        .btn-box {
+            column-gap: 16rpx;
+        }
+
+        .cart {
+            box-sizing: border-box;
+            color: var(--general);
+            background: #fff;
+            border: 3rpx solid var(--general);
+        }
+
+        .buy,
+        .other-products-btn {
+            color: var(--main-text);
+            background: var(--general);
+        }
+    }
+}
+
+/* A2 简约风：两个操作按钮分离，圆角由装修配置控制。 */
+.bottom-bar-box--o2o-simple {
+    .bottom-bar .btn-box {
+        column-gap: 16rpx;
+    }
+}
+
+/* A1 经典风：保持连体胶囊，并跟随商城主题色。 */
+.bottom-bar-box--vortmall-classic {
+    .bottom-bar {
+        .cart {
+            color: var(--vice-text);
+            background: var(--vice-bg);
+            border: 0;
+        }
+
+        .buy,
+        .other-products-btn {
+            color: var(--main-text);
+            background: var(--general);
+        }
+    }
+}
+
+/* A3 底栏保留跨境版的整体高度和按钮尺寸。 */
+.bottom-bar-box--overseas {
+    height: 120rpx;
+
+    .bottom-bar {
+        box-sizing: border-box;
+        height: 120rpx;
+        padding: 0 28rpx 35rpx;
+
+        .btn-box {
+            padding-left: 0;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 63rpx;
+            font-size: 24.5rpx;
+            font-weight: 700;
+            line-height: normal;
+        }
+
+        .other-products-btn,
+        .isBuyBtn {
+            height: 63rpx;
+            font-size: 24.5rpx;
+            font-weight: 700;
+        }
+    }
+}
+
+/* A3 简约风：分离式描边/实色按钮，圆角跟随装修配置。 */
+.bottom-bar-box--overseas-simple {
+    .bottom-bar {
+        .btn-box {
+            column-gap: 14rpx;
+        }
+
+        .cart {
+            color: #1a1a1a;
+            background: transparent;
+            border: 2px solid #505259;
+        }
+
+        .buy {
+            color: var(--main-text);
+            background: var(--general);
+        }
+    }
+}
+
+/* A3 经典风：与 A2 经典风一致，两个按钮无间距连成胶囊。 */
+.bottom-bar-box--overseas-classic {
+    .bottom-bar {
+        .cart {
+            color: var(--vice-text);
+            background: var(--vice-bg);
+            border: 0;
+        }
+
+        .buy {
+            color: var(--main-text);
+            background: var(--general);
+        }
+    }
+}

@@ -1,0 +1,27 @@
+/* 自旧 seckill/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()/v-bind） */
+/* 旧 tig-countdown 的 :deep(.uni-countdown__number){width:auto!important} 平铺到本模块 */
+.uni-countdown__number {
+    width: auto !important;
+}
+
+.item-photo {
+    position: relative;
+
+    .item-image-a {
+        display: block;
+    }
+
+    .cap-seckill-goods__tag {
+        z-index: 6;
+    }
+
+    .product-style-border {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 5;
+        pointer-events: none;
+    }
+}

@@ -1,0 +1,325 @@
+.product-title-info {
+    margin-top: 20rpx;
+    border-radius: 24rpx;
+    overflow: hidden;
+
+    &.is-vortmall-layout {
+        margin-top: 0;
+        border-radius: 0;
+    }
+
+    // 批发价格块已承担顶部商品信息，空标题容器不再额外制造上下间距。
+    &.is-wholesale-mode {
+        margin-top: 0;
+    }
+
+    .vortmall-hero {
+        background: var(--product-content-bg, #fff);
+        padding: 20rpx 32rpx 24rpx;
+
+        .vortmall-store-switch {
+            // 活动态/批发态的门店卡位于内容区全宽，普通 A1 也保持相同左右边界。
+            margin-left: -32rpx;
+            margin-right: -32rpx;
+        }
+
+        .product-name-text {
+            font-size: 34rpx;
+            font-weight: 600;
+            color: #666;
+            line-height: 1.45;
+            word-break: break-all;
+            position: relative;
+
+            .product-name-inner {
+                display: inline;
+            }
+        }
+
+        .product-name-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+
+            .iconfont-h5 {
+                font-size: 32rpx;
+            }
+
+            .icon-a-gengduo20 {
+                transform: rotate(90deg);
+            }
+
+            .iconTop {
+                transform: rotate(-90deg);
+            }
+        }
+
+        .vortmall-sold {
+            margin-top: 16rpx;
+            font-size: 25rpx;
+            color: #1a1a1a;
+        }
+
+        .vortmall-price {
+            margin-top: 16rpx;
+            color: #1a1a1a;
+            font-size: 49rpx;
+            font-weight: 600;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .product-brief-text {
+            margin-top: 12rpx;
+            font-size: 24rpx;
+            color: #999;
+        }
+    }
+
+    /* 优惠券条：标准风（A1）与跨境风（A3）共用 */
+    .vortmall-coupon {
+        margin-top: 20rpx;
+        padding: 20rpx 24rpx;
+        background: #f7f8fa;
+        border-radius: 16rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16rpx;
+
+        .vortmall-coupon-text {
+            flex: 1;
+            font-size: 26rpx;
+            font-weight: 600;
+            color: #ff4d4f;
+        }
+
+        .vortmall-coupon-more {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 4rpx;
+            font-size: 24rpx;
+            color: #888b94;
+
+            .iconfont-h5 {
+                font-size: 22rpx;
+            }
+        }
+    }
+
+    .activity-bg-banner {
+        position: relative;
+        min-height: 160rpx;
+        padding: 25rpx 30rpx;
+        overflow: hidden;
+
+        .activity-bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+        }
+
+        .activity-bg-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .activity-bg-price-row {
+            display: flex;
+            align-items: baseline;
+            color: #fff;
+        }
+
+        .activity-bg-origin-price {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 24rpx;
+            margin-left: 15rpx;
+        }
+    }
+
+    .title-info-top {
+        background: var(--product-content-bg, #fff);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20rpx 30rpx 0;
+        border-radius: 24rpx 24rpx 0 0;
+
+        .title-top-price {
+            color: var(--general);
+            font-weight: bold;
+            font-size: 48rpx;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .title-top-market_price {
+            display: flex;
+            align-items: baseline;
+            margin-left: 15rpx;
+            font-size: 24rpx;
+            color: #999;
+        }
+
+        /* 跨境风：价格与优惠券纵向左对齐排布在同一张白底卡片内 */
+        &.title-info-top--overseas {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+
+            .title-top-price {
+                width: 100%;
+            }
+
+            .vortmall-coupon {
+                width: 100%;
+                margin-top: 12rpx;
+            }
+        }
+    }
+
+    .product-name-card {
+        background: var(--product-content-bg, #fff);
+        padding: 24rpx 30rpx;
+        position: relative;
+
+        &.has-activity {
+            border-radius: 24rpx;
+            margin-top: -40rpx;
+            z-index: 2;
+        }
+
+        &.product-name-card--vortmall-activity {
+            padding: 20rpx 28rpx 24rpx;
+
+            .product-name-text {
+                font-size: 31rpx;
+                font-weight: 700;
+                line-height: 42rpx;
+            }
+
+            .vortmall-activity-name-sold {
+                margin-top: 16rpx;
+                color: #1a1a1a;
+                font-size: 25rpx;
+            }
+        }
+
+        .product-name-text {
+            font-size: 36rpx;
+            font-weight: bold;
+            color: #2a2a2a;
+            line-height: 1.4;
+            word-break: break-all;
+            position: relative;
+
+            .product-name-inner {
+                display: inline;
+            }
+        }
+
+        .product-name-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+
+            .iconfont-h5 {
+                font-size: 32rpx;
+            }
+
+            .icon-a-gengduo20 {
+                transform: rotate(90deg);
+            }
+
+            .iconTop {
+                transform: rotate(-90deg);
+            }
+        }
+
+        .product-name-expand {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            padding-left: 40rpx;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, #fff 40%);
+        }
+
+        .product-name-collapse {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-left: 8rpx;
+        }
+
+        .product-brief-text {
+            margin-top: 12rpx;
+            font-size: 24rpx;
+            color: #999;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .cycleBuyTag,
+        .subCardTag {
+            color: var(--general);
+            position: relative;
+            display: inline-block;
+            padding-right: 20rpx;
+            vertical-align: baseline;
+
+            &::before {
+                position: absolute;
+                content: "";
+                right: 9rpx;
+                top: 0;
+                width: 2rpx;
+                height: 80%;
+                transform: translateY(15%);
+                background-color: var(--general);
+            }
+        }
+    }
+}
+
+.exchange-box {
+    display: flex;
+    align-items: center;
+
+    .exchange-img {
+        width: 35rpx;
+        height: 35rpx;
+        padding-right: 5rpx;
+    }
+
+    .exchange-icon {
+        padding: 0 5rpx;
+    }
+
+    .exchange-text {
+        font-size: 34rpx;
+    }
+}
+
+.activity-box {
+    width: 100%;
+    background: var(--product-content-bg, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 15rpx 0;
+
+    .activity-btn {
+        font-size: 24rpx;
+        color: var(--main-bg);
+        display: flex;
+        align-items: center;
+        padding-right: 6rpx;
+
+        .icon-youjiantou {
+            font-size: 36rpx;
+            margin-left: -8rpx;
+        }
+    }
+}

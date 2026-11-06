@@ -1,0 +1,108 @@
+/* 自旧 pages/user/invoiceManagement/invoiceInfo.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.invoiceInfo {
+    padding: 20rpx;
+
+    .invoiceInfo-status {
+        display: flex;
+        border: 1px solid #e5e5e5;
+        background: #fefee3;
+        padding: 20px 10px 20px 20px;
+        margin-bottom: 20rpx;
+    }
+
+    .invoiceInfo-content {
+        padding: 2rpx 20rpx;
+        background-color: #fff;
+        border-radius: 20rpx;
+
+        .invoiceInfo-content-item {
+            display: flex;
+            border-bottom: 1px solid #f5f5f5;
+            padding: 30rpx 0;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .item-label {
+                padding-left: 10rpx;
+                width: 160rpx;
+                text-align: start;
+                color: #999;
+            }
+            .item-value {
+                margin-left: 10rpx;
+            }
+            .image {
+                margin-left: 10rpx;
+            }
+        }
+        .image-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .image {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 400rpx;
+            height: 260rpx;
+            border-radius: 10rpx;
+            overflow: hidden;
+
+            .image-bg {
+                width: 100%;
+                height: 100%;
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+
+            .img-num {
+                position: absolute;
+                bottom: 0;
+                height: 40rpx;
+                text-align: center;
+                width: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 200;
+                color: #fff;
+                font-weight: normal;
+            }
+        }
+        .img-tip {
+            color: #999;
+            font-weight: normal;
+        }
+    }
+}
+
+.special-text {
+    color: var(--general);
+}
+
+.btn-fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+}
+
+.btn-placeholder {
+    height: 120rpx;
+    width: 100%;
+}
+
+.btn-box {
+    padding: 25rpx;
+
+    .btn {
+        width: 100%;
+        font-size: 28rpx;
+    }
+}

@@ -1,0 +1,228 @@
+/* 自旧 pages/order/src/invoiceInfo.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped），
+   uni-forms / uni-easyinput / up-radio 的 :deep 规则改写为自绘表单类 */
+.invoice-info {
+    .invoice {
+        border-radius: 0;
+        background: #fff;
+        padding: 20rpx 28rpx;
+        margin-bottom: 14rpx;
+        font-size: 24.5rpx;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 100%;
+
+        .invoice-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .more-ico {
+            width: 36rpx;
+            height: 36rpx;
+            padding-left: 10rpx;
+        }
+    }
+}
+
+.invoice-popup-content {
+    height: 70vh;
+
+    .invoice-popup-box {
+        padding: 30rpx 30rpx 0;
+    }
+
+    .title {
+        padding-left: 0;
+        height: 90rpx;
+        line-height: 50rpx;
+        padding-bottom: 40rpx;
+    }
+
+    .invoice-typemenu {
+        border-bottom: 1rpx solid #eee;
+        .invoice-typemenu-item {
+            background: #f2f2f2;
+            color: #282828;
+            padding: 13rpx 36rpx;
+            border-radius: 50rpx;
+            font-size: 25rpx;
+            display: inline-block;
+            margin-right: 28rpx;
+            margin-bottom: 10rpx;
+
+            &.active {
+                color: #fff;
+                background-color: var(--general);
+            }
+        }
+
+        .invoice-explain {
+            padding: 20rpx 0;
+            font-size: 24rpx;
+            line-height: 35rpx;
+            color: #999;
+
+            .special-text {
+                color: var(--general);
+            }
+        }
+    }
+}
+
+/* 旧 uni-forms-item：label 宽 170rpx、右对齐、必填星号悬挂在标签左侧、错误提示下置 */
+.form-item {
+    display: flex;
+    align-items: flex-start;
+    min-height: 96rpx;
+    margin-bottom: 30rpx;
+    position: relative;
+
+    .form-label {
+        width: 170rpx;
+        flex-shrink: 0;
+        position: relative;
+        font-size: 26rpx;
+        line-height: 70rpx;
+        color: #333;
+        text-align: right;
+
+        .is-required {
+            color: #dd524d;
+            position: absolute;
+            right: 100%;
+            margin-right: 4rpx;
+        }
+    }
+
+    .form-control {
+        flex: 1;
+        position: relative;
+        padding-left: 20rpx;
+        min-width: 0;
+    }
+
+    .form-input {
+        width: 100%;
+        height: 70rpx;
+        font-size: 26rpx;
+        color: #333;
+        border: none;
+        outline: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 90%;
+        left: 18rpx;
+        font-size: 22rpx;
+        line-height: 30rpx;
+        color: #dd524d;
+    }
+}
+
+.item-layout {
+    height: 70rpx;
+    display: flex;
+    align-items: center;
+
+    .radio-item {
+        display: flex;
+        align-items: center;
+        margin-right: 22rpx;
+    }
+
+    .radio-dot {
+        width: 34rpx;
+        height: 34rpx;
+        border-radius: 50%;
+        border: 1rpx solid #d9d9d9;
+        background: #fff;
+        box-sizing: border-box;
+        position: relative;
+
+        &.active {
+            border-color: var(--general);
+
+            &::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 18rpx;
+                height: 18rpx;
+                border-radius: 50%;
+                background: var(--general);
+                transform: translate(-50%, -50%);
+            }
+        }
+    }
+
+    .radio-label {
+        font-size: 26rpx;
+        color: #333;
+        margin-left: 12rpx;
+    }
+}
+
+.fixed-placeholder {
+    background: #fff;
+}
+
+.btn-box {
+    height: 100%;
+    width: 100%;
+    padding: 25rpx;
+    display: flex;
+    justify-content: space-between;
+
+    .btn {
+        width: 48%;
+        height: 70rpx;
+        line-height: 70rpx;
+        text-align: center;
+        border-radius: 35rpx;
+        font-size: 26rpx;
+        color: #fff;
+        background: var(--general);
+        box-sizing: border-box;
+
+        &.btn--plain {
+            background: #fff;
+            border: 1rpx solid var(--general);
+            color: var(--general);
+        }
+
+        &.disabled {
+            opacity: 0.5;
+        }
+    }
+}
+
+.invoiceInfo-content-item {
+    display: flex;
+    padding: 30rpx 0;
+    font-size: 26rpx;
+
+    &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .item-label {
+        width: 140rpx;
+        flex-shrink: 0;
+    }
+    .item-value {
+        padding-left: 48rpx;
+    }
+}
+
+.notPass {
+    padding: 20rpx;
+    .notPassBtn {
+        color: var(--general);
+    }
+}

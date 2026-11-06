@@ -1,0 +1,456 @@
+/* 自旧 pages/member/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped / :deep 平铺） */
+.member-page {
+    background: var(--member-page-bg, linear-gradient(90deg, #fcf6fc, #f3f3fe));
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* 外贸皮肤 mainHeader 为 fixed，高度由 inline style 写入 */
+.main-header-spacer {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+/* 沉浸式页面底色：固定铺满视口，作为 userInfo3 顶部渐变的渐隐目标 */
+.immersive-page-bg {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: #f5f5f5;
+    z-index: -1;
+}
+
+.user--immersive {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== 通用工具类（旧项目 static css 的 aca 排版类，页面内补一份） ===== */
+.acea-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+.row-middle {
+    align-items: center;
+}
+.row-between-wrapper {
+    align-items: center;
+    justify-content: space-between;
+}
+.line1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user_bg_color {
+    background: linear-gradient(90deg, #fcf6fc, #f3f3fe);
+}
+.user.overseas-legacy {
+    background: #fff;
+}
+
+.overseas-user-header {
+    background: #fff;
+    .picTxt {
+        padding: 32rpx;
+    }
+    .pictrue,
+    .pic-btn {
+        width: 110rpx;
+        height: 110rpx;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    .text {
+        margin-left: 24rpx;
+    }
+    .name {
+        font-size: 32rpx;
+        color: #1a1a1a;
+    }
+    .desc {
+        margin-top: 10rpx;
+        font-size: 23rpx;
+        color: #1a1a1a;
+    }
+    .logo {
+        margin-top: 12rpx;
+        font-size: 22rpx;
+        color: #888;
+    }
+}
+.user .user_header.overseas-user-header .picTxt {
+    padding-top: 16rpx !important;
+    padding-bottom: 16rpx !important;
+    padding-left: 32rpx !important;
+    padding-right: 32rpx !important;
+}
+.user .user_header.overseas-user-header .picTxt .text .name {
+    font-size: 32rpx;
+    width: auto;
+}
+.user.overseas-legacy .user_wrapper {
+    padding-left: 32rpx;
+    padding-right: 32rpx;
+}
+.user.overseas-legacy .advertising-box {
+    padding: 0 0 30rpx;
+    background: #fff;
+}
+.user.overseas-legacy .advertising-content {
+    border-radius: 18rpx;
+    overflow: hidden;
+}
+.user.overseas-legacy .service-box {
+    margin: 0;
+    border-radius: 0;
+}
+.user.overseas-legacy .service-title {
+    box-sizing: border-box;
+    height: 75rpx;
+    padding: 0;
+}
+.user.overseas-legacy .service-list.column {
+    padding: 0 0 20rpx;
+}
+.user.overseas-legacy .dec-account {
+    padding-left: 0;
+    padding-right: 0;
+}
+.user.overseas-legacy .dec-account__container {
+    padding-left: 0;
+    padding-right: 0;
+}
+.user.overseas-legacy .overseas-order .title,
+.user.overseas-legacy .overseas-order .wrap,
+.user.overseas-legacy .overseas-other-menu {
+    padding-left: 0;
+    padding-right: 0;
+}
+.overseas-order {
+    background: #fff;
+}
+.user.overseas-legacy .overseas-order {
+    margin: 0;
+}
+.user.overseas-legacy .overseas-order .title {
+    font-size: 30rpx;
+}
+.user.overseas-legacy .overseas-order .more {
+    font-size: 24rpx;
+}
+.user.overseas-legacy .overseas-order .more .iconfont {
+    font-size: 24rpx;
+}
+.overseas-order .wrap {
+    display: flex;
+    position: relative;
+    flex-flow: row nowrap;
+    column-gap: 16rpx;
+    padding-bottom: 0;
+}
+.overseas-order .wrap .li {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200rpx;
+    text-align: center;
+    background: #f5f6fa;
+    border-radius: 16rpx;
+}
+.overseas-order .wrap .li .content {
+    position: relative;
+    color: #1a1a1a;
+}
+.overseas-order .wrap .li .content .icon {
+    font-size: 40rpx;
+}
+.overseas-order .wrap .li .content .txt {
+    display: block;
+    margin-top: 24rpx;
+    font-size: 30rpx;
+    font-weight: 500;
+}
+.overseas-order .wrap .li .content .num {
+    position: absolute;
+    top: 25rpx;
+    left: 108rpx;
+    min-width: 25rpx;
+    padding: 2rpx 6rpx;
+    border-radius: 20rpx;
+    color: #fff;
+    background-color: var(--main-bg);
+    font-size: 20rpx;
+    text-align: center;
+}
+.overseas-other-menu {
+    padding: 0 32rpx;
+    background: #fff;
+}
+.overseas-other-menu .cell-wrap {
+    display: flex;
+    align-items: center;
+    height: 108rpx;
+    color: #1a1a1a;
+    border-top: 1px solid #e5e7eb;
+}
+.overseas-other-menu .cell-wrap:first-child {
+    border-top: 0;
+}
+.overseas-other-menu .icon {
+    margin-right: 16rpx;
+    font-size: 34rpx;
+}
+.overseas-other-menu .cell-name {
+    font-size: 26rpx;
+    font-weight: 500;
+}
+.overseas-other-menu .right-icon {
+    margin-left: auto;
+    color: #888b94;
+}
+.overseas-login-btn {
+    padding: 23rpx 0;
+    background: #fff;
+    .login-btn {
+        height: 75rpx;
+        line-height: 75rpx;
+        text-align: center;
+        border-radius: 37.5rpx;
+        background: var(--main-bg);
+        color: var(--main-text);
+        font-size: 28rpx;
+    }
+}
+.overseas-term-pay {
+    padding: 30rpx 0;
+    background: #fff;
+}
+.overseas-term-pay .delivery-card {
+    margin: 0;
+}
+.user.overseas-legacy .overseas-other-menu {
+    margin-top: 0;
+}
+.user .user_header {
+    position: relative;
+}
+.user .user_header .picTxt {
+    display: flex;
+    padding: 0 20rpx;
+    align-items: center;
+}
+.user .user_header .picTxt {
+    .pic-btn-box {
+        width: 110rpx;
+        height: 110rpx;
+        overflow: hidden;
+        border-radius: 50%;
+        flex-shrink: 0;
+
+        .pic-btn {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 50%;
+        }
+    }
+}
+.user .user_header .picTxt .pictrue {
+    overflow: hidden;
+    width: 110rpx;
+    height: 110rpx;
+    box-sizing: border-box;
+    border: 1rpx solid #f5f5f5;
+}
+.user .user_header .picTxt .text {
+    flex: 1;
+    min-width: 0;
+    margin-left: 24rpx;
+}
+.user .user_header .picTxt .text .name {
+    font-size: 28rpx;
+    width: 240rpx;
+}
+.user .user_header .picTxt .text .logo {
+    display: flex;
+    align-items: center;
+    height: 32rpx;
+    color: #333;
+    font-size: 20rpx;
+    border-radius: 30rpx;
+    line-height: 32rpx;
+    margin-top: 20rpx;
+}
+.user .user_header .picTxt .text .vip_logo {
+    margin-right: 5rpx;
+    width: 30rpx;
+    height: 22rpx;
+}
+
+.info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10rpx;
+    width: 100%;
+}
+/* 名字占据左侧，签到 / 设置图标推到右侧成组 */
+.user .user_header .picTxt .text .info .name {
+    width: auto;
+    max-width: 240rpx;
+    margin-right: auto;
+}
+.user .user_header .picTxt .text .auth {
+    margin-right: 10rpx;
+    display: flex;
+    align-items: center;
+    height: 36rpx;
+    flex-shrink: 0;
+
+    image {
+        height: 36rpx;
+        display: block;
+    }
+}
+.user .user_header .icon-shezhi {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10rpx;
+    font-size: 28rpx;
+    color: #333;
+}
+.user .user_header .qiandao {
+    display: flex;
+    align-items: center;
+    font-size: 24rpx;
+    margin-right: 2rpx;
+    transform: translateY(-1rpx);
+}
+.user .user_header .icon-qiandao {
+    font-size: 24rpx;
+    color: #333;
+    padding-top: 3rpx;
+    margin-right: 6rpx;
+}
+
+.user_top_group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 30rpx;
+}
+.user_top_group .item {
+    text-align: center;
+    flex: 1;
+    position: relative;
+}
+.user_top_group .item::after {
+    content: "";
+    position: absolute;
+    top: 4rpx;
+    right: 0;
+    width: 2rpx;
+    height: 26rpx;
+    background: #dbd1dc;
+}
+.user_top_group .item:last-child::after {
+    width: 0;
+}
+.user_top_group .item .tit {
+    font-size: 24rpx;
+}
+.user_top_group .item .tit .txt {
+    margin-left: 6rpx;
+}
+
+.user .user_wrapper {
+    padding: 0 10px;
+}
+.user .user_wrapper .legacy-account {
+    margin-top: -20rpx;
+}
+.user .user_wrapper .title {
+    height: 88rpx;
+    padding: 0 30rpx;
+    font-size: 26rpx;
+    font-weight: bold;
+}
+.user .user_wrapper .title .more {
+    display: flex;
+    align-items: center;
+    font-size: 22rpx;
+    color: #999999;
+    font-weight: normal;
+}
+.user .user_wrapper .title .more .iconfont {
+    font-size: 24rpx;
+    padding-top: 4rpx;
+}
+.user .list-group {
+    background: #fff;
+    margin: 20rpx 0;
+    border-radius: 18rpx;
+    overflow: hidden;
+}
+.user .list-group .wrap .iconfont {
+    font-size: 60rpx;
+}
+.user .list-group .wrap {
+    display: flex;
+    position: relative;
+    flex-flow: row nowrap;
+    padding-bottom: 30rpx;
+}
+.user .list-group .wrap .li {
+    position: relative;
+    flex: 1;
+    text-align: center;
+
+    .iconfont-h5 {
+        color: #333;
+        font-size: 60rpx;
+    }
+}
+.user .list-group .wrap .li .txt {
+    color: #333;
+    font-size: 24rpx;
+    position: relative;
+}
+.user .list-group .wrap .li .badge-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.user .list-group .wrap .li .badge {
+    position: absolute;
+    top: -6rpx;
+    right: -24rpx;
+    min-width: 28rpx;
+    height: 28rpx;
+    padding: 0 6rpx;
+    line-height: 28rpx;
+    border-radius: 14rpx;
+    background: var(--general);
+    color: #fff;
+    font-size: 20rpx;
+    text-align: center;
+    box-sizing: border-box;
+}
+.user .list-group.my-wallet .wrap {
+    height: 120rpx;
+}
+.user .list-group.my-wallet .wrap .li .txt {
+    top: 12rpx;
+}
+.user .list-group.my-wallet .wrap .li .num {
+    font-weight: 700;
+}
+.user .list-group.my-order {
+    position: relative;
+}

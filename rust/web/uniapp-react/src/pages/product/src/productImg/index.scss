@@ -1,0 +1,135 @@
+/* 自旧 productImg.vue <style lang="scss" scoped> 原样拷出（去 scoped）。
+   v-bind() 已转组件内联 style，原位置见各条注释；裸 swiper 选择器改挂 .main-swiper。 */
+.product-pic-con {
+    position: relative;
+    .nav-bg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 9;
+        width: 100%;
+        height: 150rpx;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), transparent);
+    }
+}
+.product-bg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: var(--product-content-bg, #fff);
+    /* 原 border-radius: v-bind(imageRadius) → 组件内联 style borderRadius */
+    overflow: hidden;
+
+    .outsale {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 50%;
+        height: 50%;
+        line-height: 180rpx;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.4);
+        font-size: 48rpx;
+        color: #ffffff;
+        letter-spacing: 0;
+        border-radius: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .video-box {
+        width: 100%;
+        height: 100%;
+
+        .product-video {
+            width: 100%;
+            height: 100%;
+        }
+
+        .cover-box {
+            width: 100%;
+            height: 100%;
+            position: relative;
+
+            .video-icon {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 110rpx;
+                height: 110rpx;
+                transform: translate(-50%, -50%);
+                /* 原 background-image: v-bind(playImg) → 组件内联 style backgroundImage */
+                background-size: cover;
+            }
+        }
+    }
+
+    /* 原 swiper 裸标签选择器 → .main-swiper（Taro Swiper） */
+    .main-swiper {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .slide-image-box {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .slide-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .pages {
+        visibility: visible;
+        transition: all 500ms ease-in-out 0s;
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.2);
+        height: 40rpx;
+        padding: 0 40rpx 0 30rpx;
+        border-radius: 40rpx 0 0 40rpx;
+        right: 0;
+        bottom: 30rpx;
+        line-height: 40rpx;
+        font-size: 20rpx;
+        color: #fff;
+    }
+}
+
+.product-bg .pages text {
+    font-weight: bold;
+    font-size: 30rpx;
+}
+/* Taro H5 无裸 text 标签，上条规则按类名等价平移（JSX 侧 Text 已加 .pages-num） */
+.product-bg .pages .pages-num {
+    font-weight: bold;
+    font-size: 30rpx;
+}
+.product-bg .slide-navigator .slide-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 15rpx;
+}
+/* 微信原生 swiper 指示点样式（indicator-dots=false，实际不渲染，保留原样式） */
+.product-bg .wx-swiper-dot {
+    width: 20rpx;
+    height: 5rpx;
+    border-radius: 3rpx;
+}
+.product-bg .wx-swiper-dots.wx-swiper-dots-horizontal {
+    margin-bottom: 5rpx;
+}
+
+/* 原 height: v-bind(imageHeight) / padding: 0 v-bind(imageMarginCss) → 组件内联 style；
+   background/box-sizing 保留于此 */
+.product-pic-con {
+    width: 100%;
+    position: relative;
+    background: #f2f2f2;
+}

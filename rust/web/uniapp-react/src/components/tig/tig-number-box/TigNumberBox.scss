@@ -1,0 +1,41 @@
+/* 数量步进器（自旧 tig-number-box.vue 的 scoped 样式平移，u-number-box 视觉） */
+.u-number-box {
+    display: flex;
+    align-items: center;
+
+    .u-number-box__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f2f3f5;
+        color: #323233;
+        box-sizing: border-box;
+
+        .u-number-box__icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+    }
+
+    .u-number-box__minus {
+        border-radius: 4px 0 0 4px;
+    }
+
+    .u-number-box__plus {
+        border-radius: 0 4px 4px 0;
+    }
+
+    .u-number-box__btn--disabled {
+        opacity: 0.4;
+    }
+}
+
+.number-box-input {
+    text-align: center;
+    font-size: 15px;
+    padding: 0;
+    margin: 0 2px;
+    color: #323233;
+    background-color: #ebecee;
+    box-sizing: border-box;
+}

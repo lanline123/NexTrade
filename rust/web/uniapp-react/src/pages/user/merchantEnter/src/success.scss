@@ -1,0 +1,30 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/merchantEnter/src/success.vue 迁移：样式逐行保留（去 scoped、:deep 平铺） */
+.success-box {
+    margin-top: 20rpx;
+    background-color: #fff;
+    padding-top: 124rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 200rpx;
+
+    .success-img {
+        height: 192rpx;
+    }
+    .success-text {
+        height: 94rpx;
+        font-weight: 500;
+        font-size: 40rpx;
+        color: #013148;
+        line-height: 94rpx;
+        text-align: center;
+        font-style: normal;
+    }
+    .success-btn {
+        display: flex;
+    }
+    .tip {
+        color: #7c889c;
+        padding: 30rpx;
+    }
+}

@@ -1,0 +1,102 @@
+/* 自旧 pages/order/src/totalCardStore.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 up-icon info-circle（size=16 #969799）→ 样式等价字符 */
+.discount-info-icon {
+    padding-left: 4rpx;
+    font-size: 22rpx;
+    color: #969799;
+}
+
+.more-ico {
+    width: 36rpx;
+    height: 36rpx;
+    padding-left: 10rpx;
+}
+.total-card {
+    background-color: #fff;
+    box-sizing: border-box;
+    padding: 30rpx 32rpx;
+    border-radius: 0;
+    margin-top: 20rpx;
+    margin-bottom: 14rpx;
+    font-size: 24.5rpx;
+
+    .total-card-item {
+        padding-bottom: 35rpx;
+        display: flex;
+        justify-content: space-between;
+        &:last-child {
+            padding-bottom: 0;
+        }
+
+        .total-card-item-left {
+            display: flex;
+            align-items: baseline;
+            column-gap: 6rpx;
+
+            .icon-wenhao-xianxingyuankuang {
+                font-size: 26rpx;
+            }
+        }
+
+        .red {
+            color: var(--general);
+        }
+
+        .total-card-ico {
+            margin-left: 10rpx;
+        }
+
+        .tax-label {
+            display: flex;
+            align-items: center;
+            column-gap: 10rpx;
+        }
+
+        .tax-tip-trigger {
+            width: 28rpx;
+            height: 28rpx;
+            line-height: 28rpx;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 20rpx;
+            color: #8b8e97;
+            border: 1rpx solid #c6c7cc;
+            box-sizing: border-box;
+        }
+    }
+
+    .tax-popup {
+        background: #fff;
+        padding: 32rpx 28rpx 46rpx;
+        min-height: 420rpx;
+        box-sizing: border-box;
+        padding-bottom: calc(46rpx + env(safe-area-inset-bottom));
+        padding-bottom: calc(46rpx + constant(safe-area-inset-bottom));
+
+        .tax-popup-title {
+            font-size: 30rpx;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20rpx;
+        }
+
+        .tax-popup-content {
+            font-size: 26rpx;
+            line-height: 40rpx;
+            color: #4b4d52;
+        }
+    }
+
+    .total-card-tig {
+        display: flex;
+        justify-content: flex-end;
+        font-size: 24rpx;
+        color: #999;
+        padding-bottom: 10rpx;
+
+        .special-text {
+            color: var(--general);
+            padding: 0 5rpx;
+        }
+    }
+}

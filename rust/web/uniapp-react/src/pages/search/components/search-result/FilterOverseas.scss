@@ -1,0 +1,101 @@
+/* 自旧 filter-overseas.vue <style lang="scss" scoped> 原样拷出，去 scoped */
+.filter-overseas {
+    width: 100%;
+    background-color: var(--search-item-bg, #fff);
+}
+
+.filter-row {
+    display: flex;
+    background: var(--search-item-bg, #fff);
+    width: 100%;
+    padding: 0 var(--search-item-padding-lr, 20rpx);
+    box-sizing: border-box;
+    overflow: hidden;
+
+    .more-filter {
+        position: relative;
+        right: 0;
+        z-index: 1;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        padding: 0 15rpx;
+
+        &:before {
+            content: "";
+            position: absolute;
+            right: 100%;
+            top: 0;
+            bottom: 0;
+            width: 64rpx;
+            background: linear-gradient(270deg, var(--search-item-bg, #fff), transparent);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .icon-arrowdown {
+            font-size: 32rpx;
+            color: #000;
+            display: inline-block;
+            transform: translateY(6rpx);
+        }
+    }
+}
+
+.tab-box {
+    /* 旧模板全局工具类 .flex */
+    display: flex;
+    background-color: var(--search-item-bg, #fff);
+    column-gap: 12rpx;
+    position: relative;
+}
+
+.filterBoxW {
+    display: flex;
+    overflow-x: scroll;
+    flex-wrap: nowrap;
+    background-color: var(--search-item-bg, #fff);
+    padding: 14rpx 0;
+
+    .tab-title {
+        display: flex;
+        white-space: nowrap;
+        padding: 2rpx 14rpx 2rpx 21rpx;
+        background-color: #fff;
+        border-radius: 7rpx;
+        font-size: 25rpx;
+        color: #505259;
+        line-height: 49rpx;
+        border: 1rpx solid #c2c4cc;
+
+        &.active {
+            outline: 3rpx solid #1a1a1a;
+            outline-offset: -2rpx;
+            color: #1a1a1a;
+            background-color: #f7f8fc;
+            border-bottom-right-radius: 7rpx;
+            border-bottom-left-radius: 7rpx;
+        }
+
+        .icon-a-gengduo11 {
+            font-size: 18rpx;
+            margin-right: 8rpx;
+        }
+        .icon-arrowdown,
+        .icon-up {
+            font-size: 22rpx;
+            color: #333;
+            display: inline-block;
+            transform: translateY(3rpx);
+        }
+        .icon-up {
+            transform: translateY(0);
+        }
+    }
+    .tab-title-new {
+        padding: 2rpx 21rpx;
+        // 滚动到末尾时，让最后一项完整离开右侧渐变区。
+        margin-right: 64rpx;
+    }
+}

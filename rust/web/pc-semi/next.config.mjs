@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const apiBase = (process.env.PC_API_BASE || 'https://battery.recy.cc').replace(/\/$/, '');
 
+// 并行会话同时构建会互相清理同一个 .next；允许用环境变量隔离输出目录，
+// 默认仍为 .next，不改变既有部署行为。
+const distDir = process.env.PC_NEXT_DIST_DIR || '.next';
+
 const nextConfig = {
+  distDir,
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',

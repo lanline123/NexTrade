@@ -1,0 +1,72 @@
+.description-card-box {
+    margin-bottom: 14rpx;
+
+    &.description-card-box--overseas {
+        margin-bottom: 0;
+        padding-bottom: 28rpx;
+        background: var(--product-page-bg, #f5f5f5);
+
+        .description-card {
+            border-top: 14rpx solid var(--product-page-bg, #f5f5f5);
+            border-radius: 0;
+        }
+    }
+
+    .description-card {
+        background-color: var(--product-content-bg, #fff);
+
+        .description-card-title {
+            display: flex;
+            width: 100%;
+            overflow: hidden;
+            font-size: 24.5rpx;
+            line-height: 42rpx;
+            padding: 28rpx;
+
+            .title-item {
+                color: #000;
+                display: flex;
+                align-items: center;
+                flex: 1;
+                font-weight: 700;
+                font-size: 28rpx;
+            }
+
+            .icon-a-gengduo20 {
+                font-size: 16rpx;
+                color: rgb(136, 139, 148);
+                display: flex;
+                align-items: center;
+                transform: rotate(90deg);
+
+                &.actvie {
+                    transform: rotate(-90deg);
+                }
+            }
+        }
+
+        .description-content {
+            padding: 0 28rpx 28rpx;
+            color: #9b9c9f;
+            font-size: 24rpx;
+
+            .img {
+                width: 100%;
+            }
+
+            .desc-text-item {
+                width: 100%;
+                overflow: hidden;
+                display: block;
+                height: auto;
+            }
+
+            .desc-pic-item {
+                .slide-image {
+                    display: block;
+                    width: 100%;
+                }
+            }
+        }
+    }
+}

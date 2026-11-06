@@ -1,0 +1,37 @@
+/* 自旧 pages/search/imageSearch/components/sortBar.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.sort-bar {
+    display: flex;
+    align-items: center;
+    height: 88rpx;
+    padding: 0 32rpx;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        margin-right: 56rpx;
+        font-size: 28rpx;
+        color: #666;
+
+        &--on {
+            font-weight: 600;
+            color: var(--general);
+        }
+    }
+
+    &__arrows {
+        margin-left: 8rpx;
+        display: flex;
+        flex-direction: column;
+
+        .iconfont-h5 {
+            font-size: 16rpx;
+            line-height: 12rpx;
+            color: #c3c0c0;
+        }
+    }
+
+    &__arrow--on {
+        color: var(--general) !important;
+    }
+}

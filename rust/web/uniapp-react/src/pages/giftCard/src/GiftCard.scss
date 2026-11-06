@@ -1,0 +1,263 @@
+/* === 礼品卡卡面（旧 pages/giftCard/src/giftCard.vue scoped 样式平移，去 scoped / 删 :deep） === */
+.gift-card-box {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    border-radius: 20rpx;
+    padding: 0 20rpx;
+    overflow: hidden;
+    position: relative;
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        // 旧 v-bind(cardBackgroundImg) → 组件内联 CSS 变量
+        background: var(--gift-card-bg);
+        background-size: cover;
+        border-radius: 22rpx;
+        z-index: 1;
+    }
+    .gift-card {
+        position: relative;
+        z-index: 2;
+        box-sizing: border-box;
+        color: #fff;
+        .gift-shop-info {
+            padding: 20rpx 0;
+            display: flex;
+            align-items: center;
+            .shop-img {
+                width: 60rpx;
+                height: 60rpx;
+                border-radius: 50%;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: #fff;
+                color: #000;
+                font-weight: bold;
+            }
+            .shop-title {
+                // padding-left: 18rpx;
+                font-size: 32rpx;
+                // line-height: 32rpx;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+        .gift-card-label {
+            white-space: nowrap;
+            font-size: 20rpx;
+            line-height: 20rpx;
+            // opacity: 0.8;
+        }
+        .gift-card-no {
+            display: flex;
+            align-items: center;
+            gap: 18rpx;
+            margin-top: 4rpx;
+            height: 40rpx;
+            .gift-card-no-box {
+                display: flex;
+                align-items: center;
+                gap: 30rpx;
+                line-height: 30rpx;
+                .card-no-item {
+                    display: flex;
+                    align-items: center;
+                    font-size: 30rpx;
+                    line-height: 30rpx;
+                }
+            }
+        }
+        .gift-card-pwd {
+            display: flex;
+            align-items: center;
+            gap: 18rpx;
+            margin-top: 12rpx;
+            overflow: hidden;
+            height: 40rpx;
+        }
+        .gift-card-info {
+            margin-top: 16rpx;
+            .gift-card-name {
+                font-size: 26rpx;
+                font-size: 26rpx;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                max-width: 70%;
+            }
+            .gift-card-date {
+                display: flex;
+                align-items: flex-end;
+                padding-top: 12rpx;
+                .gift-card-date-text {
+                    font-size: 20rpx;
+                    line-height: 20rpx;
+                    opacity: 0.51;
+                }
+            }
+        }
+        .gift-card-actions-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 10rpx -20rpx 0;
+            background-color: rgba(0, 0, 0, 0.65);
+            border-radius: 20rpx;
+            padding: 10rpx 0;
+            .gift-card-action-item {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8rpx;
+                font-size: 24rpx;
+                line-height: 24rpx;
+                cursor: pointer;
+                .iconfont-h5 {
+                    padding-top: 3.2rpx;
+                    font-size: 28rpx;
+                }
+                .icon-fuzhi1 {
+                    font-size: 24rpx;
+                    padding-top: 0;
+                }
+            }
+            .gift-card-action-divider {
+                width: 1rpx;
+                height: 24rpx;
+                background-color: rgba(255, 255, 255, 0.3);
+            }
+        }
+        .copy-btn {
+            font-size: 20rpx;
+            line-height: 20rpx;
+            background-color: #0000004d;
+            border: 1px solid rgb(255 255 255 / 20%);
+            border-radius: 20rpx;
+            padding: 5rpx 14rpx;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .hide-info {
+            padding-top: 8rpx;
+        }
+    }
+    .gift-card-status {
+        position: absolute;
+        right: 0;
+        top: 0;
+        overflow: hidden;
+        z-index: 2;
+        .gift-card-status-item {
+            font-size: 24rpx;
+            line-height: 24rpx;
+            background-color: #f8e0c8;
+            color: #996500;
+            padding: 10rpx 20rpx;
+            border-left: 2rpx solid #fff;
+            border-bottom: 2rpx solid #fff;
+            border-bottom-left-radius: 20rpx;
+        }
+    }
+    &.size-small {
+        border-bottom-left-radius: 22rpx;
+        border-bottom-right-radius: 22rpx;
+    }
+    &.size-large {
+        padding: 0 25rpx;
+        .gift-shop-info {
+            padding: 24rpx 0;
+        }
+        .gift-card-label {
+            font-size: 24rpx;
+            line-height: 24rpx;
+        }
+        .gift-card-no {
+            margin-top: 18rpx;
+            gap: 24rpx;
+            .gift-card-no-box {
+                gap: 32rpx;
+                .card-no-item {
+                    font-size: 36rpx;
+                    line-height: 36rpx;
+                    font-weight: bold;
+                }
+            }
+            .hide-info {
+                padding-top: 12rpx;
+            }
+        }
+        .gift-card-pwd {
+            gap: 24rpx;
+            margin-top: 22rpx;
+            .card-no-item {
+                font-size: 28rpx;
+                line-height: 28rpx;
+                // font-weight: bold;
+            }
+        }
+        .gift-card-info {
+            margin-top: 30rpx;
+            .gift-card-name {
+                font-size: 30rpx;
+                line-height: 30rpx;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                max-width: 70%;
+            }
+            .gift-card-date {
+                padding-top: 20rpx;
+                .gift-card-date-text {
+                    font-size: 24rpx;
+                    line-height: 24rpx;
+                }
+            }
+        }
+        .gift-card-actions-box {
+            padding: 12rpx 0;
+            margin: 10rpx -25rpx 0;
+            .gift-card-action-item {
+                font-size: 28rpx;
+                line-height: 28rpx;
+                .iconfont-h5 {
+                    padding-top: 3.5rpx;
+                    font-size: 28rpx;
+                }
+                .icon-fuzhi1 {
+                    font-size: 24rpx;
+                }
+            }
+            .gift-card-action-divider {
+                height: 28rpx;
+            }
+        }
+    }
+
+    // &.size-small {
+    //     .gift-shop-info {
+    //         padding: 10rpx 0;
+    //     }
+    //     .gift-card-no {
+    //         margin-top: 5rpx;
+    //     }
+    //     .gift-card-pwd {
+    //         margin-top: 10rpx;
+    //     }
+    //     .gift-card-info {
+    //         padding-top: 15rpx;
+    //     }
+    // }
+}

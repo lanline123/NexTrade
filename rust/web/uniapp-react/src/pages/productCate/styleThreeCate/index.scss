@@ -1,0 +1,239 @@
+/* 自旧 pages/productCate/styleThreeCate.vue <style lang="scss" scoped> 原样拷出（去 scoped）。
+ * .scroll-box 的 height 原 v-bind("height") → 内联 style（见 index.tsx scrollBoxHeight）。 */
+.main-header-spacer {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.scroll-box {
+    overflow: hidden;
+}
+
+.content-box {
+    height: 100%;
+    width: 100%;
+    display: flex;
+
+    .side {
+        width: 90px;
+        height: 100%;
+        background-color: var(--cate-side-bg, #f7f7f7);
+    }
+
+    .list-box {
+        width: calc(100% - 90px);
+        height: 100%;
+
+        .list-content {
+            height: calc(100% - 100rpx);
+
+            .list-scroll {
+                height: 100%;
+            }
+
+            .empty-box {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                width: 100%;
+            }
+        }
+    }
+}
+
+/* --cate-* 由分类页装修下发（见 buildCateCenterV2Vars），未配置时 fallback 即原有视觉 */
+.product-list {
+    padding: 25rpx;
+    background-color: var(--cate-goods-bg, #fff);
+
+    .product-item {
+        display: flex;
+        padding: 20rpx 0;
+
+        .item-left {
+            width: 171rpx;
+            height: 171rpx;
+            border-radius: 10rpx;
+            overflow: hidden;
+            position: relative;
+
+            .product-status-box {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                .outsale {
+                    width: 80%;
+                    height: 80%;
+                    line-height: 180rpx;
+                    background: rgba(0, 0, 0, 0.4);
+                    font-size: 30rpx;
+                    color: #ffffff;
+                    letter-spacing: 0;
+                    border-radius: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            }
+
+            .product-style-border {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 5;
+                pointer-events: none;
+            }
+        }
+
+        .item-right {
+            width: calc(100% - 171rpx);
+            padding-left: 10rpx;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+
+            .item-right-title {
+                font-size: 24rpx;
+                font-weight: bold;
+                color: var(--cate-title, #2a3145);
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                overflow: hidden;
+                word-break: break-all;
+            }
+
+            .item-right-title--row-1 {
+                -webkit-line-clamp: 1;
+                line-clamp: 1;
+            }
+
+            .item-right-meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .item-right-price {
+                color: var(--cate-price, var(--cate-theme, var(--general)));
+                font-weight: 600;
+            }
+
+            .buy_icon {
+                color: var(--cate-buy-btn, var(--cate-theme, var(--general)));
+                display: flex;
+                align-items: center;
+
+                .buy_btn_icon {
+                    font-size: 40rpx;
+                }
+            }
+        }
+    }
+}
+
+.cycleBuyTag {
+    display: inline-block;
+    vertical-align: baseline;
+    color: var(--cate-buy-btn, var(--general));
+    position: relative;
+    padding-right: 20rpx;
+
+    &::before {
+        position: absolute;
+        content: "";
+        right: 9rpx;
+        top: 0;
+        width: 2rpx;
+        height: 70%;
+        transform: translateY(22%);
+        background-color: var(--cate-buy-btn, var(--general));
+    }
+}
+
+// ===== 装修配置：文本对齐 / 文字粗细 =====
+.product-list--align-2 {
+    .product-item .item-right {
+        align-items: center;
+    }
+
+    .product-item .item-right .item-right-title {
+        width: 100%;
+        text-align: center;
+    }
+
+    .product-item .item-right .item-right-meta {
+        justify-content: center;
+        column-gap: 16rpx;
+    }
+}
+
+.product-list--weight-1 {
+    .product-item .item-right .item-right-title {
+        font-weight: normal;
+    }
+}
+
+// ===== 购买按钮装修样式（1~8）=====
+.product-item .item-right .buy_icon .buy_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .buy_btn_text {
+        font-size: 24rpx;
+        white-space: nowrap;
+    }
+
+    &.buy_btn--style5,
+    &.buy_btn--style7 {
+        height: 44rpx;
+        padding: 0 16rpx;
+        box-sizing: border-box;
+        border: 2rpx solid var(--cate-buy-btn, var(--cate-theme, var(--general)));
+        border-radius: 4rpx;
+        background-color: transparent;
+        color: var(--cate-buy-btn, var(--cate-theme, var(--general)));
+
+        .buy_btn_text {
+            color: var(--cate-buy-btn, var(--cate-theme, var(--general)));
+        }
+    }
+
+    &.buy_btn--style6,
+    &.buy_btn--style8 {
+        height: 44rpx;
+        padding: 0 20rpx;
+        border-radius: 44rpx;
+        background-color: var(--cate-buy-btn, var(--cate-theme, var(--general)));
+        color: #fff;
+
+        .buy_btn_text {
+            color: #fff;
+        }
+    }
+}
+
+.empty-img {
+    width: 320rpx;
+    height: 320rpx;
+}
+
+.empty-text {
+    font-size: 26rpx;
+    color: #999;
+    margin-top: 20rpx;
+}

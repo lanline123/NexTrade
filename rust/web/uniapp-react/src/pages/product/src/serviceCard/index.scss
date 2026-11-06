@@ -1,0 +1,112 @@
+/* 自旧 serviceCard.vue <style lang="scss" scoped> 原样拷出（去 scoped；image 元素选择器 → 显式类名） */
+.service-card-box {
+    padding: 18rpx 28rpx 28rpx;
+    background-color: var(--product-content-bg, #fff);
+
+    &.service-card-box--separated {
+        margin-top: 20rpx;
+    }
+
+    .service-card {
+        padding: 7rpx 21rpx;
+        overflow: hidden;
+        background: #f7f8fc;
+        border-radius: 14rpx;
+
+        .service-card-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 21rpx 0;
+            border-bottom: 2rpx solid #e0e1e5;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .item-text {
+                flex: 1;
+                width: 0;
+                color: #1a1a1a;
+                font-size: 24.5rpx;
+                line-height: 32rpx;
+            }
+
+            .icon-a-gengduo20 {
+                display: flex;
+                align-items: center;
+                margin-top: 5rpx;
+                color: #888b94;
+                font-size: 16rpx;
+            }
+        }
+    }
+}
+
+.service-popup {
+    overflow: hidden;
+    border-radius: 14rpx 14rpx 0 0;
+
+    .popup-content {
+        box-sizing: border-box;
+        max-height: 70vh;
+        padding: 14rpx 28rpx 28rpx;
+
+        .content-item {
+            padding: 21rpx;
+            margin-bottom: 21rpx;
+            background-color: #f5f6fa;
+            border-radius: 14rpx;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            .item-title {
+                color: #269636;
+                font-size: 24.5rpx;
+                font-weight: 700;
+                line-height: 29rpx;
+                text-align: left;
+            }
+
+            .item-content {
+                margin-top: 11rpx;
+                color: #505259;
+                font-size: 24.5rpx;
+                font-weight: 400;
+                line-height: 29rpx;
+                text-align: left;
+                white-space: normal;
+                word-break: break-word;
+            }
+        }
+    }
+}
+
+.popup-title-box {
+    display: flex;
+    justify-content: center;
+    padding: 35rpx 28rpx 28rpx;
+    background-color: #fff;
+
+    .title {
+        display: flex;
+        flex: 1;
+        justify-content: center;
+        font-size: 32rpx;
+        font-weight: 700;
+        line-height: 42rpx;
+    }
+
+    .close-icon {
+        display: flex;
+        align-items: center;
+
+        /* 原 image { width:35rpx; height:35rpx; } → .close-icon-img */
+        .close-icon-img {
+            width: 35rpx;
+            height: 35rpx;
+        }
+    }
+}

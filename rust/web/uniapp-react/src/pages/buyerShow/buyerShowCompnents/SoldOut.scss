@@ -1,0 +1,22 @@
+/* === 售罄标签（旧 SoldOut.vue style 逐条平移，去 scoped） === */
+.sold-out-box {
+    position: relative;
+
+    .outsale {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 70%;
+        height: 70%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.4);
+        font-size: 24rpx;
+        color: #ffffff;
+        letter-spacing: 0;
+        border-radius: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9;
+    }
+}

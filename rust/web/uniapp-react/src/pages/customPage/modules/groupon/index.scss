@@ -1,0 +1,125 @@
+/* 自旧 groupon/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped） */
+.item-info .item-name {
+    .group-num {
+        flex-shrink: 0;
+        float: left;
+        display: inline-flex;
+        align-items: baseline;
+        margin-right: 10rpx;
+        padding-top: 3rpx;
+    }
+
+    .group-num-text {
+        color: #f23030 !important;
+        background-color: #fff2f2;
+        padding: 4rpx 9rpx;
+        border-radius: 60rpx;
+        font-size: 24rpx;
+        line-height: 24rpx;
+        font-weight: normal;
+        white-space: nowrap;
+        box-sizing: border-box;
+        display: inline-flex;
+    }
+}
+
+/* 旧 navigator 标签在 React 侧改为 View.item-name-link（item-name-a 内的商品名点击区），保持浮动文本布局 */
+.item-info .item-name .item-name-link {
+    display: inline;
+}
+
+.goods-ad-warp .goods-ad-item .item-photo {
+    background: #ffffff;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1; /* 宽高比 1:1，高度跟随宽度 */
+    overflow: hidden;
+}
+
+.goods-ad-warp .goods-ad-item .item-photo .item-image-a {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* 旧 :deep(.base-image) 平铺：作用于 TigImage 根内 .base-image */
+.goods-ad-warp .goods-ad-item .item-photo .base-image {
+    height: 100% !important;
+    width: 100%;
+    object-fit: cover;
+}
+
+.product-style-border {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100% !important;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.goods-ad-warp .goods-ad-item .item-photo .cap-seckill-goods__tag {
+    z-index: 6;
+}
+
+.product-desc {
+    margin-top: 4rpx;
+}
+
+.source_price {
+    color: #ccc;
+    font-size: 24rpx !important;
+    margin-left: 8rpx;
+    text-decoration: line-through;
+    margin-top: 10rpx;
+}
+
+.ad-style__1 {
+    .countdown {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        line-height: 30rpx;
+        align-items: flex-start;
+
+        .countdown__title {
+            font-size: 24rpx;
+            color: rgb(229 229 229 / 70%);
+            padding-left: 7rpx;
+        }
+    }
+}
+
+.ad-style__2,
+.ad-style__5 {
+    .cap-seckill-goods__tag.list {
+        padding: 0 10rpx;
+    }
+
+    .countdown {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 1;
+        white-space: nowrap;
+        margin: 0;
+
+        .countdown__title {
+            font-size: 22rpx;
+            color: rgb(229 229 229 / 70%);
+        }
+    }
+}
+
+.item-action {
+    margin-top: 10rpx;
+}
+
+.ad-style__5 .goods-ad-item .item-content {
+    min-height: 300rpx;
+}

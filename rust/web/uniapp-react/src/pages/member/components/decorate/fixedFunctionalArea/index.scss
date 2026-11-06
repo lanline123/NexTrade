@@ -1,0 +1,14 @@
+/* 自旧 pages/member/components/decorate/fixedFunctionalArea/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-fixed-area {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10rpx);
+    padding-right: var(--dec-box-padding, 10rpx);
+    padding-top: var(--dec-box-padding-top, 20rpx);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__container {
+        background-color: var(--dec-bg-color, transparent);
+        border-radius: var(--dec-border-radius, 0);
+        padding: var(--dec-inner-padding, 0);
+    }
+}

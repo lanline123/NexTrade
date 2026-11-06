@@ -1,0 +1,67 @@
+/* 自旧 cartHeard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.cart-heard {
+    color: #1a1a1a;
+
+    // 用 flex 而非 absolute：作为 navbarContent .navbar 的 flex 子元素，
+    // 才能正确接收小程序端注入的 paddingRight（胶囊按钮宽度），避让胶囊
+    .cart-heard-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 100%;
+        padding: 0 28rpx;
+        box-sizing: border-box;
+    }
+
+    .cart-heard-left {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .cart-heard-back {
+        flex-shrink: 0;
+        font-size: 36rpx;
+        line-height: 1;
+        margin-right: 12rpx;
+        padding: 8rpx 8rpx 8rpx 0;
+    }
+
+    .cart-heard-text {
+        font-size: 32rpx;
+        font-weight: 700;
+        line-height: 42rpx;
+        text-align: left;
+    }
+
+    .cart-heard-edit {
+        flex-shrink: 0;
+        font-size: 28rpx;
+        font-weight: 400;
+        line-height: 36rpx;
+        margin-left: 20rpx;
+        cursor: pointer;
+    }
+}
+
+/* navbarContent 的占位元素（旧组件模板内 class="placeholder"，此处更名避免全局冲突） */
+.cart-heard-placeholder {
+    width: 100%;
+}
+
+/* navbarContent 的基础结构类（旧 components/navbarContent/index.vue 模板结构） */
+.cart-heard .navbar-box .navbar {
+    display: flex;
+    align-items: center;
+}
+
+/* 原 flex / align-center 工具类（uniapp 全局 css 提供，目标工程无全局定义，随组件补齐） */
+.flex {
+    display: flex;
+}
+
+.align-center {
+    align-items: center;
+}

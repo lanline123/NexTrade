@@ -1,6 +1,6 @@
 import { getHomeDecorate } from '@/lib/api';
 import type { Metadata } from 'next';
-import PcHeader from '@/components/PcHeader';
+import PcHeader from '@/components/PcHeaderWithData';
 import { DecorateRenderer } from '@/decorate/components/modules';
 import type { HomeDecorateResponse } from '@/decorate/types';
 import PcFooter from '@/components/PcFooter';

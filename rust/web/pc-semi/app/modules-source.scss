@@ -2929,3 +2929,41 @@ img {
 
 .dec-pc-home-hero__card-price .dec-price-symbol,
 .dec-pc-home-hero__card-price .dec-price-decimals { font-size: 12px; font-weight: 700; }
+
+/* Hero 商品卡角标：对齐旧版，去掉 60px 限宽导致「电芯级…」截断 */
+.dec-pc-home-hero__card-badge {
+  max-width: none;
+  flex-shrink: 1;
+  min-width: 0;
+  line-height: 1.4;
+  vertical-align: middle;
+  padding: 1px 5px;
+}
+
+/* 标题可让位，角标优先完整显示 */
+.dec-pc-home-hero__card-header { gap: 6px; overflow: visible; }
+.dec-pc-home-hero__card-title { flex: 0 1 auto; }
+
+/* 首页营销区商品卡：对齐旧版 PcHomeHero.vue —— 每张卡有背景色，无 hover 动效 */
+.dec-pc-home-hero__promo-card {
+  background: var(--dec-panel-bg, #ffffff);
+  box-shadow: var(--dec-panel-shadow, none);
+}
+
+.dec-pc-home-hero__promo-card:hover,
+.dec-pc-home-hero__channel-card:hover {
+  box-shadow: var(--dec-panel-shadow, none);
+  transform: none;
+}
+
+.dec-pc-home-hero__channel-card {
+  background: var(--dec-panel-bg, #ffffff);
+  box-shadow: var(--dec-panel-shadow, none);
+  transition: none;
+}
+
+/* 营销区商品卡：兜底色 #f5f6fa（装修未配置 panelBackgroundColor 时生效） */
+.dec-pc-home-hero__promo-card,
+.dec-pc-home-hero__channel-card {
+  background: var(--dec-panel-bg, #f5f6fa);
+}

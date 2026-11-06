@@ -1,0 +1,154 @@
+/* 自旧 pages/productCate/src/selectCate.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.cate-box {
+    width: 100%;
+    height: 100rpx;
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .cate-btn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 80rpx;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+
+        .cate-btn-arrow {
+            font-size: 24rpx;
+            color: #999;
+            line-height: 1;
+            display: block;
+        }
+    }
+
+    .cate-scroll {
+        width: 100%;
+        white-space: nowrap;
+        padding: 20rpx 0;
+        box-sizing: border-box;
+    }
+
+    .cate-item {
+        display: inline-block;
+        min-width: 150rpx;
+        padding: 5rpx 0;
+        margin-right: 15rpx;
+        vertical-align: middle;
+
+        &:first-child {
+            margin-left: 20rpx;
+        }
+
+        &:last-child {
+            margin-right: 100rpx;
+        }
+    }
+
+    .popup-item {
+        max-width: 150rpx;
+    }
+}
+
+/* --cate-* 由分类页装修下发（见 buildCateCenterV2Vars），未配置时 fallback 即原有视觉 */
+.item-text {
+    padding: 10rpx 10rpx;
+    background-color: var(--cate-subtab-bg, #f6f6f6);
+    border-radius: 50rpx;
+    font-size: 26rpx;
+    color: var(--cate-subtab-text, #999);
+    text-align: center;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+
+    &.popup-text {
+        margin-right: 0;
+        width: 100%;
+        padding: 10rpx;
+    }
+
+    &.active.main {
+        color: var(--cate-subtab-active-text, var(--main-text));
+        background-color: var(--cate-subtab-active-bg, var(--main-bg));
+        border-color: transparent;
+    }
+
+    // 装修 subTabStyle=1：实心高亮
+    &.active.solid {
+        background-color: var(--cate-subtab-active-bg, var(--cate-theme, var(--general)));
+        color: var(--cate-subtab-active-text, #fff);
+        border-color: transparent;
+    }
+
+    &.active.main.solid {
+        color: var(--cate-subtab-active-text, var(--main-text));
+        background-color: var(--cate-subtab-active-bg, var(--main-bg));
+        border-color: transparent;
+    }
+
+    // 装修 subTabStyle=2：描边高亮（对齐 admin：白底 + 主题色描边/文字）
+    // 描边态没有实心底，subTabActiveBgColor 复用为边框色，未单独配文字色时文字跟它走
+    &.active.outline {
+        background-color: #fff;
+        color: var(--cate-subtab-active-text, var(--cate-subtab-active-bg, var(--cate-theme, var(--general))));
+        border-color: var(--cate-subtab-active-bg, var(--cate-theme, var(--general)));
+    }
+
+    &.active.main.outline {
+        background-color: #fff;
+        color: var(--cate-subtab-active-text, var(--cate-subtab-active-bg, var(--cate-theme, var(--general))));
+        border-color: var(--cate-subtab-active-bg, var(--cate-theme, var(--general)));
+    }
+}
+
+.cate-popup {
+    max-height: 50vh;
+    padding: 0 30rpx;
+    padding-top: var(--status-bar-height);
+    position: relative;
+
+    .cate-popup-title {
+        font-size: 32rpx;
+        height: 100rpx;
+        display: flex;
+        align-items: center;
+    }
+
+    .cate-popup-list-box {
+        height: calc(100% - 100rpx);
+        padding-bottom: 70rpx;
+        overflow: hidden;
+        overflow-y: auto;
+
+        .cate-popup-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 20rpx;
+
+            .list-item {
+                height: 60rpx;
+            }
+        }
+    }
+
+    .cate-popup-close {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 24rpx;
+        color: #999;
+        display: flex;
+        align-items: center;
+        padding: 20rpx;
+
+        .icon-xiajiantou1-copy {
+            font-size: 28rpx;
+            transform: rotate(180deg);
+        }
+    }
+}

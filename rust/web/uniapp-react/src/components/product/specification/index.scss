@@ -1,0 +1,736 @@
+/* 自旧 specification.vue <style lang="scss" scoped> 原样平移：
+   - 去掉 scoped 与 :deep()（平铺为普通后代选择器）
+   - v-bind(height) / v-bind(paddingBottom) 改为组件内联 style（见 index.tsx ScrollView）
+   - $tig-color-error（uni.scss，= $tig-color-primary = #39bf3e）替换为字面量 */
+.placeholder {
+    background-color: #f7f8fa;
+    padding: 10rpx;
+}
+
+.tab {
+    width: 100%;
+    display: flex;
+    position: relative;
+    .line,
+    .subline {
+        position: absolute;
+        width: 50%;
+        height: 2px;
+        background-color: var(--general);
+    }
+    .line {
+        top: 0;
+    }
+    .subline {
+        bottom: 0;
+        height: 1px;
+        background-color: #eee;
+    }
+
+    .tab-item {
+        width: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80rpx;
+        font-size: 26rpx;
+        font-weight: 500;
+        position: relative;
+
+        .image {
+            width: 20rpx;
+            height: 100%;
+            position: absolute;
+            top: 0;
+        }
+        &.active {
+            color: var(--general);
+        }
+    }
+}
+
+.allskulist {
+    padding: 0 20rpx;
+
+    .allskulist-item {
+        display: flex;
+        align-items: center;
+        padding-bottom: 25rpx;
+        &:first-child {
+            padding-top: 20rpx;
+        }
+
+        .left {
+            font-size: 24rpx;
+            flex: 1;
+            .title {
+                padding-bottom: 6rpx;
+                padding-right: 40rpx;
+            }
+
+            .desc {
+                display: flex;
+                font-size: 22rpx;
+                color: #c1c1c1;
+                align-items: center;
+                height: 35rpx;
+                .line {
+                    width: 1px;
+                    height: 100%;
+                    background-color: #dadada;
+                    margin: 0 12rpx;
+                    height: 16rpx;
+                }
+            }
+        }
+    }
+}
+
+.attribute {
+    color: #333;
+    .attribute-item {
+        margin-bottom: 30rpx;
+        .item-title {
+            font-size: 28rpx;
+            font-weight: 600;
+            margin-bottom: 20rpx;
+        }
+        .item-content {
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 26rpx;
+            gap: 20rpx;
+            .item-attr {
+                background-color: #f7f8fa;
+                border-radius: 10rpx;
+                overflow: hidden;
+                padding: 10rpx 20rpx;
+                line-height: 42rpx;
+                border: 1px solid #f7f8fa;
+                &:first-child {
+                    margin-left: 0;
+                }
+                &.checked {
+                    color: var(--general);
+                    border: 1px solid var(--general);
+                    box-sizing: border-box;
+                }
+            }
+        }
+    }
+}
+
+/* v-bind(height) / v-bind(paddingBottom) 已改为 ScrollView 内联 style */
+.specification {
+    box-sizing: border-box;
+}
+
+.product-sku-box {
+    padding: 30rpx 20rpx;
+    .product-info {
+        display: flex;
+        width: 100%;
+        .product-info-img {
+            position: relative;
+            width: 180rpx;
+            height: 180rpx;
+            border-radius: 20rpx;
+            overflow: hidden;
+
+            .product-status-box {
+                position: absolute;
+                left: 0;
+                top: 0;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
+
+                .outsale {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 50%;
+                    height: 50%;
+                    line-height: 1;
+                    border-radius: 100%;
+                    background: rgba(0, 0, 0, 0.4);
+                    color: #ffffff;
+                    font-size: 20rpx;
+                }
+            }
+        }
+        .info {
+            margin-left: 20rpx;
+            padding-top: 20rpx;
+            width: calc(100% - 180rpx);
+
+            .ticket {
+                background-color: var(--tag-bg);
+                color: var(--tag-text);
+                border-radius: 5rpx;
+                white-space: nowrap;
+                width: fit-content;
+                padding: 5rpx;
+                margin: 10rpx 0;
+                .ticket-content {
+                    font-size: 20rpx;
+                }
+            }
+
+            .del-box {
+                padding: 5rpx 0;
+                display: template;
+                font-size: 12px;
+                color: #969799;
+                text-decoration: line-through;
+            }
+
+            .price {
+                color: var(--general);
+                font-weight: bold;
+                font-size: 36rpx;
+                margin-bottom: 10rpx;
+            }
+            .name {
+                color: #c3c0c0;
+                font-size: 24rpx;
+            }
+        }
+    }
+}
+
+/* A1 / A2 / A3 共用新版大图头部、头部数量和图片关闭按钮。 */
+.specification--a1,
+.specification--overseas {
+    position: relative;
+
+    .product-sku-box {
+        position: relative;
+        padding: 30rpx;
+
+        .product-info {
+            flex: 1;
+            padding-right: 34rpx;
+
+            .product-info-img {
+                flex-shrink: 0;
+                width: 220rpx;
+                height: 220rpx;
+            }
+
+            .info {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                width: calc(100% - 220rpx);
+                padding-top: 0;
+
+                .price {
+                    display: flex;
+                    margin-bottom: 0;
+                    color: #1a1a1a;
+                    column-gap: 6rpx;
+                }
+
+                .ticket {
+                    margin: 0;
+                    color: var(--general);
+                    background: transparent;
+                }
+
+                .name {
+                    position: relative;
+                    top: -8rpx;
+                    color: #666;
+                }
+
+                .sku-num {
+                    .stock {
+                        margin-left: 30rpx;
+                        color: #666;
+                        font-size: 22rpx;
+                        white-space: nowrap;
+                    }
+                }
+            }
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            width: 60rpx;
+            height: 60rpx;
+            align-items: flex-end;
+            justify-content: flex-start;
+
+            image {
+                width: 40rpx;
+                height: 40rpx;
+            }
+
+            /* Taro Image 渲染为组件节点，标签选择器 image 在 H5 端可能不命中，补一个类选择器 */
+            .close-img {
+                width: 40rpx;
+                height: 40rpx;
+            }
+        }
+    }
+}
+
+// 无数量控件时不再按图片高度分配头部剩余空间，避免价格和标题之间出现大段空白。
+.specification--a1 .product-sku-box.product-sku-box--without-quantity,
+.specification--overseas .product-sku-box.product-sku-box--without-quantity {
+    .product-info .info {
+        justify-content: flex-start;
+
+        .name {
+            top: 0;
+            margin-top: 8rpx;
+        }
+    }
+}
+
+/* 三种装修风格统一使用标准商城的描边规格样式。 */
+.specification--a1 {
+    .product-sku-info {
+        padding: 30rpx 30rpx 0;
+
+        .sku-item {
+            .tit {
+                height: auto;
+                color: #1a1a1a;
+                font-size: 28rpx;
+                line-height: 34rpx;
+            }
+
+            .sku-tag {
+                gap: 20rpx;
+
+                .tag {
+                    margin: 10rpx 0;
+                    color: #1a1a1a;
+                    background: transparent;
+                    border: 1px solid #c2c4cc;
+                    border-radius: 4px;
+
+                    &.checked {
+                        color: var(--general);
+                        border-color: var(--general);
+                        border-width: 1.5px;
+                        font-weight: 600;
+                    }
+
+                    &.disabled {
+                        color: #c2c4cc;
+                        background: transparent;
+                        border: 1.5px dashed #e0e1e5;
+                        font-weight: 400;
+                    }
+
+                    &.checked.disabled {
+                        color: #c2c4cc;
+                        border-color: var(--general);
+                        border-style: solid;
+                    }
+
+                    &.tag--image {
+                        width: 108rpx;
+                        min-width: 108rpx;
+                        height: 108rpx;
+                        padding: 0;
+                        overflow: hidden;
+
+                        .tag-img {
+                            width: 100%;
+                            height: 100%;
+                            border-radius: 0;
+                        }
+
+                        .tag-text {
+                            display: none;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.product-sku-info {
+    padding: 20rpx 20rpx 0 20rpx;
+    box-sizing: border-box;
+    .sku-item {
+        margin-bottom: 30rpx;
+        display: flex;
+        flex-direction: column;
+        gap: 20rpx;
+        .tit {
+            color: #999;
+            height: 33rpx;
+            line-height: 32rpx;
+            font-size: 24rpx;
+        }
+        .sku-tag {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            .tag {
+                margin: 10rpx 20rpx 10rpx 0;
+                background-color: #f7f8fa;
+                color: #333;
+                height: 55rpx;
+                cursor: pointer;
+                min-width: 60rpx;
+                text-align: center;
+                position: relative;
+                border-radius: 10rpx;
+                font-size: 24rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 10rpx;
+                border: 1px solid #f7f8fa;
+                .tag-img {
+                    width: 45rpx;
+                    height: 45rpx;
+                    box-sizing: content-box;
+                    border-radius: 5rpx;
+                    overflow: hidden;
+                }
+
+                .tag-text {
+                    padding: 10rpx;
+                }
+            }
+            .checked {
+                color: var(--general);
+                border: 1px solid var(--general);
+                box-sizing: border-box;
+            }
+            .disabled {
+                border: 1px dashed #eee;
+                color: #c8c9cc;
+                cursor: not-allowed;
+                background-color: #f7f8fa;
+            }
+            .checked.disabled {
+                border: 1px solid var(--general);
+                color: #c8c9cc;
+            }
+        }
+    }
+
+    .num-item {
+        display: flex;
+
+        align-items: center;
+        justify-content: space-between;
+        .tit {
+            color: #999;
+            height: 33rpx;
+            line-height: 32rpx;
+            font-size: 24rpx;
+        }
+
+        .sku-num {
+            /* :deep(.uni-numbox) 平铺 */
+            .uni-numbox {
+                border: 1rpx solid #c3c0c0;
+                border-radius: 10rpx;
+            }
+            .uni-numbox-btns {
+                background-color: #fff !important;
+                color: #333;
+                border-radius: 10rpx;
+            }
+            .uni-numbox--text {
+                font-weight: 500 !important;
+            }
+            .uni-numbox__value {
+                background-color: #fff !important;
+                color: #333;
+                border-left: 1rpx solid #c3c0c0;
+                border-right: 1rpx solid #c3c0c0;
+            }
+            .stock {
+                font-size: 22rpx;
+                margin-left: 30rpx;
+                color: #c3c0c0;
+            }
+            .green-txt {
+                color: var(--general);
+            }
+            .red-txt {
+                color: #39bf3e; // $tig-color-error
+            }
+        }
+    }
+}
+
+.footer {
+    background-color: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: calc(var(--safe-bottom) + 15px);
+    flex-shrink: 0;
+
+    &.shadow {
+        box-shadow: 0 0 10px rgba(125, 126, 128, 0.16);
+    }
+
+    .b2b-btn {
+        background-color: #fff;
+        .desc {
+            padding: 0 20rpx;
+            display: flex;
+            height: 70rpx;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 26rpx;
+            .num {
+                color: var(--general);
+                padding: 5rpx;
+            }
+            .price {
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
+
+    .exchange-btn,
+    .groupon-btn {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0 28rpx;
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 70rpx;
+            width: 100%;
+            background: var(--general);
+            border-radius: 100rpx;
+            color: var(--main-text);
+            line-height: normal;
+            text-align: center;
+            color: #fff;
+            font-size: 24.5rpx;
+            font-weight: 600;
+        }
+    }
+
+    .add_cart {
+        box-sizing: border-box;
+        display: flex;
+        width: 100%;
+        height: 70rpx;
+        padding: 0 28rpx;
+        justify-content: initial;
+
+        .buy-cell {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+
+            /* :deep(.buy) 平铺：Buy 组件根节点类名为 .buy */
+            .buy {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 70rpx;
+            line-height: normal;
+            text-align: center;
+            color: #fff;
+            font-size: 24.5rpx;
+            font-weight: 600;
+        }
+
+        > .btn {
+            flex: 1;
+            width: 0;
+            min-width: 0;
+        }
+
+        .cart {
+            background: var(--vice-bg);
+            border-radius: 100rpx 0 0 100rpx;
+            color: var(--vice-text);
+        }
+        .buy-right {
+            background: var(--general);
+            border-radius: 0 100rpx 100rpx 0;
+            color: var(--main-text);
+        }
+    }
+    .add_cart.single {
+        .buy-right {
+            border-radius: 100rpx;
+        }
+    }
+
+    /* 分离式按钮由容器提供对称边距，子按钮 flex 等分，避免 vw + gap 产生左右取整偏差。 */
+    &.footer--a1-simple,
+    &.footer--a3-simple {
+        .add_cart {
+            box-sizing: border-box;
+            justify-content: initial;
+            padding: 0 28rpx;
+
+            /* 间距加在父级容器上，避免依赖小程序跨组件样式穿透。 */
+            .buy-cell + .buy-cell {
+                margin-left: 14rpx;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            > .btn {
+                flex: 1;
+                width: 0;
+                min-width: 0;
+            }
+
+            > .btn + .btn {
+                margin-left: 14rpx;
+            }
+        }
+    }
+
+    /* A1 / A2 默认弹窗风格：按钮分离并使用主题色。 */
+    &.footer--a1-simple {
+        .exchange-btn,
+        .groupon-btn {
+            .btn {
+                border-radius: var(--spec-button-radius);
+            }
+        }
+
+        .add_cart {
+            .cart {
+                box-sizing: border-box;
+                color: var(--general);
+                background: #fff;
+                border: 3rpx solid var(--general);
+                border-radius: var(--spec-button-radius);
+            }
+
+            .buy-right {
+                color: var(--main-text);
+                background: var(--general);
+                border-radius: var(--spec-button-radius);
+            }
+        }
+    }
+
+    /* A1 经典风：保持连体结构，颜色跟随主题。 */
+    &.footer--a1-classic {
+        .add_cart {
+            .cart {
+                color: var(--vice-text);
+                background: var(--vice-bg);
+                border: 0;
+            }
+
+            .buy-right {
+                color: var(--main-text);
+                background: var(--general);
+            }
+        }
+    }
+
+    /* A3 默认简约风：对齐跨境项目，分离式描边/实色按钮。 */
+    &.footer--a3-simple {
+        .add_cart {
+            .cart {
+                box-sizing: border-box;
+                color: #1a1a1a;
+                background: #fff;
+                border: 2px solid #505259;
+                border-radius: var(--spec-button-radius);
+            }
+
+            .buy-right {
+                color: var(--main-text);
+                background: var(--general);
+                border-radius: var(--spec-button-radius);
+            }
+        }
+    }
+
+    /* A3 胶囊/经典风：跟随装修配置切回连体按钮。 */
+    &.footer--a3-classic {
+        .add_cart {
+            .cart {
+                border-radius: 100rpx 0 0 100rpx;
+            }
+
+            .buy-right {
+                border-radius: 0 100rpx 100rpx 0;
+            }
+        }
+
+        .add_cart.single .buy-right {
+            border-radius: 100rpx;
+        }
+    }
+}
+
+.disabled-div {
+    background-color: #ddd; // 灰色背景
+    color: #aaa; // 灰色字体
+    opacity: 0.6; // 降低透明度
+    pointer-events: none;
+}
+
+.exchange-box {
+    display: flex;
+    align-items: center;
+    .exchange-img {
+        width: 35rpx;
+        height: 35rpx;
+        padding-right: 5rpx;
+    }
+    .exchange-icon {
+        padding: 0 5rpx;
+    }
+    .exchange-text {
+        font-size: 34rpx;
+    }
+}
+
+/* 以下通用工具类自旧 App.vue 全局样式补齐（react 工程 app.scss 暂未引入，
+   本组件模板使用了 flex / justify-between / align-center / line2） */
+.flex {
+    display: flex;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.line2 {
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

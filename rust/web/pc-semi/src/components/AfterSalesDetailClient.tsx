@@ -3,7 +3,7 @@
 /**
  * 售后详情 / 退款申请详情（PC 会员中心）
  *
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/return/LogInfo.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/return/logInfo.vue
  * - 顶部状态头：statusName + statusDesc/兜底文案 + autoAgreeEndTime 倒计时（每秒刷新，归零后重新拉取）
  * - 可撤销：canCancel 时展示撤销按钮（POST user/aftersales/cancel）
  * - 问题补充/回寄信息表单（status!==6 && status!==7；status===4 时要求快递公司/单号）：
@@ -182,7 +182,7 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
         try {
           await apiPost('user/aftersales/cancel', { aftersaleId: detail?.aftersaleId || id });
           Toast.success({ content: '撤销成功' });
-          window.location.replace('/member/return/Log');
+          window.location.replace('/member/return/log');
         } catch (error) {
           Toast.error({ content: error instanceof Error ? error.message : '取消失败' });
         }
@@ -254,7 +254,7 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
     return (
       <Card className="cart-state">
         <h2>登录后查看售后详情</h2>
-        <Link href={`/login?redirect=/member/return/LogInfo?id=${id}`}><Button theme="solid" type="primary">去登录</Button></Link>
+        <Link href={`/login?redirect=/member/return/logInfo?id=${id}`}><Button theme="solid" type="primary">去登录</Button></Link>
       </Card>
     );
   }
@@ -438,7 +438,7 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
 
       <div className="return-loginfo-links">
         <Link href="/member/aftersales">售后申请</Link>
-        <Link href="/member/return/Log">申请记录</Link>
+        <Link href="/member/return/log">申请记录</Link>
         {detail.orderId ? <Link href={`/member/order/detail?id=${detail.orderId}`}>查看订单</Link> : null}
       </div>
 

@@ -1,0 +1,261 @@
+/* 自旧 pages/shop/info.vue <style lang="scss" scoped> 原样拷出，去 scoped。
+   追加：
+   - .identity-stars*：旧 uni-rate :allow-half 的五角星（两层星按百分比裁切还原半星）
+   - .line1：旧工程 App.vue 全局单行省略工具类，React 工程无全局定义，本页补齐 */
+.shop-info-page {
+    min-height: 100vh;
+    background: #fff;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.identity {
+    display: flex;
+    align-items: flex-start;
+    column-gap: 16rpx;
+    padding-left: 8rpx;
+    padding-bottom: 24rpx;
+    background: #fff;
+}
+
+.identity-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .icon-houtui {
+        font-size: 40rpx;
+        color: #1a1a1a;
+    }
+}
+
+.identity-logo {
+    width: 64rpx;
+    height: 64rpx;
+    margin-top: 4rpx;
+    border-radius: 8rpx;
+    background: #f7f7f7;
+    flex-shrink: 0;
+}
+
+.identity-meta {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding-top: 2rpx;
+}
+
+.identity-name {
+    font-size: 30rpx;
+    font-weight: 500;
+    color: #1a1a1a;
+    line-height: 42rpx;
+}
+
+.identity-name.line1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.identity-rate {
+    display: flex;
+    align-items: center;
+    column-gap: 8rpx;
+    margin-top: 6rpx;
+}
+
+/* 旧 uni-rate（size=12、color=#e5e5e5、active-color=主题色、allow-half） */
+.identity-stars {
+    position: relative;
+    display: inline-block;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+
+    .identity-stars-bg {
+        font-size: 12px;
+        line-height: 1;
+        color: #e5e5e5;
+    }
+
+    .identity-stars-clip {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+
+        .identity-stars-fg {
+            font-size: 12px;
+            line-height: 1;
+            /* 颜色继承 .identity-stars 的内联 generalColor */
+            color: inherit;
+        }
+    }
+}
+
+.identity-score {
+    font-size: 22rpx;
+    font-weight: 600;
+    color: var(--general);
+    line-height: 1;
+}
+
+.identity-divider {
+    width: 2rpx;
+    height: 18rpx;
+    background: #d7d7d7;
+    flex-shrink: 0;
+    margin: 0 1rpx 0 4rpx;
+}
+
+.identity-fans {
+    font-size: 22rpx;
+    color: #999;
+    line-height: 1;
+}
+
+.identity-desc {
+    margin-top: 8rpx;
+    font-size: 22rpx;
+    color: #999;
+    line-height: 32rpx;
+}
+
+.page-body {
+    padding: 8rpx 24rpx 48rpx;
+}
+
+.section {
+    margin-top: 40rpx;
+}
+
+.section-title {
+    margin-bottom: 20rpx;
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 42rpx;
+}
+
+.sub-title {
+    margin-bottom: 16rpx;
+    font-size: 26rpx;
+    font-weight: 500;
+    color: #666;
+    line-height: 36rpx;
+}
+
+.score-list {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10rpx;
+    .score-item {
+        row-gap: 0rpx;
+    }
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20rpx 24rpx;
+    background: #f8f9fb;
+    border-radius: 8rpx;
+    box-sizing: border-box;
+}
+
+.score-label {
+    font-size: 26rpx;
+    color: #333;
+    line-height: 36rpx;
+    font-weight: 600;
+    &--total {
+        margin-bottom: 12rpx;
+    }
+}
+
+.score-row {
+    display: flex;
+    align-items: baseline;
+    column-gap: 16rpx;
+
+    &--total {
+        column-gap: 4rpx;
+    }
+}
+
+.score-bar {
+    flex: 1;
+    min-width: 0;
+    height: 8rpx;
+    overflow: hidden;
+    background: #ffe8d6;
+    border-radius: 8rpx;
+}
+
+.score-fill {
+    height: 100%;
+    border-radius: 8rpx;
+}
+
+.score-num {
+    flex-shrink: 0;
+    font-size: 30rpx;
+    line-height: 1;
+    font-weight: 400;
+    color: #1a1a1a;
+}
+
+.score-num.is-lg {
+    font-size: 44rpx;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.license-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 24rpx;
+    padding: 24rpx;
+    background: #f8f9fb;
+    border-radius: 8rpx;
+}
+
+.license-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.license-title {
+    font-size: 26rpx;
+    font-weight: 500;
+    color: #1a1a1a;
+    line-height: 40rpx;
+}
+
+.license-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 8rpx;
+    font-size: 24rpx;
+    color: #666;
+    line-height: 34rpx;
+
+    .icon-xiangyou {
+        margin-left: 4rpx;
+        font-size: 22rpx;
+        color: #666;
+    }
+}
+
+.license-img {
+    flex-shrink: 0;
+    width: 160rpx;
+    height: auto;
+    max-height: 100rpx;
+}

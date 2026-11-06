@@ -1,0 +1,22 @@
+/* 自旧 productGrouponMore.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.btn-box {
+    padding: 25rpx;
+}
+
+.groupon-container {
+    height: 60vh;
+    overflow: hidden;
+    overflow-y: auto;
+
+    .groupon-title {
+        height: 84rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28rpx;
+    }
+
+    .groupon-box {
+        height: calc(100% - 84rpx);
+    }
+}

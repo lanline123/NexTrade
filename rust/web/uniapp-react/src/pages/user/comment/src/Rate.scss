@@ -1,0 +1,15 @@
+/* 自旧 uni-rate 默认视觉复刻（整星、横向排列、无间距） */
+.rate-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.rate-item {
+    line-height: 1;
+    margin-right: 4px;
+
+    &:last-child {
+        margin-right: 0;
+    }
+}

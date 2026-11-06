@@ -1,0 +1,80 @@
+.module-notice-a3 {
+    min-height: auto !important;
+
+    .module-ad-content {
+        overflow: hidden;
+    }
+}
+
+.notice-a3-wrap {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.notice-a3-header {
+    display: flex;
+    align-items: center;
+    margin-right: 16rpx;
+    max-height: 40rpx;
+    overflow: hidden;
+
+    image {
+        height: auto;
+        display: block;
+    }
+}
+
+.notice-a3-divider {
+    width: 1px;
+    height: 24rpx;
+    background-color: #e2e8f0;
+    margin-left: 16rpx;
+    margin-right: 4rpx;
+    flex-shrink: 0;
+}
+
+.notice-a3-body {
+    flex: 1;
+    overflow: hidden;
+}
+
+.notice-a3-swiper {
+    width: 100%;
+    height: 60rpx;
+}
+
+.notice-a3-item {
+    height: 60rpx;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 26rpx;
+}
+
+.notice-a3-prefix {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #de872a;
+    border-radius: 4rpx;
+    font-size: 24rpx;
+    margin-right: 8rpx;
+    flex-shrink: 0;
+    font-weight: 500;
+    width: 72rpx;
+    height: 40rpx;
+    line-height: 36rpx;
+    text-align: center;
+    overflow: hidden;
+    background-color: #fff0cf;
+    color: #de872a;
+}
+
+.notice-a3-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

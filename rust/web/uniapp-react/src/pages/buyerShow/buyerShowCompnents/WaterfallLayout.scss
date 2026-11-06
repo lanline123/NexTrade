@@ -1,0 +1,73 @@
+/* === 瀑布流布局（旧 WaterfallLayout.vue style 逐条平移，去 scoped） === */
+.waterfall-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.layout-toggle {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20rpx;
+    background-color: #fff;
+    border-bottom: 1rpx solid #f0f0f0;
+}
+
+.toggle-btn {
+    // width: 60rpx;
+    height: 60rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 20rpx;
+    border: 1rpx solid #ddd;
+    border-radius: 10rpx;
+    padding: 10rpx 20rpx;
+}
+
+.toggle-btn.active {
+    border-color: #ff6b35;
+    color: #ff6b35;
+}
+
+.waterfall-container {
+    // flex: 1;
+}
+
+.single-column {
+    padding: 10rpx;
+}
+
+.single-item {
+    margin-bottom: 10rpx;
+    background-color: #fff;
+    border-radius: 12rpx;
+    overflow: hidden;
+    // box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.double-columns {
+    display: flex;
+    padding: 10rpx;
+    column-gap: 10rpx;
+}
+
+.column {
+    flex: 1;
+}
+
+.double-item {
+    margin-bottom: 10rpx;
+    background-color: #fff;
+    border-radius: 10rpx;
+    overflow: hidden;
+    // box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.loading-more,
+.no-more {
+    text-align: center;
+    padding: 30rpx;
+    font-size: 24rpx;
+    color: #999;
+}

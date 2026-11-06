@@ -1,0 +1,36 @@
+/* 自旧 components/empty-box/empty-box.vue 的 <style lang="scss" scoped> 拷出（去 scoped） */
+.empty-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.empty-box--center-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+/* 旧 up-empty 内部排版等价补充（uview-plus u-empty 默认：图标 + 20rpx 间距 + 28rpx/#909399 文案） */
+.empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-img {
+    display: block;
+}
+
+.empty-text {
+    margin-top: 20rpx;
+    font-size: 28rpx;
+    color: #909399;
+    line-height: 1.4;
+    text-align: center;
+    padding: 0 20rpx;
+}

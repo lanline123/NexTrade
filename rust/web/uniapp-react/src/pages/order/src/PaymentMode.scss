@@ -1,0 +1,62 @@
+/* 自旧 pages/order/src/paymentMode.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.payment-box {
+    border-radius: 0;
+    background: #fff;
+    margin-bottom: 14rpx;
+    padding: 20rpx 28rpx;
+    font-size: 24.5rpx;
+    display: flex;
+    flex-direction: column;
+    row-gap: 21rpx;
+    color: #1a1a1a;
+}
+
+.payment-title {
+    font-size: 28rpx;
+    font-weight: 700;
+}
+
+.payment-content {
+    display: flex;
+    flex-direction: column;
+    row-gap: 21rpx;
+
+    .payment-item {
+        display: flex;
+        align-items: center;
+        column-gap: 21rpx;
+
+        &.disabled {
+            color: #bbb;
+
+            .payment-radio {
+                border-color: #bbb;
+            }
+        }
+    }
+
+    .payment-radio {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1.5px solid #525252;
+        position: relative;
+        flex-shrink: 0;
+
+        &.active {
+            border-color: var(--general);
+
+            &::after {
+                content: "";
+                position: absolute;
+                width: 7px;
+                height: 7px;
+                background-color: var(--general);
+                border-radius: 50%;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
+    }
+}

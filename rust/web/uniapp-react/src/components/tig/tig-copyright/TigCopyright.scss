@@ -1,0 +1,27 @@
+/* 自旧 components/tig/tig-copyright/tig-copyright.vue 迁移：样式逐行保留 */
+.copyright {
+    padding: 40rpx 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 20rpx;
+
+    .copyright-bg {
+        max-width: 100%;
+        overflow: hidden;
+        background-position: 50%;
+        width: 320rpx;
+        height: 32rpx;
+        background-repeat: no-repeat;
+        background-size: contain;
+    }
+
+    .shop-company {
+        color: #dfdfdf;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26rpx;
+    }
+}

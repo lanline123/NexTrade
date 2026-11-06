@@ -1,0 +1,54 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/about/index.vue 迁移：样式逐行保留（去 scoped） */
+page {
+    background: #fff;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--nav-height));
+    background: #fff;
+
+    .version-info {
+        margin: 200rpx auto 0 auto;
+        width: fit-content;
+
+        .logo {
+            width: 300rpx;
+            height: 100rpx;
+
+            .image {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        .version-code {
+            margin-top: 20rpx;
+            text-align: center;
+            color: #343434;
+            font-size: 24rpx;
+        }
+
+        .update-tip {
+            margin-top: 20rpx;
+            text-align: center;
+            color: #9c9c9c;
+            font-size: 24rpx;
+        }
+    }
+
+    .copyrigth-info-wrap {
+        display: flex;
+        flex-direction: column;
+        row-gap: 10rpx;
+        align-items: center;
+        margin-top: auto;
+        margin-bottom: 60rpx;
+
+        .row-info {
+            color: #9c9c9c;
+            font-size: 24rpx;
+        }
+    }
+}

@@ -1,0 +1,473 @@
+/* 自旧 pages/coupon/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+/* 优惠券 */
+.price {
+    font-size: 48rpx;
+    color: #666;
+    display: flex;
+
+    .util {
+        font-size: 30rpx;
+        padding-left: 5rpx;
+        height: 100%;
+        position: relative;
+        top: 8rpx;
+    }
+
+    .tmcscoupon-name {
+        font-size: 26rpx;
+        padding-left: 20rpx;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        display: inline-block;
+        width: 280rpx;
+    }
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 {
+    margin: 20rpx;
+    height: 160rpx;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 12rpx;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    position: relative;
+    background: #fff5c5;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m {
+    flex: 1;
+    height: 160rpx;
+    margin-left: 32rpx;
+    box-sizing: border-box;
+    position: relative;
+    min-width: 0;
+}
+
+.tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m:before,
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m:after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    width: 16rpx;
+    height: 16rpx;
+    background: #f0f2f5;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m:before {
+    top: -8rpx;
+    right: -8rpx;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m .tmcscoupon-item_m-info {
+    display: flex;
+    align-items: baseline;
+    font-weight: 700;
+    height: 70rpx;
+    line-height: 80rpx;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m .tmcscoupon-item_m-rule {
+    font-size: 24rpx;
+    color: #999;
+    margin-top: 6rpx;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m .tmcscoupon-item_m-date {
+    font-size: 20rpx;
+    color: #999;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_m:after {
+    bottom: -8rpx;
+    right: -8rpx;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_r:before {
+    content: "";
+    height: 130rpx;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAABeAgMAAAB5il18AAAACVBMVEVHcEz/xy7/xi4WmQdzAAAAAnRSTlMAtc2YijsAAAAUSURBVAjXY9BggEARBhgQYRgiYgDQigepHfzaGwAAAABJRU5ErkJggg==);
+    width: 4rpx;
+    margin-left: -2rpx;
+    position: absolute;
+    top: 35%;
+    left: 0;
+    margin-top: -40rpx;
+    -webkit-background-size: 100% 100%;
+    -moz-background-size: 100% 100%;
+    background-size: 100% 100%;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_r {
+    width: 208rpx;
+    height: 160rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.tmcscoupon-list .tmcscoupon-item-1 .tmcscoupon-item .tmcscoupon-item_r .btn {
+    width: 160rpx;
+    height: 54rpx;
+    background: #ff9400;
+    border-radius: 28rpx;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    font-size: 28rpx;
+    font-weight: 700;
+    color: #fff;
+}
+
+.tmcscoupon-list .tmcscoupon-item-2 {
+    .coupon-detail {
+        box-sizing: border-box;
+        margin-top: 20rpx;
+        padding: 0 20rpx;
+
+        .coupon-detail-item {
+            display: flex;
+            height: 200rpx;
+            background-color: #fff;
+
+            .coupon-detail-item-left {
+                width: 260rpx;
+                flex-shrink: 0;
+                background-color: #609dde;
+                background-image: -webkit-linear-gradient(left, #609dde 20%, #6781da);
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: #fff;
+
+                .item-left-discount {
+                    font-size: 40rpx;
+                }
+
+                .item-left-money {
+                    font-size: 48rpx;
+                    font-weight: bold;
+
+                    .util {
+                        font-size: 30rpx;
+                        padding-left: 5rpx;
+                        line-height: 48rpx;
+                    }
+                }
+
+                .item-left-desc {
+                    color: #fff;
+                    font-size: 24rpx;
+                    margin-top: 10rpx;
+                }
+
+                &::before {
+                    content: "";
+                    z-index: 88;
+                    width: 50rpx;
+                    height: 100%;
+                    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NTQ2MEVGOUEwQUM4MTFFQTgwNkNDRDQzRDE5RjkyMzMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NTQ2MEVGOUIwQUM4MTFFQTgwNkNDRDQzRDE5RjkyMzMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo1NDYwRUY5ODBBQzgxMUVBODA2Q0NENDNEMTlGOTIzMyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo1NDYwRUY5OTBBQzgxMUVBODA2Q0NENDNEMTlGOTIzMyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PrE8tH0AAAGJSURBVHja7Jq/K4VRGMfPq0t5F3U3dRdhMtxBmfwNDBZZDCz+A6SEEqtRCIOSDCw2k0lRkpIfWW7Joqh7FeX1OXnVzeDt3lLn+Xaf+gx3uMOne875Puc5N0qSxClUkxMpGZFcpVKp+8txHAf1ixSgWWFpHcAi9FgWisrl8s+xdQ17sA131pZWtYivT7iEWTiCd0t75PfnImzAFLRbP37zMA3z0GU9R1pgDBagI/gcydpDMJzunQl4tZ7sI+kB0KrQovhlNqQg0gaT0KnQNPr0H1fpfkfTrDEv4kNyUOU+MpDmjHmRXuhXuSH2qYgUVUS6VUQKKiJ5FRGnIvKsIlJSEblVEblQETlVEDmDEwWRQ5cxvLMg8ui+58Xmc2QrtI1ej8gVrFlP9hdYgnvrIuuwb73X2oE5eAtVJGv2699OdmHGBTz3zRLxOeFfr5bhIfQ2PvdHi74Cq2luOGsiNT29hSpS82NoaCLncAybcAMfFq+6XsTPcZ+sClSLlJxARY2/OTVE/qe+BBgAWkdOeDEfg30AAAAASUVORK5CYII=");
+                    background-size: 17rpx 17rpx;
+                    background-repeat: repeat-y;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                }
+            }
+
+            .coupon-detail-item-right {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                padding-left: 20rpx;
+                color: #333;
+                position: relative;
+
+                .item-right-name {
+                    font-size: 30rpx;
+                    margin-top: 20rpx;
+                    padding-bottom: 15rpx;
+                }
+
+                .item-right-time {
+                    font-size: 24rpx;
+                    color: #999;
+                }
+
+                .tmcscoupon-item-btn {
+                    width: 170rpx;
+                    position: absolute;
+                    right: 10rpx;
+                    bottom: 20rpx;
+                }
+            }
+        }
+    }
+}
+
+/*通用暂无数据样式*/
+/* 迁移说明：旧 scoped 样式去 scoped 后为全局，统一加页面根前缀，避免污染通用 EmptyBox 组件 */
+.coupon-index-page {
+    .empty-box {
+        background-color: #fff;
+        padding: 60rpx 0;
+    }
+
+    .empty-box .pictrue {
+        width: 200rpx;
+        height: 200rpx;
+        margin: 0 auto;
+    }
+
+    .empty-box .pictrue image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .empty-box .txt {
+        color: #999;
+        text-align: center;
+    }
+}
+
+.coupon-box {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    padding: 30rpx;
+
+    .grayScaleDiv {
+        filter: grayscale(100%); /* 全部转为灰度 */
+    }
+
+    .coupon-item {
+        box-shadow: 0px 0px 5px #f5f5f5;
+        border-radius: 10rpx;
+        box-sizing: border-box;
+        background-color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+
+        .left {
+            padding: 30rpx;
+            display: flex;
+            flex-direction: column;
+            width: 60%;
+
+            .col-1 {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                width: 100%;
+                margin-bottom: 10rpx;
+
+                .tag {
+                    background-color: var(--general);
+                    color: white;
+                    font-size: 18rpx;
+                    border-radius: 5rpx;
+                    padding: 2rpx 6rpx;
+                    min-width: 70rpx;
+                }
+
+                .title {
+                    font-weight: bold;
+                    font-size: 28rpx;
+                }
+            }
+
+            .col-2 {
+                font-size: 24rpx;
+                color: #333;
+                margin-bottom: 20rpx;
+            }
+
+            .col-3 {
+                font-size: 22rpx;
+                color: #666;
+            }
+
+            .col-rule {
+                display: inline-flex;
+                align-items: center;
+                line-height: 1;
+                margin-top: 8rpx;
+                font-size: 22rpx;
+                color: #999;
+                align-self: flex-start;
+
+                .icon-youjiantou {
+                    font-size: 22rpx;
+                    line-height: 1;
+                    margin-left: 4rpx;
+                    display: inline-flex;
+                    align-items: center;
+                }
+
+                &:active {
+                    opacity: 0.7;
+                }
+            }
+        }
+
+        .right {
+            padding: 30rpx;
+            display: flex;
+            flex-direction: column;
+            width: 40%;
+            gap: 18rpx;
+            justify-content: center;
+
+            .right-1 {
+                color: var(--general);
+                display: flex;
+                flex-direction: row;
+                font-weight: bold;
+                justify-content: center;
+                align-items: flex-end;
+
+                .zhekou {
+                    font-size: 48rpx;
+                    line-height: 1; /* 添加这行 */
+                }
+
+                .zhe {
+                    margin-left: 8rpx;
+                    font-size: 24rpx;
+                    self-align: end; /* 添加这行 */
+                }
+            }
+
+            .right-2 {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+
+        .dotted-line {
+            position: absolute;
+            top: 20rpx;
+            bottom: 20rpx;
+            left: 60%;
+            border-left: 1px dashed #ddd; /* 设置为虚线 */
+            transform: translateX(-50%);
+        }
+    }
+
+    .coupon-item::before {
+        content: "";
+        position: absolute;
+        top: 0; /* 将圆形定位到元素顶部的60%位置 */
+        left: 60%; /* 将圆形定位到元素左侧的50%位置 */
+        transform: translate(-50%, -50%); /* 保证圆形正好在这个位置上 */
+        width: 30rpx; /* 圆形的宽度，可以根据需要调整 */
+        height: 30rpx; /* 圆形的高度，可以根据需要调整 */
+        background-color: #f5f5f5; /* 圆形的颜色，可以根据需要调整 */
+        border-radius: 50%; /* 使元素成为完美的圆形 */
+    }
+
+    .coupon-item::after {
+        content: "";
+        position: absolute;
+        bottom: -30rpx; /* 将圆形定位到元素底部的40%位置 */
+        left: 60%; /* 将圆形定位到元素左侧的50%位置 */
+        transform: translate(-50%, -50%); /* 保证圆形正好在这个位置上 */
+        width: 30rpx; /* 圆形的宽度，可以根据需要调整 */
+        height: 30rpx; /* 圆形的高度，可以根据需要调整 */
+        background-color: #f5f5f5; /* 圆形的颜色，可以根据需要调整 */
+        border-radius: 50%; /* 使元素成为完美的圆形 */
+    }
+
+    .grayScaleDiv {
+        .tag-box {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX();
+        }
+    }
+}
+
+.rule-popup {
+    width: 600rpx;
+    box-sizing: border-box;
+    padding: 50rpx 40rpx 40rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .rule-popup-title {
+        font-size: 34rpx;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 30rpx;
+    }
+
+    .rule-popup-content {
+        width: 100%;
+        max-height: 50vh;
+        overflow-y: auto;
+        font-size: 26rpx;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 40rpx;
+        word-break: break-word;
+    }
+
+    .rule-popup-btn {
+        width: 100%;
+    }
+}
+
+/* ===== 旧 tig-button / tig-button2 等价补充样式 ===== */
+/* 旧 tig-button（uview up-button）：plain-main-color 未在组件声明，实际渲染为主题实底胶囊按钮 */
+.coupon-receive-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 55rpx;
+    padding: 0 20rpx;
+    border-radius: 55rpx;
+    background-color: var(--main-bg);
+    color: var(--main-text);
+    font-size: 24rpx;
+    line-height: 1;
+    box-sizing: border-box;
+
+    &--disabled {
+        opacity: 0.5;
+    }
+
+    &:active {
+        opacity: 0.7;
+    }
+}
+
+/* 旧 tig-button2 theme：主题色实底按钮 */
+.theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background-color: var(--main-bg);
+    color: var(--main-text);
+    box-sizing: border-box;
+
+    &:active {
+        opacity: 0.8;
+    }
+}

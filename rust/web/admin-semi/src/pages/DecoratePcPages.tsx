@@ -1913,9 +1913,11 @@ export function PcProductStyle() {
 
   useEffect(load, []);
 
-  const save = async () => {
+  // override 用于「重置」：setState 是异步的，直接调 save() 会提交旧值（Vue 原版 ref 同步更新不会踩到）。
+  const save = async (override?: number) => {
+    const value = override ?? styleType;
     try {
-      await apiPost('/setting/config/saveProductDetailStyle', { productDetailStyleType: styleType });
+      await apiPost('/setting/config/saveProductDetailStyle', { productDetailStyleType: value });
       Toast.success(t('操作成功'));
       load();
     } catch (error) {
@@ -1945,8 +1947,8 @@ export function PcProductStyle() {
           ))}
         </div>
         <Space style={{ marginTop: 20 }}>
-          <Button theme="solid" type="primary" onClick={save}>{t('保 存')}</Button>
-          <Button onClick={() => { setStyleType(1); save(); }}>{t('重 置')}</Button>
+          <Button theme="solid" type="primary" onClick={() => save()}>{t('保 存')}</Button>
+          <Button onClick={() => { setStyleType(1); save(1); }}>{t('重 置')}</Button>
         </Space>
       </Card>
     </div>
@@ -1976,9 +1978,11 @@ export function PcSearchStyle() {
 
   useEffect(load, []);
 
-  const save = async () => {
+  // override 用于「重置」：setState 是异步的，直接调 save() 会提交旧值（Vue 原版 ref 同步更新不会踩到）。
+  const save = async (override?: number) => {
+    const value = override ?? styleType;
     try {
-      await apiPost('/setting/config/saveSearchStyle', { searchStyleType: styleType });
+      await apiPost('/setting/config/saveSearchStyle', { searchStyleType: value });
       Toast.success(t('操作成功'));
       load();
     } catch (error) {
@@ -2008,8 +2012,8 @@ export function PcSearchStyle() {
           ))}
         </div>
         <Space style={{ marginTop: 20 }}>
-          <Button theme="solid" type="primary" onClick={save}>{t('保 存')}</Button>
-          <Button onClick={() => { setStyleType(1); save(); }}>{t('重 置')}</Button>
+          <Button theme="solid" type="primary" onClick={() => save()}>{t('保 存')}</Button>
+          <Button onClick={() => { setStyleType(1); save(1); }}>{t('重 置')}</Button>
         </Space>
       </Card>
     </div>

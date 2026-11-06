@@ -1,0 +1,43 @@
+/* 自旧 pages/user/src/datetimeItem.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.datetime-item {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #666;
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid #e5e5e5;
+    column-gap: 2px;
+
+    &.disabled {
+        opacity: 0.5;
+        cursor: default;
+        touch-action: none;
+    }
+
+    .icon-riqi {
+        color: rgb(192, 196, 204);
+        font-size: 19px;
+        padding-left: 6px;
+    }
+
+    .datetime-item-text {
+        width: auto;
+        height: 35px;
+        padding-left: 5px;
+        position: relative;
+        flex: 1;
+        line-height: 35px;
+        font-size: 14px;
+        overflow: hidden;
+        text-align: center;
+        min-width: 0;
+    }
+}

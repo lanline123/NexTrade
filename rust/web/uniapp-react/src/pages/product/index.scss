@@ -1,0 +1,629 @@
+/* 商品详情页（自旧 uniapp pages/product/index.vue <style> 移植）
+   旧 scoped :deep() 在 React 无组件样式隔离（H5 同文档），直接使用后代选择器。 */
+.product-area-wrapper {
+    position: relative;
+    background: var(--product-content-bg, #fff);
+}
+
+.wholesale-price-block {
+    overflow: hidden;
+    background: var(--product-content-bg, #fff);
+    border-radius: 12rpx;
+}
+
+.wholesale-product-name {
+    padding: 0 28rpx 24rpx;
+    color: var(--product-title-color, #1a1a1a);
+    font-size: 30rpx;
+    font-weight: 600;
+    line-height: 42rpx;
+    word-break: break-all;
+}
+
+.servicelist {
+    flex: 1;
+    column-gap: 20rpx;
+    row-gap: 5rpx;
+
+    .service-item {
+        font-size: 22rpx;
+        line-height: 38rpx;
+        color: #81838e;
+        column-gap: 8rpx;
+
+        .base-image {
+            padding-right: 10rpx;
+        }
+    }
+}
+
+.icon-image {
+    width: 35rpx;
+    height: 35rpx;
+}
+
+.productDetail-content {
+    padding: 0 20rpx;
+    background: var(--product-page-bg, #f5f5f5);
+
+    .group-card-row {
+        background-color: var(--product-content-bg, #fff);
+        padding: 20rpx;
+        border-radius: 20rpx;
+        margin: 20rpx 0;
+
+        .group-num {
+            color: #1a1a1a;
+            font-size: 28rpx;
+            font-weight: bold;
+        }
+
+        .group-desc {
+            color: #3a3a3a;
+            font-size: 28rpx;
+        }
+
+        .more {
+            padding-left: 8rpx;
+            color: #818181;
+            font-size: 24rpx;
+        }
+
+        .group {
+            padding: 18rpx 0;
+        }
+
+        .instructions {
+            padding-top: 40rpx;
+            padding-bottom: 46rpx;
+            width: 100%;
+            border-top: 2rpx solid #f5f5f5;
+
+            text {
+                width: 109rpx;
+                height: 27rpx;
+                font-weight: bold;
+                font-size: 28rpx;
+                color: #2a2a2a;
+                line-height: 56rpx;
+            }
+
+            .process {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 25rpx;
+
+                .process-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 22rpx 0;
+                    position: relative;
+
+                    // 创建三个小圆点的连接线效果
+                    &:not(:last-child)::after {
+                        position: absolute;
+                        display: block;
+                        content: " ";
+                        width: 45rpx;
+                        height: 10rpx;
+                        background: radial-gradient(circle, #a1a1a1 3rpx, transparent 3rpx);
+                        background-size: 15rpx 10rpx;
+                        background-repeat: repeat-x;
+                        right: -90rpx;
+                        top: 30rpx;
+                    }
+
+                    text {
+                        width: 129rpx;
+                        height: 23rpx;
+                        font-weight: 400;
+                        font-size: 24rpx;
+                        color: #595959;
+                        line-height: 38rpx;
+                    }
+
+                    .process-image {
+                        width: 64rpx;
+                        height: 64rpx;
+                        background: #f5f5f5;
+                        border-radius: 50%;
+                    }
+                }
+            }
+        }
+    }
+
+    .product-card-row {
+        background-color: var(--product-content-bg, #fff);
+        padding: 20rpx;
+        border-radius: 20rpx;
+        margin: 20rpx 0;
+        display: flex;
+        flex-direction: column;
+        row-gap: 25rpx;
+
+        .card-row-flex {
+            display: flex;
+            flex-direction: column;
+            row-gap: 25rpx;
+        }
+
+        .cart-item {
+            font-size: 26rpx;
+
+            .title {
+                min-width: 110rpx;
+                color: #81838e;
+                padding-right: 10rpx;
+            }
+
+            .attr_text {
+                display: block;
+                width: 66vw;
+            }
+
+            .label {
+                .tips {
+                    color: var(--general);
+                    font-size: 24rpx;
+                    margin-top: 5rpx;
+                }
+            }
+        }
+
+        .traceability-item {
+            padding: 10rpx;
+            background-color: #fdf6f0;
+            color: #ff9627;
+            font-size: 24rpx;
+
+            image {
+                width: 115rpx;
+                height: 35rpx;
+                margin-right: 20rpx;
+            }
+        }
+
+        .tab-box {
+            padding: 10rpx 0 20rpx 0;
+            margin-bottom: 20rpx;
+            font-size: 24rpx;
+
+            .active {
+                color: var(--general);
+            }
+        }
+
+        .default {
+            color: #9b9c9f;
+            font-size: 24rpx;
+            padding: 10rpx;
+
+            .desc-pic-item {
+                .slide-image {
+                    display: block;
+                    width: 100%;
+                }
+            }
+        }
+    }
+
+    .coupon-list {
+        background-color: var(--product-content-bg, #fff);
+        padding: 20rpx;
+        border-radius: 20rpx;
+        align-items: center;
+
+        .title {
+            width: 90rpx;
+            color: #81838e;
+        }
+
+        .coupon-item {
+            position: relative;
+            display: inline-block;
+            margin-right: 20rpx;
+            padding: 0 18rpx 0 24rpx;
+            height: 36rpx;
+            line-height: 35rpx;
+            color: #fff;
+            font-size: 20rpx;
+            background: var(--general);
+
+            &::before {
+                content: "";
+                position: absolute;
+                left: -3px;
+                top: 0;
+                bottom: 0;
+                width: 6px;
+                height: 100%;
+                color: var(--general);
+                background: var(--general);
+                -webkit-mask: radial-gradient(circle at 2px, #0000 2px, var(--general) 0);
+                -webkit-mask-position: -3px;
+                -webkit-mask-size: 100% 6px;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                right: -3px;
+                top: 0;
+                bottom: 0;
+                width: 6px;
+                height: 100%;
+                color: #fff;
+                background: var(--general);
+                -webkit-mask: radial-gradient(circle at 2px, #0000 2px, var(--general) 0);
+                -webkit-mask-position: 5px;
+                -webkit-mask-size: 100% 6px;
+            }
+        }
+    }
+}
+
+.attr_table-box {
+    height: 60vh;
+    display: block;
+}
+
+.attr_table {
+    padding: 0 20rpx;
+
+    .item {
+        margin-bottom: 5rpx;
+        font-size: 22rpx;
+
+        .lable {
+            display: inline-block;
+            width: 200rpx;
+            border: 1px solid #f5f4ef;
+            background: #f5f4ef;
+            padding: 10rpx 20rpx;
+        }
+
+        .value {
+            flex: 1;
+            border: 1px solid #f5f4ef;
+            padding: 10rpx 20rpx;
+        }
+    }
+}
+
+.balance {
+    border-radius: 0 0 18rpx 18rpx;
+    background: var(--product-content-bg, #fff);
+    margin-bottom: 20rpx;
+    padding: 30rpx 32rpx 25rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.coupon-container-content {
+    height: 100%;
+    padding-bottom: 30rpx;
+}
+
+.button-position {
+    position: fixed;
+    bottom: 30rpx;
+    left: 0;
+    right: 0;
+    padding: 0 30rpx;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+}
+
+.coupon-btn-con {
+    font-size: 22rpx;
+    padding: 10rpx 25rpx;
+    border-radius: 40rpx;
+    color: #fff;
+    background-image: -webkit-linear-gradient(left, #609dde 20%, #6781da);
+
+    &:active {
+        opacity: 0.7;
+    }
+
+    &.disabled {
+        background-image: -webkit-linear-gradient(left, #aaa 20%, #aaa);
+    }
+}
+
+.balance-title {
+    display: flex;
+
+    .balance-text {
+        font-size: 22rpx;
+        padding-left: 15rpx;
+        display: flex;
+        align-items: flex-end;
+    }
+}
+
+.shuxin {
+    white-space: nowrap; /* 保持文本在一行内 */
+    overflow: hidden; /* 隐藏溢出的文本 */
+    text-overflow: ellipsis;
+}
+
+/* 标准风 A1：白底通栏、弱化门店风卡片圆角，对齐后台预览 */
+.product-detail-page--A1 {
+    background: var(--product-page-bg, #f7f7f7);
+
+    .productDetail-content--vortmall {
+        padding: 0;
+        background: var(--product-page-bg, #f7f7f7);
+
+        .product-card-row {
+            margin: 16rpx 0 0;
+            border-radius: 0;
+            padding: 24rpx 32rpx;
+        }
+
+        .group-card-row:not(.group-card-row--vortmall) {
+            margin: 16rpx 0 0;
+            border-radius: 0;
+        }
+
+        .group-card-row--vortmall {
+            margin: 20rpx 20rpx 14rpx;
+            border-radius: 20rpx;
+
+            .group-desc .more {
+                white-space: nowrap;
+            }
+
+            .process-text-nowrap {
+                width: auto;
+                white-space: nowrap;
+            }
+        }
+
+        /* 旧 :deep(.attr-card-box) / :deep(.evaluate-area) → 包裹层选择器 */
+        .attr-card-box,
+        .evaluate-area {
+            margin: 14rpx 0;
+            border-radius: 0;
+        }
+
+        .product-detail-area {
+            margin: 14rpx 0 28rpx;
+            border-radius: 0;
+        }
+    }
+
+    .product-area-wrapper {
+        background: var(--product-content-bg, #fff);
+    }
+}
+
+.vortmall-presale-coupon {
+    padding: 20rpx 28rpx 35rpx;
+    background: var(--product-content-bg, #fff);
+
+    .coupon-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 21rpx;
+        border-radius: 14rpx;
+        background: #f7f8fc;
+    }
+
+    .coupon-title {
+        flex: 1;
+        color: var(--general);
+        font-size: 25rpx;
+        font-weight: 700;
+    }
+
+    .coupon-more {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+        margin-left: 10rpx;
+        color: #333;
+        font-size: 24rpx;
+
+        .iconfont-h5 {
+            color: #888b94;
+            font-size: 16rpx;
+        }
+    }
+}
+
+.vortmall-reserve-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12rpx;
+    margin-top: 20rpx;
+    padding: 22rpx;
+    border-radius: 14rpx;
+    background: #f7f8fc;
+
+    .reserve-row {
+        display: flex;
+        gap: 16rpx;
+        line-height: 36rpx;
+    }
+
+    .reserve-label {
+        flex: 0 0 112rpx;
+        color: #999;
+        font-size: 24rpx;
+    }
+
+    .reserve-value {
+        flex: 1;
+        color: #1a1a1a;
+        font-size: 25rpx;
+    }
+}
+
+.product-detail-page--A2 {
+    background: var(--product-page-bg, #f5f5f5);
+
+    .productDetail-content {
+        background: var(--product-page-bg, #f5f5f5);
+    }
+
+    /* A2 批发价格块是内容区首个卡片，与主图之间保持统一模块间距。 */
+    .wholesale-price-block {
+        margin-top: 20rpx;
+        border-radius: 20rpx;
+
+        .wholesale-price-table {
+            padding-top: 20rpx;
+        }
+    }
+}
+
+/* 跨境风 A3：标题+已售在主图上方，价格卡片在主图下方（对齐 tigshop-overseas 商品详情页） */
+.product-detail-page--A3 {
+    background: var(--product-page-bg, #f5f5f5);
+
+    .overseas-head {
+        background: var(--product-content-bg, #fff);
+        padding: 20rpx 28rpx 12rpx;
+
+        .overseas-head__name {
+            position: relative;
+            font-size: 30rpx;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1.45;
+            word-break: break-all;
+
+            .overseas-head__name-inner {
+                display: inline;
+            }
+
+            .overseas-head__name-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #333;
+
+                .iconfont-h5 {
+                    font-size: 24rpx;
+                }
+
+                .icon-a-gengduo20 {
+                    transform: rotate(90deg);
+                }
+
+                .iconTop {
+                    transform: rotate(-90deg);
+                }
+            }
+
+            .overseas-head__name-expand {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                padding-left: 40rpx;
+                background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, var(--product-content-bg, #fff) 40%);
+            }
+
+            .overseas-head__name-collapse {
+                margin-left: 8rpx;
+                vertical-align: middle;
+            }
+
+            .overseas-head__presale-tag {
+                display: inline;
+                margin-right: 8rpx;
+                padding: 3rpx 12rpx;
+                font-size: 24rpx;
+                color: #fff;
+                background: #e47200;
+                border-radius: 4rpx;
+            }
+        }
+
+        .overseas-head__sold {
+            margin-top: 12rpx;
+            font-size: 24rpx;
+            color: #888b94;
+        }
+    }
+
+    .product-area-wrapper {
+        background: var(--product-content-bg, #fff);
+    }
+
+    .productDetail-content--overseas {
+        padding: 0;
+
+        /* 旧 :deep(.product-title-info) → 包裹层选择器 */
+        .product-title-info {
+            margin-top: 0;
+            border-radius: 0;
+        }
+
+        /* 价格与优惠券同处一张白底卡片 */
+        .title-info-top {
+            border-radius: 0;
+            padding: 20rpx 28rpx;
+        }
+
+        .group-card-row {
+            width: 100%;
+            margin: 14rpx 0 0;
+            box-sizing: border-box;
+            border-radius: 20rpx;
+            background: var(--product-content-bg, #fff);
+
+            .group {
+                display: flex;
+                width: 100%;
+            }
+
+            .group-list {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+
+        /* A3 卡片间距由各子组件内部绘制，兼容微信小程序样式隔离。 */
+    }
+}
+
+.overseas-activity-coupon-box {
+    padding: 21rpx 28rpx 35rpx;
+    background: #fff;
+}
+
+.overseas-activity-coupon {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    padding: 20rpx 24rpx;
+    border-radius: 14rpx;
+    background: #f7f8fc;
+
+    .coupon-title {
+        flex: 1;
+        color: #1a1a1a;
+        font-size: 25rpx;
+        font-weight: 700;
+    }
+
+    .coupon-more {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+        color: #333;
+        font-size: 24rpx;
+
+        .iconfont-h5 {
+            color: #888b94;
+            font-size: 16rpx;
+        }
+    }
+}

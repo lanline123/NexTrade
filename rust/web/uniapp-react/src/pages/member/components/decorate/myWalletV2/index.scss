@@ -1,0 +1,71 @@
+/* 自旧 pages/member/components/decorate/myWalletV2/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-wallet-v2 {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10rpx);
+    padding-right: var(--dec-box-padding, 10rpx);
+    padding-top: var(--dec-box-padding-top, 20rpx);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__container {
+        background-color: var(--dec-bg-color, #ffffff);
+        border-radius: var(--dec-border-radius, 24rpx);
+        overflow: hidden;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: var(--dec-inner-padding, 24rpx);
+        box-sizing: border-box;
+    }
+
+    &__cell {
+        display: flex;
+        align-items: center;
+        padding: 16rpx;
+        position: relative;
+
+        &--border-bottom {
+            border-bottom: 2rpx solid #f2f3f5;
+        }
+
+        &--border-right {
+            border-right: 2rpx solid #eee;
+        }
+    }
+
+    &__icon {
+        width: 40rpx;
+        height: 40rpx;
+        flex-shrink: 0;
+        margin-right: 16rpx;
+    }
+
+    &__label {
+        font-size: 24rpx;
+        color: #666;
+        line-height: 40rpx;
+        flex-shrink: 0;
+    }
+
+    &__value {
+        font-size: 24rpx;
+        font-weight: 600;
+        color: #333;
+        line-height: 40rpx;
+        flex: 1;
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-left: 8rpx;
+    }
+
+    &__arrow {
+        color: #999;
+        flex-shrink: 0;
+        margin-left: 6rpx;
+        font-size: 20rpx;
+        line-height: 20rpx;
+    }
+}

@@ -1,0 +1,18 @@
+/* 自旧 components/verifition/Verify.vue <style lang="scss" scoped> 原样拷出，去 scoped、:deep() 平铺 */
+.content {
+    width: 100%;
+    height: 280px;
+
+    .title {
+        width: 97%;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: left;
+        background: #fff;
+        padding: 15px 0 10px;
+        border-bottom: 1px solid #eee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

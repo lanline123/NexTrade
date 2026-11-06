@@ -1,0 +1,43 @@
+/* 自旧 imageShowcase/index.vue <style lang="scss" scoped> 原样平铺移植（无 :deep()/v-bind，去 scoped） */
+.module-image_showcase {
+    .module-ad-content {
+        position: relative;
+    }
+    .image-showcase-list {
+        &.is-fixed {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        &.is-scroll {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            &::-webkit-scrollbar {
+                display: none;
+                height: 0;
+            }
+        }
+    }
+    .image-showcase-item {
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    .item-image-box {
+        width: 100%;
+        background-color: #f7f8fa;
+    }
+    .item-image {
+        display: block;
+        width: 100%;
+    }
+    .item-image-ratio {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}

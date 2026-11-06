@@ -1,0 +1,184 @@
+/* 自旧 limitedSpecial/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped；:deep() 平铺） */
+.module-limited_special {
+    .ls-wrap {
+        position: relative;
+        box-sizing: border-box;
+        min-height: 220rpx;
+        overflow: hidden;
+    }
+    .ls-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+    .ls-more {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 6;
+    }
+    .ls-scroll {
+        position: relative;
+        z-index: 1;
+        overflow-x: auto;
+        overflow-y: hidden;
+        &::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+    }
+    .ls-track {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    .ls-item {
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+    }
+    .ls-photo {
+        position: relative;
+        width: 100%;
+        overflow: visible;
+    }
+    .ls-img-wrap {
+        overflow: hidden;
+        box-sizing: border-box;
+        background-color: #fafafa;
+    }
+    .ls-img {
+        display: block;
+    }
+    .ls-img-fluid {
+        width: 100%;
+        height: auto;
+    }
+    .ls-img-ratio {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .ls-brief {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        padding: 4rpx 12rpx;
+        font-size: 24rpx;
+        line-height: 1.2;
+        border-radius: 8rpx;
+        font-weight: 500;
+        white-space: nowrap;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: border-box;
+        z-index: 5;
+    }
+    .ls-info {
+        margin-top: 12rpx;
+    }
+    .ls-name {
+        font-size: 24rpx;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 8rpx;
+    }
+    // 旧 scoped 样式遗留类（模板未使用），按原样保留
+    .cycleBuyTag {
+        display: inline-block;
+        color: var(--general);
+        position: relative;
+        padding-right: 20rpx;
+        vertical-align: baseline;
+        &::before {
+            position: absolute;
+            content: "";
+            right: 8rpx;
+            top: 0;
+            width: 1px;
+            height: 70%;
+            transform: translateY(22%);
+            background-color: var(--general);
+        }
+    }
+    .ls-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 4rpx;
+    }
+    .ls-prices {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8rpx;
+        line-height: 1.1;
+    }
+    .price-current {
+        white-space: nowrap;
+    }
+    .price-market {
+        text-decoration: line-through;
+        // :deep(.price-content) / :deep(.num) 平铺：划线价内部的 FormatPrice 节点继承删除线
+        .price-content,
+        .num {
+            text-decoration: inherit;
+        }
+    }
+    .ls-extra {
+        font-size: 20rpx;
+        line-height: 1.3;
+        display: flex;
+        gap: 12rpx;
+        flex-wrap: wrap;
+    }
+    .buy-btn {
+        flex-shrink: 0;
+        width: 44rpx;
+        height: 44rpx;
+        line-height: 44rpx;
+        border-radius: 50%;
+        text-align: center;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        .buy-btn-icon {
+            font-size: 22rpx;
+            line-height: 1;
+        }
+    }
+    .buy-btn-style__5,
+    .buy-btn-style__6,
+    .buy-btn-style__7,
+    .buy-btn-style__8 {
+        width: auto;
+        height: 44rpx;
+        line-height: 44rpx;
+        padding: 0 16rpx;
+        font-size: 22rpx;
+        border-radius: 22rpx;
+    }
+    .buy-btn-style__1 .buy-btn-icon::before {
+        content: "\e611";
+    }
+    .buy-btn-style__2 .buy-btn-icon::before {
+        content: "\e664";
+    }
+    .buy-btn-style__3 .buy-btn-icon::before {
+        content: "\e74a";
+    }
+    .buy-btn-style__4 .buy-btn-icon::before {
+        content: "\e620";
+    }
+}

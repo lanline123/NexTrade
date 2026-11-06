@@ -1,0 +1,53 @@
+/* 自旧 productDescription.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.aftersale-card-box {
+    margin-bottom: 14rpx;
+
+    &.aftersale-card-box--overseas {
+        margin-bottom: 0;
+
+        .aftersale-card {
+            border-top: 14rpx solid var(--product-page-bg, #f5f5f5);
+            border-radius: 0;
+        }
+    }
+
+    .aftersale-card {
+        background-color: var(--product-content-bg, #fff);
+
+        .aftersale-card-title {
+            display: flex;
+            width: 100%;
+            overflow: hidden;
+            font-size: 24.5rpx;
+            line-height: 42rpx;
+            padding: 28rpx;
+
+            .title-item {
+                color: #000;
+                display: flex;
+                align-items: center;
+                flex: 1;
+                font-weight: 700;
+                font-size: 28rpx;
+            }
+
+            .icon-a-gengduo20 {
+                font-size: 16rpx;
+                color: rgb(136, 139, 148);
+                display: flex;
+                align-items: center;
+                transform: rotate(90deg);
+
+                &.actvie {
+                    transform: rotate(-90deg);
+                }
+            }
+        }
+    }
+}
+
+.tab_body {
+    text-align: start;
+    color: #333;
+    padding: 0 28rpx 28rpx;
+}

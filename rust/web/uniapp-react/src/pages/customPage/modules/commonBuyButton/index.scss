@@ -1,0 +1,47 @@
+/* 自旧 commonBuyButton/index.vue <style lang="scss" scoped> 平铺移植 */
+.goods-btn {
+    margin: 0 auto;
+    padding-right: 20rpx;
+    min-width: 48rpx;
+    height: 48rpx;
+    line-height: 48rpx;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon {
+    font-size: 28rpx;
+    width: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+
+    // 压过父级 modulesCommon「.item-buy .iconfont-h5::before { content }」对字形的强制覆盖
+    .icon-gouwuche::before {
+        content: "\e611" !important;
+    }
+    .icon-gouwuche1::before {
+        content: "\e664" !important;
+    }
+    .icon-jia::before {
+        content: "\e74a" !important;
+    }
+    .icon-jia1::before {
+        content: "\e620" !important;
+    }
+}
+
+.btn-icon-img {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.btn-text {
+    font-size: 24rpx;
+    white-space: nowrap;
+}

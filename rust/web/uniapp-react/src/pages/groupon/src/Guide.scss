@@ -1,0 +1,64 @@
+/* 自旧 pages/groupon/src/guide.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+/* 旧 scss 中 #ifdef MP-WEIXIN 的 v-bind() 已改为 tsx 内联 style */
+.guide-box {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 88;
+    top: 0;
+    left: 0;
+
+    .guide-content {
+        color: #fff;
+        font-size: 28rpx;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: fixed;
+        width: 100%;
+        top: 20rpx;
+
+        .guide-text {
+            font-weight: bold;
+            padding-bottom: 20rpx;
+            font-size: 30rpx;
+        }
+    }
+
+    .guide-img-box {
+        display: flex;
+        flex-direction: row;
+        padding-right: 50rpx;
+        padding-bottom: 20rpx;
+        width: 100%;
+        justify-content: flex-end;
+        .guide-img {
+            width: 166rpx;
+            height: 296rpx;
+        }
+    }
+}
+
+/* 旧 uni-transition mode-class="['fade','slide-top']" 的等价动画 */
+.guide-transition {
+    width: 100vw;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: groupon-guide-fade-slide-top 0.3s ease both;
+}
+
+@keyframes groupon-guide-fade-slide-top {
+    from {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,91 @@
+/* 自旧 pages/salesman/src/shareCard.vue 的 scoped 样式移植（去 scoped） */
+.share-close {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 28rpx;
+    height: 28rpx;
+    transform: translateY(-50%);
+    padding: 10px;
+    box-sizing: content-box;
+
+    &::before,
+    &::after {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 28rpx;
+        height: 3rpx;
+        background-color: #c8c9cc;
+        content: "";
+    }
+
+    &::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    &::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+}
+
+.salesman-share-box {
+    height: 80vh;
+    padding: 32rpx 0 0;
+    overflow: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+
+    .salesman-share-content {
+        flex: 1;
+        overflow: hidden;
+        overflow-y: auto;
+    }
+
+    .salesman-share-title {
+        color: #ed6a0c;
+        font-weight: bolder;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28rpx;
+        position: relative;
+        padding: 15rpx 0;
+    }
+
+    .salesman-share-menu {
+        display: flex;
+
+        .salesman-share-menu-item {
+            flex: 1;
+            font-size: 26rpx;
+            color: #323233;
+
+            .menu-item-text {
+                position: relative;
+                height: 80rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                .menu-item-line {
+                    position: absolute;
+                    width: 42rpx;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 1;
+                    height: 6rpx;
+                    background-color: #ee0a24;
+                    border-radius: 6rpx;
+                    display: none;
+
+                    &.show {
+                        display: block;
+                    }
+                }
+            }
+        }
+    }
+}

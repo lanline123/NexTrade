@@ -1,0 +1,135 @@
+/* 自旧 productImgDecorate.vue <style lang="scss" scoped> 原样拷出（去 scoped）。
+   v-bind() 已转组件内联 style，原位置见各条注释；裸 swiper 选择器改挂 .decorate-swiper。 */
+.product-pic-con {
+    /* 原 padding: 6px v-bind(imageMarginCss) 12px → 组件内联 style padding */
+    background-color: var(--product-content-bg, #fff);
+}
+
+.product-bg {
+    width: 100%;
+    position: relative;
+    background: rgba(0, 0, 0, 0.02);
+    /* 原 border-radius: v-bind(imageRadiusValue) → 组件内联 style borderRadius */
+    overflow: hidden;
+
+    .video-box {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        border-radius: inherit;
+        overflow: hidden;
+
+        .product-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        .cover-box {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: inherit;
+            overflow: hidden;
+
+            .video-icon {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 110rpx;
+                height: 110rpx;
+                transform: translate(-50%, -50%);
+                /* 原 background-image: v-bind(playImg) → 组件内联 style backgroundImage */
+                background-size: cover;
+            }
+        }
+    }
+
+    /* 原 swiper 裸标签选择器 → .decorate-swiper（Taro Swiper） */
+    .decorate-swiper {
+        width: 100%;
+        padding-bottom: 21rpx;
+        box-sizing: border-box;
+        border-radius: inherit;
+        overflow: hidden;
+    }
+
+    .swiper-item-box {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: inherit;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.02);
+
+        .product-status-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 320rpx;
+            height: 320rpx;
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 40rpx;
+
+            .outsale {
+                letter-spacing: 0;
+            }
+        }
+    }
+
+    .slide-image {
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+    }
+
+    .swiper-indicator-box {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .swiper-indicator-item {
+            margin: 0 7rpx;
+            width: 11rpx;
+            height: 11rpx;
+            border-radius: 50%;
+            background-color: #e7e7eb;
+
+            &.active {
+                width: 28rpx;
+                transition: all 0.1s;
+                border-radius: 11rpx;
+                background-color: #888b94;
+            }
+        }
+    }
+}
+
+/* 原 :deep(.uni-swiper-wrapper) { border-radius: v-bind(imageRadiusValue) }：
+   Taro H5 无 uni-swiper-wrapper 结构，圆角已由 .product-bg（overflow:hidden + 内联 borderRadius）保证，
+   不再平移该条规则。 */
+
+/* 微信端 hidden 的优先级会被 display:flex 覆盖，显式 class 保证视频封面和指示器互斥。（原 #ifdef MP-WEIXIN） */
+.mp-force-hidden {
+    display: none !important;
+}

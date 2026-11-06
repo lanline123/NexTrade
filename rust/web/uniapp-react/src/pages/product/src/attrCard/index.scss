@@ -1,0 +1,75 @@
+/* 自旧 attrCard.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.attr-card-box {
+    margin-bottom: 14rpx;
+
+    &.attr-card-box--overseas {
+        margin-bottom: 0;
+
+        .attr-card {
+            border-top: 14rpx solid var(--product-page-bg, #f5f5f5);
+            border-radius: 0;
+        }
+    }
+
+    .attr-card {
+        background-color: var(--product-content-bg, #fff);
+
+        .attr-card-title {
+            display: flex;
+            width: 100%;
+            overflow: hidden;
+            padding: 28rpx;
+            font-size: 24.5rpx;
+            line-height: 42rpx;
+
+            .title-item {
+                color: #000;
+                display: flex;
+                align-items: center;
+                flex: 1;
+                font-weight: 700;
+                font-size: 28rpx;
+            }
+
+            .icon-a-gengduo20 {
+                font-size: 16rpx;
+                color: rgb(136, 139, 148);
+                display: flex;
+                align-items: center;
+                transform: rotate(90deg);
+
+                &.actvie {
+                    transform: rotate(-90deg);
+                }
+            }
+        }
+
+        .attr-card-content {
+            display: flex;
+            flex-direction: column;
+            padding: 0 28rpx 28rpx;
+
+            .attr-card-item {
+                display: flex;
+                align-items: center;
+
+                .item-name {
+                    line-height: 35rpx;
+                    padding: 14rpx 0;
+                    font-size: 24.5rpx;
+                    color: #888b94;
+                    width: 30%;
+                }
+
+                .item-value {
+                    line-height: 35rpx;
+                    padding: 14rpx 0;
+                    font-size: 24.5rpx;
+                    color: #1a1a1a;
+                    padding-left: 28rpx;
+                    flex: 1;
+                }
+            }
+        }
+    }
+}

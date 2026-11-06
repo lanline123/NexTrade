@@ -1,0 +1,31 @@
+.index_empty {
+    padding-bottom: 200rpx;
+    background: #fff;
+
+    image {
+        width: 100%;
+    }
+}
+
+.decorate-page-window {
+    min-height: 100vh;
+}
+
+/* 外贸风 mainHeader 使用 position:fixed 后脱离文档流，用占位块撑开（高度由 store 实测值写入） */
+.main-header-spacer {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.preview-tip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #ff9800;
+    color: #fff;
+    font-size: 24rpx;
+    text-align: center;
+    padding: 8rpx 0;
+}

@@ -1,0 +1,86 @@
+/* === 聊天导航栏 === */
+.im-navbar {
+    .navbar-box {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        z-index: 200;
+
+        .navbar {
+            position: relative;
+            width: 100%;
+
+            .navbar-content {
+                position: absolute;
+                left: 0;
+                display: flex;
+                align-items: center;
+                width: 100%;
+
+                .left {
+                    width: 100rpx;
+                    height: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    flex-shrink: 0;
+
+                    .icon-houtui {
+                        font-size: 38rpx;
+                        font-weight: bold;
+                    }
+                }
+
+                .middle {
+                    flex: 1;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    overflow: hidden;
+                    padding: 0 20rpx;
+
+                    .title {
+                        font-size: 32rpx;
+                        font-weight: 500;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                }
+
+                .right {
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+
+                    .read-all {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 0 10rpx;
+
+                        .clear-icon {
+                            width: 28rpx;
+                            height: 28rpx;
+                            margin-bottom: 4rpx;
+                        }
+
+                        .clear-text {
+                            font-size: 20rpx;
+                            color: #666;
+                            white-space: nowrap;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .placeholder {
+        width: 100%;
+        height: 0;
+    }
+}

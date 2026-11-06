@@ -1,0 +1,69 @@
+/*
+ * 自旧 pages/productCate/src/topHeader.vue <style lang="scss" scoped> 原样拷出（去 scoped）。
+ * 旧版搜索栏位于 mainHeader（fixed）内部；mainHeader 未移植（TODO B6），
+ * 这里补 .cate-top-header 最小定位壳（fixed + 白底 + 顶层），视觉与旧 common-header-box 对齐。
+ */
+.cate-top-header {
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 990;
+    background: #fff;
+}
+
+.search-bar-box {
+    display: flex;
+    align-items: center;
+    gap: 21rpx;
+    position: relative;
+    padding: 0 28rpx;
+    height: 86rpx;
+    background: #fff;
+
+    .icon-houtui {
+        font-size: 36rpx;
+        font-weight: 600;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        padding: 0 21rpx;
+        height: 65rpx;
+        line-height: 61rpx;
+        color: #888b94;
+        font-size: 24.5rpx;
+        border: 1px solid #1a1a1a;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .search-input__icon {
+        flex-shrink: 0;
+        margin-right: 8px;
+        font-size: 20px;
+        color: #999;
+    }
+
+    .search-input__text {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .sousuo-icon {
+        position: absolute;
+        top: 25rpx;
+        right: 50rpx;
+
+        .taro-img,
+        image {
+            width: 36rpx;
+            height: 36rpx;
+        }
+    }
+}

@@ -1,0 +1,99 @@
+/* 自旧 pages/member/components/decorate/myServiceV2/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-my-service {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 20rpx);
+    padding-right: var(--dec-box-padding, 20rpx);
+    padding-top: var(--dec-box-padding-top, 20rpx);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__container {
+        background-color: var(--dec-bg-color, #ffffff);
+        border-radius: var(--dec-border-radius, 20rpx);
+        padding: var(--dec-inner-padding, 30rpx);
+    }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        height: 60rpx;
+        font-size: 26rpx;
+        color: #1a1a1a;
+        font-weight: bold;
+    }
+
+    &__list {
+        padding-top: 20rpx;
+    }
+
+    &__list.is-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 20rpx;
+        font-size: 24rpx;
+
+        .dec-my-service__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .dec-my-service__icon {
+            width: 60rpx;
+            height: 60rpx;
+            margin-bottom: 12rpx;
+        }
+
+        .dec-my-service__label {
+            width: 100%;
+            text-align: center;
+            text-transform: capitalize;
+            height: fit-content !important;
+        }
+    }
+
+    &__list.is-column {
+        display: block;
+        font-size: 26rpx;
+        width: 100%;
+
+        .dec-my-service__item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            height: 96rpx;
+            color: #1a1a1a;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        .dec-my-service__icon {
+            width: 36rpx;
+            height: 36rpx;
+            margin-right: 16rpx;
+        }
+
+        .dec-my-service__label {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            font-weight: 500;
+            font-size: 26rpx;
+            color: #1a1a1a;
+            text-transform: capitalize;
+        }
+
+        .dec-my-service__arrow {
+            margin-left: auto;
+            color: #888b94;
+            font-size: 24rpx;
+        }
+    }
+}

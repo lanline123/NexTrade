@@ -2205,7 +2205,7 @@
 
 @media (max-width: 900px) {
   .benefit-bar-wrap { min-width: 0 !important; overflow: hidden; }
-  .pc-header-container { min-width: 0 !important; padding: 0 12px !important; }
+  .pc-header-container { min-width: 0 !important; padding: 0 16px !important; }
   .benefit-bar { min-width: 0 !important; gap: 12px !important; }
   .benefit-bar__left { display: none !important; }
   .benefit-bar__content { display: none !important; }
@@ -2215,7 +2215,103 @@
 @media (max-width: 900px) {
   .pc-header-runtime .page-container .page-c-warap {
     display: flex; flex-wrap: wrap; align-items: center;
-    padding: 0 12px; column-gap: 10px; row-gap: 10px; min-width: 0;
+    padding: 0 16px; column-gap: 10px; row-gap: 10px; min-width: 0;
   }
   .pc-header-runtime .page-container .page-header-home__center { order: 3; flex: 0 0 100%; width: 100%; }
 }
+
+/* =====================================================================
+ * 头部现代化重构（Semi 风格）
+ * 1) 去掉旧版双层脏阴影，改为单层柔和阴影 + 发丝分割线
+ * 2) 搜索框 40px / 圆角 10 / 焦点光环
+ * 3) 右侧入口统一 32px 热区与 hover 色
+ * ===================================================================== */
+
+/* 1) 底部分割：柔和单阴影 + 发丝线 */
+.pc-header-runtime .page-container.pc-header-divider--shadow {
+  box-shadow: none;
+  border-bottom: 1px solid #f2f4f7;
+}
+.pc-header-runtime .page-container.pc-header-divider--border {
+  border-bottom: 1px solid #eef0f3;
+  box-shadow: none;
+}
+
+/* 顶部条与主体之间加发丝线，避免两块浅色糊在一起 */
+.benefit-bar-wrap { border-bottom: 1px solid rgba(16, 24, 40, 0.06); }
+
+/* 2) 搜索框：现代圆角 + 焦点光环 */
+.pc-header-runtime .top-search,
+.pc-header-cart-content .top-search,
+.pc-shop-search .top-search {
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+  padding: 0;
+  background: #fff;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.pc-header-runtime .top-search:hover,
+.pc-header-cart-content .top-search:hover,
+.pc-shop-search .top-search:hover { border-color: #d0d5dd; }
+.pc-header-runtime .top-search.search-bar--accent,
+.pc-header-runtime .top-search:focus-within,
+.pc-header-cart-content .top-search:focus-within,
+.pc-shop-search .top-search:focus-within {
+  border-color: var(--pc-primary, #165dff);
+  box-shadow: 0 0 0 3px rgba(22, 93, 255, .12);
+}
+
+.pc-header-runtime .top-search .search-form,
+.pc-header-cart-content .top-search .search-form,
+.pc-shop-search .top-search .search-form { height: 40px; border-radius: 10px; }
+
+.pc-header-runtime .top-search .search-type-select,
+.pc-shop-search .top-search .search-type-select {
+  height: 40px;
+  border-radius: 10px 0 0 10px;
+  padding-left: 12px;
+  color: #475467;
+  font-size: 13px;
+}
+
+.pc-header-runtime .top-search .search-input,
+.pc-header-cart-content .top-search .search-input,
+.pc-shop-search .top-search .search-input {
+  height: 38px;
+  font-size: 14px;
+  color: #101828;
+}
+.pc-header-runtime .top-search .search-input::placeholder { color: #98a2b3; }
+
+.pc-header-runtime .top-search .search-submit,
+.pc-header-cart-content .top-search .search-submit,
+.pc-shop-search .top-search .search-submit {
+  height: 32px;
+  margin-right: 4px;
+  padding: 0 18px;
+  border-radius: 8px;
+  background: var(--pc-primary, #165dff);
+  color: #fff;
+  border: 0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .18s ease, opacity .18s ease;
+}
+.pc-header-runtime .top-search .search-submit:hover,
+.pc-shop-search .top-search .search-submit:hover { background: var(--pc-primary-hover, #0e4fd1); }
+
+/* 3) 右侧入口：统一热区与 hover */
+.pc-header-runtime .page-header-home__right { align-items: center; gap: 20px; }
+.pc-header-runtime .page-header-home__right .language-bar,
+.pc-header-runtime .page-header-home__right .mine-bar,
+.pc-header-runtime .page-header-home__right .car-bar { height: 32px; display: flex; align-items: center; }
+.pc-header-runtime .page-header-home__right .mine-bar .category-wrap .bar-wrap .content,
+.pc-header-runtime .page-header-home__right .car-bar .content { gap: 6px; color: #344054; font-size: 13px; }
+.pc-header-runtime .page-header-home__right .mine-bar .category-wrap .bar-wrap .content:hover,
+.pc-header-runtime .page-header-home__right .car-bar .content:hover { color: var(--pc-primary, #165dff); }
+
+/* 主导航：现代间距与 hover */
+.pc-header-runtime .sub-nav--stacked { gap: 28px; }
+.pc-header-runtime .sub-nav li a { color: #344054; font-size: 15px; line-height: 32px; transition: color .18s ease; }
+.pc-header-runtime .sub-nav li a:hover { color: var(--pc-primary, #165dff); }

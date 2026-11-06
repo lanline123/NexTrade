@@ -1,0 +1,173 @@
+// 自旧 pages/order/pay.vue <style lang="scss" scoped> 原样拷出（去 scoped、:deep() 平铺）
+.btn-box {
+    padding: 25rpx;
+}
+.order-pay-warp {
+    padding-bottom: 100rpx;
+}
+.order_infos {
+    text-align: center;
+    background: #fff;
+    padding: 50rpx 0 60rpx;
+    border-radius: 0 0 18rpx 18rpx;
+}
+.order_infos .order_amount {
+    font-size: 46rpx;
+    color: var(--general);
+    font-weight: bold;
+    // 旧 :deep(.util) 平铺
+    .util {
+        font-size: 30rpx;
+        font-weight: normal;
+        position: relative;
+        top: -5rpx;
+    }
+}
+
+.other-info {
+    background: #fff;
+    padding: 30rpx 36rpx 30rpx;
+    border-radius: 18rpx;
+    margin-top: 20rpx;
+    margin-bottom: 40rpx;
+    .tit {
+        font-size: 22rpx;
+        font-weight: bold;
+    }
+    .item {
+        color: #888;
+        font-size: 24rpx;
+        padding-top: 20rpx;
+        // 旧 .other-info .item text 平铺
+        Text,
+        .item-text {
+            color: #333;
+        }
+    }
+}
+
+.pay-btn-warp {
+    position: fixed;
+    display: block;
+    background: #fff;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    .pay-btn {
+        text-align: center;
+        height: 80rpx;
+        line-height: 80rpx;
+        padding: 0;
+        display: block;
+        margin: 20rpx 30rpx;
+    }
+}
+.offline-warp {
+    border-radius: 20rpx;
+    padding: 10rpx;
+    background-color: #fff;
+    margin: 20rpx 0 0;
+    overflow: hidden;
+
+    .offline-menu {
+        height: 100rpx;
+        width: 100%;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        box-sizing: content-box;
+        margin-bottom: 15rpx;
+
+        .offline-menu-item {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28rpx;
+            color: #999;
+            position: relative;
+
+            &.active {
+                color: #333;
+                font-weight: bold;
+
+                &:after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    height: 5rpx;
+                    width: 80rpx;
+                    background-color: var(--general);
+                    border-radius: 10rpx;
+                }
+            }
+        }
+    }
+}
+.offline-content {
+    padding: 20rpx;
+    line-height: 45rpx;
+}
+.offline-pay-footer {
+    padding: 12rpx 24rpx 20rpx;
+}
+.offline-pay-btn {
+    width: 100%;
+    height: 88rpx;
+    border-radius: 48rpx;
+    background: #4b93e6;
+    color: #fff;
+    font-size: 32rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// 旧 tig-fixed-placeholder（吸底占位）等价实现
+.pay-fixed-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 10;
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+}
+
+// 旧 tig-button 等价重写（主题色实底 + 白字）
+.pay-submit-btn {
+    height: 88rpx;
+    border-radius: 44rpx;
+    background: var(--general);
+    color: #fff;
+    font-size: 32rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.is-disabled {
+        opacity: 0.5;
+    }
+}
+
+.page-loading {
+    display: flex;
+    justify-content: center;
+    padding: 60rpx 0;
+    .ico {
+        width: 60rpx;
+        height: 60rpx;
+        border: 4rpx solid var(--general);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: pay-page-loading 0.8s linear infinite;
+    }
+}
+@keyframes pay-page-loading {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,83 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/point/detail.vue 迁移：样式逐行保留（去 scoped；v-bind 背景改内联 style） */
+.top-card {
+    // 旧 background: v-bind(topCardBg) 已改为组件内联 style
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 5px;
+    margin: 10px;
+    color: #fff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 40rpx;
+
+    .balance-row,
+    .amount-row,
+    .button-row {
+        margin: 25rpx 30px 0;
+    }
+
+    .balance-row {
+        font-size: 36rpx;
+    }
+
+    .amount-row {
+        font-size: 52rpx;
+        font-weight: 400;
+    }
+}
+
+.log-main {
+    margin-top: 40rpx;
+
+    .item {
+        position: relative;
+        padding: 40rpx;
+        margin: 0 20rpx;
+        background: #fff;
+        border-radius: 18rpx;
+        margin-bottom: 20rpx;
+
+        .tit {
+            font-size: 28rpx;
+            color: #333;
+            padding-bottom: 10rpx;
+            padding-right: 200rpx;
+        }
+
+        .time {
+            color: #999;
+            position: relative;
+            font-size: 24rpx;
+        }
+
+        .real_total {
+            font-size: 32rpx;
+            // color: #fa0;
+            font-weight: bold;
+            position: absolute;
+            right: 40rpx;
+            top: 40rpx;
+        }
+
+        .actions {
+            margin-top: 10rpx;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #999;
+
+            .txt {
+                flex: 1 1 auto;
+                font-size: 22rpx;
+                padding-right: 20rpx;
+            }
+
+            .status {
+                flex-shrink: 0;
+                font-size: 24rpx;
+            }
+        }
+    }
+}

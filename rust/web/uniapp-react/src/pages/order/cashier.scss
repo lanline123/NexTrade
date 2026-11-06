@@ -1,0 +1,149 @@
+// 自旧 pages/order/cashier.vue <style lang="scss" scoped> 原样拷出（去 scoped）
+.cashier {
+    padding-bottom: 120rpx;
+}
+
+.cashier-head {
+    text-align: center;
+    padding: 60rpx 0 50rpx;
+
+    .cashier-amount {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        color: var(--general);
+    }
+
+    .cashier-countdown {
+        margin-top: 20rpx;
+        font-size: 26rpx;
+        color: #2a2a2a;
+
+        .countdown-time {
+            color: var(--general);
+            margin: 0 6rpx;
+        }
+    }
+
+    .cashier-expired {
+        color: #f04438;
+    }
+}
+
+.cashier-panel {
+    background: #fff;
+    border-radius: 18rpx;
+    margin: 0 20rpx;
+    padding: 30rpx 32rpx 10rpx;
+
+    .panel-title {
+        font-size: 32rpx;
+        color: #262626;
+    }
+
+    .channel-list {
+        margin-top: 10rpx;
+
+        .channel-item {
+            height: 120rpx;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1rpx solid #eee;
+
+            &:last-child {
+                border-bottom: 0;
+            }
+        }
+
+        .channel-info {
+            display: flex;
+            align-items: center;
+
+            .channel-icon {
+                width: 42rpx;
+                height: 42rpx;
+            }
+
+            .channel-text {
+                padding-left: 18rpx;
+
+                .channel-name {
+                    font-size: 32rpx;
+                    color: #262626;
+                }
+            }
+        }
+    }
+}
+
+.radio-circle {
+    width: 36rpx;
+    height: 36rpx;
+    border-radius: 50%;
+    border: 2rpx solid #ccc;
+    box-sizing: border-box;
+    position: relative;
+    flex-shrink: 0;
+
+    &.checked {
+        border-color: var(--general);
+        background-color: var(--general);
+
+        &::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 16rpx;
+            height: 9rpx;
+            border-left: 3rpx solid #fff;
+            border-bottom: 3rpx solid #fff;
+            transform: translate(-50%, -65%) rotate(-45deg);
+        }
+    }
+}
+
+.cashier-footer {
+    padding: 20rpx 30rpx;
+    padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
+    padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+
+    .pay-btn {
+        width: 100%;
+    }
+
+    .pay-btn-inner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 8rpx;
+    }
+}
+
+// 旧 tig-fixed-placeholder（吸底占位）等价实现
+.pay-fixed-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+// 旧 tig-button 等价重写（主题色实底 + 白字）
+.pay-submit-btn {
+    height: 88rpx;
+    border-radius: 44rpx;
+    background: var(--general);
+    color: #fff;
+    font-size: 32rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.is-disabled {
+        opacity: 0.5;
+    }
+}

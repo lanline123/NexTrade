@@ -1,0 +1,100 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/collectProduct/index.vue 迁移：样式逐行保留（去 scoped） */
+.collect-product {
+    padding: 25rpx 25rpx;
+
+    .move-item {
+        margin-bottom: 20rpx;
+    }
+
+    .collect-product-item {
+        padding: 10rpx;
+        background-color: #fff;
+        border-radius: 20rpx;
+        display: flex;
+        overflow: hidden;
+
+        .collect-product-item-left {
+            .img-box {
+                position: relative;
+                width: 150rpx;
+                height: 150rpx;
+            }
+        }
+
+        .collect-product-item-right {
+            width: 100%;
+            padding-top: 15rpx;
+            padding-left: 12rpx;
+
+            .title {
+                width: 500rpx;
+                font-size: 28rpx;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            .item-bottom {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 25rpx;
+
+                .price {
+                    font-size: 32rpx;
+                    color: var(--general);
+                }
+            }
+        }
+    }
+}
+
+.collect-move-box {
+    width: 150rpx;
+    height: 100%;
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    display: flex;
+
+    text {
+        display: block;
+        position: absolute;
+        top: 50%;
+        margin-top: -20rpx;
+        font-size: 24rpx;
+        text-align: center;
+        width: 100%;
+    }
+
+    .btn-collect {
+        width: 150rpx;
+        background: var(--vice-bg);
+        color: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+
+    .btn-del {
+        width: 150rpx;
+        background: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+}
+
+.product-style-border {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+}

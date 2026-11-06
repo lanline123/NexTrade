@@ -1,0 +1,37 @@
+/* 自旧 productV1/src/productSwiper.vue <style lang="scss" scoped> 原样拷出（去 scoped，#ifndef APP-NVUE 平铺） */
+.swiper-box {
+    height: 200px;
+}
+
+.swiper-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: #fff;
+}
+
+/* 旧 uni-swiper-dot（uni-ui）mode="default" 圆点指示器的等价样式（TODO(MIGRATION)：视觉按默认行为复刻） */
+.uni-swiper-dot-box {
+    position: relative;
+}
+
+.uni-swiper-dot__dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.uni-swiper-dot__dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 3px;
+    border-radius: 50%;
+    pointer-events: auto;
+}

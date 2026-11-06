@@ -1,0 +1,63 @@
+/* 自旧 pages/salesman/src/saveImageTextCard.vue 的 scoped 样式移植（去 scoped、:deep 平铺） */
+.share-popup {
+    height: 45vh;
+    padding-bottom: 50px;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.share-cube {
+    padding: 0 15rpx;
+    padding-top: 48rpx;
+
+    .share-cube-tip {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 94rpx 52rpx;
+        font-size: 26rpx;
+        line-height: 32rpx;
+        color: #969799;
+
+        .icon-dagou {
+            display: inline-block;
+            width: 24rpx;
+            height: 14rpx;
+            margin-right: 5rpx;
+            border-left: 4rpx solid #969799;
+            border-bottom: 4rpx solid #969799;
+            transform: rotate(-45deg) translateY(-2rpx);
+        }
+    }
+
+    .share-cube-desc {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 32rpx;
+        font-size: 26rpx;
+        line-height: 36rpx;
+    }
+
+    .share-cube-img {
+        width: 100vw;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 10rpx;
+
+        .share-cube-img-item {
+            border-radius: 4rpx;
+            overflow: hidden;
+        }
+    }
+}
+
+.share-cube-btn {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32rpx;
+    font-weight: 500;
+    color: #333;
+}

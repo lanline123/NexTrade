@@ -1,0 +1,121 @@
+/* === 图片/视频上传（旧 components/upload/UploadMedia.vue style 逐条平移，去 scoped；:deep 已平铺） === */
+.u-form-item__body__right__content {
+    width: 100%;
+}
+
+.upload-media {
+    width: calc(100vw - 80rpx);
+}
+
+.fileBox {
+    background: #fafafa;
+    border-radius: 4rpx;
+    border: 1px dashed #9f9f9e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 30rpx;
+    aspect-ratio: 1;
+
+    .icon {
+        font-size: 32rpx;
+    }
+
+    .tip {
+        font-weight: 500;
+        font-size: 22rpx;
+        color: #9a9a9a;
+        line-height: 30rpx;
+        margin-top: 26rpx;
+    }
+}
+
+/* 根据不同列数设置网格布局 */
+.media-preview {
+    gap: 20rpx;
+    display: grid;
+}
+
+.media-item {
+    position: relative;
+    width: calc((100vw - 120rpx) / 3);
+    height: 100%;
+    border: 1rpx solid #eee;
+    border-radius: 10rpx;
+    // overflow: hidden;
+    aspect-ratio: 1;
+
+    .progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        color: #fff;
+        gap: 10rpx;
+    }
+}
+
+.media-preview-image,
+.media-preview-video {
+    width: 100%;
+    height: 100%;
+}
+
+.media-preview-image {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    object-fit: cover;
+}
+
+.media-info {
+    padding: 10rpx;
+    font-size: 20rpx;
+    color: #666;
+}
+
+.file-type {
+    display: block;
+    font-weight: bold;
+}
+
+.delete-btn {
+    position: absolute;
+    top: -25rpx;
+    right: -25rpx;
+    font-size: 30rpx;
+    padding: 5rpx;
+    z-index: 10;
+}
+
+button {
+    margin: 10rpx 0;
+}
+
+/* 旧 up-loading-icon 自绘：白色旋转圈 */
+.progress-spinner {
+    width: 32rpx;
+    height: 32rpx;
+    border: 3rpx solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: upload-spin 0.9s linear infinite;
+}
+
+@keyframes upload-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.u-form-item__body__right__content__slot {
+    width: 100%;
+}

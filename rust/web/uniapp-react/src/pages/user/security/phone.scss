@@ -1,0 +1,89 @@
+/* 自旧 pages/user/security/phone.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 App.vue 全局工具类（新工程未提供，随页面补齐并限定在 .profile-edit-main 内） */
+.profile-edit-main {
+    .flex {
+        display: flex;
+    }
+
+    .align-center {
+        align-items: center;
+    }
+}
+
+.profile-edit-main {
+    padding: 30rpx;
+
+    .profile-edit-content {
+        background-color: #fff;
+        border-radius: 15rpx;
+        padding: 20rpx;
+        margin-bottom: 30rpx;
+        display: flex;
+        flex-direction: column;
+        gap: 16rpx;
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            flex-direction: row;
+            margin: 20rpx;
+
+            &.special-item {
+                width: 600rpx;
+            }
+
+            .mobile-input-wrap {
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+
+            .next {
+                width: 100%;
+                height: 100%;
+            }
+
+            .title {
+                font-size: 24rpx;
+                display: flex;
+                gap: 16rpx;
+
+                .info {
+                    color: #999999;
+                }
+            }
+        }
+
+        .btn-item {
+            display: flex;
+            flex-direction: column;
+            margin: 20rpx;
+            font-size: 24rpx;
+            gap: 16rpx;
+
+            .big-title {
+                font-size: 28rpx;
+            }
+
+            .info {
+                color: #999999;
+            }
+        }
+
+        .line {
+            padding-bottom: 10rpx;
+            border-bottom: 1px solid #dfdfdf;
+            width: 390rpx;
+        }
+    }
+}
+
+/* 旧 uni-easyinput（input-border=false）→ Taro Input 基础样式 */
+.profile-edit-main .item-input,
+.profile-edit-main input {
+    flex: 1;
+    min-width: 0;
+    font-size: 28rpx;
+    color: #333;
+    background-color: transparent;
+}

@@ -130,11 +130,14 @@ export default function PcHeaderTopBar({
   styleType = 2,
   isWhite = true,
   wide = false,
+  baseConfig = null,
 }: {
   config?: Record<string, any>;
   styleType?: 1 | 2;
   isWhite?: boolean;
   wide?: boolean;
+  /** 服务端预取的站点配置（shopRegClosed），避免顶部条再等一次客户端请求 */
+  baseConfig?: Record<string, any> | null;
 }) {
   const { t } = useTranslation();
   const [regions, setRegions] = useState<Region[]>([]);
@@ -143,7 +146,7 @@ export default function PcHeaderTopBar({
   const [user, setUser] = useState<Record<string, any> | null>(null);
   const [siteNav, setSiteNav] = useState<NavItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
-  const [shopRegClosed, setShopRegClosed] = useState(0);
+  const [shopRegClosed, setShopRegClosed] = useState(Number(baseConfig?.shopRegClosed ?? 0));
   const [openMenu, setOpenMenu] = useState<'user' | 'member' | 'site' | null>(null);
   const hoverTimer = useRef<number | null>(null);
 
@@ -164,10 +167,12 @@ export default function PcHeaderTopBar({
       .then((json) => setSiteNav(Array.isArray(json?.data?.topBarNav) ? json.data.topBarNav : []))
       .catch(() => undefined);
 
-    fetch('/api/common/config/base')
-      .then((response) => response.json())
-      .then((json) => setShopRegClosed(Number(json?.data?.shopRegClosed ?? 0)))
-      .catch(() => undefined);
+    if (!baseConfig) {
+      fetch('/api/common/config/base')
+        .then((response) => response.json())
+        .then((json) => setShopRegClosed(Number(json?.data?.shopRegClosed ?? 0)))
+        .catch(() => undefined);
+    }
 
     const cookieId = document.cookie.match(/(?:^|; )userProvinceId=([^;]+)/)?.[1] || '';
     const listRequest = fetch('/api/sys/region/getProvinceList').then((response) => response.json());
@@ -255,13 +260,16 @@ export default function PcHeaderTopBar({
   const showTopBar = showBenefitBar && (showStripLeft || showStripRight || showBenefitContent);
   const isBenefitBarOnlyRight = showStripRight && !showStripLeft && !showBenefitContent;
 
+  /* 顶部条与首页模块共用同一套宽度口径（--pc-home-*，见 globals.scss :root）：
+     1920 视口下内容区 198~1722。原先 wide 分支的 1760/80 会让内容区偏离，
+     这里统一收敛；wide 仅保留给地区选择器的 .wide 类名（视觉缩进）。 */
   const containerStyle: React.CSSProperties = {
-    maxWidth: wide ? '1760px' : 'var(--pc-home-max-width, 1600px)',
-    minWidth: wide ? '1056px' : 'var(--pc-home-min-width, 1264px)',
+    maxWidth: 'var(--pc-home-max-width, 1600px)',
+    minWidth: 'var(--pc-home-min-width, 0px)',
     width: '100%',
     margin: '0 auto',
-    paddingLeft: wide ? '80px' : 'var(--pc-home-padding-x, 38px)',
-    paddingRight: wide ? '80px' : 'var(--pc-home-padding-x, 38px)',
+    paddingLeft: 'var(--pc-home-padding-x, 38px)',
+    paddingRight: 'var(--pc-home-padding-x, 38px)',
   };
   const wrapStyle: React.CSSProperties = config.benefitBarBackgroundColor
     ? { backgroundColor: String(config.benefitBarBackgroundColor) }

@@ -1,0 +1,28 @@
+/* 自旧 components/tig/tig-mobile-areacode/tig-mobile-areacode.vue <style lang="scss" scoped> 原样拷出，去 scoped、:deep() 平铺 */
+.areacode-box {
+    display: flex;
+    align-items: center;
+    border-right: 1rpx solid #dfdfdf;
+    margin-right: 25rpx;
+    padding-right: 10rpx;
+
+    .areacode-box-text {
+        font-size: 28rpx;
+        color: #333;
+        display: flex;
+        align-items: center;
+        .text-name {
+            padding: 0 2rpx 0 4rpx;
+            font-size: 26rpx;
+        }
+    }
+    .icon-arrowdown {
+        display: inline-flex;
+        align-items: center;
+        color: #333;
+        font-size: 22rpx;
+        line-height: 1;
+        margin-left: 6rpx;
+        transform: translateY(3rpx);
+    }
+}

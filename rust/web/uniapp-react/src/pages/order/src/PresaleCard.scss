@@ -1,0 +1,150 @@
+/* 自旧 pages/order/src/presaleCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.presale-box {
+    padding-top: 30rpx;
+
+    .presale-flow {
+        padding: 10rpx 0;
+    }
+
+    .flow-item {
+        display: flex;
+        position: relative;
+
+        &.active {
+            .flow-left {
+                .dot {
+                    background-color: var(--general);
+                }
+            }
+
+            .flow-right {
+                .flow-header {
+                    color: #333;
+                }
+            }
+        }
+
+        &:last-child {
+            .flow-left {
+                padding-bottom: 0;
+            }
+            .flow-right {
+                padding-bottom: 0;
+            }
+        }
+
+        .flow-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20rpx;
+            width: 20rpx;
+            flex-shrink: 0;
+            position: relative;
+            padding-bottom: 40rpx;
+
+            &.active {
+                .dot {
+                    background-color: var(--general);
+                }
+                .line {
+                    background-color: var(--general);
+                }
+            }
+
+            .dot {
+                width: 14rpx;
+                height: 14rpx;
+                border-radius: 50%;
+                background-color: #ebedf0;
+                margin-top: 12rpx;
+                position: relative;
+                z-index: 1;
+            }
+
+            .line {
+                width: 3rpx;
+                background-color: #ebedf0;
+                position: absolute;
+                top: 26rpx;
+                bottom: -12rpx;
+                left: 50%;
+                transform: translateX(-50%);
+                margin: 12rpx 0;
+                overflow: hidden;
+            }
+        }
+
+        .flow-right {
+            flex: 1;
+            padding-bottom: 40rpx;
+
+            .flow-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                font-size: 26rpx;
+                line-height: 36rpx;
+                color: #999;
+
+                .title-box {
+                    display: flex;
+                    align-items: center;
+
+                    .rule-box {
+                        margin-left: 15rpx;
+                        font-size: 24rpx;
+                        color: var(--general);
+                        display: flex;
+                        align-items: center;
+
+                        .split {
+                            margin-right: 15rpx;
+                            color: #ddd;
+                        }
+                    }
+                }
+
+                .price {
+                    font-size: 28rpx;
+                }
+            }
+
+            .desc {
+                font-size: 22rpx;
+                color: #9a9a9a;
+                margin-top: 8rpx;
+            }
+        }
+    }
+}
+
+.popup-container {
+    height: 50vh;
+    border-radius: 18rpx 18rpx 0 0;
+    overflow: hidden;
+
+    .popup-content {
+        padding: 0 30rpx 30rpx;
+        display: flex;
+        flex-direction: column;
+        row-gap: 35rpx;
+        font-size: 26rpx;
+
+        .rule-item {
+            display: flex;
+            flex-direction: column;
+            row-gap: 20rpx;
+            .rule-item-title {
+                font-size: 26rpx;
+                font-weight: bold;
+            }
+            .rule-item-content {
+                padding-left: 20rpx;
+                font-size: 26rpx;
+                line-height: 38rpx;
+                color: #6a6a6a;
+            }
+        }
+    }
+}

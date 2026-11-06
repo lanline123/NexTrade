@@ -12,7 +12,10 @@ use std::sync::Arc;
 
 use std::time::Duration;
 
-use tower_http::compression::CompressionLayer;
+use tower_http::compression::{
+    predicate::{DefaultPredicate, NotForContentType, Predicate},
+    CompressionLayer,
+};
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 
@@ -923,9 +926,22 @@ async fn main() -> anyhow::Result<()> {
         .allow_methods(Any)
         .allow_headers(Any);
 
+    // 已压缩的二进制下载（商品原图 ZIP / Excel / PDF 等）不再二次 gzip。
+    // tower-http 压缩时会 remove(Content-Length) 并追加 Content-Encoding，
+    // 会让前端无法按 Content-Length 校验压缩包完整性。
+    let compression = CompressionLayer::new().compress_when(
+        DefaultPredicate::new()
+            .and(NotForContentType::const_new("application/zip"))
+            .and(NotForContentType::const_new("application/x-zip-compressed"))
+            .and(NotForContentType::const_new("application/gzip"))
+            .and(NotForContentType::const_new("application/vnd.openxmlformats"))
+            .and(NotForContentType::const_new("application/pdf"))
+            .and(NotForContentType::const_new("application/octet-stream")),
+    );
+
     let admin_app = admin_router(admin_state)
         .layer(cors.clone())
-        .layer(CompressionLayer::new())
+        .layer(compression.clone())
         .layer(TraceLayer::new_for_http());
 
     // 商城端只提供 /api JSON 接口；PC 前端为独立 Vue SPA（仓库根 `pc-web/`），
@@ -935,7 +951,7 @@ async fn main() -> anyhow::Result<()> {
     // 否则 8181 的 `/` 会返回 Leptos 页面，与 `pc-web/` 的 SPA 冲突。
     let public_app = public_router(public_state)
         .layer(cors)
-        .layer(CompressionLayer::new())
+        .layer(compression)
         .layer(TraceLayer::new_for_http());
 
     // 7. 双端口监听（对应原 adminapi:8080 / api:8181）

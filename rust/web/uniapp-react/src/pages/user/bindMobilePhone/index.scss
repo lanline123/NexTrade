@@ -1,0 +1,52 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/bindMobilePhone/index.vue 迁移：样式逐行保留（去 scoped、:deep 平铺；up-form 改自绘表单行） */
+page {
+    background-color: #fff;
+}
+
+.flex1 {
+    flex: 1;
+}
+
+.bindMobilePhone {
+    padding: 30rpx;
+
+    .bindMobilePhone-title {
+        font-size: 22px;
+        padding-left: 6px;
+        font-weight: bold;
+        color: #333333;
+        margin-bottom: 30rpx;
+    }
+
+    /* 旧 :deep(.u-form-item__body) 平铺 */
+    .u-form-item__body {
+        margin-bottom: 15rpx;
+    }
+}
+
+/* 旧 up-form / up-form-item / up-input（border=bottom、font-size=28rpx）等价自绘 */
+.form-item {
+    margin-bottom: 15rpx;
+}
+
+.form-input {
+    height: 70rpx;
+    font-size: 28rpx;
+    line-height: 70rpx;
+    color: #333;
+    border-bottom: 1rpx solid #e5e5e5;
+    padding: 0;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.verify-wrap {
+    height: 65rpx;
+    margin-left: 15rpx;
+    display: flex;
+    align-items: center;
+}

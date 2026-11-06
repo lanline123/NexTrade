@@ -1,0 +1,212 @@
+/* 自旧 bannerA2/index.vue <style lang="scss" scoped> 原样平移（去 scoped） */
+
+/* 原 #ifdef MP 条件编译块（仅小程序端生效）：
+.banner-box {
+    padding-top: 0 !important;
+}
+.banner {
+    margin-top: 0 !important;
+}
+Taro scss 无 uniapp 条件编译，直接引入会破坏 H5 端样式；TODO(MIGRATION)：如需小程序端等价行为，按 TARO_ENV 拆分样式文件处理 */
+
+.image-ad-con {
+    position: relative;
+
+    .indicator-box {
+        position: absolute;
+        bottom: 20rpx;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+
+        &.type2 {
+            .indicator-item {
+                &.indicator-item-active {
+                    /* 原 v-bind(selectColor) → 根节点内联 CSS 变量 --select-color */
+                    background-color: var(--select-color);
+                    width: 32rpx;
+                    transition: all 0.3s;
+                    border-radius: 8rpx;
+                }
+            }
+        }
+
+        .indicator-item {
+            width: 16rpx;
+            height: 16rpx;
+            border-radius: 50%;
+            /* 原 v-bind(indicatorColor) → 根节点内联 CSS 变量 --indicator-color */
+            background-color: var(--indicator-color);
+            margin: 0 8rpx;
+
+            &.indicator-item-active {
+                /* 原 v-bind(selectColor) → 根节点内联 CSS 变量 --select-color */
+                background-color: var(--select-color);
+                transition: all 0.3s;
+            }
+        }
+    }
+}
+
+.bannerA2 {
+    position: relative;
+}
+
+.banner-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    z-index: 0;
+    filter: blur(0);
+    overflow: hidden;
+
+    image {
+        width: 100%;
+        height: 100%;
+        filter: blur(34rpx);
+        transform: scale(1.4);
+    }
+}
+
+.bg-gradient {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-image: linear-gradient(rgba(248, 248, 248, 0) 0%, rgba(248, 248, 248, 0) 50%, rgb(248, 248, 248) 100%);
+}
+
+.image-ad-item {
+    width: 100%;
+}
+.fixed {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 99;
+}
+.item-content {
+    width: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.bar {
+    position: relative;
+    overflow: hidden;
+    padding: 0 0 20rpx;
+    z-index: 9;
+}
+
+.search-top {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    column-gap: 20rpx;
+    flex: 1;
+    height: 100%;
+
+    .area-select-box {
+        font-weight: 600;
+        font-size: 25rpx;
+        display: flex;
+        align-items: center;
+        column-gap: 6rpx;
+        max-width: 260rpx;
+
+        &.is-disabled {
+            cursor: default;
+        }
+
+        .area-select-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .area-switch-text {
+            flex-shrink: 0;
+            font-weight: 400;
+            font-size: 22rpx;
+            color: #999;
+        }
+    }
+
+    .search {
+        flex: 1;
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+        border-radius: 40rpx;
+        z-index: 2;
+        background-color: #ffffffcc;
+        color: #969799;
+        overflow: hidden;
+        border: 1.5px solid rgba(26, 26, 26, 1);
+        column-gap: 8rpx;
+    }
+    .search-icon {
+        margin-left: 24rpx;
+        font-size: 28rpx;
+    }
+    .search-form {
+        height: 100%;
+        padding: 0 0 0 6rpx;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        position: relative;
+        .search-input {
+            --color: #323233;
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-size: 28rpx;
+            color: var(--color, #323233);
+            text-align: left;
+            background-color: transparent;
+            border: 0;
+            resize: none;
+            // 给以图搜图入口让出位置，文案过长时截断
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+    }
+}
+
+/* ===== 内联 navbarContent 样式（自旧 components/navbarContent/index.vue 平移，去 scoped） ===== */
+.placeholder {
+    width: 100%;
+    height: 0;
+}
+
+.navbar-box {
+    top: 0;
+    z-index: 999000;
+    width: 100%;
+
+    .status-bar {
+        width: 100%;
+        height: 0;
+    }
+
+    .navbar {
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+}

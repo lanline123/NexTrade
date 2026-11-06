@@ -1,0 +1,260 @@
+/* 自旧 pages/salesman/material.vue 的样式逐条移植（去 scoped、v-bind 改内联 style） */
+page {
+    background-color: #fff;
+}
+
+.material-menu {
+    background-color: #fff;
+    z-index: 88;
+    position: relative;
+    box-shadow: 0 0 10px rgba(125, 126, 128, 0.16);
+
+    .search-box {
+        background-color: #fff;
+
+        /* height 由内联 style 提供（旧动态高度绑定 statusBarHeight） */
+        .status-bar {
+            /* height 由内联 style 提供 */
+        }
+
+        .search-input-box {
+            display: flex;
+            padding: 0 25rpx;
+
+            .input {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                align-items: center;
+            }
+
+            &--with-back {
+                padding-left: 25rpx;
+
+                .search-back {
+                    flex: 0 0 60rpx;
+                    width: 60rpx;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+
+                    .icon-houtui {
+                        display: block;
+                        font-size: 40rpx;
+                        line-height: 1;
+                        color: #333;
+                    }
+                }
+            }
+        }
+    }
+
+    .material-tabs {
+        width: 100%;
+        white-space: nowrap;
+
+        .material-tabs-inner {
+            display: inline-flex;
+            align-items: center;
+            min-width: 100%;
+            padding: 0 20rpx;
+        }
+
+        .material-tab {
+            position: relative;
+            flex: 1;
+            min-width: 96rpx;
+            height: 80rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26rpx;
+            color: #969799;
+
+            &.active {
+                color: #5d53b7;
+                font-weight: 500;
+            }
+
+            .material-tab__line {
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 36rpx;
+                height: 4rpx;
+                border-radius: 4rpx;
+                background-color: #5d53b7;
+                display: none;
+            }
+
+            &.active .material-tab__line {
+                display: block;
+            }
+        }
+    }
+}
+
+.material-content {
+    .material-list {
+        padding: 0 20rpx;
+        font-size: 26rpx;
+
+        .material-item {
+            padding-top: 30rpx;
+
+            &::after {
+                content: "";
+                display: block;
+                height: 1rpx;
+                width: 100%;
+                background-color: #f0f0f0;
+                margin-top: 20rpx;
+            }
+
+            .material-item-content {
+                display: flex;
+
+                .material-item-left {
+                    .item-logo {
+                        width: 60rpx;
+                        height: 60rpx;
+                        overflow: hidden;
+                        border-radius: 50%;
+                        box-shadow: 0 0 10px rgba(125, 126, 128, 0.16);
+
+                        .item-logo-bg {
+                            width: 100%;
+                            height: 100%;
+                            background-size: 75%;
+                            background-position: center;
+                            /* background-image 由内联 style 提供（旧动态背景绑定 icoImg） */
+                            background-repeat: no-repeat;
+                            display: inline-block;
+                        }
+                    }
+                }
+
+                .material-item-right {
+                    display: flex;
+                    flex-direction: column;
+                    margin-left: 20rpx;
+                    flex: 1;
+
+                    .item-name {
+                        font-size: 30rpx;
+                        color: #566483;
+                        font-weight: 500;
+                    }
+
+                    .item-content {
+                        padding-top: 15rpx;
+                        line-height: 35rpx;
+                        white-space: break-spaces;
+                    }
+
+                    .item-images {
+                        display: grid;
+                        grid-template-columns: repeat(3, 200rpx);
+                        gap: 15rpx;
+                        padding-top: 20rpx;
+
+                        .image-box {
+                            overflow: hidden;
+                            border-radius: 8rpx;
+
+                            .image-longpress {
+                                width: 100%;
+                                height: 100%;
+                            }
+                        }
+                    }
+
+                    .item-tip {
+                        color: #969799;
+                        font-size: 22rpx;
+                        padding-top: 6rpx;
+                    }
+
+                    .item-product {
+                        color: #999;
+                        padding-top: 25rpx;
+                        display: flex;
+
+                        .item-product-img {
+                            width: 150rpx;
+                            height: 150rpx;
+                            overflow: hidden;
+                            border-radius: 5rpx;
+                            box-shadow: 0 0 10px rgba(125, 126, 128, 0.16);
+                        }
+                    }
+
+                    .item-btn {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding-top: 30rpx;
+                        padding-bottom: 15rpx;
+                        color: #999;
+
+                        .item-sharenum {
+                            // font-size: 22rpx;
+                        }
+
+                        .item-btn-content {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            width: 64rpx;
+                            height: 40rpx;
+                            background-color: #f2f3f5;
+                            position: relative;
+
+                            .round {
+                                background-color: #586b93;
+                                width: 8rpx;
+                                height: 8rpx;
+                                border-radius: 50%;
+
+                                &:first-child {
+                                    margin-right: 8rpx;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.popover-btns {
+    width: auto;
+    display: flex;
+    align-items: center;
+
+    .popover-btns-item {
+        padding: 0 20rpx;
+        min-width: 148rpx;
+        display: flex;
+        align-items: center;
+
+        .popover-btns-item-icon {
+            width: 44rpx;
+            height: 36rpx;
+            padding-right: 8rpx;
+            display: inline-block;
+            background: 50% / contain no-repeat;
+
+            /* background-image 由内联 style 提供（旧动态背景绑定 materialFriendsBg / materialPicBg） */
+        }
+    }
+
+    .common-line {
+        width: 2rpx;
+        height: 32rpx;
+        background-color: #000;
+    }
+}

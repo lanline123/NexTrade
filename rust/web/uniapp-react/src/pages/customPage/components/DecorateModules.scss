@@ -1,0 +1,88 @@
+/* 装修二级展示区样式（对应旧 modules/index.vue scoped style + static/css/modules.css 装修部分） */
+.bannerBox {
+    width: 100%;
+    overflow: hidden;
+
+    .bannerWrap {
+        padding: 20rpx 24rpx;
+
+        .swiper-slide {
+            width: 100%;
+        }
+
+        .swiper-image {
+            width: 100%;
+            border-radius: 16rpx;
+        }
+    }
+}
+
+.categoryBox {
+    width: 100%;
+
+    .categoryWrap {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 20rpx 24rpx;
+
+        .item {
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20rpx;
+
+            .item-img {
+                width: 88rpx;
+                height: 88rpx;
+                border-radius: 50%;
+                overflow: hidden;
+
+                image {
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+
+            .txt {
+                margin-top: 8rpx;
+                font-size: 22rpx;
+                color: #fff;
+                text-align: center;
+            }
+        }
+    }
+}
+
+.brandBox {
+    background: #fff;
+
+    .brandWrap {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 20rpx 24rpx;
+
+        .item {
+            width: 25%;
+            padding: 10rpx;
+
+            .itemWrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                image {
+                    width: 120rpx;
+                    height: 120rpx;
+                    border-radius: 12rpx;
+                }
+
+                .txt {
+                    margin-top: 8rpx;
+                    font-size: 22rpx;
+                    color: #333;
+                }
+            }
+        }
+    }
+}

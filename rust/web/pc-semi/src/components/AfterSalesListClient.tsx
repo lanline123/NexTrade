@@ -86,7 +86,7 @@ export default function AfterSalesListClient() {
           ))}
         </div>
       ) : (
-        <Card className="member-card">暂无售后记录</Card>
+        <Card className="member-card">暂无已申请退换货订单</Card>
       )}
     </div>
   );

@@ -1,0 +1,31 @@
+/* 自旧 pages/salesman/withdrawHelp.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped） */
+.help-section {
+    .help-section__header {
+        padding: 48rpx 32rpx 0;
+        display: flex;
+        align-items: baseline;
+        .help-section__icon {
+            display: inline-block;
+            width: 32rpx;
+            height: 32rpx;
+            margin-right: 16rpx;
+            /* background: url('@/static/images/salesman/question@2x.png') 0/100% no-repeat;（旧已注释） */
+        }
+        .help-section__title {
+            font-size: 32rpx;
+            line-height: 32rpx;
+            color: #333;
+        }
+    }
+    .help-section__content {
+        padding: 20rpx 44rpx 40rpx 80rpx;
+        font-size: 26rpx;
+        line-height: 40rpx;
+        color: #666;
+    }
+    /* 旧模板中的 <br /> 换行 */
+    .help-section__break {
+        height: 0;
+        line-height: 40rpx;
+    }
+}

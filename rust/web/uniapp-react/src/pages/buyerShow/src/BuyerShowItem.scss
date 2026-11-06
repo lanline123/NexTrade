@@ -1,0 +1,103 @@
+/* === 买家秀列表项（旧 buyerShowItem.vue style 逐条平移，去 scoped；v-bind(playImg) 已改为内联 style） === */
+.buyerShow-info {
+    padding: 20rpx;
+
+    .content {
+        font-weight: bold;
+        font-size: 28rpx;
+        color: #333333;
+        line-height: 42rpx;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        display: -moz-box;
+        -webkit-line-clamp: 3;
+        -moz-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        -moz-box-orient: vertical;
+        word-break: break-all;
+    }
+}
+
+.buyerShow-item {
+    position: relative;
+
+    .video-icon {
+        position: absolute;
+        top: 22rpx;
+        right: 22rpx;
+        width: 40rpx;
+        height: 40rpx;
+        // background-image: url("@/static/images/product/video-playing.png");
+        // v-bind(playImg) → 组件内 style.backgroundImage
+        background-size: cover;
+        z-index: 1;
+    }
+}
+
+.buyerUser {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25rpx;
+
+    .imgBox {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+        margin-right: 12rpx;
+    }
+
+    .user-image {
+        width: 38rpx;
+        height: 38rpx;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .userName {
+        font-weight: 400;
+        font-size: 20rpx;
+        color: #333333;
+        margin-left: 18rpx;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.likeBox {
+    flex-shrink: 0;
+
+    .action-buyerShowItem {
+        display: flex;
+        align-items: center;
+
+        .like-count {
+            font-weight: 400;
+            font-size: 24rpx;
+            color: #333333;
+            margin-left: 10rpx;
+        }
+    }
+}
+
+.content {
+    font-weight: bold;
+    font-size: 28rpx;
+    color: #333333;
+    line-height: 42rpx;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.icon-yiguanzhu {
+    color: var(--general);
+}

@@ -1,0 +1,165 @@
+// 自旧 pages/order/payStatus.vue <style lang="scss" scoped> 原样拷出（去 scoped；v-bind() 已转内联 style 并注明原位置）
+.pay-status {
+    .pay-status-content {
+        padding: 110rpx 0 80rpx;
+        background: linear-gradient(203.18deg, hsla(0, 0%, 100%, 0.9), #fff 85.01%), var(--general);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        row-gap: 38rpx;
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            column-gap: 12rpx;
+            .status-text {
+                font-size: 40rpx;
+                font-weight: 600;
+                color: var(--general);
+            }
+        }
+
+        .money {
+            display: flex;
+            align-items: end;
+            color: var(--general);
+            column-gap: 6rpx;
+
+            .money-value {
+                font-weight: 500;
+            }
+            .money-text {
+                font-size: 24rpx;
+                padding-bottom: 6rpx;
+            }
+        }
+
+        .reserv-box {
+            color: #757575;
+            font-size: 24rpx;
+            margin-top: -10rpx;
+            padding-bottom: 10rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+            row-gap: 4rpx;
+        }
+
+        .status-btns {
+            display: flex;
+            align-items: center;
+            column-gap: 30rpx;
+
+            .btn-item {
+                border: 1px solid #c4c4c4;
+                padding: 14rpx 30rpx;
+                color: rgba(117, 117, 117, 1);
+                font-size: 24rpx;
+                display: flex;
+                align-items: center;
+                font-weight: 600;
+                border-radius: 6rpx;
+
+                &:active {
+                    background-color: rgba(117, 117, 117, 0.1);
+                }
+
+                &.primary {
+                    color: var(--general);
+                    border-color: var(--general);
+
+                    &:active {
+                        /* 旧 v-bind(primaryBg) → 内联 style（active 态背景，payStatus.tsx btnActiveStyle） */
+                        background-color: rgba(0, 0, 0, 0.02);
+                    }
+                }
+            }
+        }
+    }
+
+    .pay-result-error {
+        min-height: 560rpx;
+        padding: 110rpx 40rpx 80rpx;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .error-mark {
+            width: 84rpx;
+            height: 84rpx;
+            margin-bottom: 28rpx;
+            border: 4rpx solid #ff9a2e;
+            border-radius: 50%;
+            color: #ff9a2e;
+            font-size: 52rpx;
+            line-height: 76rpx;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .error-title {
+            color: #333;
+            font-size: 36rpx;
+            font-weight: 600;
+        }
+
+        .error-desc {
+            margin: 18rpx 0 48rpx;
+            color: #888;
+            font-size: 24rpx;
+            text-align: center;
+        }
+
+        .error-btns {
+            display: flex;
+            align-items: center;
+            column-gap: 30rpx;
+
+            .error-btn {
+                border: 1px solid #c4c4c4;
+                padding: 14rpx 30rpx;
+                color: rgba(117, 117, 117, 1);
+                font-size: 24rpx;
+                display: flex;
+                align-items: center;
+                font-weight: 600;
+                border-radius: 6rpx;
+
+                &:active {
+                    background-color: rgba(117, 117, 117, 0.1);
+                }
+
+                &.primary {
+                    color: var(--general);
+                    border-color: var(--general);
+
+                    &:active {
+                        /* 旧 v-bind(primaryBg) → 内联 style（payStatus.tsx btnActiveStyle） */
+                        background-color: rgba(0, 0, 0, 0.02);
+                    }
+                }
+            }
+        }
+    }
+
+    .recommend {
+        position: relative;
+
+        .recommend-mask {
+            background: linear-gradient(180deg, #fff, hsla(0, 0%, 100%, 0));
+            height: 26.66667vw;
+            left: 0;
+            margin: auto;
+            position: absolute;
+            top: 80rpx;
+            width: 100%;
+        }
+        .recommend-content {
+            position: relative;
+            z-index: 1;
+        }
+    }
+}

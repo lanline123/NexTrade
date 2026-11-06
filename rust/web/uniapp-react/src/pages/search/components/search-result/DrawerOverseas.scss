@@ -1,0 +1,192 @@
+/* 自旧 drawer-overseas.vue <style lang="scss" scoped> 原样拷出，去 scoped */
+.filter-box {
+    height: 70vh;
+    border-top-left-radius: 28rpx;
+    border-top-right-radius: 28rpx;
+    overflow: hidden;
+    background-color: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    .popup-title-box {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        padding: 35rpx 28rpx 28rpx;
+        background-color: #fff;
+
+        .title {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            font-size: 32rpx;
+            line-height: 42rpx;
+            font-weight: 700;
+        }
+
+        .close-icon {
+            display: flex;
+            align-items: center;
+
+            image {
+                width: 35rpx;
+                height: 35rpx;
+            }
+        }
+    }
+
+    .filter-content {
+        flex: 1;
+        height: 0;
+        min-height: 0;
+    }
+
+    .filter {
+        padding: 0 20rpx 24rpx;
+
+        .tab_box {
+            margin-top: 30rpx;
+
+            .title-box {
+                /* 旧模板全局工具类 .flex.justify-between.align-center */
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: #666;
+                padding: 10rpx 0;
+                margin-bottom: 30rpx;
+            }
+
+            .more {
+                flex-shrink: 0;
+                width: 32rpx;
+                height: 32rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                .icon-a-gengduo20 {
+                    font-size: 18rpx;
+                    line-height: 1;
+                    display: block;
+                    transform: rotate(-90deg);
+                    transform-origin: center center;
+                }
+
+                &.avtive .icon-a-gengduo20 {
+                    transform: rotate(90deg);
+                }
+            }
+
+            .txt {
+                flex: 1;
+                min-width: 0;
+                font-size: 16px;
+                font-weight: 700;
+                color: #1a1a1a;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding-right: 16rpx;
+            }
+
+            .tabs {
+                gap: 12rpx;
+                /* 旧模板全局工具类 .flex-wrap */
+                display: flex;
+                flex-wrap: wrap;
+
+                .item {
+                    background: #f5f6fa;
+                    padding: 14rpx 21rpx;
+                    font-size: 25rpx;
+                    border-radius: 7rpx;
+                    color: #505259;
+                    border: 1rpx solid #f5f6fa;
+                    overflow: hidden;
+                    max-width: 317rpx;
+                    display: flex;
+                    align-items: center;
+                    outline: none;
+                }
+
+                .active {
+                    outline: 1.5px solid #1a1a1a;
+                    outline-offset: -1px;
+                    color: #1a1a1a;
+                    background-color: #f7f8fc;
+                }
+            }
+        }
+    }
+
+    .btn-box {
+        flex-shrink: 0;
+        z-index: 100;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16rpx;
+        padding: 20rpx 32rpx;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        background-color: #fff;
+
+        &.safe-btn {
+            padding-bottom: var(--safe-bottom);
+        }
+
+        .btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24.5rpx;
+            border-radius: 4px;
+            border-style: solid;
+            border-width: 1px;
+            box-sizing: border-box;
+            line-height: normal;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 旧 tig-button2 默认样式（reset 重置按钮） */
+        .btn--default {
+            background: none;
+            color: rgb(26, 26, 26);
+            border-color: rgb(224, 225, 229);
+        }
+
+        /* 旧 tig-button2 theme 样式（「显示 N 个结果」按钮） */
+        .btn--theme {
+            background-color: var(--main-bg);
+            color: var(--main-text);
+            border-color: var(--main-bg);
+        }
+    }
+}
+
+.loading-circle {
+    width: 28rpx;
+    height: 28rpx;
+    border: 3rpx solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: search-loading-spin 0.8s linear infinite;
+}
+
+@keyframes search-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 旧工程 App.vue 全局工具类 .line1（单行省略），React 工程无全局定义，组件内补齐 */
+.filter-box .line1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

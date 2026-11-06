@@ -1,0 +1,44 @@
+/* 自旧 categoryRec/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()/v-bind()） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.categoryrec {
+    overflow: hidden;
+}
+.item-box {
+    width: calc(100% + 20rpx);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+
+    .li {
+        margin: 10rpx 20rpx 10rpx 0;
+
+        .item {
+            height: 60rpx;
+            display: flex;
+            text-align: center;
+            overflow: hidden;
+            align-items: center;
+            box-sizing: content-box;
+            .tit {
+                height: 48rpx;
+                line-height: 48rpx;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .img {
+                margin-right: 10rpx;
+                height: 100%;
+                width: auto;
+                display: block;
+            }
+        }
+    }
+}

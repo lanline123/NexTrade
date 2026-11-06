@@ -1,0 +1,63 @@
+/* 自旧 categoryRecA1/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()/v-bind()） */
+.module-category-rec-a1 {
+    .module-ad-content {
+        position: relative;
+    }
+
+    .category-rec-a1-list {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .category-rec-a1-item {
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .item-inner {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .item-bg {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+    }
+
+    .item-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20rpx;
+    }
+
+    .item-title {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 24rpx;
+        font-weight: 700;
+        color: #333;
+        height: 40rpx;
+        line-height: 40rpx;
+    }
+
+    .item-desc {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 22rpx;
+        color: #666;
+        height: 32rpx;
+        line-height: 32rpx;
+    }
+}

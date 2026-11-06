@@ -1,0 +1,48 @@
+/**
+ * 开屏广告样式（旧 SplashAd/index.vue 起为全局 style，非 scoped）。
+ * 旧端差异：MP-WEIXIN 左上 103/15rpx；H5 右上 40/40rpx；APP 右上 80/40rpx。
+ * 迁移后按 TARO_ENV 拆成 close-btn--weapp / close-btn--h5 两个修饰类。
+ */
+.close-btn {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    padding: 10rpx 24rpx;
+    border-radius: 30rpx;
+    font-size: 28rpx;
+    line-height: 40rpx;
+    z-index: 100001;
+    pointer-events: auto;
+}
+
+.close-btn--weapp {
+    top: 103rpx;
+    left: 15rpx;
+}
+
+.close-btn--h5 {
+    top: 40rpx;
+    right: 40rpx;
+}
+
+.splash-ad {
+    position: fixed;
+    z-index: 99999;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-img,
+.ad-video {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    display: block;
+}

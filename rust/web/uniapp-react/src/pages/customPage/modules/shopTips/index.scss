@@ -1,0 +1,71 @@
+.module-shop-tips {
+    min-height: auto !important;
+
+    .module-ad-content {
+        overflow: hidden;
+    }
+}
+
+.shop-tips-outer {
+    padding: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.shop-tips-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.shop-tips-li {
+    white-space: nowrap;
+    box-sizing: border-box;
+    min-width: 20%;
+    max-width: 100%;
+}
+
+.shop-tips-link {
+    display: block;
+    position: relative;
+    background: transparent;
+    padding: 0;
+    min-height: 20rpx;
+}
+
+.shop-tips-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8rpx;
+    overflow: hidden;
+    width: 100%;
+}
+
+.shop-tips-icon {
+    width: 28rpx;
+    height: 28rpx;
+    flex-shrink: 0;
+}
+
+.shop-tips-text {
+    min-width: 0;
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 24rpx;
+}
+
+.shop-tips-sx {
+    position: absolute;
+    box-sizing: border-box;
+    pointer-events: none;
+    top: -30%;
+    bottom: -30%;
+    right: -20rpx;
+    transform: scale(0.5);
+    border-right-width: 1px;
+    border-right-style: solid;
+}

@@ -1,0 +1,432 @@
+/* 自旧 pages/user/comment/list.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+/* 为避免全局污染，全部规则收敛在 .order 根节点下 */
+.order {
+    /* 旧 App.vue 全局工具类（新工程未提供，随页面补齐并限定在 .order 内） */
+    .flex {
+        display: flex;
+    }
+
+    .align-center {
+        align-items: center;
+    }
+
+    .justify-between {
+        justify-content: space-between;
+    }
+
+    .flex-wrap {
+        flex-wrap: wrap;
+    }
+
+    .line1 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .navigator-hover {
+        opacity: 0.7;
+    }
+
+    .placeholder {
+        height: 100rpx;
+    }
+
+    /* 旧 uni-badge（size=small, absolute=rightTop）自绘复刻 */
+    .badgecolor {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+
+        .uni-badge {
+            position: absolute;
+            right: -18rpx;
+            top: -12rpx;
+            min-width: 28rpx;
+            height: 28rpx;
+            padding: 0 6rpx;
+            border-radius: 14rpx;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .uni-badge--error {
+            background-color: var(--general);
+        }
+
+        .uni-badge-text {
+            color: #fff;
+            font-size: 20rpx;
+            line-height: 1;
+        }
+    }
+
+    .order-menu {
+        background-color: #fff;
+        display: flex;
+        box-sizing: border-box;
+        margin-bottom: 30rpx;
+        position: fixed;
+        width: 100%;
+        z-index: 88;
+
+        .order-menu-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 88rpx;
+            position: relative;
+
+            .order-menu-item-text {
+                padding: 0 10rpx 0 0;
+            }
+
+            &.active {
+                color: #333;
+                font-weight: bold;
+
+                &:after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    height: 5rpx;
+                    width: 60rpx;
+                    background-color: var(--general);
+                    border-radius: 10rpx;
+                }
+            }
+        }
+    }
+
+    .order-list {
+        padding: 10rpx 20rpx;
+
+        .order-list-item {
+            background-color: #fff;
+            border-radius: 10rpx;
+            margin-bottom: 20rpx;
+            padding: 20rpx;
+            font-size: 24rpx;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            .order-list-item-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 20rpx;
+
+                .special-text {
+                    font-size: 26rpx;
+                    font-weight: bold;
+                }
+
+                .special-color {
+                    color: #999;
+                    font-weight: normal;
+                }
+            }
+
+            .order-list-item-content {
+                .item-content-text {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-bottom: 10rpx;
+
+                    .special-color {
+                        color: #999;
+                    }
+                }
+
+                .item-content-product-item {
+                    padding-bottom: 15rpx;
+                    display: flex;
+
+                    &:first-child {
+                        padding-top: 15rpx;
+                    }
+
+                    .item-content-product-img {
+                        width: 140rpx;
+                        height: 140rpx;
+                        flex-shrink: 0;
+                        overflow: hidden;
+                        border-radius: 10rpx;
+                    }
+
+                    .item-content-product-detail {
+                        flex: 1;
+                        min-width: 0;
+                    }
+
+                    .item-content-product-info {
+                        padding-left: 25rpx;
+
+                        .product-item-title {
+                            font-weight: bold;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            text-overflow: ellipsis;
+                        }
+
+                        .product-item-price {
+                            display: flex;
+                            padding-top: 25rpx;
+
+                            .product-item-pricenum {
+                                font-size: 30rpx;
+                            }
+
+                            .product-item-quantity {
+                                font-size: 28rpx;
+                                color: #999;
+                                padding-left: 15rpx;
+                            }
+                        }
+                    }
+                    .sku-card {
+                        margin-left: 20rpx;
+                        margin-top: 10rpx;
+                        min-width: 0;
+                        max-width: calc(100% - 20rpx);
+                        box-sizing: border-box;
+
+                        .sku-item {
+                            min-width: 0;
+                        }
+                    }
+                }
+
+                .item-content-pay {
+                    display: flex;
+                    justify-content: flex-end;
+
+                    .item-content-pay-box {
+                        display: flex;
+
+                        .pay-item {
+                            padding: 0 10rpx;
+
+                            &.pay-type {
+                                color: #999;
+                            }
+
+                            &.total-money {
+                                .price-content {
+                                    color: var(--general);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            .order-list-item-btn {
+                display: flex;
+                justify-content: flex-end;
+                padding-top: 25rpx;
+
+                .item-btn-box {
+                    display: flex;
+
+                    /* 旧 tig-button :plain-main-color="true"：描边与文字取主题色 */
+                    .evaluate-btn {
+                        border-color: var(--general);
+                        color: var(--general);
+                        border-radius: 30rpx;
+                        padding: 10rpx 25rpx;
+                        margin-left: 10rpx;
+                    }
+
+                    .base-item-btn {
+                        padding: 10rpx 25rpx;
+                        border: 1px solid #ddd;
+                        border-radius: 30rpx;
+                        margin-left: 10rpx;
+
+                        &.detail {
+                            border: 1px solid var(--general);
+                            color: var(--general);
+                        }
+
+                        &:active {
+                            opacity: 0.6;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .comment-list {
+        padding: 0 20rpx;
+
+        .comment-item {
+            padding: 20rpx;
+            background-color: #fff;
+            border-radius: 20rpx;
+            margin-bottom: 20rpx;
+        }
+
+        .comment-header {
+            width: 120rpx;
+            height: 120rpx;
+            margin-right: 20rpx;
+            flex-shrink: 0;
+            overflow: hidden;
+            border-radius: 20rpx;
+
+            .head {
+                width: 120rpx;
+                height: 120rpx;
+                border-radius: 20rpx;
+            }
+        }
+
+        .comment-info {
+            flex: 1;
+            min-width: 0;
+            font-size: 24rpx;
+            color: #333;
+
+            .reply-section {
+                margin-bottom: 15rpx;
+            }
+
+            .reply-card {
+                position: relative;
+                background-color: #f7f7f7;
+                border-radius: 12rpx;
+                padding: 20rpx 24rpx;
+                margin-bottom: 10rpx;
+                font-size: 24rpx;
+                line-height: 1.6;
+
+                .reply-measure {
+                    position: absolute;
+                    left: 24rpx;
+                    right: 24rpx;
+                    visibility: hidden;
+                    pointer-events: none;
+                }
+
+                .reply-body {
+                    word-wrap: break-word;
+
+                    &.is-collapsed {
+                        max-height: 1.6em;
+                        overflow: hidden;
+                    }
+                }
+
+                .reply-label {
+                    color: #999;
+                }
+
+                .reply-text {
+                    word-wrap: break-word;
+                }
+
+                .reply-toggle {
+                    color: #000;
+                    margin-left: 10rpx;
+                }
+
+                .reply-expand {
+                    position: absolute;
+                    right: 24rpx;
+                    bottom: 20rpx;
+                    color: #000;
+                    background: #f7f7f7;
+                    padding-left: 0;
+                    .reply-expand-text {
+                        color: #333;
+                    }
+                }
+            }
+
+            .comment-label {
+                margin-bottom: 15rpx;
+                align-items: center;
+
+                .name {
+                    margin-right: 20rpx;
+                }
+
+                .content {
+                    flex: 1;
+                    min-width: 0;
+
+                    &.flex {
+                        flex-wrap: nowrap;
+                    }
+
+                    .time {
+                        color: #999;
+                        font-size: 22rpx;
+                        flex-shrink: 0;
+                        white-space: nowrap;
+                        margin-left: 12rpx;
+                    }
+
+                    .product-name {
+                        width: 100%;
+                        color: var(--tag-text);
+                    }
+
+                    .product-tag {
+                        background-color: #f5f5f5;
+                        border-radius: 5rpx;
+                        padding: 5rpx 10rpx;
+                        margin: 0 0 5rpx 5rpx;
+                        text-align: center;
+                        flex-shrink: 0;
+                        white-space: nowrap;
+                    }
+
+                    .cont {
+                        word-wrap: break-word;
+                    }
+
+                    .product-pic {
+                        width: 80rpx;
+                        height: 80rpx;
+                        border-radius: 10rpx;
+                        overflow: hidden;
+                        margin-right: 10rpx;
+                        margin-bottom: 10rpx;
+                    }
+                }
+            }
+        }
+    }
+
+    .empty-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 120rpx;
+
+        .pictrue {
+            width: 240rpx;
+            height: 240rpx;
+
+            image {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        .txt {
+            color: #909399;
+            font-size: 28rpx;
+            margin-top: 20rpx;
+        }
+    }
+}

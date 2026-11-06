@@ -1,0 +1,114 @@
+/* === 已购商品选择列表（旧 ProductList.vue style 逐条平移，去 scoped；:deep 已平铺） === */
+.productList {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    position: relative;
+
+    .total {
+        position: absolute;
+        right: 0;
+        top: -40rpx;
+        font-weight: 500;
+        font-size: 28rpx;
+        color: #9a9a9a;
+    }
+
+    .productInfo {
+        height: 242rpx;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20rpx 17rpx 22rpx;
+        box-sizing: border-box;
+        background: #fafafa;
+        border-radius: 8rpx;
+
+        &.active {
+            background: #fff5f3;
+        }
+
+        .image {
+            flex-shrink: 0;
+            width: 200rpx;
+            height: 200rpx;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .content {
+            margin: 0 28rpx 0 10rpx;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            flex: 1;
+
+            .title {
+                font-weight: bold;
+                font-size: 30rpx;
+                color: #2a2a2a;
+                line-height: 45rpx;
+                // 两行文本溢出省略号
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+            }
+
+            .price {
+                font-weight: bold;
+                font-size: 24rpx;
+                color: var(--price);
+                line-height: 56rpx;
+            }
+        }
+    }
+}
+
+/* 旧 tig-checkbox 自绘：圆形勾选，尺寸对应旧 size=20 */
+.check-item {
+    flex-shrink: 0;
+    width: 40rpx;
+    height: 40rpx;
+    border: 2rpx solid #d9d9d9;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+
+    &.checked {
+        border-color: var(--general, #ff4444);
+        background: var(--general, #ff4444);
+    }
+
+    &.disabled {
+        opacity: 0.4;
+    }
+
+    .check-icon {
+        font-size: 24rpx;
+        color: #fff;
+        line-height: 1;
+    }
+}
+
+/* 旧 :deep(.u-form-item__body__left) 平铺 */
+.u-form-item__body__left {
+    font-weight: bold;
+    font-size: 32rpx;
+    color: #262626;
+}
+
+.productList .productInfo .image,
+.productList .productInfo .tig-lazy-image {
+    flex-shrink: 0;
+    width: 200rpx;
+    height: 200rpx;
+}

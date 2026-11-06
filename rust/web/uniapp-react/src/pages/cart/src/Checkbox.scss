@@ -1,0 +1,25 @@
+/* 对应旧 tig-checkbox.vue 的 scoped 样式（u-checkbox 视觉） */
+.check {
+    display: flex;
+    align-items: center;
+
+    &.check--disabled {
+        opacity: 0.5;
+    }
+}
+
+/* u-checkbox 图标外壳：购物车页旧样式里有 :deep(.u-checkbox__icon-wrap){border-width:2px} 覆盖 */
+.u-checkbox__icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1px solid #c8c9cc;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    .u-checkbox__icon {
+        color: #fff;
+        font-weight: bold;
+        line-height: 1;
+    }
+}

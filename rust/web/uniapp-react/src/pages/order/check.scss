@@ -1,0 +1,144 @@
+/* 自旧 pages/order/check.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 tig-fixed-placeholder 外壳与 tig-button 为等价补充样式 */
+.submit-fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+}
+
+.placeholder {
+    height: 74rpx;
+    width: 100%;
+}
+
+.submit-btn-box {
+    background-color: #fff;
+    width: 100%;
+    height: 100%;
+    bottom: 0;
+    padding: 0 30rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+
+    .tips {
+        color: var(--general);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20rpx 20rpx;
+        background-color: var(--primary-light-9);
+        transform: translateY(-100%);
+        font-size: 26rpx;
+    }
+
+    .submit-btn-price {
+        color: var(--general);
+        font-size: 32rpx;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        column-gap: 10rpx;
+
+        .price-text {
+            font-weight: normal;
+            color: #323233;
+        }
+
+        .points-box {
+            display: flex;
+            font-size: 34rpx;
+            column-gap: 10rpx;
+            .points-value {
+                display: flex;
+                align-items: flex-end;
+                column-gap: 4rpx;
+            }
+
+            .points-text {
+                font-size: 24rpx;
+                position: relative;
+                bottom: 4rpx;
+            }
+        }
+    }
+
+    /* 旧 tig-button（.btn）按视觉等价重写：主题色实底 + 白字（TODO(MIGRATION)：随公共 tig-button 统一替换） */
+    .btn {
+        width: 200rpx;
+        height: 80rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--general);
+        color: #fff;
+        font-weight: bold;
+        font-size: 28rpx;
+        border-radius: 8rpx;
+
+        /* 旧 :deep(.btn .u-button__loading-text/.u-button__text) 省略号规则：
+           uview 按钮已移除，文字单行省略直接落在按钮自身 */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &.btn--disabled {
+            opacity: 0.5;
+        }
+    }
+}
+
+.num-card {
+    background: #fff;
+    margin-bottom: 14rpx;
+    padding: 20rpx 28rpx;
+    font-size: 24.5rpx;
+    display: flex;
+    flex-direction: column;
+    row-gap: 21rpx;
+    color: #1a1a1a;
+}
+
+.wholesale-exclude-tip {
+    margin: 20rpx 20rpx 0;
+    padding: 16rpx 20rpx;
+    background: rgba(255, 173, 79, 0.12);
+    border-radius: 12rpx;
+
+    .wholesale-exclude-row {
+        display: flex;
+        align-items: flex-start;
+        font-size: 24rpx;
+        color: #b76900;
+        line-height: 1.5;
+
+        & + .wholesale-exclude-row {
+            margin-top: 8rpx;
+        }
+    }
+
+    .wholesale-exclude-icon {
+        flex-shrink: 0;
+        width: 28rpx;
+        height: 28rpx;
+        line-height: 28rpx;
+        text-align: center;
+        background: #ff9a3c;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 20rpx;
+        font-weight: bold;
+        margin-right: 10rpx;
+        margin-top: 4rpx;
+    }
+
+    .wholesale-exclude-text {
+        flex: 1;
+    }
+}

@@ -1,30 +1,21 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import PcHeader from '@/components/PcHeader';
+import PcHeader from '@/components/PcHeaderWithData';
+import PcFooter from '@/components/PcFooter';
 import MemberCenterClient from '@/components/MemberCenterClient';
 import { getPcHeader } from '@/lib/api';
-import PcFooter from '@/components/PcFooter';
 
 export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { title: '会员中心 · 万物新生', robots: { index: false, follow: false } };
 
-export const metadata: Metadata = {
-  title: '会员中心 · 万物新生',
-  robots: { index: false, follow: false },
-};
-
+/** 源码 pages/member/index.vue */
 export default async function MemberPage() {
   const header = await getPcHeader().catch(() => null);
   return (
     <>
       <PcHeader config={header as any} />
-      <main className="pc-member-page">
-        <div className="pc-container">
-          <nav className="pc-breadcrumb">
-            <Link href="/">首页</Link>
-            <span>/</span>
-            <span>会员中心</span>
-          </nav>
-          <h1 className="pc-cart-title">会员中心</h1>
+      <main className="pc-member-page mc-page">
+        <div className="mc-wrap">
+          <h1 className="mc-title">会员中心</h1>
           <MemberCenterClient />
         </div>
       </main>

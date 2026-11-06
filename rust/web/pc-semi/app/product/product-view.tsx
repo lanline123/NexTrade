@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import PcHeader from '@/components/PcHeader';
+import PcHeader from '@/components/PcHeaderWithData';
 import PcFooter from '@/components/PcFooter';
 import ProductDetailClient from '@/components/ProductDetailClient';
-import { extractProductSnFromSlug, getPcHeader, loadProductBySlug } from '@/lib/api';
+import { extractProductSnFromSlug, getPcHeader, getProductDetailStyle, loadProductBySlug, resolveUiStyle, type ProductUiStyle } from '@/lib/api';
 
 /**
  * 商品详情页（服务端）
@@ -44,12 +44,23 @@ export async function buildProductMetadata(slug: string | string[] | undefined):
   };
 }
 
-export default async function ProductDetailView({ slug }: { slug: string | string[] }) {
+export default async function ProductDetailView({
+  slug,
+  uiStyleParam,
+}: {
+  slug: string | string[];
+  uiStyleParam?: string;
+}) {
   const segments = normalizeSlug(slug);
   const sn = extractProductSnFromSlug(segments);
   const detail = await loadProductBySlug(sn);
   if (!detail?.item) notFound();
-  const [header, item] = [await getPcHeader().catch(() => null), detail.item];
+  const [header, configuredStyle] = await Promise.all([
+    getPcHeader().catch(() => null),
+    getProductDetailStyle(),
+  ]);
+  const uiStyle: ProductUiStyle = resolveUiStyle(uiStyleParam, configuredStyle);
+  const item = detail.item;
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -70,7 +81,9 @@ export default async function ProductDetailView({ slug }: { slug: string | strin
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <PcHeader config={header as any} />
-      <ProductDetailClient detail={detail as any} />
+      <div className="pdp-page">
+        <ProductDetailClient detail={detail as any} uiStyle={uiStyle} />
+      </div>
       <PcFooter />
     </>
   );

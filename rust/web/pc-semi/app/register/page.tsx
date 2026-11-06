@@ -212,7 +212,7 @@ export default function RegisterPage() {
         </div>
       </div>
       <Card className="pc-login-card">
-        <Typography.Title heading={3} style={{ marginBottom: 6 }}>注册账号</Typography.Title>
+        <Typography.Title heading={3} style={{ marginBottom: 6 }}>会员注册</Typography.Title>
         <Typography.Text type="tertiary">
           {mode === 'mobile' ? '手机号注册，注册后可直接登录' : '邮箱注册，注册后可直接登录'}
         </Typography.Text>
@@ -279,7 +279,7 @@ export default function RegisterPage() {
           <label className="register-agree">
             <input type="checkbox" checked={agree} onChange={(event) => setAgree(event.target.checked)} />
             <span>
-              我已阅读并同意
+              点击注册，表示您同意
               <Link href="/article/issue?categoryId=yhxy" target="_blank">《用户协议》</Link>
               和
               <Link href="/article/issue?categoryId=yszc" target="_blank">《隐私政策》</Link>
@@ -288,12 +288,12 @@ export default function RegisterPage() {
 
           {error ? <div className="pc-login-error">{error}</div> : null}
           <Button htmlType="submit" theme="solid" type="primary" size="large" block loading={loading}>
-            注册
+            同意协议并注册
           </Button>
         </form>
         )}
         <div className="pc-login-links">
-          <Link href="/login">已有账号？去登录</Link>
+          <Link href="/login">已有账号？去登录！</Link>
           <Link href="/">返回首页</Link>
         </div>
       </Card>

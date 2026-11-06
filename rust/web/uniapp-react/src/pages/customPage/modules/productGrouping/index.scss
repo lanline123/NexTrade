@@ -1,0 +1,235 @@
+/* 自旧 productGrouping/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()/v-bind()） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.tablist {
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-sizing: initial;
+    height: 100%;
+    position: relative;
+    display: flex;
+    &::-webkit-scrollbar {
+        display: none;
+        height: 0;
+    }
+    .tablist-item {
+        padding: 0;
+        flex: 1 0 auto;
+
+        &.active {
+            color: #323233;
+            font-weight: 500;
+        }
+
+        .tab-text {
+            width: 100%;
+
+            .nav-item {
+                text-align: center;
+                overflow: hidden;
+                position: relative;
+                .line {
+                    content: "";
+                    border-right: #dadada solid 1px;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    -webkit-transform: scale(0.5);
+                    transform: scale(0.5);
+                }
+
+                .nav-item-box {
+                    display: inline-grid;
+                    .tab-title {
+                        margin: 0;
+                        font-size: 36rpx;
+                        font-weight: 700;
+                        color: #333333;
+                    }
+                    .tab-sub {
+                        margin-top: 10rpx;
+                        padding: 6rpx 16rpx;
+                        font-size: 28rpx;
+                        color: #454545;
+                    }
+                }
+            }
+        }
+    }
+}
+.productlist {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+
+    .productlist-item {
+        margin-top: 10rpx;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        width: 100%;
+
+        .item-box {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+            align-items: stretch;
+
+            .goods-item {
+                display: block;
+                overflow: hidden;
+
+                .banner-fill {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    z-index: 1;
+                }
+
+                .goods-img {
+                    position: relative;
+                    max-height: 1000rpx;
+                    overflow: hidden;
+                    width: 100%;
+                    height: 0;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    .img {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        bottom: 0;
+                        left: 0;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                        background-size: 100% auto;
+                        overflow: hidden;
+                    }
+                    .product-style-border {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: 5;
+                        pointer-events: none;
+                    }
+                }
+
+                .goods-info {
+                    padding: 0 10rpx;
+                    flex-grow: 1;
+                    flex-shrink: 1;
+                    display: flex;
+                    -webkit-box-orient: vertical;
+                    flex-direction: column;
+                    overflow: hidden;
+                    font-size: 24rpx;
+                    .goods-title {
+                        line-height: 36rpx;
+                        font-size: 28rpx;
+                        overflow: hidden;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 1;
+                        line-clamp: 1;
+                        -webkit-box-orient: vertical;
+                    }
+
+                    .goods-price-box {
+                        display: flex;
+                        position: relative;
+                        flex-wrap: nowrap;
+                        align-items: center;
+                        justify-content: space-between;
+                        .price-origin-sale {
+                            display: flex;
+                            align-items: baseline;
+                            display: flex;
+                            flex-wrap: wrap;
+                            overflow: hidden;
+                            flex: 1;
+
+                            .price-origin-icon {
+                                margin: 6rpx 0;
+                                display: flex;
+                                flex-wrap: wrap;
+                                align-items: baseline;
+                                overflow: hidden;
+
+                                .price-icon {
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    align-items: self-end;
+                                    overflow: hidden;
+                                    .icon {
+                                        height: 28rpx;
+                                        margin-right: 6rpx;
+                                        display: inline-block;
+                                    }
+                                    .price {
+                                        margin-right: 10rpx;
+                                        text-overflow: ellipsis;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        display: flex;
+                                        -webkit-box-align: baseline;
+                                        align-items: baseline;
+                                    }
+                                    .origin {
+                                        margin-right: 20rpx;
+                                        text-overflow: ellipsis;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-decoration: line-through;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .more-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .more-txt {
+            width: 100%;
+            height: 80rpx;
+            line-height: 80rpx;
+            font-size: 28rpx;
+            color: #333333;
+            border: 1px solid #eee;
+            border-radius: 10rpx;
+            display: inline-block;
+            text-align: center;
+        }
+    }
+}
+
+.cycleBuyTag {
+    color: var(--general);
+    position: relative;
+    &::before {
+        position: absolute;
+        content: "";
+        right: -12.5rpx;
+        top: 0;
+        width: 2rpx;
+        height: 70%;
+        transform: translateY(30%);
+        background-color: var(--general);
+    }
+}

@@ -1,0 +1,86 @@
+/* === 礼品卡充值成功（旧 pages/giftCard/order/payStatus.vue scoped 样式逐条平移） === */
+.pay-status {
+    .pay-status-content {
+        padding: 110rpx 0 80rpx;
+        background: linear-gradient(203.18deg, hsla(0, 0%, 100%, 0.9), #fff 85.01%), var(--general);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        row-gap: 38rpx;
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            column-gap: 12rpx;
+            .status-text {
+                font-size: 40rpx;
+                font-weight: 600;
+                color: var(--general);
+            }
+        }
+
+        .money {
+            display: flex;
+            align-items: end;
+            color: var(--general);
+            column-gap: 6rpx;
+
+            .money-value {
+                font-weight: 500;
+            }
+            .money-text {
+                font-size: 24rpx;
+                padding-bottom: 6rpx;
+            }
+        }
+
+        .status-btns {
+            display: flex;
+            align-items: center;
+            column-gap: 30rpx;
+
+            .btn-item {
+                border: 1px solid #c4c4c4;
+                padding: 14rpx 30rpx;
+                color: rgba(117, 117, 117, 1);
+                font-size: 24rpx;
+                display: flex;
+                align-items: center;
+                font-weight: 600;
+                border-radius: 6rpx;
+
+                &:active {
+                    background-color: rgba(117, 117, 117, 0.1);
+                }
+
+                &.primary {
+                    color: var(--general);
+                    border-color: var(--general);
+
+                    // 旧 v-bind(primaryBg) → 根节点 CSS 变量
+                    &:active {
+                        background-color: var(--primary-bg);
+                    }
+                }
+            }
+        }
+    }
+
+    .recommend {
+        position: relative;
+
+        .recommend-mask {
+            background: linear-gradient(180deg, #fff, hsla(0, 0%, 100%, 0));
+            height: 26.66667vw;
+            left: 0;
+            margin: auto;
+            position: absolute;
+            top: 80rpx;
+            width: 100%;
+        }
+        .recommend-content {
+            position: relative;
+            z-index: 1;
+        }
+    }
+}

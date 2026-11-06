@@ -1,0 +1,103 @@
+/* 自旧 detail.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.detail {
+    height: 65vh;
+    padding: 0 20rpx;
+
+    .title {
+        font-size: 36rpx;
+        font-weight: 600;
+        height: 100rpx;
+        line-height: 100rpx;
+        text-align: center;
+    }
+
+    .content {
+        // padding-top: 20rpx;
+        .product {
+            display: flex;
+
+            .product-img {
+                border-radius: 15rpx;
+                overflow: hidden;
+                width: 180rpx;
+                box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.04);
+
+                .img {
+                    padding-top: 90%;
+                    background-size: cover;
+                    background-position: center center;
+                    background-repeat: no-repeat;
+                }
+            }
+
+            .product-info {
+                padding-left: 25rpx;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+
+                .price {
+                    color: var(--general);
+                    font-weight: 600;
+                    font-size: 36rpx;
+                }
+
+                .origin_price {
+                    padding: 5rpx 0;
+                    color: #929292;
+                    font-size: 28rpx;
+                }
+
+                .product-num {
+                    color: #929292;
+                    font-size: 28rpx;
+                }
+            }
+        }
+
+        .attr {
+            margin-top: 30rpx;
+            background-color: #fff;
+            border-radius: 20rpx;
+            overflow: hidden;
+            padding: 20rpx 15rpx;
+
+            .attr-list {
+                .attr-item {
+                    margin-bottom: 20rpx;
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+
+                    .sub-title {
+                        font-size: 28rpx;
+                        font-weight: 600;
+                        margin-bottom: 15rpx;
+                    }
+
+                    .item-content {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 28rpx;
+
+                        .right {
+                            .num {
+                                font-size: 24rpx;
+                                display: inline-block;
+                                padding-left: 10rpx;
+                                color: #595959;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* format-price 的根节点为 View，scoped 下 :class 会直接命中；
+ * React 版价格外再包一层 price-box 以还原旧 class 命中（样式继承自上面 .price/.origin_price） */
+.price-box {
+    display: inline-flex;
+}

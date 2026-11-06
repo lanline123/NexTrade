@@ -16,6 +16,8 @@ import { useTranslation } from 'react-i18next';
 import Translate from '@icon-park/react/es/icons/Translate';
 import Down from '@icon-park/react/es/icons/Down';
 import { normalizeLocale, writeLocaleCookie } from '@/i18n';
+import { readHeaderBootstrap } from '@/lib/header-bootstrap';
+import type { HeaderBootstrapCurrency, HeaderBootstrapLocale } from '@/lib/header-bootstrap';
 
 interface LocaleItem {
   id?: number;
@@ -72,18 +74,32 @@ export default function PcLocaleSelect({
   className = '',
   showLang = true,
   showCurrency = true,
+  initialLocales,
+  initialCurrencies,
 }: {
   isWhite?: boolean;
   langLabelMode?: 'language' | 'localeCode';
   className?: string;
   showLang?: boolean;
   showCurrency?: boolean;
+  /** 服务端预取的语言/货币列表：首屏 SSR 即渲染，避免比其他头部模块晚出现 */
+  initialLocales?: HeaderBootstrapLocale[];
+  initialCurrencies?: HeaderBootstrapCurrency[];
 }) {
   const { i18n, t } = useTranslation();
-  const [locales, setLocales] = useState<LocaleItem[]>([]);
-  const [currencies, setCurrencies] = useState<CurrencyItem[]>([]);
-  const [currency, setCurrency] = useState<CurrencyItem | null>(null);
-  const [code, setCode] = useState('');
+  const initialEnabledLocales = (initialLocales || []).filter(
+    (item) => item.isEnabled === undefined || Number(item.isEnabled) !== 0,
+  );
+  const [locales, setLocales] = useState<LocaleItem[]>(initialEnabledLocales);
+  const [currencies, setCurrencies] = useState<CurrencyItem[]>(initialCurrencies || []);
+  const [currency, setCurrency] = useState<CurrencyItem | null>(() => {
+    const list = initialCurrencies || [];
+    return list.find((item) => item.isDefault === 1) || list[0] || null;
+  });
+  const [code, setCode] = useState(() => {
+    const current = initialEnabledLocales.find((item) => item.isDefault === 1) || initialEnabledLocales[0];
+    return current?.localeCode || '';
+  });
   const [open, setOpen] = useState(false);
   const [showSelectCurrency, setShowSelectCurrency] = useState(false);
 
@@ -91,31 +107,46 @@ export default function PcLocaleSelect({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/common/i18n/getLocales')
-      .then((response) => response.json())
-      .then((json) => {
-        const list: LocaleItem[] = Array.isArray(json?.data) ? json.data : [];
-        const enabled = list.filter((item) => item.isEnabled === undefined || Number(item.isEnabled) !== 0);
-        setLocales(enabled);
-        const fromCookie = readCookie('locale') || readCookie('X-Locale-Code');
-        const current = enabled.find((item) => item.localeCode === fromCookie)
-          || enabled.find((item) => item.isDefault === 1)
-          || enabled[0];
-        if (current) setCode(current.localeCode);
-      })
-      .catch(() => undefined);
+    const applyLocales = (list: LocaleItem[]) => {
+      const enabled = list.filter((item) => item.isEnabled === undefined || Number(item.isEnabled) !== 0);
+      setLocales(enabled);
+      const fromCookie = readCookie('locale') || readCookie('X-Locale-Code');
+      const current = enabled.find((item) => item.localeCode === fromCookie)
+        || enabled.find((item) => item.isDefault === 1)
+        || enabled[0];
+      if (current) setCode(current.localeCode);
+    };
 
-    fetch('/api/common/currency/getCurrency')
-      .then((response) => response.json())
-      .then((json) => {
-        const list: CurrencyItem[] = Array.isArray(json?.data) ? json.data : [];
-        setCurrencies(list);
-        const stored = readCurrencyCookie();
-        const current = (stored && list.find((item) => item.id === stored.id)) || list.find((item) => item.isDefault === 1) || list[0] || null;
-        setCurrency(current);
-      })
-      .catch(() => undefined);
-  }, []);
+    const applyCurrencies = (list: CurrencyItem[]) => {
+      setCurrencies(list);
+      const stored = readCurrencyCookie();
+      const current = (stored && list.find((item) => item.id === stored.id)) || list.find((item) => item.isDefault === 1) || list[0] || null;
+      setCurrency(current);
+    };
+
+    // 语言/货币随 layout 服务端预取并作为 props 注入，挂载即按 Cookie 校正，不再等客户端请求返回
+    const bootstrap = readHeaderBootstrap();
+    const localeSource = initialLocales?.length ? initialLocales : bootstrap?.locales;
+    const currencySource = initialCurrencies?.length ? initialCurrencies : bootstrap?.currencies;
+
+    if (localeSource?.length) {
+      applyLocales(localeSource);
+    } else {
+      fetch('/api/common/i18n/getLocales')
+        .then((response) => response.json())
+        .then((json) => applyLocales(Array.isArray(json?.data) ? json.data : []))
+        .catch(() => undefined);
+    }
+
+    if (currencySource?.length) {
+      applyCurrencies(currencySource);
+    } else {
+      fetch('/api/common/currency/getCurrency')
+        .then((response) => response.json())
+        .then((json) => applyCurrencies(Array.isArray(json?.data) ? json.data : []))
+        .catch(() => undefined);
+    }
+  }, [initialCurrencies, initialLocales]);
 
   useEffect(() => {
     if (!open) return;

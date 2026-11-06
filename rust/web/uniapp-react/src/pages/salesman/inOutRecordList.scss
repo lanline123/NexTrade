@@ -1,0 +1,6 @@
+/* 旧 pages/salesman/inOutRecordList.vue 的 <style lang="scss" scoped> 为空；
+   这里仅补页面容器的最小样式（背景沿用全局 page 背景），列表内容由 timeFilter 组件承载 */
+.in-out-record-page {
+    min-height: 100vh;
+    box-sizing: border-box;
+}

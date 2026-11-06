@@ -1,0 +1,306 @@
+/* 自旧 pages/salesman/level.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped、v-bind 改内联 style） */
+.level {
+    position: relative;
+
+    .level-dashboard {
+        padding: 16rpx;
+        background-color: #fff;
+
+        .container {
+            /* background-image 由内联 style 提供（旧动态背景绑定 containerBg） */
+            box-sizing: border-box;
+            padding: 8rpx 16rpx 20rpx;
+            position: relative;
+
+            .header {
+                display: flex;
+                align-items: center;
+                margin: 34rpx 0 0 40rpx;
+
+                .avatar {
+                    display: block;
+                    width: 88rpx;
+                    height: 88rpx;
+                    border-radius: 50%;
+                    margin-right: 20rpx;
+                }
+
+                .level-name {
+                    font-size: 36rpx;
+                    color: #fff;
+                    font-weight: 700;
+                }
+            }
+
+            .level-stepper {
+                margin: 30rpx 30rpx 0;
+                overflow-x: auto;
+                height: 120rpx;
+
+                .level-stepper-wrap {
+                    display: flex;
+                    align-items: center;
+                    flex-wrap: nowrap;
+
+                    .level-stepper-wrap__point {
+                        background-color: #fff;
+                        height: 12rpx;
+                        width: 12rpx;
+                        margin: 10rpx;
+                        border-radius: 50%;
+                        flex-shrink: 0;
+                        position: relative;
+                        opacity: 0.5;
+
+                        &:first-child {
+                            margin-left: 52rpx;
+
+                            .inner-text {
+                                max-width: 120rpx;
+                            }
+                        }
+
+                        &:last-child {
+                            margin-right: 52rpx;
+                        }
+
+                        &.reach {
+                            opacity: 1;
+                        }
+
+                        &.active {
+                            background-color: hsla(0, 0%, 100%, 0.4);
+                            height: 24rpx;
+                            width: 24rpx;
+                            position: relative;
+
+                            .inner-text {
+                                top: 32rpx;
+                            }
+
+                            &:after {
+                                content: "";
+                                background-color: #fff;
+                                height: 12rpx;
+                                width: 12rpx;
+                                margin: 10rpx;
+                                border-radius: 50%;
+                                top: -4rpx;
+                                left: -4rpx;
+                                position: absolute;
+                            }
+                        }
+
+                        .inner-text {
+                            position: absolute;
+                            z-index: 1;
+                            transform: translateX(-50%);
+                            left: 50%;
+                            top: 26rpx;
+                            font-size: 20rpx;
+                            color: #fff;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                    }
+
+                    .level-stepper-wrap__line {
+                        background-color: #ba955c;
+                        height: 4rpx;
+                        flex-shrink: 0;
+                        flex-grow: 1;
+                        width: auto;
+
+                        .line-inner {
+                            height: 4rpx;
+                            background-color: #efddc2;
+                            width: 80%;
+                        }
+                    }
+                }
+            }
+        }
+
+        .rights-and-interests {
+            display: flex;
+            margin: 14rpx 0;
+
+            .item {
+                width: 50%;
+                font-size: 26rpx;
+                color: #666;
+                line-height: 1.4;
+                display: flex;
+                align-items: center;
+
+                .title-icon {
+                    width: 88rpx;
+                    height: 88rpx;
+                    background-color: #fcf5e6;
+                    justify-content: center;
+                    border-radius: 50%;
+                    font-size: 40rpx;
+                    color: #dfc392;
+                    margin-left: 30rpx;
+                    margin-right: 20rpx;
+                    background-size: 100% 100%;
+                    background-repeat: no-repeat;
+                }
+            }
+        }
+
+        .level-dashboard__rate-text {
+            display: flex;
+            align-items: baseline;
+            column-gap: 8rpx;
+            line-height: 48rpx;
+            color: #999;
+            font-size: 24rpx;
+            padding: 20rpx 16rpx 0 16rpx;
+
+            .info-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24rpx;
+                height: 24rpx;
+                border: 2rpx solid #999;
+                border-radius: 50%;
+                font-size: 18rpx;
+                line-height: 1;
+                font-style: normal;
+                flex: none;
+            }
+        }
+    }
+
+    .level-schedule {
+        margin: 20rpx 0;
+        background-color: #fff;
+        padding: 40rpx 32rpx;
+        line-height: 1.5;
+
+        .title {
+            font-size: 36rpx;
+            font-weight: 700;
+            margin-bottom: 40rpx;
+        }
+
+        .level-schedule-item {
+            color: #999;
+            margin-top: 30rpx;
+            font-size: 28rpx;
+            display: flex;
+            align-items: center;
+            line-height: 36rpx;
+            column-gap: 8rpx;
+
+            .tag-wrap {
+                min-width: 96rpx;
+                display: flex;
+                align-items: center;
+
+                .level-schedule-item__tag {
+                    color: rgb(187, 187, 187);
+                    border-color: rgb(187, 187, 187);
+
+                    &.level-schedule-item__reach {
+                        color: #dbbb87;
+                        border-color: #dbbb87;
+                    }
+                }
+            }
+
+            .tag-desc {
+            }
+
+            .level-schedule-item__left {
+                width: fit-content;
+                color: #dbbb87;
+                margin: 0 8rpx;
+                word-break: break-all;
+            }
+        }
+    }
+
+    .level-rules {
+        background-color: #fff;
+        padding: 40rpx 30rpx;
+
+        .title {
+            font-size: 36rpx;
+            font-weight: 700;
+            margin-bottom: 40rpx;
+        }
+
+        .rules-item {
+            position: relative;
+
+            .label {
+                background-color: #f6f6f6;
+                height: 48rpx;
+                line-height: 48rpx;
+                padding-left: 60rpx;
+                padding-right: 20rpx;
+                display: inline-block;
+                border-radius: 48rpx;
+                font-size: 24rpx;
+                /* background-image 由内联 style 提供（旧动态背景绑定 containerBg） */
+                background-position: 0 0;
+                background-repeat: no-repeat;
+            }
+
+            .desc {
+                margin-left: 60rpx;
+                margin-bottom: 30rpx;
+                line-height: 1.5;
+
+                .desc-item {
+                    margin-top: 30rpx;
+                    color: #999;
+                    font-size: 28rpx;
+
+                    .desc-item__title {
+                        font-weight: 700;
+                        margin: 30rpx 0 10rpx;
+                        color: #333;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.van-tag {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8rpx;
+    color: #fff;
+    font-size: 24rpx;
+    line-height: 32rpx;
+    border-radius: 4rpx;
+}
+
+.van-tag--plain {
+    background-color: #fff;
+    border-color: currentColor;
+}
+
+.van-tag--plain:before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border: 2rpx solid;
+    border-color: inherit;
+    border-radius: inherit;
+    content: "";
+    pointer-events: none;
+}
+
+.van-tag--default.van-tag--plain {
+    color: #969799;
+}

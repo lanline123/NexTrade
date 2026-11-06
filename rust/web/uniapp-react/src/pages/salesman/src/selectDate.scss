@@ -1,0 +1,30 @@
+/* 自旧 pages/salesman/src/selectDate.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped） */
+.picker-box-header {
+    display: flex;
+    margin-top: 30rpx;
+    .header-item {
+        flex: 1;
+        padding: 15px;
+        position: relative;
+        &.active::after {
+            content: "";
+            position: absolute;
+            height: 2px;
+            width: 90%;
+            background-color: #ff720d;
+            bottom: 0;
+            right: 0;
+        }
+        .header-item-text {
+            color: #999;
+            line-height: 18px;
+        }
+
+        .header-item-value {
+            font-size: 20px;
+            margin-top: 6px;
+            line-height: 28px;
+            color: #333;
+        }
+    }
+}

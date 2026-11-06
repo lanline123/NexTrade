@@ -1,0 +1,39 @@
+/* 自旧 pages/productCate/src/menu.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.menu-content {
+    height: 100%;
+    width: 100%;
+
+    .menu-scroll {
+        height: 100%;
+
+        .menu-item {
+            min-height: 50px;
+            padding-left: 6px;
+            width: 100%;
+            font-size: 13px;
+            color: var(--cate-side-text, #424242);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+
+            /* --cate-* 由分类页装修下发（见 buildCateCenterV2Vars），未配置时 fallback 即原有视觉 */
+            &.active {
+                color: var(--cate-side-active-text, var(--cate-theme, var(--general)));
+                background-color: var(--cate-side-active-bg, #fff);
+
+                &::after {
+                    content: "";
+                    width: 3px;
+                    height: 18px;
+                    background-color: var(--cate-side-indicator, var(--cate-theme, var(--general)));
+                    border-radius: 2px;
+                    position: absolute;
+                    left: 0;
+                }
+            }
+        }
+    }
+}

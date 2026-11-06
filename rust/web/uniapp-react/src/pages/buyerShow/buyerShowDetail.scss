@@ -1,0 +1,286 @@
+/* === 买家秀详情（旧 buyerShowDetail.vue style 逐条平移，去 scoped；:deep 已平铺） === */
+.swiper__item {
+    width: 100%;
+}
+
+.content-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.content-image,
+.content-video {
+    width: 100%;
+    height: 100%;
+}
+
+/* swiper 外层：旧 up-swiper 的 indicator 插槽为绝对定位浮层，这里补相对定位容器 */
+.swiper-wrapper {
+    position: relative;
+}
+
+.indicator {
+    position: absolute;
+    left: 50%;
+    bottom: 20rpx;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10rpx;
+    z-index: 5;
+
+    .indicator__dot {
+        width: 11rpx;
+        height: 11rpx;
+        background: #e6e6e6;
+        border-radius: 50%;
+    }
+
+    .indicator__dot--active {
+        width: 11rpx;
+        height: 11rpx;
+        background: #ff4444;
+    }
+}
+
+/* 旧 :deep(.u-swiper__wrapper…) 平铺 */
+.u-swiper__wrapper,
+.u-swiper__wrapper__item__wrapper,
+.u-swiper__wrapper__item__wrapper__image,
+.u-swiper__wrapper__item__wrapper__video {
+    height: 100% !important;
+}
+
+.container {
+    padding: 20rpx;
+    box-sizing: border-box;
+    background: #fff;
+
+    .content {
+        font-weight: 500;
+        font-size: 28rpx;
+        color: #2a2a2a;
+        line-height: 42rpx;
+        margin-bottom: 44rpx;
+        word-break: break-all;
+    }
+
+    .addTime {
+        font-weight: 500;
+        font-size: 24rpx;
+        color: #9a9a9a;
+        line-height: 42rpx;
+        margin-bottom: 44rpx;
+    }
+}
+
+.userBox {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+    margin-top: 40rpx;
+    margin-bottom: 50rpx;
+
+    .content-image {
+        width: 80rpx;
+        height: 80rpx;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+    .userName {
+        font-weight: bold;
+        font-size: 32rpx;
+        color: #000000;
+    }
+}
+
+.productListBox {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 30rpx;
+
+    .productListInfo {
+        display: flex;
+        width: 600rpx;
+        flex-shrink: 0;
+        gap: 10rpx;
+        background: #fafafa;
+        padding: 20rpx 17rpx;
+
+        .productImg {
+            position: relative;
+            width: 200rpx;
+            height: 200rpx;
+            flex-shrink: 0;
+
+            .outsale {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 70%;
+                height: 70%;
+                // line-height: 180rpx;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.4);
+                font-size: 24rpx;
+                color: #ffffff;
+                letter-spacing: 0;
+                border-radius: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9;
+            }
+
+            .product-style-border {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 5;
+                pointer-events: none;
+            }
+        }
+
+        .productRight {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            .title {
+                font-weight: bold;
+                font-size: 32rpx;
+                color: #000000;
+                // 添加以下样式实现两行省略号
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-all;
+            }
+
+            .price {
+                font-size: 32rpx;
+                color: var(--price);
+            }
+        }
+    }
+}
+
+.footer {
+    // line-height: 100rpx;
+    display: flex;
+    align-items: center;
+    padding: 15rpx 25rpx;
+    box-sizing: border-box;
+
+    .input {
+        flex: 3;
+        height: 68rpx;
+        display: flex;
+        align-items: center;
+        padding: 0 28rpx;
+        box-sizing: border-box;
+        background: #f5f5f5;
+        border-radius: 34rpx;
+
+        .footer-input-inner {
+            flex: 1;
+            font-size: 26rpx;
+        }
+    }
+
+    .countBox {
+        flex: 2;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+
+        .LikeBox {
+            display: flex;
+            align-items: center;
+            gap: 20rpx;
+        }
+    }
+}
+
+.icon-yiguanzhu {
+    color: var(--general);
+}
+
+/* 旧 :deep(.u-swiper__wrapper__item__wrapper__image) 平铺 */
+.u-swiper__wrapper__item__wrapper__image > div {
+    background-size: 100% !important;
+}
+
+.media-preview-wrapper,
+.media-preview-image,
+.media-preview-video {
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-item-root {
+    width: 100%;
+    height: 100%;
+}
+
+.media-preview-image {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    object-fit: cover;
+}
+
+.icon-pinglun {
+    font-size: 32rpx !important;
+}
+
+.swiper-skeleton {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 50%, #f5f5f5 100%);
+    background-size: 200% 200%;
+    animation: skeleton-loading 1.5s ease infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .skeleton-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20rpx;
+
+        .skeleton-icon {
+            font-size: 80rpx;
+            color: #ccc;
+        }
+    }
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.swiperBox {
+    background-color: #f5f5f5 !important;
+    border-radius: 0 !important;
+}
+
+/* 旧 up-divider text="" 自绘 */
+.divider {
+    height: 1rpx;
+    background: #f0f0f0;
+    margin: 20rpx 0 40rpx;
+}

@@ -1,0 +1,19 @@
+/* 自旧 pages/salesman/src/pickerDatePop.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped） */
+.picker-box {
+    height: 50vh;
+    width: 100%;
+
+    .picker-view {
+        height: 400rpx;
+        margin-top: 20rpx;
+    }
+    .item {
+        line-height: 100rpx;
+        text-align: center;
+        font-size: 30rpx;
+    }
+}
+
+.btn-box {
+    padding: 25rpx;
+}

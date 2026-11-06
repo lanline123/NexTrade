@@ -1,0 +1,32 @@
+.oversea-sousuo-box {
+    .oversea-sousuo {
+        border: 1px solid #1a1a1a;
+        border-radius: 8rpx;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 24rpx;
+
+        .search-icon-left {
+            flex-shrink: 0;
+            margin-right: 8px;
+            font-size: 20px;
+            color: #999;
+        }
+
+        .placeholder-text {
+            color: #9c9ea6;
+            font-size: 28rpx;
+        }
+
+        .sousuo-icon {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+
+            .icon-sousuo2 {
+                font-size: 40rpx;
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import PcHeader from '@/components/PcHeader';
+import PcHeader from '@/components/PcHeaderWithData';
 import { getPcHeader } from '@/lib/api';
 import PcFooter from '@/components/PcFooter';
 

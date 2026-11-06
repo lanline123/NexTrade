@@ -1,0 +1,85 @@
+/* 自旧 components/rec-product/index.vue 迁移：样式逐行保留（去 scoped、:deep 平铺） */
+.recgoods-box {
+    margin: 0 20rpx;
+    background: #fff;
+    border-radius: 18rpx;
+
+    .title {
+        display: flex;
+        flex-wrap: nowrap;
+        height: 100rpx;
+        line-height: 100rpx;
+        justify-content: space-between;
+
+        .bg {
+            width: 400rpx;
+            background-image: url("https://demo.tigshop.cn/static/mini/images/user/qiandao/3.png");
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+        }
+
+        .moregoods {
+            display: flex;
+            align-items: center;
+            font-size: 24rpx;
+            color: #999;
+            padding-top: 10rpx;
+            padding-right: 20rpx;
+        }
+    }
+
+    .wrap-goods {
+        padding: 20rpx;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        column-gap: 10rpx;
+        row-gap: 20rpx;
+
+        .item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+
+            .rec-img-wrap {
+                position: relative;
+                width: 100%;
+            }
+
+            .rec-img {
+                width: 100%;
+                height: auto;
+                border-radius: 18rpx;
+                border: 2rpx solid #efefef;
+                display: block;
+            }
+
+            .product-style-border {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 18rpx;
+                z-index: 5;
+                pointer-events: none;
+            }
+
+            .name {
+                padding: 0 30rpx;
+                height: 40rpx;
+                line-height: 40rpx;
+                overflow: hidden;
+                font-weight: 500;
+                color: #333;
+                font-size: 24rpx;
+                margin-top: 8rpx;
+            }
+
+            .price {
+                font-size: 24rpx;
+                color: #e45363;
+            }
+        }
+    }
+}

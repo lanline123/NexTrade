@@ -1,0 +1,851 @@
+/* 旧 App.vue 全局工具类（新工程未提供，随页面补齐并限定在 .order-info 内） */
+.order-info {
+    .line1 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .line2 {
+        word-break: break-all;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .justify-between {
+        justify-content: space-between;
+    }
+}
+
+/* 自旧 pages/user/order/info.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.phone-link {
+    color: var(--general);
+    text-decoration: none;
+}
+
+.sku-card {
+    background-color: #fff !important;
+    padding: 0;
+}
+
+/* 旧 App.vue 全局 .gift-text（详情页 scoped 未定义，迁移随页面补齐） */
+.gift-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 23rpx;
+    padding: 3rpx 8rpx;
+    background-color: var(--main-bg);
+    color: var(--main-text);
+    border-radius: 0 var(--tag-round-border-radius, 83.25rem) var(--tag-round-border-radius, 83.25rem) 0;
+}
+
+.extraskudata-box {
+    display: flex;
+    .extraskudata {
+        padding: 0;
+        border-radius: 10rpx;
+        margin-top: 5rpx;
+        color: #969799;
+        display: flex;
+        flex-direction: column;
+        .extraskudata-item {
+            font-size: 22rpx;
+            display: flex;
+            line-height: 40rpx;
+
+            .title {
+                flex-shrink: 0;
+            }
+
+            .content {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                overflow: hidden;
+                .price {
+                    color: #555;
+                    padding-left: 10rpx;
+                }
+                .content-text {
+                    flex: 1;
+                    white-space: normal;
+                    word-break: break-all;
+                }
+                .num {
+                    padding-left: 10rpx;
+                }
+            }
+
+            .line-box {
+                width: 25rpx;
+                position: relative;
+                .line {
+                    width: 1rpx;
+                    height: 15rpx;
+                    background-color: #c0c0c0;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+            }
+        }
+    }
+}
+
+.item-box {
+    padding-bottom: 20rpx;
+
+    &:last-child {
+        padding-bottom: 0;
+    }
+}
+
+.shop-info {
+    display: flex;
+    align-items: center;
+    font-size: 26rpx;
+    font-weight: bold;
+}
+
+.product-card-group {
+    & + .product-card-group {
+        margin-top: 20rpx;
+        padding-top: 20rpx;
+        border-top: 0.5px solid #e0e1e5;
+    }
+}
+
+.product-card-group-title {
+    margin: 0 20rpx 20rpx 0;
+}
+
+.virtualsample-box {
+    padding-top: 0;
+
+    .virtualsample-header {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 12rpx;
+
+        .virtualsample-title {
+            font-size: 28rpx;
+            font-weight: 600;
+            color: #333;
+            margin-right: 10rpx;
+        }
+
+        .virtualsample-count {
+            font-size: 24rpx;
+            color: #999;
+        }
+    }
+
+    .virtualsample-card {
+        background-color: #fff;
+        padding: 12rpx 0 0 0;
+        margin-bottom: 20rpx;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border-top: 1px solid #f2f2f2;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .virtualsample-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16rpx;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .virtualsample-item-con {
+            display: flex;
+            font-size: 24rpx;
+            line-height: 40rpx;
+            flex: 1;
+            padding-right: 140rpx;
+
+            .label {
+                flex-shrink: 0;
+                color: #999;
+                margin-right: 8rpx;
+            }
+
+            .value {
+                color: #333;
+            }
+        }
+
+        .virtualsample-view-btn {
+            display: flex;
+            align-items: center;
+            gap: 6rpx;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: absolute;
+            right: 24rpx;
+            top: 50%;
+            transform: translateY(-50%);
+
+            .view-text {
+                font-size: 26rpx;
+                line-height: 1;
+                color: #333;
+            }
+        }
+    }
+}
+
+.card-space {
+    padding: 20rpx 0;
+    background-color: #fff;
+    margin-top: 15rpx;
+}
+
+/* 线下支付认款状态卡片 */
+.offline-claim-card {
+    padding: 24rpx 30rpx;
+
+    .offline-claim-title {
+        font-size: 30rpx;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .offline-claim-tip {
+        margin-top: 12rpx;
+        font-size: 26rpx;
+        line-height: 1.5;
+        color: #666;
+        word-break: break-all;
+    }
+}
+
+.delivery-address-card {
+    display: flex;
+    align-items: flex-start;
+    padding: 30rpx 24rpx;
+
+    .delivery-address-label {
+        flex-shrink: 0;
+        margin-right: 30rpx;
+        color: #999;
+        font-size: 24rpx;
+        line-height: 36rpx;
+    }
+
+    .delivery-address-main {
+        flex: 1;
+        min-width: 0;
+
+        .delivery-address-detail {
+            color: #1a1a1a;
+            font-size: 24rpx;
+            line-height: 36rpx;
+        }
+
+        .delivery-address-contact {
+            margin-top: 20rpx;
+            color: #333;
+            font-size: 24rpx;
+            line-height: 36rpx;
+
+            .delivery-address-name {
+                margin-right: 24rpx;
+            }
+        }
+    }
+}
+
+.address-text {
+    width: calc(100% - 160rpx);
+    text-align: end;
+}
+
+.order-item-label {
+    color: #1a1a1a;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.free-text {
+    color: #269636;
+    font-size: 25rpx;
+    font-weight: 700;
+    line-height: 32rpx;
+}
+
+.icon-box {
+    // 小程序端胶囊避让由 tig-navbar 统一处理（右侧插槽有内容时整行预留胶囊区域）
+    display: flex;
+    justify-content: flex-end;
+    .iconfont-h5 {
+        font-size: 36rpx;
+    }
+}
+
+.order-info-steps {
+    padding: 25rpx;
+    background-color: #fff;
+    overflow: hidden;
+
+    .order-info-header {
+        .status-title {
+            font-size: 40rpx;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.2;
+        }
+
+        .status-sub {
+            margin-top: 16rpx;
+            font-size: 26rpx;
+            color: #8b8e97;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+
+            .status-countdown {
+                margin: 0 8rpx;
+            }
+        }
+    }
+
+    .address-box {
+        display: flex;
+        margin-top: 40rpx;
+        color: #1a1a1a;
+
+        // 有预售步骤时去掉上间距（与跨境一致）；剩余空隙来自 presale-box / presale-flow 的 padding-bottom
+        &.address-box--presale {
+            margin-top: 0;
+        }
+
+        .icon {
+            width: 16px;
+            margin-right: 8px;
+            margin-top: 2rpx;
+            .iconfont-h5 {
+                font-size: 16px;
+            }
+        }
+        .info {
+            flex: 1;
+            font-size: 26rpx;
+            .title {
+                display: flex;
+                align-items: center;
+                gap: 10rpx;
+                .name {
+                    font-weight: bold;
+                }
+            }
+            .address-txt {
+                margin-top: 10rpx;
+            }
+        }
+    }
+}
+
+.order-info {
+    &.order-info--meituan {
+        .order-info-content {
+            position: relative;
+            z-index: 2;
+        }
+    }
+
+    .bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(var(--nav-height) + 220rpx);
+        background: linear-gradient(90deg, #f4f4f4, #fff7f8);
+        z-index: 1;
+    }
+
+    .meituan-status {
+        position: relative;
+        z-index: 2;
+        padding: 30rpx 30rpx 20rpx;
+
+        .order-info-content-status-title {
+            color: #ee0a24;
+            font-size: 36rpx;
+            font-weight: 800;
+        }
+
+        .order-info-content-status-desc {
+            margin-top: 10rpx;
+            color: #6a6a6a;
+            font-size: 28rpx;
+            font-weight: 500;
+        }
+    }
+}
+
+.order-info-content {
+    .order-card {
+        padding: 20rpx;
+        .order-card-item {
+            align-items: center;
+            display: flex;
+            font-size: 24rpx;
+            padding: 12rpx 0;
+        }
+    }
+
+    .expressage-card {
+        padding: 20rpx;
+    }
+
+    .pay-card {
+        font-size: 24rpx;
+        padding: 0 20rpx 20rpx;
+        .pay-card-item {
+            padding: 20rpx 0;
+            display: flex;
+            justify-content: space-between;
+
+            &:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+        }
+    }
+
+    .product-card {
+        padding: 0 0 30rpx 20rpx;
+        .product-card-title {
+            font-size: 28rpx;
+            font-weight: 700;
+            line-height: 38rpx;
+            border-bottom: 0.5px solid #e0e1e5;
+            padding: 10rpx 0;
+            margin-bottom: 20rpx;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .product-card-title-right {
+                display: flex;
+                align-items: center;
+                margin-right: 20rpx;
+            }
+        }
+
+        .product-card-item {
+            display: flex;
+            position: relative;
+            margin-bottom: 20rpx;
+            padding-right: 20rpx;
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            .product-card-item-left {
+                .left-img {
+                    width: 140rpx;
+                    height: 140rpx;
+                    border-radius: 10rpx;
+                    overflow: hidden;
+                    margin-right: 20rpx;
+                    box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.04);
+                    position: relative;
+                }
+            }
+
+            .product-card-item-right {
+                font-size: 24rpx;
+                flex: 1;
+                min-width: 0;
+
+                .product-info-box {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+
+                    .right-title {
+                        flex: 1;
+                        width: auto;
+                        min-width: 0;
+                        font-weight: bold;
+                        margin-bottom: 10rpx;
+
+                        .presale-tag {
+                            display: inline;
+                            background-color: #e47200;
+                            color: #fff;
+                            padding: 4rpx 12rpx;
+                            border-radius: 4rpx;
+                            overflow: hidden;
+                            font-size: 24rpx;
+                            margin-right: 10rpx;
+                        }
+                    }
+
+                    .product-price {
+                        flex-shrink: 0;
+                        white-space: nowrap;
+                        margin-left: 8rpx;
+                    }
+                }
+
+                .right-price {
+                    display: flex;
+                    font-size: 28rpx;
+                    padding-top: 10rpx;
+
+                    .right-price-quantity {
+                        color: #888b94;
+                        font-size: 20rpx;
+                        text {
+                            font-size: 26rpx;
+                        }
+                    }
+                }
+            }
+            .item-btn {
+                position: absolute;
+                right: 20rpx;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                column-gap: 10rpx;
+
+                .btn {
+                    color: #1a1a1a;
+                    border-color: #888b94;
+                }
+            }
+        }
+
+        .meituan-item-btn {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            column-gap: 20rpx;
+            margin: 24rpx 20rpx 0 0;
+        }
+    }
+
+    .product-card1 {
+        padding: 20rpx;
+    }
+
+    .virtualsample {
+        display: flex;
+        width: 100%;
+        column-gap: 20rpx;
+        font-size: 24rpx;
+        .virtualsample-label {
+            padding-left: 20rpx;
+            color: #999;
+        }
+        .virtualsample-value {
+            flex: 1;
+            padding-right: 20rpx;
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                height: auto;
+            }
+        }
+    }
+
+    .money-card {
+        font-size: 24rpx;
+        padding: 20rpx 0;
+        padding-bottom: 20rpx;
+        .money-title-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10rpx 20rpx;
+            font-weight: bold;
+            text {
+                font-weight: 500;
+            }
+            .money-price {
+                display: flex;
+                align-items: center;
+            }
+            .iconfont-h5 {
+                font-size: 24rpx;
+                color: #8b8e97;
+            }
+            .icon-arrowdown {
+                display: inline-block;
+                transform: translateY(2rpx);
+            }
+        }
+        .money-card-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 20rpx 20rpx;
+            &:last-child {
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+
+            .order-item-price {
+                font-weight: bold;
+                color: var(--general);
+                font-size: 28rpx;
+                /* 旧 :deep(.util) 平铺 */
+                .util {
+                    font-size: 22rpx;
+                    font-weight: normal;
+                }
+            }
+        }
+    }
+}
+
+.cycle-plan-entry {
+    align-items: center;
+}
+.cycle-plan-right {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 10rpx;
+}
+.cycle-plan-text {
+    width: auto;
+    max-width: calc(100% - 100rpx);
+    display: flex;
+    flex-direction: column;
+    gap: 10rpx;
+    .cycle-text-line {
+        white-space: nowrap;
+    }
+}
+.cycle-plan-arrow {
+    font-size: 28rpx;
+    color: #999;
+}
+
+.order-info-btn {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    padding: 20rpx;
+    border-top: 1rpx solid rgba(0, 0, 0, 0.12);
+
+    .order-info-btn-box {
+        display: flex;
+        align-items: center;
+        gap: 10rpx;
+
+        &.presale-btn-box {
+            flex: 1;
+        }
+
+        .btn {
+            height: 100%;
+            color: #1a1a1a;
+            border-color: #888b94;
+            background: none;
+        }
+
+        .presale-final-btn {
+            flex: 1;
+            padding: 0 20rpx;
+            margin-right: 0;
+
+            .presale-final-btn-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 20rpx;
+                width: 100%;
+                line-height: 1;
+
+                /* 旧 :deep(.price/.currency/.decimals) 平铺；同时覆盖新 FormatPrice 的 .util/.integer/.decimal */
+                .price,
+                .currency,
+                .decimals,
+                .util,
+                .integer,
+                .decimal {
+                    line-height: 1;
+                    padding: 0 !important;
+                }
+            }
+
+            .presale-final-btn-amount {
+                display: flex;
+                align-items: baseline;
+                gap: 6rpx;
+                line-height: 1;
+            }
+
+            .presale-final-btn-text {
+                font-size: 26rpx;
+                font-weight: bold;
+                line-height: 1;
+            }
+        }
+    }
+}
+
+.shippingInfo-title {
+    font-size: 28rpx;
+    padding-bottom: 20rpx;
+}
+
+.expressage-box {
+    display: flex;
+    font-size: 26rpx;
+    justify-content: space-between;
+    align-items: center;
+
+    .expressage-info {
+        display: flex;
+        column-gap: 15rpx;
+        align-items: baseline;
+    }
+
+    .copy-btn {
+        color: #b8b8b8;
+        transition: color 0.2s;
+
+        &:active {
+            color: #333;
+        }
+    }
+}
+
+.shippingInfo-box {
+    padding: 20rpx 0;
+    .shippingInfo-box-content {
+        height: 400rpx;
+        overflow: hidden;
+        position: relative;
+
+        &.dim::after {
+            width: 100%;
+            height: 200rpx;
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0rpx;
+            background-image: linear-gradient(-180deg, rgba(255, 255, 255, 0) 0%, rgb(255, 255, 255) 80%);
+        }
+
+        &.more-height {
+            height: auto;
+        }
+    }
+
+    .shippingInfo-btn {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+
+        .iconfont-h5 {
+            font-size: 32rpx;
+            color: rgb(153, 153, 153);
+            display: inline-block;
+            margin-left: 2rpx;
+        }
+        .icon-arrowdown {
+            transform: translateY(8rpx);
+        }
+    }
+}
+
+.emptyText {
+    padding-top: 15rpx;
+    font-size: 24rpx;
+}
+
+/* -------- 迁移补充：旧组件依赖的等价视觉 -------- */
+
+/* 旧 up-steps（uview-plus，column/dot，active-color=var(--general)）→ 自绘时间轴 */
+.shipping-steps {
+    padding-top: 10rpx;
+
+    .shipping-step {
+        display: flex;
+        position: relative;
+        padding-bottom: 24rpx;
+
+        &:last-child {
+            padding-bottom: 0;
+        }
+
+        .step-dot {
+            width: 14rpx;
+            height: 14rpx;
+            border-radius: 50%;
+            background-color: #c8c9cc;
+            margin-top: 8rpx;
+            margin-right: 20rpx;
+            flex-shrink: 0;
+
+            &.active {
+                background-color: var(--general);
+            }
+        }
+
+        .step-content {
+            flex: 1;
+            min-width: 0;
+
+            .step-title {
+                font-size: 26rpx;
+                color: #303133;
+                line-height: 36rpx;
+                word-break: break-all;
+            }
+
+            .step-desc {
+                margin-top: 4rpx;
+                font-size: 24rpx;
+                color: #909399;
+                line-height: 32rpx;
+            }
+        }
+    }
+}
+
+/* 旧 tig-fixed-placeholder（height=100rpx、background=#fff、默认 border）→ 固定底栏 + 占位 */
+.fixed-placeholder {
+    .content {
+        width: 100%;
+        height: 100rpx;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background-color: #fff;
+        box-sizing: content-box;
+        z-index: 10;
+        box-shadow: none;
+        padding-bottom: var(--safe-bottom);
+        border-top: 1px solid #eee;
+    }
+
+    .placeholder {
+        width: 100%;
+        height: 0;
+    }
+}

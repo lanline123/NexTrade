@@ -258,23 +258,29 @@ fn now_seconds() -> i64 {
     chrono::Utc::now().timestamp()
 }
 
-/// `dateType` 时间范围（1 今日 / 2 本周 / 3 本月 / 4 本年；其它 None）。
+/// `dateType` 时间范围，对齐 Java `DateTypeEnum.getTimestampRangeByCode`：
+/// `0` 全部 / `1` 近 3 个月 / `2` 近 6 个月 / `3` 近 12 个月。
+///
+/// Java 对未知 code 回落 `ALL`（`{0, now}`）；这里返回 `None` 表示不加时间条件，
+/// 与之等价（订单 `add_time` 恒 >= 0，且不会有未来订单）。
+/// 结束时间取当前时刻（Java `LocalDateTime.now()`），旧实现的 `+86399` 会多框一天。
 fn date_range(date_type: i32) -> Option<(i32, i32)> {
-    use chrono::{Datelike, Local, TimeZone};
+    use chrono::{Local, Months, TimeZone};
     let now = Local::now();
-    let start = match date_type {
-        1 => now.date_naive().and_hms_opt(0, 0, 0)?,
-        2 => {
-            let weekday = now.weekday().num_days_from_monday();
-            (now.date_naive() - chrono::Duration::days(i64::from(weekday))).and_hms_opt(0, 0, 0)?
-        }
-        3 => now.date_naive().with_day(1)?.and_hms_opt(0, 0, 0)?,
-        4 => now.date_naive().with_month(1)?.with_day(1)?.and_hms_opt(0, 0, 0)?,
+    let end = i32::try_from(now.timestamp()).ok()?;
+    let months: u32 = match date_type {
+        0 => return Some((0, end)),
+        1 => 3,
+        2 => 6,
+        3 => 12,
         _ => return None,
     };
-    let end = now.timestamp() + 86399;
-    let start_ts = Local.from_local_datetime(&start).single()?.timestamp();
-    i32::try_from(start_ts).ok().zip(i32::try_from(end).ok())
+    // Java `LocalDateTime.now().minusMonths(n)` 是日历月减法（含月末收敛），
+    // 不能用固定 30/90 天近似。
+    let start_date = now.date_naive().checked_sub_months(Months::new(months))?;
+    let start_dt = start_date.and_time(now.naive_local().time());
+    let start_ts = Local.from_local_datetime(&start_dt).single()?.timestamp();
+    Some((i32::try_from(start_ts).ok()?, end))
 }
 
 fn map_err(e: sqlx::Error) -> Error {
@@ -287,11 +293,29 @@ mod tests {
 
     #[test]
     fn date_range_branches() {
+        // Java DateTypeEnum：0 全部 / 1 近三月 / 2 近六月 / 3 近十二月，未知回落全部
+        assert!(date_range(0).is_some());
         assert!(date_range(1).is_some());
         assert!(date_range(2).is_some());
         assert!(date_range(3).is_some());
-        assert!(date_range(4).is_some());
+        assert!(date_range(4).is_none());
         assert!(date_range(9).is_none());
+    }
+
+    #[test]
+    fn date_range_matches_java_date_type_enum() {
+        let now = chrono::Local::now().timestamp();
+        let (all_start, all_end) = date_range(0).expect("ALL");
+        assert_eq!(all_start, 0);
+        assert!(i64::from(all_end) <= now && i64::from(all_end) > now - 5, "end should be now");
+        let (m3, _) = date_range(1).expect("3 months");
+        let (m6, _) = date_range(2).expect("6 months");
+        let (m12, _) = date_range(3).expect("12 months");
+        assert!(m12 < m6 && m6 < m3 && m3 < all_end);
+        let days3 = (now - i64::from(m3)) / 86_400;
+        assert!((89..=92).contains(&days3), "3 months = {days3} days");
+        let days12 = (now - i64::from(m12)) / 86_400;
+        assert!((364..=367).contains(&days12), "12 months = {days12} days");
     }
 
     #[test]

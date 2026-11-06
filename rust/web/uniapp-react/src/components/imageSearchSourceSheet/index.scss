@@ -1,0 +1,54 @@
+/* 按旧 up-action-sheet 的默认视觉复刻（底部动作面板 + 取消项） */
+.image-search-source-sheet {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+
+    &__mask {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    &__panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 0 20rpx calc(20rpx + env(safe-area-inset-bottom));
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 10rpx;
+    }
+
+    &__action {
+        height: 110rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16rpx;
+        background-color: #fff;
+    }
+
+    &__cancel {
+        height: 110rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16rpx;
+        background-color: #fff;
+        color: #909399;
+    }
+
+    &__action-text {
+        font-size: 32rpx;
+        color: #303133;
+    }
+}

@@ -1,0 +1,70 @@
+page {
+    background-color: #fff;
+}
+.article-center {
+    padding: 24rpx;
+    .title {
+        line-height: 1.5;
+        font-weight: 600;
+        text-align: left;
+        color: #000000;
+        font-size: 32rpx;
+    }
+    .time {
+        color: #888888;
+        padding: 20rpx 0;
+        text-align: center;
+        font-size: 24rpx;
+    }
+    .content {
+        padding: 24rpx 12rpx;
+        .v-html {
+            overflow: hidden;
+            /* 旧 :deep(p) / :deep(img) 平铺；小程序 RichText 内部节点不受外部样式影响，仅 H5 生效 */
+            p {
+                font-size: 24rpx;
+                line-height: 2;
+            }
+            img {
+                max-width: 100%;
+                width: 100%;
+                display: block;
+            }
+        }
+    }
+}
+.empty {
+    color: #999;
+    padding: 48rpx 0;
+    text-align: center;
+    font-size: 28rpx;
+}
+
+.navigation {
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 24rpx;
+    padding: 0 24rpx;
+
+    .navigation-btn {
+        cursor: pointer;
+        flex: 1;
+        width: 50%;
+        /* 元素选择器：小程序端命中 Navigator 自定义元素，H5 端为 taro-navigator-core */
+        navigator {
+            white-space: nowrap;
+            max-width: 80%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+    .navigation-btn-left {
+        display: flex;
+    }
+    .navigation-btn-right {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

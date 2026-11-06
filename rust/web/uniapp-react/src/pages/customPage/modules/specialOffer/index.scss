@@ -1,0 +1,187 @@
+/* 自旧 specialOffer/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped；:deep() 平铺；v-bind 转内联 style 并注释原位置） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+
+.main {
+    position: relative;
+    padding: 20rpx;
+    overflow: hidden;
+    // 旧 :deep(.u-count-down__text) { color: v-bind(--color); font-size: 24rpx; }：
+    // React 版 commonCountdown 直接通过 color prop 内联下发，无需穿透 uview 内部节点，字号已随 .time-item 保留
+}
+
+.mk-top {
+    margin-bottom: 4rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
+    .mk-title {
+        margin-right: 10rpx;
+        height: 60rpx;
+        line-height: 60rpx;
+        font-size: 40rpx;
+        font-weight: 700;
+        color: #333333;
+    }
+
+    .mk-small-title {
+        height: 60rpx;
+        line-height: 70rpx;
+        font-size: 28rpx;
+        font-weight: 400;
+        color: #333333;
+    }
+
+    .mk-countdown {
+        // 旧模板 :style="--color: ${countdownColor}"：CSS 变量经节点内联 style 注入，
+        // 下方 var(--color) 引用点保持不变
+        --color: #f44;
+        display: flex;
+        justify-content: center;
+        flex-direction: row;
+        align-items: center;
+        overflow: hidden;
+        font-size: 24rpx;
+        height: 40rpx;
+        border-radius: 20rpx;
+        padding-left: 10rpx;
+
+        .text {
+            background-color: var(--color);
+            color: #fff;
+            padding: 0 8rpx 0 16rpx;
+            height: 40rpx;
+            line-height: 40rpx;
+            border-top-left-radius: 20rpx;
+            border-bottom-left-radius: 20rpx;
+        }
+
+        .countdown {
+            box-sizing: border-box;
+            height: 40rpx;
+            border: solid 1px var(--color);
+            font-size: 24rpx;
+            background: transparent;
+            padding: 0 20rpx 0 14rpx;
+            color: var(--color);
+            border-top-right-radius: 20rpx;
+            border-bottom-right-radius: 20rpx;
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    .mk-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 48rpx;
+        padding: 0 20rpx 0 24rpx;
+        border-radius: 24rpx;
+        font-size: 24rpx;
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
+
+        .text {
+            margin-right: 4rpx;
+        }
+
+        .iconfont-h5 {
+            font-size: 24rpx;
+            line-height: 1;
+        }
+    }
+}
+.item-box {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 16rpx 8rpx 10rpx;
+    &::-webkit-scrollbar {
+        display: none;
+        height: 0;
+    }
+}
+.lists {
+    background: #fff;
+    border-radius: 12rpx;
+    overflow: hidden;
+}
+.item {
+    display: block;
+    margin: 0 6rpx;
+    text-align: center;
+    overflow: hidden;
+    .item-img-wrap {
+        position: relative;
+    }
+    .product-style-border {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 5;
+        pointer-events: none;
+    }
+    .img {
+        position: relative;
+        height: 0;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        overflow: hidden;
+    }
+    .goods-info {
+        padding: 10rpx 4rpx 6rpx;
+        padding: 0 10rpx;
+        flex-grow: 1;
+        flex-shrink: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-size: 24rpx;
+
+        .tit {
+            height: 40rpx;
+            line-height: 40rpx;
+            font-size: 32rpx;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .price-box {
+            margin: 4rpx auto 0;
+            width: 100%;
+            max-width: 160rpx;
+            height: 45rpx;
+            line-height: 45rpx;
+            background: url(https://oss.tigshop.com/img/gallery/202504/1743571805Kri1ocOOKkgrcXAbKe.png) no-repeat center;
+            background-size: contain;
+            .price {
+                height: 100%;
+                padding-left: 40rpx;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                white-space: nowrap;
+            }
+        }
+
+        .desc {
+            height: 32rpx;
+            line-height: 36rpx;
+            margin: 6rpx 0 0;
+            font-size: 24rpx;
+            overflow: hidden;
+            white-space: nowrap;
+            color: #fb6d08;
+        }
+    }
+}

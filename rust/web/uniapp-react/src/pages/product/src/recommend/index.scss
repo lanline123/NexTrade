@@ -1,0 +1,39 @@
+.recommend_wrapper {
+    margin-top: 20rpx;
+
+    .title {
+        padding: 20rpx;
+
+        .text {
+            font-size: 24rpx;
+            color: #999;
+
+            .name {
+                color: #282828;
+                font-size: 30rpx;
+                font-weight: bold;
+                margin-bottom: 5rpx;
+                display: inline-block;
+            }
+
+            .desc {
+                display: inline-block;
+                padding-left: 20rpx;
+            }
+        }
+    }
+}
+
+.masonry-content {
+    padding: 0 20rpx;
+
+    .masonry-two-col {
+        display: flex;
+        align-items: flex-start;
+
+        .masonry-col {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+}

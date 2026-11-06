@@ -1,0 +1,29 @@
+/* 自旧 imageTextComponent/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()/v-bind()） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.image-box {
+    overflow: hidden;
+    .img {
+        width: 100%;
+        display: block;
+    }
+}
+
+.intro-box {
+    padding: 30rpx 20rpx 10rpx;
+    .title {
+        font-size: 40rpx;
+        font-weight: 700;
+    }
+    .intro {
+        font-size: 28rpx;
+        line-height: 48rpx;
+        width: 100%;
+        overflow: hidden;
+        white-space: pre-wrap;
+    }
+}

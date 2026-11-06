@@ -1,0 +1,87 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/merchantEnter/principalType.vue 迁移：样式逐行保留（去 scoped、:deep 平铺） */
+.container {
+    padding: 50rpx;
+}
+.type-title {
+    padding-top: 50rpx;
+    font-weight: 600;
+    font-size: 42rpx;
+    line-height: 56rpx;
+    display: block;
+    padding-bottom: 63rpx;
+    color: var(--general);
+}
+.type-box {
+    width: 650rpx;
+    height: 270rpx;
+    background-color: rgba(255, 255, 255, 0.2); /* 白色背景，50%透明度 */
+    border-radius: 20rpx;
+    backdrop-filter: blur(4px);
+    margin-bottom: 40rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34rpx;
+    color: var(--general);
+    box-shadow: 0rpx 8rpx 18rpx 0rpx rgba(0, 0, 0, 0.08);
+
+    &.active {
+        background-color: rgba(255, 255, 255, 1); /* 白色背景，50%透明度 */
+    }
+}
+
+.icon-size {
+    font-size: 40rpx;
+    padding-right: 10rpx;
+}
+
+.btn-box {
+    padding: 25rpx;
+    position: relative;
+
+    .btn {
+        font-size: 28rpx;
+    }
+
+    .agreement {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        width: 100%;
+        top: -100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .agreement-link {
+            color: var(--general);
+        }
+    }
+}
+
+/* 旧 tig-checkbox（圆形）→ 自绘等价勾选 */
+.agreement-check {
+    width: 32rpx;
+    height: 32rpx;
+    border: 2rpx solid #c8c9cc;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8rpx;
+    background-color: #fff;
+
+    &.checked {
+        background-color: var(--general);
+        border-color: var(--general);
+    }
+    .agreement-check-icon {
+        color: #fff;
+        font-size: 20rpx;
+        line-height: 1;
+    }
+}

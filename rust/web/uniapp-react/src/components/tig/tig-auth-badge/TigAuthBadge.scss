@@ -1,0 +1,45 @@
+/* 自旧 components/tig/tig-auth-badge/tig-auth-badge.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.tig-auth-badge {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+
+    &__icon {
+        flex-shrink: 0;
+        display: block;
+    }
+
+    &__text {
+        line-height: 1;
+    }
+
+    &--outline {
+        border: 1px solid #f8aa19;
+        color: #f8aa19;
+
+        &.tig-auth-badge--off {
+            border-color: #c6c6c6;
+            color: #999;
+        }
+
+        // 图标圆底压住描边，与原图一致
+        .tig-auth-badge__icon {
+            margin: -1px 0 -1px -1px;
+        }
+    }
+
+    &--tag {
+        background: linear-gradient(90deg, #ff9abc 0%, #fd71a1 100%);
+        color: #fff;
+        font-weight: 500;
+
+        &.tig-auth-badge--off {
+            background: rgba(255, 255, 255, 0.32);
+            color: #999;
+        }
+    }
+}

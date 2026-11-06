@@ -1,0 +1,81 @@
+/* 自旧 pages/user/merchantEnter/src/steps.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.steps {
+    background-color: #fff;
+    height: 140rpx;
+    padding: 20rpx 0;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    /* 旧 up-steps 默认(number)视觉：横向步骤、圆圈序号、主题色高亮 */
+    .steps-inner {
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .steps-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .steps-item-head {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .steps-dot {
+        width: 36rpx;
+        height: 36rpx;
+        border-radius: 50%;
+        background-color: #e5e5e5;
+        color: #fff;
+        font-size: 20rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &.active {
+            background-color: var(--general);
+        }
+    }
+
+    .steps-line {
+        flex: 1;
+        height: 2rpx;
+        background-color: #e5e5e5;
+
+        &.active {
+            background-color: var(--general);
+        }
+    }
+
+    /* 首项左侧线由 tsx 条件渲染（index > 0），保留左右线 class 以免遗漏命中 */
+    .steps-line-left,
+    .steps-line-right {
+        flex: 1;
+        height: 2rpx;
+        background-color: #e5e5e5;
+    }
+
+    .steps-line-left.active,
+    .steps-line-right.active {
+        background-color: var(--general);
+    }
+
+    .steps-title {
+        margin-top: 10rpx;
+        font-size: 20rpx;
+        color: #999;
+    }
+
+    .steps-item.active .steps-title {
+        color: var(--general);
+    }
+}

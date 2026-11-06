@@ -1,0 +1,21 @@
+{
+    "miniprogramRoot": "dist/",
+    "projectname": "uniapp-react",
+    "description": "Tigshop 移动端 React 实现",
+    "appid": "wxab4ef76ed162d3b0",
+    "setting": {
+        "urlCheck": true,
+        "es6": false,
+        "enhance": false,
+        "compileHotReLoad": false,
+        "postcss": false,
+        "minified": false,
+        "babelSetting": {
+            "ignore": [],
+            "disablePlugins": [],
+            "outputPath": ""
+        }
+    },
+    "compileType": "miniprogram",
+    "condition": {}
+}

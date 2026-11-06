@@ -1,0 +1,59 @@
+/* === 横向 Tab（旧 horizontal-tabs.vue style 逐条平移，去 scoped） === */
+.horizontal-tabs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.tabs-container {
+    width: 100%;
+    height: 80rpx;
+    white-space: nowrap;
+    position: relative;
+    background-color: #fff;
+    border-bottom: 1rpx solid #f0f0f0;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.tabs-wrapper {
+    display: inline-block;
+    min-width: 100%;
+    height: 100%;
+}
+
+.tab-item {
+    display: inline-block;
+    // min-width: 120rpx;
+    padding: 0 20rpx;
+    text-align: center;
+    position: relative;
+    height: 60rpx;
+    margin-top: 10rpx;
+}
+
+.tab-text {
+    height: 100%;
+    font-weight: 400;
+    font-size: 24rpx;
+    color: #333333;
+    line-height: 60rpx;
+}
+
+.tab-item.active {
+    // background: #f4f4f4;
+    border-radius: 30rpx;
+}
+
+.tab-item.active .tab-text {
+    font-weight: 600;
+    font-size: 24rpx;
+    color: #333;
+    box-shadow: none;
+}
+
+.tabs-content {
+    flex: 1;
+    overflow: hidden;
+}

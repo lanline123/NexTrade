@@ -1,0 +1,124 @@
+/* 装修配置到达前的占位：搜索头 99rpx + 排序栏约 77rpx，避免头部渲染出来时页面整体上跳 */
+.decorate-placeholder {
+    height: 176rpx;
+    background-color: #fff;
+}
+
+/* 海外版 mainHeader 为 fixed，高度由 inline style 写入 */
+.main-header-spacer {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+/* 国内版：搜索头 + 排序筛选整块钉在导航下方；外贸皮肤由 topFixedStyle 覆盖 top */
+.search-result-domestic-fixed,
+.search-result-overseas-fixed {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+    top: var(--nav-height);
+    z-index: 11;
+    background-color: var(--search-item-bg, #fff);
+
+    /*
+     * 导航栏与搜索区是两个独立 fixed 图层。nav-height 由状态栏 px 换算为 rpx，
+     * H5 在小数像素边界分别栅格化时偶发不足 1px 的透明缝；向上覆盖 1px 消除透底，
+     * 不调整 top，避免搜索区及列表整体位移。
+     */
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -1px;
+        height: 1px;
+        background-color: var(--search-item-bg, #fff);
+        pointer-events: none;
+    }
+}
+
+/* 给 fixed 顶栏腾出文档流高度，避免商品列表被挡住；白底挡住 page-meta 模块背景色 */
+.search-result-domestic-spacer,
+.search-result-overseas-spacer {
+    height: 176rpx;
+    width: 100%;
+    background-color: var(--search-item-bg, #fff);
+}
+
+/* 门店无筛选栏，仅搜索头约 99rpx */
+.search-result-domestic-spacer--store {
+    height: 99rpx;
+}
+
+/* 海外版下拉面板遮罩：从筛选栏下方铺满剩余屏幕 */
+.popup-mask {
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* fixed 搜索头 99rpx + 筛选栏一行约 77rpx */
+    top: calc(var(--nav-height) + 176rpx);
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+.goods-container {
+    /* padding/margin/圆角由后台装修下发（goodsContainerStyle），这里只保留兜底 */
+    padding: 20rpx;
+    box-sizing: border-box;
+}
+.store-container {
+    /* padding/margin/门店间距由后台装修下发（storeContainerStyle），这里只保留兜底 */
+    display: flex;
+    flex-direction: column;
+    row-gap: 20rpx;
+    padding: 20rpx;
+    box-sizing: border-box;
+}
+.empty-container {
+    padding-top: 150rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    .empty-image {
+        height: 300rpx;
+        flex-shrink: 0;
+    }
+    text {
+        font-size: 28rpx;
+        color: #999;
+    }
+    .empty-btn {
+        width: auto;
+        min-width: 200rpx;
+        height: 60rpx;
+        padding: 0 28rpx;
+        white-space: nowrap;
+        border: 1px solid var(--search-theme, var(--general));
+        color: var(--search-theme, var(--general));
+        border-radius: 30rpx;
+        font-size: 26rpx;
+        margin-top: 40rpx;
+    }
+}
+.sousuo {
+    color: #c3c0c0 !important;
+}
+
+/* TODO(B2)：双列瀑布流容器（自旧 masonry.vue 简化），等高均衡分列后补 */
+.masonry-two-col {
+    display: flex;
+    align-items: flex-start;
+
+    .masonry-col {
+        flex: 1;
+        width: 0;
+        min-width: 0;
+
+        &:first-child {
+            margin-right: 16rpx;
+        }
+    }
+}

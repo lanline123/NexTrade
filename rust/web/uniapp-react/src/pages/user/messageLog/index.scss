@@ -1,0 +1,124 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/messageLog/index.vue 迁移：样式逐行保留（去 scoped） */
+.head-tabs-box {
+    position: fixed;
+    width: 100%;
+    z-index: 88;
+    top: var(--nav-height);
+
+    .tabs {
+        background-color: #fff;
+        padding: 30rpx;
+
+        .tab {
+            font-size: 22rpx;
+            margin-right: 40rpx;
+            color: #666;
+        }
+
+        .active {
+            color: var(--general);
+            font-weight: bold;
+            font-size: 26rpx;
+        }
+
+        .clear-unread {
+            font-size: 26rpx;
+            color: #999;
+        }
+    }
+}
+
+.messages-list {
+    position: relative;
+    padding: 0 20rpx;
+    margin-top: 120rpx;
+
+    .move-item {
+        margin-bottom: 10rpx;
+    }
+
+    .mitem {
+        position: relative;
+        border-bottom: 1rpx solid #dfdfdf;
+        border-radius: 10rpx;
+
+        .message {
+            position: relative;
+            padding: 30rpx 20rpx;
+            background-color: #fff;
+            border-radius: 20rpx;
+
+            .title {
+                white-space: nowrap; /* 不换行 */
+                overflow: hidden; /* 隐藏多余的文字 */
+                text-overflow: ellipsis; /* 超出部分显示省略号 */
+                position: relative;
+                height: 46rpx;
+                color: #333;
+                font-weight: 700;
+                font-size: 32rpx;
+                display: flex;
+                width: 430rpx;
+
+                .dot {
+                    display: inline-block;
+                    width: 10rpx;
+                    height: 10rpx;
+                    border-radius: 100rpx;
+                    background-color: var(--general);
+                    margin-right: 10rpx;
+                }
+            }
+
+            .txt {
+                color: #999;
+                line-height: 36rpx;
+                padding-top: 10rpx;
+                font-size: 24rpx;
+            }
+
+            .time {
+                position: absolute;
+                top: 20rpx;
+                right: 20rpx;
+                color: #666;
+                font-weight: 400;
+                font-size: 22rpx;
+            }
+        }
+    }
+
+    .unread .message {
+        background-color: #f4f4f4;
+        box-shadow: 0 0 8rpx #e7e7e7;
+    }
+}
+
+.message-move-box {
+    width: 150rpx;
+    height: 100%;
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    display: flex;
+
+    text {
+        display: block;
+        position: absolute;
+        top: 50%;
+        margin-top: -20rpx;
+        font-size: 24rpx;
+        text-align: center;
+        width: 100%;
+    }
+
+    .btn-del {
+        width: 150rpx;
+        background: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+}

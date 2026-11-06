@@ -1,0 +1,55 @@
+/* 自旧 pages/salesman/src/businessCardPoster.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped；v-bind 高度改内联 style） */
+.my-canvas-box {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 88;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: all 0.1s;
+    &.show {
+        opacity: 1;
+    }
+
+    .canvas-content-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+
+        .canvas-tip {
+            color: #ffffff;
+            font-size: 24rpx;
+            margin-top: 30rpx;
+            text-align: center;
+        }
+    }
+
+    .img-box {
+        width: 100%;
+        padding: 0 60rpx;
+        /* height 由内联 style 提供（旧 v-bind("boxInfo.height + 'px'")） */
+
+        image {
+            width: 100%;
+            height: 100%;
+            border-radius: 20rpx;
+            overflow: hidden;
+        }
+    }
+
+    .canvas-content {
+        width: 345px;
+        /* height 由内联 style 提供（旧 v-bind("boxInfo.height + 'px'")） */
+        background-color: #ffffff;
+        overflow: visible;
+        position: fixed;
+        top: 9999px;
+    }
+}

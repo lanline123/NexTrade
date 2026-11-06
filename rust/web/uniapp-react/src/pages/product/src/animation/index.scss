@@ -1,0 +1,34 @@
+/* 自旧 animation.vue <style lang="scss" scoped> 原样拷出（去 scoped；
+   原 .animation 的 top/left v-bind("props.animationPosition.top + 'px'") → 内联 style，见 index.tsx） */
+@keyframes moveY {
+    to {
+        transform: translateY(var(--y));
+    }
+}
+@keyframes moveX {
+    to {
+        transform: translateX(var(--x));
+    }
+}
+
+.animation-box {
+    position: fixed;
+    width: 22rpx;
+    height: 22rpx;
+    border-radius: 50%;
+    z-index: 9999;
+    display: none;
+}
+.animation {
+    display: block;
+    /* 原 top: v-bind(...) / left: v-bind(...) → 组件内联 style top/left */
+    animation: moveY 0.3s cubic-bezier(0.5, -4, 1, 1);
+
+    .animation-content {
+        width: 100%;
+        height: 100%;
+        background: var(--general);
+        border-radius: 50%;
+        animation: moveX 0.3s linear;
+    }
+}

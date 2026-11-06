@@ -1,0 +1,9 @@
+/* === 消息提示音 === */
+/* 旧组件无可见 UI，仅承载 InnerAudioContext；保留占位节点与根类名便于页面转场时定位 */
+.prompt-tone {
+    display: none;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}

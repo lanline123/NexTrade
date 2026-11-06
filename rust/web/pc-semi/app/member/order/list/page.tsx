@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import MemberOrderList from '@/components/MemberOrderList';
+import MemberShell from '@/components/MemberShell';
 import { getPcHeader } from '@/lib/api';
 import PcFooter from '@/components/PcFooter';
 
@@ -12,23 +12,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MemberOrderListPage() {
+export default async function MemberOrderListPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const header = await getPcHeader().catch(() => null);
+  // 旧版 MemberOrderList.vue：?type=awaitPay 等初始化 Tab
+  const rawType = searchParams?.type;
+  const initialType = Array.isArray(rawType) ? rawType[0] : rawType;
   return (
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <div className="pc-container">
-          <nav className="pc-breadcrumb">
-            <Link href="/">首页</Link>
-            <span>/</span>
-            <Link href="/member">会员中心</Link>
-            <span>/</span>
-            <span>我的订单</span>
-          </nav>
-          <h1 className="pc-cart-title">我的订单</h1>
-          <MemberOrderList />
-        </div>
+        <MemberShell title="我的订单">
+          <MemberOrderList initialType={initialType} />
+        </MemberShell>
       </main>
       <PcFooter />
     </>

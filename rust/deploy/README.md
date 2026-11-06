@@ -27,33 +27,35 @@ docker compose up -d --build
   `tigshop` 后端二进制与 `config.yaml`、`migrations`、`template`；前端 `dist`
   必须单独构建并由 nginx（或对象存储/CDN）托管。
 
-### 前端 dist 构建（2026-10-20 重写后）
+### 前端构建与部署（2026-11 更新）
 
-前端 pnpm workspace 在 `rust/web`，包含 `admin` / `pc` / `shared` 三个包。
+当前前端只有两套 React 工程，均为独立 npm 安装（`admin-semi` 也有 `package-lock.json`）：
 
 ```bash
-cd rust/web
-pnpm install
-pnpm --filter @tigshop/admin build
-pnpm --filter @tigshop/pc build
+# 管理端：Vite + React + Semi
+cd rust/web/admin-semi
+npm install
+npx tsc -b && npx vite build --base=/admin-semi/
+
+# PC 商城：Next.js 14
+cd rust/web/pc-semi
+npm install
+npm run build
 ```
 
-| 端 | 源码 | 构建命令 | 产物 | 部署到 |
-|---|---|---|---|---|
-| 管理端 | `rust/web/admin` | `pnpm --filter @tigshop/admin build` | `rust/web/admin/dist` | `/usr/share/nginx/html/admin` |
-| PC 商城 | `rust/web/pc` | `pnpm --filter @tigshop/pc build` | `rust/web/pc/dist` | `/usr/share/nginx/html/pc` |
-| 共享包 | `rust/web/shared` | 随上两个包构建 | — | — |
-| uniapp | `java/view/uniapp` | 各自小程序/H5 流程 | — | — |
+| 端 | 源码 | 产物 | 部署到 |
+|---|---|---|---|
+| 管理端 | `rust/web/admin-semi` | `dist/` | 静态托管 `/admin-semi/`（宝塔：`/www/wwwroot/<站点>/public/admin-semi/`） |
+| PC 商城 | `rust/web/pc-semi` | `.next` + `public` | Node 服务 `node server.js`（端口 3004），nginx 反向代理 `/` |
 
-> ⚠️ 原版前端 `java/view/{admin,Tigshop-Pc}` **不再是部署来源**，仅作为重写时的对照基准
-> （详见 `docs/FRONTEND-MIGRATION-TASKS.md` 与 `docs/FRONTEND-REFACTOR-STATUS.md`）。
->
-> ⚠️ `rust/web/pc/vite.config.ts` 未设 `base`，默认按站点根 `/` 访问；若要挂 `/pc/` 子路径，
-> 需 `vite build --base=/pc/` 并同步 `createWebHistory('/pc/')`。推荐给 PC 独立域名。
+- `rust/web` 仍是 pnpm workspace 根，但 `packages` 只保留 `pc-semi`。
+- 2026-11 已移除旧的 Vue3 重写原型 `rust/web/{admin,pc,shared}`（依据
+  `rust/docs/FRONTEND-1TO1-REVIEW-2026-10-25.md` 的 R3 决策），不要再按旧文档构建。
+- 原版前端 `java/view/{admin,Tigshop-Pc}` 仅作对照基准，不是部署来源。
 
 - 本地开发也可用 `nginx -c /path/to/deploy/nginx.conf` 验证路由。
-- 开发期两端各起 Vite dev server：admin `:3000`（代理 `/adminapi`→8080）、
-  pc `:3001`（代理 `/api`→8181）。
+- 开发期各有 dev server：admin-semi `:3002`（代理 `/adminapi`、`/static`→8080）、
+  pc-semi `:3004`（`PC_API_BASE` 指定后端）。
 
 ## 3. 环境变量（关键）
 

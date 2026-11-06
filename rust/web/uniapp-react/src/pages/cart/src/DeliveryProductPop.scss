@@ -1,0 +1,128 @@
+/* 自旧 deliveryProductPop.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped，image 标签选择器平铺） */
+.popup-title-box {
+    display: flex;
+    justify-content: center;
+    padding: 35rpx 28rpx 28rpx;
+    background-color: #fff;
+
+    .title {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        font-size: 32rpx;
+        line-height: 42rpx;
+        font-weight: 700;
+    }
+
+    .close-icon {
+        display: flex;
+        align-items: center;
+
+        image {
+            width: 35rpx;
+            height: 35rpx;
+        }
+    }
+}
+
+.delivery-pop {
+    border-radius: 32rpx 32rpx 0rpx 0rpx;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 885rpx;
+    overflow-y: auto;
+    max-width: 100vw;
+
+    .tip {
+        font-size: 24rpx;
+        color: #9a9a9a;
+        text-align: center;
+        padding-bottom: 50rpx;
+    }
+
+    .content {
+        padding: 0 20rpx;
+    }
+
+    .content-title {
+        display: flex;
+        column-gap: 20rpx;
+        align-items: center;
+        color: #6a6a6a;
+        padding-bottom: 35rpx;
+
+        .icon-daishouhuo1,
+        .icon-mendianziti,
+        .icon-tongchengpeisong-xuanzhong {
+            font-size: 32rpx;
+        }
+
+        .title-text {
+            font-weight: bold;
+            font-size: 26rpx;
+        }
+
+        .title-num {
+            font-size: 22rpx;
+            color: #9a9a9a;
+
+            text {
+                color: var(--general);
+            }
+        }
+    }
+
+    .list-content {
+        background: #f5f5f5;
+        border-radius: 16rpx;
+        padding: 28rpx 32rpx;
+        display: flex;
+        width: 100%;
+        align-items: center;
+        margin-bottom: 60rpx;
+        overflow: hidden;
+        column-gap: 30rpx;
+
+        .list {
+            width: calc(100% - 128rpx);
+
+            .list-scroll {
+                width: 100%;
+                white-space: nowrap;
+
+                .list-item {
+                    display: inline-block;
+                    width: 100rpx;
+                    height: 100rpx;
+                    background: #ffffff;
+                    border-radius: 8rpx;
+                    margin-right: 20rpx;
+                    box-sizing: content-box;
+
+                    &:last-child {
+                        margin-right: 0;
+                    }
+
+                    image {
+                        width: 100%;
+                        height: 100%;
+                        border-radius: 8rpx;
+                        overflow: hidden;
+                    }
+                }
+            }
+        }
+
+        .btn {
+            width: 98rpx;
+            height: 50rpx;
+            background: #ee0a24;
+            border-radius: 4rpx;
+            color: #fff;
+            font-size: 22rpx;
+            text-align: center;
+            line-height: 50rpx;
+        }
+    }
+}

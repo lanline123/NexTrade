@@ -1,0 +1,124 @@
+// 自旧 pages/order/src/abandonPayDialog.vue <style lang="scss" scoped> 原样拷出（去 scoped）
+.abandon {
+    padding: 60rpx 40rpx 40rpx;
+    padding-bottom: calc(40rpx + constant(safe-area-inset-bottom));
+    padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+    text-align: center;
+
+    .abandon-icon {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10rpx;
+
+        .icon-img {
+            width: 120rpx;
+            height: 120rpx;
+        }
+    }
+
+    .abandon-title {
+        font-weight: bold;
+        font-size: 32rpx;
+        color: #1a1a1a;
+    }
+    .benefit-list {
+        margin-top: 36rpx;
+        display: flex;
+        flex-direction: column;
+        border-radius: 16rpx;
+        background: #f7f8fa;
+    }
+
+    .benefit {
+        padding: 26rpx 30rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .benefit-label {
+            font-size: 28rpx;
+            color: #333;
+        }
+
+        .benefit-value {
+            display: flex;
+            align-items: center;
+            font-size: 28rpx;
+            color: var(--general);
+        }
+    }
+
+    .current-pay {
+        margin-top: 28rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 16rpx;
+
+        .current-pay-left {
+            display: flex;
+            align-items: center;
+            column-gap: 8rpx;
+
+            .pay-icon {
+                width: 34rpx;
+                height: 34rpx;
+            }
+
+            .current-pay-text {
+                font-weight: 500;
+                font-size: 24rpx;
+                color: #1a1a1a;
+            }
+        }
+
+        .current-pay-change {
+            font-size: 24rpx;
+            color: #6a6a6a;
+            font-weight: 500;
+            position: relative;
+            margin-left: 16rpx;
+            .icon-a-gengduo20 {
+                font-size: 20rpx;
+                color: #6a6a6a;
+            }
+            &:before {
+                content: "";
+                display: inline-block;
+                width: 1rpx;
+                height: 22rpx;
+                background: #e8e8e8;
+                position: absolute;
+                left: -16rpx;
+                top: 6rpx;
+            }
+        }
+    }
+
+    .abandon-btns {
+        margin-top: 48rpx;
+        display: flex;
+        align-items: center;
+        column-gap: 24rpx;
+
+        .abandon-btn {
+            flex: 1;
+            height: 99rpx;
+            line-height: 99rpx;
+            border-radius: 44rpx;
+            font-size: 30rpx;
+            text-align: center;
+
+            &.cancel {
+                color: #1a1a1a;
+                background: #fff;
+                border: 1rpx solid #e8e8e8;
+            }
+
+            &.confirm {
+                color: #fff;
+                background: var(--general);
+            }
+        }
+    }
+}

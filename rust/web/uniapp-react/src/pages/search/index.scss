@@ -1,0 +1,123 @@
+/* 自旧 pages/search/index.vue <style> 原样拷出：去 scoped，page 级背景合并进本文件 */
+page {
+    background-color: #fff !important;
+}
+
+.search-warp {
+    padding-left: 30rpx;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-warp {
+    margin-top: 20rpx;
+}
+
+.search-warp .search-input {
+    width: 598rpx;
+    background-color: #f7f7f7;
+    border-radius: 33rpx;
+    /* 右侧以图搜图入口自带 16rpx 内边距，右边距收窄避免相机图标离边框过远 */
+    padding: 0 12rpx 0 35rpx;
+    box-sizing: border-box;
+    height: 66rpx;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-warp .search-input input {
+    flex: 1;
+    width: 0;
+    font-size: 28rpx;
+}
+
+.search-warp .search-input .placeholder {
+    color: #bbb;
+}
+
+.search-warp .search-input .iconfont {
+    color: #000;
+    font-size: 35rpx;
+}
+
+.search-warp .bnt {
+    width: 120rpx;
+    text-align: center;
+    height: 66rpx;
+    line-height: 66rpx;
+    font-size: 30rpx;
+    color: #282828;
+}
+
+/* 海外版搜索栏：黑描边方角框，搜索图标在框内左侧，以图搜图入口在右侧 */
+.search-warp--overseas {
+    padding: 0 32rpx;
+}
+
+.search-warp--overseas .search-input {
+    width: 100%;
+    height: 68rpx;
+    background-color: #fff;
+    border: 1px solid #1a1a1a;
+    border-radius: 8rpx;
+    padding: 0 20rpx 0 24rpx;
+}
+
+.search-warp--overseas .search-input input {
+    flex: 1;
+    width: 0;
+}
+
+.search-warp--overseas .search-ico {
+    flex-shrink: 0;
+    margin-right: 12rpx;
+    font-size: 36rpx;
+    color: #999;
+    font-weight: bold;
+}
+
+/* 海外版历史标签跟随方角风格 */
+.searchGood--overseas .search_init_box .list .item {
+    border-radius: 7rpx;
+    background: #f5f6fa;
+    color: #505259;
+    border: 1rpx solid #f5f6fa;
+}
+
+.search_init_box .title {
+    font-size: 24rpx;
+    color: #333;
+    margin: 50rpx 30rpx 25rpx 30rpx;
+    font-weight: bold;
+    position: relative;
+}
+
+.search_init_box .list {
+    padding-left: 10rpx;
+    padding-right: 30rpx;
+}
+
+.search_init_box .list .item {
+    font-size: 24rpx;
+    color: #666;
+    padding: 0 28rpx;
+    height: 50rpx;
+    border-radius: 30rpx;
+    line-height: 50rpx;
+    margin: 0 0 20rpx 20rpx;
+    background: #f6f6f6;
+}
+
+.clear_history {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-weight: normal;
+    font-size: 26rpx;
+    padding: 20rpx;
+    top: -20rpx;
+}

@@ -1,0 +1,22 @@
+/* 自旧 components/tig/tig-fixed-placeholder/tig-fixed-placeholder.vue 迁移（去 scoped、v-bind 改内联 style） */
+.fixed-placeholder {
+    .placeholder {
+        width: 100%;
+        height: 0;
+    }
+    .content {
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        box-sizing: content-box;
+        z-index: 10;
+        box-shadow: 0 0 10px rgba(125, 126, 128, 0.16);
+        padding-bottom: var(--safe-bottom);
+
+        &.border {
+            box-shadow: none;
+            border-top: 1px solid #eee;
+        }
+    }
+}

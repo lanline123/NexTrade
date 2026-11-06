@@ -1,0 +1,172 @@
+/* 自旧 pages/imageSearch/captureMp.vue 的 <style lang="scss" scoped> 逐条拷入（去 scoped） */
+.capture {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #000;
+
+    &__finder {
+        position: absolute;
+        left: 0;
+        width: 100%;
+    }
+
+    &__corner {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        border: 0 solid #fff;
+
+        &--tl {
+            border-top-width: 3px;
+            border-left-width: 3px;
+        }
+
+        &--tr {
+            border-top-width: 3px;
+            border-right-width: 3px;
+        }
+
+        &--bl {
+            border-bottom-width: 3px;
+            border-left-width: 3px;
+        }
+
+        &--br {
+            border-bottom-width: 3px;
+            border-right-width: 3px;
+        }
+    }
+
+    &__hint-row {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    &__hint {
+        height: 36px;
+        padding: 0 16px;
+        line-height: 36px;
+        border-radius: 18px;
+        background-color: rgba(0, 0, 0, 0.45);
+        font-size: 14px;
+        color: #fff;
+    }
+
+    &__notice {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 40px;
+        box-sizing: border-box;
+        background-color: #111;
+    }
+
+    &__notice-title {
+        font-size: 17px;
+        color: #fff;
+    }
+
+    &__notice-desc {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 20px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    &__notice-btn {
+        margin-top: 24px;
+        height: 40px;
+        padding: 0 24px;
+        line-height: 40px;
+        border-radius: 20px;
+        background-color: #fff;
+        font-size: 15px;
+        color: #111;
+    }
+
+    &__back {
+        position: absolute;
+        left: 12px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        background-color: rgba(0, 0, 0, 0.35);
+    }
+
+    &__icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    &__panel {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        background-color: #000;
+    }
+
+    &__side {
+        width: 72px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    &__round {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 22px;
+        background-color: rgba(255, 255, 255, 0.16);
+    }
+
+    &__switch {
+        font-size: 20px;
+        color: #fff;
+    }
+
+    &__side-text {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #fff;
+    }
+
+    &__shutter {
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 36px;
+        border: 3px solid #fff;
+        box-sizing: border-box;
+
+        &--off {
+            opacity: 0.4;
+        }
+    }
+
+    &__shutter-inner {
+        width: 56px;
+        height: 56px;
+        border-radius: 28px;
+        background-color: #fff;
+    }
+}

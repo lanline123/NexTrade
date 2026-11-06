@@ -1,0 +1,78 @@
+.decorate-slide-box::-webkit-scrollbar {
+    display: none;
+    height: 0;
+}
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px;
+    border: none;
+    border-radius: 0px;
+    background-color: transparent;
+    overflow: hidden;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+}
+.headlines {
+    display: flex;
+    align-items: center;
+    height: 60rpx;
+}
+
+.headlines-icon {
+    height: 60rpx;
+    display: flex;
+    align-items: center;
+}
+.headlines-iconImg {
+    height: 60rpx;
+    display: block;
+    margin-right: 10rpx;
+    overflow: hidden;
+
+    &.default-icon {
+        width: 40rpx;
+        height: 40rpx;
+        padding-left: 10rpx;
+    }
+}
+
+.headlines-container {
+    height: 60rpx;
+    flex: 1;
+    line-height: 60rpx;
+    overflow: hidden;
+    font-size: 28rpx;
+    font-weight: 400;
+}
+.headlines-text {
+    position: relative;
+    display: flex;
+    animation-duration: 10s;
+    animation: left 5000ms linear infinite running;
+}
+.headlines-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding-right: 40rpx;
+}
+.cross {
+    width: 56rpx;
+    text-align: center;
+}
+@keyframes left {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: -200%;
+    }
+}

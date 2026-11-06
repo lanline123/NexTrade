@@ -1,0 +1,26 @@
+/* 自旧 slideLargeImage/index.vue <style lang="scss" scoped> 原样平移（去 scoped） */
+.decorate-slide-box::-webkit-scrollbar {
+    display: none;
+    height: 0;
+}
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.slidelarge-image {
+    width: 100%;
+    overflow: hidden;
+}
+@keyframes left {
+    0% {
+        left: -200%;
+    }
+    100% {
+        left: -300%;
+    }
+}
+.slidelarge-image-box {
+    animation: left 5000ms linear infinite running;
+}

@@ -1,0 +1,77 @@
+/* 省市区选择弹层（自旧 components/region/selectRegion.vue 的 scoped 样式平移，:deep 无） */
+/* 旧 scoped 样式在本项目会全局生效，统一收敛到 .select-region-main 下，避免 .content 等通用类名串页 */
+.select-region-main {
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+
+    /* 旧 App.vue 全局 .popup-title 视觉（本项目无全局定义，限定在弹层内复刻） */
+    .popup-title {
+        font-size: 32rpx;
+        font-weight: bold;
+        text-align: left;
+        height: 123rpx;
+        line-height: 123rpx;
+        padding-left: 30rpx;
+        background: #fff;
+    }
+
+    .content {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .region-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            overflow-x: auto;
+
+            .region-menu-item {
+                display: inline-block;
+                padding: 0 40rpx;
+                height: 80rpx;
+                line-height: 80rpx;
+                background-color: #f7f7f7;
+                border: 1rpx solid #e5e5e5;
+
+                font-size: 28rpx;
+
+                &.active {
+                    background-color: #fff;
+                    border-bottom: none;
+                }
+            }
+        }
+
+        .region-list {
+            top: 67rpx;
+            border-top: 1rpx solid #e5e5e5;
+            position: absolute;
+            width: 100%;
+            height: calc(100% - 67rpx);
+            overflow: hidden;
+            overflow-y: auto;
+
+            .region-list-item {
+                padding: 20rpx 20rpx;
+                white-space: nowrap;
+                display: block;
+                font-size: 28rpx;
+
+                &:nth-child(2n) {
+                    background-color: #f8f8f8;
+                }
+
+                &.active {
+                    color: #e93b3d;
+                }
+            }
+        }
+    }
+}

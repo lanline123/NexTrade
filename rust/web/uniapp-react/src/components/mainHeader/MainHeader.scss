@@ -1,0 +1,277 @@
+/* 自旧 components/mainHeader/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.common-header-box {
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 500;
+    background-color: #fff;
+}
+
+.common-header {
+    padding-top: var(--safe-top);
+
+    &.no-safe-top {
+        padding-top: 0;
+    }
+}
+
+.common-box {
+    background-color: #fff;
+    padding: 0 29rpx;
+}
+
+.category-icon {
+    image {
+        width: 18rpx;
+        height: 18rpx;
+    }
+}
+
+.main-header {
+    width: 100%;
+    .main-header-box {
+        width: 100%;
+        padding: 11rpx 21rpx;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 78rpx;
+
+        .iconfont-h5 {
+            color: #1a1a1a;
+        }
+
+        .box-left {
+            flex: 1;
+            column-gap: 8px;
+
+            .menu-icon {
+                image {
+                    width: 43rpx;
+                    height: 43rpx;
+                }
+                .icon-caidan {
+                    font-size: 42rpx;
+                    display: block;
+                }
+            }
+
+            .header-logo {
+                image {
+                    width: 153.9rpx;
+                    height: fit-content;
+                    display: block;
+                    will-change: transform;
+                }
+            }
+        }
+
+        .box-right {
+            .user-icon {
+                padding-right: 25rpx;
+                image {
+                    width: 36rpx;
+                    height: 39rpx;
+                }
+
+                .icon-xinjianwenbenwendang {
+                    font-size: 39rpx;
+                }
+            }
+
+            .cart-icon {
+                padding-left: 25rpx;
+                padding-right: 14rpx;
+                position: relative;
+                image {
+                    width: 43rpx;
+                    height: 43rpx;
+                }
+
+                .icon-gouwuche4 {
+                    font-size: 42rpx;
+                }
+
+                .corner-mark {
+                    position: absolute;
+                    left: 43rpx;
+                    top: -9rpx;
+                    max-width: 65rpx;
+                    height: 25rpx;
+                    color: var(--main-text);
+                    background: var(--main-bg);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    border-radius: 181rpx;
+                    font-size: 18rpx;
+                    padding: 0 5rpx;
+                }
+            }
+        }
+    }
+}
+
+.common-menu-box {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.698);
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    z-index: 2000;
+
+    .left-menu-box {
+        width: 90vw;
+        height: 100%;
+        position: relative;
+        background-color: #f5f6fa;
+
+        .placeholder {
+            background: #fff;
+        }
+
+        .close-icon {
+            position: absolute;
+            right: 21.7rpx;
+            top: 21.7rpx;
+
+            image {
+                width: 36.2rpx;
+                height: 36.2rpx;
+            }
+        }
+
+        .left-menu-header {
+            position: relative;
+            .close-icon {
+                position: absolute;
+                right: 21.7rpx;
+                top: 21.7rpx;
+                image {
+                    width: 36.2rpx;
+                    height: 36.2rpx;
+                }
+            }
+            .menu-header-content {
+                padding-top: 72.4rpx;
+                column-gap: 21.7rpx;
+                padding-bottom: 29rpx;
+
+                .profile-photo {
+                    image {
+                        width: 86.9rpx;
+                        height: 86.9rpx;
+                        border-radius: 50%;
+                        overflow: hidden;
+                        display: block;
+                    }
+                }
+
+                .profile-info {
+                    flex: 1;
+                    color: #000;
+                    font-weight: 700;
+                    font-size: 29rpx;
+                }
+
+                .header-btn {
+                    width: 144.8rpx;
+                    height: 54.3rpx;
+                    font-weight: 400;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 27rpx;
+                    background: var(--main-bg);
+                    color: var(--main-text);
+                    font-size: 22rpx;
+
+                    .header-btn-text {
+                        font-size: 22rpx;
+                    }
+                }
+            }
+        }
+
+        .category-box {
+            margin-top: 16rpx;
+            padding: 29rpx;
+
+            .category-text {
+                font-size: 29rpx;
+                font-weight: 700;
+            }
+        }
+
+        .page-menu {
+            margin-top: 16rpx;
+            .page-item {
+                border-bottom: 1px solid #f0f1f2;
+                padding: 29rpx 0;
+
+                &:last-child {
+                    border-bottom: none;
+                }
+
+                .item-left {
+                    .left-text {
+                        font-size: 29rpx;
+                    }
+                }
+
+                .item-right {
+                    column-gap: 8px;
+
+                    .right-text {
+                        color: #888b94;
+                        font-size: 25.3rpx;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.navbar-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 12px;
+    position: relative;
+
+    .left {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+        .icon-houtui {
+            font-size: 40rpx;
+        }
+    }
+    .middle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #000;
+        overflow: hidden;
+        position: absolute;
+        left: 0;
+        right: 0;
+
+        .title {
+            font-size: 18px;
+        }
+    }
+
+    .right {
+        padding-right: 16rpx;
+        z-index: 1;
+    }
+}

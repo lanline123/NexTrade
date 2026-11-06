@@ -1,0 +1,23 @@
+/* === 表情选择器（旧 emojiPicker.vue style 逐条平移，去 scoped） === */
+.emoji-picker-box {
+    width: 100%;
+
+    .emoji-content {
+        width: 100%;
+        display: flex;
+
+        .emoji-item {
+            font-size: 48rpx;
+            width: 100rpx;
+            cursor: pointer;
+            border-radius: 8rpx;
+            user-select: none;
+
+            &:hover {
+                background-color: #f0f0f0;
+                transform: scale(1.2);
+                transition: transform 0.1s ease;
+            }
+        }
+    }
+}

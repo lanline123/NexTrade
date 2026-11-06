@@ -1,0 +1,72 @@
+/* 自旧 pages/user/invoiceManagement/src/imageView.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    .image-view {
+        width: 100%;
+        height: 100%;
+        .swiper {
+            width: 100%;
+            height: 100%;
+            .image-bg {
+                width: 100%;
+                height: 100%;
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+        }
+    }
+}
+
+.btn-fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+}
+
+.btn-placeholder {
+    height: 120rpx;
+    width: 100%;
+}
+
+.btn-box {
+    padding: 25rpx;
+
+    .btn {
+        width: 100%;
+        font-size: 28rpx;
+    }
+}
+
+/* 旧 scoped 中未使用的 scroll-view / u-image 规则原样保留（当前模板未使用） */
+.scroll-view {
+    display: flex;
+    overflow-x: auto;
+    u-image {
+        background: #f4f8ff;
+        & + u-image {
+            margin-left: 20rpx;
+        }
+    }
+    .empty {
+        margin: 0 auto;
+        &-img {
+            width: 258rpx;
+            height: 138rpx;
+        }
+        &-text {
+            margin-top: 20rpx;
+            font-weight: 700;
+            font-size: 28rpx;
+            color: #666666;
+            line-height: 44rpx;
+            text-align: center;
+        }
+    }
+}

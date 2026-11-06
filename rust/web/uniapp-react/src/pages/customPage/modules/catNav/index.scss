@@ -1,0 +1,124 @@
+.search-lang-box {
+    display: flex;
+    align-items: center;
+}
+
+/*分类导航*/
+.catNav-warp .item-cat_nav-con {
+    width: 100%;
+}
+.catNav-warp .cat-nav-list {
+    flex-wrap: nowrap;
+    width: 100%;
+    white-space: nowrap;
+}
+.catNav-warp .cat-nav-list .nav-item {
+    margin: 0 10rpx;
+    height: 80rpx;
+    line-height: 80rpx;
+    position: relative;
+    text-align: center;
+    padding: 0;
+    display: inline-block;
+
+    &:last-child {
+        margin-right: 10rpx;
+    }
+}
+.catNav-warp .cat-nav-list .nav-item:first-child {
+    margin-left: 20rpx;
+}
+.catNav-warp .cat-nav-list .nav-item .tit {
+    font-size: 32rpx;
+    font-weight: bold;
+}
+.catNav-warp .cat-nav-list .nav-item.current .tit {
+    font-size: 44rpx;
+}
+.catNav-warp .cat-nav-list .nav-item.current:after {
+    content: "";
+    position: absolute;
+    bottom: 2rpx;
+    left: 20%;
+    right: 20%;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 6rpx;
+    height: 6rpx;
+}
+.catNav-warp .item-search-con {
+    margin-bottom: 10rpx;
+}
+.catNav-warp .item-search-con .item-search-form {
+    background: #fff;
+    height: 70rpx;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    color: #555555;
+}
+.catNav-warp .iconfont-h5 {
+    margin-left: 20rpx;
+}
+
+.catNav-warp.fixed {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 88;
+    & .flex {
+        display: flex;
+        align-items: center;
+    }
+
+    &.fixed-top {
+        top: 116rpx;
+    }
+}
+.catNav-warp-blank {
+    height: 360rpx;
+}
+.catNav-warp.fixed .item-logo-con {
+    display: none;
+}
+.catNav-warp.fixed .item-search-con {
+    margin-right: 200rpx;
+}
+
+.catnav-logo {
+    margin-left: 10rpx;
+    margin-top: 5rpx;
+    margin-bottom: 10rpx;
+    margin-right: 30rpx;
+    max-width: 210rpx;
+}
+.default-search {
+    padding: 0 20rpx;
+    margin-bottom: 10rpx;
+    width: 100%;
+}
+.default-search-config {
+    background-color: #fff;
+    border-radius: 6rpx;
+}
+.catnav-search {
+    display: flex;
+    align-items: center;
+    height: 70rpx;
+
+    .icon-sousuo {
+        font-size: 32rpx;
+        color: #555555;
+    }
+}
+.catnav-search-text {
+    font-size: 28rpx;
+    margin-left: 10rpx;
+}
+
+.catnav-skeleton {
+    height: 80rpx;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}

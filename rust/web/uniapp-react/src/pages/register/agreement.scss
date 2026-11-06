@@ -1,0 +1,11 @@
+/* 自旧 pages/register/agreement.vue 两段 <style> 原样拷出，去 scoped、:deep() 平铺 */
+/* <style>（page 级） */
+page {
+    background-color: #fff;
+}
+
+/* <style lang="scss" scoped> */
+.agreement-box {
+    padding: 0 30rpx 15rpx;
+    line-height: 45rpx;
+}

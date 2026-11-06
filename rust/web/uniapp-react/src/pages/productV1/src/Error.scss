@@ -1,0 +1,38 @@
+/* 自旧 productV1/src/error.vue <style lang="scss" scoped> 原样拷出（去 scoped；
+   v-bind(errorImg) → 内联 style backgroundImage，见 Error.tsx） */
+.error-content {
+    padding: 48rpx 0 200rpx;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .error-image {
+        display: inline-block;
+        width: 181rpx;
+        height: 171rpx;
+        margin-bottom: 48rpx;
+        /* 原 background-image: v-bind(errorImg) → 内联 style */
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: 50%;
+    }
+
+    .error-btn-box {
+        display: flex;
+        justify-content: center;
+        font-size: 24.5rpx;
+        .error-btn {
+            height: 53rpx;
+            line-height: 53rpx;
+            padding: 0 20rpx;
+            background-color: var(--main-bg);
+            color: var(--main-text);
+        }
+    }
+
+    .error-text {
+        margin: 0 0 6.66667vw;
+        color: #646464;
+    }
+}

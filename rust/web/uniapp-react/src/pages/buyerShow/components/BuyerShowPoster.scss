@@ -1,0 +1,16 @@
+/* === 买家秀海报（旧 buyerShowPoster.vue style 逐条平移，去 scoped） === */
+.canvas-content {
+    width: 550rpx;
+    height: 776rpx;
+    background-color: #ffffff;
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+}
+
+.poster-box {
+    width: 550rpx;
+    height: 776rpx;
+    border-radius: 20rpx;
+    overflow: hidden;
+}

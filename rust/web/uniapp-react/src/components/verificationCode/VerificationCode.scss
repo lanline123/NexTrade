@@ -1,0 +1,29 @@
+/* 自旧 components/verificationCode/index.vue <style lang="scss" scoped> 原样拷出，去 scoped、:deep() 平铺 */
+.box {
+    height: inherit;
+    display: flex;
+    align-items: center;
+}
+
+.btn-verify {
+    color: #333;
+    min-width: 200rpx;
+    padding: 0 5rpx;
+    height: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-verify.is-disabled {
+    opacity: 0.5;
+}
+
+.verify-btn {
+    color: var(--general);
+    font-size: 28rpx;
+}
+
+.verify-btn.is-disabled {
+    opacity: 0.5;
+}

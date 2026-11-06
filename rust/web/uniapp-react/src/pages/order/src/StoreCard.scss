@@ -1,0 +1,477 @@
+/* 自旧 pages/order/src/storeCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 App.vue 全局 .popup-title（React 工程无全局定义，随组件补入） */
+.popup-title {
+    font-size: 32rpx;
+    font-weight: bold;
+    text-align: left;
+    height: 123rpx;
+    line-height: 123rpx;
+    padding-left: 30rpx;
+    background: #fff;
+}
+
+/* 旧 tig-fixed-placeholder 底栏与 tig-button theme 按钮为等价补充样式 */
+.fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+    z-index: 20;
+}
+
+.theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--general);
+    color: #fff;
+    font-size: 26rpx;
+    border-radius: 40rpx;
+
+    &:active {
+        opacity: 0.7;
+    }
+}
+
+/* 旧 App.vue 全局工具类（React 工程无全局定义，随组件补入） */
+.flex {
+    display: flex;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.line1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.line2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.product-popup {
+    height: 88vh;
+    background-color: #fff;
+    border-top-left-radius: 28rpx;
+    border-top-right-radius: 28rpx;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--safe-bottom);
+    max-width: 100vw;
+    overflow: hidden;
+
+    .popup-title-box {
+        display: flex;
+        justify-content: center;
+        margin: 35rpx 28rpx 28rpx;
+
+        .title {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            font-size: 32rpx;
+            line-height: 42rpx;
+            font-weight: 700;
+        }
+
+        .close-icon {
+            display: flex;
+            align-items: center;
+
+            /* 旧元素选择器 `image{}`：Taro Image 渲染自定义元素，H5 下可能不命中，补 .close-img 等价 */
+            image {
+                width: 35rpx;
+                height: 35rpx;
+            }
+
+            .close-img {
+                width: 35rpx;
+                height: 35rpx;
+            }
+        }
+    }
+
+    .popup-content {
+        flex: 1;
+        height: 0;
+
+        .popup-content-inner {
+            padding: 0rpx 28rpx 37rpx;
+        }
+
+        .popup-content-item {
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 21rpx;
+        }
+    }
+}
+
+.attribute {
+    min-height: 50vh;
+    padding: 0rpx 40rpx 65px;
+    overflow: hidden;
+    overflow-y: auto;
+    .title {
+        padding-left: 0;
+        height: 90rpx;
+        line-height: 90rpx;
+        padding-bottom: 40rpx;
+    }
+    .attribute-list {
+        .attribute-item {
+            .item-title {
+                font-size: 24rpx;
+                font-weight: 600;
+                color: #212121;
+                padding-bottom: 20rpx;
+            }
+
+            .item-content {
+                display: flex;
+                flex-direction: column;
+                gap: 20rpx;
+                padding-bottom: 30rpx;
+                .item-attr-box {
+                    display: flex;
+                    .item-attr {
+                        display: flex;
+                        padding: 10rpx 25rpx;
+                        background-color: #f2f2f2;
+                        border-radius: 50rpx;
+                        font-size: 24rpx;
+                        align-items: center;
+                        .line-box {
+                            padding: 0 15rpx;
+                            position: relative;
+                            height: 100%;
+                            &::after {
+                                content: "";
+                                display: block;
+                                width: 1px;
+                                height: 70%;
+                                background-color: #bbbbbb;
+                                position: absolute;
+                                top: 50%;
+                                transform: translateY(-50%);
+                            }
+                        }
+                        &.checked {
+                            color: var(--general);
+                            background-color: var(--vice-bg);
+                            .line-box {
+                                &::after {
+                                    background-color: var(--general);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .attribute-btn {
+        height: 100%;
+        width: 100%;
+        padding: 20rpx 0;
+        padding-left: 70rpx;
+        padding-right: 10rpx;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .desc {
+            font-size: 30rpx;
+        }
+    }
+}
+
+/* 旧 <tig-button style="width: 400rpx; height: 80rpx"> 的内联尺寸 */
+.attr-btn {
+    width: 400rpx;
+    height: 80rpx;
+}
+
+.attr-box {
+    padding-top: 10rpx;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    padding-right: 30rpx;
+
+    .icon-xiajiantou1-copy {
+        position: absolute;
+        top: 13rpx;
+        right: -5rpx;
+        transform: rotate(-90deg);
+    }
+}
+.attr-list {
+    flex: 1;
+    overflow: hidden;
+    .attr-item {
+        display: flex;
+        align-items: center;
+        height: 36rpx;
+        line-height: 36rpx;
+        .item-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            overflow: hidden;
+
+            .content-text {
+                flex: 1;
+                text-align: end;
+            }
+            .right {
+                display: flex;
+                padding-left: 10rpx;
+                color: #242424;
+                .num {
+                    padding-left: 10rpx;
+                }
+            }
+        }
+    }
+}
+
+.sku-card {
+    display: inline-flex;
+    font-size: 22rpx;
+    border-radius: 5rpx;
+    color: #969799;
+    margin: 10rpx 0;
+
+    .sku-item {
+        width: auto;
+        max-width: none;
+    }
+}
+
+.gift-box {
+    margin-top: 10rpx;
+    padding-top: 15rpx;
+    font-size: 26rpx;
+    position: relative;
+
+    &::after {
+        content: " ";
+        position: absolute;
+        pointer-events: none;
+        box-sizing: border-box;
+        -webkit-transform-origin: center;
+        transform-origin: center;
+        top: 0;
+        left: 0;
+        width: 100%;
+        bottom: auto;
+        -webkit-transform: scaleY(0.5);
+        transform: scaleY(0.5);
+        border-top: 1px solid #ebedf0;
+    }
+
+    .gift-content-item {
+        width: 100%;
+        display: flex;
+        font-size: 24rpx;
+        padding-top: 15rpx;
+        padding-bottom: 15rpx;
+        position: relative;
+
+        .gift-item-left {
+            width: 80rpx;
+            height: 80rpx;
+            border-radius: 8rpx;
+            overflow: hidden;
+            margin-right: 20rpx;
+        }
+
+        .gift-item-right {
+            width: calc(100% - 100rpx);
+        }
+        .gift-item-num {
+            font-size: 22rpx;
+            color: #969799;
+            position: absolute;
+            bottom: 15rpx;
+            right: 0;
+        }
+    }
+}
+
+.btn-box {
+    padding: 25rpx;
+}
+
+.payment {
+    background: #f7f8fc;
+    border-radius: 4px;
+    margin: 16px 0 0;
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .payment-title {
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 20px;
+        color: #505259;
+    }
+
+    .payment-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .payment-text {
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 20px;
+            color: #000;
+        }
+    }
+}
+
+.payment-popup {
+    padding: 40rpx 40rpx 65px;
+    height: 50vh;
+    .title {
+        padding-left: 0;
+        height: 90rpx;
+        line-height: 50rpx;
+        padding-bottom: 40rpx;
+    }
+
+    .payment-btn {
+        margin-bottom: 40rpx;
+        .payment-btn-item {
+            background: #f2f2f2;
+            color: #282828;
+            padding: 13rpx 36rpx;
+            border-radius: 50rpx;
+            font-size: 24.5rpx;
+            display: inline-block;
+            margin-right: 28rpx;
+            margin-bottom: 20rpx;
+
+            &.active {
+                color: #fff;
+                background-color: var(--general);
+            }
+
+            &.disabled {
+                color: #bbb;
+            }
+        }
+    }
+
+    .payment-desc {
+        border-top: 1rpx solid #f2f2f2;
+        padding-top: 20rpx;
+
+        .payment-desc-text {
+            font-weight: bold;
+        }
+    }
+}
+
+.store-card {
+    box-sizing: border-box;
+    background-color: #fff;
+    padding: 20rpx 28rpx;
+    font-size: 24.5rpx;
+    margin-bottom: 14rpx;
+
+    .store-card-item-title {
+        display: flex;
+        align-items: center;
+        padding-bottom: 10rpx;
+
+        .store-card-item-label {
+            background-color: var(--general);
+            border-radius: 4rpx;
+            color: #fff;
+            font-size: 22rpx;
+            height: 32rpx;
+            line-height: 32rpx;
+            margin-right: 20rpx;
+            padding: 0 8rpx;
+        }
+
+        .store-card-item-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 28rpx;
+        }
+    }
+
+    .store-card-item-content2-box {
+        position: relative;
+    }
+
+    .store-card-item-content2 {
+        align-items: stretch;
+        gap: 21rpx;
+        overflow: hidden;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-right: 200rpx;
+        width: 100%;
+
+        .more-btn {
+            display: flex;
+            position: absolute;
+            right: 0;
+            top: 0;
+            align-items: center;
+            justify-content: flex-end;
+            width: 196rpx;
+            padding-left: 14rpx;
+            background: linear-gradient(270deg, #fff 78.7%, hsla(0, 0%, 100%, 0));
+            height: 100%;
+            z-index: 1;
+
+            .icon-fanhui {
+                width: 28rpx;
+                font-size: 17rpx;
+                color: #1a1a1a;
+                transform: rotate(180deg);
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+            }
+        }
+
+        .content-item {
+            display: flex;
+            flex-direction: column;
+            width: 155rpx;
+        }
+
+        .store-card-item-img {
+            width: 155rpx;
+            height: 155rpx;
+            border-radius: 7rpx;
+            overflow: hidden;
+        }
+
+        .item-price {
+            font-size: 21rpx;
+            font-weight: 400;
+            line-height: 28rpx;
+            color: rgb(26, 26, 26);
+        }
+    }
+}

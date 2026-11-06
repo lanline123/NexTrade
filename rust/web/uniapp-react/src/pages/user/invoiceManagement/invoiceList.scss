@@ -1,0 +1,130 @@
+/* 自旧 pages/user/invoiceManagement/src/invoiceList.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.invoice-list-page,
+.invoice-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.invoice-empty {
+    flex: 1;
+    min-height: 300rpx;
+}
+
+.invoice-list {
+    padding: 10rpx 10rpx;
+
+    .invoice-list-item {
+        background-color: #fff;
+        border-radius: 10rpx;
+        margin-bottom: 20rpx;
+        padding: 20rpx;
+        font-size: 24rpx;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .invoice-list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20rpx;
+            .special-text {
+                font-size: 26rpx;
+                font-weight: bold;
+            }
+            .special-color {
+                color: #999;
+                font-weight: normal;
+            }
+        }
+
+        .invoice-list-item-content {
+            .item-content-text {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 10rpx;
+
+                .special-color {
+                    color: #999;
+                }
+            }
+
+            .item-content-product-item {
+                padding-bottom: 15rpx;
+                display: flex;
+                &:first-child {
+                    padding-top: 15rpx;
+                }
+
+                .item-content-product-img {
+                    width: 140rpx;
+                    height: 140rpx;
+                }
+                .item-content-product-info {
+                    width: 495rpx;
+                    padding-left: 25rpx;
+
+                    .product-item-title {
+                        font-weight: bold;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+
+                    .product-item-price {
+                        display: flex;
+                        padding-top: 25rpx;
+                        .product-item-pricenum {
+                            font-size: 30rpx;
+                        }
+
+                        .product-item-quantity {
+                            font-size: 28rpx;
+                            color: #999;
+                            padding-left: 15rpx;
+                        }
+                    }
+                }
+            }
+
+            .item-content-pay {
+                display: flex;
+                justify-content: flex-end;
+
+                .item-content-pay-box {
+                    display: flex;
+                    .pay-item {
+                        padding: 0 10rpx;
+
+                        &.pay-type {
+                            color: #999;
+                        }
+
+                        &.total-money {
+                            .price-content {
+                                color: var(--general);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .invoice-list-item-btn {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 25rpx;
+
+            .item-btn-box {
+                display: flex;
+            }
+        }
+    }
+}
+
+.navigator-hover {
+    display: block;
+}

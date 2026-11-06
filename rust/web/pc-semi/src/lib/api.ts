@@ -1,4 +1,5 @@
 import type { HomeDecorateResponse } from '@/decorate/types';
+import type { HeaderBootstrapCurrency, HeaderBootstrapLocale, PcHeaderBootstrap } from '@/lib/header-bootstrap';
 
 const SERVER_API_BASE = (process.env.PC_API_BASE || 'https://battery.recy.cc').replace(/\/$/, '');
 
@@ -30,6 +31,40 @@ export async function getHomeDecorate(options: RequestOptions = {}): Promise<Hom
     ...(options.previewId ? { cache: 'no-store' as const } : { next: { revalidate: options.revalidate ?? 60 } }),
   });
   return readData<HomeDecorateResponse>(response);
+}
+
+/**
+ * 头部公共数据：服务端并发预取 base / locales / currencies，由 RootLayout 内联给客户端，
+ * 保证 Logo、语言/货币与「我的」「购物车」在同一次渲染中出现，不再各自等 hydration 后的请求。
+ * 单个接口失败不影响其它字段（客户端仍会按需回退请求）。
+ */
+export async function getHeaderBootstrap(): Promise<PcHeaderBootstrap> {
+  const request = async <T,>(path: string): Promise<T | null> => {
+    try {
+      const response = await fetch(`${SERVER_API_BASE}/api/${path}`, {
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!response.ok) return null;
+      const json: any = await response.json().catch(() => null);
+      const data = json?.data ?? json ?? null;
+      return (data ?? null) as T | null;
+    } catch {
+      return null;
+    }
+  };
+
+  const [base, locales, currencies] = await Promise.all([
+    request<Record<string, any>>('common/config/base'),
+    request<HeaderBootstrapLocale[]>('common/i18n/getLocales'),
+    request<HeaderBootstrapCurrency[]>('common/currency/getCurrency'),
+  ]);
+
+  return {
+    base: base && typeof base === 'object' ? base : null,
+    locales: Array.isArray(locales) ? locales : [],
+    currencies: Array.isArray(currencies) ? currencies : [],
+  };
 }
 
 /** PC 公共头部：通常已经包含在 pageModule.pcHeader 中，此接口用于独立刷新。 */
@@ -82,6 +117,34 @@ export interface ProductDetailResponse {
  * 源码对照：pages/product/[...slug].vue + pages/item/src/Product.vue
  * —— 旧版前台 URL 使用商品 SN，后端 `product/product/detail` 支持 `sn` 参数。
  */
+/**
+ * 商品详情页风格（后台「装修 → PC端装修 → 商品页风格」productDetailStyleType）
+ * 源码对照：api/common.getProductDetailStyle → GET /api/common/config/productDetailStyle
+ * 1=经典版(old) / 2=国内标准版(new) / 3=跨境简约版(overseas)
+ * 后台未配置时 Java / Rust 后端均回落 1，故这里异常兜底也统一为 old，避免端上风格与后台不一致。
+ */
+export type ProductUiStyle = 'old' | 'new' | 'overseas';
+
+export async function getProductDetailStyle(): Promise<ProductUiStyle> {
+  try {
+    const response = await fetch(`${SERVER_API_BASE}/api/common/config/productDetailStyle`, { cache: 'no-store' });
+    const json: any = await response.json().catch(() => null);
+    const value = Number(json?.data ?? json);
+    if (value === 2) return 'new';
+    if (value === 3) return 'overseas';
+    return 'old';
+  } catch {
+    return 'old';
+  }
+}
+
+/** 源码：本地可通过 ?uiStyle=old|new|overseas 预览三种风格 */
+export function resolveUiStyle(param: string | undefined | null, configured: ProductUiStyle): ProductUiStyle {
+  const value = String(param || '').toLowerCase();
+  if (value === 'old' || value === 'new' || value === 'overseas') return value;
+  return configured;
+}
+
 export async function getProductDetailBySn(sn: string): Promise<ProductDetailResponse> {
   const response = await fetch(`${SERVER_API_BASE}/api/product/product/detail?sn=${encodeURIComponent(sn)}`, {
     cache: 'no-store',
@@ -112,6 +175,39 @@ export async function loadProductBySlug(sn: string): Promise<ProductDetailRespon
   const bySn = await getProductDetailBySn(sn).catch(() => null);
   if (bySn?.item) return bySn;
   return null;
+}
+
+/**
+ * PC 登录页装修配置
+ * 源码对照：composables/usePcLoginDecorate.ts + api/decorate/pcHeader.getPcLogin
+ * 接口 home/home/pcLogin → moduleList[].module（type=pcLogin）
+ * - loginMode 1=经典(BaseLogin) / 2=现代(OverseasLogin)
+ * - backgroundPic / backgroundColor / headerHeight / logoWidth / logoHeight / headerShadow / showWelcome
+ */
+export interface PcLoginDecorate {
+  loginMode?: number | string;
+  backgroundPic?: { picUrl?: string; picThumb?: string } | null;
+  backgroundColor?: string;
+  headerHeight?: number | string;
+  logoWidth?: number | string;
+  logoHeight?: number | string;
+  headerShadow?: boolean | number | string;
+  showWelcome?: boolean | number | string;
+  warpHeight?: number | string;
+  [key: string]: unknown;
+}
+
+export async function getPcLoginDecorate(): Promise<PcLoginDecorate | null> {
+  try {
+    const response = await fetch(`${SERVER_API_BASE}/api/home/home/pcLogin`, { cache: 'no-store' });
+    const json: any = await response.json().catch(() => null);
+    const list = json?.data?.moduleList || json?.moduleList || [];
+    const item = (Array.isArray(list) ? list : []).find((row: any) => row?.type === 'pcLogin') || list?.[0];
+    const module = item?.module || item;
+    return module && typeof module === 'object' && Object.keys(module).length ? (module as PcLoginDecorate) : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getProductDetail(id: number): Promise<ProductDetailResponse> {

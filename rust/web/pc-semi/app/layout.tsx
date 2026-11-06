@@ -4,6 +4,8 @@ import './globals.scss';
 import CustomerServiceWidget from '@/components/CustomerServiceWidget';
 import I18nTranslator from '@/components/I18nTranslator';
 import I18nProvider from '@/i18n/I18nProvider';
+import { getHeaderBootstrap } from '@/lib/api';
+import { PC_HEADER_BOOTSTRAP_ID } from '@/lib/header-bootstrap';
 
 const SITE_URL = (process.env.PC_SITE_URL || 'https://battery.recy.cc').replace(/\/$/, '');
 const SITE_NAME = '万物新生';
@@ -91,10 +93,33 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/** 转义 `<` 与行分隔符，避免 JSON 提前结束内联 script */
+function serializeHeaderBootstrap(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // 头部公共数据（Logo / 语言 / 货币）在服务端并发预取，随首屏 HTML 一起下发，
+  // 避免客户端各子模块逐个请求导致 «我的/购物车已出现、语言与 Logo 后出现» 的观感。
+  const headerBootstrap = await getHeaderBootstrap();
+
   return (
     <html lang="zh-CN">
       <body>
+        {/* 平台图标字体：对齐旧版 view/pc/assets/css/global.css 顶部 @import。
+            营销通栏左侧类目 / 全部分类下拉的 floorIcoFont（iconfont-tig、iconfont-pc）
+            依赖这两份字体样式，缺失时 `<i class="iconfont-tig icon-xxx" />` 只留空白占位。
+            App Router 的 head 由框架管理，这里放在 body 顶部同样会被浏览器加载。 */}
+        <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_4441878_79ndpblv9x9.css" />
+        <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_4389188_4gtbloa6zjm.css" />
+        <script
+          id={PC_HEADER_BOOTSTRAP_ID}
+          type="application/json"
+          dangerouslySetInnerHTML={{ __html: serializeHeaderBootstrap(headerBootstrap) }}
+        />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, websiteJsonLd]) }} />
         <I18nProvider>
           {children}

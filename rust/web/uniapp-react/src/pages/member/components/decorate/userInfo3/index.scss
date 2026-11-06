@@ -1,0 +1,472 @@
+/* 自旧 pages/member/components/decorate/userInfo3/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-user-info {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 0);
+    padding-right: var(--dec-box-padding, 0);
+    padding-top: var(--dec-box-padding-top, 0);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__wrap {
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    &__wrap--style1 {
+        background-size: cover;
+        background-position: center;
+    }
+
+    &__wrap--style2,
+    &__wrap--style3,
+    &__wrap--style4 {
+        border-radius: var(--dec-border-radius, 0);
+    }
+
+    &__wrap--style4 {
+        position: relative;
+    }
+
+    &__style4-grad {
+        position: absolute;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    &__container--style4 {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 沉浸式：取消左右外边距与圆角，让页面容器的渐变背景全屏铺到顶部 */
+    &--immersive {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-top: 0 !important;
+
+        .dec-user-info__wrap--style2,
+        .dec-user-info__wrap--style3,
+        .dec-user-info__wrap--style4 {
+            border-radius: 0;
+            background: transparent !important;
+        }
+
+        /* 样式四：放开裁剪，让渐变层向上延伸到导航栏区域，形成一整段连续渐变 */
+        .dec-user-info__wrap--style4 {
+            overflow: visible;
+        }
+    }
+
+    &__container {
+        box-sizing: border-box;
+    }
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 64rpx;
+        padding-bottom: 32rpx;
+    }
+
+    &__header--arrow {
+        padding-bottom: 32rpx;
+    }
+
+    &__profile {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__avatar {
+        display: block;
+        width: 108rpx;
+        height: 108rpx;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 16rpx;
+        flex-shrink: 0;
+        background-color: #eee;
+        box-sizing: border-box;
+    }
+
+    &__avatar--bordered {
+        border: 2rpx solid #ffffff;
+    }
+
+    &__avatar-img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+
+        .base-image-box,
+        .base-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+    }
+
+    &__info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+    }
+
+    &__info--flex1 {
+        flex: 1;
+    }
+
+    &__name-row {
+        display: flex;
+        align-items: center;
+        column-gap: 10rpx;
+    }
+
+    &__name-row--between {
+        justify-content: space-between;
+    }
+
+    &__name-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8rpx;
+    }
+
+    &__name {
+        font-size: 40rpx;
+        line-height: 56rpx;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__sub {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+        font-size: 28rpx;
+        line-height: 44rpx;
+    }
+
+    &__auth {
+        margin-right: 10rpx;
+        display: flex;
+        align-items: center;
+        height: 36rpx;
+        flex-shrink: 0;
+        image {
+            height: 36rpx;
+            display: block;
+        }
+    }
+
+    &__auth-unverified-bg {
+        width: 100rpx;
+        height: 36rpx;
+        background-size: 100% auto;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    &__action-icons {
+        display: flex;
+        align-items: center;
+        gap: 40rpx;
+        flex-shrink: 0;
+        margin-left: 24rpx;
+    }
+
+    &__action-icon {
+        width: 48rpx;
+        height: 48rpx;
+    }
+
+    &__action-icon-wrap {
+        position: relative;
+        display: flex;
+    }
+
+    &__notification-dot {
+        position: absolute;
+        top: -4rpx;
+        right: -4rpx;
+        width: 16rpx;
+        height: 16rpx;
+        border-radius: 50%;
+        background: #ff4d4f;
+    }
+
+    &__nav-arrow {
+        font-size: 32rpx;
+        color: #333;
+        flex-shrink: 0;
+    }
+
+    &__stats {
+        display: flex;
+        align-items: center;
+    }
+
+    &__stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4rpx;
+    }
+
+    &__stat-value {
+        font-size: 32rpx;
+        font-weight: 600;
+        line-height: 48rpx;
+    }
+
+    &__stat-label {
+        font-size: 24rpx;
+        line-height: 40rpx;
+    }
+
+    &__member-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #fff;
+        box-sizing: border-box;
+    }
+
+    &__member-bar--level {
+        margin-top: 28rpx;
+        padding: 16rpx 24rpx 36rpx;
+    }
+
+    &__member-bar--growth {
+        margin-top: 28rpx;
+        padding: 24rpx 24rpx 16rpx;
+    }
+
+    &__member-bar-placeholder {
+        height: 44rpx;
+
+        &--sm {
+            height: 24rpx;
+        }
+    }
+
+    &__member-bar-info {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+        gap: 20rpx;
+    }
+
+    &__member-bar-name {
+        font-size: 32rpx;
+        font-weight: 700;
+        line-height: 48rpx;
+        color: #fcdabe;
+        flex-shrink: 0;
+    }
+
+    &__member-bar-divider {
+        width: 2rpx;
+        height: 24rpx;
+        background: #999;
+        flex-shrink: 0;
+    }
+
+    &__member-bar-upgrade {
+        font-size: 24rpx;
+        line-height: 40rpx;
+        color: #fcdabe;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__member-bar-btn {
+        flex-shrink: 0;
+        margin-left: 20rpx;
+        padding: 12rpx 18rpx;
+        border-radius: 24rpx;
+        background: #fcdabe;
+        color: #333;
+        font-size: 24rpx;
+        line-height: 24rpx;
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+    }
+
+    &__growth-label {
+        font-size: 28rpx;
+        line-height: 44rpx;
+        color: #fff;
+    }
+
+    &__growth-right {
+        display: flex;
+        align-items: center;
+        gap: 12rpx;
+    }
+
+    &__growth-value {
+        font-size: 36rpx;
+        font-weight: 600;
+        color: #ffdea0;
+    }
+
+    &__growth-arrow {
+        font-size: 24rpx;
+        color: #ffe3b1;
+    }
+
+    &__arc {
+        width: 100%;
+        margin-top: -28rpx;
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        line-height: 0;
+    }
+
+    &__arc-img {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    /* --- Style 4: Centered Avatar + Growth Card --- */
+    &__center-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 40rpx;
+        padding-bottom: 28rpx;
+    }
+
+    &__avatar-wrap {
+        position: relative;
+        width: 160rpx;
+        height: 160rpx;
+    }
+
+    &__avatar--lg {
+        width: 160rpx;
+        height: 160rpx;
+        margin-right: 0;
+    }
+
+    &__avatar-img--lg {
+        width: 100%;
+        height: 100%;
+    }
+
+    &__edit-icon {
+        position: absolute;
+        right: -4rpx;
+        bottom: -4rpx;
+        width: 48rpx;
+        height: 48rpx;
+        border-radius: 50%;
+        z-index: 2;
+    }
+
+    &__center-name-row {
+        display: flex;
+        align-items: center;
+        gap: 12rpx;
+        margin-top: 12rpx;
+    }
+
+    &__center-name {
+        font-size: 32rpx;
+        font-weight: 600;
+        line-height: 48rpx;
+        max-width: 360rpx;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 未登录：登录文字直接位于头像下方，需补回与头像的间距（登录态由 center-name-row 提供） */
+    &__center-name--login {
+        margin-top: 12rpx;
+    }
+
+    &__auth-badge {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    &__growth-card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 20rpx;
+        padding: 32rpx 32rpx;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    &__growth-card-wave {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    &__growth-card-left {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4rpx;
+    }
+
+    &__growth-card-label-row {
+        display: flex;
+        align-items: center;
+        gap: 6rpx;
+    }
+
+    &__growth-card-label {
+        font-size: 24rpx;
+        line-height: 36rpx;
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    &__growth-card-label-arrow {
+        font-size: 20rpx;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    &__growth-card-value {
+        font-size: 48rpx;
+        font-weight: 700;
+        line-height: 60rpx;
+        color: #fff;
+    }
+
+    &__growth-card-btn {
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+        padding: 12rpx 46rpx;
+        border-radius: 100rpx;
+        background: #fff;
+        color: #ff5f8c;
+        font-size: 28rpx;
+        font-weight: 600;
+        line-height: 36rpx;
+    }
+}

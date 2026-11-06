@@ -1,0 +1,132 @@
+/* 自旧 pages/member/components/decorate/myWallet/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-my-wallet {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10rpx);
+    padding-right: var(--dec-box-padding, 10rpx);
+    padding-top: var(--dec-box-padding-top, 20rpx);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__container {
+        background-color: var(--dec-bg-color, #ffffff);
+        border-radius: var(--dec-border-radius, 24rpx);
+        padding: var(--dec-inner-padding, 24rpx);
+        box-sizing: border-box;
+    }
+
+    &--style2 &__container {
+        display: flex;
+        align-items: center;
+    }
+
+    /* ============ Style 1: 原始钱包样式 ============ */
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40rpx;
+    }
+
+    &__title {
+        font-size: 28rpx;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    &__link {
+        display: flex;
+        align-items: center;
+        font-size: 22rpx;
+        color: #999;
+    }
+
+    &__arrow {
+        font-size: 24rpx;
+        margin-left: 4rpx;
+        color: #888b94;
+    }
+
+    &__stats--block {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+    }
+
+    &__stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12rpx;
+    }
+
+    &__stat-value {
+        font-size: 32rpx;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    &__stat-label {
+        font-size: 24rpx;
+        color: #333;
+    }
+
+    /* ============ Style 2: 当前钱包样式 ============ */
+    &__icon-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    &__icon {
+        width: 48rpx;
+        height: 44rpx;
+    }
+
+    &__icon-label {
+        margin-top: 8rpx;
+        font-size: 24rpx;
+        line-height: 40rpx;
+        color: #666;
+        white-space: nowrap;
+    }
+
+    &__divider {
+        width: 20rpx;
+        height: 108rpx;
+        background-image: url("https://oss.tigshop.com/official/img/pc/202605/1779929210zBMvyOonKlS2ANuWkq.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        margin: 0 16rpx;
+        flex-shrink: 0;
+    }
+
+    &--style2 &__stats {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__stat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8rpx;
+    }
+
+    &__value {
+        font-size: 32rpx;
+        line-height: 48rpx;
+        font-weight: 600;
+        color: #333;
+    }
+
+    &__label {
+        font-size: 24rpx;
+        color: #666;
+        line-height: 40rpx;
+    }
+}

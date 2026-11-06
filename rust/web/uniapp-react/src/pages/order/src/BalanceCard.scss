@@ -1,0 +1,47 @@
+/* 自旧 pages/order/src/balanceCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.balance {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56rpx;
+    background-color: #fff;
+    font-size: 24.5rpx;
+
+    .balance-title {
+        display: flex;
+
+        .balance-text {
+            font-size: 22rpx;
+            padding-left: 15rpx;
+            display: flex;
+            align-items: flex-end;
+
+            .special-text {
+                color: var(--general);
+            }
+        }
+    }
+}
+
+.balance-switch-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.balance-switch {
+    margin: 0;
+    // 缩放锚定右侧，配合去掉内置 margin-right，使开关与卡片右内边距贴边
+    transform: scale(0.8);
+    transform-origin: right center;
+
+    /* 旧 H5 :deep(.uni-switch-input) { margin-right: 0 } → Taro H5 Switch 内边距等价重置
+       （TODO(MIGRATION)：Taro H5 开关 DOM 与 uniapp 不同，贴边细节随 H5 视觉回归校正） */
+}
+
+.balance-use-text {
+    display: flex;
+    align-items: center;
+    font-size: 24.5rpx;
+    max-width: 300rpx;
+}

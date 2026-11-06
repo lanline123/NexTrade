@@ -1,0 +1,22 @@
+/*线条*/
+.white-line-warp {
+    .white-line-con {
+        padding-top: 30rpx;
+        padding-bottom: 30rpx;
+
+        .white-line-item {
+            height: 2rpx;
+            width: 100%;
+            border-bottom: 2rpx solid #e5e5e5;
+        }
+    }
+}
+.ad-line_style__2 .white-line-warp .white-line-con .white-line-item {
+    border-bottom: 2rpx dashed #e5e5e5;
+}
+.ad-line_style__3 .white-line-warp .white-line-con .white-line-item {
+    border-bottom: 2rpx dotted #e5e5e5;
+}
+.ad-style__1 .white-line-warp .white-line-con .white-line-item {
+    border-bottom: none;
+}

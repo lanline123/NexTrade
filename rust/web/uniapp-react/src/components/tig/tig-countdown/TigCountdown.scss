@@ -1,0 +1,26 @@
+/* 自旧 tig-countdown.vue + uni-countdown（uni-ui 默认样式）移植 */
+.tig-countdown {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.tig-countdown__number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 44rpx;
+    padding: 0 8rpx;
+    border-radius: 6rpx;
+    line-height: 44rpx;
+    font-size: 24rpx;
+}
+
+.tig-countdown__splitor {
+    display: flex;
+    justify-content: center;
+    line-height: 44rpx;
+    padding: 0 8rpx;
+    font-size: 24rpx;
+}

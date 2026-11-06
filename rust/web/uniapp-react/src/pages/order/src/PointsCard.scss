@@ -1,0 +1,135 @@
+/* 自旧 pages/order/src/pointsCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 tig-fixed-placeholder 底栏与 tig-button2 theme 按钮为等价补充样式 */
+.fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+    z-index: 20;
+}
+
+.theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--general);
+    color: #fff;
+    font-size: 26rpx;
+    border-radius: 40rpx;
+
+    &:active {
+        opacity: 0.7;
+    }
+}
+
+.btn-box {
+    padding: 11rpx 28rpx;
+}
+
+.points {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56rpx;
+    background-color: #fff;
+    font-size: 24.5rpx;
+
+    .points-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 6rpx;
+
+        .points-text {
+            font-size: 24.5rpx;
+            max-width: 300rpx;
+            color: var(--general);
+        }
+    }
+
+    .icon-fanhui {
+        font-size: 17rpx;
+        color: #888b94;
+        transform: rotate(180deg);
+    }
+}
+
+.isZh {
+    .points-title {
+        .points-text {
+            max-width: 150rpx;
+        }
+    }
+}
+
+.points-title {
+    display: flex;
+
+    .points-text {
+        font-size: 22rpx;
+        padding-left: 15rpx;
+        display: flex;
+        align-items: flex-end;
+    }
+}
+
+.special-text {
+    color: var(--general);
+}
+
+.points-popup {
+    height: 50vh;
+    border-radius: 18rpx 18rpx 0 0;
+    overflow: hidden;
+    font-size: 24.5rpx;
+    color: #1a1a1a;
+
+    .popup-title {
+        font-size: 30rpx;
+        font-weight: bold;
+        padding: 30rpx 40rpx 20rpx;
+    }
+
+    .points-popup-text {
+        margin-left: 40rpx;
+        position: relative;
+        top: -10rpx;
+        color: rgb(136, 139, 148);
+        font-size: 24rpx;
+
+        /* #ifdef MP-WEIXIN */
+        top: 20rpx;
+        /* #endif */
+    }
+
+    // 旧 uni-forms / uni-easyinput 的等价布局（label 左侧定宽 + 无边框输入）
+    .form-usePoints {
+        background-color: #fff;
+        margin: 20rpx 20rpx 0;
+        padding: 0 20rpx;
+
+        .form-item {
+            display: flex;
+            align-items: center;
+            height: 50px;
+
+            .form-item-label {
+                width: 160rpx;
+                font-size: 26rpx;
+                color: #333;
+            }
+
+            .form-item-input {
+                flex: 1;
+                height: 100%;
+                font-size: 26rpx;
+            }
+
+            .form-item-placeholder {
+                color: rgb(192, 196, 204);
+            }
+        }
+    }
+}

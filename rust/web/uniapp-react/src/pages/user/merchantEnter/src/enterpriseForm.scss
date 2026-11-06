@@ -1,0 +1,361 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/merchantEnter/src/enterpriseForm.vue 迁移：样式逐行保留（去 scoped、:deep 平铺） */
+.form-box .special-item .u-form-item__body {
+    padding-bottom: 5px;
+}
+.form-box .noflex .u-form-item__body__right__content__slot {
+    display: block;
+}
+
+.supplement {
+    .u-form-item__body__right__content {
+        overflow: auto;
+    }
+}
+.uni-progress-bar {
+    display: none;
+}
+// 选择类表单项：H5 中禁用的 input 会吞掉点击，需穿透到 up-form-item 才能打开选择弹窗
+.picker-item {
+    .u-input {
+        pointer-events: none;
+    }
+}
+.textarea {
+    .u-form-item__body {
+        align-items: start;
+        .u-textarea {
+            padding: 0;
+        }
+        // up-textarea 不支持 input-align，输入内容与占位符均手动右对齐，与其他输入框保持一致
+        .u-textarea__field,
+        .uni-textarea-textarea,
+        .uni-textarea-placeholder {
+            text-align: right;
+        }
+    }
+}
+.input-text {
+    font-size: 15px;
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    .input-content {
+        width: 450rpx;
+        word-wrap: break-word;
+        text-align: right;
+    }
+}
+
+.upload-box {
+    width: 80%;
+    display: flex;
+    padding-top: 20rpx;
+}
+.license-upload {
+    width: 100%;
+}
+.upload-tips {
+    margin-top: 10rpx;
+    font-size: 24rpx;
+    line-height: 1.5;
+    color: #999;
+}
+.btn-box {
+    padding: 25rpx;
+    font-size: 28rpx;
+}
+
+.btn-box-tow {
+    padding: 25rpx 15rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    font-size: 28rpx;
+}
+
+.status-box {
+    background: none repeat scroll 0 0 #fffdee;
+    border: 1px solid #edd28b;
+    padding: 20rpx;
+    font-size: 28rpx;
+    margin: 20rpx 20rpx;
+    .status-text {
+        padding-bottom: 15rpx;
+        &:last-child {
+            padding-bottom: 0;
+        }
+    }
+}
+
+.specaial-text {
+    color: var(--general);
+}
+
+.form-box {
+    background-color: #fff;
+    border-radius: 20rpx;
+    padding: 20rpx 30rpx;
+    margin: 20rpx;
+    .type-text {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .form-upload {
+        width: 149rpx;
+        height: 150rpx;
+        background: #fafafa;
+        border-radius: 20rpx;
+        margin-top: 20rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .certificate-validity-item {
+        display: flex;
+        height: 100rpx;
+        align-items: center;
+        padding-top: 10px;
+        &:first-child {
+            padding-top: 10px;
+        }
+    }
+
+    .validity-item-text {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 485rpx;
+        padding-left: 20rpx;
+    }
+    .period_end-box {
+        display: flex;
+        align-items: center;
+        width: 485rpx;
+        padding-left: 20rpx;
+        column-gap: 15rpx;
+    }
+
+    .form-title {
+        font-size: 30rpx;
+        font-weight: 600;
+        color: #333333;
+        display: flex;
+        align-items: center;
+        padding: 20rpx 0;
+        &::before {
+            content: "";
+            display: inline-block;
+            width: 6rpx;
+            height: 30rpx;
+            background: var(--general);
+            border-radius: 3rpx;
+            margin-right: 10rpx;
+        }
+    }
+    .image-box {
+        padding-top: 30rpx;
+        height: 200rpx;
+        width: 200rpx;
+    }
+}
+
+.datetime-item-long {
+    flex: 1;
+}
+.privacy-photo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+}
+.privacy-photo__tip {
+    width: 100%;
+    padding-top: 10rpx;
+}
+// 原生 textarea 写在本组件模板内，小程序与 H5 均可直接设置样式
+.form-textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 22px;
+    padding: 0;
+    font-size: 15px;
+    line-height: 22px;
+    color: #303133;
+    text-align: right;
+    &--fixed {
+        height: 48px;
+    }
+}
+
+/* ===== 旧 up-form / up-form-item / up-input / up-radio（uview）→ 基础组件等价自绘 ===== */
+.form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    font-size: 15px;
+    color: #303133;
+    box-sizing: border-box;
+
+    &.is-top {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .form-row-label {
+            width: 100%;
+            margin-bottom: 12rpx;
+        }
+        .form-row-content {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+}
+.form-row-label {
+    display: flex;
+    align-items: center;
+    flex: none;
+    width: 100px;
+    min-width: 100px;
+    line-height: 1.4;
+}
+.form-required {
+    color: #f56c6c;
+    margin-right: 4rpx;
+}
+.form-row-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+}
+.form-input {
+    flex: 1;
+    width: 100%;
+    font-size: 15px;
+    text-align: right;
+    color: #303133;
+
+    &.right {
+        text-align: right;
+    }
+}
+.select-value {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    .arrow-right {
+        margin-left: 10rpx;
+        color: #969799;
+        font-size: 24rpx;
+    }
+}
+.sex-box {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+.radio-group {
+    display: flex;
+    align-items: center;
+
+    &.column {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+.radio-item {
+    display: flex;
+    align-items: center;
+}
+.radio-dot {
+    width: 32rpx;
+    height: 32rpx;
+    border-radius: 50%;
+    border: 2rpx solid #c8c9cc;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10rpx;
+    background-color: #fff;
+
+    &.checked {
+        border-color: var(--general);
+    }
+    .radio-dot-inner {
+        width: 18rpx;
+        height: 18rpx;
+        border-radius: 50%;
+        background-color: var(--general);
+    }
+}
+.radio-label {
+    font-size: 15px;
+    color: #303133;
+}
+
+/* 旧 up-action-sheet → NutUI Popup 内容区 */
+.action-sheet {
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom);
+}
+.action-sheet-title {
+    padding: 30rpx;
+    text-align: center;
+    font-size: 28rpx;
+    color: #909399;
+    border-bottom: 1rpx solid #f2f3f5;
+}
+.action-sheet-item {
+    padding: 30rpx;
+    text-align: center;
+    font-size: 30rpx;
+    color: #303133;
+    border-bottom: 1rpx solid #f2f3f5;
+}
+.action-sheet-cancel {
+    padding: 30rpx;
+    text-align: center;
+    font-size: 30rpx;
+    color: #909399;
+}
+
+/* 旧 up-alert（info）→ 基础组件等价自绘 */
+.privacy-alert {
+    display: flex;
+    align-items: flex-start;
+    padding: 16rpx 20rpx;
+    background-color: #f4f4f5;
+    border-radius: 8rpx;
+
+    .privacy-alert-icon {
+        color: #909399;
+        font-size: 28rpx;
+        margin-right: 10rpx;
+        line-height: 1.4;
+    }
+    .privacy-alert-text {
+        flex: 1;
+        font-size: 24rpx;
+        line-height: 1.5;
+        color: #909399;
+        word-break: break-all;
+    }
+}
+
+/* 旧审核公示步骤 up-form label-width="115" */
+.review-form {
+    .form-row-label {
+        width: 115px;
+        min-width: 115px;
+    }
+}

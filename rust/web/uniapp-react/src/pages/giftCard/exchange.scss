@@ -1,0 +1,177 @@
+/* === 礼品卡兑换（旧 pages/giftCard/exchange.vue scoped 样式逐条平移，去 scoped / :deep 平铺） === */
+.bg {
+    height: 617rpx;
+    // 旧 v-bind(backgroundImg)（url("@/static/images/giftCard/exchange_bg.png") center no-repeat）
+    background: var(--exchange-bg);
+    background-size: 100% 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 0;
+}
+.container {
+    position: relative;
+    z-index: 1;
+}
+.card-title {
+    padding-left: 33rpx;
+    .title {
+        // 字体颜色渐变
+        background: linear-gradient(90deg, #975204 30%, #5c2b00);
+        font-weight: bold;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 55rpx;
+        letter-spacing: 20rpx;
+    }
+}
+.card-subtitle {
+    display: flex;
+    margin-top: 23rpx;
+    .title {
+        border: 1rpx solid #fff;
+        border-top-right-radius: 30rpx;
+        border-bottom-right-radius: 30rpx;
+        overflow: hidden;
+        color: #eb9655;
+        background: #ffe6d4;
+        width: 458rpx;
+        height: 63rpx;
+        display: flex;
+        font-size: 28rpx;
+        line-height: 28rpx;
+        align-items: center;
+        padding-left: 50rpx;
+        letter-spacing: 9rpx;
+    }
+}
+.gift-card {
+    position: relative;
+    z-index: 1;
+    padding: 20rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    margin-top: 16rpx;
+}
+.card-box {
+    border-radius: 16rpx;
+    overflow: hidden;
+    .card-edit-content {
+        display: flex;
+        flex-direction: column;
+        gap: 42rpx;
+        padding: 70rpx 30rpx 50rpx;
+        // 旧 :deep(.uni-forms-item__label)
+        .uni-forms-item__label {
+            font-size: 32rpx;
+            font-weight: bold;
+            color: #2a2a2a;
+            padding-bottom: 20rpx;
+        }
+        // 旧 :deep(.uni-easyinput__content)
+        .uni-easyinput__content {
+            background-color: #f4f4f4 !important;
+            border-color: #f4f4f4 !important;
+            .uni-input-placeholder {
+                color: #bfbfbf;
+                font-size: 28rpx;
+            }
+            .uni-easyinput__content-input {
+                background-color: #f4f4f4 !important;
+                border-color: #f4f4f4 !important;
+                height: 90rpx;
+                font-size: 28rpx;
+            }
+        }
+        .form-item {
+            .form-label {
+                font-size: 32rpx;
+                font-weight: bold;
+                color: #2a2a2a;
+                padding-bottom: 20rpx;
+            }
+            /* uni-forms 校验提示位 → 自绘表单项下方错误文案 */
+            .form-error {
+                color: #ee0a24;
+                font-size: 24rpx;
+                padding-top: 10rpx;
+            }
+        }
+        .paste-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10rpx;
+            color: #fc6f4e;
+            font-size: 28rpx;
+            cursor: pointer;
+            padding: 10rpx 0;
+            .iconfont-h5 {
+                font-size: 32rpx;
+            }
+        }
+        .action {
+            padding-top: 30rpx;
+            .btn {
+                height: 90rpx;
+                border-radius: 8rpx;
+                color: #fff;
+                background: linear-gradient(90deg, #fd4962, #fc6f4e);
+                border-color: transparent !important;
+                // display: flex;
+                // align-items: center;
+                // justify-content: center;
+                // color: #fff;
+                // position: relative;
+                // &::before {
+                //     content: "";
+                //     position: absolute;
+                //     inset: 0;
+                //     background: #000;
+                //     opacity: 0;
+                // }
+                // &--active {
+                //     &::before {
+                //         opacity: 0.15;
+                //     }
+                // }
+            }
+        }
+    }
+    .card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20rpx;
+        padding: 30rpx;
+        .title {
+            color: #262626;
+            font-size: 32rpx;
+        }
+        .tips {
+            font-size: 28rpx;
+            color: #262626;
+            line-height: 44rpx;
+            padding-right: 60rpx;
+        }
+    }
+    .input {
+        // flex: 1;
+        height: 90rpx;
+        background: #f4f4f4;
+        border-radius: 8rpx;
+        box-sizing: border-box;
+        padding: 0 30rpx;
+        font-size: 28rpx;
+
+        .input-placeholder {
+            color: #bfbfbf;
+        }
+    }
+}
+
+.exchange-form {
+    background: linear-gradient(180deg, #fff5ed, #ffffff 30%);
+    box-shadow: 0rpx 0rpx 0rpx 1.5rpx #ffffff;
+}

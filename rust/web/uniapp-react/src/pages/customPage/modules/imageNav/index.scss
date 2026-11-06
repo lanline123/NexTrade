@@ -1,0 +1,64 @@
+/* 原 :deep(.swiper-pagination-bullet-active) { background: v-bind("swiperPageColor") } —— v-bind 改为内联 CSS 变量 --swiper-page-color */
+.swiper-pagination-bullet-active {
+    background: var(--swiper-page-color, #333) !important;
+}
+/* 原 .imagenav-main 上的 v-bind("module.rowNum") / v-bind("module.colNum") / v-bind("imageGap") 三行 grid 声明已改为组件内联样式 */
+.imagenav-main {
+    box-sizing: border-box;
+}
+.imagenav-main .imagenav-main-item {
+    margin-top: 16rpx;
+    margin-bottom: 4rpx;
+    padding-bottom: 44rpx;
+    position: relative;
+}
+.imagenav-main .imagenav-main-item .imagenav-item-img {
+    width: 100%;
+    height: inherit;
+}
+.imagenav-main .imagenav-main-item .img-height {
+    height: inherit;
+}
+.imagenav-main .imagenav-main-item .imagenav-item-text {
+    text-align: center;
+    font-size: 24rpx;
+    height: 30rpx;
+}
+
+.swiper-main {
+    height: auto;
+    width: 100%;
+    display: flex;
+    padding-bottom: 30rpx;
+    overflow: hidden;
+}
+.swiper-main .swiper-item {
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.swiper-main .swiper-item .swiper-item-box {
+    width: 100%;
+    padding-bottom: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
+.swiper-main .swiper-item .imagenav-item-text {
+    text-align: center;
+    font-size: 26rpx;
+}
+
+.ad-nav_type__2.ad-pic_page_type__1 .swiper-pagination-bullet {
+    width: 24rpx;
+    border-radius: 0;
+    height: 4rpx;
+    margin: 0 2rpx;
+}
+.item-text-a {
+    position: absolute;
+    width: 100%;
+    bottom: 6rpx;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+}

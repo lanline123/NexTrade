@@ -1,0 +1,91 @@
+/* 自旧 pages/salesman/settlementDetail.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped；v-bind 背景改内联 style） */
+.settle-detai {
+    padding: 0 24rpx;
+    /* background-image 由内联 style 提供（旧 v-bind(settleDetaiBg)） */
+    background-repeat: no-repeat;
+    background-size: 100%;
+
+    .settle-detai-header {
+        padding: 40rpx 0;
+        font-size: 36rpx;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .settle-detai-step {
+        padding: 58rpx 16rpx 40rpx;
+        background-color: #fff;
+        border-radius: 8rpx;
+    }
+
+    .settle-detai-desc {
+        padding: 32rpx 16rpx;
+        background-color: #fff;
+        margin-top: 24rpx;
+        border-radius: 8rpx;
+
+        .desc-title {
+            font-size: 28rpx;
+            font-weight: 700;
+        }
+
+        .desc-item {
+            color: #969799;
+            font-size: 24rpx;
+            margin-top: 16rpx;
+            display: flex;
+        }
+    }
+}
+
+/* 旧 up-steps（active-color #38f，item-style 标题 #969799/24rpx）→ 基础组件自绘 */
+.settle-steps {
+    display: flex;
+    align-items: flex-start;
+}
+.settle-step {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .settle-step__circle {
+        width: 36rpx;
+        height: 36rpx;
+        border-radius: 50%;
+        border: 2rpx solid #969799;
+        color: #969799;
+        font-size: 20rpx;
+        line-height: 32rpx;
+        text-align: center;
+        background-color: #fff;
+        box-sizing: border-box;
+        z-index: 1;
+    }
+
+    .settle-step__title {
+        margin-top: 12rpx;
+        font-size: 24rpx;
+        color: #969799;
+    }
+
+    &.active {
+        .settle-step__circle {
+            border-color: #38f;
+            color: #38f;
+        }
+    }
+
+    &:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 18rpx;
+        left: calc(50% + 24rpx);
+        width: calc(100% - 48rpx);
+        height: 2rpx;
+        background-color: #ebedf0;
+    }
+}

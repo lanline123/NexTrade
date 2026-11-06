@@ -1,0 +1,185 @@
+/* 自旧 pages/user/invoiceManagement/applyInvoice.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped，:deep 平铺） */
+.invoice-popup-content {
+    padding: 30rpx;
+    background-color: #fff;
+    margin: 10rpx 30rpx;
+    margin-top: 25rpx;
+    border-radius: 20rpx;
+    padding-bottom: 2rpx;
+
+    .invoice-typemenu {
+        padding-bottom: 10rpx;
+        border-bottom: 1rpx solid #eee;
+        margin-bottom: 20rpx;
+        .invoice-typemenu-item {
+            background: #f2f2f2;
+            color: #282828;
+            padding: 13rpx 36rpx;
+            border-radius: 50rpx;
+            font-size: 25rpx;
+            display: inline-block;
+            margin-right: 28rpx;
+            margin-bottom: 10rpx;
+
+            &.active {
+                color: #fff;
+                background-color: var(--general);
+            }
+        }
+
+        .invoice-explain {
+            padding: 20rpx 0;
+            font-size: 24rpx;
+            line-height: 35rpx;
+            color: #999;
+
+            .red {
+                color: #ff3700;
+            }
+        }
+    }
+}
+
+.main-color {
+    color: var(--general);
+}
+
+.notPass {
+    padding: 10rpx 0;
+    line-height: 40rpx;
+
+    .notPassBtn {
+        color: var(--general);
+    }
+}
+
+.disabled-text {
+    height: 100%;
+    line-height: 68rpx;
+    font-size: 24rpx;
+    width: 450rpx;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-layout {
+    display: flex;
+    align-items: center;
+    height: 70rpx;
+
+    .radio-item {
+        display: flex;
+        align-items: center;
+        margin-right: 22rpx;
+    }
+
+    .radio-dot {
+        width: 34rpx;
+        height: 34rpx;
+        border-radius: 50%;
+        border: 1rpx solid #d9d9d9;
+        background: #fff;
+        box-sizing: border-box;
+        position: relative;
+
+        &.active {
+            border-color: var(--general);
+
+            &::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 18rpx;
+                height: 18rpx;
+                border-radius: 50%;
+                background: var(--general);
+                transform: translate(-50%, -50%);
+            }
+        }
+    }
+
+    .radio-label {
+        font-size: 26rpx;
+        color: #333;
+        margin-left: 12rpx;
+    }
+}
+
+/* 旧 uni-forms-item / uni-easyinput 等价自绘（label 宽 170rpx，必填星号悬挂在标签左侧） */
+.form-item {
+    display: flex;
+    align-items: flex-start;
+    min-height: 96rpx;
+    margin-bottom: 30rpx;
+    position: relative;
+
+    .form-label {
+        width: 170rpx;
+        flex-shrink: 0;
+        position: relative;
+        font-size: 26rpx;
+        line-height: 70rpx;
+        color: #333;
+        text-align: left;
+
+        .is-required {
+            color: #dd524d;
+            position: absolute;
+            right: 100%;
+            margin-right: 4rpx;
+        }
+    }
+
+    .form-control {
+        flex: 1;
+        position: relative;
+        padding-left: 20rpx;
+        min-width: 0;
+    }
+
+    .form-input {
+        width: 100%;
+        height: 70rpx;
+        font-size: 26rpx;
+        color: #333;
+        border: none;
+        outline: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 90%;
+        left: 18rpx;
+        font-size: 22rpx;
+        line-height: 30rpx;
+        color: #dd524d;
+    }
+}
+
+.btn-fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+}
+
+.btn-placeholder {
+    height: 120rpx;
+    width: 100%;
+}
+
+.btn-box {
+    padding: 25rpx;
+
+    .btn {
+        width: 100%;
+        font-size: 28rpx;
+    }
+}

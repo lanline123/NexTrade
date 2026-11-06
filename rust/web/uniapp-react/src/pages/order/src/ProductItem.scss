@@ -1,0 +1,84 @@
+/* 自旧 pages/order/src/productItem.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.content-item {
+    display: flex;
+    align-items: center;
+    color: #1a1a1a;
+    width: 100%;
+}
+
+.store-card-item-content-left {
+    width: 155rpx;
+    height: 155rpx;
+    border-radius: 7rpx;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    .store-card-item-img {
+        width: inherit;
+        height: inherit;
+    }
+}
+
+.store-card-item-content-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14rpx 0 14rpx 14rpx;
+    overflow: hidden;
+
+    .store-card-item-content-right-title {
+        font-weight: normal;
+        font-size: 24.5rpx;
+        width: 100%;
+    }
+
+    .sku-card-box {
+        display: flex;
+        font-size: 24.5rpx;
+        margin-top: 14rpx;
+        margin-bottom: 14rpx;
+        color: #888b94;
+    }
+
+    .activity-box {
+        margin-bottom: 10rpx;
+    }
+
+    .right-price-box {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .store-card-item-content-right-price {
+        font-size: 21rpx;
+        display: inline-block;
+        margin-right: 10rpx;
+    }
+
+    .store-card-item-content-right-num {
+        display: flex;
+        align-items: center;
+        font-size: 22rpx;
+        color: #969799;
+    }
+
+    .discount-box {
+        color: #888b94;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+
+        .discount-text {
+            font-weight: 600;
+            padding-left: 4px;
+        }
+    }
+}
+
+/* 旧 App.vue 全局 .line1（React 工程无全局定义，随组件补入） */
+.line1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

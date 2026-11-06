@@ -1,0 +1,159 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/profile/index.vue 迁移：样式逐行保留（去 scoped、:deep 平铺、uni-forms 改自绘表单行） */
+.profile-form-row {
+    margin-bottom: 30rpx;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.profile-form-label {
+    width: 300rpx;
+    min-width: 300rpx;
+    font-size: 26rpx;
+    color: #606266;
+    line-height: 1.4;
+}
+
+.profile-form-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* 旧 :deep 选择器平铺保留（uni-forms 已由 .profile-form-row 等价实现） */
+.uni-forms-item {
+    margin-bottom: 30rpx;
+}
+
+.uni-forms-item:last-child {
+    margin-bottom: 0;
+}
+
+.uni-forms-item__label {
+    font-size: 26rpx;
+}
+
+.uni-forms-item__error {
+    top: 90%;
+    left: 18rpx;
+}
+
+.profile-input {
+    width: 100%;
+    flex: 1;
+    font-size: 26rpx;
+    text-align: right;
+    color: #333;
+}
+
+/* 旧 uni-easyinput disabled + primary-color */
+.profile-input.disabled {
+    color: rgb(192, 196, 204);
+}
+
+/* 旧 :deep(.uni-input-input) */
+.uni-input-input {
+    text-align: right;
+}
+
+/* 旧 :deep(.uni-easyinput__placeholder-class) */
+.uni-easyinput__placeholder-class {
+    font-size: 26rpx;
+    text-align: right;
+}
+
+/* 旧 :deep(.is-disabled) */
+.is-disabled {
+    background-color: #fff !important;
+}
+
+/* 旧 :deep(.icon-calendar) */
+.icon-calendar {
+    display: none;
+}
+
+/* 旧 :deep(.uni-date__x-input) */
+.uni-date__x-input {
+    text-align: right;
+    color: #333;
+}
+
+.write-off-box {
+    background-color: #fff;
+    padding: 20rpx;
+    margin-bottom: 20rpx;
+    font-size: 26rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #606266;
+
+    .write-off-desc {
+        font-size: 24rpx;
+        color: #999999;
+        display: flex;
+        align-items: center;
+    }
+}
+
+.profile-edit-main {
+    .profile-edit-content {
+        background-color: #fff;
+        padding: 20rpx;
+        margin-bottom: 20rpx;
+
+        .el-input-id {
+            height: 100%;
+            color: #999999;
+            font-size: 24rpx;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            .iconfont {
+                margin-left: 10rpx;
+                color: #c0c4cc;
+                font-size: 24rpx;
+            }
+        }
+    }
+
+    /* 旧 :deep(.uni-calendar-item__weeks-box .uni-calendar-item--checked) */
+    .uni-calendar-item__weeks-box .uni-calendar-item--checked {
+        background-color: var(--general);
+    }
+    /* 旧 :deep(.uni-datetime-picker--btn) */
+    .uni-datetime-picker--btn {
+        background-color: var(--general);
+    }
+}
+
+.birthday-input {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: end;
+    height: 100%;
+    font-size: 23rpx;
+    color: #999;
+}
+
+.btn-box {
+    padding: 25rpx 15rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+
+    .btn {
+        width: 48%;
+        font-size: 28rpx;
+        height: 100%;
+    }
+}

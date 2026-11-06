@@ -1,0 +1,71 @@
+/* 自旧 pages/productCate/styleTwoCate.vue <style lang="scss" scoped> 原样拷出（去 scoped）。
+ * .scroll-box 的 height 原 v-bind("height") → 内联 style（见 index.tsx scrollBoxHeight）。 */
+.main-header-spacer {
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.scroll-box {
+    overflow: hidden;
+}
+
+.content-box {
+    height: 100%;
+    width: 100%;
+    display: flex;
+
+    .side {
+        width: 90px;
+        height: 100%;
+        background-color: var(--cate-side-bg, #f7f7f7);
+    }
+
+    .list-box {
+        width: calc(100% - 90px);
+        height: 100%;
+
+        .list-content {
+            height: calc(100% - 100rpx);
+            padding: 12rpx 12rpx 0;
+            background-color: var(--cate-goods-bg, transparent);
+
+            .list-scroll {
+                height: 100%;
+            }
+
+            .empty-box {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                width: 100%;
+            }
+        }
+    }
+}
+
+/* 自旧 components/masonry/masonry.vue <style scoped> 拷出（瀑布流容器，替代未移植的 masonry 组件壳） */
+.masonry {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 14rpx;
+
+    .masonry-item-column {
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.empty-img {
+    width: 320rpx;
+    height: 320rpx;
+}
+
+.empty-text {
+    font-size: 26rpx;
+    color: #999;
+    margin-top: 20rpx;
+}

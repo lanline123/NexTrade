@@ -1,0 +1,195 @@
+/* 自旧 banner/index.vue <style lang="scss" scoped> 原样平移（去 scoped） */
+.catnav-logo {
+    max-width: 210rpx;
+}
+
+.lang-icon-box {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    .icon-diqiu {
+        font-size: 55rpx;
+        color: #fff;
+        position: relative;
+        padding-right: 30rpx;
+        padding-left: 20rpx;
+
+        .icon-sanjiaoright {
+            font-size: 20rpx;
+            color: #fff;
+            font-weight: bold;
+            position: absolute;
+            bottom: 2rpx;
+            right: 10rpx;
+            transform: rotate(90deg);
+        }
+    }
+}
+
+.image-ad-item {
+    width: 100%;
+}
+.fixed {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 99;
+}
+.item-content {
+    width: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    box-sizing: content-box;
+}
+.circle {
+    position: absolute;
+    top: 0;
+    left: -40rpx;
+    right: -40rpx;
+}
+.bar {
+    position: relative;
+    overflow: hidden;
+    padding: 0 0 20rpx;
+    z-index: 9;
+}
+.bar.is-ceiling-hidden {
+    visibility: hidden;
+}
+.search-top {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    .menu {
+        margin-right: 16rpx;
+        display: flex;
+        align-items: center;
+
+        .menu-icon {
+            width: 48rpx;
+            height: 48rpx;
+        }
+    }
+
+    .search {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+        height: 72rpx;
+        width: 100%;
+        border-radius: 40rpx;
+        z-index: 2;
+        background-color: #ffffffcc;
+        color: #969799;
+        overflow: hidden;
+    }
+    .search-icon {
+        margin-left: 24rpx;
+        font-size: 28rpx;
+    }
+    .search-form {
+        height: 100%;
+        padding: 0 0 0 6rpx;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        position: relative;
+        .search-input {
+            --color: #323233;
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-size: 28rpx;
+            color: var(--color, #323233);
+            text-align: left;
+            background-color: transparent;
+            border: 0;
+            resize: none;
+        }
+        .search-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0 30rpx;
+            font-size: 28rpx;
+            text-align: center;
+            color: #fff;
+            background: #000;
+        }
+    }
+    // 有以图搜图入口时：输入区让出位置、文案过长截断，按钮参与弹性布局排在入口之后
+    // 按钮行内的 right、top 均为 3px，这里用右外边距和垂直居中保持同样的位置
+    .search-form--with-entry {
+        .search-input {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .search-btn {
+            position: static;
+            flex-shrink: 0;
+            margin-right: 3px;
+            white-space: nowrap;
+        }
+    }
+    .sign {
+        margin-left: 16rpx;
+        display: flex;
+        align-items: center;
+
+        .sign-icon {
+            width: 44rpx;
+            height: 44rpx;
+        }
+    }
+}
+.search-word {
+    height: 48rpx;
+    line-height: 48rpx;
+    display: flex;
+    font-size: 24rpx;
+    color: #fff;
+    font-weight: 400;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    overflow-x: auto;
+    .word-list {
+        margin-left: 4rpx;
+        height: 48rpx;
+        line-height: 48rpx;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        display: flex;
+    }
+    .tit {
+        flex-shrink: 0;
+    }
+    .item {
+        display: flex;
+        flex-shrink: 0;
+        .word {
+            height: 48rpx;
+            text-decoration: none;
+        }
+    }
+}

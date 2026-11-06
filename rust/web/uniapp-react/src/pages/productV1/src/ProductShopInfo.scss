@@ -1,0 +1,53 @@
+/* 自旧 productV1/src/productShopInfo.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.shop-info-box {
+    background-color: #fff;
+    padding: 0.625rem;
+    border-radius: 0.625rem;
+    margin-top: 20rpx;
+    display: flex;
+    align-items: center;
+    column-gap: 20rpx;
+
+    .shop-info-title {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        overflow: hidden;
+
+        .shop-info-title-left {
+            width: 62rpx;
+            height: 62rpx;
+            overflow: hidden;
+            border-radius: 50%;
+            margin-right: 20rpx;
+            position: relative;
+
+            .shop-logo {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                background-position: center center;
+                background-size: contain;
+                background-repeat: no-repeat;
+            }
+        }
+
+        .shop-info-title-right {
+            font-size: 26rpx;
+            flex: 1;
+            overflow: hidden;
+        }
+    }
+
+    .shop-info-btn {
+        display: flex;
+        font-size: 26rpx;
+        align-items: center;
+        justify-content: flex-end;
+
+        .right-arrows {
+            position: relative;
+            top: 3rpx;
+        }
+    }
+}

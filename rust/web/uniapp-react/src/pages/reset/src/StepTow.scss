@@ -1,0 +1,80 @@
+/* 自旧 pages/reset/src/stepTow.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.login-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100rpx;
+    color: #999;
+}
+
+.password_show_hide {
+    position: absolute;
+    color: #666;
+    right: 8rpx;
+    top: 10rpx;
+    font-size: 40rpx;
+    padding: 10rpx;
+    z-index: 88;
+}
+
+.item {
+    margin-bottom: 70rpx;
+    position: relative;
+
+    .text {
+        border: 0;
+        border-radius: 0;
+        background-color: transparent;
+        padding-left: 0rpx;
+        height: 88rpx;
+        line-height: normal;
+        font-size: 28rpx;
+        color: #252525;
+        padding: 0;
+        font-weight: normal;
+        border-bottom: 1rpx solid #eee;
+    }
+
+    .get-mobile {
+        background-color: transparent;
+        padding-left: 0rpx;
+        height: 88rpx;
+        line-height: normal;
+        font-size: 28rpx;
+        color: #252525;
+        padding: 0;
+        font-weight: normal;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        z-index: 88;
+    }
+
+    .parent {
+        position: relative;
+    }
+
+    &.mobile_code_text {
+        width: 100%;
+        /* padding-right: 200rpx; */
+        align-items: center;
+        display: flex;
+    }
+}
+
+/* 原 tig-button class="btn2-css3"（disabled/loading 视觉）按视觉等价补充（TODO(MIGRATION)：随公共 tig-button 统一替换） */
+.btn2-css3__inner {
+    width: 100%;
+    height: 90rpx;
+    line-height: 90rpx;
+    text-align: center;
+    border-radius: 45rpx;
+    color: var(--main-text, #fff);
+    font-size: 36rpx;
+    font-weight: normal;
+    background: var(--main-bg, var(--general, #ee0a24));
+
+    &.is-disabled {
+        background: #c8c9cc;
+    }
+}

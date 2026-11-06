@@ -1,0 +1,8 @@
+/* 自旧 pages/oauth/callback.vue 的 <style scoped lang="scss"> 拷入（旧文件为空样式）
+   该页只承载回调跳转，无可见 UI；补根节点铺满视口的兜底样式，避免跳转间隙露出底层背景 */
+.oauth-callback {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #fff;
+    box-sizing: border-box;
+}

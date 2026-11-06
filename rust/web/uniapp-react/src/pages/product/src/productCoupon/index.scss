@@ -1,0 +1,344 @@
+/* 自旧 productCoupon.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 tig-fixed-placeholder（fixed 底栏 + safe-bottom）对应样式 */
+.fixed-placeholder {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding-bottom: var(--safe-bottom);
+    z-index: 90;
+}
+
+.btn-box {
+    padding: 25rpx;
+}
+.coupon-content {
+    height: 60vh;
+    overflow: hidden;
+    overflow-y: auto;
+
+    .public-title {
+        font-size: 23rpx;
+        padding-bottom: 20rpx;
+    }
+
+    .coupon-title {
+        height: 84rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28rpx;
+    }
+    .promotion-box {
+        height: calc(100% - 84rpx);
+
+        .promotion-content {
+            padding: 0 28rpx;
+        }
+    }
+    .discount-box {
+        font-size: 23rpx;
+        border-bottom: 1px solid #ebedf0;
+        margin-bottom: 20rpx;
+        .discount-title {
+            margin-bottom: 20rpx;
+            .icon-xiajiantou1-copy {
+                display: inline-block;
+                transform: translate(-7rpx, 6rpx);
+                transition: all 0.3s;
+
+                &.rotate {
+                    transform: translate(-7rpx, 6rpx) rotate(180deg);
+                }
+            }
+        }
+
+        .discount-content {
+            font-size: 23rpx;
+            padding-bottom: 20rpx;
+
+            .discount-item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 12rpx;
+
+                .discount-item-label {
+                    color: #969799;
+                }
+            }
+        }
+    }
+
+    .activity-box {
+        padding-bottom: 20rpx;
+        .activity-item {
+            min-height: 145rpx;
+            background-color: var(--tag-bg);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 16rpx;
+            margin-bottom: 20rpx;
+            .activity-item-label {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 200rpx;
+                color: var(--tag-text);
+                font-size: 24rpx;
+                white-space: nowrap;
+                padding: 0 20rpx;
+            }
+
+            .activity-item-value {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: start;
+
+                .activity-item-name {
+                    font-size: 24rpx;
+                    margin-bottom: 20rpx;
+                }
+                .activity-item-time {
+                    font-size: 20rpx;
+                    color: #969799;
+                }
+            }
+
+            .activity-product {
+                font-size: 24rpx;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: start;
+                width: calc(100% - 180rpx);
+                .activity-name {
+                    padding: 15rpx 0;
+                }
+
+                .scroll-x {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    height: 105rpx;
+                    padding-bottom: 20rpx;
+                    .activity-product-item {
+                        max-width: 105rpx;
+                        max-height: 105rpx;
+                        width: 14.933vw;
+                        height: 14.933vw;
+                        border-radius: 8rpx;
+                        overflow: hidden;
+                        position: relative;
+                        /* 原 .gift-img 直接作用在 tig-image 元素上 → 外层包装 View */
+                        .gift-img {
+                            height: 100%;
+                            width: 100%;
+                        }
+
+                        .gift-price {
+                            position: absolute;
+                            bottom: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 28rpx;
+                            background-color: rgba(0, 0, 0, 0.24);
+                            color: #fff;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            font-weight: bold;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.coupon-box {
+    .coupon-item {
+        border-radius: 10rpx;
+        box-sizing: border-box;
+        background-color: var(--tag-bg);
+        color: var(--tag-text);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20rpx;
+
+        .left {
+            padding: 30rpx;
+            display: flex;
+            flex-direction: column;
+            width: 60%;
+
+            .col-1 {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                width: 100%;
+                margin-bottom: 10rpx;
+
+                .tag {
+                    background-color: var(--general);
+                    color: white;
+                    font-size: 18rpx;
+                    border-radius: 5rpx;
+                    padding: 2rpx 6rpx;
+                    min-width: 70rpx;
+                }
+
+                .title {
+                    font-weight: bold;
+                    font-size: 28rpx;
+                    overflow: hidden; /* 隐藏超出 div 元素的内容 */
+                    white-space: nowrap; /* 防止文本在 div 內换行 */
+                    text-overflow: ellipsis; /* 当内容超出 div 元素时显示省略号 */
+                }
+            }
+
+            .col-2 {
+                font-size: 24rpx;
+                color: #333;
+                margin-bottom: 20rpx;
+            }
+
+            .col-3 {
+                font-size: 22rpx;
+                color: #969799;
+
+                &.special-col {
+                    margin-top: 30rpx;
+                }
+            }
+        }
+
+        .right {
+            padding: 30rpx;
+            display: flex;
+            flex-direction: column;
+            width: 40%;
+            gap: 18rpx;
+            justify-content: center;
+            position: relative;
+
+            .right-1 {
+                color: var(--tag-text);
+                display: flex;
+                flex-direction: row;
+                font-weight: bold;
+                justify-content: center;
+                align-items: flex-end;
+
+                .zhekou {
+                    font-size: 48rpx;
+                    line-height: 1; /* 添加这行 */
+                }
+                .zhe {
+                    margin-left: 8rpx;
+                    font-size: 24rpx;
+                    self-align: end; /* 添加这行 */
+                }
+            }
+            .right-2 {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                .coupon-btn-con {
+                    font-size: 22rpx;
+                    padding: 10rpx 25rpx;
+                    border-radius: 40rpx;
+
+                    color: #fff;
+                    background-image: -webkit-linear-gradient(left, #609dde 20%, #6781da);
+                    &:active {
+                        opacity: 0.7;
+                    }
+                    &.disabled {
+                        background-image: -webkit-linear-gradient(left, #aaa 20%, #aaa);
+                    }
+                }
+            }
+
+            .already-received-box {
+                position: absolute;
+                top: -10rpx;
+                right: -10rpx;
+                width: 80rpx;
+                height: 80rpx;
+                font-size: 20rpx;
+
+                .already-received-content {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    border: 0.5px solid;
+                    border-color: var(--ump-icon);
+                    opacity: 0.5;
+
+                    .already-received-text {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        width: 68rpx;
+                        height: 68rpx;
+                        border-radius: 50%;
+                        background-color: var(--ump-icon);
+                        color: #fff;
+                        text-align: center;
+                        white-space: nowrap;
+                        transform: rotate(12deg);
+
+                        &.is-multiline {
+                            box-sizing: border-box;
+                            padding: 0 14rpx;
+                            line-height: 24rpx;
+                            white-space: normal;
+                            word-break: break-all;
+                        }
+                    }
+                }
+            }
+        }
+
+        .dotted-line {
+            position: absolute;
+            top: 20rpx;
+            bottom: 20rpx;
+            left: 60%;
+            border-left: 1px dashed #ddd; /* 设置为虚线 */
+            transform: translateX(-50%);
+        }
+    }
+
+    .coupon-item::before {
+        content: "";
+        position: absolute;
+        top: 0; /* 将圆形定位到元素顶部的60%位置 */
+        left: 60%; /* 将圆形定位到元素左侧的50%位置 */
+        transform: translate(-50%, -50%); /* 保证圆形正好在这个位置上 */
+        width: 30rpx; /* 圆形的宽度，可以根据需要调整 */
+        height: 30rpx; /* 圆形的高度，可以根据需要调整 */
+        background-color: #fff; /* 圆形的颜色，可以根据需要调整 */
+        border-radius: 50%; /* 使元素成为完美的圆形 */
+    }
+
+    .coupon-item::after {
+        content: "";
+        position: absolute;
+        bottom: -30rpx; /* 将圆形定位到元素底部的40%位置 */
+        left: 60%; /* 将圆形定位到元素左侧的50%位置 */
+        transform: translate(-50%, -50%); /* 保证圆形正好在这个位置上 */
+        width: 30rpx; /* 圆形的宽度，可以根据需要调整 */
+        height: 30rpx; /* 圆形的高度，可以根据需要调整 */
+        background-color: #fff; /* 圆形的颜色，可以根据需要调整 */
+        border-radius: 50%; /* 使元素成为完美的圆形 */
+    }
+}

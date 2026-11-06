@@ -1,0 +1,76 @@
+/* 自旧 pages/member/components/decorate/account/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-account {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 0);
+    padding-right: var(--dec-box-padding, 0);
+    padding-top: var(--dec-box-padding-top, 20rpx);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__container {
+        background-color: var(--dec-bg-color, #ffffff);
+        border-radius: var(--dec-border-radius, 0);
+        overflow: hidden;
+        padding: var(--dec-inner-padding, 30rpx);
+    }
+
+    &__header {
+        margin-bottom: 20rpx;
+    }
+
+    &__title {
+        font-size: 30rpx;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 28rpx 0;
+        border-bottom: 1px solid #f5f5f5;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    &__item-left {
+        display: flex;
+        align-items: center;
+        gap: 20rpx;
+    }
+
+    &__item-icon {
+        width: 40rpx;
+        height: 40rpx;
+        color: #1a1a1a;
+        flex-shrink: 0;
+    }
+
+    &__item-title {
+        font-size: 28rpx;
+        color: #1a1a1a;
+    }
+
+    &__item-right {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+    }
+
+    &__item-subtitle {
+        font-size: 24rpx;
+        color: #999;
+    }
+
+    &__item-arrow {
+        font-size: 24rpx;
+        color: #888b94;
+    }
+}

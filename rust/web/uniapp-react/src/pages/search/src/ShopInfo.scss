@@ -1,0 +1,133 @@
+/* 自旧 shopInfo.vue <style lang="scss" scoped> 原样拷出，去 scoped。
+   .shop-btn :deep(.u-button) 平铺为 .shop-btn .btn（tig-button 按视觉重写为 View 按钮）。 */
+.shop-info-box {
+    padding: 0 20rpx;
+    margin-top: 20rpx;
+}
+.shop-info {
+    background-color: #fff;
+    overflow: hidden;
+    border-radius: 12rpx;
+    padding: 15rpx;
+    width: 100%;
+    .shop-title {
+        width: 100%;
+        display: flex;
+        gap: 15rpx;
+        align-items: center;
+        .shop-title-row {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10rpx;
+            .tipNames {
+                /* 标签过多时换行，最多两行，第二行末尾省略 */
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+                .tipName {
+                    display: inline-block;
+                    align-items: center;
+                    height: 30rpx;
+                    line-height: 30rpx;
+                    font-size: 22rpx;
+                    font-weight: 400;
+                    color: #50607a;
+                    background-color: #f3f6f8;
+                    border-radius: 6rpx;
+                    box-sizing: border-box;
+                    padding: 0 10rpx;
+                    /* -webkit-box 不支持 gap，用 margin 撑标签间距与行距 */
+                    margin: 0 8rpx 8rpx 0;
+                    white-space: nowrap;
+                }
+            }
+        }
+        .shop-logo {
+            width: 80rpx;
+            height: 80rpx;
+            border-radius: 15rpx;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .shop-title-text {
+            max-width: 100%;
+        }
+
+        .shop-logo,
+        .shop-btn {
+            flex-shrink: 0;
+        }
+
+        .shop-btn {
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: fit-content;
+                height: 45rpx;
+                min-width: 100rpx;
+                padding: 0 24rpx;
+                box-sizing: border-box;
+                font-size: 24rpx;
+                line-height: 1;
+                white-space: nowrap;
+                /* 旧 tig-button :plain + :plain-main-color：透明底 + 主题色描边/文字 */
+                background-color: transparent;
+                color: var(--general);
+                border: 1px solid var(--general);
+                border-radius: 50rpx;
+            }
+        }
+    }
+    .shop-desc {
+        font-size: 24rpx;
+        color: #999;
+        padding: 20rpx 0;
+
+        .shop-info-text {
+            &:first-child {
+                padding-right: 18rpx;
+            }
+        }
+    }
+
+    .shop-product {
+        width: 100%;
+
+        .shop-product-scroll {
+            white-space: nowrap;
+            display: flex;
+            column-gap: 16rpx;
+
+            .shop-product-image {
+                flex-shrink: 0;
+                width: 250rpx;
+                height: 250rpx;
+                border-radius: 6rpx;
+                overflow: hidden;
+                position: relative;
+                .product-price {
+                    position: absolute;
+                    z-index: 9;
+                    right: 0;
+                    bottom: 10rpx;
+                    padding: 5rpx 15rpx;
+                    color: #fff;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    border-radius: 30rpx;
+                }
+            }
+        }
+    }
+}
+
+/* 旧工程 App.vue 全局工具类 .line1（单行省略），React 工程无全局定义，组件内补齐 */
+.shop-info .line1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

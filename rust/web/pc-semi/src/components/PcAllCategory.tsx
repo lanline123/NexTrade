@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Down from '@icon-park/react/es/icons/Down';
 import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
+import { ensureCatIcoCss } from '@/lib/cat-icon-css';
 
 type CatNode = Record<string, any> & {
   categoryId?: string | number;
@@ -120,17 +121,7 @@ export default function PcAllCategory({ isWhite = false }: { isWhite?: boolean }
       .then((response) => response.json())
       .then((json) => {
         const raw = json?.data?.catFloor ?? json?.catFloor ?? [];
-        const icoCss = json?.data?.icoDefinedCss ?? json?.icoDefinedCss ?? '';
-        if (typeof icoCss === 'string' && icoCss && typeof document !== 'undefined') {
-          const styleId = 'pc-cat-floor-ico-css';
-          let style = document.getElementById(styleId) as HTMLStyleElement | null;
-          if (!style) {
-            style = document.createElement('style');
-            style.id = styleId;
-            document.head.appendChild(style);
-          }
-          style.textContent = icoCss;
-        }
+        ensureCatIcoCss(json?.data?.icoDefinedCss ?? json?.icoDefinedCss);
         const list: CatFloorItem[] = Array.isArray(raw) ? raw : [];
         const mapped = list
           .map((floor, floorIdx): DisplayFloor => {

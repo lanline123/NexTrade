@@ -1,0 +1,102 @@
+/* 自旧 pages/salesman/src/imageTextCard.vue 的 scoped 样式移植（去 scoped） */
+.image-text-promote-main {
+    padding: 0 32rpx;
+
+    .image-text-promote-box {
+        position: relative;
+    }
+}
+
+.image-text-promote-text {
+    margin: 24rpx 0 0;
+    padding: 18rpx;
+    border-radius: 8rpx;
+    background-color: #f7f8fa;
+    color: #323233;
+    font-size: 24rpx;
+    line-height: 40rpx;
+    overflow: scroll;
+    line-break: anywhere;
+    white-space: pre-line;
+    display: block;
+}
+
+.image-text-promote-image {
+    position: absolute;
+    bottom: -24rpx;
+    left: 0;
+    width: 100%;
+    transform: translateY(100%);
+
+    .image-text-promote-image-box {
+        white-space: nowrap;
+    }
+
+    .promote-image-item {
+        display: inline-block;
+        width: 200rpx;
+        height: 200rpx;
+        border-radius: 6rpx;
+        margin-right: 16rpx;
+        overflow: hidden;
+    }
+}
+
+.image-text-btn {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 20rpx;
+
+    .image-text-btn-box {
+        width: 162rpx;
+        height: 52rpx;
+        font-size: 24rpx;
+        color: #fff;
+        background-color: #f44;
+        border-radius: 32rpx;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .icon-xiazai {
+            display: inline-block;
+            width: 4rpx;
+            height: 18rpx;
+            padding-right: 8rpx;
+            border-bottom: 3rpx solid #fff;
+            position: relative;
+
+            &::after {
+                position: absolute;
+                left: -6rpx;
+                bottom: -2rpx;
+                width: 12rpx;
+                height: 3rpx;
+                background-color: #fff;
+                content: "";
+            }
+        }
+    }
+}
+
+.bottom-menu {
+    box-sizing: content-box;
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+    .bottom-menu-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 24rpx;
+        color: #323233;
+
+        .item-image {
+            width: 96rpx;
+            height: 96rpx;
+            margin-bottom: 10rpx;
+        }
+    }
+}

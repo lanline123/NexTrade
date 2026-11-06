@@ -1,0 +1,158 @@
+/* 自旧 pages/user/invoiceManagement/src/certification.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped，:deep 平铺） */
+.certification {
+    .tip-box {
+        padding: 20rpx;
+        font-size: 26rpx;
+        line-height: 45rpx;
+        background-color: #fff;
+        border-radius: 20rpx;
+        .tig-title {
+            padding: 10rpx 0;
+        }
+    }
+
+    .status-box {
+        background: none repeat scroll 0 0 #fffdee;
+        border: 1px solid #edd28b;
+        padding: 10px;
+        margin-top: 20rpx;
+        font-size: 28rpx;
+
+        .status-text {
+            display: flex;
+            padding-bottom: 15rpx;
+            &:last-child {
+                padding-bottom: 0;
+            }
+        }
+    }
+
+    .empty-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 40rpx 0;
+    }
+}
+
+.specaial-text {
+    color: var(--general);
+}
+
+.disabled-text {
+    height: 100%;
+    line-height: 68rpx;
+    font-size: 24rpx;
+    width: 450rpx;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.certification-content {
+    padding: 20rpx;
+    background-color: #fff;
+    border-radius: 20rpx;
+    margin-top: 20rpx;
+    padding-bottom: 5rpx;
+
+    .content-title {
+        font-weight: bold;
+        color: #666;
+        padding: 15rpx 0;
+    }
+    .agreement-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15rpx 0;
+        font-size: 28rpx;
+    }
+}
+
+/* 旧 uni-forms-item / uni-easyinput 等价自绘（label 宽 180rpx） */
+.form-item {
+    display: flex;
+    align-items: flex-start;
+    min-height: 96rpx;
+    margin-bottom: 30rpx;
+    position: relative;
+
+    .form-label {
+        width: 180rpx;
+        flex-shrink: 0;
+        position: relative;
+        font-size: 26rpx;
+        line-height: 70rpx;
+        color: #333;
+        text-align: left;
+
+        .is-required {
+            color: #dd524d;
+            position: absolute;
+            right: 100%;
+            margin-right: 4rpx;
+        }
+    }
+
+    .form-control {
+        flex: 1;
+        position: relative;
+        padding-left: 20rpx;
+        min-width: 0;
+    }
+
+    .form-input {
+        width: 100%;
+        height: 70rpx;
+        font-size: 26rpx;
+        color: #333;
+        border: none;
+        outline: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    .form-error {
+        position: absolute;
+        top: 90%;
+        left: 18rpx;
+        font-size: 22rpx;
+        line-height: 30rpx;
+        color: #dd524d;
+    }
+}
+
+.readonly {
+    .form-item {
+        margin-bottom: 5rpx;
+    }
+}
+
+.btn-fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+}
+
+.btn-placeholder {
+    height: 120rpx;
+    width: 100%;
+}
+
+.btn-box {
+    padding: 25rpx 15rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+
+    .btn {
+        width: 48%;
+    }
+}

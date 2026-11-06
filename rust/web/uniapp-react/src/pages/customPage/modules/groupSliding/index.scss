@@ -1,0 +1,180 @@
+/* 自旧 groupSliding/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()/v-bind） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+
+.groupsliding {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+    overflow-x: auto;
+    align-items: stretch;
+    &::-webkit-scrollbar {
+        display: none;
+        height: 0;
+    }
+}
+
+.slide-box {
+    margin: 0 10rpx;
+    overflow: hidden;
+    padding: 20rpx 16rpx 16rpx;
+    &:first-child {
+        margin-left: 0;
+    }
+}
+.bg_title {
+    display: block;
+    overflow: hidden;
+    margin-bottom: 20rpx;
+
+    .title_box {
+        display: flex;
+        align-items: center;
+        padding-bottom: 10rpx;
+
+        .img {
+            height: 40rpx;
+            margin-right: 6rpx;
+        }
+    }
+    .p {
+        line-height: 40rpx;
+        font-weight: 600;
+    }
+}
+
+.item-box {
+    padding: 8rpx 16rpx;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .li {
+        flex-shrink: 0;
+        overflow: hidden;
+        margin: 8rpx 0;
+
+        .goods-item {
+            overflow: hidden;
+            display: flex;
+
+            .goods-img {
+                position: relative;
+                max-height: 1000rpx;
+                overflow: hidden;
+                height: 0;
+                background-repeat: no-repeat;
+                background-position: center;
+
+                .img {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    background-size: 100% auto;
+                    overflow: hidden;
+                }
+            }
+
+            .ranking {
+                position: absolute;
+                top: 8rpx;
+                left: 8rpx;
+                width: 40rpx;
+            }
+        }
+
+        .goods-info {
+            padding: 0 10rpx;
+            flex-grow: 1;
+            flex-shrink: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 24rpx;
+
+            .goods-title {
+                line-height: 36rpx;
+                font-size: 28rpx;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+            }
+
+            .tag {
+                margin-top: 10rpx;
+                overflow: hidden;
+
+                .span {
+                    height: 40rpx;
+                    line-height: 40rpx;
+                    font-size: 24rpx;
+                    padding: 0 10rpx;
+                    border-radius: 6rpx;
+                    display: inline-block;
+                    overflow: hidden;
+                    max-width: 260rpx;
+                }
+            }
+
+            .goods-price-box {
+                display: flex;
+                position: relative;
+                flex-wrap: nowrap;
+                align-items: center;
+                justify-content: space-between;
+
+                .price-origin-sale {
+                    display: flex;
+                    -webkit-box-align: baseline;
+                    align-items: baseline;
+                    display: flex;
+                    flex-wrap: wrap;
+                    overflow: hidden;
+                    -webkit-box-flex: 1;
+                    flex: 1;
+
+                    .price-origin-icon {
+                        margin: 6rpx 0;
+                        display: flex;
+                        flex-wrap: wrap;
+                        -webkit-box-align: baseline;
+                        align-items: baseline;
+                        overflow: hidden;
+
+                        .price-icon {
+                            display: flex;
+                            flex-wrap: wrap;
+                            align-items: center;
+                            overflow: hidden;
+                            .price {
+                                margin-right: 10rpx;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                display: flex;
+                                align-items: baseline;
+                            }
+                        }
+
+                        .origin {
+                            margin-right: 20rpx;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-decoration: line-through;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

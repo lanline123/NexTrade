@@ -1,0 +1,156 @@
+/* 自旧 productCarousel/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped；:deep() 平铺） */
+.module-product_carousel {
+    position: relative;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    .pc-module-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+    .pc-body {
+        position: relative;
+        z-index: 1;
+    }
+    .pc-module-title {
+        font-size: 30rpx;
+        font-weight: 600;
+        padding: 0 24rpx;
+        line-height: 1.4;
+    }
+    .pc-swiper {
+        width: 100%;
+    }
+    .pc-cell {
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pc-measure {
+        width: 100%;
+    }
+    .pc-card {
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition:
+            transform 0.3s ease,
+            opacity 0.3s ease;
+        transform: scale(0.85);
+        transform-origin: center center;
+        opacity: 0.8;
+    }
+    .pc-card-active {
+        transform: scale(1);
+        opacity: 1;
+    }
+    .pc-photo {
+        position: relative;
+        width: 100%;
+    }
+    .pc-img-box {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        background: #f5f5f5;
+    }
+    .pc-img {
+        display: block;
+    }
+    .pc-img-fluid {
+        width: 100%;
+        height: auto;
+    }
+    .pc-img-ratio {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .pc-info {
+        display: flex;
+        flex-direction: column;
+        margin-top: 16rpx;
+    }
+    .pc-name {
+        font-size: 26rpx;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-all;
+    }
+    /* O2O 周期购标签（旧 scoped 样式遗留类，模板未使用），按原样保留 */
+    .cycleBuyTag {
+        display: inline-block;
+        color: var(--general);
+        position: relative;
+        padding-right: 20rpx;
+        vertical-align: baseline;
+        &::before {
+            position: absolute;
+            content: "";
+            right: 9rpx;
+            top: 0;
+            width: 2rpx;
+            height: 70%;
+            transform: translateY(22%);
+            background-color: var(--general);
+        }
+    }
+    .pc-desc {
+        font-size: 24rpx;
+        line-height: 1.3;
+        margin-top: 8rpx;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .pc-sales {
+        font-size: 22rpx;
+        line-height: 1.3;
+        margin-top: 8rpx;
+    }
+    .pc-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12rpx;
+        margin-top: 16rpx;
+        flex-wrap: nowrap;
+    }
+    .pc-prices {
+        display: flex;
+        align-items: baseline;
+        gap: 8rpx;
+        flex-wrap: wrap;
+        line-height: 1.1;
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+    .pc-buy {
+        flex-shrink: 0;
+    }
+    .price-current {
+        white-space: nowrap;
+    }
+    .price-market {
+        text-decoration: line-through;
+        // :deep(.price-content) / :deep(.num) 平铺：划线价内部的 FormatPrice 节点继承删除线
+        .price-content,
+        .num {
+            text-decoration: inherit;
+        }
+    }
+}

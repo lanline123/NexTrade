@@ -1,0 +1,18 @@
+/* 自旧 pages/salesman/src/shareQrcode.vue 的 scoped 样式移植（去 scoped） */
+.qrcode-box {
+    height: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 10rpx;
+
+    .qrcode-tip {
+        position: absolute;
+        bottom: -80rpx;
+        color: #e5e5e5;
+        width: 100%;
+        text-align: center;
+        font-size: 24rpx;
+    }
+}

@@ -1,0 +1,58 @@
+/* === 礼品卡选择弹层（旧 pages/giftCard/src/giftCardSelect.vue scoped 样式平移） === */
+.card-list-container {
+    height: 60vh;
+    overflow: hidden;
+    overflow-y: auto;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    .gift-card-item {
+        width: 546rpx;
+        height: 318rpx;
+    }
+    .card-list {
+        height: calc(60vh - 123rpx - 120rpx);
+    }
+    .btn-box {
+        padding: 25rpx;
+    }
+}
+.radio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    padding: 0 30rpx;
+    .radio-item {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        // gap: 20rpx;
+    }
+}
+
+/* 旧 uview radio → 基础组件自绘单选（仅补替换点样式，其余原样保留） */
+.radio-dot {
+    width: 36rpx;
+    height: 36rpx;
+    border: 2rpx solid #c8c9cc;
+    border-radius: 50%;
+    box-sizing: border-box;
+    position: relative;
+
+    &.checked {
+        border-color: var(--general);
+
+        &::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 20rpx;
+            height: 20rpx;
+            border-radius: 50%;
+            background-color: var(--general);
+            transform: translate(-50%, -50%);
+        }
+    }
+}

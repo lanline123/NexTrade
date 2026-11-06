@@ -1,0 +1,263 @@
+/* 自旧 pages/user/comment/info.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 App.vue 全局工具类（新工程未提供，随页面补齐并限定在 .comment-info 内） */
+.comment-info {
+    .flex {
+        display: flex;
+    }
+
+    .align-center {
+        align-items: center;
+    }
+
+    .justify-between {
+        justify-content: space-between;
+    }
+
+    .flex-wrap {
+        flex-wrap: wrap;
+    }
+
+    .line1 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.fixed-placeholder {
+    .fixed-content {
+        width: 100%;
+        min-height: 120rpx;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        box-sizing: content-box;
+        padding-bottom: var(--safe-bottom);
+    }
+
+    .fixed-placeholder-pad {
+        width: 100%;
+        height: 0;
+        padding-top: calc(120rpx + var(--safe-bottom));
+    }
+}
+
+.btn-box {
+    padding: 25rpx;
+
+    .btn {
+        font-size: 28rpx;
+    }
+}
+
+.comment-info {
+    padding: 20rpx;
+    .comment-item {
+        .white-card {
+            background-color: #fff;
+            padding: 20rpx;
+            border-radius: 20rpx;
+            margin-bottom: 20rpx;
+            .product {
+                margin-bottom: 25rpx;
+                .product-img {
+                    width: 130rpx;
+                    height: 130rpx;
+                    background-color: rd; /* 旧实现原样保留（无效色值，视觉上为透明） */
+                    margin-right: 20rpx;
+                    overflow: hidden;
+                }
+                .product-info {
+                    flex: 1;
+                    font-size: 24rpx;
+                    line-height: 32rpx;
+                    .product-price {
+                        color: var(--general);
+                        margin-top: 10rpx;
+                    }
+                }
+            }
+            .comment {
+                .comment-cell {
+                    font-size: 24rpx;
+                    padding-bottom: 20rpx;
+                    .lable-text {
+                        width: 130rpx;
+                    }
+                    .tips {
+                        color: var(--general);
+                    }
+                    .label-list {
+                        .label-item,
+                        .label-edit,
+                        .label-item-txt {
+                            display: inline-block;
+                            background-color: #f5f5f5;
+                            padding: 8rpx 15rpx;
+                            margin-right: 15rpx;
+                            margin-bottom: 15rpx;
+                            border-radius: 5rpx;
+                        }
+                        .active {
+                            background-color: var(--general);
+                            color: #fff;
+                        }
+                        .label-edit-input {
+                            width: 100vw;
+                            padding: 10rpx 0;
+                            input {
+                                width: 68vw;
+                                font-size: 24rpx;
+                                padding: 15rpx;
+                                background-color: #f5f5f5;
+                            }
+                            .btn {
+                                padding: 16rpx 30rpx;
+                                border-radius: 5rpx;
+                            }
+                        }
+                    }
+                    .label-list-edit {
+                        .label-item {
+                            .iconfont {
+                                margin-left: 10rpx;
+                            }
+                        }
+                        .label-edit-input {
+                            input {
+                                width: 200rpx;
+                            }
+                        }
+                    }
+                    .textarea-box {
+                        width: 100%;
+                        padding: 20rpx 20rpx 0rpx;
+                        border-radius: 10rpx;
+                        background-color: #f5f5f5;
+                        textarea {
+                            width: 98%;
+                            font-size: 24rpx;
+                            border: none !important;
+                        }
+                    }
+
+                    .strlangth {
+                        text-align: end;
+                        color: #999;
+                        font-size: 22rpx;
+                        padding: 2rpx 6px 10rpx;
+                    }
+                    .pic-box {
+                        margin-top: 20rpx;
+                        .pic-img {
+                            width: 130rpx;
+                            height: 130rpx;
+                            margin-bottom: 20rpx;
+                            position: relative;
+                            overflow: hidden;
+                            /* 旧元素选择器 uni-image；H5 端可能不命中，保留 */
+                            uni-image {
+                                border-radius: 10rpx;
+                            }
+                            .close-icon {
+                                position: absolute;
+                                top: 4rpx;
+                                right: 4rpx;
+                                width: 38rpx;
+                                height: 38rpx;
+                                border-radius: 50%;
+                                background: rgba(0, 0, 0, 0.6);
+                                z-index: 10;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                .close-icon-text {
+                                    font-size: 22rpx;
+                                    color: #fff;
+                                    line-height: 1;
+                                }
+                            }
+                        }
+                        .add-img {
+                            width: 130rpx;
+                            height: 130rpx;
+                            border: 1rpx solid #c6c4c4;
+                            border-radius: 10rpx;
+                            text-align: center;
+                            line-height: 130rpx;
+                        }
+                    }
+                }
+            }
+        }
+        .anonymous-row {
+            font-size: 24rpx;
+            padding-bottom: 20rpx;
+            color: #999999;
+            .anonymous-text {
+                margin-left: 10rpx;
+            }
+            .anonymous-name {
+                margin-left: 10rpx;
+                color: #666666;
+            }
+        }
+    }
+}
+
+/* 旧 tig-checkbox（up-checkbox，size=20）自绘复刻：圆形勾选框 */
+.tig-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #c8c9cc;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: #fff;
+
+    &.checked {
+        background-color: var(--general);
+        border-color: var(--general);
+    }
+
+    .tig-checkbox-icon {
+        color: #fff;
+        font-size: 12px;
+        line-height: 1;
+    }
+}
+
+/* 旧 App.vue 全局 .sku-card（新工程未提供，随页面补齐并限定在 .comment-info 内） */
+.comment-info .sku-card {
+    display: inline-block;
+    max-width: 100%;
+    box-sizing: border-box;
+    background-color: #f7f8fa;
+    font-size: 23rpx;
+    padding: 10rpx 15rpx;
+    border-radius: 5rpx;
+    color: #969799;
+    margin: 10rpx 0;
+
+    &.nodata {
+        background-color: #fff;
+    }
+
+    .sku-item {
+        display: block;
+        max-width: 100%;
+    }
+
+    .sku-item::before {
+        content: ",";
+        padding-left: 5rpx;
+    }
+
+    .sku-item:first-child::before {
+        content: "";
+    }
+}

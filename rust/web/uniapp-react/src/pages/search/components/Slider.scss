@@ -1,0 +1,63 @@
+/* 自旧 slider.vue <style scoped lang="scss"> 原样拷出，去 scoped */
+.container {
+    padding: 20rpx;
+}
+.title {
+    font-size: 28rpx;
+    font-weight: bold;
+    margin-bottom: 10rpx;
+}
+
+.slider-bar-box {
+    border-radius: 4rpx;
+    padding: 30rpx 0;
+    width: 100%;
+
+    .slider-bar {
+        position: relative;
+        background: #f3f3f3;
+        height: 8rpx;
+        width: calc(100% - 36rpx);
+        left: 50%;
+        transform: translateX(-50%);
+        // transform: translateX(18rpx);
+
+        .active-bar {
+            position: absolute;
+            height: 8rpx;
+            background: #1a1a1a;
+            left: 0;
+            width: 100%;
+            border-radius: 4rpx;
+        }
+
+        .block {
+            position: absolute;
+            top: 50%;
+            width: 26rpx;
+            height: 26rpx;
+            background: #fff;
+            border: 6rpx solid rgb(26, 26, 26);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-sizing: content-box;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+
+            &:hover {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+
+            &:active {
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+        }
+    }
+}
+
+.price-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30rpx;
+    font-size: 25rpx;
+}

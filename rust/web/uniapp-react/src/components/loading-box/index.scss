@@ -1,0 +1,14 @@
+/* 触底加载（自旧 loading-box.vue 移植；v-bind(textColor) 暂无使用方，删除） */
+.loading-box {
+    display: flex;
+    justify-content: center;
+    height: 60rpx;
+    align-items: center;
+
+    .bottomLoading {
+        .loading {
+            width: 50rpx;
+            height: 50rpx;
+        }
+    }
+}

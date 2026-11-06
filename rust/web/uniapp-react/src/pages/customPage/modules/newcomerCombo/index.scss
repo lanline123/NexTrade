@@ -1,0 +1,241 @@
+/* 自旧 newcomerCombo/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped，无 :deep()）
+ * v-bind()：原 .coupon-item::before/::after 使用 var(--dec-bg, #ffffff)，
+ * 对应旧模板 couponItemStyle 内联注入的 --dec-bg CSS 变量，React 版保持同一机制（style 字符串带 --dec-bg） */
+.module-newcomer_combo {
+    .combo-wrap {
+        padding: 20rpx;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    .combo-header {
+        padding: 0 8rpx;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        .header-title {
+            font-size: 32rpx;
+            font-weight: 700;
+            margin-right: 8rpx;
+        }
+        .header-sub {
+            font-size: 28rpx;
+            font-weight: 400;
+        }
+    }
+    .combo-card {
+        margin-top: 20rpx;
+        border-radius: 20rpx;
+        padding: 20rpx 20rpx 24rpx;
+        box-sizing: border-box;
+    }
+    .card-head {
+        display: flex;
+        align-items: center;
+        height: 48rpx;
+        margin-bottom: 16rpx;
+        .card-badge {
+            font-size: 26rpx;
+            line-height: 1;
+            padding: 6rpx 16rpx;
+            border-radius: 20rpx;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .card-title {
+            font-size: 28rpx;
+            font-weight: 600;
+            margin-left: 12rpx;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .more-link {
+            font-size: 24rpx;
+            white-space: nowrap;
+        }
+        .more-link-pill {
+            padding: 8rpx 20rpx;
+            border-radius: 20rpx;
+            font-size: 26rpx;
+            font-weight: 500;
+        }
+    }
+    .product-scroll {
+        width: 100%;
+        white-space: nowrap;
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    }
+    .product-track {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    .product-item {
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+    }
+    .product-photo {
+        position: relative;
+        width: 100%;
+        overflow: visible;
+    }
+    .product-img-wrap {
+        overflow: hidden;
+        box-sizing: border-box;
+        background-color: #fafafa;
+    }
+    .product-name {
+        font-size: 24rpx;
+        line-height: 1.3;
+        margin-top: 12rpx;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .product-brief-overlap {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        padding: 4rpx 12rpx;
+        font-size: 24rpx;
+        line-height: 1.2;
+        border-radius: 8rpx;
+        font-weight: 500;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        box-sizing: border-box;
+        z-index: 5;
+        box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
+    }
+    .product-bottom {
+        padding: 20rpx 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8rpx;
+    }
+    .product-prices {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+        flex: 1;
+        min-width: 0;
+        .price-current {
+            font-weight: 700;
+            .cur-prefix {
+                font-size: 20rpx;
+                margin-right: 4rpx;
+            }
+            .cur-num {
+                font-size: 26rpx;
+            }
+        }
+        .price-market {
+            font-size: 20rpx;
+            text-decoration: line-through;
+            margin-top: 4rpx;
+            font-weight: 400;
+        }
+    }
+    .buy-btn {
+        flex-shrink: 0;
+        width: 40rpx;
+        height: 40rpx;
+        line-height: 40rpx;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 28rpx;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        .iconfont-h5 {
+            font-size: 20rpx;
+            line-height: 1;
+        }
+    }
+    .buy-btn-style__5,
+    .buy-btn-style__6,
+    .buy-btn-style__7,
+    .buy-btn-style__8 {
+        width: auto;
+        height: 40rpx;
+        line-height: 40rpx;
+        padding: 0 16rpx;
+        font-size: 20rpx;
+        border-radius: 20rpx;
+    }
+    .coupon-row-scroll {
+        width: 100%;
+        white-space: nowrap;
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    }
+    .coupon-row {
+        display: flex;
+        gap: 16rpx;
+        flex-wrap: nowrap;
+    }
+    .coupon-item {
+        min-width: 0;
+        padding: 24rpx 8rpx 20rpx;
+        border-radius: 12rpx;
+        text-align: center;
+        box-sizing: border-box;
+        position: relative;
+        overflow: visible;
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 16rpx;
+            height: 16rpx;
+            background-color: var(--dec-bg, #ffffff);
+            border-radius: 50%;
+            z-index: 2;
+        }
+        &::before {
+            left: -8rpx;
+            transform: translateY(-50%);
+        }
+        &::after {
+            right: -8rpx;
+            transform: translateY(-50%);
+        }
+    }
+    .coupon-amount {
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        .amount-prefix {
+            font-size: 22rpx;
+            margin-right: 2rpx;
+            line-height: 1.1;
+            margin-bottom: 4rpx;
+        }
+        .amount-num {
+            font-size: 56rpx;
+            line-height: 1;
+        }
+    }
+    .coupon-condition {
+        margin-top: 10rpx;
+        font-size: 24rpx;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

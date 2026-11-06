@@ -1,0 +1,61 @@
+/* 自旧 pages/user/src/pickerDatePop.vue 与 selectDate.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.picker-box {
+    height: 50vh;
+    width: 100%;
+
+    .picker-view {
+        height: 400rpx;
+        margin-top: 20rpx;
+    }
+    .item {
+        line-height: 100rpx;
+        text-align: center;
+        font-size: 30rpx;
+    }
+}
+
+.picker-box-header {
+    display: flex;
+    margin-top: 30rpx;
+    .header-item {
+        flex: 1;
+        padding: 15px;
+        position: relative;
+        &.active::after {
+            content: "";
+            position: absolute;
+            height: 2px;
+            width: 90%;
+            background-color: var(--general);
+            bottom: 0;
+            right: 0;
+        }
+        .header-item-text {
+            color: #999;
+            line-height: 18px;
+        }
+
+        .header-item-value {
+            font-size: 20px;
+            margin-top: 6px;
+            line-height: 28px;
+            color: #333;
+        }
+    }
+}
+
+/* 旧 pickerDatePop 的 .btn-box（tig-fixed-placeholder 内主色按钮） */
+.btn-box {
+    padding: 25rpx;
+
+    .picker-btn {
+        height: 88rpx;
+        border-radius: 44rpx;
+        background-color: var(--main-bg);
+        color: var(--main-text);
+        font-size: 30rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,36 @@
+/* === 买家秀分享（旧 buyerShowShare.vue style 逐条平移，去 scoped） === */
+.share-title {
+    height: 100rpx;
+    line-height: 100rpx;
+    text-align: center;
+    font-weight: bold;
+}
+
+.share-content {
+    display: flex;
+    padding-bottom: 30rpx;
+
+    .share-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10rpx;
+
+        &:not(:last-child) {
+            border-right: 1rpx solid #ddd;
+        }
+
+        .iconfont,
+        .iconfont-h5 {
+            font-size: 70rpx;
+            color: #777;
+        }
+
+        .iconfont-h5 {
+            font-size: 60rpx;
+            padding-bottom: 15rpx;
+        }
+    }
+}

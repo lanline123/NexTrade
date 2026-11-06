@@ -1,0 +1,52 @@
+/* 自旧 pages/coupon/search.vue 的 <style> + <style lang="scss" scoped> 拷出（去 scoped） */
+page {
+    background-color: #fff;
+}
+
+.coupon-search {
+    padding: 20rpx;
+}
+
+.search_init_box .title {
+    font-size: 24rpx;
+    color: #333;
+    margin: 50rpx 30rpx 25rpx 30rpx;
+    font-weight: bold;
+    position: relative;
+}
+.search_init_box .list {
+    padding-left: 10rpx;
+}
+.search_init_box .list .item {
+    font-size: 24rpx;
+    color: #666;
+    padding: 0 28rpx;
+    height: 50rpx;
+    border-radius: 30rpx;
+    line-height: 50rpx;
+    margin: 0 0 20rpx 20rpx;
+    background: #f6f6f6;
+}
+
+.clear_history {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-weight: normal;
+    font-size: 26rpx;
+    padding: 20rpx;
+    top: -20rpx;
+}
+
+/* ===== 旧 up-search action-text / aca 排版类等价补充 ===== */
+.coupon-search-action {
+    font-size: 26rpx;
+    color: #606266;
+    padding-left: 20rpx;
+    line-height: 1;
+}
+
+.acea-row {
+    display: flex;
+    flex-wrap: wrap;
+}

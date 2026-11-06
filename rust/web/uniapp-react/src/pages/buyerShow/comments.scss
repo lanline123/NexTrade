@@ -1,0 +1,9 @@
+/* === 买家秀评论（旧 comments.vue 的 <style scoped lang="scss"> 为空块，这里仅补评论区标题的默认排版，保持与详情页一致） === */
+.commentsTotal {
+    padding: 0 20rpx;
+    font-weight: 500;
+    font-size: 28rpx;
+    color: #2a2a2a;
+    line-height: 42rpx;
+    margin-bottom: 10rpx;
+}

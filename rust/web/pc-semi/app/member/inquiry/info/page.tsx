@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getInquiryDetail, getPcHeader } from '@/lib/api';
 import InquiryReplyClient from '@/components/InquiryReplyClient';
+import MemberShell from '@/components/MemberShell';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '咨询详情 · 万物新生', robots: { index: false, follow: false } };
@@ -29,44 +29,42 @@ export default async function InquiryInfoPage({ searchParams }: { searchParams?:
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <div className="pc-container">
-          <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/member">会员中心</Link><span>/</span><Link href="/member/inquiry">商品咨询</Link><span>/</span><span>咨询详情</span></nav>
-          <h1 className="pc-cart-title">咨询详情</h1>
-          <section className="inquiry-detail">
-            {/* 源码 member/inquiry/Info.vue 状态卡 */}
-            <div className={`inquiry-detail__status is-${status}`}>
-              <span className="inquiry-detail__status-icon">{STATUS[status]?.icon || '⏳'}</span>
-              {STATUS[status]?.text || item.statusText || '待回复'}
-            </div>
-            <div className="inquiry-detail__product">
-              <img src={item.product?.picThumb || item.product?.picUrl || ''} alt={item.product?.productName || ''} />
-              <div>
-                <b>{item.product?.productName || '商品'}</b>
-                {Number(item.product?.marketPrice || 0) > 0 ? (
-                  <span className="inquiry-detail__market">市场价 ¥ {Number(item.product.marketPrice).toFixed(2)}</span>
-                ) : null}
-                {Number(item.product?.productPrice || 0) > 0 ? (
-                  <span className="inquiry-detail__shop-price">¥ {Number(item.product.productPrice).toFixed(2)}</span>
-                ) : null}
-                <span>{item.createTime || ''}</span>
-              </div>
-            </div>
-            <div className="inquiry-detail__content"><b>询价内容</b><p>{item.content || '-'}</p></div>
-            {/* 源码：询价时间 / 联系人 / 联系方式 */}
-            <dl className="inquiry-detail__meta">
-              <div><dt>询价时间</dt><dd>{item.createTime || '-'}</dd></div>
-              <div><dt>联系人</dt><dd>{item.contactName || '-'}</dd></div>
-              <div><dt>联系方式</dt><dd>{item.mobile || '-'}</dd></div>
-            </dl>
-            <div className="inquiry-detail__replies">
-              <b>回复</b>
-              {Array.isArray(replies) && replies.length ? replies.map((reply: any, index: number) => (
-                <div key={index} className="inquiry-reply"><p>{reply.content || ''}</p><span>{reply.createTime || ''}</span></div>
-              )) : <p className="inquiry-no-reply">暂无回复</p>}
-            </div>
-            <InquiryReplyClient id={id} />
-          </section>
+        <MemberShell title="咨询详情">
+              <section className="inquiry-detail">
+      {/* 源码 member/inquiry/Info.vue 状态卡 */}
+      <div className={`inquiry-detail__status is-${status}`}>
+        <span className="inquiry-detail__status-icon">{STATUS[status]?.icon || '⏳'}</span>
+        {STATUS[status]?.text || item.statusText || '待回复'}
+      </div>
+      <div className="inquiry-detail__product">
+        <img src={item.product?.picThumb || item.product?.picUrl || ''} alt={item.product?.productName || ''} />
+        <div>
+          <b>{item.product?.productName || '商品'}</b>
+          {Number(item.product?.marketPrice || 0) > 0 ? (
+            <span className="inquiry-detail__market">市场价 ¥ {Number(item.product.marketPrice).toFixed(2)}</span>
+          ) : null}
+          {Number(item.product?.productPrice || 0) > 0 ? (
+            <span className="inquiry-detail__shop-price">¥ {Number(item.product.productPrice).toFixed(2)}</span>
+          ) : null}
+          <span>{item.createTime || ''}</span>
         </div>
+      </div>
+      <div className="inquiry-detail__content"><b>询价内容</b><p>{item.content || '-'}</p></div>
+      {/* 源码：询价时间 / 联系人 / 联系方式 */}
+      <dl className="inquiry-detail__meta">
+        <div><dt>询价时间</dt><dd>{item.createTime || '-'}</dd></div>
+        <div><dt>联系人</dt><dd>{item.contactName || '-'}</dd></div>
+        <div><dt>联系方式</dt><dd>{item.mobile || '-'}</dd></div>
+      </dl>
+      <div className="inquiry-detail__replies">
+        <b>回复</b>
+        {Array.isArray(replies) && replies.length ? replies.map((reply: any, index: number) => (
+          <div key={index} className="inquiry-reply"><p>{reply.content || ''}</p><span>{reply.createTime || ''}</span></div>
+        )) : <p className="inquiry-no-reply">暂无回复</p>}
+      </div>
+      <InquiryReplyClient id={id} />
+    </section>
+        </MemberShell>
       </main>
       <PcFooter />
     </>

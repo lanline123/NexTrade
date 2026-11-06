@@ -1,0 +1,110 @@
+/* 旧全局 page 背景（H5 可能不命中，保留） */
+page {
+    background-color: #fff;
+}
+
+.leave-message {
+    height: 100%;
+    padding: 0 20rpx;
+
+    /* 旧 uni-forms-item（label-width=170rpx）等价表单行 */
+    .form-row {
+        display: flex;
+        align-items: flex-start;
+        margin: 10rpx 25rpx 10rpx 25rpx;
+        padding: 20rpx 0;
+        border-bottom: 1px solid #eee;
+
+        &:last-child {
+            border-bottom: none;
+            padding-bottom: 20rpx;
+        }
+
+        .form-row-label {
+            width: 170rpx;
+            flex-shrink: 0;
+            font-size: 28rpx;
+            color: #333;
+        }
+
+        > :not(.form-row-label) {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+
+    .form-textarea {
+        width: 100%;
+        min-height: 50rpx;
+        font-size: 26rpx;
+        line-height: 44rpx;
+    }
+
+    .upload-content {
+        padding-top: 10rpx;
+
+        .upload-title {
+            font-size: 22rpx;
+            color: #9c9c9c;
+            padding-bottom: 20rpx;
+        }
+    }
+}
+
+/* 旧 tig-fixed-placeholder 等价底栏 */
+.leave-message-btn-fixed {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    padding-bottom: var(--safe-bottom);
+    box-sizing: content-box;
+}
+
+.leave-message-btn-placeholder {
+    height: calc(120rpx + var(--safe-bottom));
+    width: 100%;
+}
+
+.leave-message-btn {
+    padding: 25rpx;
+
+    .btn {
+        font-size: 28rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 70rpx;
+        background-color: var(--general);
+        color: #fff;
+        border-radius: 35rpx;
+
+        &:active {
+            opacity: 0.7;
+        }
+    }
+
+    .btn-box {
+        width: 100%;
+        height: 80rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--general);
+        color: #fff;
+
+        &:active {
+            opacity: 0.7;
+        }
+    }
+}
+
+.uni-forms-item__error {
+    top: 75%;
+}
+.uni-progress-bar {
+    display: none;
+}

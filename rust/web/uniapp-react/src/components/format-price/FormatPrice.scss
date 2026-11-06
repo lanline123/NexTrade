@@ -1,0 +1,36 @@
+/* 自旧 format-price.vue <style lang="scss" scoped> 平铺移植 */
+.price-content {
+    height: auto;
+    display: inline-block;
+
+    .util {
+        padding-right: 3rpx;
+    }
+
+    .num {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .util,
+    .decimal {
+        height: inherit;
+    }
+
+    &.bottom {
+        .num {
+            justify-content: flex-end;
+        }
+
+        .util,
+        .decimal {
+            padding-bottom: 2rpx;
+        }
+    }
+
+    .b2b-text {
+        font-size: 22rpx !important;
+        font-weight: normal !important;
+    }
+}

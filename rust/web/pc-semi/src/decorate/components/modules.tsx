@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import { ensureCatIcoCss } from '@/lib/cat-icon-css';
 import type { DecorateModule, PageModule } from '../types';
 import { imageUrl } from './common';
 import { CONTRACT_ADAPTERS, FLAT_FRAME, linkHref, type ContractRenderPlan } from './contract';
@@ -392,6 +393,7 @@ function useHeroCatItems(): HeroCatItem[] {
       .then((response) => response.json())
       .then((json) => {
         if (!alive) return;
+        ensureCatIcoCss(json?.data?.icoDefinedCss ?? json?.icoDefinedCss);
         const raw = json?.data?.catFloor ?? json?.catFloor ?? [];
         const list: HeroCatItem[] = Array.isArray(raw)
           ? raw
@@ -949,22 +951,11 @@ function HomeHero({ module }: ModuleProps) {
   const promoCards = allCards.slice(0, 2);
   const productCards = allCards.slice(2, 6);
 
-  /* ---- 左侧类目：旧版 commonStore.allCate（楼层接口）；失败时回退装修配置 ---- */
+  /* ---- 左侧类目：对齐旧版 PcHomeHero.displayCategories —— 只取分类楼层接口（commonStore.allCate），
+     装修配置的 left.categories 在原版并不参与渲染。若用配置兜底，首屏会先闪出配置里的示例分类
+     （「女装 / 男装 / 内衣」等），拿到接口数据后才被替换。 */
   const apiCatItems = useHeroCatItems();
-  const fallbackCategories: any[] = Array.isArray(left.categories) ? left.categories : [];
-  const displayCategories: HeroCatItem[] = (apiCatItems.length
-    ? apiCatItems
-    : fallbackCategories.map((item: any, index: number) => ({
-        id: String(item.picId ?? item.picTitle ?? index),
-        title: item.picTitle || '类目',
-        iconFont: item.floorIcoFont,
-        imageUrl: item.imageUrl || item.picUrl || '',
-        useImage: Number(item.useImage ?? (item.imageUrl || item.picUrl ? 1 : 0)),
-        catFloorNames: [],
-        catList: [],
-        entryLink: navHref(item.picLink) || '',
-      }))
-  ).slice(0, showCount);
+  const displayCategories: HeroCatItem[] = apiCatItems.slice(0, showCount);
 
   const leftRef = useRef<HTMLDivElement | null>(null);
   const hideTimer = useRef<number | null>(null);
@@ -1063,7 +1054,7 @@ function HomeHero({ module }: ModuleProps) {
     '--dec-gap': `${px(style.gap, 16)}px`,
     '--dec-left-width': `${px(style.leftWidth, 220)}px`,
     '--dec-right-width': `${px(style.rightWidth, 260)}px`,
-    '--dec-panel-bg': style.panelBackgroundColor ?? '#ffffff',
+    '--dec-panel-bg': style.panelBackgroundColor || '#f5f6fa',
     '--dec-panel-radius': `${px(style.panelRadius, 8)}px`,
     '--dec-left-bg': left.backgroundColor ?? '#ffffff',
     '--dec-left-text-color': left.textColor ?? '#333333',

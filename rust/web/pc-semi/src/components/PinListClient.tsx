@@ -176,7 +176,7 @@ export default function PinListClient() {
                 ) : null}
               </td>
               <td>
-                <Link className="pin-link" href={`/member/pin/Group?id=${item.grouponPromotionRecordId}`} target="_blank">团购详情</Link>
+                <Link className="pin-link" href={`/member/pin/group?id=${item.grouponPromotionRecordId}`} target="_blank">团购详情</Link>
               </td>
             </tr>
           </tbody>

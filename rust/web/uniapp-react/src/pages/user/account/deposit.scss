@@ -1,0 +1,80 @@
+/* 自旧 pages/user/account/src/deposit.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped，:deep 平铺） */
+.recharge-box {
+    margin: 0 10px;
+    margin-top: 20px;
+    border-radius: 10rpx;
+    background: #fff;
+    .recharge-wrap {
+        padding: 20rpx;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        .recharge-item {
+            width: 31.3%;
+            border: 2rpx solid #eee;
+            padding: 30rpx 0;
+            text-align: center;
+            font-size: 28rpx;
+            border-radius: 10rpx;
+            color: var(--general);
+            margin: 1%;
+            &.selected {
+                border: 2rpx solid var(--general);
+            }
+            &:last-child {
+                background: #fff;
+            }
+            &:last-child .recharge-amount {
+                margin: 0 20rpx 4rpx 20rpx;
+            }
+            .recharge-amount {
+                font-weight: 500;
+                font-size: 32rpx;
+            }
+            .recharge-give {
+                font-size: 22rpx;
+                font-weight: 300;
+            }
+        }
+    }
+}
+
+/* 原 :deep(.uni-easyinput__content-input) / .uniui-clear / .is-input-border 等
+   → up-input 已按原视觉用 Taro Input 自绘 */
+.amount-input {
+    height: 40rpx;
+    line-height: 40rpx;
+    font-size: 32rpx;
+    text-align: center;
+    color: var(--general);
+    width: 100%;
+}
+
+.btn-fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+}
+
+.btn-placeholder {
+    height: 120rpx;
+    width: 100%;
+}
+
+.btn-box {
+    padding: 25rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 20rpx;
+
+    .btn {
+        width: 48%;
+        font-size: 28rpx;
+    }
+}

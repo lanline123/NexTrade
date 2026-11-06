@@ -1,0 +1,14 @@
+/* NutUI-React 默认主题：全套 --nutui-* CSS 变量挂载在 :root, page 上。
+   后续换肤直接覆盖这些变量（如把后台下发的主题色写入 --nutui-brand-color）。 */
+@import "@nutui/nutui-react-taro/dist/styles/theme-default.scss";
+
+page {
+    font-size: 28rpx;
+    background-color: #f5f5f5;
+    color: #333;
+    box-sizing: border-box;
+}
+
+view {
+    box-sizing: border-box;
+}

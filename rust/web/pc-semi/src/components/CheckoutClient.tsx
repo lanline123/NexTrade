@@ -41,6 +41,8 @@ interface CheckoutItem {
   productPrice?: string | number;
   quantity?: number;
   skuData?: Array<{ name?: string; value?: string }>;
+  shopId?: number;
+  seckillPrice?: number | string;
   shopTitle?: string;
 }
 
@@ -528,6 +530,10 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               <img src={item.picThumb || ''} alt={item.productName || ''} />
               <div className="pc-checkout__item-main">
                 <span>{item.productName}</span>
+                {!item.shopId ? <em className="pc-checkout__self-tag">自营</em> : null}
+                {item.seckillPrice ? (
+                  <small className="pc-checkout__seckill">秒杀价 ¥ {money(item.seckillPrice)}</small>
+                ) : null}
                 {item.skuData?.length ? (
                   <small>{item.skuData.map((sku) => `${sku.name || ''}：${sku.value || ''}`).join(' / ')}</small>
                 ) : null}
@@ -544,7 +550,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             shippingData[String(group.shopId)] ||
             ((data?.item?.storeShippingType as Record<string, ShippingTypeOption[]>) || {})[String(group.shopId)] ||
             [];
-          if (!options.length) return null;
+          if (!options.length) {
+            return (
+              <div key={`shipping-${group.shopId}`} className="pc-checkout__shipping">
+                <span>{group.shopTitle || '配送方式'}：</span>
+                <em className="pc-checkout__no-shipping">无需配送</em>
+              </div>
+            );
+          }
           const selected = (shippingType as Record<string, { typeId?: number }>)[String(group.shopId)];
           return (
             <div key={`shipping-${group.shopId}`} className="pc-checkout__shipping">
@@ -599,9 +612,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
 
       {!giftCardMode ? (
         <Card className="pc-checkout__card" title="抵扣">
-          {flowType === 1 && availablePoints > 0 ? (
+          {/* 源码 order/check.vue：积分（使用积分 / 如何获得积分） */}
+          {flowType === 1 ? (
             <div className="pc-checkout__deduct">
-              <span>积分（可用 {availablePoints}）</span>
+              <div className="pc-checkout__deduct-label">
+                <span>使用积分</span>
+                <span className="pc-checkout__deduct-sub">当前账户共 {availablePoints} 积分</span>
+                <button type="button" className="pc-checkout__deduct-help">如何获得积分</button>
+              </div>
               <InputNumber
                 min={0}
                 max={availablePoints}
@@ -610,13 +628,23 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               />
             </div>
           ) : null}
+
+          {/* 源码：使用余额 / 当前可用额度 / 当前账户余额 */}
           {availableBalance > 0 ? (
             <div className="pc-checkout__deduct">
-              <span>余额（可用 ¥{money(availableBalance)}）</span>
+              <div className="pc-checkout__deduct-label">
+                <span>使用余额</span>
+                <span className="pc-checkout__deduct-sub">当前账户余额 ¥{money(availableBalance)}</span>
+              </div>
               <InputNumber min={0} max={availableBalance} value={useBalance} onChange={(value) => changeBalance(Number(value) || 0)} />
             </div>
           ) : null}
-          {availablePoints <= 0 && availableBalance <= 0 ? <p>暂无可用积分或余额抵扣</p> : null}
+
+          {typeof creditInfo?.availableAmount !== 'undefined' ? (
+            <div className="pc-checkout__deduct-tip">当前可用额度 ¥{money(creditInfo?.availableAmount)}</div>
+          ) : null}
+
+          {availablePoints <= 0 && availableBalance <= 0 ? <p className="pc-checkout__tips">暂无可用积分或余额抵扣</p> : null}
         </Card>
       ) : null}
 
@@ -673,7 +701,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
 
       <Card className="pc-checkout__card" title="费用明细">
         <div className="pc-checkout__fees">
-          <div><span>商品总价</span><b>¥ {money(total.productAmount)}</b></div>
+          <div><span>商品总额</span><b>¥ {money(total.productAmount)}</b></div>
           {Number(total.shippingFee || 0) > 0 ? (
             <div className="pc-checkout__fee-row">
               <span>运费</span>
@@ -681,7 +709,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             </div>
           ) : null}
           {Number(total.serviceFee || 0) > 0 ? <div><span>附加费用</span><b>+ ¥ {money(total.serviceFee)}</b></div> : null}
-          {Number(total.taxRate || 0) > 0 ? <div><span>税费</span><b>¥ {money(total.taxRateAmount)}</b></div> : null}
+          {Number(total.taxRate || 0) > 0 ? (
+            <>
+              <div><span>税费</span><b>¥ {money(total.taxRateAmount)}</b></div>
+              <p className="pc-checkout__tips">税费按所选地址所在国家/地区政策计算。</p>
+              <p className="pc-checkout__tips">税费会随订单一起支付，由商城统一代缴。</p>
+              <p className="pc-checkout__tips">选择地址后，系统自动计算税费，结算页显示税费金额。</p>
+            </>
+          ) : null}
 
           {Number(total.discounts || 0) > 0 ? <div className="pc-checkout__fee-discount"><span>共优惠</span><b>- ¥ {money(total.discounts)}</b></div> : null}
           {Number(total.discountCouponAmount || 0) > 0 ? <div className="pc-checkout__fee-sub"><span>优惠券</span><b>- ¥ {money(total.discountCouponAmount)}</b></div> : null}
@@ -712,7 +747,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             disabled={!items.length || (needAddress && !addressId) || !payTypeId}
             onClick={submit}
           >
-            提交订单
+            {Number(total.actualPayDepositAmount || 0) > 0 ? '支付定金' : '立即下单'}
           </Button>
         </div>
       </div>

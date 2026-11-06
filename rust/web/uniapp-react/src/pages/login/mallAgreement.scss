@@ -1,0 +1,23 @@
+/* 自旧 pages/login/mallAgreement.vue 两段 <style> 原样拷出，去 scoped、:deep() 平铺 */
+/* <style>（page 级） */
+page {
+    background-color: #fff;
+}
+
+/* <style lang="scss" scoped> */
+.rich-box {
+    padding: 24rpx 24rpx;
+
+    .rich-text {
+        overflow: hidden;
+        p {
+            font-size: 24rpx;
+            line-height: 2;
+        }
+        img {
+            max-width: 100%;
+            width: 100%;
+            display: block;
+        }
+    }
+}

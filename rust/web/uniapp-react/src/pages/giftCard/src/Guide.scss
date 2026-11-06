@@ -1,0 +1,76 @@
+/* === 分享引导遮罩（旧 pages/giftCard/src/guide.vue scoped 样式平移） === */
+.guide-box {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 88;
+    top: 0;
+    left: 0;
+
+    /* 旧 uni-transition（fade + slide-top）→ CSS 动画等价替代 */
+    .transition {
+        animation: guide-fade 0.3s ease both;
+    }
+
+    .guide-content {
+        color: #fff;
+        font-size: 28rpx;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: fixed;
+        width: 100%;
+        top: 20rpx;
+        // 旧 #ifdef MP-WEIXIN
+        &.is-weapp {
+            top: var(--guide-content-top);
+        }
+
+        .guide-text {
+            font-weight: bold;
+            padding-bottom: 20rpx;
+            font-size: 30rpx;
+        }
+    }
+
+    .guide-img-box {
+        display: flex;
+        flex-direction: row;
+        padding-right: 50rpx;
+        padding-bottom: 20rpx;
+        width: 100%;
+        justify-content: flex-end;
+        .guide-img {
+            width: 166rpx;
+            height: 296rpx;
+            animation: guide-slide-top 0.3s ease both;
+        }
+    }
+}
+
+/* 旧 #ifdef MP-WEIXIN：箭头按胶囊宽度右缩进 */
+.guide-box .guide-content.is-weapp .guide-img-box {
+    padding-right: var(--guide-img-padding-right);
+}
+
+@keyframes guide-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes guide-slide-top {
+    from {
+        transform: translateY(-30rpx);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

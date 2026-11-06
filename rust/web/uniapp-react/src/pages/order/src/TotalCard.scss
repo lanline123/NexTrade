@@ -1,0 +1,142 @@
+/* 自旧 pages/order/src/totalCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.overstriking {
+    font-weight: 700;
+}
+
+.total-card-box {
+    background-color: #fff;
+    box-sizing: border-box;
+    font-size: 24.5rpx;
+    margin-bottom: 14rpx;
+
+    .total-card {
+        display: flex;
+        flex-direction: column;
+
+        .total-card-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14rpx 28rpx;
+
+            &.unpaid-amount-box {
+                position: relative;
+                padding-top: 26rpx;
+                padding-bottom: 26rpx;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background-color: #f0f1f2;
+                    transform: scaleY(0.5);
+                    transform-origin: 0 0;
+                    pointer-events: none;
+                }
+            }
+
+            .discount-label {
+                display: flex;
+                align-items: center;
+            }
+
+            .discount-info-icon {
+                padding-left: 4rpx;
+                font-size: 22rpx;
+                color: #969799;
+            }
+
+            .shipping-label {
+                display: flex;
+                align-items: baseline;
+                column-gap: 6rpx;
+
+                .icon-wenhao-xianxingyuankuang {
+                    font-size: 26rpx;
+                }
+            }
+
+            .tax-label {
+                display: flex;
+                align-items: center;
+                column-gap: 10rpx;
+            }
+
+            .tax-tip-trigger {
+                width: 28rpx;
+                height: 28rpx;
+                line-height: 28rpx;
+                text-align: center;
+                border-radius: 50%;
+                font-size: 20rpx;
+                color: #8b8e97;
+                border: 1rpx solid #c6c7cc;
+                box-sizing: border-box;
+            }
+
+            .unpaid-amount {
+                display: flex;
+                align-items: center;
+
+                .price-info-discount {
+                    display: flex;
+                    align-items: baseline;
+                    color: var(--general);
+                    margin-left: 5rpx;
+                    font-size: 24.5rpx;
+                    line-height: 32rpx;
+                }
+
+                .price-info-total {
+                    height: 32rpx;
+                    line-height: 32rpx;
+                    font-size: 32rpx;
+                    color: rgb(26, 26, 26);
+                    margin-left: 14rpx;
+                }
+            }
+        }
+
+        .card-item-label-text {
+            margin-right: 7rpx;
+        }
+    }
+
+    .tax-popup {
+        background: #fff;
+        padding: 32rpx 28rpx 46rpx;
+        min-height: 420rpx;
+        box-sizing: border-box;
+        padding-bottom: calc(46rpx + env(safe-area-inset-bottom));
+        padding-bottom: calc(46rpx + constant(safe-area-inset-bottom));
+
+        .tax-popup-title {
+            font-size: 30rpx;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20rpx;
+        }
+
+        .tax-popup-content {
+            font-size: 26rpx;
+            line-height: 40rpx;
+            color: #4b4d52;
+        }
+    }
+
+    .total-card-tig {
+        display: flex;
+        justify-content: flex-end;
+        font-size: 24rpx;
+        color: #999;
+        padding: 0 28rpx 14rpx;
+
+        .special-text {
+            color: var(--general);
+            padding: 0 5rpx;
+        }
+    }
+}

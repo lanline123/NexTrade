@@ -8,10 +8,11 @@
  * - 评价入口受后台 productCommentEnabled 控制（D1146）
  * - 头像空时回退 defaultAvatar（config/base）
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import User from '@icon-park/react/es/icons/User';
 import Down from '@icon-park/react/es/icons/Down';
+import { readHeaderBootstrap } from '@/lib/header-bootstrap';
 
 interface MineUser {
   nickname?: string;
@@ -20,13 +21,37 @@ interface MineUser {
   [key: string]: unknown;
 }
 
-export default function PcMine({ isWhite = false }: { isWhite?: boolean }) {
+/** hover 关闭延迟（对齐源码 el-popover :hide-after="300"；弹层与触发区之间由 CSS ::before 桥接） */
+const MINE_HIDE_DELAY_MS = 300;
+
+export default function PcMine({
+  isWhite = false,
+  baseConfig = null,
+}: {
+  isWhite?: boolean;
+  /** 服务端预取的站点配置（默认头像 / 评价开关），保证首屏与其他头部模块同时就绪 */
+  baseConfig?: Record<string, any> | null;
+}) {
   const [user, setUser] = useState<MineUser | null>(null);
   const [open, setOpen] = useState(false);
-  const [defaultAvatar, setDefaultAvatar] = useState('');
-  const [commentEnabled, setCommentEnabled] = useState(1);
+  const [defaultAvatar, setDefaultAvatar] = useState(String(baseConfig?.defaultAvatar || ''));
+  const [commentEnabled, setCommentEnabled] = useState(Number(baseConfig?.productCommentEnabled ?? 1));
+  const hoverTimer = useRef<number | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    // 站点配置优先用服务端注入的 props，避免头像/评价开关再等一次客户端请求
+    const cachedBase = baseConfig || readHeaderBootstrap()?.base;
+    if (cachedBase) {
+      setDefaultAvatar(String(cachedBase.defaultAvatar || ''));
+      setCommentEnabled(Number(cachedBase.productCommentEnabled ?? 1));
+      return;
+    }
     fetch('/api/common/config/base')
       .then((response) => response.json())
       .then((json) => {
@@ -60,6 +85,14 @@ export default function PcMine({ isWhite = false }: { isWhite?: boolean }) {
     window.location.href = '/';
   };
 
+  const scheduleClose = () => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => setOpen(false), MINE_HIDE_DELAY_MS);
+  };
+  const cancelClose = () => {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+  };
+
   const avatarSrc = String(user?.avatar || defaultAvatar || '');
   const name = String(user?.nickname || user?.dimUsername || '我的');
 
@@ -83,8 +116,11 @@ export default function PcMine({ isWhite = false }: { isWhite?: boolean }) {
   return (
     <div
       className={`category-wrap${isWhite ? ' white' : ''}`}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
+      onMouseLeave={scheduleClose}
     >
       <div className="bar-wrap">
         <div className="content">

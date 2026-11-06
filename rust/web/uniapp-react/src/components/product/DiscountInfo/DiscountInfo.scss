@@ -1,0 +1,80 @@
+/* 自旧 discountInfo.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.fontWeight {
+    font-weight: 700;
+}
+
+/* 负边距把分隔线拉到弹层左右边缘 */
+.line {
+    height: 1px;
+    margin-left: -28rpx;
+    margin-right: -28rpx;
+    background-color: #f5f6fa;
+}
+
+.discount {
+    min-height: 60vh;
+    border-radius: 28rpx 28rpx 0 0;
+    overflow: hidden;
+}
+
+.discount-title {
+    display: flex;
+    justify-content: center;
+    padding: 35rpx 28rpx 28rpx;
+    background-color: #fff;
+
+    .title-text {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        font-size: 32rpx;
+        line-height: 42rpx;
+        font-weight: 700;
+    }
+
+    .close-icon {
+        display: flex;
+        align-items: center;
+
+        image {
+            width: 35rpx;
+            height: 35rpx;
+        }
+    }
+}
+
+.discount-content {
+    padding: 28rpx;
+    padding-top: 0;
+    font-size: 24.5rpx;
+
+    .discount-item-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 60rpx;
+
+        &.discount-total {
+            height: 84rpx;
+        }
+
+        .item-label-text {
+            font-weight: 400;
+            margin-left: 7rpx;
+        }
+
+        .item-value {
+            font-size: 24.5rpx;
+        }
+
+        &:last-child {
+            padding-top: 0;
+        }
+    }
+
+    .discount-desc {
+        font-size: 21rpx;
+        color: #969799;
+        letter-spacing: 0;
+    }
+}

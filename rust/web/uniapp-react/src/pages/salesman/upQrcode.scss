@@ -1,0 +1,67 @@
+/* 自旧 pages/salesman/upQrcode.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped） */
+.desc,
+.tips {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.desc {
+    line-height: 48rpx;
+    margin: 60rpx auto 16rpx;
+    color: #969799;
+    font-size: 28rpx;
+}
+.tips {
+    line-height: 34rpx;
+    margin: 0 auto 34rpx;
+    font-size: 24rpx;
+    color: #c8c9cc;
+}
+.preview {
+    position: relative;
+    margin: 0 auto 80rpx;
+    width: 560rpx;
+    box-sizing: border-box;
+    height: 688rpx;
+    background-color: #fff;
+    border: 2rpx solid #fafafa;
+    box-shadow: 0 0 60rpx 0 rgba(50, 50, 51, 0.05);
+    .preview__overlay {
+        opacity: 0.95;
+        position: absolute;
+        z-index: 99;
+        top: 32rpx;
+        left: 32rpx;
+        background: #fff;
+        font-size: 24rpx;
+        color: #969799;
+        text-align: center;
+        width: 496rpx;
+        height: 496rpx;
+        line-height: 496rpx;
+        &.preview__overlay_loading {
+            z-index: 100;
+        }
+    }
+}
+.van-image {
+    position: relative;
+    display: inline-block;
+}
+.van-image__error,
+.van-image__img,
+.van-image__loading {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.btn-box {
+    padding: 25rpx;
+    height: 100%;
+    .salesman-btn {
+        background: linear-gradient(45deg, rgb(255, 170, 30), rgb(255, 114, 13));
+        border-color: #fff !important;
+        font-size: 28rpx;
+        color: #fff;
+    }
+}

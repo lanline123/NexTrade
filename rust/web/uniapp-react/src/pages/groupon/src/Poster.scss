@@ -1,0 +1,36 @@
+/* 自旧 pages/groupon/src/poster.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+.my-canvas-box {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 88;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.canvas-tip {
+    color: #ffffff;
+    font-size: 24rpx;
+    margin-top: 30rpx;
+    text-align: center;
+}
+
+.canvas-content {
+    width: 500rpx;
+    // height: 900rpx;
+    // background-color: #ffffff;
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+}
+
+.poster-box {
+    width: 500rpx;
+    height: 900rpx;
+    border-radius: 20rpx;
+    overflow: hidden;
+}

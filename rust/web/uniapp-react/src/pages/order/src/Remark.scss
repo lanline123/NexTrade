@@ -1,0 +1,105 @@
+/* 自旧 pages/order/src/remark.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 tig-fixed-placeholder 底栏与 tig-button theme 按钮为等价补充样式 */
+.fixed-placeholder {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fff;
+    padding-bottom: var(--safe-bottom, 0);
+    z-index: 20;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--general);
+    color: #fff;
+    font-size: 26rpx;
+    border-radius: 40rpx;
+    height: 70rpx;
+
+    &:active {
+        opacity: 0.7;
+    }
+}
+
+.remark {
+    border-radius: 0;
+    background: #fff;
+    padding: 21rpx 28rpx;
+    margin-bottom: 14rpx;
+    font-size: 24.5rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+
+    .remark-content {
+        width: 550rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .remark-text {
+            flex: 1;
+            text-align: right;
+            font-size: 24.5rpx;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .remark-placeholder {
+            flex: 1;
+            text-align: right;
+            font-size: 24.5rpx;
+            color: #9a9a9a;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .icon-fanhui {
+            font-size: 17rpx;
+            color: #888b94;
+            transform: rotate(180deg);
+            padding: 10rpx 10rpx 10rpx 0;
+            flex-shrink: 0;
+        }
+    }
+}
+
+.popup-content {
+    height: 80vh;
+    padding: 30rpx;
+
+    .popup-content-title {
+        font-size: 32rpx;
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+        margin: 10rpx 0 20rpx 0;
+    }
+}
+
+/* 旧 :deep(.u-textarea) → Taro Textarea 等价样式 */
+.remark-textarea {
+    padding: 10rpx;
+    height: 300rpx;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fafafa !important;
+    background: #fafafa !important;
+}
+
+/* 旧 up-textarea count 字数统计（uview 内置右下角 n/maxlength）等价补充样式 */
+.textarea-count {
+    display: block;
+    text-align: right;
+    font-size: 22rpx;
+    color: #9a9a9a;
+    padding: 6rpx 10rpx 0;
+}

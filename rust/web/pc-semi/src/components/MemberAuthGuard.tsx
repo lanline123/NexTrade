@@ -1,33 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 /**
- * 会员中心登录守卫，对应旧版 Nuxt middleware: auth。
- * 旧版通过服务端中间件拦截，新版 token 存在 localStorage，只能在客户端校验。
+ * 会员中心登录兜底守卫，对应旧版 Nuxt middleware: auth。
+ *
+ * 服务端拦截已由 middleware.ts（cookie 校验）完成，本组件不再渲染任何加载层：
+ * - 挂载时若 localStorage 无 token 而 cookie 有（登录 7 天内换浏览器场景反向兜底），把 cookie 同步回 localStorage；
+ * - 两者都无（middleware 漏网）才跳登录页。
+ * 页面内容始终直出，不再出现「正在校验登录状态...」闪烁。
  */
 export default function MemberAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [checked, setChecked] = useState(false);
-  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      const redirect = `${pathname || '/member'}${window.location.search || ''}`;
-      router.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
-      setChecked(true);
+    let cookieToken: string | undefined;
+    document.cookie.split(';').some((part) => {
+      const [name, ...rest] = part.trim().split('=');
+      if (name === 'accessToken') {
+        cookieToken = decodeURIComponent(rest.join('='));
+        return true;
+      }
+      return false;
+    });
+    const localToken = localStorage.getItem('accessToken');
+    if (!localToken && cookieToken) {
+      localStorage.setItem('accessToken', cookieToken);
       return;
     }
-    setAuthenticated(true);
-    setChecked(true);
+    if (!localToken && !cookieToken) {
+      const redirect = `${pathname || '/member'}${window.location.search || ''}`;
+      router.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
+    }
   }, [pathname, router]);
-
-  if (!checked || !authenticated) {
-    return <div className="pc-member-page"><div className="pc-container"><div className="member-auth-loading">正在校验登录状态...</div></div></div>;
-  }
 
   return <>{children}</>;
 }

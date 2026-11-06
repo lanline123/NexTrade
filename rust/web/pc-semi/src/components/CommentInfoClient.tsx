@@ -103,6 +103,8 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
         isAnonymous: form.anonymous ? 1 : 0,
       });
       Toast.success({ content: '评价成功' });
+      // 通知左侧 MemberNav 刷新角标（待评价数已变化）
+      window.dispatchEvent(new Event('member-badges-changed'));
       load();
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '评价提交失败' });

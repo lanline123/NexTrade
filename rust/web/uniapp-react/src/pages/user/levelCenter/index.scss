@@ -1,0 +1,31 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/levelCenter/index.vue 迁移：样式逐行保留（去 scoped、:deep 平铺） */
+page {
+    height: 100%;
+}
+
+.level_container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    // background-image: url(../../../static/images/user/vip_bg.png);
+    background-image: url(https://oss.tigshop.com/img/gallery/202502/1739845582HFfsl3dr4o7dvrmgL7.png);
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    .bottom_wapper {
+        flex: 1;
+        padding: 24rpx;
+        background: #f8f8f8;
+        &.task_mode {
+            border-radius: 40rpx 40rpx 0 0;
+        }
+    }
+}
+.shop-company {
+    color: #999;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20rpx 0;
+    font-size: 24rpx;
+}

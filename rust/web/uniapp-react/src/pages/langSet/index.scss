@@ -1,0 +1,185 @@
+/* 自旧 pages/langSet/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped，:deep 平铺） */
+.lang-menu {
+    width: 100%;
+    margin-top: 16rpx;
+    padding: 0 30rpx;
+    background: #fff;
+
+    .cell-wrap {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 92rpx;
+        color: #1a1a1a;
+
+        &:nth-child(n + 2) {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .cell-name {
+            font-weight: 500;
+            font-size: 24.5rpx;
+            text-transform: capitalize;
+        }
+
+        .desc {
+            flex: 1;
+            margin-left: 16rpx;
+            font-size: 24.5rpx;
+            color: #888b94;
+            text-align: right;
+        }
+
+        .right-icon {
+            flex-shrink: 0;
+            margin-left: 8rpx;
+
+            .iconfont {
+                font-weight: 600;
+                color: #888b94;
+                margin-left: 8rpx;
+                font-size: 24rpx;
+                padding-top: 4rpx;
+            }
+        }
+    }
+}
+
+.lang-content {
+    height: 88vh;
+    // 关闭按钮为绝对定位，需要内容区作为定位上下文（旧 up-popup 由组件内部保证）
+    position: relative;
+
+    .lang-list {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .lang-title {
+            display: flex;
+            justify-content: center;
+            margin: 35rpx 30rpx 30rpx;
+            font-size: 30rpx;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .lang-scroll {
+            flex: 1;
+            // ScrollView 需要确定高度才能滚动
+            height: 0;
+
+            .lang-list-content {
+                height: 100%;
+                padding: 0 30rpx;
+
+                .lang-item {
+                    display: flex;
+                    height: 110rpx;
+                }
+
+                /* 原 :deep(.u-radio) 平铺；up-radio 已按 u-radio 视觉自绘 */
+                .u-radio {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+
+                    .u-radio__icon-wrap {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-sizing: border-box;
+                        width: 25rpx !important;
+                        height: 25rpx !important;
+                        margin-right: 28rpx;
+                        background: #fff !important;
+                        border-width: 3rpx;
+                        border-style: solid;
+                        border-color: #c8c9cc;
+                        border-radius: 50%;
+                    }
+
+                    .u-radio__text {
+                        font-size: 30rpx !important;
+                        color: #1a1a1a !important;
+                    }
+
+                    .u-radio__label-wrap {
+                        flex: 1;
+                    }
+
+                    &.active {
+                        .u-radio__icon-wrap {
+                            border-color: var(--general);
+                        }
+
+                        .u-icon__icon {
+                            width: 12rpx;
+                            height: 12rpx;
+                            border-radius: 50%;
+                            background: var(--general) !important;
+                            font-size: 0px !important;
+
+                            span {
+                                display: none;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .btttom {
+            padding: 30rpx;
+            justify-content: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border-top: 1px solid #f0f0f0;
+
+            /* 原 tig-button2 theme 的视觉等价（TODO(MIGRATION)：tig-button2 尚无 React 版） */
+            .btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                border-radius: 8rpx;
+                background-color: var(--general);
+                color: #fff;
+                font-weight: 600;
+                text-transform: capitalize;
+
+                &.is-disabled {
+                    opacity: 0.5;
+                }
+            }
+        }
+    }
+}
+
+/* 原 :deep(.u-popup__content__close) 平铺；关闭按钮容器按旧视觉补充定位（收敛在弹层内容内，避免串页） */
+.lang-content .u-popup__content__close {
+    position: absolute;
+    top: 12rpx;
+    right: 24rpx;
+    z-index: 2;
+
+    .u-icon__icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 35rpx;
+        height: 35rpx;
+        border-radius: 50%;
+        background: #f7f8fc;
+        top: 12rpx !important;
+
+        span {
+            font-size: 20rpx;
+            font-weight: 600;
+            color: #888b94;
+        }
+    }
+}

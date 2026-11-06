@@ -1,0 +1,73 @@
+/* 自旧 productContent.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.product-card-row {
+    background-color: var(--product-content-bg, #fff);
+    padding: 20rpx;
+    border-radius: 20rpx;
+    margin: 20rpx 0;
+    .cart-item {
+        font-size: 26rpx;
+        margin: 25rpx 0;
+        .title {
+            min-width: 110rpx;
+            color: #81838e;
+            padding-right: 10rpx;
+        }
+        .attr_text {
+            display: block;
+            width: 66vw;
+        }
+        .label {
+            .tips {
+                color: var(--general);
+                font-size: 24rpx;
+                margin-top: 5rpx;
+            }
+        }
+    }
+
+    .traceability-item {
+        padding: 10rpx;
+        background-color: #fdf6f0;
+        color: #ff9627;
+        font-size: 24rpx;
+        image {
+            width: 115rpx;
+            height: 35rpx;
+            margin-right: 20rpx;
+        }
+    }
+
+    .tab-box {
+        padding: 10rpx 0 20rpx 0;
+        margin-bottom: 20rpx;
+        font-size: 24rpx;
+
+        .active {
+            color: var(--general);
+        }
+    }
+
+    .default {
+        color: #9b9c9f;
+        font-size: 24rpx;
+        padding: 10rpx;
+
+        .img {
+            width: 100%;
+        }
+
+        .desc-text-item {
+            width: 100%;
+            overflow: hidden;
+            display: block;
+            height: auto;
+        }
+
+        .desc-pic-item {
+            .slide-image {
+                display: block;
+                width: 100%;
+            }
+        }
+    }
+}

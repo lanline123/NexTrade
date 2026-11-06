@@ -1,0 +1,38 @@
+/* 自旧 pages/salesman/src/materialSaveCard.vue 的 scoped 样式移植（去 scoped、v-bind 改内联 style） */
+.share-cube {
+    height: 732rpx;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    background-size: 100% 100%;
+
+    .list-box {
+        height: 200rpx;
+        width: 100%;
+        box-sizing: content-box;
+        padding-top: 190rpx;
+
+        .list-content {
+            width: 100vw;
+            height: 100%;
+            white-space: nowrap;
+
+            .list-item {
+                display: inline-block;
+                width: 216rpx;
+                height: 200rpx;
+                padding-right: 16rpx;
+            }
+        }
+    }
+}
+
+.share-cube-btn {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32rpx;
+    font-weight: 500;
+    color: #333;
+}

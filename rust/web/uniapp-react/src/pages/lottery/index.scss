@@ -1,0 +1,483 @@
+/* 自旧 pages/lottery/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+.lottery-page {
+    // 注意：外层 tig-layout 还包含 navbar + safe-bottom，占用高度。
+    // 这里如果直接 min-height:100vh，会导致“内容一屏能放下仍出现滚动条”。
+    min-height: 100vh;
+    min-height: calc(100vh - var(--nav-height, 0px) - var(--safe-bottom, 0px));
+    background-color: transparent;
+    background-size: cover;
+    background-position: center;
+    padding: 280rpx 30rpx 30rpx;
+    box-sizing: border-box;
+    position: relative;
+}
+
+// 无活动常驻提示
+.no-activity-banner {
+    position: absolute;
+    top: calc(50% - 20rpx);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    margin: 0;
+    padding: 18rpx 50rpx;
+    max-width: calc(100% - 60rpx);
+    box-sizing: border-box;
+    border-radius: 8rpx;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 24rpx;
+    line-height: 36rpx;
+    text-align: center;
+    pointer-events: none;
+}
+
+// 中奖滚动通知
+.winner-notice {
+    background: rgba(255, 255, 255, 0.24);
+    border-radius: 64rpx;
+    font-weight: 500;
+    font-size: 28rpx;
+    color: #ffffff;
+    line-height: 44rpx;
+    width: 470rpx;
+    text-align: center;
+    margin: 0 auto 40rpx;
+    padding: 10rpx 20rpx;
+    height: 64rpx;
+    overflow: hidden;
+    position: relative;
+
+    .winner-carousel {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .winner-item {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        will-change: transform, opacity;
+
+        // 旧 <transition name="winner-slide" mode="out-in"> 的进场动画（React 端以 key 重挂载触发）
+        animation: lottery-winner-slide 0.45s ease both;
+
+        text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+    }
+}
+
+// 中奖名单切换动画：上一条下滑淡出，新一条从上方滑入
+.winner-slide-enter-active,
+.winner-slide-leave-active {
+    transition:
+        transform 0.45s ease,
+        opacity 0.45s ease;
+}
+.winner-slide-enter-from {
+    transform: translateY(-20rpx);
+    opacity: 0;
+}
+.winner-slide-enter-to {
+    transform: translateY(0);
+    opacity: 1;
+}
+.winner-slide-leave-from {
+    transform: translateY(0);
+    opacity: 1;
+}
+.winner-slide-leave-to {
+    transform: translateY(20rpx);
+    opacity: 0;
+}
+
+@keyframes lottery-winner-slide {
+    from {
+        transform: translateY(-20rpx);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+// 奖品按钮
+.prize-btn {
+    position: absolute;
+    top: 200rpx;
+    right: 20rpx;
+    width: 90rpx;
+    height: 90rpx;
+    z-index: 10;
+
+    image {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+// 九宫格容器
+.lottery-container {
+    width: 710rpx;
+    height: 710rpx;
+    margin: 0 auto;
+    padding: 40rpx;
+    border-radius: 20rpx;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.grid-lottery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 25rpx 20rpx;
+    width: 520rpx;
+    // 固定高度，避免某些端不支持 aspect-ratio 导致内容把格子撑高、布局错乱
+    // 计算：cellW = (500 - 2*20) / 3 = 153.33
+    // gridH = 3*cellW + 2*30 ≈ 520
+    height: 540rpx;
+    margin: 20rpx auto;
+}
+
+.grid-cell {
+    height: 100%;
+    border-radius: 12rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12rpx;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+    overflow: hidden;
+    //background: #fff;
+
+    &.is-active {
+        background: radial-gradient(
+            circle at 50% 50%,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(242, 209, 120, 0.35) 45%,
+            rgba(241, 195, 103, 0.62) 78%,
+            rgba(237, 165, 22, 0.72) 100%
+        );
+        box-shadow: 0 0 14rpx rgba(231, 177, 26, 0.28);
+
+        .award-name {
+            color: #5a2f00;
+        }
+    }
+
+    &.is-center {
+        //background: linear-gradient(135deg, #ff4757 0%, #ff6b6b 100%);
+        cursor: pointer;
+
+        &:active {
+            transform: scale(0.98);
+        }
+    }
+}
+
+.award-img {
+    width: 80rpx !important;
+    height: 80rpx !important;
+    margin-bottom: 4rpx;
+}
+
+.award-name {
+    text-align: center;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-weight: 500;
+    font-size: 24rpx;
+    color: #e80053;
+    line-height: 30rpx;
+}
+
+.draw-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4rpx;
+
+    .draw-text {
+        color: #fff;
+        font-size: 32rpx;
+        font-weight: bold;
+    }
+
+    .draw-point {
+        color: #fff;
+        font-size: 24rpx;
+    }
+}
+
+// 剩余次数
+.remaining-times {
+    height: 80rpx;
+    text-align: center;
+    line-height: 80rpx;
+    margin: 20rpx auto 0;
+    width: 600rpx;
+    font-weight: 500;
+    font-size: 28rpx;
+    color: #ffffff;
+
+    .remaining-times-num {
+        color: #ec3364;
+    }
+}
+
+// 活动规则
+.rule-section {
+    margin: 40rpx 20rpx;
+    background: #fffae7;
+    border-radius: 16rpx;
+    padding: 30rpx;
+    color: #f48900;
+
+    .rule-title {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 20rpx;
+        font-size: 32rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &::before,
+        &::after {
+            content: "";
+            display: inline-block;
+            width: 100rpx;
+            height: 2rpx;
+            background: #f48900;
+        }
+
+        &::before {
+            margin-right: 20rpx;
+        }
+
+        &::after {
+            margin-left: 20rpx;
+        }
+    }
+
+    .rule-content {
+        font-weight: 500;
+        font-size: 26rpx;
+        color: #f48900;
+        line-height: 42rpx;
+    }
+
+    // rich-text 内部节点的段落/换行兼容
+    .rule-content p,
+    .rule-content div {
+        margin: 0 0 16rpx;
+    }
+    .rule-content p:last-child,
+    .rule-content div:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.result-popup-container {
+    position: relative;
+    .close-btn {
+        position: absolute;
+        bottom: -80rpx;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 40rpx;
+        color: #fff;
+        z-index: 999;
+    }
+}
+
+// 换行提示弹窗
+.tip-popup {
+    max-width: 600rpx;
+    min-width: 400rpx;
+    padding: 22rpx 28rpx;
+    background: rgba(0, 0, 0, 0.65);
+    border-radius: 8rpx;
+    text-align: center;
+}
+.tip-popup-text {
+    color: #fff;
+    font-size: 24rpx;
+    line-height: 40rpx;
+    text-align: center;
+    white-space: pre-line;
+}
+
+// 抽奖结果弹窗
+.result-popup {
+    width: 710rpx;
+    height: 738rpx;
+    border-radius: 24rpx;
+    padding: 147rpx 60rpx 30rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .result-title {
+        font-size: 36rpx;
+        font-weight: bold;
+        color: #262626;
+        margin-bottom: 27rpx;
+        text-align: center;
+        .result-win,
+        .result-lose {
+            font-weight: bold;
+            font-size: 36rpx;
+            color: #c05e32;
+        }
+        .result-win-big,
+        .result-lose-big {
+            font-weight: 800;
+            font-size: 48rpx;
+            color: #c05e32;
+            // 控制只显示两行中的第二行：第二行超出省略，避免出现第三行
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+    }
+
+    .result-image {
+        width: 200rpx;
+        height: 200rpx;
+        margin-bottom: 20rpx;
+    }
+
+    .result-prize-name {
+        padding: 0 60rpx;
+        font-size: 28rpx;
+        margin-bottom: 40rpx;
+        text-align: center;
+        font-weight: 500;
+        color: #c05e32;
+        line-height: 42rpx;
+        line-clamp: 2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-all;
+    }
+
+    .result-btn {
+        position: absolute;
+        bottom: 70rpx;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 404rpx;
+        height: 71rpx;
+        background: linear-gradient(0deg, #ffbe6f, #ffa532);
+        border-radius: 36rpx;
+        line-height: 71rpx;
+        font-weight: bold;
+        font-size: 32rpx;
+        color: #ffffff;
+        text-align: center;
+    }
+}
+
+// 中奖记录弹窗
+.record-popup {
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+
+    .record-header {
+        padding: 30rpx;
+        text-align: center;
+        border-bottom: 1rpx solid #eee;
+        background: linear-gradient(to bottom, rgba(255, 188, 103, 0.52), rgba(255, 255, 255, 0.52) 80%);
+
+        .record-title {
+            font-weight: 600;
+            font-size: 36rpx;
+            color: #262626;
+            line-height: 30rpx;
+        }
+    }
+
+    .record-list {
+        /*
+         * scroll-view 在 uni-app 里对 flex 布局的支持不稳定：
+         * 仅写 flex: 1 有概率出现“弹窗打开后列表滚不动”的问题。
+         * 这里给一个明确高度，保证滚动区域可用。
+         */
+        height: calc(60vh - 140rpx);
+        min-height: 0;
+        padding: 10rpx;
+        box-sizing: border-box;
+    }
+
+    .record-item {
+        display: flex;
+        align-items: center;
+        padding: 20rpx;
+        border-bottom: 1rpx solid #f5f5f5;
+
+        .record-image {
+            width: 100rpx;
+            height: 100rpx;
+            border-radius: 8rpx;
+            flex-shrink: 0;
+        }
+
+        .record-name {
+            flex: 1;
+            margin: 0 20rpx;
+            font-size: 28rpx;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .record-btn {
+            width: 147rpx;
+            height: 64rpx;
+            flex-shrink: 0;
+            border-radius: 8rpx;
+            background: var(--general);
+            font-weight: 500;
+            font-size: 24rpx;
+            color: #ffffff;
+            line-height: 64rpx;
+            text-align: center;
+        }
+        .disabled {
+            background: #e5e5e5;
+            color: #8f8f8f;
+        }
+    }
+
+    .record-empty {
+        text-align: center;
+        padding: 100rpx 0;
+        color: #999;
+        font-size: 28rpx;
+    }
+}

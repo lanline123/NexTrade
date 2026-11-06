@@ -1,0 +1,46 @@
+/* 自旧 pages/productCate/src/search.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.search-box {
+    width: 100%;
+    height: 90rpx;
+    padding: 0 20rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 20rpx;
+    border-bottom: 1px solid #f8f8f8;
+
+    .btn-box {
+        width: 90rpx;
+        height: 70rpx;
+        background-color: #f8f8f8;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20rpx;
+
+        .icon-shouye {
+            font-size: 34rpx;
+        }
+    }
+
+    .search-content {
+        width: 100%;
+        height: 100%;
+        background-color: #f8f8f8;
+        border-radius: 100rpx;
+        display: flex;
+        align-items: center;
+        padding: 0 30rpx;
+
+        .placeholder-text {
+            font-size: 26rpx;
+            color: #999999;
+            margin-left: 10rpx;
+        }
+
+        .icon-sousuo1 {
+            font-size: 30rpx;
+        }
+    }
+}

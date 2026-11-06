@@ -1,0 +1,525 @@
+/* 自旧 pages/productV1/groupBuying.vue <style scoped lang="scss"> 原样拷出（去 scoped；
+   旧 ::v-deep 平铺为后代选择器，H5/小程序均按全局样式生效） */
+.groupon-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    padding: 20rpx;
+
+    .card-box {
+        flex: 1;
+        border-radius: 8rpx;
+        background-color: #fff;
+        padding: 0 20rpx;
+    }
+}
+
+.product-card {
+    display: flex;
+    gap: 12rpx;
+    padding: 20rpx 50rpx 20rpx 20rpx !important;
+
+    .image {
+        width: 200rpx;
+        height: 200rpx;
+        border-radius: 8rpx;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .detail {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 20rpx 0;
+        }
+
+        .detail-title {
+            width: 423rpx;
+            height: 74rpx;
+            font-weight: bold;
+            font-size: 30rpx;
+            color: #2a2a2a;
+            text-overflow: ellipsis;
+        }
+
+        .detail-group {
+            display: flex;
+            align-items: baseline;
+            gap: 0 10rpx;
+
+            .btn {
+                text-align: center;
+                padding: 4rpx 9rpx;
+                background: rgba(255, 226, 225, 0);
+                border-radius: 4rpx;
+                border: 1px solid var(--primary-light-3);
+                font-weight: 500;
+                font-size: 24rpx;
+                line-height: 24rpx;
+                color: var(--primary-light-3);
+            }
+
+            .num {
+                height: 23rpx;
+                font-weight: 500;
+                font-size: 24rpx;
+                color: #9a9a9a;
+            }
+        }
+
+        .group-price {
+            font-weight: bold;
+            font-size: 24rpx;
+            color: var(--price);
+
+            .price-text {
+                margin-right: 11rpx;
+            }
+        }
+
+        .original-price {
+            font-size: 24rpx;
+            color: #9a9a9a;
+            margin-left: 16rpx;
+        }
+    }
+}
+
+.group-card {
+    padding: 0 26rpx !important;
+
+    .group-sub-title {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 2rpx solid #f4f4f4;
+        padding: 28rpx 0;
+
+        .text {
+            font-weight: 800;
+            font-size: 32rpx;
+            color: #2a2a2a;
+        }
+
+        .msg {
+            font-size: 28rpx;
+            color: #9a9a9a;
+            margin-left: 26rpx;
+        }
+
+        .group-end-info {
+            display: flex;
+        }
+
+        .countdown-title {
+            font-size: 24rpx;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-right: 15rpx;
+        }
+
+        .num {
+            color: var(--main-bg);
+        }
+
+        .common {
+            display: inline-block;
+            width: 36rpx;
+            height: 36rpx;
+            text-align: center;
+            line-height: 36rpx;
+            background: rgba(238, 10, 36, 0.07);
+            border-radius: 6rpx;
+            font-weight: bold;
+            font-size: 22rpx;
+            color: var(--primary-light-3);
+        }
+    }
+
+    .join-users {
+        padding: 33rpx 0;
+        white-space: nowrap;
+        width: 100%;
+
+        /* #ifdef H5 || APP-PLUS */
+        /* 尽量让 H5/App(WebView) 可见滚动条；是否“常驻”仍受系统/浏览器策略影响 */
+        padding-bottom: 14rpx;
+        /* scroll-view 真正的滚动容器是内部的 .uni-scroll-view，scoped 下需 deep */
+        .uni-scroll-view {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+            padding-bottom: 13rpx;
+        }
+        .uni-scroll-view::-webkit-scrollbar {
+            height: 6px;
+        }
+        .uni-scroll-view::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 999px;
+        }
+        .uni-scroll-view::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        /* #endif */
+
+        .userinfo-container {
+            display: inline-flex;
+            gap: 0 43rpx;
+            padding-right: 20rpx;
+        }
+
+        .userinfo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 23rpx 0;
+
+            .userinfo-avatar {
+                position: relative;
+
+                .image {
+                    width: 100rpx;
+                    height: 100rpx;
+                    background: #f4f4f4;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    position: relative;
+
+                    .btn-add {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        .icon-zengjia {
+                            font-size: 36rpx;
+                            color: #c3c3c3;
+                        }
+                    }
+                }
+
+                .image-leader {
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(40%);
+                    background-color: var(--main-bg);
+                    color: #fff;
+                    border-radius: 3rpx;
+                    padding: 3rpx 8rpx;
+                    white-space: nowrap;
+                    font-size: 18rpx;
+                    z-index: 99;
+                }
+            }
+
+            .name {
+                max-width: 100rpx;
+                font-weight: 500;
+                font-size: 24rpx;
+                line-height: 24rpx;
+                text-align: center;
+                color: #9a9a9a;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            &:first-child .image {
+                border: 2rpx solid var(--main-bg);
+            }
+        }
+    }
+}
+
+.process-card {
+    padding: 0 26rpx !important;
+
+    .sub-title {
+        font-weight: bold;
+        font-size: 28rpx;
+        color: #2a2a2a;
+        padding: 28rpx 0;
+    }
+
+    .process {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 46rpx;
+
+        .process-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 22rpx 0;
+            position: relative;
+
+            .step-name {
+                font-weight: 400;
+                font-size: 24rpx;
+                color: #595959;
+                line-height: 38rpx;
+            }
+
+            .process-image {
+                width: 64rpx;
+                height: 64rpx;
+                background: #f5f5f5;
+                border-radius: 50%;
+            }
+        }
+
+        .process-line {
+            display: flex;
+            gap: 13rpx;
+            padding-top: 27rpx;
+
+            .process-line-item {
+                display: block;
+                width: 10rpx;
+                height: 10rpx;
+                border-radius: 50%;
+                background: #f5f5f5;
+            }
+        }
+    }
+}
+
+.store-card {
+    padding: 28rpx 26rpx !important;
+    padding-bottom: 32rpx;
+    flex-direction: column;
+
+    .shop-info {
+        display: flex;
+        gap: 20rpx;
+        align-items: center;
+
+        .shop-image {
+            width: 64rpx;
+            height: 64rpx;
+            background: #f5f5f5;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .shop-title {
+            font-size: 26rpx;
+        }
+    }
+
+    .store {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20rpx;
+
+        .img {
+            width: 30rpx;
+            height: 30rpx;
+            margin-right: 10rpx;
+        }
+
+        .btn {
+            width: 46%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d7d7d7;
+            border-radius: 5px;
+            height: 56rpx;
+            line-height: 22rpx;
+            font-size: 22rpx;
+            color: #686868;
+        }
+    }
+}
+
+.footer {
+    width: 750rpx;
+    background: #ffffff;
+    box-shadow: 0rpx -4rpx 6rpx 0rpx rgba(234, 234, 234, 0.55);
+}
+
+.bottom-bar-box {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 110rpx;
+    background-color: #fff;
+    border-top: 1rpx solid #f5f5f5;
+    box-sizing: content-box;
+
+    .bottom-bar {
+        height: 110rpx;
+        padding: 0 20rpx;
+        position: relative;
+        justify-content: center;
+
+        .product-status {
+            position: absolute;
+            top: -60rpx;
+            left: 0;
+            width: 100%;
+            height: 60rpx;
+            background-color: #fff7cc;
+            color: #f85;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24rpx;
+        }
+
+        .icon-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-box {
+            display: flex;
+            padding-left: 20rpx;
+            flex: 1;
+
+            .other-products-btn {
+                flex: 1;
+                font-weight: bold;
+                color: var(--main-text);
+                background-color: var(--main-bg);
+                height: 70rpx;
+                border-radius: 100rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28rpx;
+            }
+        }
+
+        .label {
+            font-size: 20rpx;
+            text-align: center;
+            width: 80rpx;
+
+            &.my-groupon {
+                width: 90rpx;
+            }
+
+            .img {
+                width: 39rpx;
+                height: 39rpx;
+            }
+
+            .label-text {
+                padding-top: 5rpx;
+                color: #2f2f2f;
+                font-weight: 500;
+                font-size: 22rpx;
+
+                .my-group-text {
+                    white-space: nowrap;
+                }
+            }
+        }
+
+        .btn {
+            flex: 1;
+            text-align: center;
+            line-height: 70rpx;
+            height: 70rpx;
+            color: #fff;
+            font-size: 24rpx;
+        }
+
+        .cart {
+            background: var(--vice-bg);
+            border-radius: 100rpx 0 0 100rpx;
+            color: var(--vice-text);
+        }
+
+        .buy {
+            background: var(--general);
+            border-radius: 0 100rpx 100rpx 0;
+            color: var(--main-text);
+        }
+    }
+}
+
+.product-card-row {
+    background-color: #fff;
+    padding: 20rpx;
+    border-radius: 20rpx;
+    margin: 20rpx 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 25rpx;
+
+    .card-row-flex {
+        display: flex;
+        flex-direction: column;
+        row-gap: 25rpx;
+        padding-top: 25rpx;
+    }
+
+    .cart-item {
+        font-size: 26rpx;
+
+        .title {
+            min-width: 110rpx;
+            color: #81838e;
+            padding-right: 10rpx;
+        }
+
+        .attr_text {
+            display: block;
+            width: 66vw;
+        }
+
+        .label {
+            .tips {
+                color: var(--general);
+                font-size: 24rpx;
+                margin-top: 5rpx;
+            }
+        }
+    }
+
+    .traceability-item {
+        padding: 10rpx;
+        background-color: #fdf6f0;
+        color: #ff9627;
+        font-size: 24rpx;
+
+        image {
+            width: 115rpx;
+            height: 35rpx;
+            margin-right: 20rpx;
+        }
+    }
+
+    .tab-box {
+        padding: 10rpx 0 20rpx 0;
+        margin-bottom: 20rpx;
+        font-size: 24rpx;
+
+        .active {
+            color: var(--general);
+        }
+    }
+
+    .default {
+        color: #9b9c9f;
+        font-size: 24rpx;
+        padding: 10rpx;
+
+        .desc-pic-item {
+            .slide-image {
+                display: block;
+                width: 100%;
+            }
+        }
+    }
+}

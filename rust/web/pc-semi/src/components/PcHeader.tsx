@@ -28,6 +28,7 @@ import PcSearchBox from '@/components/PcSearchBox';
 import PcShopSearchInput from '@/components/PcShopSearchInput';
 import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
+import type { PcHeaderBootstrap } from '@/lib/header-bootstrap';
 
 const FALLBACK_NAV = [
   { title: '首页', link: '/' },
@@ -90,16 +91,20 @@ export default function PcHeader({
   isWhite = true,
   page = '',
   shopSearch,
+  bootstrap = null,
 }: {
   config?: PcHeaderConfig | null;
   isWhite?: boolean;
   page?: string;
   shopSearch?: boolean;
+  /** 服务端预取的头部公共数据（Logo / 语言 / 货币），由 PcHeaderWithData 注入 */
+  bootstrap?: PcHeaderBootstrap | null;
 }) {
   const pathname = usePathname();
   const header = (config || {}) as HeaderConfig;
 
-  const [siteLogo, setSiteLogo] = useState('');
+  const bootstrapLogo = typeof bootstrap?.base?.shopLogo === 'string' ? bootstrap.base.shopLogo : '';
+  const [siteLogo, setSiteLogo] = useState(bootstrapLogo);
   const [mainNav, setMainNav] = useState<Array<Record<string, any>> | null>(null);
   const [logoAreaHeight, setLogoAreaHeight] = useState(60);
   const [logoAreaShiftY, setLogoAreaShiftY] = useState(0);
@@ -147,7 +152,7 @@ export default function PcHeader({
   }, [header]);
 
   useEffect(() => {
-    if (logo) return;
+    if (logo || siteLogo) return;
     let cancelled = false;
     fetch('/api/common/config/base')
       .then((response) => response.json())
@@ -159,7 +164,7 @@ export default function PcHeader({
     return () => {
       cancelled = true;
     };
-  }, [logo]);
+  }, [logo, siteLogo]);
 
   useEffect(() => {
     let cancelled = false;
@@ -261,14 +266,14 @@ export default function PcHeader({
   };
 
   if (styleType === 1) {
-    return <PcHeaderSimple config={header} isWhite={isWhite} page={page} shopSearch={resolvedShopSearch} />;
+    return <PcHeaderSimple config={header} isWhite={isWhite} page={page} shopSearch={resolvedShopSearch} bootstrap={bootstrap} />;
   }
 
   const logoSrc = logo || siteLogo;
 
   return (
     <div className="pc-header-runtime">
-      <PcHeaderTopBar config={header} styleType={styleType} isWhite={isWhite} />
+      <PcHeaderTopBar config={header} styleType={styleType} isWhite={isWhite} baseConfig={bootstrap?.base} />
 
       {isCartPage ? (
         <PcHeaderCartContent config={header} isWhite={isWhite} page={page} shopSearch={resolvedShopSearch} />
@@ -324,10 +329,16 @@ export default function PcHeader({
 
               <div className="page-header-home__right">
                 <div className="language-bar">
-                  <PcLocaleSelect isWhite={isWhite} langLabelMode="localeCode" className="item" />
+                  <PcLocaleSelect
+                    isWhite={isWhite}
+                    langLabelMode="localeCode"
+                    className="item"
+                    initialLocales={bootstrap?.locales}
+                    initialCurrencies={bootstrap?.currencies}
+                  />
                 </div>
                 <div className="mine-bar">
-                  <PcMine isWhite={isWhite} />
+                  <PcMine isWhite={isWhite} baseConfig={bootstrap?.base} />
                 </div>
                 {showRightCart ? (
                   <div className="car-bar">

@@ -1,0 +1,72 @@
+/* 自旧 java-b2b2c-overseas-v5.8.61/view/uniapp/src/pages/user/levelCenter/src/taskCard.vue 迁移：样式逐行保留（去 scoped、:deep 平铺） */
+.task_container {
+    width: 100%;
+    height: fit-content;
+    padding: 24rpx;
+    border-radius: 24rpx;
+    background-color: #fff;
+    background-image: var(--taskBg);
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    .task_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .title {
+            font-size: 32rpx;
+            color: #333;
+            font-weight: 600;
+        }
+        .iconfont {
+            color: #9d9d9d;
+        }
+    }
+    .task_list {
+        margin-top: 24rpx;
+        .task_item {
+            display: flex;
+            align-items: center;
+            height: 80rpx;
+            margin-bottom: 46rpx;
+            margin-right: 10rpx;
+            &:last-child {
+                margin-bottom: 10rpx;
+            }
+            .img {
+                width: 80rpx;
+                height: 80rpx;
+                background-repeat: no-repeat;
+                background-size: 100% 100%;
+            }
+            .task_info {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                margin-left: 20rpx;
+                .name {
+                    color: #323233;
+                    font-size: 28rpx;
+                    font-weight: bold;
+                    margin-bottom: auto;
+                }
+                .growth_value {
+                    color: #7d7e80;
+                    font-size: 24rpx;
+                }
+            }
+            .do_task_btn {
+                width: 120rpx;
+                height: 48rpx;
+                margin-left: auto;
+                color: #fff;
+                line-height: 48rpx;
+                overflow: hidden;
+                text-align: center;
+                color: #463c32;
+                font-size: 24rpx;
+                background-color: #e7c5a5;
+                border-radius: 52rpx;
+            }
+        }
+    }
+}

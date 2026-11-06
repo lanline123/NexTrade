@@ -1,0 +1,19 @@
+/* 自旧 pages/groupon/src/grouponListLayout.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped、:deep 平铺） */
+.goods-list-waterfall {
+    padding: 20rpx;
+    background: #fff;
+    position: relative;
+
+    .waterfall-container {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(var(--waterfall-columns), 1fr);
+        gap: 20rpx;
+
+        .waterfall-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20rpx;
+        }
+    }
+}

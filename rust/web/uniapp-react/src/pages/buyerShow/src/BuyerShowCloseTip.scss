@@ -1,0 +1,39 @@
+/* === 买家秀关闭提示（旧 buyerShowCloseTip.vue style 逐条平移，去 scoped） === */
+.popupBox {
+    padding: 45rpx 80rpx;
+    box-sizing: border-box;
+    font-size: 32rpx;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    width: 590rpx;
+    height: 340rpx;
+    background: #ffffff;
+    border-radius: 16rpx;
+
+    .title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 32rpx;
+        color: #262626;
+        margin-bottom: 40rpx;
+    }
+
+    .tip {
+        font-weight: 500;
+        font-size: 28rpx;
+        color: #8c8c8c;
+        margin-bottom: 76rpx;
+        text-align: center;
+    }
+
+    .btn {
+        text-align: center;
+        // 下划线
+        text-decoration: underline;
+        color: var(--general);
+        font-weight: 500;
+        font-size: 28rpx;
+    }
+}

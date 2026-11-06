@@ -1,0 +1,66 @@
+/* 自旧 components/upload/index.vue（up-upload 默认网格）与 uni-file-picker 视觉等价重写 */
+.tig-image-upload {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15rpx;
+    width: 100%;
+
+    .tig-image-upload__item,
+    .tig-image-upload__trigger {
+        width: 160rpx;
+        height: 160rpx;
+        border-radius: 8rpx;
+        overflow: hidden;
+        position: relative;
+        box-sizing: border-box;
+    }
+
+    .tig-image-upload__item {
+        background-color: #f4f5f7;
+
+        .tig-image-upload__img {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .tig-image-upload__delete {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 44rpx;
+            height: 44rpx;
+            background-color: rgba(0, 0, 0, 0.45);
+            border-bottom-left-radius: 8rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+
+            .tig-image-upload__delete-icon {
+                color: #fff;
+                font-size: 34rpx;
+                line-height: 1;
+            }
+        }
+    }
+
+    .tig-image-upload__trigger {
+        background-color: #f4f5f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .tig-image-upload__camera {
+            font-size: 56rpx;
+            color: #cccccc;
+        }
+
+        .tig-image-upload__plus {
+            font-size: 60rpx;
+            line-height: 1;
+            color: #c8c9cc;
+            font-weight: 300;
+        }
+    }
+}

@@ -1,0 +1,159 @@
+/* 自旧 pages/product/consult.vue <style lang="scss" scoped> 原样拷出（去 scoped；
+   旧 :deep(.util) 平铺为后代选择器；旧 $tig-color-error = $tig-color-primary = #39bf3e（src/uni.scss），
+   目标端无该全局 Sass 变量，按字面值内联） */
+.loading-box {
+    padding: 30rpx;
+    font-size: 24rpx;
+}
+
+.product-info {
+    border-top: 1rpx solid #eee;
+    padding: 20rpx;
+    background-color: #fff;
+    margin-bottom: 20rpx;
+    gap: 24rpx;
+
+    .product-info-img {
+        flex-shrink: 0;
+        image {
+            width: 160rpx;
+            height: 160rpx;
+        }
+    }
+
+    .product-info-title {
+        font-size: 26rpx;
+    }
+
+    .product-info-price {
+        color: var(--general);
+        font-weight: bold;
+        font-size: 36rpx;
+        display: flex;
+        align-items: center;
+        line-height: 36rpx;
+        margin-top: 10rpx;
+
+        .util {
+            font-size: 24rpx;
+        }
+    }
+}
+
+.popup-content {
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        padding: 20rpx;
+
+        .product-Slot {
+            display: flex;
+            align-items: center;
+            margin-right: 20rpx;
+
+            .iconfont {
+                font-size: 32rpx;
+                color: #333;
+                cursor: pointer;
+            }
+        }
+
+        .product-info-img {
+            width: 80rpx;
+            height: 80rpx;
+            border-radius: 10px;
+            margin-right: 16rpx;
+            flex-shrink: 0;
+            overflow: hidden;
+            image {
+                border-radius: 10px;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+
+        .product-info-title {
+            display: flex;
+            align-items: center;
+        }
+
+        .popup-footer {
+            display: flex;
+            align-items: center;
+
+            .btn {
+                height: 48rpx;
+            }
+        }
+    }
+
+    .popup-body {
+        padding: 20rpx;
+
+        .popup-item {
+            // display: flex;
+            // align-items: center;
+            margin-bottom: 20rpx;
+
+            .popup-item-title {
+                font-size: 28rpx;
+                color: #333;
+                margin-right: 10rpx;
+                padding-bottom: 10rpx;
+            }
+
+            .popup-item-footer {
+                text-align: right;
+                color: #999;
+                font-size: 24rpx;
+                margin-top: 4rpx;
+            }
+        }
+    }
+}
+
+.product-consult-card {
+    .consult-item {
+        padding: 20rpx;
+        background-color: #fff;
+        margin-bottom: 20rpx;
+
+        .consult-item-tit {
+            padding: 10rpx 0;
+
+            .time,
+            .name {
+                color: #666;
+                font-size: 22rpx;
+            }
+        }
+
+        .consult-con {
+            padding: 10rpx 0;
+            color: #666;
+            font-size: 22rpx;
+
+            text {
+                display: inline-block;
+                width: 35rpx;
+                height: 35rpx;
+                text-align: center;
+                line-height: 35rpx;
+                /* 旧 $tig-color-error → #39bf3e */
+                background-color: #39bf3e;
+                color: #fff;
+                font-size: 22rpx;
+                border-radius: 10rpx;
+                margin-right: 8rpx;
+            }
+        }
+    }
+}
+
+.btn-box {
+    padding: 25rpx;
+    .btn {
+        background: #c3a769;
+    }
+}

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import PcHeader from '@/components/PcHeader';
+import PcHeader from '@/components/PcHeaderWithData';
 import PcFooter from '@/components/PcFooter';
 import ChatClient from '@/components/ChatClient';
 import { getPcHeader } from '@/lib/api';

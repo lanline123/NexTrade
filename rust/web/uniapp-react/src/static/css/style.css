@@ -1,0 +1,55 @@
+@import "./modules.css";
+@import "./modulesCommon.css";
+@import "../font/iconfont.css";
+page {
+    font-family:
+        PingFang SC,
+        Microsoft Yahei,
+        Avenir,
+        Segoe UI,
+        Hiragino Sans GB,
+        STHeiti,
+        "Microsoft Sans Serif",
+        WenQuanYi Micro Hei,
+        sans-serif;
+    word-break: normal;
+}
+
+/*通用暂无数据样式*/
+.empty-box {
+    padding: 60rpx 0 110rpx;
+    margin-top: 50rpx;
+    border-radius: 18rpx;
+}
+.empty-box .pictrue {
+    width: 200rpx;
+    height: 200rpx;
+    margin: 0 auto;
+}
+.empty-box .pictrue image {
+    width: 100%;
+    height: 100%;
+}
+.empty-box .txt {
+    color: #999;
+    text-align: center;
+}
+
+/* button 基本样式 */
+.base-button {
+    border-radius: 50rpx;
+    background-color: #ee0a24;
+    color: #fff;
+    font-size: 26rpx;
+}
+.base-button-hover {
+    opacity: 0.7;
+}
+.button-position {
+    position: fixed;
+    bottom: 30rpx;
+    left: 0;
+    right: 0;
+    padding: 0 30rpx;
+    box-sizing: content-box;
+}

@@ -1,0 +1,189 @@
+.product-group-title-box {
+    padding-bottom: 20rpx;
+
+    &.product-group-title-box--overseas {
+        padding-bottom: 0;
+
+        .product-group-title {
+            padding: 20rpx 28rpx;
+            border-radius: 0;
+            overflow: hidden;
+        }
+    }
+}
+
+.product-group-title {
+    position: relative;
+    min-height: 140rpx;
+    padding: 20rpx 20rpx 35rpx 25rpx;
+
+    .activity-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .group-price-box,
+    .group-time-box {
+        position: relative;
+        z-index: 1;
+    }
+
+    .title-top-price {
+        .num-group {
+            color: #fff;
+            font-size: 28rpx;
+
+            .separator {
+                padding: 0 16rpx;
+            }
+        }
+
+        .price-box {
+            display: flex;
+        }
+
+        .price {
+            color: #fff;
+            font-size: 48rpx;
+            display: flex;
+            align-items: center;
+            margin-top: 8rpx;
+        }
+
+        .title-top-market_price {
+            font-size: 24rpx;
+
+            .originalprice-box {
+                display: flex;
+                font-size: 24rpx;
+                color: #fff;
+            }
+
+            .discountStock {
+                color: #fff;
+                position: relative;
+                padding: 0 18rpx;
+                margin-left: 18rpx;
+
+                &::before {
+                    position: absolute;
+                    content: "";
+                    left: 0;
+                    top: 0;
+                    width: 2rpx;
+                    height: 100%;
+                    background-color: #fff;
+                }
+            }
+        }
+    }
+
+    .group-time-box {
+        align-self: center;
+        padding-top: 0;
+
+        .countdown-box {
+            align-items: flex-end;
+        }
+
+        .title-top-time {
+            text-align: right;
+            width: 100%;
+            font-size: 24rpx;
+            color: #fff;
+            padding-bottom: 15rpx;
+        }
+
+        .countdown {
+            .countdown-text {
+                font-size: 11px;
+                line-height: 11px;
+                display: flex;
+                align-items: center;
+                color: #fff;
+                font-variant-numeric: tabular-nums;
+                font-feature-settings: "tnum";
+                font-family: monospace;
+                white-space: nowrap;
+            }
+
+            .splitor {
+                padding: 0 2.8px;
+                font-size: 9.42857px;
+            }
+
+            .countdown-bg {
+                color: var(--general);
+                background-color: #fff;
+                padding: 2.4px;
+                border-radius: 2.5px;
+                display: inline-flex;
+                overflow: hidden;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+    }
+}
+
+.product-group-title-box--vortmall {
+    padding-bottom: 0;
+    background: var(--product-content-bg, #fff);
+
+    .product-group-title {
+        min-height: auto;
+        padding: 14rpx 28rpx 38rpx;
+        background: var(--product-content-bg, #fff);
+
+        .title-top-price {
+            .price {
+                margin-top: 0;
+                color: var(--general);
+                font-size: 49rpx;
+            }
+
+            .title-top-market_price {
+                color: #000;
+                font-size: 28rpx;
+
+                .originalprice-box,
+                .discountStock {
+                    color: #000;
+                }
+
+                .discountStock::before {
+                    background-color: #000;
+                }
+            }
+        }
+
+        .group-time-box {
+            padding-top: 0;
+
+            .title-top-time {
+                color: #000;
+                padding-bottom: 14rpx;
+            }
+
+            .countdown {
+                .countdown-text {
+                    color: #000;
+                    font-size: 24rpx;
+                    line-height: 1;
+                }
+
+                .splitor {
+                    font-size: 24rpx;
+                }
+
+                .countdown-bg {
+                    padding: 5rpx;
+                    color: #fff;
+                    background-color: #000;
+                    border-radius: 5rpx;
+                }
+            }
+        }
+    }
+}

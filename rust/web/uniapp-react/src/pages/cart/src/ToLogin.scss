@@ -1,0 +1,30 @@
+/* 自旧 toLogin.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.to-login {
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: fixed;
+
+    .to-login-text {
+        color: rgba(153, 153, 153, 1);
+        font-size: 26rpx;
+        padding-bottom: 40rpx;
+    }
+
+    /* 原 <tig-button> 以样式 View 等价重写：u-button 默认主题色实底、白字圆角 */
+    .to-login-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--general);
+        color: #fff;
+        font-size: 26rpx;
+        border-radius: 8rpx;
+        padding: 0 24rpx;
+        box-sizing: border-box;
+    }
+}

@@ -1,0 +1,23 @@
+.base-image-box {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .base-image {
+        width: 100%;
+        height: 100%;
+        display: block;
+        opacity: 0;
+        transition: opacity 0.4s ease-in-out;
+
+        &.loading-end {
+            opacity: 1;
+        }
+
+        &.empty {
+            opacity: 1;
+        }
+    }
+}

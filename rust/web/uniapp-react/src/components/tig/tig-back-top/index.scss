@@ -1,0 +1,16 @@
+.tig-back-top {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76rpx;
+    height: 76rpx;
+    border-radius: 50%;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+
+    .tig-back-top__icon {
+        width: 36rpx;
+        height: 36rpx;
+        transform: rotate(-90deg);
+    }
+}

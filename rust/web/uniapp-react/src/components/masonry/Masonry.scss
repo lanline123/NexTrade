@@ -1,0 +1,26 @@
+/* 自旧 components/masonry/masonry.vue 的 <style lang="scss" scoped> 抽取容器部分。
+   卡片内部样式（.item-li / .photo / .info …）已由 ProductItem.scss 承载，此处不重复定义，避免覆盖 --pi-* 变量。 */
+.masonry {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 14rpx;
+
+    .masonry-item-column {
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* flex 容器可阻断子元素的 margin 折叠，测得的高度才包含卡片间距 */
+    .masonry-cell {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.activity-box {
+    height: 55rpx;
+}

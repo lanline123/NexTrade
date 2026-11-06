@@ -1,0 +1,110 @@
+/* 自旧 pages/productV1/comment.vue <style lang="scss" scoped> 原样拷出（去 scoped） */
+.product-comment-card {
+    background-color: #fff;
+    padding: 20rpx 20rpx 0 20rpx;
+    border-top: 1rpx solid #eee;
+    .comment-item {
+        border-bottom: 1rpx solid #eee;
+        padding-bottom: 20rpx;
+        padding-top: 20rpx;
+        .user-info {
+            .user-name {
+                font-size: 24rpx;
+                .head_logo {
+                    margin-right: 20rpx;
+                    image {
+                        width: 60rpx;
+                        height: 60rpx;
+                        border-radius: 100rpx;
+                    }
+                }
+            }
+            .time {
+                font-size: 24rpx;
+                color: #c3c0c0;
+            }
+        }
+        .tags {
+            margin-top: 20rpx;
+            .tag {
+                background: #eee none repeat scroll 0 0;
+                margin-bottom: 12rpx;
+                margin-right: 8rpx;
+                padding: 6rpx 12rpx;
+                border-radius: 2px;
+                font-size: 11px;
+                color: #666;
+            }
+        }
+        .user-content {
+            margin: 20rpx 0;
+            font-size: 26rpx;
+        }
+        .user-imgs {
+            image {
+                width: 150rpx;
+                height: 150rpx;
+                margin-right: 15rpx;
+                margin-bottom: 15rpx;
+                border: 1px solid #eee;
+            }
+        }
+        .reply-section {
+            margin-top: 15rpx;
+        }
+        .reply-card {
+            position: relative;
+            background-color: #f7f7f7;
+            border-radius: 12rpx;
+            padding: 20rpx 24rpx;
+            font-size: 24rpx;
+            line-height: 1.6;
+
+            .reply-measure {
+                position: absolute;
+                left: 24rpx;
+                right: 24rpx;
+                visibility: hidden;
+                pointer-events: none;
+            }
+
+            .reply-body {
+                word-wrap: break-word;
+
+                &.is-collapsed {
+                    max-height: 1.6em;
+                    overflow: hidden;
+                }
+            }
+
+            .reply-label {
+                color: #999;
+            }
+
+            .reply-text {
+                word-wrap: break-word;
+            }
+
+            .reply-toggle {
+                color: #000;
+                margin-left: 10rpx;
+            }
+
+            .reply-expand {
+                position: absolute;
+                right: 24rpx;
+                bottom: 20rpx;
+                color: #000;
+                background: #f7f7f7;
+                padding-left: 0;
+                .reply-expand-text {
+                    color: #333;
+                }
+            }
+        }
+    }
+}
+.loading-box {
+    padding: 30rpx;
+    font-size: 24rpx;
+}

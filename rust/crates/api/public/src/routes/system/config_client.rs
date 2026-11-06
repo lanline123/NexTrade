@@ -179,7 +179,9 @@ async fn get_theme_settings(
 /// 对应 Java `ConfigController.getProductDetailStyle`（第 95 行）→
 /// `ConfigServiceImpl#getProductDetailStyleType`。
 ///
-/// 返回裸 `Integer`（1-样式一，2-样式二；空 / 非法 ⇒ 1）。
+/// 返回裸 `Integer`：1=经典版(old)、2=国内标准版(new)、3=跨境简约版(overseas)；
+/// 由后台「装修 → PC端装修 → 商品页风格」`productDetailStyleType` 下发；空 / 非法 ⇒ 1。
+/// PC 端 `src/lib/api.ts getProductDetailStyle` 负责把数字映射为三套结构级布局。
 async fn get_product_detail_style(State(state): State<PublicState>) -> ApiResult<i32> {
     ok(state.system.config_client.product_detail_style().await?)
 }

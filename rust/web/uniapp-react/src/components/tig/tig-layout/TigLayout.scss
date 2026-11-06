@@ -1,0 +1,21 @@
+.layout {
+    max-width: 100%;
+
+    .layout-content {
+        max-width: 100%;
+
+        &.overflow {
+            overflow: hidden;
+        }
+    }
+
+    .layout-safe-bottom {
+        width: 100%;
+        height: 0;
+        padding-top: var(--safe-bottom);
+    }
+}
+
+.safe-top-box {
+    height: var(--safe-top);
+}

@@ -1,0 +1,7 @@
+/* 自旧 commonCountdown/index.vue <style lang="scss" scoped> 原样平铺移植（去 scoped） */
+/* 旧 .time-item 的 color: v-bind(color) !important 改为 time-item 节点内联 style（color prop），此处仅保留字号 */
+.countdown-box {
+    .time-item {
+        font-size: 24rpx;
+    }
+}

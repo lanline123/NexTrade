@@ -1,0 +1,20 @@
+/* 自旧 pages/member/components/decorate/adImage/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.dec-ad-image {
+    box-sizing: border-box;
+    padding-left: var(--dec-box-padding, 10rpx);
+    padding-right: var(--dec-box-padding, 10rpx);
+    padding-top: var(--dec-box-padding-top, 20rpx);
+    padding-bottom: var(--dec-box-padding-bottom, 0);
+
+    &__wrapper {
+        background-color: var(--dec-bg-color, transparent);
+        border-radius: var(--dec-border-radius, 24rpx);
+        padding: var(--dec-inner-padding, 0);
+        overflow: hidden;
+    }
+
+    &__img {
+        width: 100%;
+        display: block;
+    }
+}

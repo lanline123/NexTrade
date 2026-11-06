@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import PcHeader from '@/components/PcHeader';
+import PcHeader from '@/components/PcHeaderWithData';
 import ProductGrid from '@/components/ProductGrid';
 import SearchBrandFilter from '@/components/SearchBrandFilter';
 import { getPcHeader } from '@/lib/api';

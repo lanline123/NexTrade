@@ -1,0 +1,22 @@
+/*热图广告*/
+.image-hotarea-warp .image-ad-item {
+    width: 100%;
+    position: relative;
+}
+.image-hotarea-warp .image-ad-item .item-content-hotatrea {
+    position: relative;
+    width: 100%;
+    display: flex;
+}
+.image-hotarea-warp .image-ad-item .item-img-bg {
+    width: 100%;
+}
+.image-hotarea-warp .image-ad-item .image-hotarea-link {
+    position: absolute;
+}
+.image-hotarea-warp .image-ad-item .image-hotarea-link .area_box_con_text {
+    display: none;
+}
+.module-ad-content {
+    overflow: hidden;
+}

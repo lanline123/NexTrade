@@ -1,0 +1,68 @@
+/* 自旧 pages/order/src/paymentChannelList.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.payment-channel-list {
+    border-radius: 18rpx;
+    background: #fff;
+    margin-bottom: 20rpx;
+    margin-top: 20rpx;
+    padding: 10rpx 32rpx 10rpx;
+
+    .payment-channel-list-title {
+        font-weight: bold;
+    }
+}
+
+.channel-list {
+    .channel-item {
+        height: 100rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1rpx solid #eee;
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    .channel-info {
+        display: flex;
+        align-items: center;
+
+        .channel-icon {
+            width: 56rpx;
+            height: 56rpx;
+        }
+
+        .channel-name {
+            padding-left: 15rpx;
+            font-size: 28rpx;
+        }
+    }
+}
+
+.radio-circle {
+    width: 36rpx;
+    height: 36rpx;
+    border-radius: 50%;
+    border: 2rpx solid #ccc;
+    box-sizing: border-box;
+    position: relative;
+    flex-shrink: 0;
+
+    &.checked {
+        border-color: var(--general);
+        background-color: var(--general);
+
+        &::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 16rpx;
+            height: 9rpx;
+            border-left: 3rpx solid #fff;
+            border-bottom: 3rpx solid #fff;
+            transform: translate(-50%, -65%) rotate(-45deg);
+        }
+    }
+}

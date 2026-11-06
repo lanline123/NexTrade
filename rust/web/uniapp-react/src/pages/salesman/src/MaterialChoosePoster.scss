@@ -1,0 +1,176 @@
+/* 自旧 pages/salesman/src/materialChoosePoster.vue 的 scoped 样式移植（去 scoped、v-bind 改内联 style） */
+.overlay {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 88;
+    top: 0;
+    left: 0;
+
+    .bottom-choose-box {
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        .bottom-choose {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            height: 300rpx;
+            overflow: hidden;
+            box-sizing: content-box;
+
+            .bottom-choose-inner {
+                width: 100%;
+                height: inherit;
+                background-color: #fff;
+                border-radius: 30rpx 30rpx 0 0;
+            }
+
+            .bottom-choose-title {
+                margin: 0 auto;
+                padding: 16px 0;
+                font-weight: 400;
+                font-size: 14px;
+                line-height: 18px;
+                text-align: center;
+                color: #323233;
+            }
+
+            .chose-ico {
+                position: absolute;
+                z-index: 1;
+                color: #c8c9cc;
+                font-size: 44rpx;
+                line-height: 1;
+                top: 12px;
+                right: 14px;
+            }
+        }
+
+        .list-box {
+            height: 200rpx;
+            width: 100%;
+
+            .list-content {
+                width: 100%;
+                height: 100%;
+                padding: 0 25rpx;
+                white-space: nowrap;
+
+                .list-item {
+                    width: 216rpx;
+                    height: 200rpx;
+                    padding-right: 16rpx;
+                    position: relative;
+                    display: inline-block;
+
+                    .list-item-radio {
+                        position: absolute;
+                        top: 0;
+                        right: 14rpx;
+                        z-index: 9;
+                        width: 32rpx;
+                        height: 32rpx;
+                        margin-bottom: 8px;
+                        border-radius: 50%;
+                        border: 2rpx solid #c8c9cc;
+                        background-color: #fff;
+                        box-sizing: border-box;
+
+                        &.active {
+                            border-color: #2da641;
+                            background-color: #2da641;
+
+                            &::after {
+                                position: absolute;
+                                left: 50%;
+                                top: 50%;
+                                width: 12rpx;
+                                height: 6rpx;
+                                border-left: 3rpx solid #fff;
+                                border-bottom: 3rpx solid #fff;
+                                transform: translate(-50%, -60%) rotate(-45deg);
+                                content: "";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .poster-box {
+        width: 300px;
+        position: fixed;
+        max-height: 100%;
+        background-color: #fff;
+        bottom: 500rpx;
+        left: 50%;
+        z-index: 9;
+        transform: translateX(-50%);
+
+        .preview-wrap {
+            position: relative;
+
+            .preview-icon {
+                position: absolute;
+                top: -75rpx;
+                right: -20rpx;
+
+                .preview-icon-close {
+                    position: relative;
+                    display: block;
+                    width: 40rpx;
+                    height: 40rpx;
+
+                    &::before,
+                    &::after {
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                        width: 40rpx;
+                        height: 4rpx;
+                        background-color: #fff;
+                        content: "";
+                    }
+
+                    &::before {
+                        transform: translate(-50%, -50%) rotate(45deg);
+                    }
+
+                    &::after {
+                        transform: translate(-50%, -50%) rotate(-45deg);
+                    }
+                }
+            }
+
+            .preview-text {
+                position: absolute;
+                bottom: -70rpx;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 24rpx;
+                color: #fff;
+            }
+        }
+
+        .poster-wrap {
+            max-height: 400px;
+            overflow: auto;
+
+            .poster-img {
+                width: 100%;
+            }
+        }
+    }
+
+    .canvas-content {
+        position: fixed;
+        width: 300px;
+        top: -9999px;
+        left: -9999px;
+    }
+}

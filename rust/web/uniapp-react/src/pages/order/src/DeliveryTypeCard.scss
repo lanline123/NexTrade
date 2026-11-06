@@ -1,0 +1,152 @@
+/* 自旧 pages/order/src/deliveryTypeCard.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+/* 旧 `image` 标签选择器改为 .bg-img（Taro Image 无原生标签选择器） */
+.delivery-type-box {
+    padding-top: 20rpx;
+
+    .delivery-type {
+        .delivery-menu {
+            display: flex;
+            height: 98rpx;
+            align-items: center;
+            position: relative;
+            background-color: #efefef;
+            border-radius: 68rpx 68rpx 0rpx 0rpx;
+
+            .menu-item {
+                flex: 1;
+                height: 100%;
+                font-weight: 600;
+                font-size: 32rpx;
+                color: #6a6a6a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                z-index: 1;
+
+                &.acitve {
+                    color: #2a2a2a;
+                }
+            }
+
+            .menu-bg-box {
+                position: absolute;
+                height: 101%;
+                width: 426rpx;
+                z-index: 0;
+
+                &.new {
+                    width: 289rpx;
+
+                    &.right {
+                        .bg-img {
+                            transform: scaleX(-1);
+                        }
+                    }
+                    &.left {
+                        left: 0;
+
+                        .bg-img {
+                            transform: none;
+                        }
+                    }
+                }
+
+                .bg-img {
+                    width: 100%;
+                    height: 100%;
+                }
+
+                &.right {
+                    right: 0;
+                }
+
+                &.left {
+                    left: 0;
+
+                    .bg-img {
+                        transform: scaleX(-1);
+                    }
+                }
+
+                &.middle {
+                    left: 50%;
+                    top: 0;
+                    transform: translateX(-50%);
+                    width: 348rpx;
+                    height: 106%;
+
+                    .bg-img {
+                        transform: none;
+                    }
+                }
+            }
+        }
+    }
+
+    .card-box {
+        // padding-top: 27rpx;
+        background: linear-gradient(0deg, #f4f3f3, #fcfcfc);
+    }
+
+    .card {
+        border-radius: 0;
+        background: #fff;
+        padding: 30rpx;
+        overflow: hidden;
+    }
+
+    .address-box {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        column-gap: 30rpx;
+        position: relative;
+
+        .pickup-bg {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 6rpx;
+
+            .bg-img {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+        }
+
+        .address-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            row-gap: 27rpx;
+            overflow: hidden;
+
+            .user-info {
+                display: flex;
+                column-gap: 30rpx;
+                font-weight: bold;
+                font-size: 28rpx;
+                color: #262626;
+                align-items: center;
+            }
+
+            .address-text {
+                font-weight: 500;
+                font-size: 28rpx;
+                color: #6a6a6a;
+            }
+        }
+
+        .icon-box {
+            display: flex;
+            align-items: center;
+            .icon-a-gengduo20 {
+                font-size: 35rpx;
+                color: #8c8c8c;
+            }
+        }
+    }
+}

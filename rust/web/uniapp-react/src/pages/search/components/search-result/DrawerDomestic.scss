@@ -1,0 +1,167 @@
+/* 自旧 drawer-domestic.vue <style lang="scss" scoped> 原样拷出，去 scoped。
+   :deep(.popup-container) 圆角规则平铺为 DrawerDomestic.tsx 中 Popup 的 style borderRadius；
+   .active :deep(.iconfont-h5) 平铺为 .active .iconfont-h5。 */
+.search_condition {
+    width: 88vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    .search_condition-scroll {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .search_condition-box {
+        position: relative;
+        padding-top: var(--safe-top);
+        padding-bottom: 20rpx;
+    }
+
+    /* 旧工程 App.vue 全局工具类（.flex/.justify-between/.flex-wrap/.align-center），
+       React 工程无全局定义，组件内补齐 */
+    .flex {
+        display: flex;
+    }
+    .justify-between {
+        justify-content: space-between;
+    }
+    .align-center {
+        align-items: center;
+    }
+    .flex-wrap {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .tab_box {
+        padding: 20rpx;
+        .title-box {
+            display: flex;
+            align-items: center;
+            color: #666;
+            padding: 10rpx 0;
+            margin-bottom: 10rpx;
+
+            .txt {
+                line-height: 32rpx;
+            }
+
+            .more {
+                display: flex;
+                align-items: center;
+                height: 32rpx;
+
+                .more-text {
+                    font-size: 24rpx;
+                    color: #bfbfbf;
+                    margin-right: 4rpx;
+                    line-height: 32rpx;
+                }
+
+                .iconfont-h5 {
+                    position: relative;
+                    display: block;
+                    width: 32rpx;
+                    height: 32rpx;
+                    font-size: 0 !important;
+
+                    &::before {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 12rpx;
+                        height: 12rpx;
+                        box-sizing: border-box;
+                        border-right: 2rpx solid currentColor;
+                        border-bottom: 2rpx solid currentColor;
+                        content: "";
+                    }
+
+                    &.icon-arrowdown::before {
+                        transform: translate(-50%, -70%) rotate(45deg);
+                    }
+
+                    &.icon-up::before {
+                        transform: translate(-50%, -30%) rotate(-135deg);
+                    }
+                }
+            }
+        }
+        .tabs {
+            .item {
+                margin-top: 10px;
+                width: 30%;
+                text-align: center;
+                line-height: 29px;
+                background-color: #f0f2f5;
+                border: 1px solid #f0f2f5;
+                border-radius: 5px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                font-size: 20rpx;
+                margin: 10rpx;
+                text {
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                }
+            }
+            .active {
+                border: 1px solid var(--search-theme, var(--general));
+                color: var(--search-theme, var(--general));
+                .iconfont-h5 {
+                    color: var(--search-theme, var(--general)) !important;
+                }
+            }
+            .uni-input {
+                width: 42%;
+                background-color: #f0f2f5;
+                padding: 10rpx;
+                font-size: 22rpx;
+                text-align: center;
+                border-radius: 5px;
+            }
+            .xian {
+                width: 16rpx;
+                margin: 0 10rpx;
+                border-bottom: 2rpx solid #848689;
+            }
+        }
+    }
+
+    .btn-box {
+        flex-shrink: 0;
+        width: 100%;
+        padding-bottom: 20rpx;
+        background-color: #fff;
+        border-top: 1px solid #f0f2f5;
+
+        &.safe-btn {
+            padding-bottom: var(--safe-bottom);
+        }
+
+        .btn-flex {
+            padding: 0 20rpx;
+            column-gap: 20rpx;
+            justify-content: center;
+        }
+
+        .btn {
+            height: 70rpx;
+            flex: 1;
+            background-color: #f0f2f5;
+            box-sizing: content-box;
+            border-radius: 8rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 90rpx;
+        }
+        .submit {
+            background-color: var(--search-theme, var(--general));
+            color: #fff;
+        }
+    }
+}

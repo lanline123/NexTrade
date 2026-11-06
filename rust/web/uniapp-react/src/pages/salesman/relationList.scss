@@ -1,0 +1,197 @@
+/* 自旧 pages/salesman/relationList.vue 的 <style lang="scss" scoped> 逐条移植
+   （去 scoped、:deep() 平铺、v-bind 高度改内联 style） */
+.customer-page {
+    min-height: 100vh;
+    box-sizing: border-box;
+    /* padding-top 由内联 style 提供（旧 v-bind(filterHeight + 'px')） */
+    padding-bottom: 30rpx;
+}
+/* 旧 #ifdef MP-WEIXIN：仅微信小程序下锁定滚动；条件编译改为运行期平台差异，规则本身保留 */
+.customer-page.empty-page {
+    height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.filter-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    /* padding-top 由内联 style 提供（旧 v-bind(filterTopHeight + 'px')） */
+    background: #fff;
+}
+.search-wrap {
+    padding: 24rpx 10px 12rpx;
+    background: #fff;
+    display: flex;
+    align-items: center;
+
+    .search-back {
+        flex: 0 0 60rpx;
+        width: 60rpx;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .icon-houtui {
+            display: block;
+            font-size: 40rpx;
+            line-height: 1;
+            color: #333;
+        }
+    }
+
+    /* 旧 :deep(.u-search) 平铺（up-search 已换 NutUI SearchBar，改用 .relation-search 承载） */
+    .u-search {
+        flex: 1;
+        min-width: 0;
+    }
+    .relation-search {
+        flex: 1;
+        min-width: 0;
+    }
+}
+.tabs,
+.time-tabs {
+    display: flex;
+    align-items: center;
+    gap: 28rpx;
+    padding: 0 10px;
+    background: #fff;
+    overflow-x: auto;
+}
+/* 旧 up-tabs（line-color / active-style 取 var(--general)）→ 基础组件自绘 */
+.tabs {
+    .tabs__item {
+        position: relative;
+        padding: 20rpx 0;
+        font-size: 28rpx;
+        line-height: 40rpx;
+        color: #333;
+        white-space: nowrap;
+
+        &.active {
+            color: var(--general);
+            font-weight: 500;
+
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40rpx;
+                height: 4rpx;
+                border-radius: 2rpx;
+                background-color: var(--general);
+            }
+        }
+    }
+}
+.time-tabs {
+    padding: 20rpx 10px;
+    box-shadow: 0 6rpx 12rpx rgba(125, 126, 128, 0.16);
+    gap: 14rpx;
+}
+.time-tab {
+    box-sizing: border-box;
+    height: 22px;
+    line-height: 22px;
+    padding: 0 10px;
+    border-radius: 24rpx;
+    color: #999;
+    background: #f7f8fa;
+    white-space: nowrap;
+    font-size: 24rpx;
+    &.active {
+        color: var(--general);
+        background: #fff0e6;
+    }
+    &.custom {
+        margin-left: auto;
+        flex-shrink: 0;
+        padding-right: 0;
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+        color: #999;
+        background: transparent;
+        text {
+            white-space: nowrap;
+            &.selected {
+                font-size: 24rpx;
+                color: var(--general);
+                white-space: pre-line;
+                line-height: 1.2;
+            }
+        }
+        .relation-arrow {
+            font-size: 16rpx;
+            line-height: 1;
+        }
+    }
+}
+.total {
+    padding: 10px 24rpx;
+    color: #999;
+}
+.total-count {
+    color: #333;
+}
+.customer-card {
+    display: flex;
+    box-sizing: border-box;
+    min-width: 0;
+    overflow: hidden;
+    gap: 22rpx;
+    margin: 0 24rpx 20rpx;
+    padding: 28rpx 24rpx;
+    border-radius: 10rpx;
+    background: #fff;
+}
+.avatar {
+    display: block;
+    width: 84rpx;
+    height: 84rpx;
+    border-radius: 50%;
+    overflow: hidden;
+    flex: 0 0 84rpx;
+    min-width: 84rpx;
+    /* 旧 :deep(.base-image) / :deep(.base-image-box) 平铺 */
+    .base-image {
+        opacity: 1;
+    }
+    .base-image-box {
+        width: 100%;
+        height: 100%;
+    }
+}
+.customer-info {
+    min-width: 0;
+    width: 0;
+    overflow: hidden;
+    flex: 1;
+}
+.name {
+    margin-bottom: 12rpx;
+    font-size: 32rpx;
+    color: #333;
+}
+.line {
+    margin-top: 10rpx;
+    color: #999;
+    font-size: 24rpx;
+    word-break: break-all;
+    text {
+        color: #333;
+        font-weight: 600;
+    }
+}
+.empty,
+.loading {
+    padding: 80rpx 0;
+    text-align: center;
+    color: #999;
+}

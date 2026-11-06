@@ -1,0 +1,88 @@
+/* 自旧 pages/salesman/orderPromote.vue 的 <style lang="scss" scoped> 逐条移植（去 scoped） */
+.orderpromote-list {
+    .orderpromote-list-item {
+        background-color: #fff;
+        padding: 24rpx 24rpx 0;
+        margin-top: 24rpx;
+        border-radius: 8rpx;
+
+        .orderpromote-list-item-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 28rpx;
+            height: 36rpx;
+
+            .orderpromote-list-item-name {
+                color: #323233;
+            }
+            .orderpromote-list-item-statustext {
+                color: #ff720d;
+            }
+        }
+
+        .orderpromote-list-item-time {
+            font-size: 24rpx;
+            line-height: 32rpx;
+            color: #969799;
+            margin: 16rpx 0;
+        }
+
+        .orderpromote-list-item-product {
+            padding: 24rpx;
+            display: flex;
+            .item-product-left {
+                margin-right: 16rpx;
+                .item-product-left-img {
+                    width: 160rpx;
+                    height: 160rpx;
+                }
+            }
+
+            .item-product-right {
+                min-height: 176rpx;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+
+                .item-product-right-name {
+                    margin-bottom: 12rpx;
+                    line-height: 40rpx;
+                    font-size: 28rpx;
+                }
+
+                .item-product-right-num {
+                    margin-top: 16rpx;
+                    line-height: 40rpx;
+                    display: flex;
+                    justify-content: flex-end;
+                    color: #969799;
+                }
+            }
+        }
+        .orderpromote-list-item-orderamount {
+            display: flex;
+            justify-content: flex-end;
+            height: 64rpx;
+            font-size: 24rpx;
+            align-items: center;
+            color: #969799;
+        }
+
+        .orderpromote-list-item-amount {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            height: 64rpx;
+            font-size: 24rpx;
+        }
+
+        .orderpromote-list-item-btn {
+            height: 96rpx;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-top: 2rpx solid #ebedf0;
+        }
+    }
+}

@@ -43,6 +43,10 @@ java/view/uniapp        H5 / 小程序源
 java/view/admin         旧 Vue 后台
 ```
 
+> 2026-11 清理：`rust/web/{admin,pc,shared}`（Vue3 重写原型）已按
+> `rust/docs/FRONTEND-1TO1-REVIEW-2026-10-25.md` 的 R3 决策删除，
+> `rust/web` pnpm workspace 现只保留 `pc-semi`；`admin-semi` 使用独立 npm 管理。
+
 ### 生产状态（截至合并时）
 
 ```text
@@ -123,6 +127,23 @@ docs/i18n-home-multilang-seed.sql     多语言首页种子
 ```
 
 装修、顶部栏、主题、消息、播报等已完成。
+
+商品设置（`baseProductManage`）已按跨境版 v5.8.61 逐项对齐（2026-11-04）：
+
+```text
+17 个字段（含原图下载 3 项）
+0/1 字段统一单选，规格图片、批量采购、库存编辑恢复选项文案
+商品名称长度 0-750 取整，市场价换算保留 1 位小数
+匿名评价随商品评价关闭自动归零并禁用
+原图下载开启时校验渠道 / 打包范围
+商品原图批量下载已按 Java ProductRawImageDownloadService 对齐（源码层）：
+  initConfigSettings 下发 enabled / channels / scopes 三项用户端配置
+  配置行缺失时按 Java SettingsEnum.defaultValue 回落（enabled=0 / 全渠道 / 全范围），空值行不回落
+  GET /api/product/product/downloadRawImages 复刻开关、渠道、范围校验
+  main / sku / detail 三类图片采集、原图 URL 归一化、分目录 ZIP、整体失败语义
+  PC 商品详情页新增「素材下载」按钮；H5 / 小程序沿用 X-Client-Type 请求头
+  生产需重新构建部署并实测接口后才算闭环
+```
 
 ### 2.2 迁移引擎
 
@@ -810,6 +831,12 @@ nginx -s reload
 7. PC 装修逐模块视觉 parity 未逐条核对
 8. 3 个后端缺失页面挂起：历史会话、客服工作台
 9. 动态分类/商品/装修内容多语言未完成
+10. 商品设置已对齐跨境版；生产 Rust 需重新构建部署后，/admin-semi 才会返回「商品图片下载」3 个字段
+11. 商品原图批量下载已在源码层补齐（配置下发 + ZIP 打包服务 + PC 按钮），生产需重新构建部署并实测：
+    GET /api/common/config/initConfigSettings 返回 3 项配置
+    GET /api/product/product/downloadRawImages?id=<商品ID> 带 X-Client-Type / Authorization 返回 ZIP
+    Content-Disposition / Content-Length 需经代理保留可读取（handler 已设 Access-Control-Expose-Headers）
+    全局 CompressionLayer 已排除 application/zip 等已压缩二进制，避免二次 gzip 抹掉 Content-Length
 ```
 
 ---

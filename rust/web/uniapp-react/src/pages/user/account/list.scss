@@ -1,0 +1,111 @@
+/* 自旧 pages/user/account/cardManagement/list.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.head-tabs-box {
+    position: fixed;
+    width: 100%;
+    z-index: 88;
+    top: var(--nav-height);
+    .tabs {
+        background-color: #fff;
+        padding: 30rpx;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .tabs-left {
+            display: flex;
+            align-items: flex-end;
+        }
+        .tab {
+            font-size: 26rpx;
+            margin-right: 40rpx;
+            color: #666;
+        }
+        .active {
+            color: var(--general);
+            font-weight: bold;
+            font-size: 32rpx;
+        }
+        .clear-unread {
+            font-size: 26rpx;
+            color: #999;
+        }
+    }
+}
+.card-empty {
+    margin-top: 120rpx;
+}
+.card-list {
+    position: relative;
+    padding: 0 20rpx;
+    margin-top: 120rpx;
+    .move-item {
+        margin-bottom: 10rpx;
+    }
+    .mitem {
+        position: relative;
+        border-radius: 10rpx;
+        .card {
+            position: relative;
+            padding: 30rpx 20rpx;
+            background-color: #fff;
+            border-radius: 20rpx;
+            .txt-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10rpx;
+                &:last-child {
+                    margin-bottom: 0;
+                }
+                .tit {
+                    font-size: 24rpx;
+                }
+                .txt {
+                    font-size: 22rpx;
+                    color: #999;
+                }
+            }
+        }
+    }
+}
+.card-move-box {
+    width: 300rpx;
+    height: 100%;
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    display: flex;
+    text {
+        display: block;
+        position: absolute;
+        top: 50%;
+        margin-top: -20rpx;
+        font-size: 24rpx;
+        text-align: center;
+        width: 100%;
+    }
+    .btn-edit {
+        width: 150rpx;
+        background: var(--vice-bg);
+        color: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+    .btn-del {
+        width: 150rpx;
+        background: var(--general);
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        display: table-cell;
+        position: relative;
+    }
+}
+
+/* NutUI Swipe 右侧操作层与卡片等高 */
+.card-list .nut-swipe-right {
+    top: 1px;
+    bottom: 1px;
+}

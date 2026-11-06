@@ -1,0 +1,58 @@
+/* 自旧 pages/user/invoiceManagement/index.vue 的 <style lang="scss" scoped> 原样拷出（去 scoped） */
+.invoice-management {
+    min-height: calc(100vh - var(--nav-height) - var(--safe-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+}
+
+.placeholder {
+    height: 88rpx;
+}
+.invoice-menu {
+    background-color: #fff;
+    display: flex;
+    box-sizing: border-box;
+    margin-bottom: 30rpx;
+    position: fixed;
+    width: 100%;
+    z-index: 88;
+
+    .invoice-menu-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 88rpx;
+        position: relative;
+
+        .invoice-menu-item-text {
+            padding: 0 10rpx 0 0;
+        }
+        &.active {
+            color: #333;
+
+            &:after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                height: 5rpx;
+                width: 60rpx;
+                background-color: var(--general);
+                border-radius: 10rpx;
+            }
+        }
+    }
+}
+
+.invoice-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20rpx;
+}
+
+.invoice-list-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}

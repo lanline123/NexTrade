@@ -1,0 +1,33 @@
+.title-ad-warp .title-ad-item {
+    padding: 0;
+    min-height: 40rpx;
+}
+.title-ad-warp .title-ad-item .item-name-con {
+    display: flex;
+    flex-wrap: nowrap;
+}
+.title-ad-warp .title-ad-item .item-name {
+    line-height: 40rpx;
+    font-size: 32rpx;
+    font-weight: bold;
+    color: #323233;
+    word-break: break-all;
+}
+.title-ad-warp .title-ad-item .item-desc {
+    line-height: 36rpx;
+    padding-top: 16rpx;
+    color: #8c8c8c;
+    font-size: 24rpx;
+    word-break: break-all;
+}
+.ad-title_align__2 .title-ad-warp .image-ad-title {
+    justify-content: center;
+}
+.ad-title_align__2 .title-ad-warp .image-ad-title .image-ad-title-r {
+    position: absolute;
+    right: 0;
+}
+
+.icon-youjiantou {
+    font-size: 32rpx;
+}

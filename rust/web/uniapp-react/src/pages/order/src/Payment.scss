@@ -1,0 +1,60 @@
+// 自旧 pages/order/src/payment.vue <style lang="scss" scoped> 原样拷出（去 scoped）
+.pay-list {
+    background: #fff;
+    padding: 5rpx 36rpx 15rpx;
+    border-radius: 18rpx;
+    margin-top: 40rpx;
+    .item:last-child {
+        border: 0;
+    }
+    .item {
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+        height: 100rpx;
+        border-bottom: 1rpx solid #eee;
+        padding: 20rpx 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .payment-info {
+            display: flex;
+            align-items: center;
+
+            .payment-info-text {
+                min-width: 145rpx;
+                padding-left: 15rpx;
+            }
+
+            .payment-info-img {
+                width: 66rpx;
+                height: 66rpx;
+            }
+
+            .payment-info-balance-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 66rpx;
+                height: 66rpx;
+                border-radius: 50%;
+                background: #fff3df;
+                color: #f59a23;
+                font-size: 34rpx;
+                font-weight: 600;
+            }
+
+            .payment-info-balance {
+                line-height: 34rpx;
+            }
+
+            .payment-info-balance__amount {
+                display: flex;
+                align-items: center;
+                color: #999;
+                font-size: 22rpx;
+            }
+        }
+    }
+}
