@@ -25,3 +25,18 @@ scratch/
 **/.next.bak-*/
 rust/web/pc-semi/.next/
 **/*.tsbuildinfo
+
+# Next.js ad-hoc check caches (local build artifacts)
+**/.next-check*/
+**/.next-check-*/
+
+# Windows redirect junk
+nul
+
+# local binaries / scratch captures (not for VCS)
+rustshop
+salesman-icon-*.txt
+tools/_tmp/
+
+# reference baseline, intentionally untracked
+java-b2b2c-overseas-v5.8.61/

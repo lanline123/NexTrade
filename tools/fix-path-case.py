@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 
-REPO = r"D:\tigshop\java-b2b2b-pro-v5.8.57"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCOPE = "rust/web/pc-semi"
 os.chdir(REPO)
 

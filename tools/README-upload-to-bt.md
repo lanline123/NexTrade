@@ -10,7 +10,7 @@ tools/upload-to-bt.ps1
 
 ```text
 把本地大文件切成 4MB 分片，通过宝塔面板 UploadFile 接口上传到服务器。
-适用于 GitHub Actions 产出的 rustshop 二进制、zip 包等。
+适用于 GitHub Actions 产出的 nextrade 二进制、PC 运行时 tgz 等。
 ```
 
 ## 依赖
@@ -34,13 +34,13 @@ $script:base
 ## 基本用法
 
 ```powershell
-cd D:\tigshop\java-b2b2b-pro-v5.8.57
+cd D:\tigshop\NexTrade
 
 .\tools\upload-to-bt.ps1 `
-  -File C:\Users\lanli\AppData\Local\Temp\rustshop-build95b\rustshop `
+  -File C:\Users\lanli\AppData\Local\Temp\nextrade-build150\nextrade `
   -RemoteDir /www/backup/ `
   -ChunkSizeMB 4 `
-  -PartPrefix b95_
+  -PartPrefix b150_
 ```
 
 上传结果：
@@ -55,7 +55,7 @@ cd D:\tigshop\java-b2b2b-pro-v5.8.57
 
 ```powershell
 .\tools\upload-to-bt.ps1 `
-  -File .\rustshop `
+  -File .\nextrade `
   -RemoteDir /www/backup/ `
   -Helper D:\tools\bt2api.ps1
 ```
@@ -66,7 +66,7 @@ cd D:\tigshop\java-b2b2b-pro-v5.8.57
 
 ```powershell
 .\tools\upload-to-bt.ps1 `
-  -File .\rustshop `
+  -File .\nextrade `
   -RemoteDir /www/backup/ `
   -KeepTemp
 ```
@@ -78,22 +78,25 @@ cd D:\tigshop\java-b2b2b-pro-v5.8.57
 ```bash
 cd /www/backup
 
-cat b95_00 b95_01 b95_02 b95_03 b95_04 b95_05 \
-    b95_06 b95_07 b95_08 b95_09 b95_10 b95_11 \
-    > /www/wwwroot/tigshop-rust/tigshop.new
+cat b150_00 b150_01 b150_02 b150_03 b150_04 b150_05 \
+    b150_06 b150_07 b150_08 b150_09 b150_10 b150_11 \
+    > /www/backup/nextrade.new
 
-# 必做：和本地/Release 的 sha256 对比
-sha256sum /www/wwwroot/tigshop-rust/tigshop.new
+# 必做：和 Release 的 nextrade.sha256 比对（该文件内容形如 "<hash>  nextrade"）
+sha256sum /www/backup/nextrade.new
 
-systemctl stop tigshop
-cp -a /www/wwwroot/tigshop-rust/tigshop /www/wwwroot/tigshop-rust/tigshop.$(date +%Y%m%d%H%M).bak
-chmod 755 /www/wwwroot/tigshop-rust/tigshop.new
-mv -f /www/wwwroot/tigshop-rust/tigshop.new /www/wwwroot/tigshop-rust/tigshop
-systemctl start tigshop
+systemctl stop nextrade
+cp -a /www/wwwroot/nextrade/nextrade /www/backup/nextrade.preB150.bak
+chmod 755 /www/backup/nextrade.new
+rm -f /www/wwwroot/nextrade/nextrade        # 运行中的二进制不能直接覆盖（ETXTBSY）
+mv -f /www/backup/nextrade.new /www/wwwroot/nextrade/nextrade
+systemctl start nextrade
 
-systemctl is-active tigshop
+systemctl is-active nextrade
 curl -s http://127.0.0.1:8080/adminapi/health
 ```
+
+注意 `sha256sum -c` 要求文件名与 `.sha256` 内容里的文件名一致；合并后的文件叫 `nextrade.new` 时直接 `-c` 会报 no such file，应像上面那样单独算 hash 再人工比对。
 
 ## 注意
 

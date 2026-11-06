@@ -9,7 +9,7 @@ param(
 #   - 两边内容不同   → 覆盖
 #   - 远端有、本地无 → 仅当 -Prune 时删除
 $ErrorActionPreference = 'Stop'
-Set-Location 'D:\tigshop\java-b2b2b-pro-v5.8.57'
+Set-Location (Split-Path $PSScriptRoot -Parent)
 
 $cred = ("protocol=https`nhost=github.com`n`n" | git credential fill) -split "`n"
 $token = (($cred | Where-Object { $_ -like 'password=*' }) -replace '^password=', '').Trim()

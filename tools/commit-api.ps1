@@ -4,7 +4,7 @@ param(
 )
 # 通用 GitHub API 提交脚本：只提交指定路径（文件或目录）下的改动
 $ErrorActionPreference = 'Stop'
-Set-Location 'D:\tigshop\java-b2b2b-pro-v5.8.57'
+Set-Location (Split-Path $PSScriptRoot -Parent)
 
 $cred = ("protocol=https`nhost=github.com`n`n" | git credential fill) -split "`n"
 $token = (($cred | Where-Object { $_ -like 'password=*' }) -replace '^password=', '').Trim()

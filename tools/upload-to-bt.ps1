@@ -30,10 +30,10 @@
     返回上传结果对象，Contains：File、Sha256、Size、RemoteDir、Parts。
 
 .EXAMPLE
-    .\upload-to-bt.ps1 -File C:\Temp\rustshop -RemoteDir /www/backup/
+    .\upload-to-bt.ps1 -File C:\Temp\nextrade -RemoteDir /www/backup/
 
 .EXAMPLE
-    .\upload-to-bt.ps1 -File C:\Temp\rustshop-build95.zip -RemoteDir /www/backup/ -ChunkSizeMB 4 -PartPrefix b95_
+    .\upload-to-bt.ps1 -File C:\Temp\nextrade-build150.zip -RemoteDir /www/backup/ -ChunkSizeMB 4 -PartPrefix b150_
 #>
 [CmdletBinding()]
 param(

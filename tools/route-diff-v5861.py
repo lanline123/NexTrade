@@ -6,11 +6,16 @@ import re
 import sys
 
 ROOT = r"D:\tigshop"
-JAVA = os.path.join(
-    ROOT,
-    "java-b2b2c-overseas-v5.8.61-d0fd28bcce96-4b28228ec4ff43febb4caff86778577c",
+JAVA = os.environ.get(
+    "JAVA_SRC",
+    os.path.join(
+        ROOT,
+        "java-b2b2c-overseas-v5.8.61-d0fd28bcce96-4b28228ec4ff43febb4caff86778577c",
+    ),
 )
-RUST = os.path.join(ROOT, "java-b2b2b-pro-v5.8.57", "rust", "crates")
+# Rust 源码在仓库内：<repo>/rust/crates，按脚本位置定位，允许 RUST_SRC 覆盖
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RUST = os.environ.get("RUST_SRC", os.path.join(REPO, "rust", "crates"))
 
 ANNOT = re.compile(
     r"@(Get|Post|Put|Delete|Patch)Mapping\s*(?:\(\s*(?:value\s*=\s*)?\{?\s*\"([^\"]*)\")?"
@@ -132,7 +137,7 @@ def main():
         "extra_count": len(extra),
         "extra_sample": [{"method": m, "path": p} for m, p in extra[:100]],
     }
-    with open(os.path.join(ROOT, "java-b2b2b-pro-v5.8.57", "docs", "rust-v5.8.61-route-diff.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(REPO, "docs", "rust-v5.8.61-route-diff.json"), "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     for m, p in missing[:80]:
         print(f"{m:6} {p}")

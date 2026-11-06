@@ -2,7 +2,7 @@ param(
   [string]$Message = 'feat(pc-semi): parallel source-parity migration (header, modules, pages)'
 )
 $ErrorActionPreference = 'Stop'
-Set-Location 'D:\tigshop\java-b2b2b-pro-v5.8.57'
+Set-Location (Split-Path $PSScriptRoot -Parent)
 
 $cred = ("protocol=https`nhost=github.com`n`n" | git credential fill) -split "`n"
 $token = ($cred | Where-Object { $_ -like 'password=*' }) -replace '^password=', ''
