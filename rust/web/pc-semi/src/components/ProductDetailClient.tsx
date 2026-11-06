@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button, Card, InputNumber, Modal, Tag, Toast } from '@douyinfe/semi-ui';
 import { IconCart, IconCreditCard } from '@douyinfe/semi-icons';
@@ -8,6 +8,9 @@ import type { ProductDetailResponse } from '@/lib/api';
 import { addToCart } from '@/lib/api';
 import { apiGet, apiPost } from '@/lib/client-api';
 import RawImageDownloadButton from '@/components/RawImageDownloadButton';
+import ProductCard, { type ProductCardItem } from '@/components/product/ProductCard';
+import { useProductColumns } from '@/components/product/use-product-columns';
+import '@/components/product/product-card.scss';
 import { ProductLayout, type ProductBlocks, type DetailSection } from '@/components/product/ProductLayouts';
 
 /**
@@ -184,6 +187,9 @@ export default function ProductDetailClient({
   const [presaleDeposit, setPresaleDeposit] = useState(0);
   const [shopInfo, setShopInfo] = useState<Record<string, any> | null>(null);
   const [recommend, setRecommend] = useState<Array<Record<string, any>>>([]);
+  /** 猜你喜欢 / 精选好物：商品卡统一走 ProductCard，列数按容器宽度算 5~6 列 */
+  const recommendGridRef = useRef<HTMLDivElement | null>(null);
+  const recommendColumns = useProductColumns(recommendGridRef);
 
   // —— 收藏 / 分享 ——
   const [collected, setCollected] = useState(false);
@@ -1110,27 +1116,20 @@ export default function ProductDetailClient({
     </div>
   );
 
-  /** 源码猜你喜欢 / ProdSwiper「精选好物」 */
+  /** 源码猜你喜欢 / ProdSwiper「精选好物」—— 商品卡统一走 ProductCard */
   const recommendBlock = recommend.length ? (
     <section className="pds-recommend">
-      <h2 className="pds-recommend__title">{uiStyle === 'overseas' ? '精选好物' : '猜你喜欢'}</h2>
-      <div className="pds-recommend__grid">
-        {recommend.slice(0, 8).map((row) => (
-          <Link
-            className="pds-recommend__card"
-            key={pickNumber(row, ['productId', 'product_id'], 0)}
-            href={`/product/${pickNumber(row, ['productId', 'product_id'], 0)}`}
-          >
-            <div className="pds-recommend__img">
-              <img
-                src={pickString(row, ['picThumb', 'pic_thumb', 'picUrl', 'pic_url'])}
-                alt={pickString(row, ['productName', 'product_name'])}
-                loading="lazy"
-              />
-            </div>
-            <div className="pds-recommend__name">{pickString(row, ['productName', 'product_name'])}</div>
-            <div className="pds-recommend__price">¥ {yuan(pick(row, ['productPrice', 'product_price'], 0))}</div>
-          </Link>
+      <h2 className="com-pc-title">{uiStyle === 'overseas' ? '精选好物' : '猜你喜欢'}</h2>
+      <div
+        className="product-card-grid"
+        ref={recommendGridRef}
+        style={{ '--you-like-columns': recommendColumns } as React.CSSProperties}
+      >
+        {recommend.slice(0, 8).map((row, index) => (
+          <ProductCard
+            key={`${pickNumber(row, ['productId', 'product_id'], 0)}-${index}`}
+            product={row as ProductCardItem}
+          />
         ))}
       </div>
     </section>

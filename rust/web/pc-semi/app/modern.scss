@@ -77,15 +77,8 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 .pc-header-runtime .page-header-home__right .mine-bar .bar-wrap .content:hover,
 .pc-header-runtime .page-header-home__right .car-bar .content:hover { background: var(--ui-bg); }
 
-/* 底部条：胶囊标签 */
-.benefit-bar__content { gap: 10px !important; }
-.benefit-bar .tag-wrap {
-  padding: 4px 12px; border-radius: 999px;
-  background: rgba(16, 24, 40, .035);
-  transition: background-color .18s ease;
-}
-.benefit-bar .tag-wrap:hover { background: rgba(16, 24, 40, .07); }
-
+/* 顶部公告条：已回归源码结构（每组多条为固定宽度竖向滚动 .pc-carousel），
+   原先的胶囊底色 + 10px 间距会与 40px 滚动步长冲突，故移除，间距交回源码的 40px */
 /* ---------- 通用容器与标题 ---------- */
 .pc-container { max-width: 1440px; margin: 0 auto; padding: 0 40px; }
 .pc-breadcrumb { color: var(--ui-text-3); font-size: 13px; }
@@ -103,35 +96,9 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 .pc-list-head h1 { font-size: 26px !important; letter-spacing: -.02em; }
 
 /* ---------- 商品卡：悬浮 + 图片缩放 + 加购浮层 ---------- */
-.pc-product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 24px; }
 
-.pc-product-grid__card {
-  position: relative;
-  border: 0 !important;
-  border-radius: var(--ui-r-lg) !important;
-  background: #fff !important;
-  box-shadow: var(--ui-shadow-1);
-  overflow: hidden;
-  transition: transform .26s cubic-bezier(.2, .8, .2, 1), box-shadow .26s ease;
-}
-.pc-product-grid__card:hover { transform: translateY(-6px); box-shadow: var(--ui-shadow-3); }
 
-.pc-product-grid__image { position: relative; background: var(--ui-bg); aspect-ratio: 1 / 1; }
-.pc-product-grid__image img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
-.pc-product-grid__card:hover .pc-product-grid__image img { transform: scale(1.06); }
 
-.pc-product-grid__body { padding: 16px 18px 18px !important; gap: 6px; }
-.pc-product-grid__name { font-size: 14.5px !important; font-weight: 600; color: var(--ui-text) !important; line-height: 1.45; }
-.pc-product-grid__bottom { align-items: baseline !important; margin-top: 8px; }
-.pc-product-grid__bottom b { color: var(--pc-primary, #1456f0) !important; font-size: 22px !important; letter-spacing: -.02em; }
-.pc-product-grid__bottom small { font-size: 14px !important; font-weight: 600; }
-.pc-product-grid__bottom span { color: var(--ui-text-3) !important; }
-.pc-product-grid__shop-tag {
-  position: absolute; left: 12px; top: 12px;
-  padding: 3px 10px; border-radius: 999px;
-  background: rgba(255, 255, 255, .86);
-  color: var(--ui-text-2); font-size: 12px; backdrop-filter: blur(6px);
-}
 
 /* ---------- 搜索/列表页：胶囊筛选 + 分段排序 ---------- */
 .pc-search-tabs { gap: 8px !important; border: 0 !important; margin: 20px 0 14px !important; }
@@ -201,10 +168,9 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 .mc-cards__top { font-size: 18px !important; }
 .mc-cards__sub { font-size: 13px !important; }
 
+/* 会员中心精选好物：卡片与标题统一走 src/components/product/product-card.scss，
+   此处不再覆盖（旧的 __grid gap / __card 阴影已下线） */
 .mc-recommend { margin-top: 44px !important; }
-.mc-recommend__grid { gap: 20px !important; }
-.mc-recommend__card { border: 0 !important; box-shadow: var(--ui-shadow-1); }
-.mc-recommend__card:hover { transform: translateY(-5px); box-shadow: var(--ui-shadow-3); }
 
 /* ---------- 商品详情：大标题 + 玻璃购买面板 ---------- */
 .pdp { padding-top: 8px !important; }
@@ -251,9 +217,6 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 
 @media (max-width: 900px) {
   .pc-container { padding: 0 16px; }
-  .pc-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .pc-product-grid__body { padding: 12px 12px 14px !important; }
-  .pc-product-grid__bottom b { font-size: 18px !important; }
   .mc-user { padding: 20px !important; }
   .mc-user__name { font-size: 20px !important; }
   .pdp-price__value { font-size: 26px !important; }
@@ -262,21 +225,6 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 }
 
 /* 商品卡悬浮快捷加购按钮 */
-.pc-product-grid__quick {
-  position: absolute; right: 12px; bottom: 12px;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border: 0; border-radius: 50%;
-  background: var(--ui-grad, var(--pc-primary, #1456f0));
-  color: #fff; cursor: pointer;
-  opacity: 0; transform: translateY(8px) scale(.92);
-  transition: opacity .24s ease, transform .24s cubic-bezier(.2,.8,.2,1), box-shadow .24s ease;
-  box-shadow: 0 8px 20px -6px rgba(16, 24, 40, .35);
-}
-.pc-product-grid__card:hover .pc-product-grid__quick { opacity: 1; transform: translateY(0) scale(1); }
-.pc-product-grid__quick:hover { box-shadow: 0 12px 26px -8px rgba(16, 24, 40, .45); }
-@media (max-width: 900px) {
-  .pc-product-grid__quick { opacity: 1; transform: none; width: 32px; height: 32px; }
-}
 
 /* ---------- 首页装修模块 ----------
    说明：圆角/阴影不再覆盖——原版 PcHomeHero 的圆角由装修配置驱动
@@ -289,10 +237,233 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 .module-ad-con h2, .module-ad-con h3 { letter-spacing: -.01em; }
 
 /* 二级分类/频道入口胶囊化 */
-.dec-pc-home-hero__shop-item,
-.dec-pc-home-hero__cate-item { transition: background-color .18s ease; }
-.dec-pc-home-hero__shop-item:hover,
-.dec-pc-home-hero__cate-item:hover { background: var(--ui-bg); }
+.dec-pc-home-hero__shop-item { transition: background-color .18s ease; }
+.dec-pc-home-hero__shop-item:hover { background: var(--ui-bg); }
+.dec-pc-home-hero__cate-item:hover {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, .06);
+}
 
 /* 客服悬浮球 */
 .pc-service-float, .service-float, [class*="service-fixed"] { border-radius: 999px !important; box-shadow: var(--ui-shadow-3) !important; }
+
+/* =============================================================================
+ * 增票资质（member/userInvoice/info）
+ * 结构：卡内顶栏页签（发票申请 / 增票资质）→ 头卡（状态徽标）→ 温馨提示
+ *       → 驳回原因 → 资质信息 / 编辑表单
+ * 圆角策略：统一小圆角（卡片 8 / 区块 8 / 表单控件 6），不使用 16~24px 大圆角与胶囊形
+ * ========================================================================== */
+
+/* 卡片外壳：去掉 Semi 默认内边距，由内部区块各自控制 */
+.invq { padding: 0 !important; border: 0 !important; border-radius: 8px !important; box-shadow: var(--ui-shadow-2); }
+.invq > .semi-card-body { padding: 0 !important; }
+
+/* ---------- 卡内顶栏：页签与内容同属一张卡片 ---------- */
+.invq-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 28px;
+  border-bottom: 1px solid var(--ui-line-soft);
+  border-radius: 8px 8px 0 0;
+  background: #fff;
+}
+.invq-tabs { display: flex; gap: 4px; padding: 3px; border-radius: 8px; background: var(--ui-bg); }
+.invq-tabs__item {
+  padding: 6px 16px;
+  border-radius: 6px;
+  color: var(--ui-text-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.invq-tabs__item:hover { color: var(--ui-text); background: rgba(255, 255, 255, .62); }
+.invq-tabs__item.is-active { background: #fff; color: var(--ui-text); font-weight: 600; box-shadow: var(--ui-shadow-1); }
+
+/* ---------- 头卡 ---------- */
+.invq-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px 22px;
+  background: linear-gradient(180deg, var(--ui-bg-soft), #fff);
+  overflow: hidden;
+}
+.invq-hero__main { min-width: 0; }
+.invq-hero__eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: color-mix(in srgb, var(--pc-primary, #1456f0) 82%, #0f1728);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+}
+.invq-hero__title {
+  margin: 0 0 12px;
+  color: var(--ui-text);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+.invq-hero__desc { max-width: 620px; margin: 12px 0 0; color: var(--ui-text-3); font-size: 13.5px; line-height: 1.65; }
+.invq-hero__actions { flex: 0 0 auto; padding-top: 24px; }
+
+/* 状态徽标：小圆角标签，不用胶囊 */
+.invq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.invq-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent); }
+.invq-badge.is-idle { background: #f2f4f7; color: #475467; }
+.invq-badge.is-ok { background: #ecfdf3; color: #067647; }
+.invq-badge.is-wait { background: #fffaeb; color: #b54708; }
+.invq-badge.is-bad { background: #fef3f2; color: #b42318; }
+
+/* ---------- 温馨提示 ---------- */
+.invq-notice {
+  display: flex;
+  gap: 14px;
+  margin: 0 28px;
+  padding: 15px 18px;
+  border: 1px solid #f3e6c9;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fffcf4, #fffdf9);
+}
+.invq-notice__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: #f7b955;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+.invq-notice__body { min-width: 0; }
+.invq-notice__body b { display: block; margin-bottom: 5px; color: #8a5a00; font-size: 13.5px; font-weight: 600; }
+.invq-notice__body ul { margin: 0; padding-left: 16px; color: #8a6a33; font-size: 13px; line-height: 1.8; }
+.invq-notice__body li::marker { color: #d9b06a; }
+.invq-notice__body em { color: color-mix(in srgb, var(--pc-primary, #1456f0) 88%, #8a5a00); font-style: normal; font-weight: 600; }
+
+/* ---------- 审核驳回原因 ---------- */
+.invq-alert {
+  margin: 14px 28px 0;
+  padding: 13px 16px;
+  border: 1px solid #fbd5d1;
+  border-radius: 8px;
+  background: #fef5f4;
+}
+.invq-alert__label { display: block; margin-bottom: 4px; color: #b42318; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; }
+.invq-alert__text { margin: 0; color: #7a271a; font-size: 13.5px; line-height: 1.7; }
+
+/* ---------- 面板（资质信息 / 编辑表单） ---------- */
+.invq-panel { padding: 22px 28px 26px; }
+.invq-panel__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+.invq-panel__head h3 { margin: 0; color: var(--ui-text); font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
+.invq-panel__head > span { color: var(--ui-text-3); font-size: 12.5px; }
+.invq-panel__head em { color: #b42318; font-style: normal; font-weight: 600; }
+
+/* 只读资质信息：两列网格 */
+.invq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.invq-grid__item {
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: #f7f9fb;
+  box-shadow: inset 0 0 0 1px #eef1f5;
+  transition: background-color .18s ease, box-shadow .18s ease;
+}
+.invq-grid__item:hover { background: #fff; box-shadow: var(--ui-shadow-2); }
+.invq-grid__item.is-wide { grid-column: span 2; }
+.invq-grid__item dt { margin-bottom: 5px; color: var(--ui-text-3); font-size: 12px; letter-spacing: .02em; }
+.invq-grid__item dd { margin: 0; color: var(--ui-text); font-size: 14.5px; font-weight: 500; line-height: 1.55; word-break: break-word; }
+.invq-grid__item dd.is-mono { font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+
+/* 编辑表单：两列栅格 */
+.invq-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
+.invq-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.invq-field.is-wide { grid-column: span 2; }
+.invq-field__label { color: var(--ui-text-2); font-size: 13px; font-weight: 500; }
+.invq-field__label i { margin-left: 3px; color: #f04438; font-style: normal; }
+
+.invq .semi-input-wrapper {
+  border-color: transparent;
+  border-radius: 6px;
+  background: #f7f9fb;
+  transition: background-color .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.invq .semi-input-wrapper:hover { background: #eff2f6; }
+.invq .semi-input-wrapper-focus {
+  border-color: color-mix(in srgb, var(--pc-primary, #1456f0) 55%, transparent) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-primary, #1456f0) 12%, transparent);
+}
+.invq .semi-input-wrapper .semi-input { background: transparent; }
+
+/* 协议勾选 */
+.invq-agree { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-top: 18px; color: var(--ui-text-2); font-size: 13.5px; }
+.invq-agree__link { color: color-mix(in srgb, var(--pc-primary, #1456f0) 92%, #0f1728); font-weight: 500; text-decoration: none; }
+.invq-agree__link:hover { text-decoration: underline; }
+
+/* 底部操作条 */
+.invq-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--ui-line-soft); }
+.invq .semi-button { border-radius: 6px; height: 38px; padding: 0 22px; font-weight: 500; }
+.invq .semi-button-primary { border: 0 !important; background: var(--ui-grad) !important; box-shadow: var(--ui-shadow-1); }
+.invq .semi-button-primary:hover { filter: brightness(1.04); box-shadow: var(--ui-shadow-2); }
+/* 次级按钮（取消等）：Semi 默认 light+tertiary 依赖 --semi-color-fill-0 / --semi-color-text-*
+   若这些 token 被主题覆盖成浅色，会出现「白底白字」。此处显式定色，保证可见。 */
+.invq .semi-button:not(.semi-button-primary) {
+  border: 1px solid var(--ui-line) !important;
+  background: #fff !important;
+  color: var(--ui-text) !important;
+}
+.invq .semi-button:not(.semi-button-primary) .semi-button-content { color: inherit !important; }
+.invq .semi-button:not(.semi-button-primary):hover {
+  border-color: #d5dae2 !important;
+  background: var(--ui-bg-soft) !important;
+  color: var(--ui-text) !important;
+}
+.invq .semi-button:not(.semi-button-primary):active { background: #eef1f5 !important; }
+
+/* 骨架屏 */
+.invq-skeleton { display: flex; flex-direction: column; gap: 14px; padding: 28px; }
+.invq-skeleton__bar {
+  display: block;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f2f4f7 25%, #e9ecf1 37%, #f2f4f7 63%);
+  background-size: 400% 100%;
+  animation: invq-shimmer 1.4s ease infinite;
+}
+.invq-skeleton__bar--title { width: 220px; height: 22px; }
+.invq-skeleton__bar--short { width: 45%; }
+@keyframes invq-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (max-width: 900px) {
+  .invq-head { padding: 10px 14px; }
+  .invq-hero { flex-direction: column; padding: 20px; }
+  .invq-hero__actions { padding-top: 0; }
+  .invq-hero__title { font-size: 20px; }
+  .invq-notice, .invq-alert { margin-left: 20px; margin-right: 20px; }
+  .invq-panel { padding: 18px 20px 20px; }
+  .invq-grid, .invq-form { grid-template-columns: minmax(0, 1fr); }
+  .invq-grid__item.is-wide, .invq-field.is-wide { grid-column: span 1; }
+}

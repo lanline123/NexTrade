@@ -17,6 +17,9 @@ import Link from 'next/link';
 import { Button, Card, Toast, Typography } from '@douyinfe/semi-ui';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
+import ProductCard from '@/components/product/ProductCard';
+import { useProductColumns } from '@/components/product/use-product-columns';
+import '@/components/product/product-card.scss';
 
 const PAGE_SIZE = 30;
 const GUEST_SESSION_KEY = 'imageSearchGuestSession';
@@ -140,6 +143,9 @@ function errorText(error: unknown): string {
 
 export default function ImageSearchPage() {
   const inputRef = useRef<HTMLInputElement>(null);
+  /** 相似商品网格：卡片统一走 ProductCard，列数按容器宽度算 5~6 列 */
+  const imageGridRef = useRef<HTMLDivElement | null>(null);
+  const imageColumns = useProductColumns(imageGridRef);
   const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
   const [capabilitiesLoading, setCapabilitiesLoading] = useState(true);
   const [preview, setPreview] = useState('');
@@ -455,16 +461,16 @@ export default function ImageSearchPage() {
           <>
             <Typography.Title heading={4} style={{ margin: '24px 0 12px' }}>相似商品{total ? `（${total}）` : ''}</Typography.Title>
             {records.length ? (
-              <div className="pc-product-grid">
-                {records.map((item) => (
-                  <Link key={item.productId} href={item.seoLink || `/product/${item.productId}`} className="pc-product-grid__card">
-                    <div className="pc-product-grid__image">
-                      <img src={item.picThumb || item.picUrl || ''} alt={item.productName || ''} />
-                    </div>
-                    <div className="pc-product-grid__name">{item.productName || '商品'}</div>
-                    {item.productSn ? <div style={{ color: '#999', fontSize: 12 }}>货号：{item.productSn}</div> : null}
-                    <div className="pc-product-grid__bottom">¥ {Number(item.productPrice || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</div>
-                  </Link>
+              <div
+                className="product-card-grid"
+                ref={imageGridRef}
+                style={{ '--you-like-columns': imageColumns } as React.CSSProperties}
+              >
+                {records.map((item, index) => (
+                  <ProductCard
+                    key={`${item.productId}-${index}`}
+                    product={{ ...item, virtualSales: item.sales }}
+                  />
                 ))}
               </div>
             ) : loading ? (

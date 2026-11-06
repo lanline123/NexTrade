@@ -1,0 +1,351 @@
+/* ==================================================================
+ * 商品卡 + 精选好物列表 —— 复刻
+ *   java-b2b2c-overseas-v5.8.61/view/pc/components/product/ProductCard.vue
+ *   java-b2b2c-overseas-v5.8.61/view/pc/pages/cart/src/ProdSwiper.vue
+ *
+ * 原版是 scoped less，这里平移到全局 scss，类名与数值逐一对应：
+ *   - 卡片：240px 固定宽、圆角 4px、1px 透明描边（hover 换主题色）、无阴影
+ *   - 列表：grid + --you-like-columns（由组件按容器宽度算 5~6 列）
+ *   - 标题：24px/700、高 46px、下划线 36px 居中
+ *
+ * 主题色变量：原版用 --main-bg，本站令牌链为 --general → --pc-primary。
+ * ================================================================== */
+
+.product-card-container {
+  box-sizing: border-box;
+  width: 240px;
+  padding-bottom: 12px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  overflow: hidden;
+
+  &:hover {
+    border-color: var(--main-bg, var(--general, var(--pc-primary, #165dff)));
+  }
+
+  .top-wrap {
+    position: relative;
+
+    .pro_pic {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      background: #fafafa;
+
+      a {
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+
+        &.sold-out {
+          opacity: 0.5;
+        }
+      }
+
+      /* 原版由外部徽标承载，这里统一成卡片内角标（搜索页 showShopTag） */
+      .shop-tag {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        z-index: 4;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        color: #4e5969;
+        font-size: 12px;
+        line-height: 18px;
+        backdrop-filter: blur(6px);
+      }
+
+      .product-style-border {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 5;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        pointer-events: none;
+      }
+    }
+
+    .more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #1a1a1a;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+        color: var(--primary-dark-2, #519d88);
+      }
+    }
+  }
+
+  .center-wrap {
+    padding: 8px 12px 0;
+    margin-top: 8px;
+
+    .pro_name {
+      display: -webkit-box;
+      color: #19191b;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 22px;
+      text-align: left;
+      word-break: break-word;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+
+      .presale-text {
+        display: inline-block;
+        margin-right: 6px;
+        padding: 0 6px;
+        border-radius: 4px;
+        background-color: #e37200;
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+      }
+    }
+
+    /* 商品简介：搜索 / 列表页 brief 字段，购物车推荐位无此字段自然不渲染 */
+    .pro_brief {
+      margin-top: 4px;
+      color: #98a2b3;
+      font-size: 12px;
+      line-height: 18px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .desc-wrap {
+      .virtual-sales {
+        margin-top: 10px;
+        color: #888b94;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 18px;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    /* 原版 groupData.type === 7 显示拼团 tag，否则 24px 占位 */
+    .price-slot {
+      height: 24px;
+    }
+
+    .price-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+
+      .box {
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      /* 原版 FormatPrice 传参：货币 16px / 整数 28px 600 / 小数 16px，色取 --primary-dark-2 */
+      .price {
+        display: flex;
+        align-items: baseline;
+        color: var(--primary-dark-2, #519d88);
+
+        .util {
+          font-size: 16px;
+          font-weight: 400;
+        }
+
+        .num {
+          font-size: 28px;
+          font-weight: 600;
+          line-height: 28px;
+        }
+
+        .num.decimal {
+          font-size: 16px;
+          font-weight: 400;
+        }
+      }
+
+      .buy {
+        .view_detail {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: var(--primary-light-9, #f0f9f7);
+          color: var(--main-bg, var(--general, var(--pc-primary, #165dff)));
+          flex-shrink: 0;
+          cursor: pointer;
+
+          &:hover {
+            color: var(--primary-dark-2, #519d88);
+          }
+
+          &.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    .other-wrap {
+      width: 100%;
+      height: 18px;
+      margin-top: 6px;
+      color: #269636;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 18px;
+      text-align: left;
+      text-transform: capitalize;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+/* ---------------- 通用商品卡网格 ----------------
+ * 全站商品卡统一走 ProductCard + 本网格：
+ *   购物车精选好物、会员中心精选好物、商品详情猜你喜欢、搜索结果。
+ * 列数由组件用 ResizeObserver 按容器宽度算出 5~6 列，写入 --you-like-columns。
+ */
+.product-card-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--you-like-columns, 5), minmax(0, 1fr));
+  gap: 16px;
+
+  .product-card-container {
+    width: 100%;
+  }
+
+  .product-card-container .pro_pic {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+}
+
+/* ---------------- 区块标题 ----------------
+ * 原版 ProdSwiper.vue 的 .com-pc-title：24px/700、高 46px、36px 居中下划线。
+ * 购物车 / 会员中心 / 商品详情 / 搜索结果四个推荐位统一使用。
+ */
+.com-pc-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  position: relative;
+  width: fit-content;
+  height: 46px;
+  margin: 0;
+  padding-bottom: 4px;
+  color: #333;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 36px;
+    height: 3px;
+    border-radius: 1px;
+    background-color: #1a1a1a;
+    transform: translateX(-50%);
+    transition: left 0.3s ease, width 0.3s ease;
+  }
+}
+
+/* ---------------- 精选好物（原版 ProdSwiper.vue scoped 样式） ---------------- */
+.mod_you_like {
+  width: 100%;
+  margin-top: 91px;
+
+  .you_like_list {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--you-like-columns, 5), minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+    padding-bottom: 50px;
+
+    /* 卡片填满弹性列宽、图片随列宽保持正方形（覆盖 ProductCard 的固定 240px） */
+    .product-card-container {
+      width: 100%;
+    }
+
+    .product-card-container .pro_pic {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+    }
+  }
+
+  .loading-con {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+
+    /* 原版引用 loading.gif，这里用纯 CSS 圆环，省一张静态资源 */
+    .gif-loading {
+      display: block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      border-top-color: var(--main-bg, var(--general, var(--pc-primary, #165dff)));
+      border-radius: 50%;
+      animation: product-card-spin 0.8s linear infinite;
+    }
+  }
+
+  .load-end-con {
+    margin-bottom: 20px;
+    color: #98a2b3;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+@keyframes product-card-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
