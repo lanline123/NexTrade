@@ -1,0 +1,86 @@
+name: build-pc-frontend
+
+# 在 GitHub Actions（Linux）上构建 PC 商城（pc-semi），产出可部署的 standalone 包。
+# 手动触发，产物同时上传 Artifact 和 Release 资产。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install workspace deps
+        working-directory: rust/web
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build pc-semi
+        working-directory: rust/web/pc-semi
+        env:
+          PC_API_BASE: https://battery.recy.cc
+          NODE_ENV: production
+        run: |
+          node scripts/copy-semi-css.mjs
+          npx next build
+
+      - name: Package standalone
+        working-directory: rust/web/pc-semi
+        run: |
+          set -euo pipefail
+          OUT=/tmp/pc-out
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+          cp -a .next/standalone/. "$OUT"/
+          mkdir -p "$OUT/.next"
+          cp -a .next/static "$OUT/.next/static"
+          if [ -d public ]; then cp -a public "$OUT/public"; fi
+          cat > "$OUT/DEPLOY_INFO.txt" <<EOF
+          commit ${GITHUB_SHA}
+          build ${GITHUB_RUN_NUMBER}
+          api ${PC_API_BASE}
+          EOF
+          tar -czf /tmp/nextrade-pc.tgz -C "$OUT" .
+          ls -lh /tmp/nextrade-pc.tgz
+          sha256sum /tmp/nextrade-pc.tgz > /tmp/nextrade-pc.tgz.sha256
+          cat /tmp/nextrade-pc.tgz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nextrade-pc-linux
+          path: |
+            /tmp/nextrade-pc.tgz
+            /tmp/nextrade-pc.tgz.sha256
+          if-no-files-found: error
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="pc-build-${GITHUB_RUN_NUMBER}"
+          AUTH="Authorization: Bearer ${GH_TOKEN}"
+          API="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+          curl -fsS -X POST -H "${AUTH}" -H "Accept: application/vnd.github+json" \
+            "${API}/releases" \
+            -d "{\"tag_name\":\"${TAG}\",\"name\":\"${TAG}\",\"body\":\"pc-semi commit ${GITHUB_SHA}\"}" \
+            -o /tmp/release.json
+          RID=$(node -e "console.log(require('/tmp/release.json').id)")
+          curl -fsS -X POST -H "${AUTH}" -H "Content-Type: application/octet-stream" \
+            --data-binary @/tmp/nextrade-pc.tgz \
+            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RID}/assets?name=nextrade-pc.tgz"
+          curl -fsS -X POST -H "${AUTH}" -H "Content-Type: application/octet-stream" \
+            --data-binary @/tmp/nextrade-pc.tgz.sha256 \
+            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RID}/assets?name=nextrade-pc.tgz.sha256"
+          echo "release: ${TAG}"

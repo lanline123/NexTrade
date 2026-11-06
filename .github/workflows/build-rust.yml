@@ -90,16 +90,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/out
-          cp "${CARGO_TARGET_DIR}/release/tigshop" /tmp/out/rustshop
-          chmod 755 /tmp/out/rustshop
-          strip /tmp/out/rustshop || true
-          ( cd /tmp/out && sha256sum rustshop > rustshop.sha256 )
+          cp "${CARGO_TARGET_DIR}/release/tigshop" /tmp/out/nextrade
+          chmod 755 /tmp/out/nextrade
+          strip /tmp/out/nextrade || true
+          ( cd /tmp/out && sha256sum nextrade > nextrade.sha256 )
           ls -lh /tmp/out
 
       # 先上传 artifact（不依赖写权限），保证一定有可下载产物
       - uses: actions/upload-artifact@v4
         with:
-          name: rustshop-linux-x86_64
+          name: nextrade-linux-x86_64
           path: /tmp/out/
           if-no-files-found: error
 
@@ -128,8 +128,8 @@ jobs:
           curl -fsS -X POST \
             -H "${AUTH}" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @/tmp/out/rustshop \
-            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RID}/assets?name=rustshop" \
+            --data-binary @/tmp/out/nextrade \
+            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RID}/assets?name=nextrade" \
             -o /tmp/asset.json
           cat /tmp/asset.json
 
@@ -137,9 +137,9 @@ jobs:
           curl -fsS -X POST \
             -H "${AUTH}" \
             -H "Content-Type: application/octet-stream" \
-            --data-binary @/tmp/out/rustshop.sha256 \
-            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RID}/assets?name=rustshop.sha256" \
+            --data-binary @/tmp/out/nextrade.sha256 \
+            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RID}/assets?name=nextrade.sha256" \
             -o /tmp/asset2.json
           cat /tmp/asset2.json
 
-          echo "download: https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/rustshop"
+          echo "download: https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/nextrade"
