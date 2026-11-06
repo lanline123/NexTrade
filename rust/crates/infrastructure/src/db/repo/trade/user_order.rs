@@ -13,7 +13,7 @@ use rust_decimal::Decimal;
 use sqlx::MySqlPool;
 
 use tigshop_core::models::trade::user_order::{
-    cart_type_from_product_type, OrderBrief, OrderItemSeed,
+    cart_type_from_product_type, OrderBrief, OrderItemSeed, ORDER_STATUS_COMPLETED,
 };
 use tigshop_core::{Error, Result};
 
@@ -37,32 +37,24 @@ impl UserOrderRepository {
 
     // ————————————————————— 统计 —————————————————————
 
-    /// 订单数量统计（Java `getOrderStatusCount(userId, type, value)`），
-    /// `column` 只接受 `order_status` / `comment_status`（白名单，防注入）。
+    /// 订单数量统计（Java `OrderServiceImpl#getOrderStatusCount(userId, type, value)`）。
+    ///
+    /// `column` 只接受 `order_status` / `comment_status` / `order_comment_status`
+    /// （白名单，防注入）。公共过滤条件与 Java 一致：未删除、有效、本人订单，
+    /// 并排除「支付后拆单」产生的未支付子单（周期购 / 次卡子单除外）。
+    ///
+    /// 其中 `order_comment_status` 是 Java `orderNum()` 计算 `awaitComment` 时专用的
+    /// type：除 `comment_status = 0` 外**还必须** `order_status = 5`（已完成）。
+    /// 早期移植把它退化成 `comment_status`，导致所有未付款 / 待发货 / 已取消 /
+    /// 无效订单（默认 comment_status = 0）都被算成「待评价」，会员中心左侧角标虚高。
     pub async fn count_orders(&self, user_id: i32, column: &'static str, value: i32) -> Result<i64> {
-        let row: (i64,) = match column {
-            "order_status" => {
-                sqlx::query_as(
-                    "SELECT COUNT(*) FROM `order` WHERE user_id = ? AND order_status = ? AND is_del = 0",
-                )
-                .bind(user_id)
-                .bind(value)
-                .fetch_one(&self.pool)
-                .await
-                .map_err(map_err)?
-            }
-            "comment_status" => {
-                sqlx::query_as(
-                    "SELECT COUNT(*) FROM `order` WHERE user_id = ? AND comment_status = ? AND is_del = 0",
-                )
-                .bind(user_id)
-                .bind(value)
-                .fetch_one(&self.pool)
-                .await
-                .map_err(map_err)?
-            }
-            _ => return Err(Error::Internal("非法统计列".into())),
-        };
+        let (sql, bind_completed) = order_count_sql(column)
+            .ok_or_else(|| Error::Internal("非法统计列".into()))?;
+        let mut query = sqlx::query_as::<_, (i64,)>(&sql).bind(user_id).bind(value);
+        if bind_completed {
+            query = query.bind(ORDER_STATUS_COMPLETED);
+        }
+        let row: (i64,) = query.fetch_one(&self.pool).await.map_err(map_err)?;
         Ok(row.0)
     }
 
@@ -408,6 +400,27 @@ fn map_err(e: sqlx::Error) -> Error {
     Error::Database(e.to_string())
 }
 
+/// Java `getOrderStatusCount` 的公共过滤条件（不含 type 专属条件）。
+const ORDER_COUNT_BASE: &str = "FROM `order` WHERE user_id = ? AND is_del = 0 AND is_valid = 1 \
+     AND (parent_order_id IS NULL OR parent_order_id <= 0 OR pay_status <> 0 \
+          OR is_cycle_order = 1 OR is_card_order = 1)";
+
+/// 生成统计 SQL；返回值第 2 项表示是否需要额外绑定「已完成」状态码。
+/// `column` 走白名单，未知列返回 `None`（由调用方转成错误）。
+fn order_count_sql(column: &str) -> Option<(String, bool)> {
+    let condition = match column {
+        "order_status" => " AND order_status = ?",
+        "comment_status" => " AND comment_status = ?",
+        // Java `type = "order_comment_status"`：待评价 = 已完成且未评价
+        "order_comment_status" => " AND comment_status = ? AND order_status = ?",
+        _ => return None,
+    };
+    Some((
+        format!("SELECT COUNT(*) {ORDER_COUNT_BASE}{condition}"),
+        column == "order_comment_status",
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -422,5 +435,24 @@ mod tests {
     fn repository_is_constructible_stub() {
         // 仅验证类型层面的可构造性（不连接数据库）。
         let _ = std::any::type_name::<UserOrderRepository>();
+    }
+
+    #[test]
+    fn await_comment_count_requires_completed_order() {
+        let (sql, bind_completed) = order_count_sql("order_comment_status").expect("白名单内");
+        assert!(bind_completed, "order_comment_status 需额外绑定已完成状态");
+        assert_eq!(ORDER_STATUS_COMPLETED, 5);
+        assert!(sql.contains("comment_status = ?"));
+        assert!(sql.contains("order_status = ?"));
+        assert!(sql.contains("is_del = 0"));
+        assert!(sql.contains("is_valid = 1"));
+    }
+
+    #[test]
+    fn order_count_sql_whitelist_and_other_types() {
+        assert!(order_count_sql("order_status").unwrap().0.contains("order_status = ?"));
+        assert!(order_count_sql("comment_status").unwrap().0.contains("comment_status = ?"));
+        assert!(!order_count_sql("order_status").unwrap().1);
+        assert!(order_count_sql("1; DROP TABLE `order`").is_none());
     }
 }

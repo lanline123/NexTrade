@@ -7,7 +7,9 @@
 //! # 迁移要点（逐条对照 Java 源）
 //!
 //! - `orderNum`：8 项统计（待付款/待发货/待收货/待评价/已完成/商品收藏/店铺收藏/售后中），
-//!   订单统计 `is_del = 0`；售后取进行中状态集合。
+//!   订单统计按 Java `getOrderStatusCount` 口径（`is_del = 0` + `is_valid = 1` +
+//!   排除未支付拆单子单）；其中「待评价」用 `order_comment_status`，即
+//!   `comment_status = 0 AND order_status = 5`。售后取进行中状态集合。
 //! - `reasonConfig`：读 config（开关 + JSON 数组原因），缺失/非法用 Java 默认值；
 //!   i18n 翻译未迁移（原样返回）。
 //! - `delOrder`：`availableActions.delOrder` 语义（已取消/无效/已完成且未删除）→
@@ -93,8 +95,11 @@ impl UserOrderService {
         let await_received = repo
             .count_orders(user_id, "order_status", ORDER_STATUS_PROCESSING)
             .await?;
+        // Java `orderNum()` 传的 type 是 `order_comment_status`（不是 `comment_status`）：
+        // 待评价必须同时满足 comment_status = 0 且 order_status = 5（已完成），
+        // 否则未付款 / 待发货 / 已取消订单会被误计入左侧「评价晒单」角标。
         let await_comment = repo
-            .count_orders(user_id, "comment_status", COMMENT_STATUS_PENDING)
+            .count_orders(user_id, "order_comment_status", COMMENT_STATUS_PENDING)
             .await?;
         let order_completed = repo
             .count_orders(user_id, "order_status", ORDER_STATUS_COMPLETED)
