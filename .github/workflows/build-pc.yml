@@ -45,11 +45,16 @@ jobs:
           OUT=/tmp/pc-out
           rm -rf "$OUT"
           mkdir -p "$OUT"
-          # outputFileTracingRoot=rust/web，standalone 内按 rust/web/pc-semi 嵌套
+          # outputFileTracingRoot=rust/web：standalone 内目录层级随 tracing root 变化，
+          # 这里动态定位 server.js 所在的应用目录与 node_modules，避免写死路径。
           STD=.next/standalone
-          APP_SUB=rust/web/pc-semi
-          cp -a "$STD/$APP_SUB/." "$OUT"/
-          if [ -d "$STD/node_modules" ]; then cp -a "$STD/node_modules" "$OUT/node_modules"; fi
+          SERVER=$(find "$STD" -maxdepth 6 -name server.js -type f | head -1)
+          if [ -z "$SERVER" ]; then echo "server.js not found in $STD"; ls -la "$STD"; exit 1; fi
+          APPDIR=$(dirname "$SERVER")
+          echo "app dir: $APPDIR"
+          cp -a "$APPDIR/." "$OUT"/
+          NM=$(find "$STD" -maxdepth 6 -type d -name node_modules | head -1)
+          if [ -n "$NM" ] && [ "$NM" != "$APPDIR/node_modules" ]; then cp -a "$NM" "$OUT/node_modules"; fi
           mkdir -p "$OUT/.next"
           cp -a .next/static "$OUT/.next/static"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
