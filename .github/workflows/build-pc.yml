@@ -38,30 +38,28 @@ jobs:
           node scripts/copy-semi-css.mjs
           npx next build
 
-      - name: Package production bundle
+      - name: Package slim runtime bundle
         working-directory: rust/web/pc-semi
         run: |
           set -euo pipefail
           OUT=/tmp/pc-out
           rm -rf "$OUT"
-          mkdir -p "$OUT"
-          # 不再依赖 standalone：直接打包 .next + 真实 node_modules，用 next start 启动
-          cp -a .next "$OUT/.next"
+          mkdir -p "$OUT/.next"
+          # 只带运行期需要的构建产物（剔除 cache / standalone / trace）
+          rsync -a --exclude cache --exclude standalone --exclude trace .next/ "$OUT/.next/"
           if [ -d public ]; then cp -a public "$OUT/public"; fi
-          cp -a package.json next.config.mjs "$OUT/"
-          NM=""
-          for cand in node_modules ../node_modules ../../node_modules; do
-            if [ -d "$cand" ]; then NM="$cand"; break; fi
-          done
-          if [ -z "$NM" ]; then echo "node_modules not found"; exit 1; fi
-          echo "node_modules from: $NM"
-          cp -aL "$NM" "$OUT/node_modules"
+          cp -a next.config.mjs "$OUT/"
+          # 运行期只依赖 next / react / react-dom（Semi 等已在构建时打进 chunk）
+          cat > "$OUT/package.json" <<'EOF'
+          {"name":"nextrade-pc-runtime","private":true,"dependencies":{"next":"14.2.15","react":"18.3.1","react-dom":"18.3.1"}}
+          EOF
+          cd "$OUT"
+          npm install --omit=dev --no-audit --no-fund --loglevel=error
           cat > "$OUT/DEPLOY_INFO.txt" <<EOF
           commit ${GITHUB_SHA}
           build ${GITHUB_RUN_NUMBER}
           api https://battery.recy.cc
           EOF
-          echo "node_modules entries: $(ls "$OUT/node_modules" | wc -l)"
           du -sh "$OUT" "$OUT/.next" "$OUT/node_modules"
           tar -czf /tmp/nextrade-pc.tgz -C "$OUT" .
           ls -lh /tmp/nextrade-pc.tgz
