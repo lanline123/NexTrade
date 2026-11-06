@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Toast } from '@douyinfe/semi-ui';
+import Plus from '@icon-park/react/es/icons/Plus';
 import { apiGet, apiPost } from '@/lib/client-api';
 import { ensureCatIcoCss } from '@/lib/cat-icon-css';
 import type { DecorateModule, PageModule } from '../types';
@@ -268,6 +269,17 @@ function productSoldOut(product: any): boolean {
   return Number(product?.productStock ?? 1) === 0;
 }
 
+/** 复刻原版 FormatPrice 的整数/小数拆分（match(/^(\d+)(\.\d+)?$/)，小数不足补到 2 位）。 */
+function priceParts(value: unknown): { int: string; dec: string } {
+  const raw = value == null || value === '' ? '0' : String(value);
+  const match = /^(\d+)(\.\d+)?$/.exec(raw);
+  if (!match) return { int: '0', dec: '.00' };
+  const int = match[1] || '0';
+  const rawDec = match[2] || '.00';
+  const dec = rawDec.length < 3 ? rawDec.padEnd(3, '0') : rawDec;
+  return { int, dec };
+}
+
 function needsProductDetail(product: any): boolean {
   return Number(product?.productType ?? 1) !== 1 || isMultiSku(product);
 }
@@ -410,7 +422,8 @@ function useHeroCatItems(): HeroCatItem[] {
   return items;
 }
 
-/** 旧版 `buildSubCataFixedStyle`：子类目弹层紧贴左侧面板右边缘、顶部对齐（fixed 视口坐标）。 */
+/** 旧版 `buildSubCataFixedStyle`：子类目弹层紧贴左侧面板右边缘、顶部对齐（fixed 视口坐标）。
+ *  高度取左侧面板（= 营销通栏 --dec-height）实测高度，与通栏齐平。 */
 function subCataFixedStyle(rect: DOMRect): Record<string, string> {
   if (!rect || !Number.isFinite(rect.top) || !Number.isFinite(rect.right)) return {};
   const panelWidth = 680;
@@ -420,10 +433,12 @@ function subCataFixedStyle(rect: DOMRect): Record<string, string> {
   const preferredLeft = rect.right + gap;
   const left = preferredLeft + panelWidth > viewportWidth - gap ? Math.max(gap, rect.left - panelWidth - gap) : preferredLeft;
   const maxHeight = Math.max(240, viewportHeight - rect.top - gap);
+  const height = Math.min(rect.height || maxHeight, maxHeight);
   return {
     position: 'fixed',
     top: `${Math.round(rect.top)}px`,
     left: `${Math.round(left)}px`,
+    height: `${Math.round(height)}px`,
     maxHeight: `${Math.round(maxHeight)}px`,
     overflowY: 'auto',
     zIndex: '1000',
@@ -755,7 +770,11 @@ function Product({ module }: ModuleProps) {
                         <div className="dec-pc-product__bottom">
                           {showPrice ? (
                             <div className="dec-pc-product__price">
-                              <b>¥</b> {Number(product.productPrice || 0).toFixed(2)}
+                              {/* 原版 <FormatPrice>：￥ + 整数 + 小数 三段同行（currencyFormat 默认 true），
+                                  整数/小数无独立样式时统一回落到 fontStyle，故三段同字号同色 */}
+                              <span className="dec-pc-product__price-sym">￥</span>
+                              <span className="dec-pc-product__price-int">{priceParts(product.productPrice).int}</span>
+                              <span className="dec-pc-product__price-dec">{priceParts(product.productPrice).dec}</span>
                             </div>
                           ) : null}
                           {buyBtnStyle > 0 ? (
@@ -768,10 +787,21 @@ function Product({ module }: ModuleProps) {
                                 void buyProduct(product);
                               }}
                             >
-                              {buyBtnStyle >= 5 ? (
-                                <span className="dec-buy-btn__text">{needsProductDetail(product) ? '查看详情' : productSoldOut(product) ? '已售罄' : buyBtnStyle === 8 ? '立即购买' : '加入购物车'}</span>
+                              {buyBtnStyle <= 4 ? (
+                                /* 旧版 ProductButton：1/2=购物车图标，3/4=加号图标，24px 纯图标无底色 */
+                                <i className="dec-buy-btn__icon">
+                                  {/* 1/2 用与顶部条同源的实心购物车 mask 图标，3/4 用加号 */}
+                                  {buyBtnStyle <= 2 ? (
+                                    <span className="dec-buy-btn__ico dec-buy-btn__ico--cart" aria-hidden="true" />
+                                  ) : (
+                                    <Plus size={24} />
+                                  )}
+                                </i>
                               ) : (
-                                <i className="dec-buy-btn__icon">+</i>
+                                /* 旧版 el-button 文案：5/6=购买，7/8=马上抢（售罄时给明确提示） */
+                                <span className="dec-buy-btn__text">
+                                  {productSoldOut(product) ? '已售罄' : buyBtnStyle >= 7 ? '马上抢' : '购买'}
+                                </span>
                               )}
                             </button>
                           ) : null}
@@ -807,7 +837,7 @@ function QuickNav({ module }: ModuleProps) {
     '--dec-bg-color': frame.backgroundColor ?? 'transparent',
     '--dec-font-size': `${px(style.fontSize, 14)}px`,
     '--dec-text-color': style.textColor ?? '#333333',
-    '--dec-hover-color': style.hoverColor ?? '#e1251b',
+    '--dec-hover-color': themeAwareColor(style.hoverColor, 'var(--pc-primary)'),
     '--dec-container-justify': align === 2 ? 'center' : align === 3 ? 'flex-end' : 'flex-start',
     '--dec-item-gap': `${px(style.itemGap, 16)}px`,
     '--dec-single-line': Number(style.singleLine ?? 0) === 1 ? 'nowrap' : 'wrap',
@@ -928,8 +958,31 @@ function CategoryNav({ module }: ModuleProps) {
 /* ======================= 5. pc-home-hero ======================= */
 
 const HERO_GRADIENT_DIR = { upDown: 'to bottom', leftRight: 'to right', diagonal: 'to bottom right' } as Record<string, string>;
-const HERO_DEFAULT_SUBTITLE_A = '#FF4E4E';
-const HERO_DEFAULT_SUBTITLE_B = '#E1251B';
+// 原为 #FF4E4E / #E1251B 硬编码红色渐变，改为跟随后台主题色与其深色阶
+const HERO_DEFAULT_SUBTITLE_A = 'var(--pc-primary)';
+const HERO_DEFAULT_SUBTITLE_B = 'var(--primary-dark-2)';
+
+/**
+ * 后台装修数据里的「旧默认红」兼容层。
+ *
+ * 旧版前端把品牌红 #FF4E4E / #E1251B 写死成各类颜色项的默认值；后台装修保存时，
+ * 这份默认值被一并持久化进 decorate JSON。线上 pcIndex 实测命中：
+ *   快捷导航.style.hoverColor、营销通栏.style.priceColor、
+ *   营销通栏.center.modules[].moduleSubTitleBgColorA/B、products[].labelBgColorA/B、
+ *   营销通栏.right.shopsSubTitleBg。
+ * 结果就是后台把主题色改成青绿后，角标 / HOT 标签 / 价格 / hover 仍然是红的。
+ *
+ * 这里把「恰好等于旧默认红」视为「从未自定义」，改用主题变量；
+ * 后台若确实要红色，选一个不等于这些值的红即可正常生效。
+ * 注意：不含 #ff4d4f —— 那是 Semi/Ant 的 error 红，属有意使用，不能改写。
+ */
+const LEGACY_BRAND_REDS = new Set(['#ff4e4e', '#e1251b', '#e60012', '#ff4141']);
+function themeAwareColor(value: unknown, fallback: string): string {
+  if (typeof value !== 'string' || !value.trim()) return fallback;
+  return LEGACY_BRAND_REDS.has(value.trim().toLowerCase()) ? fallback : value;
+}
+/** 旧名保留（角标专用），实现与 themeAwareColor 一致 */
+const themeAwareBadgeColor = themeAwareColor;
 
 /** PcHomeHero.vue：left{backgroundColor,textColor,showCount,categories}（前台实际取 allCate API，
  * 本栈用配置分类兜底）、center{banners,modules[6]}（modal 0-1 推荐位、2-5 频道卡）、
@@ -1037,12 +1090,12 @@ function HomeHero({ module }: ModuleProps) {
   const shops = {
     title: right.shopsTitle || '店铺街',
     subTitle: right.shopsSubTitle || '',
-    subTitleBg: right.shopsSubTitleBg || '#FF4E4E',
+    subTitleBg: themeAwareBadgeColor(right.shopsSubTitleBg, 'var(--pc-primary)'),
     moreText: right.shopsMoreText || '查看全部',
     moreLink: right.shopsMoreLink,
     textColor: right.shopsTextColor || '#a06a38',
   };
-  const subTitleBg = (card: any) => `linear-gradient(${HERO_GRADIENT_DIR[card.moduleSubTitleBgType || 'leftRight'] || 'to right'}, ${card.moduleSubTitleBgColorA || HERO_DEFAULT_SUBTITLE_A}, ${card.moduleSubTitleBgColorB || HERO_DEFAULT_SUBTITLE_B})`;
+  const subTitleBg = (card: any) => `linear-gradient(${HERO_GRADIENT_DIR[card.moduleSubTitleBgType || 'leftRight'] || 'to right'}, ${themeAwareBadgeColor(card.moduleSubTitleBgColorA, HERO_DEFAULT_SUBTITLE_A)}, ${themeAwareBadgeColor(card.moduleSubTitleBgColorB, HERO_DEFAULT_SUBTITLE_B)})`;
 
   const cssVars: Record<string, any> = {
     '--dec-box-padding': `${px(module.frame?.boxPadding)}px`,
@@ -1063,10 +1116,11 @@ function HomeHero({ module }: ModuleProps) {
     '--dec-title-size': `${px(style.titleFontSize, 14)}px`,
     '--dec-title-color': style.titleColor ?? '#333333',
     '--dec-muted-color': style.mutedColor ?? '#999999',
-    '--dec-price-color': style.priceColor ?? '#e1251b',
+    '--dec-price-color': themeAwareColor(style.priceColor, 'var(--price)'),
     '--dec-banner-radius': `${px(style.bannerRadius, 12)}px`,
     '--dec-card-radius': `${px(style.cardRadius, 12)}px`,
-    '--general': '#e1251b',
+    // 曾在此硬写 '--general': '#e1251b'，会把该模块子树内的主题色钉成红色，
+    // 与后台「主题风格」冲突。--general 由 RootLayout 注入，此处不再覆盖。
   };
 
   const renderCardProducts = (card: any) => (
@@ -1088,7 +1142,7 @@ function HomeHero({ module }: ModuleProps) {
                   className="dec-pc-home-hero__card-label"
                   style={{
                     background: product.labelBgColorA && product.labelBgColorB
-                      ? `linear-gradient(${HERO_GRADIENT_DIR[product.labelBgType || 'leftRight'] || 'to right'}, ${product.labelBgColorA}, ${product.labelBgColorB})`
+                      ? `linear-gradient(${HERO_GRADIENT_DIR[product.labelBgType || 'leftRight'] || 'to right'}, ${themeAwareColor(product.labelBgColorA, HERO_DEFAULT_SUBTITLE_A)}, ${themeAwareColor(product.labelBgColorB, HERO_DEFAULT_SUBTITLE_B)})`
                       : `linear-gradient(to right, ${HERO_DEFAULT_SUBTITLE_A}, ${HERO_DEFAULT_SUBTITLE_B})`,
                     color: '#fff',
                   }}
@@ -2638,7 +2692,7 @@ function ProductGroup({ module }: ModuleProps) {
     '--dec-title-weight': String(module.productNameWeight ?? 400),
     '--dec-title-size': `${px(module.productNameSize, 16)}px`,
     '--dec-title-rows': String(module.productNameRow ?? 1),
-    '--dec-price-color': productColor.priceColor ?? 'var(--vort-primary, #ff4d4f)',
+    '--dec-price-color': themeAwareColor(productColor.priceColor, 'var(--price)'),
   };
   return (
     <div
@@ -2786,7 +2840,7 @@ function ContractCatProduct({ module }: ModuleProps) {
           {links.map((item, index) => (
             <a key={index} href={navHref(item.link) || '#'}>{item.text}</a>
           ))}
-          {moreHref ? <a href={moreHref} style={{ marginLeft: 'auto', color: '#ff4e4e' }}>查看更多 ›</a> : null}
+          {moreHref ? <a href={moreHref} style={{ marginLeft: 'auto', color: 'var(--pc-primary)' }}>查看更多 ›</a> : null}
         </div>
       ) : null}
       {bannerPics.length ? <ImageAd module={{ picList: bannerPics, frame: FLAT_FRAME }} /> : null}

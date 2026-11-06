@@ -17,55 +17,145 @@
   width: 100%;
 }
 
-/* 旧版 shop/Title.vue */
+/* 旧版 shop/Title.vue（标题栏）：字段与样式逐项对齐，含 style-2 竖线 / style-3 下划线 / align 1~3 */
 .top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  position: relative;
+  width: 100%;
+  padding: 10px;
   box-sizing: border-box;
-  padding: 10px 20px;
+  line-height: 32px;
 
   .left-title {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
-    min-width: 0;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
 
     .image-size {
-      height: 20px;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
       display: block;
     }
 
     .title-text {
-      font-size: 20px;
+      position: relative;
+      color: #2a3145;
+      font-size: 18px;
       font-weight: 700;
-      line-height: 28px;
       white-space: nowrap;
     }
 
     .desc-text {
+      position: relative;
+      top: 1px;
+      color: #aaa;
       font-size: 13px;
-      line-height: 18px;
       white-space: nowrap;
     }
   }
 
   .right-title {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 2px;
     flex-shrink: 0;
-    font-size: 13px;
+    font-size: 14px;
+    color: #1a1a1a;
     text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--main-bg, var(--pc-primary));
+    }
+
+    /* 原版 SvgIcon(arrow-right,16×16)；这里用 CSS 箭头替代，不依赖 iconfont */
+    .icon {
+      position: relative;
+      width: 8px;
+      height: 8px;
+      margin-left: 6px;
+      border-top: 1.5px solid currentColor;
+      border-right: 1.5px solid currentColor;
+      transform: rotate(45deg);
+    }
   }
 
-  &--align-2 {
+  /* Style 2：标题左侧装饰竖线 */
+  &.top-bar--style-2 .title-text {
+    padding-left: 10px;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 16px;
+      background: linear-gradient(180deg, #155bd4 0%, #64b5f6 100%);
+      border-radius: 2px;
+    }
+  }
+
+  /* Style 3：标题下划线装饰 */
+  &.top-bar--style-3 .title-text::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #155bd4 0%, transparent 100%);
+    border-radius: 1px;
+  }
+
+  &.top-bar--align-1 {
+    justify-content: space-between;
+  }
+
+  &.top-bar--align-2 {
     justify-content: center;
+
+    .left-title {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .desc-text {
+      margin-left: 0;
+      margin-top: 2px;
+    }
+
+    .right-title {
+      position: absolute;
+      right: 10px;
+    }
   }
 
-  &--align-3 {
-    justify-content: flex-end;
+  &.top-bar--align-3 {
+    flex-direction: row-reverse;
+
+    .left-title {
+      flex-direction: row-reverse;
+    }
+
+    .image-size {
+      margin-right: 0;
+      margin-left: 5px;
+    }
+
+    .desc-text {
+      margin-left: 0;
+      margin-right: 5px;
+    }
+
+    .right-title {
+      margin-right: auto;
+    }
   }
 }
 
@@ -287,11 +377,19 @@
     white-space: nowrap;
   }
 
+  /* 原版 PcProduct.vue：#priceFontStyle = var(--dec-price-color, #e60012) / 14px / 600。
+     注意 —— 原版只有 PcHomeHero、PcProductGroup 会写 --dec-price-color，
+     pc-product 从未设置，所以这里恒为硬编码红色 #e60012，不是主题色。 */
   &__price {
     margin-top: 8px;
     color: var(--dec-price-color, #e60012);
     font-size: 14px;
     font-weight: 600;
+
+    /* 对齐原版 FormatPrice：currency / integer / decimal 三段同行、同字号，符号不加空格 */
+    > span {
+      display: inline;
+    }
   }
 
   &__bottom {
@@ -307,32 +405,89 @@
   }
 }
 
+/* 旧版 ProductButton.vue：
+ *   1/2 = 购物车图标、3/4 = 加号图标（均为 24px 纯图标，色取 --general，无底色）
+ *   5/7 = el-button 朴素按钮（购买 / 马上抢），6/8 = el-button 圆角主色按钮
+ */
 .dec-buy-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 12px;
-  background: #ff4e4e;
-  color: #fff;
-  font-size: 12px;
-  line-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--general, var(--pc-primary));
+  cursor: pointer;
 
   &--1,
   &--2,
   &--3,
   &--4 {
     width: 24px;
-    padding: 0;
-    border-radius: 50%;
+    height: 24px;
+    background: transparent;
+  }
+
+  &--5,
+  &--7 {
+    height: 32px;
+    padding: 0 15px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    background: #fff;
+    color: #606266;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 30px;
+  }
+
+  &--6,
+  &--8 {
+    height: 32px;
+    padding: 0 15px;
+    border: 1px solid var(--general, var(--pc-primary));
+    border-radius: 20px;
+    background: var(--general, var(--pc-primary));
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 30px;
+  }
+
+  &--5:hover,
+  &--7:hover {
+    border-color: var(--general, var(--pc-primary));
+    color: var(--general, var(--pc-primary));
+  }
+
+  &--6:hover,
+  &--8:hover {
+    opacity: 0.88;
   }
 
   &__icon {
+    display: block;
     font-style: normal;
-    font-size: 16px;
     line-height: 1;
+  }
+
+  /* 24px 实心购物车（与顶部条同源 mask 资源），随按钮文字色着色 */
+  &__ico {
+    display: block;
+    width: 24px;
+    height: 24px;
+    background: currentColor;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+
+    &--cart {
+      mask-image: url('/assets/icons/cart.svg');
+      -webkit-mask-image: url('/assets/icons/cart.svg');
+    }
   }
 }
 
@@ -371,7 +526,7 @@
     transition: color 0.2s ease;
 
     &:hover {
-      color: var(--dec-hover-color, #e1251b) !important;
+      color: var(--dec-hover-color, var(--pc-primary)) !important;
     }
   }
 
@@ -510,45 +665,54 @@
   }
 
   &__cate-list {
-    padding-top: 10px;
+    padding: 10px 8px;
     height: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    gap: 2px;
   }
 
   &__cate-item {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    min-height: 28px;
-    padding: 4px 0 4px 16px;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+    padding: 4px 10px;
+    border-radius: 10px;
     text-decoration: none;
     color: inherit;
     cursor: pointer;
-    transition: background 0.2s;
-    margin-top: 1px;
+    transition: background-color 0.18s ease, box-shadow 0.18s ease;
+    margin-top: 0;
 
     &:hover {
       background: #fff;
+      box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+
+      .dec-pc-home-hero__cate-icon {
+        color: var(--dec-price-color, var(--price));
+      }
 
       .dec-pc-home-hero__cate-title {
-        color: var(--dec-price-color, #e1251b);
-        font-weight: 700;
+        color: var(--dec-price-color, var(--price));
+        font-weight: 600;
       }
     }
   }
 
   &__cate-icon {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    line-height: 18px;
+    font-size: 24px;
+    line-height: 1;
     color: var(--dec-left-text-color, #333333);
+    transition: color 0.18s ease;
   }
 
   &__cate-text {
@@ -557,9 +721,11 @@
   }
 
   &__cate-title {
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     color: var(--dec-left-text-color, #333333);
-    line-height: 20px;
+    line-height: 22px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -779,7 +945,7 @@
 
   &__card-price {
     font-size: 16px;
-    color: var(--dec-price-color, #e1251b);
+    color: var(--dec-price-color, var(--price));
     font-weight: 700;
     line-height: 1.2;
     flex-shrink: 0;
@@ -932,7 +1098,7 @@
       cursor: pointer;
 
       &:hover {
-        color: #e1251b;
+        color: var(--pc-primary);
       }
     }
   }
@@ -961,7 +1127,8 @@
     width: 100%;
     height: 36px;
     line-height: 36px;
-    background: #ff4141;
+    /* 原为硬编码 #ff4141，与后台主题色无关；改为跟随全站主色 */
+    background: var(--pc-primary);
     color: #fff;
     border-radius: 6px;
     font-size: 15px;
@@ -972,7 +1139,7 @@
     flex-shrink: 0;
 
     &:hover {
-      background: #e63939;
+      background: var(--primary-dark-2, #e63939);
     }
   }
 
@@ -994,7 +1161,7 @@
     cursor: pointer;
 
     &:hover {
-      color: #e1251b;
+      color: var(--pc-primary);
     }
   }
 
@@ -1075,7 +1242,7 @@
       cursor: pointer;
 
       &:hover {
-        color: #e1251b;
+        color: var(--pc-primary);
       }
 
       .more-icon {
@@ -1106,11 +1273,11 @@
 
     &:hover {
       .dec-pc-home-hero__shop-img-box {
-        border-color: #e1251b;
+        border-color: var(--pc-primary);
       }
 
       .dec-pc-home-hero__shop-enter {
-        color: #e1251b !important;
+        color: var(--pc-primary) !important;
       }
     }
   }
@@ -1181,18 +1348,20 @@
   }
 
   .dec-pc-home-hero__cate-item {
-    padding: 5px 12px;
+    padding: 5px 8px;
     gap: 8px;
+    min-height: 30px;
   }
 
   .dec-pc-home-hero__cate-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
   }
 
   .dec-pc-home-hero__cate-title,
   .dec-pc-home-hero__card-title {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .dec-pc-home-hero__card-price {
@@ -1246,17 +1415,19 @@
   }
 
   .dec-pc-home-hero__cate-item {
-    padding: 3px 8px;
-    gap: 4px;
+    padding: 3px 6px;
+    gap: 6px;
+    min-height: 26px;
   }
 
   .dec-pc-home-hero__cate-icon {
-    width: 12px;
-    height: 12px;
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
   }
 
   .dec-pc-home-hero__cate-title {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .dec-pc-home-hero__card-title {
@@ -1385,7 +1556,7 @@
 
     .price {
       flex-shrink: 0;
-      color: #e1251b;
+      color: var(--pc-primary);
       font-size: 26px;
       font-weight: 700;
       line-height: 1;
@@ -1422,7 +1593,7 @@
       margin: 6px 10px 10px;
       padding: 4px 0;
       border-radius: 12px;
-      background: #e1251b;
+      background: var(--pc-primary);
       color: #fff;
       font-size: 12px;
       text-align: center;
@@ -1439,7 +1610,7 @@
       justify-content: center;
 
       a {
-        color: #e1251b;
+        color: var(--pc-primary);
         font-size: 13px;
         text-decoration: none;
       }
@@ -1484,7 +1655,7 @@
       width: 3px;
       height: 18px;
       border-radius: 2px;
-      background: #e1251b;
+      background: var(--pc-primary);
     }
 
     .image-size {
@@ -1609,7 +1780,7 @@
     top: 8px;
     padding: 1px 6px;
     border-radius: 2px;
-    background: #e1251b;
+    background: var(--pc-primary);
     color: #fff;
     font-size: 11px;
   }
@@ -1643,7 +1814,7 @@
   }
 
   .price-miaosha {
-    color: #e1251b;
+    color: var(--pc-primary);
     font-size: 20px;
     font-weight: 700;
     line-height: 1;
@@ -1662,7 +1833,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #e1251b;
+    background: var(--pc-primary);
     color: #fff;
     font-size: 16px;
     line-height: 1;
@@ -1966,7 +2137,7 @@
       &.is-active {
         width: 20px;
         border-radius: 4px;
-        background: #e1251b;
+        background: var(--pc-primary);
       }
     }
   }
@@ -2073,7 +2244,7 @@
     padding: 0 4px;
     border-radius: 2px;
     background: #fff1f0;
-    color: #e1251b;
+    color: var(--pc-primary);
     font-size: 10px;
     line-height: 14px;
   }
@@ -2152,7 +2323,7 @@
 
   &__price {
     margin-top: 6px;
-    color: #e1251b;
+    color: var(--pc-primary);
     font-size: 20px;
     font-weight: 700;
   }
@@ -2180,7 +2351,7 @@
     display: inline-block;
     padding: 4px 12px;
     border-radius: 12px;
-    background: #e1251b;
+    background: var(--pc-primary);
     color: #fff;
     font-size: 12px;
   }
@@ -2194,7 +2365,7 @@
       width: 24px;
       height: 24px;
       border: 2px solid #eee;
-      border-top-color: #e1251b;
+      border-top-color: var(--pc-primary);
       border-radius: 50%;
       animation: dec-spin 0.8s linear infinite;
     }
@@ -2245,7 +2416,7 @@
     cursor: pointer;
 
     &--active .dec-product-group__tab-title {
-      color: #e1251b;
+      color: var(--pc-primary);
       font-weight: 700;
     }
   }
@@ -2345,7 +2516,7 @@
   }
 
   &__price {
-    color: var(--dec-price-color, #ff4d4f);
+    color: var(--dec-price-color, var(--price));
     font-size: 20px;
     font-weight: 600;
   }
@@ -2362,7 +2533,7 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #e1251b;
+    background: var(--pc-primary);
     color: #fff;
     font-size: 15px;
     line-height: 1;
@@ -2422,10 +2593,15 @@
 
 .dec-pc-home-hero__cate-item.is-active {
   background: #fff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+
+  .dec-pc-home-hero__cate-icon {
+    color: var(--dec-price-color, var(--price));
+  }
 
   .dec-pc-home-hero__cate-title {
-    color: var(--dec-price-color, #e1251b);
-    font-weight: 700;
+    color: var(--dec-price-color, var(--price));
+    font-weight: 600;
   }
 }
 
@@ -2435,9 +2611,10 @@
   max-width: 880px;
   min-height: 320px;
   padding: 16px;
-  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 40, 0.06);
+  border-radius: 4px;
   background: #fff;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: none;
   z-index: 1000;
 }
 
@@ -2509,7 +2686,7 @@
   cursor: pointer;
 
   &:hover {
-    color: #e1251b;
+    color: var(--pc-primary);
   }
 }
 
@@ -2540,7 +2717,7 @@
 
   &:hover {
     .dec-pc-home-hero__asset-num {
-      color: #e1251b;
+      color: var(--pc-primary);
     }
   }
 }
@@ -2591,7 +2768,7 @@
   &.is-active {
     width: 20px;
     border-radius: 4px;
-    background: var(--dec-indicator-color, #e1251b);
+    background: var(--dec-indicator-color, var(--pc-primary));
   }
 }
 
@@ -2845,7 +3022,7 @@ img {
   color: inherit;
 
   &:hover .dec-pc-home-hero__asset-num,
-  &:hover .dec-pc-home-hero__asset-label { color: #e1251b; }
+  &:hover .dec-pc-home-hero__asset-label { color: var(--pc-primary); }
 }
 
 .dec-pc-home-hero__asset-num {
@@ -2889,7 +3066,7 @@ img {
   cursor: pointer;
   transition: color .2s;
 
-  &:hover { color: #e1251b; }
+  &:hover { color: var(--pc-primary); }
 
   span {
     display: block;
@@ -2919,7 +3096,7 @@ img {
   font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--dec-price-color, #e1251b);
+  color: var(--dec-price-color, var(--price));
   margin-top: 4px;
   max-width: 100%;
   overflow: hidden;
