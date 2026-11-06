@@ -15,12 +15,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import Down from '@icon-park/react/es/icons/Down';
 import Local from '@icon-park/react/es/icons/Local';
-import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
 import Message from '@icon-park/react/es/icons/Message';
 import FileText from '@icon-park/react/es/icons/FileText';
-import Check from '@icon-park/react/es/icons/Check';
+import PcHeaderNoticeCarousel from '@/components/PcHeaderNoticeCarousel';
+import PcSmartLink from '@/components/PcSmartLink';
 
 interface Region {
   regionId: number | string;
@@ -88,41 +87,6 @@ function navHref(link: any): string {
   if (!link) return '';
   if (typeof link === 'string') return link;
   return link.link || link.appLink || '';
-}
-
-/** 站内链接用 next/link，站外/锚点用原生 a（对齐源码 CommonLink/NuxtLink 行为） */
-function SmartLink({
-  href,
-  className,
-  children,
-  onClick,
-  target,
-}: {
-  href: string;
-  className?: string;
-  children: React.ReactNode;
-  onClick?: () => void;
-  target?: string;
-}) {
-  if (!href || href === '#') {
-    return (
-      <a className={className} onClick={onClick}>
-        {children}
-      </a>
-    );
-  }
-  if (/^(?:https?:)?\/\//i.test(href) || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
-    return (
-      <a className={className} href={href} target={target || '_blank'} rel="noreferrer" onClick={onClick}>
-        {children}
-      </a>
-    );
-  }
-  return (
-    <Link className={className} href={href} onClick={onClick}>
-      {children}
-    </Link>
-  );
 }
 
 export default function PcHeaderTopBar({
@@ -368,9 +332,7 @@ export default function PcHeaderTopBar({
                       <Link className="top-link__name" href="/member/">
                         {userDisplayName}
                       </Link>
-                      <span className="pc-icon pc-icon--arrow top-bar-nav__arrow">
-                        <Down size={12} />
-                      </span>
+                      <span className="pc-icon pc-icon--arrow top-bar-nav__arrow" aria-hidden="true" />
                     </div>
                     {openMenu === 'user' ? (
                       <div className="pc-header-popover pc-header-popover--member">
@@ -419,41 +381,23 @@ export default function PcHeaderTopBar({
             </div>
           ) : null}
 
-          {/* 中间：跨境风优惠提示（静态展示每组首条） */}
+          {/* 中间：跨境风优惠提示（每组多条时竖向滚动切换，对齐源码 .pc-carousel） */}
           {showBenefitContent ? (
             <div className="benefit-bar__content" style={topMenuTextStyle}>
-              {benefitNoticeGroups.map((group, groupIndex) => {
-                const notice = group.notices?.[0];
-                const href = noticeLink(notice);
-                const content = (
-                  <>
-                    {noticePic(notice) ? (
-                      <img className="img" src={noticePic(notice)} alt="" />
-                    ) : (
-                      <span className="pc-icon pc-icon--check img">
-                        <Check size={14} />
-                      </span>
-                    )}
-                    <div className="txt">
-                      <div className="title" style={benefitTitleStyle}>
-                        {noticeTitle(notice)}
-                      </div>
-                      <div className="sub-title" style={benefitDescStyle}>
-                        {noticeDesc(notice)}
-                      </div>
-                    </div>
-                  </>
-                );
-                return href ? (
-                  <a key={groupIndex} className="tag-wrap" href={href} target="_blank" rel="noreferrer">
-                    {content}
-                  </a>
-                ) : (
-                  <div key={groupIndex} className="tag-wrap">
-                    {content}
-                  </div>
-                );
-              })}
+              {benefitNoticeGroups.map((group, groupIndex) => (
+                <div className="tag-wrap" key={groupIndex}>
+                  <PcHeaderNoticeCarousel
+                    notices={(group.notices || []).map((item) => ({
+                      pic: noticePic(item),
+                      title: noticeTitle(item),
+                      desc: noticeDesc(item),
+                      href: noticeLink(item),
+                    }))}
+                    titleColor={benefitTitleStyle.color as string}
+                    descColor={benefitDescStyle.color as string}
+                  />
+                </div>
+              ))}
             </div>
           ) : null}
 
@@ -462,10 +406,8 @@ export default function PcHeaderTopBar({
             <div className="benefit-bar__right" style={topMenuTextStyle}>
               {showTopMenuCart ? (
                 <Link href="/cart/" className="top-link top-link--cart">
-                  <span className="iconfont-pc icon-shiwu-gouwuche">
-                    <ShoppingCart size={16} />
-                  </span>
-                  <span>
+                  <span className="pc-icon pc-icon--cart top-link__ico" aria-hidden="true" />
+                  <span className="top-link__txt">
                     {t('购物车')}
                     {cartCount > 0 ? ` ${cartCount}` : ''}
                   </span>
@@ -483,9 +425,7 @@ export default function PcHeaderTopBar({
                 >
                   <a className="top-link top-link--nav">
                     <span className="top-bar-nav__name">{t('会员中心')}</span>
-                    <span className="pc-icon pc-icon--arrow top-bar-nav__arrow">
-                      <Down size={12} />
-                    </span>
+                    <span className="pc-icon pc-icon--arrow top-bar-nav__arrow" aria-hidden="true" />
                   </a>
                   {openMenu === 'member' ? (
                     <div className="pc-header-popover">
@@ -533,9 +473,7 @@ export default function PcHeaderTopBar({
                 >
                   <a className="top-link top-link--nav">
                     <span className="top-bar-nav__name">{t('站点导航')}</span>
-                    <span className="pc-icon pc-icon--arrow top-bar-nav__arrow">
-                      <Down size={12} />
-                    </span>
+                    <span className="pc-icon pc-icon--arrow top-bar-nav__arrow" aria-hidden="true" />
                   </a>
                   {openMenu === 'site' ? (
                     <div className="pc-header-popover">
@@ -563,13 +501,13 @@ function SiteNavNode({ nav }: { nav: NavItem }) {
     return (
       <>
         {children.map((child) => (
-          <SmartLink key={child.id ?? child.title} href={navHref(child.link)}>
+          <PcSmartLink key={child.id ?? child.title} href={navHref(child.link)}>
             {child.title}
-          </SmartLink>
+          </PcSmartLink>
         ))}
       </>
     );
   }
-  return <SmartLink href={navHref(nav.link)}>{nav.title}</SmartLink>;
+  return <PcSmartLink href={navHref(nav.link)}>{nav.title}</PcSmartLink>;
 }
 

@@ -30,6 +30,9 @@
   align-items: center;
   height: 40px;
   gap: 40px;
+  /* 源码 PC 站点 html 根字号为 12px，顶部条文字靠继承得到 12px；
+     本项目根字号是 16px，这里显式回落，保证购物车等无字号声明处与原版一致 */
+  font-size: 12px;
 
   &.benefit-bar--simple {
     justify-content: space-between;
@@ -480,7 +483,7 @@
   overflow: hidden;
 }
 
-/* 源码以 mask 图标实现，这里用 IconPark SVG 渲染，保留原类名但不套 mask */
+/* 源码以 mask 图标实现；页面其它区域仍用 IconPark SVG，故这里只清掉 mask 不套底图 */
 .pc-icon {
   display: inline-flex;
   align-items: center;
@@ -489,6 +492,84 @@
   border-radius: 0;
   mask-image: none !important;
   -webkit-mask-image: none !important;
+}
+
+/* =========================================================================
+ * 顶部条图标：还原源码 mask SVG（assets/icons 下为源码同名资源）
+ * 形状与尺寸对齐源码：购物车 16×16、勾 14×14、下拉箭头 12×12，均随文字色着色
+ * ========================================================================= */
+.benefit-bar .pc-icon--cart,
+.benefit-bar .pc-icon--check,
+.benefit-bar .pc-icon--arrow {
+  display: inline-block;
+  background: currentColor !important;
+  border-radius: 2px;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-position: center !important;
+  -webkit-mask-position: center !important;
+  mask-size: contain !important;
+  -webkit-mask-size: contain !important;
+}
+
+.benefit-bar .pc-icon--cart {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  mask-image: url('/assets/icons/cart.svg') !important;
+  -webkit-mask-image: url('/assets/icons/cart.svg') !important;
+}
+
+.benefit-bar .pc-icon--check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  mask-image: url('/assets/icons/check.svg') !important;
+  -webkit-mask-image: url('/assets/icons/check.svg') !important;
+}
+
+.benefit-bar .pc-icon--arrow {
+  width: 12px;
+  height: 12px;
+  opacity: 1;
+  mask-image: url('/assets/icons/arrow-down.svg') !important;
+  -webkit-mask-image: url('/assets/icons/arrow-down.svg') !important;
+}
+
+/* =========================================================================
+ * 顶部条公告模块（源码 .pc-carousel）：单组多条时固定宽度竖向滚动
+ * ========================================================================= */
+.tag-wrap-inner {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pc-carousel {
+  height: 40px;
+  overflow: hidden;
+  min-width: 150px;
+}
+
+.pc-carousel__container {
+  height: 40px;
+  will-change: transform;
+}
+
+.pc-carousel__item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pc-carousel__item > a {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
 }
 
 /* =========================================================================
@@ -550,7 +631,9 @@
   }
 }
 
-.cart-title {
+/* 头部迷你购物车标题：必须限定在 .pc-header-cart-content 内，
+   否则会串到 /cart 页面同名容器（.cart-title）上，把空态的 align-items 改成 center。 */
+.pc-header-cart-content .cart-title {
   display: flex;
   align-items: center;
   gap: 6px;
