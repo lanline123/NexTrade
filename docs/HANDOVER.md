@@ -1,6 +1,6 @@
 # 项目交接文档（唯一入口）
 
-> 更新时间：2026-11-03  
+> 更新时间：2026-11-06  
 > 适用范围：Tigshop v5.8.61 跨境版升级、Rust 后端、admin-semi / pc-semi / H5 前端、装修系统  
 > 说明：本文由原 `docs/` 下 34 份 Markdown 合并而来；历史细节可在 Git 历史中查看旧文件。
 
@@ -52,10 +52,15 @@ java/view/admin         旧 Vue 后台
 ```text
 Rust 后端：build-150+，systemd 服务 nextrade（二进制 /www/wwwroot/nextrade/nextrade）
 PC 前端：pc-semi（Next.js 14 SSR），systemd 服务 nextrade-pc（端口 3005）
-Admin：/admin/ 仍是旧 Vue 后台
-       /admin-semi/ 尚未正式部署 React 版
+       站点目录 2026-11-06 起为 /www/wwwroot/battery.recy.cc
+Admin：admin-semi 独立域名 admin.recy.cc（React，base=/）
+      旧 /admin/ Vue 后台随 /www/wwwroot/shop.recy.cc 一并下线（迁移执行后）
 H5：已部署
 ```
+
+> 本节中的 `battery.recy.cc` / `admin.recy.cc` 目录结构已于 2026-11-06 完成迁移，
+> 执行记录见 `docs/SERVER-MIGRATION-2026-11-06.md` §11。
+> 命名以 `nextrade` 为准；`tigshop` / `rustshop` 是 2026-10 及更早的旧名。
 
 ---
 
@@ -435,11 +440,11 @@ java/view/admin/src/views/decorate/pcDecorate/
 ### 5.2 生产
 
 ```text
-域名：https://battery.recy.cc
-Rust：build-146
-systemd：tigshop
+域名：https://battery.recy.cc（后台 https://admin.recy.cc）
+Rust：build-150
+systemd：nextrade
 目录：/www/wwwroot/nextrade
-备份示例：/www/backup/tigshop.preB135.bak
+备份示例：/www/backup/nextrade.preB150.bak
 ```
 
 健康检查：
@@ -466,7 +471,16 @@ GitHub Actions：build-rust-backend
 文件：.github/workflows/build-rust.yml
 分支：main，手动 workflow_dispatch
 Release：build-<run_number>
-资产：rustshop / rustshop.sha256
+资产：nextrade / nextrade.sha256
+     （build-150 及以前是 rustshop / rustshop.sha256，取资产前先看 Release 实际内容）
+```
+
+其余 workflow：
+
+```text
+build-rust-staging  .github/workflows/build-staging.yml   thin LTO，只出 artifact，不发 Release
+build-pc-frontend   .github/workflows/build-pc.yml        pc-semi，Release tag 为 pc-build-<run_number>
+check-rust          .github/workflows/check-rust.yml      cargo check
 ```
 
 注意：
@@ -475,40 +489,51 @@ Release：build-<run_number>
 不要每次 push 都构建
 构建使用 remote main
 先下载 Release 资产再部署
+admin-semi 没有 CI，本地构建后手工上传
 ```
 
 ### 5.5 部署与回滚
 
-宝塔分片上传：
+两种方式，先选一种。
+
+方式一：一键脚本（推荐）
 
 ```powershell
-.\tools\upload-to-bt.ps1 `
-  -File <rustshop路径> `
-  -RemoteDir /www/backup/ `
-  -ChunkSizeMB 4 `
-  -PartPrefix bXXX_
+# 第一阶段：上传 + 合并，不切换
+.\tools\deploy-rust-bt.ps1 -Binary .\nextrade -Tag b151 `
+  -ExpectedSha256 <Release 的 nextrade.sha256 首段>
+
+# 到服务器核对（或面板终端）
+#   sha256sum /www/backup/b151.zip
+
+# 第二阶段：核对一致后切换
+.\tools\deploy-rust-bt.ps1 -Binary .\nextrade -Tag b151 -SwitchOnly -ConfirmVerified
 ```
 
-服务器计划任务：
+脚本已内置：停服 → 备份 → 删除 → 复制（规避 ETXTBSY）→ 起服 → 探活 → 探活失败自动回滚。
+
+方式二：手工
 
 ```text
-cat bXXX_* > bXXX.bin
-sha256sum -c
+cat bXXX_* > /www/backup/nextrade.new
+sha256sum /www/backup/nextrade.new        # 与 nextrade.sha256 首段人工比对
 systemctl stop nextrade
-cp 当前 tigshop -> /www/backup/tigshop.preBXXX.bak
-cp bXXX.bin -> /www/wwwroot/nextrade/nextrade
-chmod +x
+cp -a /www/wwwroot/nextrade/nextrade /www/backup/nextrade.preBXXX.bak
+chmod 755 /www/backup/nextrade.new
+rm -f /www/wwwroot/nextrade/nextrade
+mv -f /www/backup/nextrade.new /www/wwwroot/nextrade/nextrade
 systemctl start nextrade
 curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/adminapi/health
-失败回滚
 ```
+
+> 不要用 `sha256sum -c`：Release 的 `.sha256` 内容文件名为 `nextrade`，合并后的文件名不同，`-c` 会报 no such file。
 
 回滚：
 
 ```bash
 systemctl stop nextrade
-cp -f /www/backup/tigshop.preBXXX.bak /www/wwwroot/nextrade/nextrade
-chmod +x /www/wwwroot/nextrade/nextrade
+cp -f /www/backup/nextrade.preBXXX.bak /www/wwwroot/nextrade/nextrade
+chmod 755 /www/wwwroot/nextrade/nextrade
 systemctl start nextrade
 ```
 
@@ -541,10 +566,11 @@ PC 装修逐模块视觉 parity 未逐条核对
 
 ```text
 H5 源：java/view/uniapp
-PC 源：java/public/pc、java/view/Tigshop-Pc
-Admin 源：java/view/admin
+PC 源：rust/web/pc-semi（旧版 java/public/pc、java/view/Tigshop-Pc 仅作对照）
+Admin 源：rust/web/admin-semi（旧版 java/view/admin 已下线）
 H5 线上：https://battery.recy.cc/mobile/
-PC：pc-semi v20 已部署
+PC：pc-semi 已部署（Release tag pc-build-<n>，最新 pc-build-9，tgz 约 2.5 MB）
+后台：https://admin.recy.cc/
 ```
 
 已做过的 H5 补齐包括服务人员个人中心、配送员端等；PC 已完成公开页、会员页、图搜、IM、支付页冒烟。
@@ -631,11 +657,12 @@ cd rust/web/admin-semi
 npm run build
 ```
 
-部署到子路径 `/admin-semi/` 时需：
+部署到独立域名根目录时用默认 base 即可（`npm run build` 已完成 tsc + vite）。仅在临时放回子路径时才需要：
 
 ```bash
 npx tsc -b
 npx vite build --base=/admin-semi/
+# 注意：子路径部署会让源码里的 origin 拼接跳转失效，见 §10.2
 ```
 
 ### PC
@@ -673,14 +700,14 @@ node tools/audit-admin-page.mjs <旧页面路径> rust/web/admin-semi/src/pages/
 ## 9. GitHub 同步
 
 ```text
-仓库：https://github.com/lanline123/rustshop
+仓库：https://github.com/lanline123/NexTrade
 分支：main
 ```
 
 标准流程：
 
 ```bash
-cd D:\tigshop\java-b2b2b-pro-v5.8.57
+cd D:\tigshop\NexTrade
 git fetch origin main
 git status
 git diff --stat origin/main
@@ -693,9 +720,11 @@ git push origin main
 注意：
 
 ```text
+旧仓库名 rustshop 已改为 NexTrade（旧地址会 301 重定向，文档与脚本统一用 NexTrade）
 本地历史曾与远端分叉，接手先 fetch 对齐
 不要提交 node_modules、.next、dist、截图、二进制、临时脚本
 本地未跟踪目录：java/、java-b2b2c-overseas-v5.8.61/、证书等不要误提交
+tools/*.ps1 曾写死 D:\tigshop\java-b2b2b-pro-v5.8.57，已改为按脚本位置定位仓库根目录
 ```
 
 网络无法 push 时可用 GitHub REST API：
@@ -717,46 +746,60 @@ Token 通过本机凭据管理器获取，不写入仓库。
 ### 10.1 当前生产结构
 
 ```text
-站点根：/www/wwwroot/shop.recy.cc/public
-Nginx：/www/server/panel/vhost/nginx/html_shop.recy.cc.conf
-/admin/        旧 Vue 后台
-/adminapi      → 127.0.0.1:8080（nextrade，Rust）
-/api /static   → 127.0.0.1:8181（nextrade，Rust）
-/              → 127.0.0.1:3005（nextrade-pc，Next.js SSR）
-/pc/           旧静态 PC（保留）
+PC 站点 battery.recy.cc
+  站点根：/www/wwwroot/battery.recy.cc
+  Nginx：/www/server/panel/vhost/nginx/html_battery.recy.cc.conf（宝塔按域名生成，以面板实际文件为准）
+  /              → 127.0.0.1:3005（nextrade-pc，Next.js SSR）
+  /adminapi      → 127.0.0.1:8080（nextrade，Rust）
+  /api /static   → 127.0.0.1:8181（nextrade，Rust）
+  /mobile/       H5 静态目录（随站点迁移）
+  /pc/           旧静态 PC（保留，稳定后可删）
+
+后台站点 admin.recy.cc
+  站点根：/www/wwwroot/admin.recy.cc
+  /              admin-semi 静态（base=/，try_files 回 index.html）
+  /adminapi      → 127.0.0.1:8080
+  /static        → 127.0.0.1:8181（上传图片等）
+
+已改名备份（观察 3–7 天后删除）：/www/wwwroot/shop.recy.cc.bak.202611061607（旧站根 + /admin/ Vue 后台 + /admin-semi/ 子路径部署）
 ```
 
 ### 10.2 Admin 静态部署
 
-构建：
+构建（独立域名部署，base 用默认 `/`，不要加 `--base=/admin-semi/`）：
 
 ```bash
 cd rust/web/admin-semi
-npx tsc -b
-npx vite build --base=/admin-semi/
+npm run build          # tsc -b && vite build
 ```
 
-上传 `dist/` 到：
+上传 `dist/` 内容到站点根：
 
 ```text
-/www/wwwroot/shop.recy.cc/public/admin-semi/
+/www/wwwroot/admin.recy.cc/
 ```
 
 Nginx：
 
 ```nginx
-location /admin-semi/ {
-    alias /www/wwwroot/shop.recy.cc/public/admin-semi/;
-    index index.html;
-    try_files $uri $uri/ /admin-semi/index.html;
+root /www/wwwroot/admin.recy.cc;
+index index.html;
+
+location / {
+    try_files $uri $uri/ /index.html;
 }
 
-location /admin-semi/assets/ {
-    alias /www/wwwroot/shop.recy.cc/public/admin-semi/assets/;
+location /assets/ {
     expires 30d;
     add_header Cache-Control "public, immutable";
 }
 ```
+
+> 该域名 2026-11-06 已在宝塔面板建站。业务指令不要写进主配置，统一放
+> `/www/server/panel/vhost/nginx/extension/admin.recy.cc/custom.conf`：`/adminapi`、`/static`、
+> `/im`、`/ws`、`/assets` 缓存与 SPA 回退都在这里，面板重新生成主配置时不会丢。
+> 主配置里的 `listen 443` 与证书块是手工补的；若在面板点「SSL → 强制 HTTPS」，面板会按自己的模板
+> 重写这一段，证书路径仍是 `/www/server/panel/vhost/cert/admin.recy.cc/`，重写后跑一次 `nginx -t` 确认。
 
 API 代理：
 
@@ -785,13 +828,20 @@ nginx -t
 nginx -s reload
 ```
 
+> 部署位置说明：后台从 `/admin-semi/` 子路径改为独立域名根目录，是因为源码里多处
+> `window.location.origin + '/?page=...'` 的跳转没有带子路径前缀，放在子路径下会跳到商城首页。
+> 放在 `admin.recy.cc` 根目录后这类跳转恰好正确；**如果再改回子路径，必须先把这些跳转改成
+> `import.meta.env.BASE_URL` 或相对路径**（`App.tsx`、`DecoratePcPages.tsx`、
+> `PcDecorateEditor.tsx`、`DecorateMobilePages.tsx` 共 9 处）。
+
 ### 10.3 PC 部署（nextrade-pc）
 
 构建统一走 GitHub Actions（`build-pc.yml`，手动触发）：
 
 ```text
-产出：Release 资产 nextrade-pc.tgz（约 26 MB，含 .next + next/react 运行时）
-内容：.next（不含 cache/standalone/trace）、public、package.json、node_modules
+产出：Release pc-build-<run_number> 的资产 nextrade-pc.tgz（实测约 2.5 MB）
+内容：.next（不含 cache/standalone/trace）、public、next.config.mjs、package.json、node_modules
+     node_modules 只含 next / react / react-dom，CI 内 npm install 后一起打包
 ```
 
 服务器部署步骤：
@@ -799,16 +849,16 @@ nginx -s reload
 ```bash
 # 1. 上传分片并合并（或让服务器直接下载 Release 资产）
 cat /www/backup/pcf_* > /www/backup/pc-runtime.tgz
-sha256sum /www/backup/pc-runtime.tgz    # 与 Release 的 .sha256 比对
+sha256sum /www/backup/pc-runtime.tgz    # 与 Release 的 nextrade-pc.tgz.sha256 比对
 
-# 2. 解包
-rm -rf /www/wwwroot/nextrade-pc && mkdir -p /www/wwwroot/nextrade-pc
-tar -xzf /www/backup/pc-runtime.tgz -C /www/wwwroot/nextrade-pc
-chown -R www:www /www/wwwroot/nextrade-pc
+# 2. 解包到临时目录，再切换（保留上一版可回滚）
+rm -rf /www/wwwroot/battery.recy.cc.new && mkdir -p /www/wwwroot/battery.recy.cc.new
+tar -xzf /www/backup/pc-runtime.tgz -C /www/wwwroot/battery.recy.cc.new
+chown -R www:www /www/wwwroot/battery.recy.cc.new
 
 # 3. 服务（systemd：nextrade-pc）
 [Service]
-WorkingDirectory=/www/wwwroot/nextrade-pc
+WorkingDirectory=/www/wwwroot/battery.recy.cc
 Environment=NODE_ENV=production
 Environment=PC_API_BASE=https://battery.recy.cc
 ExecStart=/www/server/nodejs/v24.19.0/bin/node node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3005
@@ -819,7 +869,11 @@ curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3005/
 curl -s -o /dev/null -w '%{http_code}' https://battery.recy.cc/
 ```
 
-Nginx（`/www/server/panel/vhost/nginx/html_shop.recy.cc.conf`）：
+> `PC_API_BASE` 只在构建期生效：`next.config.mjs` 的 `rewrites()` 会被编译进
+> `.next/routes-manifest.json`。运行时改 systemd 里的环境变量不会改代理目标，
+> 换 API 域名必须重新跑 `build-pc.yml`。
+
+Nginx（`/www/server/panel/vhost/nginx/html_battery.recy.cc.conf`）：
 
 ```nginx
 location / {
@@ -831,17 +885,37 @@ location / {
 }
 ```
 
+> 2026-11-06 起该域名由宝塔面板建站（site id=28）。业务指令放在
+> `/www/server/panel/vhost/nginx/extension/battery.recy.cc/custom.conf`：`/` 反代 3005，
+> `/api`、`/static`、`/adminapi`、`/im`、`/ws`、`/pc/`、`/pcMobile`、`/mobile`、`/oauth/callback`、
+> `/cycleCard`，以及 `/admin*` → admin.recy.cc 的 301。
+> ⚠️ 面板默认配置带 `location ~ .*\.(js|css)?$`，会把 `/_next/` 下的构建产物当本地文件返回 404，
+> 页面 HTML 能打开但 JS/CSS 全挂。必须保留 `location ^~ /_next/ { proxy_pass http://127.0.0.1:3005; }`。
+
 > ⚠️ 历史坑：服务器上曾残留 `/www/backup/pc-*.sh` 之类的定时任务，
 > 每分钟会把部署回滚成旧包、并重写 systemd 单元。
 > 部署前先确认 `crontab -l` 与 `/www/server/cron/*` 没有引用 `/www/backup/*.sh` 的任务。
 
 ### 10.4 回滚
 
+后台（整目录切换）：
+
 ```bash
-cd /www/wwwroot/shop.recy.cc/public
-rm -rf admin-semi
-mv admin-semi.bak.YYYYMMDDHHMM admin-semi
+cd /www/wwwroot
+rm -rf admin.recy.cc.failed
+mv admin.recy.cc admin.recy.cc.failed
+mv admin.recy.cc.bak.YYYYMMDDHHMM admin.recy.cc
 nginx -s reload
+```
+
+PC（目录改名回滚）：
+
+```bash
+systemctl stop nextrade-pc
+mv /www/wwwroot/battery.recy.cc /www/wwwroot/battery.recy.cc.failed
+mv /www/wwwroot/battery.recy.cc.bak.YYYYMMDDHHMM /www/wwwroot/battery.recy.cc
+systemctl start nextrade-pc
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3005/
 ```
 
 ---
@@ -849,7 +923,7 @@ nginx -s reload
 ## 11. 已知问题 / 待办
 
 ```text
-1. admin-semi 尚未部署到生产 /admin-semi/
+1. admin-semi 已迁到 admin.recy.cc 独立域名（base=/，2026-11-06）；旧 /admin/ Vue 后台随 shop.recy.cc 目录改名下线
 2. 生产消息 SSE 当前无推送，未读数走 homeSummary 轮询
 3. 语音播报真实发声未人工验证
 4. 页面级 i18n 已完成；ja / ko / es / fr / ru / ar 仍待提供翻译资源
@@ -858,7 +932,7 @@ nginx -s reload
 7. PC 装修逐模块视觉 parity 未逐条核对
 8. 3 个后端缺失页面挂起：历史会话、客服工作台
 9. 动态分类/商品/装修内容多语言未完成
-10. 商品设置已对齐跨境版；生产 Rust 需重新构建部署后，/admin-semi 才会返回「商品图片下载」3 个字段
+10. 商品设置已对齐跨境版；生产 Rust 需重新构建部署后，admin.recy.cc 才会返回「商品图片下载」3 个字段
 11. 商品原图批量下载已在源码层补齐（配置下发 + ZIP 打包服务 + PC 按钮），生产需重新构建部署并实测：
     GET /api/common/config/initConfigSettings 返回 3 项配置
     GET /api/product/product/downloadRawImages?id=<商品ID> 带 X-Client-Type / Authorization 返回 ZIP
@@ -937,7 +1011,7 @@ npm run dev
 cd rust/web/admin-semi
 npm run build
 
-# 子路径构建
+# 子路径构建（仅临时使用，正式部署是独立域名根目录）
 npx tsc -b && npx vite build --base=/admin-semi/
 
 # Rust 测试
@@ -945,7 +1019,7 @@ cd rust
 cargo test --workspace -j 1
 
 # GitHub
-cd D:\tigshop\java-b2b2b-pro-v5.8.57
+cd D:\tigshop\NexTrade
 git fetch origin main
 git status
 ```
