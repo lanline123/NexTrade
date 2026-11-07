@@ -36,7 +36,7 @@
     "表单对齐 Info.vue + stepTable：活动类型 unit(1 满N元减 元/折, 2 满N件减 元/折，旧 RadioType 卡片)、活动名称、活动时间(起止 datetime + 1天/7天/15天 快捷，快捷按 getDays 语义=当前时间+N天)、优惠规则 rulesType(1 阶梯/0 循环，切换时重置为单行、循环固定减价——旧 stepTable watch 行为)、阶梯行(层级/门槛(满|每满+InputNumber+元|件)/减价|折扣列头 Popover 切换 promotionType，进行中活动禁切)、适用商品 range(0 全部商品/3 以下商品/4 不含以下商品 + ProductPicker)、参与客户限制 limitUserRank(config rankList 多选)、适用会员(占位说明)。",
     "提交校验对齐旧 stepTable：门槛必填正数；减价(unit=1)必填、0.01-99999 且小于门槛；折扣 0.1-9.9；range>0 必选商品；名称必填且 ≤50(后端常量口径)。",
     "保存：create POST /promotion/productPromotion/create（补 isAvailable=1、sortOrder=50、sendUserTarget=空人群结构）；update POST /promotion/productPromotion/update（Rust DTO 要求 promotionId，旧 Vue 发 id 由详情回显的 promotionId 兜底）；冲突(后端 5001『存在冲突活动，请重新设置活动』)时拉 /promotion/productPromotion/conflict 弹『冲突提示』表(活动名称/活动重合时间/活动类型)。",
-    "与旧版差异：BusinessData 多语言名称未迁移(单语言 Input)；SendUserSelector 适用会员人群圈选未迁移(memberRange=0/memberMarks=[]，编辑透传 sendUserTarget/memberAudience)；列排序(sortable custom)未接表头交互，后端 list 已支持 sortField/sortOrder；updateField 值字段按 Rust UpdateFieldDTO 用 val(非旧 value)；阶梯『送赠品/赠品数量』列(promotionType=3)不在本页范围。",
+    "BusinessData 多语言名称已补齐（MultilingualField dataType=4）；SendUserSelector 适用会员人群圈选未迁移(memberRange=0/memberMarks=[]，编辑透传 sendUserTarget/memberAudience)；列排序(sortable custom)未接表头交互，后端 list 已支持 sortField/sortOrder；updateField 值字段按 Rust UpdateFieldDTO 用 val(非旧 value)；阶梯『送赠品/赠品数量』列(promotionType=3)不在本页范围。",
     "单位文案沿用旧 config.config.amountUnit 缺省『元』(映射自 dollarSignCn)；满N件时门槛为整数件。"
   ]
 }

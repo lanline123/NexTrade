@@ -3,7 +3,8 @@
   "info": "finance/refundApply/List.vue",
   "component": "rust/web/admin-semi/src/pages/FinanceLists.tsx",
   "filters": [
-    "keyword"
+    "orderSn",
+    "refundStatus"
   ],
   "columns": [
     "退款类型",
@@ -12,9 +13,15 @@
     "申请时间"
   ],
   "drawer": null,
-  "actions": [],
+  "actions": [
+    "处理申请",
+    "同意退款",
+    "拒绝退款",
+    "确认已线下转账",
+    "查看详情"
+  ],
   "batch": [],
   "notes": [
-    "当前为只读列表，后续补审核/详情操作。"
+    "2026-11-07 补齐详情弹窗与审核：audit(refundStatus 1/3/4) + offlineAudit（凭证上传）；旧版售后单号列后端 VO 未返回，退款信息列展示退款说明。"
   ]
 }

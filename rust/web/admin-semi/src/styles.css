@@ -8605,3 +8605,26 @@ body {
   font-style: normal;
   font-size: 20px;
 }
+
+/* ============================== AI 图片消除 ============================== */
+
+.ai-erase-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.ai-erase-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.ai-erase-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--semi-color-border);
+}

@@ -116,9 +116,6 @@ reg('cateCenterV2', '分类中心(样式2)', '🗃️', 'mobileCateCenter', 'lis
 reg('mobileLogin', '登录入口', '🔑', 'mobileLogin', 'user', { nickname: 'Hi，欢迎登录', description: '登录后享受会员权益' }, [F.nickname, F.desc], 102);
 reg('mobileSearchResult', '搜索结果', '🔍', 'mobileSearch', 'search', { placeholder: '搜索商品' }, [F.placeholder], 103);
 
-/* ==================== mobile 基础（老数据兼容） ==================== */
-reg('product', '商品', '🛒', 'mobile', 'grid', { title: '商品推荐', showCount: 6, productTitle: '商品', price: 99 }, [F.title, F.count(), F.productTitle, F.price], 12);
-reg('product2', '商品(样式2)', '🛒', 'mobile', 'grid', { title: '商品推荐', showCount: 4, productTitle: '商品', price: 99 }, [F.title, F.count(), F.productTitle, F.price], 13);
-reg('searchBar', '搜索栏', '🔍', 'mobile', 'search', { placeholder: '搜索商品' }, [F.placeholder], 14);
-reg('searchBar2', '搜索栏(样式2)', '🔍', 'mobile', 'search', { placeholder: '搜索商品' }, [F.placeholder], 15);
-reg('catNav', '分类页导航', '🧭', 'mobile', 'banner', { title: '分类导航', showCount: 4 }, [F.title, F.count()], 16);
+/* ==================== mobile 基础（老数据兼容） ====================
+ * product / product2 / searchBar / searchBar2 / catNav 已精确移植（modules/basic/*），
+ * registerGenericModule 对已注册 type 自动跳过，这里不再保留占位注册。 */

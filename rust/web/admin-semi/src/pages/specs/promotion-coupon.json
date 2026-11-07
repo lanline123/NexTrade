@@ -27,6 +27,6 @@
     "列表行内能力：isShow 开关(updateField)、类型/门槛/有效期展示、状态(进行中/未开始/过期)、编辑/发放/发放记录/删除、批量删除(batch type=del)。",
     "表单字段对齐 Info.vue：类型、名称、优惠内容(满X减/打Y 与 无门槛 复合行)、优惠上限(折扣券)、用券时间(固定时间段/领取后N天生效+有效期)、发放总量、领取次数限制、领取客户限制(无限制/新人/会员等级多选)、适用商品(全部/指定商品 ProductPicker)、公开展示、使用说明。",
     "发放流程：issue/preview 预览张数确认后 issue/send（issueType USER/RANK），发放记录 issue/log 弹窗。",
-    "与旧版差异：SendUserSelector 领取人群圈选（二期组件）未迁移，用 isNewUser+会员等级表达；BusinessData 多语言输入未迁移（单语言文本框）；SKU 无关。"
+    "已补齐：SendUserSelector 领取人群圈选 + MultilingualField 多语言输入（名称 dataType=10/说明 dataType=11，对齐旧版 BusinessData）；SKU 无关。"
   ]
 }

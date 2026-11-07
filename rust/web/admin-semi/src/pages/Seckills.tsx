@@ -5,6 +5,7 @@ import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import ProductPicker from '../components/ProductPicker';
+import SendUserSelector, { type SendUserTarget } from '../components/SendUserSelector';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -54,6 +55,7 @@ export default function Seckills() {
       seckillStartTime: '',
       seckillEndTime: '',
       seckillItem: [] as SeckillSkuRow[],
+      sendUserTarget: { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 } as SendUserTarget,
     });
     setBatchField(null);
     setBatchValue(null);
@@ -84,9 +86,15 @@ export default function Seckills() {
         seckillStartTime: detail?.seckillStartTime || row.seckillStartTime || '',
         seckillEndTime: detail?.seckillEndTime || row.seckillEndTime || '',
         seckillItem: items,
+        sendUserTarget:
+          detail?.sendUserTarget || { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 },
       });
     } catch {
-      setDrawerInitial({ ...row, seckillItem: [] });
+      setDrawerInitial({
+        ...row,
+        seckillItem: [],
+        sendUserTarget: { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 },
+      });
     }
     setDrawerOpen(true);
   };
@@ -363,6 +371,18 @@ export default function Seckills() {
               </Space>
             ),
           },
+          {
+            field: 'sendUserTarget',
+            label: t('参与人群'),
+            type: 'custom',
+            span: 24,
+            render: ({ formApi, values }) => (
+              <SendUserSelector
+                value={values.sendUserTarget as SendUserTarget}
+                onChange={(next) => formApi?.setValue('sendUserTarget', next)}
+              />
+            ),
+          },
         ],
       },
     ],
@@ -370,6 +390,7 @@ export default function Seckills() {
       if (!String(values.seckillName || '').trim()) throw new Error(t('活动名称不能为空!'));
       const items: SeckillSkuRow[] = values.seckillItem || [];
       if (!items.length) throw new Error(t('活动商品不能为空!'));
+      const target = values.sendUserTarget as SendUserTarget | undefined;
       return {
         seckillId: values.seckillId,
         seckillName: values.seckillName,
@@ -378,6 +399,10 @@ export default function Seckills() {
           : undefined,
         seckillEndTime: values.seckillEndTime ? String(datetimeToStamp(values.seckillEndTime)) : undefined,
         seckillLimitNum: 0,
+        // 参与人群（对齐旧版 SendUserSelector → memberRange/memberMarks/sendUserTarget）
+        sendUserTarget: target || { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 },
+        memberRange: target?.scope === 1 ? 1 : 0,
+        memberMarks: target?.scope === 1 ? target?.tagIds || [] : [],
         productId: items[0]?.productId,
         seckillItem: items.map((item) => ({
           recId: (item as any).recId,

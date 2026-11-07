@@ -22,6 +22,7 @@ import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import ImageUploader from '../components/ImageUploader';
+import MultilingualField from '../components/MultilingualField';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -356,7 +357,23 @@ export default function Groupons() {
         key: 'basic',
         title: '基础信息',
         fields: [
-          { field: 'name', label: t('活动名称'), type: 'input', required: true, placeholder: t('请输入活动名称') },
+          {
+            field: 'name',
+            label: t('活动名称'),
+            required: true,
+            placeholder: t('请输入活动名称'),
+            type: 'custom',
+            render: ({ formApi, values }) => (
+              <MultilingualField
+                value={values.name}
+                onChange={(next: string) => formApi?.setValue('name', next)}
+                dataId={editingId ?? 0}
+                dataType={4}
+                maxlength={60}
+                placeholder={t('请输入活动名称')}
+              />
+            ),
+          },
           {
             field: 'activityTime',
             label: t('活动时间'),

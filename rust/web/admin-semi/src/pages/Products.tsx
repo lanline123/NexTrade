@@ -22,6 +22,7 @@ import { useI18n } from '../i18n';
 import { mockProductPage } from '../mock';
 import type { PageResult, ProductRow } from '../types';
 import ProductFormDrawer from '../components/ProductFormDrawer';
+import ProductTranslateModal from '../components/ProductTranslateModal';
 
 const { Text } = Typography;
 
@@ -236,6 +237,8 @@ export default function Products() {
   const [salePendingId, setSalePendingId] = useState<number | undefined>(undefined);
   /** 批量选择（对齐旧版批量操作栏） */
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  /** 商品多语言翻译弹窗（对齐旧版 BatchTranslateDialog） */
+  const [translateTarget, setTranslateTarget] = useState<number | undefined>(undefined);
   /** URL 携带的商品 ID 过滤（如库存预警「相关商品」跳转） */
   const [urlProductIds, setUrlProductIds] = useState<number[]>(() => {
     const raw = new URLSearchParams(window.location.search).get('productIds') || '';
@@ -630,6 +633,9 @@ export default function Products() {
                   <Button theme="borderless" size="small" onClick={() => copyProduct(record)}>
                     {t('复制')}
                   </Button>
+                  <Button theme="borderless" size="small" onClick={() => setTranslateTarget(record.productId)}>
+                    {t('翻译')}
+                  </Button>
                   <Button theme="borderless" size="small" onClick={() => toggleStatus(record)}>
                     {record.productStatus === 1 ? t('下架') : t('上架')}
                   </Button>
@@ -660,6 +666,13 @@ export default function Products() {
         categories={categories}
         brands={brands}
         onCancel={() => setModalOpen(false)}
+        onSaved={() => setReloadKey((key) => key + 1)}
+      />
+
+      <ProductTranslateModal
+        visible={translateTarget !== undefined}
+        productId={translateTarget}
+        onCancel={() => setTranslateTarget(undefined)}
         onSaved={() => setReloadKey((key) => key + 1)}
       />
     </>

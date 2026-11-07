@@ -638,7 +638,7 @@ impl ProductManageClientService {
 ///
 /// `range`：None/0 = 全部商品；3 = 指定商品（`range_data` 含该商品 ID）；
 /// 4 = 不含以下商品（`range_data` 不含该商品 ID）。其余值按未指定处理（放行）。
-fn promotion_covers_product(promotion: &Promotion, product_id: i32) -> bool {
+pub(crate) fn promotion_covers_product(promotion: &Promotion, product_id: i32) -> bool {
     let range_ids = promotion.range.as_ref().and_then(|r| {
         promotion
             .range_data
@@ -657,7 +657,7 @@ fn promotion_covers_product(promotion: &Promotion, product_id: i32) -> bool {
 
 /// 解析活动范围 ID 列表（Java 侧存 `List.toString()` 文本，Rust 侧存 JSON；
 /// 两者形如 `[1, 2]` / `[1,2]`，按数字逐个扫描提取，兼容两种格式）。
-fn parse_id_list(raw: &str) -> Option<Vec<i32>> {
+pub(crate) fn parse_id_list(raw: &str) -> Option<Vec<i32>> {
     let mut out = Vec::new();
     let bytes = raw.as_bytes();
     let mut start: Option<usize> = None;

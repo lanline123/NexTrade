@@ -21,6 +21,7 @@ import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 import ProductPicker from '../components/ProductPicker';
+import MultilingualField from '../components/MultilingualField';
 import './product-promotions.css';
 
 /**
@@ -808,10 +809,19 @@ export default function ProductPromotions() {
             {
               field: 'promotionName',
               label: t('活动名称'),
-              type: 'input',
               required: true,
               placeholder: t('请输入活动名称'),
-              rules: [{ required: true, message: t('请输入活动名称') }],
+              type: 'custom',
+              render: ({ formApi, values }) => (
+                <MultilingualField
+                  value={values.promotionName}
+                  onChange={(next: string) => formApi?.setValue('promotionName', next)}
+                  dataId={editingId ?? 0}
+                  dataType={4}
+                  maxlength={60}
+                  placeholder={t('请输入活动名称')}
+                />
+              ),
             },
             {
               field: 'startTime',

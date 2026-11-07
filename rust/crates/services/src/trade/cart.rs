@@ -35,6 +35,9 @@ pub struct CartItemVO {
     pub product_name: String,
     pub product_type: Option<i32>,
     pub product_stock: i32,
+    /// 限购上限（Java `CartServiceImpl:433` `cartVO.setLimitNumber(product.getLimitNumber())`）。
+    /// 0 表示不限购。
+    pub limit_number: i32,
     /// 1 上架 / 0 下架。
     pub product_status: i32,
     pub product_price: Decimal,
@@ -277,6 +280,28 @@ impl CartService {
                 (0i64, 0i64, Decimal::ZERO);
             let mut group_all_checked = !rows.is_empty();
 
+            /**
+             * 购物车行的活动信息（activityInfo）。
+             *
+             * Java 侧购物车行的 activityInfo 来自商品促销（CartServiceImpl:962
+             * `cart.setActivityInfo(product.getActivityInfo())`），用于前台展示活动标签。
+             * Rust 侧此前恒为空数组 → 购物车不显示「秒杀/拼团/满减」标签。
+             *
+             * 这里复用与商品详情（catalog/product_manage_client.rs:455）相同的口径：
+             * 取当前进行中且范围命中该商品的营销活动。金额计算（parsePrice）未迁移，
+             * 与 Java 购物车一致——购物车阶段的优惠金额字段本就全为 0。
+             */
+            let available_promotions = self
+                .repos
+                .marketing
+                .promotion
+                .find_available(None, std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs() as i64)
+                    .unwrap_or(0))
+                .await
+                .unwrap_or_default();
+
             for c in rows {
                 let pid = c.product_id;
                 let qty = c.quantity;
@@ -294,10 +319,10 @@ impl CartService {
                     .as_ref()
                     .map(|p| p.product_sn.clone())
                     .unwrap_or_default();
-                let (product_stock, product_status, product_type) = product
+                let (product_stock, product_status, product_type, limit_number) = product
                     .as_ref()
-                    .map(|p| (p.product_stock, p.product_status, p.product_type))
-                    .unwrap_or((0, 0, Some(0)));
+                    .map(|p| (p.product_stock, p.product_status, p.product_type, p.limit_number))
+                    .unwrap_or((0, 0, Some(0), 0));
                 let (product_price, market_price) = product
                     .as_ref()
                     .map(|p| (p.product_price, p.market_price))
@@ -339,6 +364,25 @@ impl CartService {
                 let has_sku = c.sku_id.map(|id| id > 0).unwrap_or(false)
                     || sku_data.as_array().is_some_and(|a| !a.is_empty());
 
+                // 该商品命中的营销活动（用于购物车活动标签）
+                let activity_info: Vec<serde_json::Value> = available_promotions
+                    .iter()
+                    .filter(|pr| crate::catalog::product_manage_client::promotion_covers_product(pr, pid))
+                    .map(|pr| {
+                        serde_json::json!({
+                            "promotionId": pr.promotion_id,
+                            "promotionName": pr.promotion_name,
+                            "startTime": pr.start_time,
+                            "endTime": pr.end_time,
+                            "type": pr.r#type,
+                            "shopId": pr.shop_id,
+                            "relationId": pr.relation_id,
+                            "range": pr.range,
+                            "typeText": tigshop_core::models::marketing::promotion::type_text(pr.r#type),
+                        })
+                    })
+                    .collect();
+
                 if checked {
                     checked_qty += i64::from(qty);
                     checked_amount += subtotal;
@@ -366,6 +410,7 @@ impl CartService {
                     product_name,
                     product_type,
                     product_stock,
+                    limit_number,
                     product_status,
                     product_price,
                     member_price: price,
@@ -378,7 +423,7 @@ impl CartService {
                     subtotal,
                     is_disabled,
                     disabled_reason,
-                    activity_info: vec![],
+                    activity_info,
                     extra_sku_data,
                     service_fee: "0".to_string(),
                     wholesale_multiple: 1,

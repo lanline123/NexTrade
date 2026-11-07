@@ -1,0 +1,21 @@
+/* 商品搜索2（跨境版）预览样式（移植自 view/admin searchBar2/Preview.vue scoped less） */
+.oversea-sousuo-box {
+    padding: 6px 10px;
+}
+.oversea-sousuo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f2f3f5;
+    border-radius: 18px;
+    padding: 0 12px;
+}
+.oversea-sousuo .placeholder-text {
+    color: #999;
+    font-size: 14px;
+}
+.oversea-sousuo .sousuo-icon {
+    color: #666;
+    display: flex;
+    align-items: center;
+}

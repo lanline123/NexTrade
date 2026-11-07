@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Checkbox, DatePicker, Input, InputNumber, Radio, RadioGroup, Select, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, Checkbox, DatePicker, Input, InputNumber, Modal, Radio, RadioGroup, Select, Toast, Typography } from '@douyinfe/semi-ui';
 
 const { Text } = Typography;
 import { apiGet, apiPost, isDemo } from '../api';
@@ -221,6 +221,8 @@ export default function ProductFormDrawer({
   const [loading, setLoading] = useState(false);
   /** 店铺商品分类（对应旧版 BasicInfo 店铺商品分类下拉）。 */
   const [shopCategories, setShopCategories] = useState<Array<{ categoryId: number; categoryName: string }>>([]);
+  /** AI 智能消除（对应旧版 AiEraseDialog：图片文字消除） */
+  const [aiEraseTarget, setAiEraseTarget] = useState<string[]>([]);
   /** 定时可售/禁售状态（GET/POST /product/product/saleStatus，仅编辑态）。 */
   const [saleState, setSaleState] = useState<{
     loaded: boolean;
@@ -463,10 +465,33 @@ export default function ProductFormDrawer({
                 label: t('商品图片'),
                 type: 'custom',
                 render: ({ formApi, values }) => (
-                  <ImageUploader
-                    value={values.gallery || []}
-                    onChange={(urls) => formApi?.setValue('gallery', urls)}
-                  />
+                  <div>
+                    <ImageUploader
+                      value={values.gallery || []}
+                      onChange={(urls) => formApi?.setValue('gallery', urls)}
+                    />
+                    {(values.gallery || []).length > 0 && (
+                      <Button
+                        size="small"
+                        style={{ marginTop: 6 }}
+                        onClick={() => setAiEraseTarget((values.gallery || []) as string[])}
+                      >
+                        {t('AI智能消除')}
+                      </Button>
+                    )}
+                    <AiEraseModal
+                      visible={aiEraseTarget.length > 0}
+                      imgUrls={aiEraseTarget}
+                      onCancel={() => setAiEraseTarget([])}
+                      onApplied={(originalUrl, resultUrl) => {
+                        const next = ((values.gallery || []) as string[]).map((url: string) =>
+                          url === originalUrl ? resultUrl : url,
+                        );
+                        formApi?.setValue('gallery', next);
+                        setAiEraseTarget([]);
+                      }}
+                    />
+                  </div>
                 ),
               },
               { field: 'productVideo', label: t('商品视频'), placeholder: t('视频地址，可留空') },
@@ -724,5 +749,74 @@ export default function ProductFormDrawer({
         }),
       }}
     />
+  );
+}
+
+/**
+ * AI 智能消除弹窗（对齐旧版 file/aiImage/AiEraseDialog + AiImageInpaintParams）。
+ * POST /file/aiImage/inpaint {imgUrls, inpaintOptions:["text"]} → {results:[{originalUrl, resultUrl, success}]}
+ */
+function AiEraseModal({
+  visible,
+  imgUrls,
+  onCancel,
+  onApplied,
+}: {
+  visible: boolean;
+  imgUrls: string[];
+  onCancel: () => void;
+  onApplied: (originalUrl: string, resultUrl: string) => void;
+}) {
+  const { t } = useI18n();
+  const [erasing, setErasing] = useState<string | null>(null);
+
+  const erase = async (url: string) => {
+    setErasing(url);
+    try {
+      const result = await apiPost<any>('/file/aiImage/inpaint', {
+        imgUrls: [url],
+        inpaintOptions: ['text'],
+      });
+      const items = result?.results || result || [];
+      const first = Array.isArray(items) ? items[0] : items;
+      if (first?.success && first?.resultUrl) {
+        Toast.success({ content: t('消除成功') });
+        onApplied(url, first.resultUrl);
+      } else {
+        Toast.error({ content: t('消除失败') });
+      }
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('消除失败') });
+    } finally {
+      setErasing(null);
+    }
+  };
+
+  return (
+    <Modal
+      title={t('AI智能消除')}
+      visible={visible}
+      footer={null}
+      onCancel={onCancel}
+      width={620}
+    >
+      <Text type="tertiary" size="small" style={{ display: 'block', marginBottom: 10 }}>
+        {t('消除图片中的文字水印（调用 AI 图片智能消除服务）。')}
+      </Text>
+      <div className="ai-erase-grid">
+        {imgUrls.map((url) => (
+          <div key={url} className="ai-erase-item">
+            <img src={url} alt="" />
+            <Button
+              size="small"
+              loading={erasing === url}
+              onClick={() => erase(url)}
+            >
+              {t('消除文字')}
+            </Button>
+          </div>
+        ))}
+      </div>
+    </Modal>
   );
 }

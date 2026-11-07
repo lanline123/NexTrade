@@ -1,0 +1,12 @@
+/* 商品/商品2 预览补充样式（移植自 view/admin product、product2 Preview.vue scoped less） */
+.image-empty-goods-bg {
+    background: url("../../../styles/img/goods.png") no-repeat center center;
+    background-size: 100% auto;
+    width: 100px;
+    margin: 0 auto 10px;
+    height: 100px;
+}
+.goods-ad-item .item-image-bg {
+    position: absolute;
+    inset: 0;
+}

@@ -3,7 +3,8 @@
   "info": "finance/userInvoice/List.vue",
   "component": "rust/web/admin-semi/src/pages/FinanceLists.tsx",
   "filters": [
-    "keyword"
+    "keyword",
+    "status"
   ],
   "columns": [
     "申请会员",
@@ -12,9 +13,14 @@
     "申请状态"
   ],
   "drawer": null,
-  "actions": [],
+  "actions": [
+    "编辑",
+    "审核通过",
+    "待审核",
+    "审核未通过"
+  ],
   "batch": [],
   "notes": [
-    "当前为只读列表，后续补审核/详情操作。"
+    "2026-11-07 补齐编辑/审核弹窗：公司开票资料 + 状态（1/2/3）+ 申请未通过原因，POST /finance/userInvoice/update。"
   ]
 }

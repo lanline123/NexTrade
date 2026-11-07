@@ -27,6 +27,7 @@ import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 import ProductPicker from '../components/ProductPicker';
 import SendUserSelector from '../components/SendUserSelector';
+import MultilingualField from '../components/MultilingualField';
 
 const { Text } = Typography;
 
@@ -171,7 +172,23 @@ export default function Coupons() {
                 { label: t('折扣券（例：满100打8折）'), value: 2 },
               ],
             },
-            { field: 'couponName', label: t('优惠券名称'), type: 'input', required: true, placeholder: t('请输入优惠券名称') },
+            {
+              field: 'couponName',
+              label: t('优惠券名称'),
+              required: true,
+              placeholder: t('请输入优惠券名称'),
+              type: 'custom',
+              render: ({ formApi, values }) => (
+                <MultilingualField
+                  value={values.couponName}
+                  onChange={(next) => formApi?.setValue('couponName', next)}
+                  dataId={editingId ?? 0}
+                  dataType={10}
+                  maxlength={60}
+                  placeholder={t('请输入优惠券名称')}
+                />
+              ),
+            },
             {
               field: 'reduceType',
               label: t('优惠内容'),
@@ -416,7 +433,21 @@ export default function Coupons() {
                 { label: t('否'), value: 0 },
               ],
             },
-            { field: 'couponDesc', label: t('券使用说明'), type: 'textarea' },
+            {
+              field: 'couponDesc',
+              label: t('券使用说明'),
+              type: 'custom',
+              render: ({ formApi, values }) => (
+                <MultilingualField
+                  value={values.couponDesc}
+                  onChange={(next) => formApi?.setValue('couponDesc', next)}
+                  dataId={editingId ?? 0}
+                  dataType={11}
+                  type="textarea"
+                  placeholder={t('请输入券使用说明')}
+                />
+              ),
+            },
             {
               field: 'sendUserTarget',
               label: t('领取人群'),
@@ -434,6 +465,10 @@ export default function Coupons() {
 };
 
   const saveCoupon = async (payload: Record<string, any>) => {
+    if (!String(payload.couponName || '').trim()) {
+      Toast.error({ content: t('优惠券名称不能为空') });
+      return;
+    }
     setSaving(true);
     try {
       const body = {

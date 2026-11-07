@@ -9,16 +9,16 @@ import "./basic/imageAd";
 import "./basic/imageAd2";
 import "./basic/imageSquareAd";
 import "./basic/imageHotarea";
-// import "./basic/product";
-// import "./basic/product2";
+import "./basic/product";
+import "./basic/product2";
 import "./basic/whiteLine";
 import "./basic/whiteBlank";
 import "./basic/imageNav";
 import "./basic/titleAd";
 import "./basic/notice";
-// import "./basic/searchBar";
-// import "./basic/searchBar2";
-// import "./basic/catNav";
+import "./basic/searchBar";
+import "./basic/searchBar2";
+import "./basic/catNav";
 // 不进工具栏（visible: false），仅保证老数据可渲染
 import "./basic/article";
 
