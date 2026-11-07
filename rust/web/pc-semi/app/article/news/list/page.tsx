@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
-import { getArticleNewsDetail, getArticleNewsList, getPcHeader } from '@/lib/api';
+import { getArticleNewsDetail, getProductDetail, getArticleNewsList, getPcHeader } from '@/lib/api';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = { title: '资讯中心 · 万物新生' };
@@ -16,23 +17,100 @@ function readParam(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] || '' : value || '';
 }
 
+/**
+ * 源码 article/news/List.vue：右侧「文章分类」四栏导航 + left_more 更多链接。
+ * 原版 left_more 是点击展开子文章列表的交互控件；SSR 页面不能挂客户端 hook，
+ * 这里改为静态展开的文章列表（min-list）+ 指向分类页的 left_more 更多链接兜底。
+ */
+const NAV_ITEMS = [
+  { key: 'bzzx', label: '帮助中心', href: '/article/issue' },
+  { key: 'zxzx', label: '资讯中心', href: '/article/news/list?categoryId=zxzx' },
+  { key: 'bzgg', label: '本站公告', href: '/article/news/list?categoryId=bzgg' },
+  { key: 'kfzx', label: '客服中心', href: '/article/news/list?categoryId=kfzx' },
+];
+
+type NavArticle = { articleId: number; articleTitle?: string };
+
+function ArticleSideNav({ navLists }: { navLists: Record<string, NavArticle[]> }) {
+    const t = getServerT();
+  return (
+    <aside className="article-side" style={{ background: '#fff', padding: '20px 24px', boxSizing: 'border-box' }}>
+      <div className="title" style={{ color: '#333', fontSize: 14, fontWeight: 700, height: 24, lineHeight: '24px' }}>{t('文章分类')}</div>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {NAV_ITEMS.map((item) => {
+          const list = navLists[item.key] || [];
+          return (
+            <li key={item.key} style={{ lineHeight: '30px', color: '#888', fontSize: 14 }}>
+              <div className="min-title" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Link href={item.href} className="orange" style={{ color: '#888', textDecoration: 'none' }}>- {item.label}</Link>
+                <Link href={item.href} className="left_more" style={{ fontSize: 12, color: 'var(--pc-primary, #e01222)', textDecoration: 'none' }}>{t('更多 ›')}</Link>
+              </div>
+              {list.length ? (
+                <div className="min-list" style={{ marginLeft: 10 }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {list.map((article) => (
+                      <li key={article.articleId}>
+                        <Link
+                          href={`/article/news/list?articleId=${article.articleId}`}
+                          className="orange"
+                          style={{ color: '#bbb', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', maxWidth: 214, lineHeight: 2, textDecoration: 'none' }}
+                        >
+                          {article.articleTitle}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </aside>
+  );
+}
+
 export default async function ArticleNewsPage({ searchParams }: PageProps) {
+    const t = getServerT();
   const articleId = Number(readParam(searchParams?.articleId)) || 0;
   const categorySn = readParam(searchParams?.categoryId) || readParam(searchParams?.categorySn) || 'zxzx';
   const page = Math.max(1, Number(readParam(searchParams?.page)) || 1);
   const size = 20;
   const header = await getPcHeader().catch(() => null);
+  /** 源码 news/List.vue：侧栏四栏各自的文章列表（zxzx / bzgg / kfzx） */
+  const [zxzxNav, bzggNav, kfzxNav] = await Promise.all([
+    getArticleNewsList({ page: 1, size: 10, categorySn: 'zxzx' }).catch(() => ({ records: [], total: 0 })),
+    getArticleNewsList({ page: 1, size: 10, categorySn: 'bzgg' }).catch(() => ({ records: [], total: 0 })),
+    getArticleNewsList({ page: 1, size: 10, categorySn: 'kfzx' }).catch(() => ({ records: [], total: 0 })),
+  ]);
+  const toNav = (data: { records: Array<{ articleId: number; articleTitle?: string }> }): NavArticle[] =>
+    data.records.map((item) => ({ articleId: item.articleId, articleTitle: item.articleTitle }));
+  const navLists: Record<string, NavArticle[]> = {
+    bzzx: [],
+    zxzx: toNav(zxzxNav),
+    bzgg: toNav(bzggNav),
+    kfzx: toNav(kfzxNav),
+  };
 
   if (articleId) {
     const data = await getArticleNewsDetail(articleId).catch(() => null);
     const item = data?.item || {};
+    // 旧版 article/src/productItem.vue：文章关联商品（item.productIds），后端暂未下发该字段时降级为不展示
+    const rawProductIds = (item as any).productIds;
+    const productIds: number[] = (Array.isArray(rawProductIds) ? rawProductIds : String(rawProductIds || '').split(','))
+      .map((value: any) => Number(value))
+      .filter((value: number) => Number.isFinite(value) && value > 0)
+      .slice(0, 5);
+    const relatedProducts = productIds.length
+      ? (await Promise.all(productIds.map((pid) => getProductDetail(pid).catch(() => null)))).filter(Boolean)
+      : [];
     return (
       <div className="article-page">
         <PcHeader config={header as any} />
         <main className="article-main">
           <div className="article-container article-layout">
             <article className="article-detail">
-              <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><Link href="/article/news/list">资讯中心</Link><span>/</span><span>{item.articleTitle || '文章'}</span></nav>
+              <nav className="pc-breadcrumb"><Link href="/">{t('首页')}</Link><span>/</span><Link href="/article/news/list">{t('资讯中心')}</Link><span>/</span><span>{item.articleTitle || t('文章')}</span></nav>
               <h1>{item.articleTitle}</h1>
               <div className="article-meta">时间：{item.addTime || ''}</div>
               {item.articleThumb ? <img className="article-cover" src={item.articleThumb} alt={item.articleTitle || ''} /> : null}
@@ -40,7 +118,7 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
               {/* 源码 article/news/Info.vue：相关链接 */}
               {Array.isArray((item as any).relatedLinks) && (item as any).relatedLinks.length ? (
                 <div className="article-related">
-                  <h3>相关链接</h3>
+                  <h3>{t('相关链接')}</h3>
                   {(item as any).relatedLinks.map((link: any, index: number) => (
                     <a key={index} href={String(link.url || '#')} target="_blank" rel="noreferrer">
                       {link.title || link.url}
@@ -48,11 +126,29 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
                   ))}
                 </div>
               ) : null}
+              {relatedProducts.length ? (
+                <div className="article-related">
+                  <h3>{t('相关商品')}</h3>
+                  <div className="article-products">
+                    {relatedProducts.map((product: any) => {
+                      const row = (product as any)?.item || {};
+                      return (
+                        <Link key={row.productId} className="article-product" href={`/product/${row.productId}`}>
+                          <img src={row.picThumb || row.picUrl || ''} alt={row.productName || ''} />
+                          <span>{row.productName || ''}</span>
+                          <b>¥ {Number(row.productPrice || 0).toFixed(2)}</b>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
               <div className="article-nav">
                 {data?.prev ? <Link href={`/article/news/list?articleId=${data.prev.articleId}`}>« 上一篇：{data.prev.articleTitle}</Link> : <span />}
                 {data?.next ? <Link href={`/article/news/list?articleId=${data.next.articleId}`}>下一篇：{data.next.articleTitle} »</Link> : <span />}
               </div>
             </article>
+            <ArticleSideNav navLists={navLists} />
           </div>
         </main>
         <PcFooter />
@@ -68,7 +164,7 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
       <main className="article-main">
         <div className="article-container article-layout">
           <section className="article-list">
-            <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><span>资讯中心</span></nav>
+            <nav className="pc-breadcrumb"><Link href="/">{t('首页')}</Link><span>/</span><span>{t('资讯中心')}</span></nav>
             {data.records.map((item) => (
               <article className="article-row" key={item.articleId}>
                 {item.articleThumb ? <Link href={`/article/news/list?articleId=${item.articleId}`}><img src={item.articleThumb} alt={item.articleTitle || ''} /></Link> : null}
@@ -80,22 +176,16 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
                 </div>
               </article>
             ))}
-            {!data.records.length ? <div className="article-empty">没有内容</div> : null}
+            {!data.records.length ? <div className="article-empty">{t('没有内容')}</div> : null}
             {pages > 1 ? (
               <nav className="article-pagination">
-                {page > 1 ? <Link href={`/article/news/list?categoryId=${categorySn}&page=${page - 1}`}>上一页</Link> : <span className="is-disabled">上一页</span>}
+                {page > 1 ? <Link href={`/article/news/list?categoryId=${categorySn}&page=${page - 1}`}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
                 <span>{page} / {pages}</span>
-                {page < pages ? <Link href={`/article/news/list?categoryId=${categorySn}&page=${page + 1}`}>下一页</Link> : <span className="is-disabled">下一页</span>}
+                {page < pages ? <Link href={`/article/news/list?categoryId=${categorySn}&page=${page + 1}`}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
               </nav>
             ) : null}
           </section>
-          <aside className="article-side">
-            <h3>文章分类</h3>
-            <Link href="/article/issue">- 帮助中心</Link>
-            <Link href="/article/news/list?categoryId=zxzx">- 资讯中心</Link>
-            <Link href="/article/news/list?categoryId=bzgg">- 本站公告</Link>
-            <Link href="/article/news/list?categoryId=kfzx">- 客服中心</Link>
-          </aside>
+          <ArticleSideNav navLists={navLists} />
         </div>
       </main>
       <PcFooter />

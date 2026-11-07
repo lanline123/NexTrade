@@ -4,6 +4,7 @@ import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getArticleIssueInfo, getPcHeader } from '@/lib/api';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
 interface ArticlePageProps {
@@ -16,10 +17,11 @@ function readArticleId(searchParams?: ArticlePageProps['searchParams']): number 
 }
 
 export async function generateMetadata({ searchParams }: ArticlePageProps): Promise<Metadata> {
+  const t = getServerT();
   const articleId = readArticleId(searchParams);
   const data = articleId ? await getArticleIssueInfo(articleId).catch(() => null) : null;
   const item = data?.item;
-  const description = item?.description || '帮助中心文章';
+  const description = item?.description || t('帮助中心文章');
   return {
     title: item?.articleTitle ? `${item.articleTitle} · 万物新生` : '帮助详情 · 万物新生',
     description,
@@ -27,13 +29,14 @@ export async function generateMetadata({ searchParams }: ArticlePageProps): Prom
     openGraph: {
       type: 'article',
       url: `/article/issue/info?articleId=${articleId}`,
-      title: item?.articleTitle || '帮助详情',
+      title: item?.articleTitle || t('帮助详情'),
       description,
     },
   };
 }
 
 export default async function ArticleIssueInfoPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+    const t = getServerT();
   const raw = searchParams?.articleId;
   const articleId = Number(Array.isArray(raw) ? raw[0] : raw) || 0;
   const [header, data] = await Promise.all([getPcHeader().catch(() => null), articleId ? getArticleIssueInfo(articleId) : Promise.resolve(null)]);
@@ -54,7 +57,7 @@ export default async function ArticleIssueInfoPage({ searchParams }: { searchPar
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: '首页', item: siteUrl },
       { '@type': 'ListItem', position: 2, name: '帮助中心', item: `${siteUrl}/article/issue` },
-      { '@type': 'ListItem', position: 3, name: item?.articleTitle || '文章详情' },
+      { '@type': 'ListItem', position: 3, name: item?.articleTitle || t('文章详情') },
     ],
   };
 
@@ -65,7 +68,7 @@ export default async function ArticleIssueInfoPage({ searchParams }: { searchPar
       <main className="pc-static-page">
         <div className="pc-container">
           <nav className="pc-breadcrumb">
-            <Link href="/">首页</Link><span>/</span><Link href="/article/issue">帮助中心</Link><span>/</span><span>{item?.articleTitle || '文章详情'}</span>
+            <Link href="/">{t('首页')}</Link><span>/</span><Link href="/article/issue">{t('帮助中心')}</Link><span>/</span><span>{item?.articleTitle || t('文章详情')}</span>
           </nav>
           {item ? (
             <article className="pc-article">
@@ -78,7 +81,7 @@ export default async function ArticleIssueInfoPage({ searchParams }: { searchPar
               </div>
             </article>
           ) : (
-            <div className="pc-static-card"><b>文章不存在</b><Link href="/article/issue">返回帮助中心 →</Link></div>
+            <div className="pc-static-card"><b>{t('文章不存在')}</b><Link href="/article/issue">{t('返回帮助中心 →')}</Link></div>
           )}
         </div>
       </main>

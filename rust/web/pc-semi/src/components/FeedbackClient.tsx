@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Button, Card, Input, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface FeedbackItem {
   id: number;
   type?: number;
@@ -32,6 +33,7 @@ const TABS: Array<{ value: Tab; label: string; empty: string }> = [
 ];
 
 export default function FeedbackClient() {
+    const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>(1);
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [page, setPage] = useState(1);
@@ -104,12 +106,12 @@ export default function FeedbackClient() {
       </div>
 
       <Card style={{ marginBottom: 16 }}>
-        <Input value={title} onChange={setTitle} placeholder="标题（选填）" style={{ marginBottom: 10 }} />
-        <Input value={content} onChange={setContent} placeholder="请输入您的留言内容" style={{ marginBottom: 10 }} />
-        <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>添加新留言</Button>
+        <Input value={title} onChange={setTitle} placeholder={t('标题（选填）')} style={{ marginBottom: 10 }} />
+        <Input value={content} onChange={setContent} placeholder={t('请输入您的留言内容')} style={{ marginBottom: 10 }} />
+        <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>{t('添加新留言')}</Button>
       </Card>
 
-      {listLoading ? <Card className="cart-state">加载中...</Card> : null}
+      {listLoading ? <Card className="cart-state">{t('加载中...')}</Card> : null}
 
       {!listLoading && items.length ? items.map((item) => (
         <Card key={item.id} style={{ marginBottom: 12 }}>
@@ -130,13 +132,13 @@ export default function FeedbackClient() {
 
       {pages > 1 ? (
         <div className="comment-pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>上一页</button>
+          <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>{t('上一页')}</button>
           <span>{page} / {pages}</span>
-          <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>下一页</button>
+          <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>{t('下一页')}</button>
         </div>
       ) : null}
 
-      <div className="comment-info-back"><Link href="/member">返回会员中心</Link></div>
+      <div className="comment-info-back"><Link href="/member">{t('返回会员中心')}</Link></div>
     </>
   );
 }

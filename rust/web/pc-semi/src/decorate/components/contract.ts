@@ -12,6 +12,8 @@
  */
 import type { DecorateModule, ModuleFrameLike } from '../types';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 type AnyRecord = Record<string, any>;
 
 export interface ContractRenderPlan {
@@ -60,16 +62,31 @@ export function linkHref(link: any): string {
 /**
  * 原版标题归一：旧装修是 string；新契约是 defaultTitle 对象（{showTitle,titleText,descText,...}）。
  * 统一为 C 端渲染器消费的 {titleText, descText}；showTitle===0 时视为不显示标题（返回空对象）。
+ * 注意：ShopTitle 以 Number(title.showTitle) !== 1 判定是否渲染，因此可渲染的标题必须带 showTitle: 1，
+ * 否则所有契约模块的标题都会被静默丢弃（历史缺陷）。
  */
-export function toTitle(value: any): { titleText?: string; descText?: string } {
+export function toTitle(value: any): { showTitle?: number; titleText?: string; descText?: string } & AnyRecord {
   if (typeof value === 'string') {
-    return value ? { titleText: value } : {};
+    return value ? { showTitle: 1, titleText: value } : {};
   }
   if (value && typeof value === 'object') {
     if (Number(value.showTitle ?? 1) === 0) return {};
     return {
+      showTitle: 1,
       titleText: value.titleText || value.title || '',
       descText: value.descText || value.subTitle || '',
+      // 以下视觉字段 ShopTitle 均可消费，契约有值就透传，缺省undefined不影响
+      titleStyle: value.titleStyle,
+      titleAlign: value.titleAlign,
+      titleColor: value.titleColor,
+      descColor: value.descColor,
+      moreColor: value.moreColor,
+      showMore: value.showMore,
+      moreLink: value.moreLink,
+      titleRadius: value.titleRadius,
+      titleBackground: value.titleBackground,
+      titleBackground2: value.titleBackground2,
+      titleBackgroundPic: value.titleBackgroundPic,
     };
   }
   return {};
@@ -255,27 +272,39 @@ function adaptPcCatProductSimple(item: DecorateModule): ContractRenderPlan {
 }
 
 /**
- * pcRecommendProduct：{titleName, products:{productNumber, productIds}}。
- * 指定了商品 → Product 按 ids 拉取；未指定 → C 端 RecommendProduct（按 productNumber 拉推荐流）。
+ * pcRecommendProduct：{titleName, products:{productNumber, productIds, productSelectType, productCategoryId, productTag}}。
+ * 指定了商品 → Product 按 ids 拉取；未指定 → C 端 RecommendProduct（按 selectType 2=分类/3=标签 取推荐流）。
+ * 注意：RecommendProduct 渲染器读的是 module.titleName（字符串）而非 title 对象；
+ * selectType/categoryId/tag 需透传（渲染器已支持），此前适配层丢弃导致只能走默认推荐流。
  */
 function adaptPcRecommendProduct(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   const p = (m.products || {}) as AnyRecord;
   const productIds = idList(p.productIds);
-  const title = toTitle(m.titleName ?? m.title);
   if (productIds.length) {
     return {
       component: 'Product',
       module: {
-        title,
+        title: toTitle(m.titleName ?? m.title),
         products: { productSelectType: 1, productIds, productNumber: productIds.length },
         frame: frameOf(m),
       },
     };
   }
+  const rawTitle = m.titleName ?? m.title;
   return {
     component: 'RecommendProduct',
-    module: { title, products: { productNumber: toNumber(p.productNumber, 50) }, frame: frameOf(m) },
+    module: {
+      titleName: typeof rawTitle === 'string' ? rawTitle : toTitle(rawTitle).titleText || '',
+      products: {
+        productSelectType: toNumber(p.productSelectType, 0),
+        productIds,
+        productCategoryId: toNumber(p.productCategoryId, 0),
+        productTag: p.productTag,
+        productNumber: toNumber(p.productNumber, 50),
+      },
+      frame: frameOf(m),
+    },
   };
 }
 
@@ -355,7 +384,7 @@ function adaptPcCategoryNav3(item: DecorateModule): ContractRenderPlan {
       title: toTitle(m.titleText ?? m.titleName ?? m.title),
       rowNum: clamp(toNumber(m.rowNum ?? m.displayNum, 6), 1, 10),
       showMore: toNumber(m.showMore, 0) === 1,
-      moreText: m.showMoreText || '查看更多',
+      moreText: m.showMoreText || (i18n.t('查看更多') as string),
       moreLink: m.moreLink,
       imageBackgroundColor: m.imageBackgroundColor,
       catIds: [],

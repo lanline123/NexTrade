@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
+import { useTranslation } from 'react-i18next';
 interface Article {
   articleId?: number;
   articleTitle?: string;
@@ -30,6 +31,7 @@ export default function ArticleIssueClient({
   categories: Category[];
   currentCategoryId: string;
 }) {
+    const { t } = useTranslation();
   const initial = categories.find((item) => item.categorySn === currentCategoryId || String(item.articleCategoryId) === currentCategoryId)
     || categories[0];
   const [activeSn, setActiveSn] = useState(String(initial?.categorySn ?? initial?.articleCategoryId ?? ''));
@@ -41,7 +43,7 @@ export default function ArticleIssueClient({
   return (
     <div className="pc-article-issue">
       <aside className="pc-article-issue__side">
-        <b>帮助分类</b>
+        <b>{t('帮助分类')}</b>
         {categories.map((item) => {
           const key = String(item.categorySn ?? item.articleCategoryId ?? '');
           return (
@@ -79,12 +81,12 @@ export default function ArticleIssueClient({
             <Link key={article.articleId} href={`/article/issue/info?articleId=${article.articleId}`} target="_blank">
               {article.articleTitle}
             </Link>
-          )) : <span className="pc-article-issue__empty">该分类暂无文章</span>}
+          )) : <span className="pc-article-issue__empty">{t('该分类暂无文章')}</span>}
         </div>
 
         {hot.length ? (
           <div className="pc-article-issue__hot">
-            <b>热门问题</b>
+            <b>{t('热门问题')}</b>
             {hot.map((article) => (
               <Link key={`hot-${article.articleId}`} href={`/article/issue/info?articleId=${article.articleId}`} target="_blank">
                 {article.articleTitle} →

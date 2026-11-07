@@ -1,12 +1,21 @@
 import Link from 'next/link';
 import { getFooterData } from '@/lib/api';
+import { imageFormat } from '@/lib/image';
+import { navLinkHref, sanitizeLinkUrl } from '@/lib/link';
+import PcLocaleSelect from '@/components/PcLocaleSelect';
+import CookieSettingsLink from '@/components/CookieSettingsLink';
+
+import { getServerT } from '@/i18n/server';
+/** 跨境版构建（与 PayClient 的 IS_OVERSEAS 约定一致）：Footer 语言/货币 toolbar 仅跨境显示 */
+const IS_OVERSEAS = process.env.NEXT_PUBLIC_PC_OVERSEAS !== '0';
 
 function articleHref(articleId: unknown): string {
   return `/article/issue/info?articleId=${encodeURIComponent(String(articleId ?? ''))}`;
 }
 
 export default async function PcFooter({ showFriendly = false }: { showFriendly?: boolean }) {
-  const { config, bottomNav, friendLinks, helpCategories } = await getFooterData();
+    const t = getServerT();
+  const { config, bottomNav, friendLinks, helpCategories, currencies } = await getFooterData();
   const icp = config?.shopIcpNo as string | undefined;
   const icpUrl = (config?.shopIcpNoUrl as string | undefined) || 'https://beian.miit.gov.cn/';
   const phone = config?.kefuPhone as string | undefined;
@@ -17,15 +26,30 @@ export default async function PcFooter({ showFriendly = false }: { showFriendly?
   const businessLicenseEnabled = Number(config?.businessLicenseEnabled ?? 1) === 1;
   const businessLicenseType = Array.isArray(config?.businessLicenseType) ? (config.businessLicenseType as string[]) : [];
   const licenseLabel = businessLicenseType.includes('icp') && businessLicenseType.includes('edi')
-    ? '增值电信业务经营许可证(ICP+EDI)：'
+    ? t('增值电信业务经营许可证(ICP+EDI)：')
     : businessLicenseType.includes('edi')
-      ? '增值电信业务经营许可证(EDI)：'
+      ? t('增值电信业务经营许可证(EDI)：')
       : '增值电信业务经营许可证(ICP)：';
   const policeNo = config?.shop110No as string | undefined;
   const policeLink = (config?.shop110Link as string | undefined) || 'https://beian.mps.gov.cn/#/query/webSearch';
 
+  // 技术支持/资质公示图（对齐旧版 PageFooter imgUrl：poweredBy=1 用 poweredByLogo，否则 defaultTechSupport）
+  const poweredBy = Number(config?.poweredBy ?? 0);
+  const certImgUrl = poweredBy === 1
+    ? String(config?.poweredByLogo || '')
+    : sanitizeLinkUrl(String(config?.defaultTechSupport || ''));
+
   return (
     <footer className="pc-footer">
+      {IS_OVERSEAS ? (
+        <div className="pc-footer__toolbar">
+          <div className="pc-container pc-footer__toolbar-inner">
+            <PcLocaleSelect showLang showCurrency={false} initialCurrencies={currencies as any} />
+            <PcLocaleSelect showLang={false} showCurrency initialCurrencies={currencies as any} />
+          </div>
+        </div>
+      ) : null}
+
       {helpCategories.length ? (
         <div className="pc-footer__help">
           <div className="pc-container pc-footer__help-inner">
@@ -50,8 +74,14 @@ export default async function PcFooter({ showFriendly = false }: { showFriendly?
           {bottomNav.length ? (
             <nav className="pc-footer__nav">
               {bottomNav.map((item, index) => {
-                const href = item?.link?.link || (item?.link?.id ? articleHref(item.link.id) : '/');
-                return (
+                // 对象型装修链接全量解析 + 协议安全过滤（对齐旧版 CommonLink urlFormat）
+                const href = navLinkHref(item) || '/';
+                const external = /^https?:\/\//i.test(href);
+                return external ? (
+                  <a key={item.id || index} href={href} target="_blank" rel="nofollow noreferrer">
+                    {item.title}
+                  </a>
+                ) : (
                   <Link key={item.id || index} href={href}>
                     {item.title}
                   </Link>
@@ -60,9 +90,12 @@ export default async function PcFooter({ showFriendly = false }: { showFriendly?
             </nav>
           ) : null}
 
+          {/* Cookie 设置入口（跨境演示站，对齐旧版 PageFooter） */}
+          <CookieSettingsLink />
+
           {showFriendly && friendLinks.length ? (
             <div className="pc-footer__friendly">
-              <span>友情链接：</span>
+              <span>{t('友情链接：')}</span>
               {friendLinks.map((item) => (
                 <a key={item.linkId} href={item.linkUrl} target="_blank" rel="nofollow noreferrer">
                   {item.linkTitle}
@@ -94,8 +127,17 @@ export default async function PcFooter({ showFriendly = false }: { showFriendly?
                 {address ? <span>联系地址：{address}</span> : null}
               </p>
             ) : null}
-            {companyTxt ? null : <p className="pc-footer__copyright">万物新生 · 退役动力电池循环利用产业服务平台</p>}
+            {companyTxt ? null : <p className="pc-footer__copyright">{t('万物新生 · 退役动力电池循环利用产业服务平台')}</p>}
           </div>
+
+          {certImgUrl ? (
+            <div className="pc-footer__cert-img">
+              <div
+                className="pc-footer__cert-bg"
+                style={{ backgroundImage: `url(${imageFormat(certImgUrl)})` }}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </footer>

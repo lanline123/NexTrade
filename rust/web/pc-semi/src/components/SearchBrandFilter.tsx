@@ -14,6 +14,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
+import { useTranslation } from 'react-i18next';
 export interface SearchBrandOption {
   id: string;
   name: string;
@@ -25,6 +26,8 @@ interface SearchBrandFilterProps {
   selected: string[];
   /** 当前查询串（已包含 keyword/cat/sort/order/min/max/attr 等，不含 brand/page） */
   baseQuery: string;
+  /** 生成链接时使用的列表路径，默认 /search；/list、/search.v1 复用时由调用方传入。 */
+  basePath?: string;
   maxVisible?: number;
 }
 
@@ -35,7 +38,8 @@ function normalizeLetter(value: string | undefined, name: string): string {
   return /^[A-Z]$/.test(first) ? first : '';
 }
 
-export default function SearchBrandFilter({ brands, selected, baseQuery, maxVisible = 8 }: SearchBrandFilterProps) {
+export default function SearchBrandFilter({ brands, selected, baseQuery, basePath = '/search', maxVisible = 8 }: SearchBrandFilterProps) {
+    const { t } = useTranslation();
   const selectedSet = useMemo(() => new Set(selected.filter(Boolean)), [selected]);
   const [letter, setLetter] = useState<string>(() => {
     const firstSelected = brands.find((brand) => selectedSet.has(brand.id));
@@ -71,23 +75,21 @@ export default function SearchBrandFilter({ brands, selected, baseQuery, maxVisi
     params.delete('page');
     if (next.size) params.set('brand', Array.from(next).join(','));
     const query = params.toString();
-    return `/search${query ? `?${query}` : ''}`;
+    return `${basePath}${query ? `?${query}` : ''}`;
   };
 
   if (!brands.length) return null;
 
   return (
     <div className="pc-search-filter-row pc-search-brand-filter">
-      <span className="pc-search-filter-row__label">品牌：</span>
+      <span className="pc-search-filter-row__label">{t('品牌：')}</span>
       <div className="pc-search-brand-filter__body" style={{ flex: 1 }}>
         <div className="pc-search-brand-letters" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
           <button
             type="button"
             onClick={() => { setLetter(''); setExpanded(false); }}
             style={{ border: '1px solid #eee', borderRadius: 4, background: currentLetter === '' ? '#1a1a1a' : '#fff', color: currentLetter === '' ? '#fff' : '#666', padding: '2px 8px', cursor: 'pointer' }}
-          >
-            全部
-          </button>
+          >{t('全部')}</button>
           {letters.map((item) => (
             <button
               key={item}
@@ -112,7 +114,7 @@ export default function SearchBrandFilter({ brands, selected, baseQuery, maxVisi
               onClick={() => setExpanded((value) => !value)}
               style={{ border: 0, background: 'transparent', color: '#005ea7', cursor: 'pointer', padding: 0, fontSize: 13 }}
             >
-              {expanded ? '收起' : `更多（${currentBrands.length - maxVisible}）`}
+              {expanded ? t('收起') : t('更多（{n}）', { n: currentBrands.length - maxVisible })}
             </button>
           ) : null}
         </div>

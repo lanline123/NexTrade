@@ -25,6 +25,7 @@ import type { PcHeaderConfig } from '@/decorate/types';
 import { imageUrl } from '@/decorate/components/common';
 import type { PcHeaderBootstrap } from '@/lib/header-bootstrap';
 
+import { useTranslation } from 'react-i18next';
 const FALLBACK_NAV = [
   { title: '首页', link: '/' },
   { title: '全部商品', link: '/search' },
@@ -89,6 +90,7 @@ export default function PcHeaderSimple({
   /** 服务端预取的头部公共数据（Logo），首屏即渲染 */
   bootstrap?: PcHeaderBootstrap | null;
 }) {
+    const { t } = useTranslation();
   const pathname = usePathname();
   const header = (config || {}) as Record<string, any>;
   const bootstrapLogo = typeof bootstrap?.base?.shopLogo === 'string' ? bootstrap.base.shopLogo : '';
@@ -332,7 +334,7 @@ export default function PcHeaderSimple({
                             cartPic ? (
                               <img className="pc-cart__pic" src={cartPic} alt="" />
                             ) : (
-                              <div className="pc-cart__pic-empty">购物车</div>
+                              <div className="pc-cart__pic-empty">{t('购物车')}</div>
                             )
                           ) : (
                             <>
@@ -340,7 +342,7 @@ export default function PcHeaderSimple({
                                 <ShoppingCart size={20} />
                               </span>
                               {cartCount > 0 ? <span className="pc-cart__count">{cartCount}</span> : null}
-                              <span className="pc-cart__text">购物车</span>
+                              <span className="pc-cart__text">{t('购物车')}</span>
                             </>
                           )}
                         </div>

@@ -8,11 +8,13 @@ import type { ProductDetailResponse } from '@/lib/api';
 import { addToCart } from '@/lib/api';
 import { apiGet, apiPost } from '@/lib/client-api';
 import RawImageDownloadButton from '@/components/RawImageDownloadButton';
+import ProductJoiningClient from '@/components/ProductJoiningClient';
 import ProductCard, { type ProductCardItem } from '@/components/product/ProductCard';
 import { useProductColumns } from '@/components/product/use-product-columns';
 import '@/components/product/product-card.scss';
 import { ProductLayout, type ProductBlocks, type DetailSection } from '@/components/product/ProductLayouts';
 
+import { useTranslation } from 'react-i18next';
 /**
  * 商品详情（源码对照 java-b2b2c-overseas-v5.8.61/view/pc/pages/item/src/Product.vue
  * + components/product/{ProductSku,ProductInfo,PicShow,Buy,Comment,Consultation,
@@ -155,6 +157,7 @@ export default function ProductDetailClient({
   /** 1=经典(old) / 2=新版(new) / 3=跨境(overseas)，源码 ?uiStyle= 可预览 */
   uiStyle?: 'old' | 'new' | 'overseas';
 }) {
+  const { t } = useTranslation();
   const item = detail.item || {};
   const productId = Number(item.productId) || 0;
   const shopId = Number((detail as any).shopId ?? item.shopId) || 0;
@@ -167,6 +170,13 @@ export default function ProductDetailClient({
   const [quantity, setQuantity] = useState(1);
   const [skuId, setSkuId] = useState<number | undefined>(undefined);
   const [adding, setAdding] = useState(false);
+  // 旧版 OverseasThumb/Thumb：视频缩略图（videoCover + ▶）排在相册之后，点中主区播放 video
+  const videoList = ((detail as any).videoList || []) as Array<{ videoUrl?: string; videoCover?: string }>;
+  const [playingVideo, setPlayingVideo] = useState(-1);
+  // 「相关文章」区块（旧版 ProductRelevanceArticle）与 Tab 开关
+  const [relateArticles, setRelateArticles] = useState<Array<Record<string, any>>>([]);
+  const [afterSalesFlag, setAfterSalesFlag] = useState(true);
+  const [commentEnabled, setCommentEnabled] = useState(1);
 
   // —— 评价 / 咨询 ——
   const [tab, setTab] = useState<'detail' | 'params' | 'comment' | 'consult'>('detail');
@@ -285,6 +295,25 @@ export default function ProductDetailClient({
   useEffect(() => {
     if (!productId) return;
     let alive = true;
+    // 旧版 Product.vue:841：周期购商品跳 pcMobile（H5 承载）
+    if (Number((detail as any).deliveryMode) === 2) {
+      const target = new URLSearchParams({ path: '/pages/product/index', id: String(productId) });
+      if (shopId) target.set('shopId', String(shopId));
+      window.location.href = `/pcMobile?${target.toString()}`;
+      return;
+    }
+    // 旧版 ProductRelevanceArticle：详情区「相关文章」区块
+    apiGet<Array<Record<string, any>>>('category/category/relateArticle', { productId })
+      .then((list) => alive && setRelateArticles(Array.isArray(list) ? list : []))
+      .catch(() => undefined);
+    // 旧版 afterSalesFlag：售后 Tab 开关（showTemplateContent=false 隐藏，缺省展示）
+    apiGet<Record<string, any> | null>('common/config/afterSalesService')
+      .then((config) => alive && setAfterSalesFlag(Number(config?.showTemplateContent ?? 1) !== 0))
+      .catch(() => undefined);
+    // D1146：评价开关关闭时隐藏「评价」Tab（旧 commonStore.productCommentEnabled）
+    apiGet<Record<string, any> | null>('common/config/base')
+      .then((base) => alive && setCommentEnabled(Number(base?.productCommentEnabled ?? 1)))
+      .catch(() => undefined);
     apiGet<CouponItem[]>('product/product/getCoupon', { id: productId, shopId })
       .then((list) => alive && setCoupons(Array.isArray(list) ? list : []))
       .catch(() => undefined);
@@ -395,7 +424,7 @@ export default function ProductDetailClient({
     const next = Math.floor(Number(value) || 1);
     if (next < 1) return;
     if (next > maxQuantity) {
-      Toast.error({ content: limit > 0 && maxQuantity === limit ? `限购${limit}件` : '库存不足' });
+      Toast.error({ content: limit > 0 && maxQuantity === limit ? t('限购{n}件', { n: limit }) : t('库存不足') });
       return;
     }
     setQuantity(next);
@@ -413,12 +442,15 @@ export default function ProductDetailClient({
     if (!requireLogin()) return;
     setAdding(true);
     try {
+      const grouponData = buildGrouponData();
       const result = await addToCart({
         id: Number(item.productId),
         number: quantity,
         skuId: selectedSku?.skuId ? Number(selectedSku.skuId) : skuId,
         isQuick: next === 'buy' ? 1 : 0,
-      });
+        // 旧版 Buy.vue：拼团商品加购时携带 grouponData（参团/开团上下文）
+        ...(grouponData ? { grouponData } : {}),
+      } as Parameters<typeof addToCart>[0]);
       if (next === 'buy') {
         const flowType = Number((result as any)?.flowType) || 1;
         const query = new URLSearchParams({ flowType: String(flowType) });
@@ -537,12 +569,47 @@ export default function ProductDetailClient({
   const grouponPrice = grouponInfo ? pick(grouponInfo, ['grouponPrice', 'minGroupPrice', 'groupon_price']) : null;
   const grouponNum = grouponInfo ? pickNumber(grouponInfo, ['minGroupNum', 'min_group_num'], 0) : 0;
   const grouponJoined = grouponInfo ? pickNumber(grouponInfo, ['joinNumCount', 'join_num_count'], 0) : 0;
+  // 旧版 Product.vue:821 / groupByInvited.vue:296：被邀请参团进详情时 URL 携带 grouponPromotionRecordId，
+  // 加购时随 grouponData 下发，后端据此参到指定的团（开团时不带）。
+  const [grouponRecordId, setGrouponRecordId] = useState(0);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setGrouponRecordId(Number(new URL(window.location.href).searchParams.get('grouponPromotionRecordId')) || 0);
+  }, [productId]);
+
+  /** 旧版 Buy.vue:88-96：拼团上下文 grouponData（活动 + 活动商品 + 明细 + 参团记录）。 */
+  const buildGrouponData = (): Record<string, number> | undefined => {
+    if (!grouponInfo) return undefined;
+    const promotionId = pickNumber(grouponInfo, ['grouponPromotionId', 'grouponId'], 0);
+    const itemId = pickNumber(grouponInfo, ['grouponPromotionItemId'], 0);
+    if (!promotionId || !itemId) return undefined;
+    const details = (grouponInfo.grouponPromotionDetails || []) as Array<Record<string, any>>;
+    const matched = selectedSku?.skuId
+      ? details.find((row) => Number(row.skuId) === Number(selectedSku.skuId))
+      : undefined;
+    const detailRow = matched || details[0];
+    const data: Record<string, number> = {
+      grouponPromotionId: promotionId,
+      grouponPromotionItemId: itemId,
+      grouponDetailId: detailRow ? pickNumber(detailRow, ['grouponDetailId'], 0) : 0,
+      price: Number(pick(grouponInfo, ['grouponPrice', 'minGroupPrice', 'minGrouponPrice'], 0)),
+    };
+    if (grouponRecordId > 0) data.grouponPromotionRecordId = grouponRecordId;
+    return data;
+  };
   const commentGoodPercent = pickString(commentStat, ['goodPercent'], '0.00');
   const commentAverage = pickNumber(commentStat, ['averageRank'], 0);
 
   // —— 跨境版锚点长滚动：点击定位 + 滚动高亮（源码 changeType / sectionRefs / tab-main）——
   const [activeAnchor, setActiveAnchor] = useState('detail');
-  const anchorKeys = ['detail', 'comment', 'consult', 'service', 'article'];
+  // 与下方 sections 顺序一致（评价/售后受开关控制；此处先于 sections 声明，避免引用未初始化变量）
+  const anchorKeys = [
+    'detail',
+    ...(commentEnabled === 1 ? ['comment'] : []),
+    'consult',
+    ...(afterSalesFlag ? ['service'] : []),
+    'article',
+  ];
   useEffect(() => {
     if (uiStyle !== 'overseas') return;
     const onScroll = () => {
@@ -573,9 +640,9 @@ export default function ProductDetailClient({
   /** 源码 CommonCategoryNavigation / OverseasCategoryNavigation */
   const crumb = (
     <nav className="pds-crumb">
-      <Link href="/">首页</Link>
+      <Link href="/">{t('首页')}</Link>
       <span>/</span>
-      <Link href="/search">全部商品</Link>
+      <Link href="/search">{t('全部商品')}</Link>
       <span>/</span>
       <span className="pds-crumb__current" title={item.productName || ''}>{item.productName}</span>
     </nav>
@@ -584,23 +651,19 @@ export default function ProductDetailClient({
   /** 跨境版顶部 flex_csb 右侧：分享至 + 社交渠道（源码 shareWidth） */
   const shareSocial = (
     <div className="pds-share-social">
-      <span className="pds-share-social__title">分享至</span>
-      <button type="button" onClick={() => void openShare()}>复制链接</button>
+      <span className="pds-share-social__title">{t('分享至')}</span>
+      <button type="button" onClick={() => void openShare()}>{t('复制链接')}</button>
       <a
         href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(item.productName || '')}`}
         target="_blank"
         rel="noreferrer"
-      >
-        微博
-      </a>
+      >{t('微博')}</a>
       <a
         href={`https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(item.productName || '')}`}
         target="_blank"
         rel="noreferrer"
-      >
-        QQ 空间
-      </a>
-      <button type="button" onClick={() => void openShare()}>二维码</button>
+      >{t('QQ 空间')}</a>
+      <button type="button" onClick={() => void openShare()}>{t('二维码')}</button>
     </div>
   );
 
@@ -617,33 +680,55 @@ export default function ProductDetailClient({
         </div>
         <div className="pds-shop__meta">
           {pickString(shopInfo, ['shopDetailedAddress'], '')}
-          {pickString(shopInfo, ['kefuPhone'], '') ? ` · 客服 ${pickString(shopInfo, ['kefuPhone'])}` : ''}
+          {pickString(shopInfo, ['kefuPhone'], '') ? t('· 客服 {p}', { p: pickString(shopInfo, ['kefuPhone']) }) : ''}
         </div>
       </div>
       <div className="pds-shop__actions">
-        {shopId > 0 ? <Link href={`/shop/${shopId}`}><Button size="small">进入店铺</Button></Link> : null}
+        {shopId > 0 ? <Link href={`/shop/${shopId}`}><Button size="small">{t('进入店铺')}</Button></Link> : null}
       </div>
     </div>
   ) : null;
 
-  /** 源码 ProductThumb / ProductThumbNew / OverseasThumb */
+  /** 源码 ProductThumb / ProductThumbNew / OverseasThumb（含视频缩略图 + 播放） */
   const gallery = (
     <div className="pds-gallery">
       <div className="pds-gallery__main">
-        <img src={mainImage} alt={item.productName} />
+        {playingVideo >= 0 && videoList[playingVideo]?.videoUrl ? (
+          <video
+            key={videoList[playingVideo].videoUrl}
+            src={videoList[playingVideo].videoUrl}
+            controls
+            autoPlay
+            style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+          />
+        ) : (
+          <img src={mainImage} alt={item.productName} />
+        )}
       </div>
       <div className="pds-gallery__thumbs">
         {pictures.map((pic: any, index: number) => (
           <button
             key={pic.picId || index}
             type="button"
-            className={index === activeImage && !skuPic ? 'is-active' : ''}
+            className={index === activeImage && !skuPic && playingVideo < 0 ? 'is-active' : ''}
             onClick={() => {
               setSkuPic('');
               setActiveImage(index);
+              setPlayingVideo(-1);
             }}
           >
             <img src={pic.picThumb || pic.picUrl} alt="" />
+          </button>
+        ))}
+        {videoList.map((video, index) => (
+          <button
+            key={`video-${index}`}
+            type="button"
+            className={playingVideo === index ? 'is-active' : ''}
+            onClick={() => setPlayingVideo(index)}
+          >
+            <img src={video.videoCover || pictures[0]?.picThumb || ''} alt={t('商品视频')} />
+            <span className="pds-gallery__video-icon" aria-hidden />
           </button>
         ))}
       </div>
@@ -658,7 +743,7 @@ export default function ProductDetailClient({
         <button type="button" onClick={() => void collect()} disabled={collecting}>
           {collected ? '已收藏' : '收藏'}
         </button>
-        <button type="button" onClick={() => void openShare()}>分享</button>
+        <button type="button" onClick={() => void openShare()}>{t('分享')}</button>
       </div>
     </div>
   );
@@ -667,42 +752,45 @@ export default function ProductDetailClient({
   const heading = (
     <div className="pds-heading">
       <div className="pds-tags">
-        {item.isNew ? <Tag color="blue">新品</Tag> : null}
-        {item.isHot ? <Tag color="orange">热销</Tag> : null}
+        {item.isNew ? <Tag color="blue">{t('新品')}</Tag> : null}
+        {item.isHot ? <Tag color="orange">{t('热销')}</Tag> : null}
         {detail.deliveryModeText ? <Tag color="green">{detail.deliveryModeText}</Tag> : null}
-        {outOfStock ? <Tag color="red">已售罄</Tag> : null}
+        {outOfStock ? <Tag color="red">{t('已售罄')}</Tag> : null}
       </div>
       <h1>{item.productName}</h1>
       {item.productBrief ? <p className="pds-brief">{item.productBrief}</p> : null}
     </div>
   );
 
-  /** 营销面板：秒杀 / 拼团 / 预售 / 优惠券 */
+  /** 营销面板：秒杀 / 拼团 / 预售 / 优惠券 / 进行中拼单 */
   const promos = (
     <>
+      {grouponInfo ? (
+        <ProductJoiningClient productId={productId} groupon={grouponInfo} skuId={selectedSku?.skuId ? Number(selectedSku.skuId) : skuId} number={quantity} />
+      ) : null}
       {seckillPrice !== null ? (
         <div className="pds-panel pds-panel--seckill">
           <div className="pds-panel__row">
-            <Tag color="red">限时秒杀</Tag>
+            <Tag color="red">{t('限时秒杀')}</Tag>
             <b className="pds-panel__price">¥ {yuan(seckillPrice)}</b>
             {Number(price) > seckillPrice ? <del>¥ {yuan(price)}</del> : null}
           </div>
-          <p className="pds-panel__note">秒杀价随规格变化，实际以下单结算为准</p>
+          <p className="pds-panel__note">{t('秒杀价随规格变化，实际以下单结算为准')}</p>
         </div>
       ) : null}
 
       {grouponInfo && grouponPrice ? (
         <div className="pds-panel pds-panel--groupon">
           <div className="pds-panel__row">
-            <Tag color="orange">拼团</Tag>
+            <Tag color="orange">{grouponRecordId > 0 ? '好友邀请参团' : '拼团'}</Tag>
             <b className="pds-panel__price">¥ {yuan(grouponPrice)}</b>
             {grouponNum > 0 ? <span className="pds-panel__note">{grouponNum} 人成团</span> : null}
             {grouponNum > 0 ? <span className="pds-panel__note">已拼 {grouponJoined} 件</span> : null}
           </div>
-          {grouponInfo?.grouponPromotionId || grouponInfo?.grouponId ? (
-            <Link className="pds-panel__link" href={`/seckill?grouponPromotionId=${grouponInfo.grouponPromotionId || grouponInfo.grouponId}`}>
-              去拼团 &gt;
-            </Link>
+          {/* 旧版无「去拼团」跳转：参团/开团由本页加购按钮承担（grouponData 随 addToCart 下发）；
+              进行中拼单列表（旧 ProductJoining）在中优先级批次补齐 */}
+          {grouponRecordId > 0 ? (
+            <p className="pds-panel__note">你正在参加好友发起的拼团，选择规格后点击「立即购买 / 加入购物车」即参团</p>
           ) : null}
         </div>
       ) : null}
@@ -710,7 +798,7 @@ export default function ProductDetailClient({
       {presaleInfo || Number((item as any).prepayPrice) > 0 ? (
         <div className="pds-panel pds-panel--presale">
           <div className="pds-panel__row">
-            <Tag color="blue">预售</Tag>
+            <Tag color="blue">{t('预售')}</Tag>
             {presaleDeposit > 0 ? <b>定金 ¥ {yuan(presaleDeposit)}</b> : null}
             {Number((item as any).prepayPrice) > 0 ? <span>预售价 ¥ {yuan((item as any).prepayPrice)}</span> : null}
           </div>
@@ -727,7 +815,7 @@ export default function ProductDetailClient({
       {coupons.length ? (
         <div className="pds-panel pds-panel--coupon">
           <div className="pds-panel__head">
-            <span>优惠券</span>
+            <span>{t('优惠券')}</span>
             <Link href="/coupon/list">领券中心 &gt;</Link>
           </div>
           <div className="pds-coupons">
@@ -738,7 +826,7 @@ export default function ProductDetailClient({
                   <div className="pds-coupon__value">
                     {Number(coupon.couponType) === 2 ? `${Number(coupon.couponDiscount || 0)}折` : `¥${Number(coupon.couponMoney || 0).toFixed(0)}`}
                   </div>
-                  <div className="pds-coupon__desc">满{Number(coupon.minOrderAmount || 0).toFixed(0)}可用</div>
+                  <div className="pds-coupon__desc">{t('满{n}可用', { n: Number(coupon.minOrderAmount || 0).toFixed(0) })}</div>
                   <Button size="small" theme={received ? 'borderless' : 'solid'} type="primary" disabled={received} onClick={() => void claimCoupon(coupon)}>
                     {received ? '已领取' : '领取'}
                   </Button>
@@ -754,17 +842,17 @@ export default function ProductDetailClient({
   const priceBlock = (
     <>
       <div className="pds-price">
-        <span className="pds-price__label">本站价：</span>
+        <span className="pds-price__label">{t('本站价：')}</span>
         <b className="pds-price__value">¥{yuan(price)}</b>
         {Number(item.marketPrice) > 0 ? <del className="pds-price__origin">¥{yuan(item.marketPrice)}</del> : null}
       </div>
       <div className="pds-pills">
-        {coupons.length ? <span className="pds-pill">满折</span> : null}
-        {seckillPrice !== null ? <span className="pds-pill">限时秒杀</span> : null}
-        {grouponInfo ? <span className="pds-pill">满赠</span> : null}
+        {coupons.length ? <span className="pds-pill">{t('满折')}</span> : null}
+        {seckillPrice !== null ? <span className="pds-pill">{t('限时秒杀')}</span> : null}
+        {grouponInfo ? <span className="pds-pill">{t('满赠')}</span> : null}
         <a className="pds-pill__more" href="#pds-sec-detail">更多优惠 &gt;</a>
       </div>
-      <div className="pds-sales">销量：<b>{item.virtualSales ?? item.sales ?? 0}</b> 件</div>
+      <div className="pds-sales">{t('销量：')}<b>{item.virtualSales ?? item.sales ?? 0}</b>{t('件')}</div>
     </>
   );
 
@@ -810,7 +898,7 @@ export default function ProductDetailClient({
   ) : skuList.length > 1 ? (
     <div className="pds-sku">
       <div className="pds-sku__group">
-        <span className="pds-sku__label">规格</span>
+        <span className="pds-sku__label">{t('规格')}</span>
         <div className="pds-sku__list">
           {skuList.map((skuRow) => (
             <Button
@@ -830,7 +918,7 @@ export default function ProductDetailClient({
                 }
               }}
             >
-              {(skuRow.skuData || []).map((entry) => `${entry.name || ''}：${entry.value || ''}`).join(' / ') || `规格 ${skuRow.skuId}`}
+              {(skuRow.skuData || []).map((entry) => `${entry.name || ''}：${entry.value || ''}`).join(' / ') || t('规格 {id}', { id: skuRow.skuId })}
             </Button>
           ))}
         </div>
@@ -840,9 +928,9 @@ export default function ProductDetailClient({
 
   const wholesale = wholesalePriceList.length ? (
     <div className="pds-sku pds-wholesale">
-      <span className="pds-sku__label">批量采购</span>
+      <span className="pds-sku__label">{t('批量采购')}</span>
       <table className="account-table">
-        <thead><tr><th>起订数量</th><th>批发价</th></tr></thead>
+        <thead><tr><th>{t('起订数量')}</th><th>{t('批发价')}</th></tr></thead>
         <tbody>
           {wholesalePriceList.map((tier, index) => (
             <tr key={index}>
@@ -857,7 +945,7 @@ export default function ProductDetailClient({
 
   const qty = (
     <div className="pds-qty">
-      <span className="pds-qty__label">数量</span>
+      <span className="pds-qty__label">{t('数量')}</span>
       <div className="pds-stepper">
         <button type="button" disabled={outOfStock || quantity <= 1} onClick={() => changeQuantity(Math.max(1, quantity - 1))}>−</button>
         <input
@@ -883,9 +971,7 @@ export default function ProductDetailClient({
         loading={adding}
         disabled={outOfStock || skuDisabled || requireSku}
         onClick={() => void add()}
-      >
-        加入购物车
-      </Button>
+      >{t('加入购物车')}</Button>
       <Button
         size="large"
         theme="light"
@@ -893,21 +979,19 @@ export default function ProductDetailClient({
         icon={<IconCreditCard />}
         disabled={outOfStock || skuDisabled || requireSku}
         onClick={() => void add('buy')}
-      >
-        立即购买
-      </Button>
+      >{t('立即购买')}</Button>
       <Button size="large" loading={collecting} onClick={() => void collect()}>
         {collected ? '已收藏' : '收藏'}
       </Button>
-      <Button size="large" onClick={() => void openShare()}>分享</Button>
+      <Button size="large" onClick={() => void openShare()}>{t('分享')}</Button>
       <RawImageDownloadButton productId={productId} shopId={shopId || undefined} />
     </div>
   );
 
   const tips = (
     <>
-      {requireSku ? <p className="pds-tips">请选择完整规格后购买</p> : null}
-      {outOfStock ? <p className="pds-tips">该商品暂时缺货，敬请期待</p> : null}
+      {requireSku ? <p className="pds-tips">{t('请选择完整规格后购买')}</p> : null}
+      {outOfStock ? <p className="pds-tips">{t('该商品暂时缺货，敬请期待')}</p> : null}
     </>
   );
 
@@ -941,17 +1025,17 @@ export default function ProductDetailClient({
           <div key={index} dangerouslySetInnerHTML={{ __html: desc.html }} />
         ) : null,
       )}
-      {!detail.descArr?.length ? <p className="pds-empty">暂无详情</p> : null}
+      {!detail.descArr?.length ? <p className="pds-empty">{t('暂无详情')}</p> : null}
     </div>
   );
 
   const paramsContent = (
     <div className="pds-params">
-      <div><span>商品名称</span><b>{item.productName}</b></div>
-      <div><span>商品编号</span><b>{item.productSn || '-'}</b></div>
-      <div><span>库存</span><b>{stock}</b></div>
-      <div><span>上架时间</span><b>{formatDateTime(item.addTime) || '-'}</b></div>
-      {skuList.length ? <div><span>规格</span><b>{skuList.map((row: any) => `${row.name || ''}：${row.value || ''}`).join(' / ')}</b></div> : null}
+      <div><span>{t('商品名称')}</span><b>{item.productName}</b></div>
+      <div><span>{t('商品编号')}</span><b>{item.productSn || '-'}</b></div>
+      <div><span>{t('库存')}</span><b>{stock}</b></div>
+      <div><span>{t('上架时间')}</span><b>{formatDateTime(item.addTime) || '-'}</b></div>
+      {skuList.length ? <div><span>{t('规格')}</span><b>{skuList.map((row: any) => `${row.name || ''}：${row.value || ''}`).join(' / ')}</b></div> : null}
       {detail.attrList?.normal?.length ? detail.attrList.normal.map((attr: any) => (
         <div key={attr.attrName}><span>{attr.attrName}</span><b>{Array.isArray(attr.attrList) ? attr.attrList.map((v: any) => v.attrValue).filter(Boolean).join(' / ') : '-'}</b></div>
       )) : null}
@@ -962,7 +1046,7 @@ export default function ProductDetailClient({
     <div className="pds-comments">
       <div className="pds-comments__stat">
         <div>
-          <div className="pds-comments__score">{commentAverage || 0}<span>分</span></div>
+          <div className="pds-comments__score">{commentAverage || 0}<span>{t('分')}</span></div>
           <div className="pds-comments__total">共 {commentTotal} 条评价</div>
         </div>
         <div className="pds-comments__bars">
@@ -1003,7 +1087,7 @@ export default function ProductDetailClient({
             );
           })}
           {comments.length < commentTotal ? (
-            <div className="pds-more"><Button loading={commentLoading} onClick={() => void loadMoreComments()}>加载更多评价</Button></div>
+            <div className="pds-more"><Button loading={commentLoading} onClick={() => void loadMoreComments()}>{t('加载更多评价')}</Button></div>
           ) : null}
         </>
       ) : (
@@ -1028,7 +1112,7 @@ export default function ProductDetailClient({
             </div>
           ))}
           {consults.length < consultTotal ? (
-            <div className="pds-more"><Button loading={consultLoading} onClick={() => void loadMoreConsults()}>加载更多咨询</Button></div>
+            <div className="pds-more"><Button loading={consultLoading} onClick={() => void loadMoreConsults()}>{t('加载更多咨询')}</Button></div>
           ) : null}
         </>
       ) : (
@@ -1042,10 +1126,10 @@ export default function ProductDetailClient({
     <div className="pds-tabs">
       <div className="pds-tabs__nav">
         {([
-          { key: 'detail', label: '商品详情' },
-          { key: 'params', label: '规格参数' },
-          { key: 'comment', label: `商品评价(${commentTotal})` },
-          { key: 'consult', label: `商品咨询(${consultTotal})` },
+          { key: 'detail', label: t('商品详情') },
+          { key: 'params', label: t('规格参数') },
+          { key: 'comment', label: t('商品评价({n})', { n: commentTotal }) },
+          { key: 'consult', label: t('商品咨询({n})', { n: consultTotal }) },
         ] as const).map((entry) => (
           <button
             key={entry.key}
@@ -1053,40 +1137,41 @@ export default function ProductDetailClient({
             className={tab === entry.key ? 'is-active' : ''}
             onClick={() => setTab(entry.key)}
           >
-            {entry.label}
+            {t(entry.label)}
           </button>
         ))}
       </div>
       <div className="pds-tabs__body">
         {tab === 'detail' ? (
-          <Card className="pds-card" title="商品详情">
+          <Card className="pds-card" title={t('商品详情')}>
             {descContent}
-            <div className="pds-back"><Link href="/">返回首页</Link></div>
+            <div className="pds-back"><Link href="/">{t('返回首页')}</Link></div>
           </Card>
         ) : tab === 'params' ? (
-          <Card className="pds-card" title="规格参数">{paramsContent}</Card>
+          <Card className="pds-card" title={t('规格参数')}>{paramsContent}</Card>
         ) : tab === 'comment' ? (
-          <Card className="pds-card" title="商品评价">{commentContent}</Card>
+          <Card className="pds-card" title={t('商品评价')}>{commentContent}</Card>
         ) : (
-          <Card className="pds-card" title="商品咨询">{consultContent}</Card>
+          <Card className="pds-card" title={t('商品咨询')}>{consultContent}</Card>
         )}
       </div>
     </div>
   );
 
   /** 跨境版：5 个顺序铺开的锚点区块（源码 goods_desc × 5 + tab-main 吸顶） */
+  // 旧版 menuList 联动：评价关闭隐藏「评价」，afterSalesFlag=false 隐藏「售后」（D1146）
   const sections: DetailSection[] = [
     { key: 'detail', label: '商品详情', content: <>{descContent}{paramsContent}</> },
-    { key: 'comment', label: '用户评价', content: commentContent },
+    ...(commentEnabled === 1 ? [{ key: 'comment', label: '用户评价', content: commentContent }] : []),
     { key: 'consult', label: '商品咨询', content: consultContent },
-    { key: 'service', label: '售后服务', content: services },
+    ...(afterSalesFlag ? [{ key: 'service', label: '售后服务', content: services }] : []),
     { key: 'article', label: '相关文章', content: (
       <div className="pds-articles">
-        {recommend.length ? recommend.slice(0, 4).map((row, index) => (
-          <Link key={index} href={`/product/${pickNumber(row, ['productId', 'product_id'], 0)}`}>
-            {pickString(row, ['productName', 'product_name'])}
+        {relateArticles.length ? relateArticles.map((row, index) => (
+          <Link key={pickNumber(row, ['articleId', 'id'], index)} href={`/article/issue/info?articleId=${pickNumber(row, ['articleId', 'id'], 0)}`}>
+            {pickString(row, ['title', 'articleTitle'])}
           </Link>
-        )) : <p className="pds-empty">暂无相关文章</p>}
+        )) : <p className="pds-empty">{t('暂无相关文章')}</p>}
       </div>
     ) },
   ];
@@ -1095,22 +1180,22 @@ export default function ProductDetailClient({
   const sideRail = (
     <div className="pds-rail">
       <div className="pds-rail__card">
-        <h3>同店推荐</h3>
+        <h3>{t('同店推荐')}</h3>
         {recommend.length ? recommend.slice(0, 5).map((row, index) => (
           <Link className="pds-rail__item" key={index} href={`/product/${pickNumber(row, ['productId', 'product_id'], 0)}`}>
             <img src={pickString(row, ['picThumb', 'pic_thumb', 'picUrl', 'pic_url'])} alt="" />
             <span>{pickString(row, ['productName', 'product_name'])}</span>
             <b>¥ {yuan(pick(row, ['productPrice', 'product_price'], 0))}</b>
           </Link>
-        )) : <p className="pds-empty">暂无推荐</p>}
+        )) : <p className="pds-empty">{t('暂无推荐')}</p>}
       </div>
       <div className="pds-rail__card">
-        <h3>服务保障</h3>
+        <h3>{t('服务保障')}</h3>
         <ul>
-          <li>正品保障 · 官方渠道</li>
-          <li>7 天无理由退换</li>
-          <li>24 小时极速发货</li>
-          <li>专属客服在线咨询</li>
+          <li>{t('正品保障 · 官方渠道')}</li>
+          <li>{t('7 天无理由退换')}</li>
+          <li>{t('24 小时极速发货')}</li>
+          <li>{t('专属客服在线咨询')}</li>
         </ul>
       </div>
     </div>
@@ -1139,12 +1224,8 @@ export default function ProductDetailClient({
   const buybar = (
     <div className="pds-buybar">
       <div className="pds-buybar__inner">
-        <Button size="large" theme="solid" type="primary" loading={adding} disabled={outOfStock || skuDisabled || requireSku} onClick={() => void add()}>
-          加入购物车
-        </Button>
-        <Button size="large" theme="light" type="primary" disabled={outOfStock || skuDisabled || requireSku} onClick={() => void add('buy')}>
-          立即购买
-        </Button>
+        <Button size="large" theme="solid" type="primary" loading={adding} disabled={outOfStock || skuDisabled || requireSku} onClick={() => void add()}>{t('加入购物车')}</Button>
+        <Button size="large" theme="light" type="primary" disabled={outOfStock || skuDisabled || requireSku} onClick={() => void add('buy')}>{t('立即购买')}</Button>
         <Button size="large" loading={collecting} onClick={() => void collect()}>
           {collected ? '已收藏' : '收藏'}
         </Button>
@@ -1154,7 +1235,7 @@ export default function ProductDetailClient({
 
   /** 源码 ShareModal.vue */
   const shareModal = (
-    <Modal title="分享商品" visible={shareOpen} onCancel={() => setShareOpen(false)} footer={null} width={420}>
+    <Modal title={t('分享商品')} visible={shareOpen} onCancel={() => setShareOpen(false)} footer={null} width={420}>
       <div className="pds-share-modal">
         <textarea
           readOnly
@@ -1162,24 +1243,20 @@ export default function ProductDetailClient({
         />
         <div className="pds-share-modal__row">
           <input readOnly value={shareUrl} />
-          <Button theme="solid" type="primary" onClick={() => void copyShare()}>复制链接</Button>
+          <Button theme="solid" type="primary" onClick={() => void copyShare()}>{t('复制链接')}</Button>
         </div>
-        {qrData ? <img className="pds-share-modal__qr" src={qrData} alt="商品二维码" /> : null}
+        {qrData ? <img className="pds-share-modal__qr" src={qrData} alt={t('商品二维码')} /> : null}
         <div className="pds-share-modal__links">
           <a
             href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(`${item.productName || ''} ¥${yuan(price)}`)}`}
             target="_blank"
             rel="noreferrer"
-          >
-            分享到微博
-          </a>
+          >{t('分享到微博')}</a>
           <a
             href={`https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(item.productName || '')}`}
             target="_blank"
             rel="noreferrer"
-          >
-            分享到 QQ 空间
-          </a>
+          >{t('分享到 QQ 空间')}</a>
         </div>
       </div>
     </Modal>

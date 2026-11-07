@@ -48,7 +48,8 @@ const nextConfig = {
       { source: '/member/Register', destination: '/register' },
       { source: '/member/BindMobilePhone', destination: '/member/security' },
       { source: '/article/issue/Index', destination: '/article/issue' },
-      { source: '/shop/search/:id', destination: '/search' },
+      // 店内搜索：旧路径 /shop/search/{id} → /search 并限定 shopId（原请求 query 自动透传）
+      { source: '/shop/search/:id', destination: '/search?shopId=:id&tab=goods' },
       { source: '/category/:slug', destination: '/category' },
       { source: '/member/orderInfo', destination: '/member/order/list' },
       { source: '/member/comment/Info', destination: '/member/comment/info' },

@@ -4,6 +4,7 @@ import PcHeader from '@/components/PcHeader';
 import { DecorateRenderer } from '@/decorate/components/modules';
 import type { DecorateModule } from '@/decorate/types';
 
+import { useTranslation } from 'react-i18next';
 const IMG = 'https://nlatstore.cn-qingdao.oss.aliyuncs.com/img/gallery/202511/1763604611KwC30o8HhzqJ3jOLfI.jpeg';
 
 const MODULES: DecorateModule[] = [
@@ -161,11 +162,12 @@ const CONTRACT_MODULES: DecorateModule[] = [
 const ALL_MODULES = [...MODULES, ...CONTRACT_MODULES];
 
 export default function DecoratePreview() {
+    const { t } = useTranslation();
   return (
     <>
       <PcHeader />
       <main className="pc-container" style={{ padding: '16px 0 60px' }}>
-        <h1 className="pc-cart-title">装修模块视觉回归</h1>
+        <h1 className="pc-cart-title">{t('装修模块视觉回归')}</h1>
         <DecorateRenderer modules={ALL_MODULES} />
       </main>
     </>

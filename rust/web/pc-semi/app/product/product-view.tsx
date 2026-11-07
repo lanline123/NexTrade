@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import PcHeader from '@/components/PcHeaderWithData';
 import PcFooter from '@/components/PcFooter';
 import ProductDetailClient from '@/components/ProductDetailClient';
+import { ProductSkeleton } from '@/components/product/ProductLayouts';
+import VisitLogger from '@/components/VisitLogger';
 import { extractProductSnFromSlug, getPcHeader, getProductDetailStyle, loadProductBySlug, resolveUiStyle, type ProductUiStyle } from '@/lib/api';
 
 /**
@@ -80,9 +83,13 @@ export default async function ProductDetailView({
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+      {/* 商品曝光埋点（对齐旧版商品页 StatisticLog productId 上报） */}
+      <VisitLogger productId={item?.productId || item?.id || ''} />
       <PcHeader config={header as any} />
       <div className="pdp-page">
-        <ProductDetailClient detail={detail as any} uiStyle={uiStyle} />
+        <Suspense fallback={<ProductSkeleton uiStyle={uiStyle} />}>
+          <ProductDetailClient detail={detail as any} uiStyle={uiStyle} />
+        </Suspense>
       </div>
       <PcFooter />
     </>

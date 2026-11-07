@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Camera from '@icon-park/react/es/icons/Camera';
 
+import { useTranslation } from 'react-i18next';
 interface Capabilities {
   enabled?: boolean;
   pcEnabled?: boolean;
@@ -52,6 +53,7 @@ function isSupportedFile(file: File, formats: string[]): boolean {
 }
 
 export default function PcImageSearchEntry({ shopId }: { shopId?: number | string }) {
+    const { t } = useTranslation();
   const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
   const [open, setOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -117,7 +119,7 @@ export default function PcImageSearchEntry({ shopId }: { shopId?: number | strin
       }
       const next = files[0];
       if (!isSupportedFile(next, formats)) {
-        setErrorMessage(`图片格式不支持，请使用 ${formats.join(' / ')} 格式`);
+        setErrorMessage(t('图片格式不支持，请使用 {f} 格式', { f: formats.join(' / ') }));
         return;
       }
       if (next.size === 0) {
@@ -178,9 +180,9 @@ export default function PcImageSearchEntry({ shopId }: { shopId?: number | strin
       <button
         type="button"
         className="image-search-entry__btn"
-        aria-label="以图搜图"
+        aria-label={t('以图搜图')}
         aria-expanded={open}
-        title="上传和粘贴图片搜同款"
+        title={t('上传和粘贴图片搜同款')}
         onClick={(event) => {
           event.stopPropagation();
           setOpen((value) => !value);
@@ -195,12 +197,12 @@ export default function PcImageSearchEntry({ shopId }: { shopId?: number | strin
           className="image-search-popper"
           onPaste={onPaste}
           role="dialog"
-          aria-label="上传图片搜索"
+          aria-label={t('上传图片搜索')}
         >
           <div className="image-search-panel" tabIndex={-1}>
             <div className="image-search-panel__header">
-              <span className="image-search-panel__title">上传图片搜索</span>
-              <button type="button" className="image-search-panel__close" aria-label="关闭" onClick={() => setOpen(false)}>
+              <span className="image-search-panel__title">{t('上传图片搜索')}</span>
+              <button type="button" className="image-search-panel__close" aria-label={t('关闭')} onClick={() => setOpen(false)}>
                 ×
               </button>
             </div>
@@ -224,7 +226,7 @@ export default function PcImageSearchEntry({ shopId }: { shopId?: number | strin
                   onDrop={onDrop}
                 >
                   <Camera className="image-search-panel__drop-icon" size={32} />
-                  <p className="image-search-panel__drop-text">粘贴图片到此处</p>
+                  <p className="image-search-panel__drop-text">{t('粘贴图片到此处')}</p>
                 </div>
                 {errorMessage ? (
                   <p className="image-search-panel__error" role="alert">
@@ -232,16 +234,14 @@ export default function PcImageSearchEntry({ shopId }: { shopId?: number | strin
                   </p>
                 ) : null}
                 <div className="image-search-panel__actions">
-                  <button type="button" className="image-search-panel__btn image-search-panel__btn--primary" onClick={() => inputRef.current?.click()}>
-                    上传图片
-                  </button>
+                  <button type="button" className="image-search-panel__btn image-search-panel__btn--primary" onClick={() => inputRef.current?.click()}>{t('上传图片')}</button>
                 </div>
               </>
             ) : (
               <>
                 <div className="image-search-panel__preview">
                   {previewUrl ? (
-                    <img className="image-search-panel__image" src={previewUrl} alt="待搜索的图片" />
+                    <img className="image-search-panel__image" src={previewUrl} alt={t('待搜索的图片')} />
                   ) : (
                     <div className="image-search-panel__file">
                       <Camera className="image-search-panel__drop-icon" size={32} />
@@ -255,9 +255,7 @@ export default function PcImageSearchEntry({ shopId }: { shopId?: number | strin
                   </p>
                 ) : null}
                 <div className="image-search-panel__actions">
-                  <button type="button" className="image-search-panel__btn image-search-panel__btn--primary" onClick={submit}>
-                    搜索
-                  </button>
+                  <button type="button" className="image-search-panel__btn image-search-panel__btn--primary" onClick={submit}>{t('搜索')}</button>
                 </div>
               </>
             )}

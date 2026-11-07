@@ -28,6 +28,7 @@ import { Toast } from '@douyinfe/semi-ui';
 import Add from '@icon-park/react/es/icons/Add';
 import { apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 export interface ProductCardItem {
   productId?: number | string;
   productName?: string;
@@ -109,12 +110,13 @@ export default function ProductCard({
   salesMode = 'sales',
   showShopTag = false,
 }: ProductCardProps) {
+    const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
   const soldOut = isSoldOut(product);
   const href = productLink(product);
   const image = product.picThumb || product.picUrl || '';
   const price = splitPrice(product.productPrice ?? product.price);
-  const shopTitle = product.shop?.shopTitle || '官方自营';
+  const shopTitle = product.shop?.shopTitle || t('官方自营');
 
   async function addToCart(event: React.MouseEvent) {
     event.preventDefault();
@@ -133,7 +135,7 @@ export default function ProductCard({
   }
 
   const addButton = (
-    <div className={`view_detail${soldOut ? ' disabled' : ''}`} aria-label="加入购物车">
+    <div className={`view_detail${soldOut ? ' disabled' : ''}`} aria-label={t('加入购物车')}>
       <Add size={26} />
     </div>
   );
@@ -158,7 +160,7 @@ export default function ProductCard({
           <button
             type="button"
             className="more"
-            aria-label="删除"
+            aria-label={t('删除')}
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -172,7 +174,7 @@ export default function ProductCard({
 
       <div className="center-wrap">
         <div className="pro_name">
-          {isPresale(product) ? <span className="presale-text">预售</span> : null}
+          {isPresale(product) ? <span className="presale-text">{t('预售')}</span> : null}
           {product.productName || ''}
         </div>
 
@@ -181,10 +183,10 @@ export default function ProductCard({
         <div className="desc-wrap">
           <div className="virtual-sales">
             {salesMode === 'stock'
-              ? `库存 ${Number(product.productStock ?? 0)}`
+              ? t('库存 {n}', { n: Number(product.productStock ?? 0) })
               : soldOut
-                ? '已售罄'
-                : `已售 ${Number(product.virtualSales ?? 0)}`}
+                ? t('已售罄')
+                : t('已售 {n}', { n: Number(product.virtualSales ?? 0) })}
           </div>
         </div>
 
@@ -211,7 +213,7 @@ export default function ProductCard({
         </div>
 
         <div className="other-wrap">
-          {product.shop?.shopTitle || '官方自营'}
+          {product.shop?.shopTitle || t('官方自营')}
         </div>
       </div>
     </div>

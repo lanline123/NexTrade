@@ -7,6 +7,8 @@ import ProductCard, { type ProductCardItem } from '@/components/product/ProductC
 import { useProductColumns } from '@/components/product/use-product-columns';
 import '@/components/product/product-card.scss';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 /**
  * 购物车 —— 结构沿用 java-b2b2c-overseas-v5.8.61/view/pc/pages/cart/index.vue，
  *            视觉层为 Semi Design 现代主题。
@@ -202,7 +204,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const text = await response.text();
   const json = text ? JSON.parse(text) : {};
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || json.message || `请求失败（${response.status}）`);
+    throw new Error(json.msg || json.message || (i18n.t('请求失败（{code}）', { code: response.status }) as string));
   }
   return (json.data ?? json) as T;
 }
@@ -274,6 +276,7 @@ function CartNum({
   onChange: (next: number) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState(String(value));
   const focused = useRef(false);
 
@@ -290,7 +293,7 @@ function CartNum({
     if (type === 'add') {
       if (limitNumber && value >= limitNumber) {
         onChange(limitNumber);
-        Toast.error({ content: `限购${limitNumber}件，已达限购数` });
+        Toast.error({ content: t('限购{n}件，已达限购数', { n: limitNumber }) });
         return;
       }
       if (max && value >= max) {
@@ -353,6 +356,7 @@ function CartNum({
 }
 
 export default function CartClient() {
+    const { t } = useTranslation();
   const [groups, setGroups] = useState<CartGroup[]>([]);
   const [total, setTotal] = useState<Total>({});
   const [loading, setLoading] = useState(true);
@@ -380,6 +384,10 @@ export default function CartClient() {
   const [settleExpanded, setSettleExpanded] = useState(false);
   /** 原版 isFixed（源码中恒为 false，保留位） */
   const [isFixed] = useState(false);
+  /** 旧版 commonStore.closeOrder：商城关闭下单守卫 */
+  const [closeOrder, setCloseOrder] = useState(0);
+  /** 旧版 useProductStyle：商品样式边框（borderImage 叠加图） */
+  const [styleMap, setStyleMap] = useState<Record<number, { borderImage?: string }>>({});
 
   const load = async () => {
     setLoading(true);
@@ -389,6 +397,28 @@ export default function CartClient() {
       setGroups(normalized.cartList);
       setTotal(normalized.total);
       setNeedLogin(false);
+      // 旧版 _getCartCount：购物车变更后同步头部角标
+      window.dispatchEvent(new Event('pc-cart-change'));
+      // 旧版 useProductStyle(cartProducts)：按购物车商品批量取生效样式（borderImage 叠加）
+      const productIds = Array.from(
+        new Set(
+          (normalized.cartList || [])
+            .flatMap((group: any) => (group?.productList || []) as Array<{ productId?: number; product_id?: number }>)
+            .map((product) => Number(product.productId || product.product_id))
+            .filter((id) => Number.isFinite(id) && id > 0),
+        ),
+      );
+      if (productIds.length) {
+        request<Record<string, { borderImage?: string }>>(`product/productStyle/batchActiveStyle?productIds=${productIds.join(',')}`)
+          .then((styles) => {
+            const map: Record<number, { borderImage?: string }> = {};
+            Object.entries(styles || {}).forEach(([id, style]) => {
+              map[Number(id)] = style || {};
+            });
+            setStyleMap(map);
+          })
+          .catch(() => undefined);
+      }
       return normalized.cartList;
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
@@ -398,6 +428,14 @@ export default function CartClient() {
     } finally {
       setLoading(false);
     }
+  };
+
+  /** 原版 useProductStyle(cartProducts)：按购物车商品批量取生效样式（borderImage 叠加） */
+  const styleBorder = (productId?: number | null) => {
+    const border = productId ? styleMap[Number(productId)]?.borderImage : '';
+    if (!border) return null;
+    // 旧版 .product-style-border：叠加在商品图上的边框图
+    return <img className="product-style-border" src={border} alt="" />;
   };
 
   /** 原版 ProdSwiper：推荐 ID 只取一次，商品按页取 */
@@ -469,6 +507,10 @@ export default function CartClient() {
       return;
     }
     void load();
+    // 旧版 commonStore.closeOrder：商城关闭下单守卫
+    request<Record<string, any>>('common/config/base')
+      .then((base) => setCloseOrder(Number(base?.closeOrder ?? 0)))
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -664,6 +706,11 @@ export default function CartClient() {
 
   const checkout = async () => {
     if (!checkedItems.length || checkingOut) return;
+    // 旧版 toCheck 守卫（index.vue:848）：商城已关闭下单时阻止跳转
+    if (closeOrder === 1) {
+      Toast.error({ content: '商城已关闭下单，请联系商家' });
+      return;
+    }
     setCheckingOut(true);
     try {
       const ids = await refreshSaleBeforeCheckout();
@@ -697,13 +744,11 @@ export default function CartClient() {
             <div className="no_goods">
               <div className="flex">
                 <img className="icon" src="/assets/images/common/empty-box.svg" alt="" width={50} height={50} />
-                <div className="strong">还没有商品？</div>
+                <div className="strong">{t('还没有商品？')}</div>
               </div>
               <div className="left main">
                 <Link href="/">
-                  <button type="button" className="go_buy" title="马上挑选商品">
-                    去购物
-                  </button>
+                  <button type="button" className="go_buy" title={t('马上挑选商品')}>{t('去购物')}</button>
                 </Link>
               </div>
             </div>
@@ -712,9 +757,7 @@ export default function CartClient() {
           <div className="cart-left-col">
             {/* 列表头部：标题 + 件数 + 全选 + 批量操作 */}
             <div className="cart-head">
-              <div className="cartHeadTitle">
-                购物车
-                <span className="cartHeadTitle-count">共 {total.totalCount ?? 0} 件商品</span>
+              <div className="cartHeadTitle">{t('购物车')}<span className="cartHeadTitle-count">共 {total.totalCount ?? 0} 件商品</span>
               </div>
               <div className="product-list-cart flex">
                 <div className="item col-1 center">
@@ -724,14 +767,10 @@ export default function CartClient() {
                     onChange={(event) => void toggleAll(Boolean(event.target.checked))}
                   />
                 </div>
-                <div className="item allItem">全选</div>
+                <div className="item allItem">{t('全选')}</div>
                 <div className="cart-batch-actions flex align-center">
-                  <div className="batch-btn" onClick={() => void collectChecked()}>
-                    移入收藏
-                  </div>
-                  <div className="batch-btn" onClick={() => void removeChecked()}>
-                    删除
-                  </div>
+                  <div className="batch-btn" onClick={() => void collectChecked()}>{t('移入收藏')}</div>
+                  <div className="batch-btn" onClick={() => void removeChecked()}>{t('删除')}</div>
                 </div>
               </div>
             </div>
@@ -752,7 +791,7 @@ export default function CartClient() {
                     </div>
                     <div className="item flex align-center">
                       <div className="tit">
-                        {Number(group.shopId ?? 0) === 0 ? '官方自营' : group.shopTitle || ''}
+                        {Number(group.shopId ?? 0) === 0 ? t('官方自营') : group.shopTitle || ''}
                       </div>
                     </div>
                   </div>
@@ -784,15 +823,17 @@ export default function CartClient() {
                                 {unavailable ? (
                                   <div>
                                     <img src={product.picThumb || ''} alt={product.productName || ''} />
+                                    {styleBorder(product.productId)}
                                   </div>
                                 ) : (
                                   <Link href={productLink(product)} target="_blank">
                                     <img src={product.picThumb || ''} alt={product.productName || ''} />
+                                    {styleBorder(product.productId)}
                                   </Link>
                                 )}
                                 {unavailable || soldOut ? (
                                   <div className="disabled">
-                                    {unavailable ? <div>已下架</div> : soldOut ? <div>已售罄</div> : null}
+                                    {unavailable ? <div>{t('已下架')}</div> : soldOut ? <div>{t('已售罄')}</div> : null}
                                   </div>
                                 ) : null}
                               </div>
@@ -843,8 +884,7 @@ export default function CartClient() {
                                           </div>
                                         ) : (
                                           <div className="promotion">
-                                            <div className="ticket-type">
-                                              券<span className="ticket-line" />
+                                            <div className="ticket-type">{t('券')}<span className="ticket-line" />
                                             </div>
                                             <div className="ticket-content">{activity.text}</div>
                                           </div>
@@ -866,8 +906,8 @@ export default function CartClient() {
                                         onRemove={() => remove(product.cartId)}
                                       />
                                     ) : null}
-                                    {skuDisabled ? <span className="cart-invalid-text">请重新选择规格</span> : null}
-                                    {!skuDisabled && offShelf ? <span className="cart-invalid-text">商品已下架</span> : null}
+                                    {skuDisabled ? <span className="cart-invalid-text">{t('请重新选择规格')}</span> : null}
+                                    {!skuDisabled && offShelf ? <span className="cart-invalid-text">{t('商品已下架')}</span> : null}
                                   </div>
                                 </div>
                               </div>
@@ -886,7 +926,7 @@ export default function CartClient() {
                                   </div>
                                 </div>
                               ) : (
-                                <span className="cart-invalid-text">暂不支持购买</span>
+                                <span className="cart-invalid-text">{t('暂不支持购买')}</span>
                               )}
                             </div>
                           </div>
@@ -899,7 +939,7 @@ export default function CartClient() {
                   {/* 原版 gift-box：店铺级赠品 */}
                   {group.gift && group.gift.length > 0 ? (
                     <div className="gift-box">
-                      <div className="gift-title">赠品</div>
+                      <div className="gift-title">{t('赠品')}</div>
                       <div className="gift-content">
                         {group.gift.map((gift) => (
                           <Link
@@ -946,14 +986,14 @@ export default function CartClient() {
                   />
                 </div>
                 <div className="pay_txt_row flex">
-                  <span className="all">全选</span>
+                  <span className="all">{t('全选')}</span>
                   <div className="flex total-num">
-                    <span>共</span>
+                    <span>{t('共')}</span>
                     <span className="font-color font-num">{total.totalCount ?? 0}</span>
-                    <span>件</span>
+                    <span>{t('件')}</span>
                   </div>
                   <div>
-                    <a onClick={() => void clearCart()}>清空购物车</a>
+                    <a onClick={() => void clearCart()}>{t('清空购物车')}</a>
                   </div>
                 </div>
               </div>
@@ -970,8 +1010,8 @@ export default function CartClient() {
                   {/* 1. 标题 */}
                   <div className="settle-header-container">
                     <div className="settle-head flex justify-between align-center">
-                      <span className="settle-title">结算明细</span>
-                      <span className="settle-sub">实际优惠金额以下单页为准</span>
+                      <span className="settle-title">{t('结算明细')}</span>
+                      <span className="settle-sub">{t('实际优惠金额以下单页为准')}</span>
                     </div>
                   </div>
 
@@ -982,7 +1022,7 @@ export default function CartClient() {
                         <div className="no_goods">
                           <div className="flex">
                             <img className="icon" src="/assets/images/common/empty-box.svg" alt="" width={50} height={50} />
-                            <div className="strong">没有待结算的商品</div>
+                            <div className="strong">{t('没有待结算的商品')}</div>
                           </div>
                         </div>
                       </div>
@@ -994,9 +1034,7 @@ export default function CartClient() {
                               {checkedItems.map((item) => (
                                 <div className="settle-goods-item" key={item.cartId}>
                                   <div className="settle-goods-img-mask" />
-                                  <div className="settle-goods-uncheck" onClick={() => void toggleItemChecked(item.cartId)}>
-                                    取消选择
-                                  </div>
+                                  <div className="settle-goods-uncheck" onClick={() => void toggleItemChecked(item.cartId)}>{t('取消选择')}</div>
                                   <img src={item.picThumb || ''} alt={item.productName || ''} />
                                 </div>
                               ))}
@@ -1006,7 +1044,7 @@ export default function CartClient() {
                             </div>
                             {checkedItems.length > SETTLE_FOLD_LIMIT ? (
                               <div className="settle-goods-toggle" onClick={() => setShowAllGoods((value) => !value)}>
-                                <span>{showAllGoods ? '收起' : '显示全部商品'}</span>
+                                <span>{showAllGoods ? t('收起') : '显示全部商品'}</span>
                                 <span className={`arrow${showAllGoods ? ' up' : ''}`}>▾</span>
                               </div>
                             ) : null}
@@ -1015,7 +1053,7 @@ export default function CartClient() {
                           <div className="settle-price-wrapper">
                             <div className="settle-line-item">
                               <div className="settle-line">
-                                <span className="lbl strong">商品总价</span>
+                                <span className="lbl strong">{t('商品总价')}</span>
                                 <span className="val">
                                   <Price value={total.productAmount} />
                                 </span>
@@ -1028,7 +1066,7 @@ export default function CartClient() {
                           {Number(total.discountDiscountAmount || 0) > 0 ? (
                             <div className="settle-line-item">
                               <div className="settle-line">
-                                <span className="lbl">活动优惠</span>
+                                <span className="lbl">{t('活动优惠')}</span>
                                 <span className="val discount-val flex align-center">
                                   <span className="settle-symbol">-</span>
                                   <Price value={total.discountDiscountAmount} />
@@ -1039,7 +1077,7 @@ export default function CartClient() {
                           {Number(total.discountCouponAmount || 0) > 0 ? (
                             <div className="settle-line-item">
                               <div className="settle-line">
-                                <span className="lbl">优惠券</span>
+                                <span className="lbl">{t('优惠券')}</span>
                                 <span className="val discount-val flex align-center">
                                   <span className="settle-symbol">-</span>
                                   <Price value={total.discountCouponAmount} />
@@ -1050,7 +1088,7 @@ export default function CartClient() {
                           {Number(total.serviceFee || 0) > 0 ? (
                             <div className="settle-line-item">
                               <div className="settle-line">
-                                <span className="lbl">附加费用</span>
+                                <span className="lbl">{t('附加费用')}</span>
                                 <span className="val flex align-center">
                                   <span className="settle-symbol">+</span>
                                   <Price value={total.serviceFee} />
@@ -1062,12 +1100,12 @@ export default function CartClient() {
 
                         <div className="settle-summary-row flex justify-end align-center">
                           <div className="save-total">
-                            <span className="lbl">优惠共减</span>
+                            <span className="lbl">{t('优惠共减')}</span>
                             <Price value={total.discounts} />
                           </div>
                           <span className="divider-line" />
                           <div className="sub-total">
-                            <span className="lbl">合计</span>
+                            <span className="lbl">{t('合计')}</span>
                             <Price value={total.discountAfter ?? productAmount} />
                           </div>
                         </div>
@@ -1089,12 +1127,12 @@ export default function CartClient() {
 
                         {checkedCount > 0 ? (
                           <div className="settle-discount-toggle" onClick={() => setSettleExpanded((value) => !value)}>
-                            <span className="discount-lbl">优惠共减</span>
+                            <span className="discount-lbl">{t('优惠共减')}</span>
                             <span className="discount-val">
                               <Price value={total.discounts} />
                             </span>
                             <span className="toggle-link">
-                              <span>优惠明细</span>
+                              <span>{t('优惠明细')}</span>
                               <span className={`arrow${settleExpanded ? ' up' : ''}`}>▾</span>
                             </span>
                           </div>
@@ -1123,7 +1161,7 @@ export default function CartClient() {
       {/* 原版 ProdSwiper：精选好物（mod_you_like） */}
       {recommendDisplay.length || recommendLoading ? (
         <div className="mod_you_like">
-          <h3 className="com-pc-title">精选好物</h3>
+          <h3 className="com-pc-title">{t('精选好物')}</h3>
           <div
             className="you_like_list"
             ref={recommendGridRef}
@@ -1144,7 +1182,7 @@ export default function CartClient() {
               </div>
             ) : null}
             {recommendReachedEnd && !recommendLoading ? (
-              <div className="load-end-con">没有更多喽~</div>
+              <div className="load-end-con">{t('没有更多喽~')}</div>
             ) : null}
           </div>
         </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface CommentItem {
   productId: number;
   orderId: number;
@@ -22,6 +23,7 @@ interface CommentItem {
 }
 
 export default function CommentInfoClient({ orderId }: { orderId: number }) {
+    const { t } = useTranslation();
   const [items, setItems] = useState<CommentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<number | null>(null);
@@ -71,7 +73,7 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
       });
       const json = await response.json();
       if (json?.code !== undefined && json.code !== 0) {
-        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        Toast.error({ content: String(json?.msg || json?.message || t('上传失败')) });
         return;
       }
       const data = json?.data;
@@ -120,11 +122,11 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
           <div className="comment-item__head">
             <Link href={`/product/${item.productId}`}>
               <img src={item.picThumb || ''} alt={item.productName || ''} />
-              <span>{item.productName || '商品'}</span>
+              <span>{item.productName || t('商品')}</span>
             </Link>
           </div>
           <div className="comment-item__stars">
-            <span>评分</span>
+            <span>{t('评分')}</span>
             {[1, 2, 3, 4, 5].map((value) => (
               <button
                 key={value}
@@ -138,7 +140,7 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
           {/* 源码 comment/Info.vue：评价标签 + 晒单图片 */}
           {Array.isArray(item.allCommentTag) && item.allCommentTag.length ? (
             <div className="comment-item__tags">
-              <span>评价标签</span>
+              <span>{t('评价标签')}</span>
               {item.allCommentTag.map((tag) => {
                 const picked = (forms[index]?.tags || []).includes(tag);
                 return (
@@ -164,7 +166,7 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
             <div className="comment-item__pics">
               {(forms[index]?.pics || []).map((pic, picIndex) => (
                 <span className="comment-item__pic" key={picIndex}>
-                  <img src={String(pic.picThumb || pic.picUrl || '')} alt="晒单" />
+                  <img src={String(pic.picThumb || pic.picUrl || '')} alt={t('晒单')} />
                   <button
                     type="button"
                     onClick={() => {
@@ -175,9 +177,7 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
                 </span>
               ))}
               {(forms[index]?.pics || []).length < 9 ? (
-                <label className="comment-item__pic-pick">
-                  + 晒单
-                  <input
+                <label className="comment-item__pic-pick">{t('+ 晒单')}<input
                     type="file"
                     accept="image/jpeg,image/png"
                     hidden
@@ -196,18 +196,18 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
             value={forms[index]?.content || ''}
             disabled={Boolean(item.isCommentInfo)}
             onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], content: event.target.value } })}
-            placeholder="请填写购买心得（至少 10 个字）"
+            placeholder={t('请填写购买心得（至少 10 个字）')}
             rows={5}
           />
           {!item.isCommentInfo ? (
             <div className="comment-item__foot">
-              <label><input type="checkbox" checked={forms[index]?.anonymous || false} onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], anonymous: event.target.checked } })} /> 匿名评价</label>
-              <Button theme="solid" type="primary" loading={saving === index} onClick={() => void submit(item, index)}>提交评价</Button>
+              <label><input type="checkbox" checked={forms[index]?.anonymous || false} onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], anonymous: event.target.checked } })} />{t('匿名评价')}</label>
+              <Button theme="solid" type="primary" loading={saving === index} onClick={() => void submit(item, index)}>{t('提交评价')}</Button>
             </div>
-          ) : <div className="comment-item__done">已评价</div>}
+          ) : <div className="comment-item__done">{t('已评价')}</div>}
         </section>
-      )) : <div className="comment-empty">暂无可评价商品</div>}
-      <div className="comment-info-back"><Link href="/member/comment">返回评价中心</Link></div>
+      )) : <div className="comment-empty">{t('暂无可评价商品')}</div>}
+      <div className="comment-info-back"><Link href="/member/comment">{t('返回评价中心')}</Link></div>
     </Card>
   );
 }

@@ -29,6 +29,7 @@ import Delete from '@icon-park/react/es/icons/Delete';
 import Plus from '@icon-park/react/es/icons/Plus';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface Address {
   addressId: number;
   consignee?: string;
@@ -66,6 +67,7 @@ const EMPTY_FORM = {
 const PAGE_SIZE = 10;
 
 export default function AddressClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<Address[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -245,10 +247,10 @@ export default function AddressClient() {
   if (needLogin) {
     return (
       <div className="member-address__login-state">
-        <h2>登录后管理收货地址</h2>
-        <p>请先登录账号再添加或修改地址。</p>
+        <h2>{t('登录后管理收货地址')}</h2>
+        <p>{t('请先登录账号再添加或修改地址。')}</p>
         <Link href="/login?redirect=/member/address">
-          <Button theme="solid" type="primary" size="large">去登录</Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </div>
     );
@@ -257,14 +259,12 @@ export default function AddressClient() {
   return (
     <div className="member-address">
       <div className="member-address__head">
-        <span className="member-address__title">地址</span>
-        <Button className="member-address__add" icon={<Plus size={14} />} onClick={openCreate}>
-          添加新地址
-        </Button>
+        <span className="member-address__title">{t('地址')}</span>
+        <Button className="member-address__add" icon={<Plus size={14} />} onClick={openCreate}>{t('添加新地址')}</Button>
       </div>
 
       {loading ? (
-        <div className="member-address__loading">加载中...</div>
+        <div className="member-address__loading">{t('加载中...')}</div>
       ) : rows.length ? (
         <>
           <ul className="member-address__list">
@@ -279,7 +279,7 @@ export default function AddressClient() {
                         {address.mobileAreaCode ? `+${address.mobileAreaCode} ` : ''}
                         {address.mobile || '-'}
                       </span>
-                      {Number(address.isInvalid) === 1 ? <span className="member-address__invalid">无效地址</span> : null}
+                      {Number(address.isInvalid) === 1 ? <span className="member-address__invalid">{t('无效地址')}</span> : null}
                     </div>
                   </div>
                   <div className="member-address__region">{regionText(address) || '-'}</div>
@@ -297,13 +297,13 @@ export default function AddressClient() {
                       }}
                     >
                       <span className="member-address__default-box" aria-hidden="true" />
-                      <span>默认地址</span>
+                      <span>{t('默认地址')}</span>
                     </button>
                     <div className="member-address__ops">
-                      <button type="button" className="member-address__op" title="编辑" aria-label="编辑" onClick={() => void openEdit(address)}>
+                      <button type="button" className="member-address__op" title={t('编辑')} aria-label={t('编辑')} onClick={() => void openEdit(address)}>
                         <Edit size={20} />
                       </button>
-                      <button type="button" className="member-address__op" title="删除" aria-label="删除" onClick={() => remove(address.addressId)}>
+                      <button type="button" className="member-address__op" title={t('删除')} aria-label={t('删除')} onClick={() => remove(address.addressId)}>
                         <Delete size={20} />
                       </button>
                     </div>
@@ -318,7 +318,7 @@ export default function AddressClient() {
                 type="button"
                 className="member-address__page-btn"
                 disabled={page <= 1}
-                aria-label="上一页"
+                aria-label={t('上一页')}
                 onClick={() => goPage(page - 1)}
               >
                 ‹
@@ -337,7 +337,7 @@ export default function AddressClient() {
                 type="button"
                 className="member-address__page-btn"
                 disabled={page >= pages}
-                aria-label="下一页"
+                aria-label={t('下一页')}
                 onClick={() => goPage(page + 1)}
               >
                 ›
@@ -348,72 +348,70 @@ export default function AddressClient() {
       ) : (
         <div className="member-address__empty">
           <img className="member-address__empty-img" src="/assets/images/empty-box.png" alt="" />
-          <div className="member-address__empty-text">暂无收货地址</div>
+          <div className="member-address__empty-text">{t('暂无收货地址')}</div>
         </div>
       )}
 
       <Modal
-        title={editingId ? '编辑收货地址' : '添加收货地址'}
+        title={editingId ? t('编辑收货地址') : '添加收货地址'}
         visible={open}
         onCancel={() => setOpen(false)}
         width={880}
         maskClosable
         footer={
           <div className="member-address__modal-footer">
-            <Button className="member-address__modal-ok" loading={saving} onClick={() => void save()}>
-              确认修改地址
-            </Button>
-            <Button className="member-address__modal-cancel" onClick={() => setOpen(false)}>取消</Button>
+            <Button className="member-address__modal-ok" loading={saving} onClick={() => void save()}>{t('确认修改地址')}</Button>
+            <Button className="member-address__modal-cancel" onClick={() => setOpen(false)}>{t('取消')}</Button>
           </div>
         }
       >
         <div className="member-address__form">
           <div className="member-address__field">
-            <label className="member-address__label">收货人：</label>
+            <label className="member-address__label">{t('收货人：')}</label>
             <Input
               className="member-address__input"
               value={form.consignee}
               onChange={(value) => setForm((current) => ({ ...current, consignee: value }))}
-              placeholder="请您填写收货人姓名"
+              placeholder={t('请您填写收货人姓名')}
               maxLength={20}
             />
           </div>
           <div className="member-address__field">
-            <label className="member-address__label">所在地区：</label>
+            <label className="member-address__label">{t('所在地区：')}</label>
             <div className="member-address__region-select">
-              <Select value={regionIds[0]} placeholder="省份" onChange={(value) => void onProvince(Number(value))} showClear={false}>
+              <Select value={regionIds[0]} placeholder={t('省份')} onChange={(value) => void onProvince(Number(value))} showClear={false}>
                 {provinces.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
               </Select>
-              <Select value={regionIds[1]} placeholder="城市" onChange={(value) => void onCity(Number(value))} showClear={false} disabled={!cities.length}>
+              <Select value={regionIds[1]} placeholder={t('城市')} onChange={(value) => void onCity(Number(value))} showClear={false} disabled={!cities.length}>
                 {cities.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
               </Select>
-              <Select value={regionIds[2]} placeholder="区县" onChange={(value) => onDistrict(Number(value))} showClear={false} disabled={!districts.length}>
+              <Select value={regionIds[2]} placeholder={t('区县')} onChange={(value) => onDistrict(Number(value))} showClear={false} disabled={!districts.length}>
                 {districts.map((item) => <Select.Option key={item.regionId} value={item.regionId}>{item.regionName}</Select.Option>)}
               </Select>
             </div>
           </div>
           <div className="member-address__field">
-            <label className="member-address__label">详细地址：</label>
+            <label className="member-address__label">{t('详细地址：')}</label>
             <Input
               className="member-address__input"
               value={form.address}
               onChange={(value) => setForm((current) => ({ ...current, address: value }))}
-              placeholder="请您填写详细收货地址"
+              placeholder={t('请您填写详细收货地址')}
               maxLength={100}
             />
           </div>
           <div className="member-address__field">
-            <label className="member-address__label">手机号码：</label>
+            <label className="member-address__label">{t('手机号码：')}</label>
             <Input
               className="member-address__input"
               value={form.mobile}
               onChange={(value) => setForm((current) => ({ ...current, mobile: value }))}
-              placeholder="请您填写收货人手机号码"
+              placeholder={t('请您填写收货人手机号码')}
               maxLength={20}
             />
           </div>
           <div className="member-address__field">
-            <label className="member-address__label">固定电话：</label>
+            <label className="member-address__label">{t('固定电话：')}</label>
             <Input
               className="member-address__input"
               value={form.telephone}
@@ -422,7 +420,7 @@ export default function AddressClient() {
             />
           </div>
           <div className="member-address__field">
-            <label className="member-address__label">邮箱地址：</label>
+            <label className="member-address__label">{t('邮箱地址：')}</label>
             <Input
               className="member-address__input"
               value={form.email}

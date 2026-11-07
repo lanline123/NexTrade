@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { Button, Card, Input, Modal, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 type PaymentMethod = string | { type?: string; name?: string; typeName?: string };
 
 interface PayPresaleInfo {
@@ -223,6 +224,7 @@ function normalizePaymentMethods(
 
 /** 渠道图标（inline SVG，替代源码 assets/images/extra/payment_method_*） */
 function ChannelIcon({ type }: { type: string }) {
+    const { t } = useTranslation();
   const key = type.toLowerCase();
   if (key.includes('wechat')) {
     return (
@@ -241,7 +243,7 @@ function ChannelIcon({ type }: { type: string }) {
     return (
       <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="#1677ff" />
-        <text x="16" y="23" textAnchor="middle" fontSize="18" fontWeight="700" fill="#fff">支</text>
+        <text x="16" y="23" textAnchor="middle" fontSize="18" fontWeight="700" fill="#fff">{t('支')}</text>
       </svg>
     );
   }
@@ -249,7 +251,7 @@ function ChannelIcon({ type }: { type: string }) {
     return (
       <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="#e1251b" />
-        <text x="16" y="23" textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff">云</text>
+        <text x="16" y="23" textAnchor="middle" fontSize="17" fontWeight="700" fill="#fff">{t('云')}</text>
       </svg>
     );
   }
@@ -287,6 +289,7 @@ function ChannelIcon({ type }: { type: string }) {
 }
 
 export default function PayClient({ orderId, defaultChannel }: { orderId: number; defaultChannel?: string }) {
+    const { t } = useTranslation();
   const [info, setInfo] = useState<PayInfo | null>(null);
   const [payType, setPayType] = useState('');
   const [loading, setLoading] = useState(true);
@@ -550,7 +553,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
         if (typeof codeUrl === 'string' && codeUrl) {
           const QRCode = (await import('qrcode')).default;
           setQr(await QRCode.toDataURL(codeUrl, { width: 260, margin: 1 }));
-          setQrTips(payTypeValue.toLowerCase().includes('alipay') ? '请使用支付宝扫码支付' : '请使用微信扫码支付');
+          setQrTips(payTypeValue.toLowerCase().includes('alipay') ? t('请使用支付宝扫码支付') : '请使用微信扫码支付');
           startPoll();
           return;
         }
@@ -674,7 +677,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       const json: any = await response.json().catch(() => ({}));
       const picUrl = json?.data?.picUrl || json?.data?.url;
       if (!response.ok || (json.code !== undefined && json.code !== 0) || !picUrl) {
-        throw new Error(json?.msg || json?.message || '图片上传失败');
+        throw new Error(json?.msg || json?.message || t('图片上传失败'));
       }
       setClaimVouchers((list) => {
         const next = list.length >= OFFLINE_MAX_FILES ? list : [...list, String(picUrl)];
@@ -713,7 +716,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
     }
   };
 
-  if (loading) return <Card className="cart-state">订单支付信息加载中...</Card>;
+  if (loading) return <Card className="cart-state">{t('订单支付信息加载中...')}</Card>;
 
   const order = info?.order || {};
   const offlineEntries = OFFLINE_TABS.filter((tab) => typeof (info?.offlinePaymentList || {})[tab.key] === 'string');
@@ -724,19 +727,19 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
   const methods = normalizePaymentMethods(info?.paymentList, appleSupported);
   const selectedMethod = methods.find((method) => method.type === payType);
   const claimStatus = Number(order.offlinePaymentClaimStatus);
-  const claimButtonText = claimStatus === 2 ? '修改申请' : claimStatus === 0 ? '认款详情' : '付款完成';
+  const claimButtonText = claimStatus === 2 ? t('修改申请') : claimStatus === 0 ? t('认款详情') : '付款完成';
   const isApplePay = payType.toLowerCase() === 'applepay';
 
   return (
     <div className="pc-pay">
       <Card className="pc-pay__card">
-        <div className="pc-pay__success">您的订单已成功提交，请付款！</div>
+        <div className="pc-pay__success">{t('您的订单已成功提交，请付款！')}</div>
         <div className="pc-pay__amount">
-          <span>需支付</span>
+          <span>{t('需支付')}</span>
           <b>¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
         </div>
         <div className="pc-pay__order">
-          <span>订单号</span>
+          <span>{t('订单号')}</span>
           <b>{order.orderSn || '-'}</b>
         </div>
 
@@ -763,7 +766,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
             ) : null}
             {claimStatus === 0 && claimDetail ? (
               <div className="pc-pay__claim-status">
-                <Typography.Text type="tertiary">认款状态：{claimDetail.statusName || '等待财务审核'}</Typography.Text>
+                <Typography.Text type="tertiary">认款状态：{claimDetail.statusName || t('等待财务审核')}</Typography.Text>
                 {claimDetail.transferTime ? <div>转账时间：{formatTransferTime(claimDetail.transferTime)}</div> : null}
                 {claimDetail.payerName ? <div>付款人：{claimDetail.payerName}</div> : null}
                 {claimDetail.bankSerialNo ? <div>转账流水号：{claimDetail.bankSerialNo}</div> : null}
@@ -775,15 +778,15 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
                 {claimButtonText}
               </Button>
             </div>
-            <p className="pc-pay__offline-tips">请按上方账户信息完成汇款，并提交付款凭证，财务核对后完成认款。</p>
+            <p className="pc-pay__offline-tips">{t('请按上方账户信息完成汇款，并提交付款凭证，财务核对后完成认款。')}</p>
           </div>
         ) : null}
 
         {onlineMode && methods.length ? (
           <div className="pc-pay__methods">
             <div className="pc-pay__methods-head">
-              <h3>平台支付</h3>
-              <p>支持所有银行卡或信用卡，更迅速、安全</p>
+              <h3>{t('平台支付')}</h3>
+              <p>{t('支持所有银行卡或信用卡，更迅速、安全')}</p>
             </div>
             <div className="pc-pay__method-grid">
               {methods.map((method) => (
@@ -803,7 +806,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
 
         {isApplePay ? (
           <div className="pc-pay__applepay-panel">
-            <div className="pc-pay__label">Apple Pay 支付参数</div>
+            <div className="pc-pay__label">{t('Apple Pay 支付参数')}</div>
             <div className="pc-pay__applepay-grid">
               <span>countryCode</span><b>CN</b>
               <span>currencyCode</span><b>CNY</b>
@@ -813,7 +816,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
             </div>
             {appleSupported ? (
               <Button theme="solid" type="primary" loading={applePaying} onClick={launchApplePay}>
-                {applePaying ? '支付中...' : '拉起 Apple Pay'}
+                {applePaying ? t('支付中...') : '拉起 Apple Pay'}
               </Button>
             ) : (
               <Typography.Text type="tertiary">当前环境不支持 Apple Pay，请在 Safari / Apple 设备中打开本页支付。</Typography.Text>
@@ -825,47 +828,43 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
           <div className="pc-pay__qr">
             <Typography.Text type="tertiary">{qrTips}</Typography.Text>
             <div className="pc-pay__qr-image">
-              <img src={qr} alt="支付二维码" width={260} height={260} />
+              <img src={qr} alt={t('支付二维码')} width={260} height={260} />
             </div>
-            <Button size="small" theme="borderless" onClick={stopPayAndReload}>
-              取消扫码
-            </Button>
+            <Button size="small" theme="borderless" onClick={stopPayAndReload}>{t('取消扫码')}</Button>
           </div>
         ) : null}
 
         <div className="pc-pay__actions">
           {offlineMode ? null : (
             <Button theme="solid" type="primary" size="large" loading={paying || applePaying} disabled={!payType || !!qr} onClick={pay}>
-              {selectedMethod ? `去付款（${selectedMethod.label}）` : '去付款'}
+              {selectedMethod ? t('去付款（{m}）', { m: selectedMethod.label }) : '去付款'}
             </Button>
           )}
           <Link href="/member/order/list">
-            <Button size="large">查看订单</Button>
+            <Button size="large">{t('查看订单')}</Button>
           </Link>
         </div>
       </Card>
 
       <Modal
         visible={claimOpen}
-        title="填写付款确认"
+        title={t('填写付款确认')}
         width={520}
         onCancel={() => setClaimOpen(false)}
         footer={
           <div className="pc-pay__claim-footer">
-            <Button onClick={() => setClaimOpen(false)}>取消</Button>
-            <Button theme="solid" type="primary" loading={claimSubmitting} onClick={submitOfflineClaim}>
-              确认
-            </Button>
+            <Button onClick={() => setClaimOpen(false)}>{t('取消')}</Button>
+            <Button theme="solid" type="primary" loading={claimSubmitting} onClick={submitOfflineClaim}>{t('确认')}</Button>
           </div>
         }
       >
         <div className="pc-pay__claim-form">
           <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">付款金额</span>
+            <span className="pc-pay__claim-label">{t('付款金额')}</span>
             <b>¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
           </div>
           <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">转账时间</span>
+            <span className="pc-pay__claim-label">{t('转账时间')}</span>
             <input
               className="pc-pay__claim-datetime"
               type="datetime-local"
@@ -875,19 +874,19 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
             />
           </div>
           <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">付款人姓名</span>
-            <Input value={claimPayerName} onChange={(value) => setClaimPayerName(String(value || ''))} placeholder="请输入" />
+            <span className="pc-pay__claim-label">{t('付款人姓名')}</span>
+            <Input value={claimPayerName} onChange={(value) => setClaimPayerName(String(value || ''))} placeholder={t('请输入')} />
           </div>
           <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">转账流水号</span>
-            <Input value={claimBankSerialNo} onChange={(value) => setClaimBankSerialNo(String(value || ''))} placeholder="请填写" />
+            <span className="pc-pay__claim-label">{t('转账流水号')}</span>
+            <Input value={claimBankSerialNo} onChange={(value) => setClaimBankSerialNo(String(value || ''))} placeholder={t('请填写')} />
           </div>
           <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">付款凭证</span>
+            <span className="pc-pay__claim-label">{t('付款凭证')}</span>
             <div className="pc-pay__claim-upload">
               {claimVouchers.map((url) => (
                 <div key={url} className="pc-pay__claim-thumb">
-                  <img src={url} alt="付款凭证" />
+                  <img src={url} alt={t('付款凭证')} />
                   <button
                     type="button"
                     onClick={() =>
@@ -904,7 +903,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
               ))}
               {claimVouchers.length < OFFLINE_MAX_FILES ? (
                 <button type="button" className="pc-pay__claim-add" onClick={() => fileInputRef.current?.click()}>
-                  {claimUploading ? '上传中...' : '+'}
+                  {claimUploading ? t('上传中...') : '+'}
                 </button>
               ) : null}
               <input
@@ -921,7 +920,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
                 }}
               />
             </div>
-            <div className="pc-pay__claim-tip">最多上传5张，单张不超过2M</div>
+            <div className="pc-pay__claim-tip">{t('最多上传5张，单张不超过2M')}</div>
           </div>
         </div>
       </Modal>

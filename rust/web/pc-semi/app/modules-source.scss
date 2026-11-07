@@ -471,7 +471,8 @@
     line-height: 1;
   }
 
-  /* 24px 实心购物车（与顶部条同源 mask 资源），随按钮文字色着色 */
+  /* 24px 图标（与顶部条同源 mask 资源），随按钮文字色着色。
+     1/3 用线框字形（is-outline），2/4 用实心字形，对应原版 iconfont 的 gouwuche/gouwuche1、jia/jia1 */
   &__ico {
     display: block;
     width: 24px;
@@ -487,6 +488,21 @@
     &--cart {
       mask-image: url('/assets/icons/cart.svg');
       -webkit-mask-image: url('/assets/icons/cart.svg');
+
+      &.is-outline {
+        mask-image: url('/assets/icons/cart-outline.svg');
+        -webkit-mask-image: url('/assets/icons/cart-outline.svg');
+      }
+    }
+
+    &--plus {
+      mask-image: url('/assets/icons/plus.svg');
+      -webkit-mask-image: url('/assets/icons/plus.svg');
+
+      &.is-outline {
+        mask-image: url('/assets/icons/plus-outline.svg');
+        -webkit-mask-image: url('/assets/icons/plus-outline.svg');
+      }
     }
   }
 }
@@ -1805,6 +1821,11 @@
     margin-top: 8px;
   }
 
+  /* 旧 ad-style__3：隐藏购买按钮（仅展示价格） */
+  &.ad-style__3 .buy-container {
+    display: none;
+  }
+
   .price-stack,
   .price-wrapper {
     display: flex;
@@ -1843,6 +1864,115 @@
   .groupon-item__name {
     padding: 0 4px;
   }
+
+  /* cardStyle=1：图下「拼团」倒计时条 + priceBox（旧 .g-item-warp .countdown / .priceBox） */
+  .g-item-warp {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .g-item-warp .pic {
+    width: 100%;
+  }
+
+  .g-item-warp .countdown {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, #f86e30, #e91817);
+    height: 34px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    font-size: 10px;
+    color: #ffffff;
+    font-family: Menlo;
+
+    .title {
+      flex: 0 0 auto;
+      font-weight: bold;
+      font-size: 16px;
+      color: #ffffff;
+    }
+
+    .countdown-time {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex: 1;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .countdown-time .text {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+      font-family: Menlo;
+    }
+  }
+
+  .goods-ad-item .priceBox {
+    width: 100%;
+    height: 35px;
+    background: #fff2f3;
+    border-radius: 3px;
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -23px;
+      top: -11px;
+      width: calc(100% + 46px);
+      height: 1px;
+    }
+
+    .priceBoxNum {
+      display: flex;
+      align-items: baseline;
+      flex: 1;
+      min-width: 0;
+
+      .minGrouponPrice {
+        color: var(--price);
+        font-weight: 500;
+        font-size: 22px;
+        padding-left: 9px;
+        line-height: 1;
+      }
+
+      .old {
+        margin-left: 7px;
+        display: flex;
+        align-items: baseline;
+        font-weight: 500;
+        font-size: 12px;
+        color: #9a9a9a;
+        text-decoration-line: line-through;
+      }
+    }
+
+    .text {
+      padding: 0 20px;
+      height: 30px;
+      background: #ee0a25;
+      border-radius: 3px;
+      font-weight: 600;
+      font-size: 20px;
+      color: #ffffff;
+      line-height: 30px;
+      margin-left: auto;
+      clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%);
+      text-align: center;
+    }
+  }
+
+  .groupon-item__name {
+    padding: 0 4px;
+  }
 }
 
 /* ===================== pc-image-nav ===================== */
@@ -1855,15 +1985,17 @@
 
   &__content {
     background-color: var(--dec-content-bg, #ffffff);
-    border-radius: var(--dec-item-radius, 0);
+    border-radius: var(--dec-box-radius, 0);
     overflow: hidden;
-    padding: 8px;
   }
 
   &__grid,
   &__swiper-page {
     display: grid;
-    gap: 8px;
+    grid-template-columns: repeat(var(--dec-row-num, 4), minmax(0, 1fr));
+    gap: var(--dec-item-gap, 8px);
+    padding: var(--dec-item-gap, 8px);
+    box-sizing: border-box;
   }
 
   &__item {
@@ -1874,90 +2006,135 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
     text-decoration: none;
     color: inherit;
+    gap: 8px;
   }
 
   &__icon {
-    width: 48px;
-    height: 48px;
+    width: 100%;
     display: flex;
-    align-items: center;
     justify-content: center;
-    border-radius: var(--dec-item-radius, 0);
-    overflow: hidden;
-    background: #f7f8fa;
   }
 
   &__image {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: auto;
+    display: block;
+    border-radius: var(--dec-item-radius, 0);
+    background: #f0f0f0;
   }
 
   &__text {
-    font-size: 13px;
+    font-size: 12px;
     color: #333;
+    line-height: 1.2;
     text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-all;
   }
 }
 
-/* ===================== pc-image-square-ad ===================== */
+/* ===================== pc-image-square-ad =====================
+   忠实移植 PcImageSquareAd.vue scoped 样式（复合布局 5/6/7 与栅格 1~4） */
 
 .image-list {
   width: 100%;
+  box-sizing: border-box;
+}
 
-  .image-square-layout {
-    display: flex;
-    gap: var(--img-gap, 0px);
+.image-list .image-ad-item {
+  min-width: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.image-list .image-ad-item .item-content {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  .item-img-a {
+    height: 100%;
+    width: 100%;
+    position: relative;
   }
 
-  .image-square-layout > .image-ad-item:first-child {
-    flex: 1;
+  img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
   }
+}
 
-  .grid-layout-2 {
-    flex: 1;
-    display: flex;
-    gap: var(--img-gap, 0px);
-  }
+/* picType 1~4：2/3/4 列与 2x2 栅格 */
+.image-square-layout-1 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--img-gap, 0);
+}
 
-  .image-square-layout-3,
-  .image-square-layout-4,
-  .image-square-layout-5 {
+.image-square-layout-2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--img-gap, 0);
+}
+
+.image-square-layout-3 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--img-gap, 0);
+}
+
+.image-square-layout-4 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: var(--img-gap, 0);
+}
+
+.image-square-layout-height1,
+.image-square-layout-height2 {
+  height: auto;
+  width: 100%;
+}
+
+/* picType 5：左大图 + 右侧上下两图 */
+.image-square-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--img-gap, 0);
+
+  & .grid-layout-2 {
     display: grid;
-    gap: var(--img-gap, 0px);
+    grid-template-rows: repeat(2, 1fr);
+    gap: var(--img-gap, 0);
   }
+}
 
-  .image-square-layout-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+/* picType 6：左大图 + 右侧上 1 图下 2 图（grid-layout-3 嵌套在 grid-layout-2 第二行） */
+.image-square-layout.image-square-layout3 .grid-layout-3 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--img-gap, 0);
+}
+
+/* picType 7：上大图 + 下两图 */
+.image-square-layout2 {
+  display: grid;
+  gap: var(--img-gap, 0);
+
+  & .grid-layout-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--img-gap, 0);
   }
+}
 
-  .image-square-layout-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .image-square-layout-5 {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  .image-ad-item {
-    min-width: 0;
-
-    .item-content {
-      display: block;
-
-      img {
-        width: 100%;
-        display: block;
-        object-fit: cover;
-      }
-    }
-  }
+/* 旧版 :deep(.base-class) 恒裁切，让「圆角」设置生效 */
+.module-image-square-ad .base-class {
+  overflow: hidden;
 }
 
 /* ===================== pc-image-hotarea ===================== */
@@ -1976,9 +2153,13 @@
 
     .image-hotarea-link {
       position: absolute;
-      box-sizing: border-box;
       cursor: pointer;
-      background: rgba(21, 91, 212, 0.06);
+      z-index: 10;
+      transition: opacity 0.3s;
+
+      &:hover {
+        opacity: 0.8;
+      }
 
       .area_box_con_text {
         display: none;
@@ -1987,7 +2168,10 @@
   }
 }
 
-/* ===================== title-ad / notice / divider / spacer ===================== */
+/* ===================== title-ad / notice / divider / spacer =====================
+   本段为 PcTitleAd.vue / PcNotice.vue / PcDivider.vue scoped 样式的忠实移植。
+   注意：globals.scss 旧曾重复定义同名规则且值不一致（依赖 @import 顺序产生覆盖），
+   现统一以本文件为准。 */
 
 .module-ad-empty.empty-title_ad {
   display: flex;
@@ -2008,94 +2192,176 @@
   }
 }
 
-.image-ad-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.title-ad-warp {
+  width: 100%;
   box-sizing: border-box;
+
+  .title-ad-item {
+    padding: 0;
+    min-height: 20px;
+
+    .item-content {
+      width: 100%;
+    }
+  }
+
+  .image-ad-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    position: relative;
+    box-sizing: border-box;
+
+    .image-ad-title-l {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      overflow: hidden;
+
+      .image-ad-title-h {
+        line-height: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #323233;
+        word-break: break-all;
+      }
+
+      .image-ad-title-d {
+        line-height: 18px;
+        padding-top: 8px;
+        color: #8c8c8c;
+        font-size: 12px;
+        word-break: break-all;
+      }
+    }
+
+    .image-ad-title-r .more-link {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+
+      .iconfont-pc {
+        font-size: 12px;
+      }
+    }
+  }
 }
 
-.image-ad-title-h {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 30px;
+/* 标题栏风格二：标题加粗、描述更突出（与后台预览 --style-2 保持一致） */
+.image-ad-title.ad-title_style__2 .image-ad-title-l .image-ad-title-h {
+  font-weight: 600;
 }
 
-.image-ad-title-d {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #888;
+.image-ad-title.ad-title_style__2 .image-ad-title-l .image-ad-title-d {
+  font-size: 16px;
+  font-weight: 600;
+  color: #11bb55;
+  padding-top: 0;
 }
 
-.image-ad-title-r .more-link {
-  display: inline-flex;
+.title-ad-warp.ad-title_align__2 .image-ad-title {
+  justify-content: center;
+}
+
+.title-ad-warp.ad-title_align__2 .image-ad-title .image-ad-title-l {
+  flex: none;
   align-items: center;
-  gap: 2px;
-  font-size: 13px;
-  color: #666;
-  text-decoration: none;
+  text-align: center;
+}
+
+.title-ad-warp.ad-title_align__2 .image-ad-title .image-ad-title-r {
+  position: absolute;
+  right: 0;
 }
 
 .notice-ad-warp {
+  width: 100%;
+  box-sizing: border-box;
+
+  .notice-con {
+    width: 100%;
+  }
+
   .item-notice-con {
+    background: #fff;
+    height: 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0 12px;
-    box-sizing: border-box;
-  }
+    padding: 5px 0;
+    color: #555555;
 
-  .item-notice-ico .item-img {
-    width: 18px;
-    height: 18px;
-    object-fit: contain;
-  }
+    .item-notice-ico {
+      margin-left: 10px;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
 
-  .item-notice-input {
-    font-size: 13px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+      .item-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .item-notice-list {
+      margin-left: 8px;
+      flex: 1;
+      overflow: hidden;
+
+      .item-notice-input {
+        // 全局 html 字号为 12px，此处显式对齐后台装修预览的 14px
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
   }
 }
 
 .white-line-warp {
+  width: 100%;
+  box-sizing: border-box;
+
   .white-line-con {
     display: flex;
     align-items: center;
-  }
 
-  .white-line-item {
-    width: 100%;
-
-    .item-line {
+    .white-line-item {
       width: 100%;
-      height: 1px;
-      background: #eee;
-    }
-  }
 
-  .line-style-2 .item-line {
-    border-top: 1px dashed #eee;
-    background: transparent;
+      .item-line {
+        height: 1px;
+      }
+    }
+
+    .line-style-1 .item-line {
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .line-style-2 .item-line {
+      border-bottom: 1px dashed #e5e5e5;
+    }
+
+    .line-style-3 .item-line {
+      border-bottom: 1px dotted #e5e5e5;
+    }
   }
 }
 
-/* ===================== banner2 / group-banner / category-nav3 ===================== */
+/* ===================== banner2 / group-banner =====================
+   忠实移植 PcBanner2.vue / PcGroupBanner.vue：
+   - banner2：背景色/圆角落在 __inner（外边距露容器底色，不被背景吞掉），图内底部白色分页点
+   - group-banner：背景色/圆角落在最外层，固定 slideHeight，无分页点（旧版仅 navigation） */
 
 .dec-banner2,
 .dec-group-banner {
   box-sizing: border-box;
   padding: var(--dec-box-padding-top, 0) var(--dec-box-padding, 0) var(--dec-box-padding-bottom, 0);
-  background-color: var(--dec-bg-color, transparent);
-  border-radius: var(--dec-box-radius, 0);
-  overflow: hidden;
-
-  &__inner {
-    padding: 0 var(--dec-inner-padding, 0);
-    overflow: hidden;
-  }
 
   &__track {
     display: flex;
@@ -2109,7 +2375,6 @@
 
   &__link {
     display: block;
-    border-radius: var(--dec-box-radius, 0);
     overflow: hidden;
   }
 
@@ -2118,74 +2383,146 @@
     display: block;
     object-fit: cover;
   }
+}
 
+.dec-banner2 {
+  &__inner {
+    position: relative;
+    padding: 0 var(--dec-inner-padding, 0);
+    overflow: hidden;
+    border-radius: var(--dec-box-radius, 8px);
+    background-color: var(--dec-bg-color, transparent);
+  }
+
+  &__item:hover {
+    filter: brightness(105%);
+  }
+
+  &__link {
+    width: 100%;
+    position: relative;
+    border-radius: var(--dec-box-radius, 8px);
+  }
+
+  &__image {
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+    background-color: #eeeeee;
+    transition: opacity 0.2s;
+  }
+
+  /* 旧版 swiper 分页：图内底部白色圆点（6x6，opacity .2，激活纯白） */
   &__dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
     display: flex;
     justify-content: center;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 4px;
 
     button {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       padding: 0;
       border: 0;
       border-radius: 50%;
-      background: #d9d9d9;
+      background: rgba(255, 255, 255, 0.8);
+      opacity: 0.2;
       cursor: pointer;
 
       &.is-active {
-        width: 20px;
-        border-radius: 4px;
-        background: var(--pc-primary);
+        background: #fff;
+        opacity: 1;
       }
     }
   }
 }
 
 .dec-group-banner {
+  background-color: var(--dec-bg-color, transparent);
+  border-radius: var(--dec-box-radius, 0);
+  overflow: hidden;
+
+  &__inner {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--dec-box-radius, 0);
+  }
+
   &__track {
     gap: 30px;
   }
 
+  &__item:hover {
+    filter: brightness(105%);
+  }
+
+  &__link {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: var(--dec-box-radius, 0);
+  }
+
   &__image {
     height: var(--dec-slide-height, 195px);
+    background-color: #eeeeee;
+    transition: opacity 0.2s;
+    pointer-events: none;
   }
 }
 
+/* category-nav3（忠实移植 PcCategoryNav3.vue：固定高度、20/24 顶栏、24px 标题、
+   248px 卡片、正方形图 4px 圆角、16px 名称） */
 .dec-category-nav3 {
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
-  padding: var(--dec-box-padding, 0) var(--dec-box-padding, 0) var(--dec-box-padding-bottom, 0);
+  width: 100%;
+  height: var(--dec-box-height, 352px);
+  padding: var(--dec-box-padding-top, 0) var(--dec-box-padding, 0) var(--dec-box-padding-bottom, 0);
   background-color: var(--dec-bg-color, rgba(0, 0, 0, 0.02));
+  border-radius: var(--dec-box-radius, 8px);
   overflow: hidden;
 
   &__top {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 14px 20px;
+    align-items: center;
+    padding: 20px 24px;
   }
 
   &__title {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     color: #1a1a1a;
   }
 
   &__more {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 2px;
-    font-size: 13px;
-    color: #666;
+    font-size: 18px;
+    color: #1a1a1a;
     text-decoration: none;
+  }
+
+  &__more-icon {
+    margin-left: 8px;
+  }
+
+  &__list-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
   }
 
   &__list {
     display: flex;
-    gap: 12px;
+    gap: 0;
+    height: 100%;
     overflow-x: auto;
-    padding: 0 20px 16px;
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -2194,50 +2531,81 @@
   }
 
   &__item {
-    flex: 0 0 220px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    flex: 0 0 248px;
     min-width: 0;
+    padding: 0 14px;
 
     a {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
       text-decoration: none;
       color: inherit;
+    }
+
+    &:hover .dec-category-nav3__img {
+      filter: brightness(105%);
+    }
+
+    &:hover .dec-category-nav3__name {
+      color: var(--main-bg);
     }
   }
 
   &__image {
     width: 100%;
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
+    aspect-ratio: 1;
+    flex: 0 1 auto;
+    min-height: 0;
+    background: var(--primary-light-9);
+    border-radius: 4px;
     overflow: hidden;
   }
 
   &__img {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    transition: filter 0.2s linear;
   }
 
   &__name {
-    margin-top: 8px;
-    font-size: 14px;
-    color: #333;
+    flex: none;
+    width: 100%;
+    height: 20px;
+    margin-top: 12px;
+    margin-bottom: 8px;
     text-align: center;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #1a1a1a;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 20px;
+    text-transform: capitalize;
   }
 
   &__desc {
-    margin-top: 4px;
     display: flex;
-    align-items: center;
+    flex: none;
     justify-content: center;
-    gap: 4px;
-    font-size: 12px;
-    color: #999;
+    align-items: center;
+    width: 100%;
+  }
+
+  &__desc-text {
+    margin-left: 4px;
+    color: #888b94;
+    font-size: 16px;
+    line-height: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   &__hot {
@@ -2252,6 +2620,7 @@
 
 /* ===================== recommend-product ===================== */
 
+/* recommend-product（忠实移植 PcRecommendProduct.vue：299px 卡片、hover 时名称收起浮出操作层） */
 .dec-recommend-product {
   box-sizing: border-box;
   padding: var(--dec-box-padding-top, 0) var(--dec-box-padding, 0) var(--dec-box-padding-bottom, 0);
@@ -2259,61 +2628,81 @@
   border-radius: var(--dec-box-radius, 0);
 
   &__title {
-    margin: 0;
-    padding: 0 0 16px;
-    font-size: 24px;
+    position: relative;
+    height: 45px;
+    margin: 20px auto;
+    font-size: 28px;
     font-weight: 700;
-    color: #333;
+    line-height: 45px;
     text-align: center;
+    color: #333;
   }
 
   &__list {
     display: grid;
   }
 
+  &__item {
+    min-width: 0;
+  }
+
   &__card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-radius: 8px;
-    background: #fff;
+    display: block;
+    box-sizing: border-box;
+    height: 299px;
+    padding: 8px;
     overflow: hidden;
-    border: 1px solid rgba(50, 50, 51, 0.06);
+    background-color: #fff;
+    color: #333;
+
+    &:hover .dec-recommend-product__name {
+      height: 0;
+      opacity: 0;
+    }
+
+    &:hover .dec-recommend-product__operate {
+      display: flex;
+    }
   }
 
   &__flip {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    padding: 12px 12px 0;
+    display: block;
   }
 
   &__pic {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    overflow: hidden;
-    background: #fafafa;
+    margin: 0 auto;
+    padding: 30px;
+    text-align: center;
+  }
+
+  &__pic-link {
+    position: relative;
+    display: inline-block;
+    width: 160px;
+    height: 160px;
+    vertical-align: top;
 
     img {
-      width: 100%;
-      height: 100%;
+      width: 160px;
+      height: 160px;
       object-fit: contain;
     }
   }
 
-  &__pic-link {
-    display: block;
-    height: 100%;
-  }
-
   &__name {
-    margin-top: 10px;
+    position: relative;
+    height: 40px;
+    margin-top: 5px;
+    padding: 0 12px;
+    overflow: hidden;
+    text-align: left;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     font-size: 14px;
     line-height: 20px;
-    color: #333;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #666;
+    transition: all 0.5s ease;
 
     a {
       color: inherit;
@@ -2321,21 +2710,42 @@
     }
   }
 
-  &__price {
-    margin-top: 6px;
-    color: var(--pc-primary);
-    font-size: 20px;
-    font-weight: 700;
+  &__tag {
+    position: relative;
+    margin-right: 8px;
+    color: var(--general);
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: -5px;
+      top: 50%;
+      transform: translateY(-45%);
+      width: 1px;
+      height: 70%;
+      background-color: var(--general);
+    }
   }
 
-  &__operate {
+  &__price {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: 10px;
-    padding: 10px 12px 12px;
-    border-top: 1px solid #f2f2f2;
+    justify-content: center;
+    height: 30px;
+    line-height: 30px;
+    color: var(--general);
+    font-weight: bold;
+    font-size: 20px;
+  }
+
+  /* hover 浮出的操作层：100x40 双色块（查看详情 / 立即购买） */
+  &__operate {
+    display: none;
+    margin-top: 2px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 40px;
 
     a {
       text-decoration: none;
@@ -2343,17 +2753,24 @@
   }
 
   &__detail {
-    font-size: 12px;
-    color: #999;
+    width: 100px;
+    height: 40px;
+    margin-right: 10px;
+    background-color: var(--vice-bg);
+    color: var(--vice-text);
+    cursor: pointer;
+    font-size: 14px;
   }
 
   &__buy {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    background: var(--pc-primary);
-    color: #fff;
-    font-size: 12px;
+    width: 100px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    background-color: var(--general);
+    color: var(--main-text);
+    cursor: pointer;
+    font-size: 14px;
   }
 
   &__loading {
@@ -2369,6 +2786,13 @@
       border-radius: 50%;
       animation: dec-spin 0.8s linear infinite;
     }
+  }
+
+  &__end {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
   }
 }
 
@@ -2393,15 +2817,73 @@
   }
 
   &__tabs-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 0;
+    padding: 12px var(--dec-tab-margin-lr, 0);
+  }
+
+  /* tab 左右渐变箭头（旧 __arrow：44px 白渐变浮层 + 28px 白底方钮） */
+  &__arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    user-select: none;
+
+    &--left {
+      left: 0;
+      background: linear-gradient(to right, #fff 60%, rgba(255, 255, 255, 0));
+      padding-right: 12px;
+      justify-content: flex-start;
+      padding-left: 4px;
+    }
+
+    &--right {
+      right: 0;
+      background: linear-gradient(to left, #fff 60%, rgba(255, 255, 255, 0));
+      padding-left: 12px;
+      justify-content: flex-end;
+      padding-right: 4px;
+    }
+  }
+
+  &__arrow-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+      border-color: #ccc;
+    }
+  }
+
+  &__arrow-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    color: #1a1a1a;
+
+    &--flip {
+      transform: rotate(180deg);
+    }
   }
 
   &__tabs {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     overflow-x: auto;
     scrollbar-width: none;
 
@@ -2411,63 +2893,89 @@
   }
 
   &__tab {
-    display: flex;
-    align-items: center;
+    flex: 0 0 auto;
+    position: relative;
+    text-align: center;
     cursor: pointer;
+    display: flex;
+    align-items: stretch;
+  }
 
-    &--active .dec-product-group__tab-title {
-      color: var(--pc-primary);
-      font-weight: 700;
-    }
+  &__tab-line {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid var(--dec-tab-line-color, #dadada);
+    transform: scale(0.5);
   }
 
   &__tab-content {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 14px;
+    gap: 6px;
+    min-width: var(--dec-tab-title-min-width, 80px);
+    padding: var(--dec-tab-title-padding-tb, 8px) var(--dec-tab-title-padding-lr, 12px);
+    background-color: transparent;
+    border-radius: var(--dec-tab-title-radius, 4px);
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    transition: background-color 0.3s;
+  }
+
+  &__tab--active .dec-product-group__tab-content {
+    background-color: var(--dec-tab-active-bg, #ffebf1);
   }
 
   &__tab-icon {
     width: 20px;
     height: 20px;
     object-fit: contain;
+    flex-shrink: 0;
   }
 
   &__tab-title {
-    font-size: 15px;
-    color: #333;
+    margin: 0;
+    font-size: var(--dec-tab-title-size, 14px);
+    font-weight: 700;
+    color: var(--dec-tab-title-color, #444444);
+    transition: color 0.3s;
     white-space: nowrap;
   }
 
-  &__tab-line {
-    width: 1px;
-    height: 14px;
-    background: #eee;
+  &__tab--active .dec-product-group__tab-title {
+    color: var(--dec-tab-title-active-color, #ff0f23);
   }
 
   &__list {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    gap: var(--dec-item-gap, 3px);
   }
 
   &__card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    display: block;
+    overflow: hidden;
     padding: var(--dec-card-padding, 0);
+    padding-bottom: 12px;
     border-radius: var(--dec-card-radius, 4px);
-    background: var(--dec-card-bg, #fff);
+    background-color: var(--dec-card-bg, #ffffff);
+    border: 1px solid transparent;
     text-decoration: none;
     color: inherit;
-    overflow: hidden;
+    transition: border-color 0.3s;
+
+    &:hover {
+      border-color: var(--main-bg, #ee0a24);
+    }
   }
 
   &__image {
+    position: relative;
     width: 100%;
     aspect-ratio: 1 / 1;
-    background: #fafafa;
+    background: #ffffff;
     overflow: hidden;
 
     .dec-product-group__image-inner {
@@ -2481,23 +2989,70 @@
   &__info {
     display: flex;
     flex-direction: column;
-    flex: 1;
-    padding: 8px var(--dec-info-padding-lr, 3px) 10px;
+    min-height: 156px;
+    padding: 8px 12px 0;
+    margin-top: 8px;
+    text-align: left;
   }
 
   &__name {
     font-size: var(--dec-title-size, 16px);
     font-weight: var(--dec-title-weight, 400);
     color: var(--dec-title-color, #19191b);
-    line-height: 20px;
+    line-height: 22px;
+    min-height: calc(var(--dec-title-rows, 1) * 22px);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: var(--dec-title-rows, 1);
+    line-clamp: var(--dec-title-rows, 1);
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+
+  &__status-wrap {
+    margin-top: 10px;
+  }
+
+  /* 原版 __sales：14px / #888b94 / 18px 行高 */
+  &__sales {
+    height: 18px;
+    font-size: 14px;
+    color: #888b94;
+    line-height: 18px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  &__sales {
+  /* 活动标签（原版 __tag-wrap / __tag：秒杀/满减/满折/满赠/限时折扣/拼团 白名单文案，
+     色 var(--main-bg)，12px 700） */
+  &__tag-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 18px;
+    margin-top: 12px;
+  }
+
+  &__tag {
     font-size: 12px;
-    color: #999;
+    line-height: 18px;
+    color: var(--main-bg, #ee0a24);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* 店铺名（原版 __shop：14px / #269636 / 600；无店铺 fallback「官方自营」） */
+  &__shop {
+    font-size: 14px;
+    color: #269636;
+    font-weight: 600;
+    line-height: 18px;
+    margin-top: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__price-box {
@@ -2505,7 +3060,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 10px;
   }
 
   &__price-row {
@@ -2515,39 +3070,124 @@
     min-width: 0;
   }
 
+  /* 旧 FormatPrice 三段式：￥16px/400 + 整数 28px/600 + 小数 16px/400 */
   &__price {
+    display: inline-flex;
+    align-items: baseline;
     color: var(--dec-price-color, var(--price));
-    font-size: 20px;
-    font-weight: 600;
   }
 
+  &__price-currency {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--primary-dark-2, var(--dec-price-color));
+  }
+
+  &__price-int {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 28px;
+    color: var(--primary-dark-2, var(--dec-price-color));
+  }
+
+  &__price-dec {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--primary-dark-2, var(--dec-price-color));
+  }
+
+  /* 划线价：整数/小数 16px，币种 12px，色 var(--dec-origin-price-color) */
   &__price-origin {
-    color: #999;
+    margin-left: 5px;
+    color: var(--dec-origin-price-color, #999999);
+    font-size: 16px;
+    font-weight: 400;
+    text-decoration: line-through;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__price-origin-currency {
     font-size: 12px;
+  }
+
+  /* 购买按钮（旧 32px 透明底，色 var(--dec-price-color)，btnType 1/2/3 三种形状） */
+  &__cart-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--dec-price-color, var(--vort-primary, #ff3f4f));
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    flex-shrink: 0;
+
+    &:hover {
+      color: var(--primary-dark-2, #be081d);
+    }
+
+    &.is-disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  &__cart-btn--style-1 {
+    background-color: transparent;
+  }
+
+  &__cart-btn--style-2 {
+    border: none;
+  }
+
+  &__cart-btn--style-3 {
+    border-radius: 6px;
   }
 
   &__cart-inner {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--pc-primary);
-    color: #fff;
-    font-size: 15px;
-    line-height: 1;
+    width: 100%;
+    height: 100%;
   }
 
+  /* 列表样式变体（旧 itemWidthStyle 语义）：
+     1~4=listStyle 列；5=瀑布（2 列，每 3 项第 1 项跨全行）；6=5 列；7=6 列 */
   &--list-style-1 &__list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 
   &--list-style-2 &__list {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   &--list-style-3 &__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  &--list-style-4 &__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  &--list-style-5 &__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &--list-style-5 &__item:nth-child(3n + 1) {
+    grid-column: 1 / -1;
+  }
+
+  &--list-style-6 &__list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  &--list-style-7 &__list {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
@@ -2755,28 +3395,36 @@
   will-change: transform;
 }
 
+/* 旧版指示器样式一：短条（12x4，透明度 0.35，激活 var(--dec-indicator-color)） */
 .dec-pc-image-nav__dot,
 .dec-pc-image-nav__dots button {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 4px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: #d9d9d9;
+  border-radius: 999px;
+  background: #000;
+  opacity: 0.35;
   cursor: pointer;
 
   &.is-active {
-    width: 20px;
-    border-radius: 4px;
-    background: var(--dec-indicator-color, var(--pc-primary));
+    opacity: 1;
+    background: var(--dec-indicator-color, #333333);
   }
+}
+
+/* 旧版指示器样式二：小圆点（6x6） */
+.dec-pc-image-nav--indicator-2 .dec-pc-image-nav__dot,
+.dec-pc-image-nav--indicator-2 .dec-pc-image-nav__dots button {
+  width: 6px;
+  height: 6px;
 }
 
 .dec-pc-image-nav__dots {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 6px;
+  bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2885,38 +3533,43 @@ button.view_detail {
 }
 
 /* 旧版 Swiper navigation 箭头（Banner2 / GroupBanner / ImageNav / CategoryNav / CategoryNav3） */
+/* 旧版 Swiper navigation 箭头（40x48 半圆黑底，常显，hover 加深） */
 .dec-swiper-nav {
   position: absolute;
   top: 50%;
   z-index: 5;
-  width: 28px;
-  height: 28px;
-  margin-top: -14px;
+  box-sizing: border-box;
+  width: 40px;
+  height: 48px;
+  margin-top: -24px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.35);
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.122);
   color: #fff;
-  font-size: 20px;
-  line-height: 1;
+  font-size: 14px;
+  line-height: 35px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease, background 0.2s ease;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.55);
+    background-color: rgba(0, 0, 0, 0.239);
   }
 }
 
 .dec-swiper-nav--prev {
-  left: 8px;
+  left: 0;
+  padding-right: 7px;
+  border-radius: 0 24px 24px 0;
 }
 
 .dec-swiper-nav--next {
-  right: 8px;
+  right: 0;
+  padding-left: 7px;
+  border-radius: 24px 0 0 24px;
 }
 
 .dec-image-ad__swiper:hover .dec-swiper-nav,

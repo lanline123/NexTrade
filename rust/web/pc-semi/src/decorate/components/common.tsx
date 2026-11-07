@@ -1,4 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { imageFormat } from '@/lib/image';
+import { navLinkHref } from '@/lib/link';
 import type { DecoratePic, DecorateTitle, ModuleFrameLike } from '../types';
 
 export interface PicLike {
@@ -10,11 +12,13 @@ export interface PicLike {
 }
 
 export function imageUrl(pic?: PicLike | DecoratePic | null): string {
-  return pic?.picUrl || pic?.picThumb || '';
+  // 相对路径兜底拼接 storageUrl（完整 http URL 原样返回），对齐旧版 imageFormat
+  return imageFormat(pic?.picUrl || pic?.picThumb || '');
 }
 
 export function linkUrl(link?: { link?: string } | null): string {
-  return link?.link || '#';
+  // 统一走 lib/link 的安全过滤 + 补斜杠（旧版 urlFormat 语义）
+  return navLinkHref(link) || '#';
 }
 
 export function SafeImage({

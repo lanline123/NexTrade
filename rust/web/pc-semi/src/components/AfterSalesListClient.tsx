@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Card } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface Item {
   productName?: string;
   picThumb?: string;
@@ -27,6 +28,7 @@ interface Record {
 }
 
 export default function AfterSalesListClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<Record[]>([]);
   const [loading, setLoading] = useState(true);
   const [needLogin, setNeedLogin] = useState(false);
@@ -44,8 +46,8 @@ export default function AfterSalesListClient() {
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后查看售后</h2>
-        <Link href="/login?redirect=/member/aftersales"><Button theme="solid" type="primary" size="large">去登录</Button></Link>
+        <h2>{t('登录后查看售后')}</h2>
+        <Link href="/login?redirect=/member/aftersales"><Button theme="solid" type="primary" size="large">{t('去登录')}</Button></Link>
       </Card>
     );
   }
@@ -53,14 +55,14 @@ export default function AfterSalesListClient() {
   return (
     <div className="member-aftersales">
       {loading ? (
-        <Card className="member-card">售后记录加载中...</Card>
+        <Card className="member-card">{t('售后记录加载中...')}</Card>
       ) : rows.length ? (
         <div className="member-aftersales__list">
           {rows.map((record) => (
             <Card key={record.aftersaleId} className="member-aftersales__card">
               <div className="member-aftersales__head">
-                <b>{record.aftersalesTypeName || '售后申请'}</b>
-                <span>{record.statusName || '处理中'}</span>
+                <b>{record.aftersalesTypeName || t('售后申请')}</b>
+                <span>{record.statusName || t('处理中')}</span>
                 <span>{record.addTime}</span>
               </div>
               <div className="member-aftersales__meta">
@@ -79,14 +81,14 @@ export default function AfterSalesListClient() {
               </div>
               <div className="member-aftersales__actions">
                 <Link href={`/member/aftersales/detail?id=${record.aftersaleId}`}>
-                  <Button size="small" theme="borderless" type="primary">查看详情</Button>
+                  <Button size="small" theme="borderless" type="primary">{t('查看详情')}</Button>
                 </Link>
               </div>
             </Card>
           ))}
         </div>
       ) : (
-        <Card className="member-card">暂无已申请退换货订单</Card>
+        <Card className="member-card">{t('暂无已申请退换货订单')}</Card>
       )}
     </div>
   );

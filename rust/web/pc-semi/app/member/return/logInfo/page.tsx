@@ -6,6 +6,7 @@ import AfterSalesDetailClient from '@/components/AfterSalesDetailClient';
 import { getPcHeader } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '申请详情 · 万物新生', robots: { index: false, follow: false } };
 
@@ -16,6 +17,7 @@ export const metadata: Metadata = { title: '申请详情 · 万物新生', robot
  * 此前该路由直接 redirect 到 /member/aftersales/detail，现渲染完整组件。
  */
 export default async function ReturnLogInfoPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+    const t = getServerT();
   const read = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] || '' : value || '');
   const id = Number(read(searchParams?.id) || read(searchParams?.aftersalesId)) || 0;
   const header = await getPcHeader().catch(() => null);
@@ -23,15 +25,15 @@ export default async function ReturnLogInfoPage({ searchParams }: { searchParams
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title="申请详情">
+        <MemberShell title={t('申请详情')}>
               <div className="return-loginfo-tabs">
-      <Link href="/member/aftersales">售后申请</Link>
-      <Link href="/member/return/log" className="is-active">申请记录</Link>
+      <Link href="/member/aftersales">{t('售后申请')}</Link>
+      <Link href="/member/return/log" className="is-active">{t('申请记录')}</Link>
     </div>
     {id ? (
       <AfterSalesDetailClient id={id} />
     ) : (
-      <div className="comment-empty">缺少售后单号，无法打开申请详情。请从退款申请记录进入。</div>
+      <div className="comment-empty">{t('缺少售后单号，无法打开申请详情。请从退款申请记录进入。')}</div>
     )}
         </MemberShell>
       </main>

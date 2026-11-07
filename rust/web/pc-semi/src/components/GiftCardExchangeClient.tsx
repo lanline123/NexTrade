@@ -11,7 +11,9 @@ import { useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 export default function GiftCardExchangeClient() {
+    const { t } = useTranslation();
   const [cardNumber, setCardNumber] = useState('');
   const [cardPassword, setCardPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,18 +45,18 @@ export default function GiftCardExchangeClient() {
 
   return (
     <Card className="member-card giftcard-exchange" loading={loading}>
-      <h2>礼品卡兑换</h2>
+      <h2>{t('礼品卡兑换')}</h2>
       <div className="security-form">
-        <label>卡号</label>
-        <input value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} placeholder="请输入卡号" />
-        <label>卡密</label>
-        <input value={cardPassword} onChange={(event) => setCardPassword(event.target.value)} placeholder="请输入卡密" type="password" />
-        <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>立即兑换</Button>
+        <label>{t('卡号')}</label>
+        <input value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} placeholder={t('请输入卡号')} />
+        <label>{t('卡密')}</label>
+        <input value={cardPassword} onChange={(event) => setCardPassword(event.target.value)} placeholder={t('请输入卡密')} type="password" />
+        <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>{t('立即兑换')}</Button>
       </div>
       <div className="giftcard-exchange__rules" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f2f4f7', color: '#667085', fontSize: 13, lineHeight: 2 }}>
-        <div style={{ fontWeight: 600, color: '#344054', marginBottom: 6 }}>兑换规则</div>
-        <p style={{ margin: 0 }}>1. 储值卡输入卡密进行兑换将自动充值到余额。</p>
-        <p style={{ margin: 0 }}>2. 兑换卡输入卡密进行兑换后将跳转至该商品详情页进行兑换。</p>
+        <div style={{ fontWeight: 600, color: '#344054', marginBottom: 6 }}>{t('兑换规则')}</div>
+        <p style={{ margin: 0 }}>{t('1. 储值卡输入卡密进行兑换将自动充值到余额。')}</p>
+        <p style={{ margin: 0 }}>{t('2. 兑换卡输入卡密进行兑换后将跳转至该商品详情页进行兑换。')}</p>
       </div>
     </Card>
   );

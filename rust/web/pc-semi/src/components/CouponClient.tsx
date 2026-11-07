@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Card, Input, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface Coupon {
   id: number;
   couponName?: string;
@@ -20,6 +21,7 @@ interface Coupon {
 }
 
 export default function CouponClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<Coupon[]>([]);
   const [couponSn, setCouponSn] = useState('');
   const [tab, setTab] = useState('all');
@@ -81,9 +83,9 @@ export default function CouponClient() {
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后查看优惠券</h2>
+        <h2>{t('登录后查看优惠券')}</h2>
         <Link href="/login?redirect=/member/coupon">
-          <Button theme="solid" type="primary" size="large">去登录</Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </Card>
     );
@@ -93,10 +95,10 @@ export default function CouponClient() {
     <div className="member-coupon">
       <div className="member-coupon__toolbar">
         <div className="member-coupon__claim">
-          <Input value={couponSn} onChange={setCouponSn} placeholder="输入优惠券码" />
-          <Button theme="solid" type="primary" onClick={claim}>兑换</Button>
+          <Input value={couponSn} onChange={setCouponSn} placeholder={t('输入优惠券码')} />
+          <Button theme="solid" type="primary" onClick={claim}>{t('兑换')}</Button>
         </div>
-        <Link href="/coupon/list">领取更多优惠券 →</Link>
+        <Link href="/coupon/list">{t('领取更多优惠券 →')}</Link>
       </div>
 
       <div className="member-coupon__tabs">
@@ -113,33 +115,33 @@ export default function CouponClient() {
       </div>
 
       {loading ? (
-        <Card className="member-card">优惠券加载中...</Card>
+        <Card className="member-card">{t('优惠券加载中...')}</Card>
       ) : visibleRows.length ? (
         <div className="member-coupon__list">
           {visibleRows.map((coupon) => (
             <Card key={coupon.id} className={`member-coupon__card ${coupon.status === 3 ? 'is-invalid' : ''}`}>
               <div className="member-coupon__value">
                 {coupon.couponType === 2 ? (
-                  <b>{Number(coupon.couponDiscount || 0)}<small>折</small></b>
+                  <b>{Number(coupon.couponDiscount || 0)}<small>{t('折')}</small></b>
                 ) : (
                   <b><small>¥</small>{Number(coupon.couponMoney || 0).toFixed(0)}</b>
                 )}
                 <span>满 {Number(coupon.minOrderAmount || 0).toFixed(0)} 可用</span>
               </div>
               <div className="member-coupon__info">
-                <b>{coupon.couponName || '优惠券'}</b>
-                <span>{coupon.couponDesc || '全场通用'}</span>
+                <b>{coupon.couponName || t('优惠券')}</b>
+                <span>{coupon.couponDesc || t('全场通用')}</span>
                 <span>{coupon.startDate} ~ {coupon.endDate}</span>
               </div>
               <div className="member-coupon__status">
-                <span>{coupon.statusName || '未使用'}</span>
-                <Button theme="borderless" type="danger" size="small" onClick={() => void remove(coupon.id)}>删除</Button>
+                <span>{coupon.statusName || t('未使用')}</span>
+                <Button theme="borderless" type="danger" size="small" onClick={() => void remove(coupon.id)}>{t('删除')}</Button>
               </div>
             </Card>
           ))}
         </div>
       ) : (
-        <Card className="member-card">您还没有优惠券</Card>
+        <Card className="member-card">{t('您还没有优惠券')}</Card>
       )}
     </div>
   );

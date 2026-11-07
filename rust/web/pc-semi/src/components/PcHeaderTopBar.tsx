@@ -20,6 +20,11 @@ import Message from '@icon-park/react/es/icons/Message';
 import FileText from '@icon-park/react/es/icons/FileText';
 import PcHeaderNoticeCarousel from '@/components/PcHeaderNoticeCarousel';
 import PcSmartLink from '@/components/PcSmartLink';
+import AuthBadge from '@/components/AuthBadge';
+import { formatPrice } from '@/lib/currency';
+
+/** B2B 部署开关（默认关）：=1 时顶栏显示企业认证标识（对齐旧版 isB2B()） */
+const IS_B2B_AUTH = process.env.NEXT_PUBLIC_PC_IS_B2B === '1';
 
 interface Region {
   regionId: number | string;
@@ -111,6 +116,10 @@ export default function PcHeaderTopBar({
   const [siteNav, setSiteNav] = useState<NavItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [shopRegClosed, setShopRegClosed] = useState(Number(baseConfig?.shopRegClosed ?? 0));
+  const [adminDomain, setAdminDomain] = useState(String(baseConfig?.adminDomain || ''));
+  /** 旧版 commonStore.closeAuth：后台「认证开关」，缺省视为开启（=1） */
+  const [closeAuth, setCloseAuth] = useState(Number(baseConfig?.closeAuth ?? 1));
+  const [msgUnread, setMsgUnread] = useState(0);
   const [openMenu, setOpenMenu] = useState<'user' | 'member' | 'site' | null>(null);
   const hoverTimer = useRef<number | null>(null);
 
@@ -134,7 +143,12 @@ export default function PcHeaderTopBar({
     if (!baseConfig) {
       fetch('/api/common/config/base')
         .then((response) => response.json())
-        .then((json) => setShopRegClosed(Number(json?.data?.shopRegClosed ?? 0)))
+        .then((json) => {
+          const config = json?.data || {};
+          setShopRegClosed(Number(config.shopRegClosed ?? 0));
+          setAdminDomain(String(config.adminDomain || ''));
+          setCloseAuth(Number(config.closeAuth ?? 1));
+        })
         .catch(() => undefined);
     }
 
@@ -156,16 +170,35 @@ export default function PcHeaderTopBar({
     }
 
     const token = localStorage.getItem('accessToken');
+    const refreshCartCount = () => {
+      if (!token) return;
+      fetch('/api/cart/cart/list', { headers: { Authorization: `Bearer ${token}` }, credentials: 'include' })
+        .then((response) => response.json())
+        .then((json) => setCartCount(Number(json?.data?.total?.totalCount || 0)))
+        .catch(() => undefined);
+    };
+    refreshCartCount();
+    // 旧版购物车每次变更后同步头部角标（_getCartCount）
+    window.addEventListener('pc-cart-change', refreshCartCount);
     if (token) {
       fetch('/api/user/user/detail', { headers: { Authorization: `Bearer ${token}` }, credentials: 'include' })
         .then((response) => response.json())
         .then((json) => setUser(json?.data || null))
         .catch(() => undefined);
-      fetch('/api/cart/cart/list', { headers: { Authorization: `Bearer ${token}` }, credentials: 'include' })
+      // 站内消息未读数（对齐旧版 TopBar loadFilter：user/message/list unread=1 取 total）
+      fetch('/api/user/message/list?page=1&unread=1', {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+      })
         .then((response) => response.json())
-        .then((json) => setCartCount(Number(json?.data?.total?.totalCount || 0)))
+        .then((json) => {
+          const total = json?.data?.total;
+          const count = typeof total === 'object' && total !== null ? Number(total.total ?? 0) : Number(total ?? 0);
+          setMsgUnread(Number.isFinite(count) ? count : 0);
+        })
         .catch(() => undefined);
     }
+    return () => window.removeEventListener('pc-cart-change', refreshCartCount);
   }, []);
 
   useEffect(() => {
@@ -318,6 +351,13 @@ export default function PcHeaderTopBar({
                 </div>
               ) : null}
 
+              {/* 企业认证标识（对齐旧版 TopBar：isB2B() && closeAuth===1 时显示，点击去认证页） */}
+              {IS_B2B_AUTH && closeAuth === 1 ? (
+                <Link className="top-auth-item" href="/member/userCertification/info">
+                  <AuthBadge verified={Number(user?.isCompanyAuth) > 0} height={17} />
+                </Link>
+              ) : null}
+
               {showTopMemberEntry ? (
                 user ? (
                   <div
@@ -350,6 +390,14 @@ export default function PcHeaderTopBar({
                             <div className="top-member-dropdown__main">
                               <div className="top-member-dropdown__name" title={userDisplayName}>
                                 {userDisplayName}
+                              </div>
+                              {/* 余额 / 优惠券 / 修改资料（对齐旧版 TopBar 顶栏用户下拉） */}
+                              <div className="top-member-dropdown__links">
+                                <Link href="/member/account/detail">
+                                  {t('我的余额')}：{formatPrice(user.balance)}
+                                </Link>
+                                <Link href="/member/coupon/list">{t('我的优惠券')}</Link>
+                                <Link href="/member/profile/info">{t('修改个人资料')}</Link>
                               </div>
                               <div className="top-member-dropdown__actions">
                                 <Link href="/member">{t('账号管理')}</Link>
@@ -448,7 +496,10 @@ export default function PcHeaderTopBar({
                       <span className="iconfont-pc icon-xiaoxi">
                         <Message size={15} />
                       </span>
-                      <span>{t('站内消息')}</span>
+                      <span>
+                        {t('站内消息')}
+                        {msgUnread > 0 ? `(${msgUnread})` : ''}
+                      </span>
                     </Link>
                   ) : null}
                   {showTopOrders ? (
@@ -458,6 +509,18 @@ export default function PcHeaderTopBar({
                       </span>
                       <span>{t('我的订单')}</span>
                     </Link>
+                  ) : null}
+                  {/* 商户后台（对齐旧版 TopBar：hasShop 用户显示，跳 adminDomain/admin） */}
+                  {user && Number(user.hasShop) === 1 ? (
+                    <a
+                      className="top-link top-link--icon"
+                      onClick={() => {
+                        const domain = adminDomain || window.location.origin;
+                        window.open(`${domain.replace(/\/$/, '')}/admin`, '_blank');
+                      }}
+                    >
+                      <span className="top-bar-nav__name">{t('商户后台')}</span>
+                    </a>
                   ) : null}
                 </div>
               ) : null}

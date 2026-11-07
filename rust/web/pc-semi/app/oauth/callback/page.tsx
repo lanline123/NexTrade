@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
 export default function OAuthCallbackPage() {
+    const { t } = useTranslation();
   const [message, setMessage] = useState('正在完成第三方登录...');
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function OAuthCallbackPage() {
         });
         const json = await response.json().catch(() => ({}));
         if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-          throw new Error(json.msg || json.message || '第三方登录失败');
+          throw new Error(json.msg || json.message || t('第三方登录失败'));
         }
         const data = json.data || {};
         const token = data.token || data.accessToken;
@@ -47,7 +49,7 @@ export default function OAuthCallbackPage() {
       <div className="pc-container">
         <div className="pc-static-card">
           <b>{message}</b>
-          <p><a href="/login">返回登录</a></p>
+          <p><a href="/login">{t('返回登录')}</a></p>
         </div>
       </div>
     </main>

@@ -7,6 +7,7 @@ import GrouponCountdown from '@/components/GrouponCountdown';
 import { getGrouponRecordDetail, getPcHeader } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '拼团详情 · 万物新生', robots: { index: false, follow: false } };
 
@@ -18,6 +19,7 @@ function money(value: unknown): string {
 const GROUP_STEPS = ['1.开团/参加', '2.邀友参团', '3.人满成团'];
 
 export default async function GrouponInfoPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+    const t = getServerT();
   const raw = searchParams?.id || searchParams?.grouponPromotionRecordId;
   const recordId = Number(Array.isArray(raw) ? raw[0] : raw) || 0;
   const [detail, header] = await Promise.all([
@@ -36,7 +38,7 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title="拼团详情">
+        <MemberShell title={t('拼团详情')}>
               {detail ? (
       <>
         {/* 拼团状态 + 商品 */}
@@ -44,13 +46,12 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
           <div className="groupon-detail__head">
             <img src={detail.grouponImage || detail.picThumb || ''} alt={detail.productName || ''} />
             <div className="groupon-detail__info">
-              <h2>{detail.productName || '拼团商品'}</h2>
+              <h2>{detail.productName || t('拼团商品')}</h2>
               <div className="groupon-detail__status">
-                拼团状态：{detail.joinStatusDesc || (joinStatus === 1 ? '拼团中' : joinStatus === 2 ? '已成团' : '已结束')}
-                {joinStatus === 1 ? `，还差 ${remain} 人成团` : ''}
+                拼团状态：{detail.joinStatusDesc || (joinStatus === 1 ? t('拼团中') : joinStatus === 2 ? t('已成团') : '已结束')}
+                {joinStatus === 1 ? t('，还差 {n} 人成团', { n: remain }) : ''}
               </div>
-              <div className="groupon-detail__price">
-                拼团价：<b>¥ {money(detail.minGrouponPrice)}</b>
+              <div className="groupon-detail__price">{t('拼团价：')}<b>¥ {money(detail.minGrouponPrice)}</b>
                 <s className="groupon-detail__origin">原价 ¥ {money(detail.productPrice)}</s>
               </div>
               <div className="groupon-detail__meta">
@@ -68,33 +69,33 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
           <div className="groupon-detail__progress">
             <div className="groupon-detail__count">{joined} / {required || '-'} 人</div>
             <div className="groupon-progress"><i style={{ width: `${Math.min(100, Math.round((joined / Math.max(1, required || 1)) * 100))}%` }} /></div>
-            <div className="groupon-detail__remain">{remain > 0 ? `还差 ${remain} 人成团` : '人满成团'}</div>
+            <div className="groupon-detail__remain">{remain > 0 ? t('还差 {n} 人成团', { n: remain }) : t('人满成团')}</div>
           </div>
 
           {/* 参团成员：团长标识 + 待加入占位 */}
           <div className="groupon-detail__users">
-            <h3>参团成员</h3>
+            <h3>{t('参团成员')}</h3>
             <div className="groupon-users">
               {joinUsers.map((user, index) => (
                 <div className={`groupon-user${user.leader ? ' is-leader' : ''}`} key={`${user.userId || index}`}>
-                  <img src={user.avatar || ''} alt={user.nickname || '成员'} />
-                  {user.leader ? <span className="groupon-user__badge">团长</span> : null}
-                  <span>{user.nickname || '匿名用户'}</span>
+                  <img src={user.avatar || ''} alt={user.nickname || t('成员')} />
+                  {user.leader ? <span className="groupon-user__badge">{t('团长')}</span> : null}
+                  <span>{user.nickname || t('匿名用户')}</span>
                 </div>
               ))}
               {Array.from({ length: Math.min(remain, 5) }).map((_, index) => (
                 <div className="groupon-user is-placeholder" key={`pending-${index}`}>
                   <div className="groupon-user__avatar-placeholder">?</div>
-                  <span>待加入</span>
+                  <span>{t('待加入')}</span>
                 </div>
               ))}
-              {!joinUsers.length && !remain ? <span className="groupon-detail__empty">暂无参团成员</span> : null}
+              {!joinUsers.length && !remain ? <span className="groupon-detail__empty">{t('暂无参团成员')}</span> : null}
             </div>
           </div>
 
           {/* 拼团流程 */}
           <div className="groupon-detail__flow">
-            <h3>拼团流程</h3>
+            <h3>{t('拼团流程')}</h3>
             <div className="groupon-flow">
               {GROUP_STEPS.map((label, index) => (
                 <div className={`groupon-flow__item${joined >= index + 1 ? ' is-done' : ''}`} key={label}>
@@ -112,27 +113,26 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
               canInvite={remain > 0 && joinStatus !== 2}
               orderId={detail.orderId ? Number(detail.orderId) : undefined}
             />
-            <Link href={`/product/${detail.productId || ''}`}>去参团</Link>
-            <Link href="/member/group">我的拼团</Link>
-            {detail.shopId ? <Link href={`/shop/${detail.shopId}`}>进店逛逛</Link> : null}
+            <Link href={`/product/${detail.productId || ''}`}>{t('去参团')}</Link>
+            <Link href="/member/group">{t('我的拼团')}</Link>
+            {detail.shopId ? <Link href={`/shop/${detail.shopId}`}>{t('进店逛逛')}</Link> : null}
           </div>
         </section>
 
         {/* 订单信息（源码 orderFormState） */}
         {order?.orderSn || orderItems.length ? (
           <section className="member-card groupon-order">
-            <h3>订单商品</h3>
-            <div className="groupon-order__sn">
-              订单号：<strong>{order.orderSn || '-'}</strong>
+            <h3>{t('订单商品')}</h3>
+            <div className="groupon-order__sn">{t('订单号：')}<strong>{order.orderSn || '-'}</strong>
               <span>{order.orderStatusText || order.payStatusText || ''}</span>
             </div>
             <table className="groupon-order__table">
               <thead>
                 <tr>
-                  <th>商品名称</th>
-                  <th>商品价格</th>
-                  <th>购买数量</th>
-                  <th>小计</th>
+                  <th>{t('商品名称')}</th>
+                  <th>{t('商品价格')}</th>
+                  <th>{t('购买数量')}</th>
+                  <th>{t('小计')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,7 +141,7 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
                     <td>
                       <div className="groupon-order__product">
                         <img src={item.picThumb || item.productPicThumb || ''} alt={item.productName || ''} />
-                        <span>{item.productName || '商品'}</span>
+                        <span>{item.productName || t('商品')}</span>
                       </div>
                     </td>
                     <td>¥ {money(item.price)}</td>
@@ -153,20 +153,20 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
             </table>
 
             <div className="groupon-order__amounts">
-              <div><span>商品总价</span><b>¥ {money(order.productAmount)}</b></div>
-              {Number(order.shippingFee || 0) > 0 ? <div><span>运费</span><b>+ ¥ {money(order.shippingFee)}</b></div> : null}
-              {Number(order.serviceFee || 0) > 0 ? <div><span>附加费用</span><b>+ ¥ {money(order.serviceFee)}</b></div> : null}
-              {Number(order.couponAmount || 0) > 0 ? <div className="is-discount"><span>优惠券优惠</span><b>- ¥ {money(order.couponAmount)}</b></div> : null}
-              {Number(order.discountAmount || 0) > 0 ? <div className="is-discount"><span>其他优惠</span><b>- ¥ {money(order.discountAmount)}</b></div> : null}
-              {Number(order.pointsAmount || 0) > 0 ? <div className="is-discount"><span>积分抵扣</span><b>- ¥ {money(order.pointsAmount)}</b></div> : null}
-              {Number(order.balance || 0) > 0 ? <div className="is-discount"><span>使用余额</span><b>- ¥ {money(order.balance)}</b></div> : null}
-              {Number(order.unpaidAmount || 0) > 0 ? <div><span>待支付金额</span><b>¥ {money(order.unpaidAmount)}</b></div> : null}
-              <div className="groupon-order__total"><span>实付款</span><b>¥ {money(order.totalAmount)}</b></div>
+              <div><span>{t('商品总价')}</span><b>¥ {money(order.productAmount)}</b></div>
+              {Number(order.shippingFee || 0) > 0 ? <div><span>{t('运费')}</span><b>+ ¥ {money(order.shippingFee)}</b></div> : null}
+              {Number(order.serviceFee || 0) > 0 ? <div><span>{t('附加费用')}</span><b>+ ¥ {money(order.serviceFee)}</b></div> : null}
+              {Number(order.couponAmount || 0) > 0 ? <div className="is-discount"><span>{t('优惠券优惠')}</span><b>- ¥ {money(order.couponAmount)}</b></div> : null}
+              {Number(order.discountAmount || 0) > 0 ? <div className="is-discount"><span>{t('其他优惠')}</span><b>- ¥ {money(order.discountAmount)}</b></div> : null}
+              {Number(order.pointsAmount || 0) > 0 ? <div className="is-discount"><span>{t('积分抵扣')}</span><b>- ¥ {money(order.pointsAmount)}</b></div> : null}
+              {Number(order.balance || 0) > 0 ? <div className="is-discount"><span>{t('使用余额')}</span><b>- ¥ {money(order.balance)}</b></div> : null}
+              {Number(order.unpaidAmount || 0) > 0 ? <div><span>{t('待支付金额')}</span><b>¥ {money(order.unpaidAmount)}</b></div> : null}
+              <div className="groupon-order__total"><span>{t('实付款')}</span><b>¥ {money(order.totalAmount)}</b></div>
             </div>
           </section>
         ) : null}
       </>
-    ) : <div className="comment-empty">暂无拼团数据</div>}
+    ) : <div className="comment-empty">{t('暂无拼团数据')}</div>}
         </MemberShell>
       </main>
       <PcFooter />

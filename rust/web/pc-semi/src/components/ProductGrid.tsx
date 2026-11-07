@@ -16,6 +16,7 @@ import ProductCard, { type ProductCardItem } from '@/components/product/ProductC
 import { useProductColumns } from '@/components/product/use-product-columns';
 import '@/components/product/product-card.scss';
 
+import { useTranslation } from 'react-i18next';
 interface ProductGridProps {
   products: ProductListItem[];
   /** 搜索装修 showSales：true 时展示已售数量（默认展示库存）。 */
@@ -25,6 +26,7 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products, showSales = false, showShopTag = false }: ProductGridProps) {
+    const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement | null>(null);
   const columns = useProductColumns(gridRef);
 
@@ -42,7 +44,7 @@ export default function ProductGrid({ products, showSales = false, showShopTag =
           showShopTag={showShopTag}
         />
       ))}
-      {!products.length ? <div className="pc-list-empty">没有找到商品</div> : null}
+      {!products.length ? <div className="pc-list-empty">{t('没有找到商品')}</div> : null}
     </div>
   );
 }

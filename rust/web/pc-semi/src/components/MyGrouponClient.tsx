@@ -34,6 +34,7 @@ import Link from 'next/link';
 import { Button, Input, Modal, Spin, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface GrouponRecord {
   grouponPromotionRecordId?: number;
   grouponPromotionItemId?: number;
@@ -83,6 +84,7 @@ function productHref(item: GrouponRecord): string {
 }
 
 export default function MyGrouponClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<GrouponRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -133,7 +135,7 @@ export default function MyGrouponClient() {
     <div className="member-orders pc-groupon-list">
       <div className="pc-order-panel">
         <div className="pc-order-panel__head">
-          <div className="pc-groupon-list__title">我的拼团</div>
+          <div className="pc-groupon-list__title">{t('我的拼团')}</div>
           <div className="member-orders__tabs">
             {TABS.map((tab) => (
               <button
@@ -159,7 +161,7 @@ export default function MyGrouponClient() {
               {rows.map((item, index) => {
                 const recordId = Number(item.grouponPromotionRecordId || 0);
                 const status = Number(item.joinStatus || 0);
-                const statusText = item.joinStatusDesc || STATUS_TEXT[status] || '拼团中';
+                const statusText = item.joinStatusDesc || STATUS_TEXT[status] || t('拼团中');
                 const remain = Math.max(0, Number(item.minGroupNum || 0) - Number(item.joinNumCount || 0));
                 const qty = Number(item.quantity || 1);
                 const price = item.grouponPrice ?? item.minGrouponPrice ?? 0;
@@ -172,9 +174,7 @@ export default function MyGrouponClient() {
                       {status === 1 ? <span className="pc-groupon-card__remain">（还差 {remain} 人）</span> : null}
                       <span className="pc-groupon-card__spacer" />
                       {orderHref ? (
-                        <Link className="member-order__detail" href={orderHref} target="_blank">
-                          订单详情
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        <Link className="member-order__detail" href={orderHref} target="_blank">{t('订单详情')}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                         </Link>
                       ) : null}
                     </header>
@@ -188,15 +188,15 @@ export default function MyGrouponClient() {
                       </span>
                       <span>下单时间：{item.orderAddTime || '-'}</span>
                       <span>共 {qty} 件</span>
-                      <span>拼团价：<b>¥ {money(price)}</b></span>
-                      {item.payTypeId ? <span>{PAY_TYPE_TEXT[Number(item.payTypeId)] || '线下支付'}</span> : null}
+                      <span>{t('拼团价：')}<b>¥ {money(price)}</b></span>
+                      {item.payTypeId ? <span>{PAY_TYPE_TEXT[Number(item.payTypeId)] || t('线下支付')}</span> : null}
                     </div>
 
                     <div className="member-order__shop">
                       <Link href={href} target="_blank" className="member-order__shop-main">
                         <img src={item.picThumb || ''} alt={item.productName || ''} />
                         <div className="member-order__shop-text">
-                          <div className="member-order__shop-name">{item.productName || '拼团商品'}</div>
+                          <div className="member-order__shop-name">{item.productName || t('拼团商品')}</div>
                         </div>
                       </Link>
                       <div className="member-order__shop-price">
@@ -212,9 +212,9 @@ export default function MyGrouponClient() {
                       </div>
                       <div className="member-order__bot-actions">
                         {status === 1 ? (
-                          <Button size="small" theme="solid" type="primary" onClick={() => openInvite(recordId)}>邀请好友</Button>
+                          <Button size="small" theme="solid" type="primary" onClick={() => openInvite(recordId)}>{t('邀请好友')}</Button>
                         ) : null}
-                        <Link href={`/member/group/info?id=${recordId}`} target="_blank"><Button size="small">拼团详情</Button></Link>
+                        <Link href={`/member/group/info?id=${recordId}`} target="_blank"><Button size="small">{t('拼团详情')}</Button></Link>
                       </div>
                     </footer>
                   </article>
@@ -223,8 +223,8 @@ export default function MyGrouponClient() {
             </div>
           ) : (
             <div className="member-orders__empty">
-              <p className="member-orders__empty-title">当前筛选下还没有任何订单哦!</p>
-              <p className="member-orders__empty-sub">现在就去：<Link href="/">选购商品</Link></p>
+              <p className="member-orders__empty-title">{t('当前筛选下还没有任何订单哦!')}</p>
+              <p className="member-orders__empty-sub">{t('现在就去：')}<Link href="/">{t('选购商品')}</Link></p>
             </div>
           )}
         </div>
@@ -243,7 +243,7 @@ export default function MyGrouponClient() {
       </div>
 
       <Modal
-        title="通过链接邀请"
+        title={t('通过链接邀请')}
         visible={Boolean(inviteLink)}
         okText="复制链接"
         cancelText="关闭"

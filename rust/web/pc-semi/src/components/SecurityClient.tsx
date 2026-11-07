@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface UserInfo { mobile?: string; email?: string; }
 type BindType = 'mobile' | 'email';
 
@@ -17,6 +18,7 @@ function mask(value?: string): string {
 }
 
 export default function SecurityClient() {
+    const { t } = useTranslation();
   const [user, setUser] = useState<UserInfo>({});
   const [loading, setLoading] = useState(true);
 
@@ -164,71 +166,71 @@ export default function SecurityClient() {
   };
 
   return (
-    <Card className="member-card security-card" title="账户安全" loading={loading}>
+    <Card className="member-card security-card" title={t('账户安全')} loading={loading}>
       <ul className="security-list">
         <li>
-          <span className="security-list__label">手机</span>
+          <span className="security-list__label">{t('手机')}</span>
           <span className="security-list__value">{mask(user.mobile)}</span>
-          <button type="button" className="security-list__action" onClick={() => openBind('mobile')}>{user.mobile ? '换绑' : '绑定'}</button>
+          <button type="button" className="security-list__action" onClick={() => openBind('mobile')}>{user.mobile ? t('换绑') : '绑定'}</button>
         </li>
         <li>
-          <span className="security-list__label">邮箱</span>
+          <span className="security-list__label">{t('邮箱')}</span>
           <span className="security-list__value">{mask(user.email)}</span>
-          <button type="button" className="security-list__action" onClick={() => openBind('email')}>{user.email ? '换绑' : '绑定'}</button>
+          <button type="button" className="security-list__action" onClick={() => openBind('email')}>{user.email ? t('换绑') : '绑定'}</button>
         </li>
         <li>
-          <span className="security-list__label">登录密码</span>
-          <span className="security-list__value">已设置</span>
-          <button type="button" className="security-list__action" onClick={() => setPwdOpen(true)}>修改</button>
+          <span className="security-list__label">{t('登录密码')}</span>
+          <span className="security-list__value">{t('已设置')}</span>
+          <button type="button" className="security-list__action" onClick={() => setPwdOpen(true)}>{t('修改')}</button>
         </li>
       </ul>
       <div className="security-tips">
-        <b>安全服务提示</b>
-        <p>1. 注意防范进入钓鱼网站，不要轻信各种即时通讯工具发送的商品或支付链接，谨防网购诈骗。</p>
-        <p>2. 建议您安装杀毒软件，并定期更新操作系统等软件补丁，确保账户及交易安全。</p>
+        <b>{t('安全服务提示')}</b>
+        <p>{t('1. 注意防范进入钓鱼网站，不要轻信各种即时通讯工具发送的商品或支付链接，谨防网购诈骗。')}</p>
+        <p>{t('2. 建议您安装杀毒软件，并定期更新操作系统等软件补丁，确保账户及交易安全。')}</p>
       </div>
 
-      <Modal title="修改登录密码" visible={pwdOpen} onCancel={() => setPwdOpen(false)} footer={null}>
+      <Modal title={t('修改登录密码')} visible={pwdOpen} onCancel={() => setPwdOpen(false)} footer={null}>
         <div className="security-form">
-          <label>验证码</label>
+          <label>{t('验证码')}</label>
           <div className="security-form__row">
-            <input value={code} onChange={(event) => setCode(event.target.value)} placeholder="请输入短信验证码" />
+            <input value={code} onChange={(event) => setCode(event.target.value)} placeholder={t('请输入短信验证码')} />
             <Button disabled={pwdCountdown > 0} onClick={() => void sendPwdCode()}>{pwdCountdown > 0 ? `${pwdCountdown}s` : '获取验证码'}</Button>
           </div>
-          <label>新密码</label>
-          <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入新密码" />
-          <label>确认新密码</label>
-          <input type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder="请再次输入新密码" />
-          <Button theme="solid" type="primary" loading={submitting} onClick={() => void submitPassword()}>确认修改</Button>
+          <label>{t('新密码')}</label>
+          <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('请输入新密码')} />
+          <label>{t('确认新密码')}</label>
+          <input type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={t('请再次输入新密码')} />
+          <Button theme="solid" type="primary" loading={submitting} onClick={() => void submitPassword()}>{t('确认修改')}</Button>
         </div>
       </Modal>
 
-      <Modal title={bindType === 'mobile' ? '手机换绑' : '邮箱换绑'} visible={!!bindType} onCancel={() => setBindType(null)} footer={null}>
+      <Modal title={bindType === 'mobile' ? t('手机换绑') : '邮箱换绑'} visible={!!bindType} onCancel={() => setBindType(null)} footer={null}>
         <div className="security-form">
           {bindStep === 1 ? (
             <>
-              <p className="security-form__tip">请先验证当前{bindType === 'mobile' ? '手机' : '邮箱'}</p>
-              <label>原验证码</label>
+              <p className="security-form__tip">请先验证当前{bindType === 'mobile' ? t('手机') : '邮箱'}</p>
+              <label>{t('原验证码')}</label>
               <div className="security-form__row">
-                <input value={oldCode} onChange={(event) => setOldCode(event.target.value)} placeholder="请输入原验证码" />
+                <input value={oldCode} onChange={(event) => setOldCode(event.target.value)} placeholder={t('请输入原验证码')} />
                 <Button disabled={oldCountdown > 0} onClick={() => void sendOldCode()}>{oldCountdown > 0 ? `${oldCountdown}s` : '获取验证码'}</Button>
               </div>
-              <Button theme="solid" type="primary" onClick={() => void verifyOld()}>下一步</Button>
+              <Button theme="solid" type="primary" onClick={() => void verifyOld()}>{t('下一步')}</Button>
             </>
           ) : (
             <>
-              <label>新{bindType === 'mobile' ? '手机号' : '邮箱'}</label>
+              <label>新{bindType === 'mobile' ? t('手机号') : '邮箱'}</label>
               <input
                 value={bindType === 'mobile' ? newMobile : newEmail}
                 onChange={(event) => bindType === 'mobile' ? setNewMobile(event.target.value) : setNewEmail(event.target.value)}
-                placeholder={bindType === 'mobile' ? '请输入新手机号' : '请输入新邮箱'}
+                placeholder={bindType === 'mobile' ? t('请输入新手机号') : '请输入新邮箱'}
               />
-              <label>新验证码</label>
+              <label>{t('新验证码')}</label>
               <div className="security-form__row">
-                <input value={newCode} onChange={(event) => setNewCode(event.target.value)} placeholder="请输入新验证码" />
+                <input value={newCode} onChange={(event) => setNewCode(event.target.value)} placeholder={t('请输入新验证码')} />
                 <Button disabled={newCountdown > 0} onClick={() => void sendNewCode()}>{newCountdown > 0 ? `${newCountdown}s` : '获取验证码'}</Button>
               </div>
-              <Button theme="solid" type="primary" loading={bindSubmitting} onClick={() => void submitBind()}>确认换绑</Button>
+              <Button theme="solid" type="primary" loading={bindSubmitting} onClick={() => void submitBind()}>{t('确认换绑')}</Button>
             </>
           )}
         </div>

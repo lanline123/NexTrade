@@ -1,5 +1,6 @@
 import type { HomeDecorateResponse } from '@/decorate/types';
 import type { HeaderBootstrapCurrency, HeaderBootstrapLocale, PcHeaderBootstrap } from '@/lib/header-bootstrap';
+import i18n from '@/i18n';
 
 const SERVER_API_BASE = (process.env.PC_API_BASE || 'https://battery.recy.cc').replace(/\/$/, '');
 
@@ -14,10 +15,10 @@ async function readData<T>(response: Response): Promise<T> {
   try {
     json = text ? JSON.parse(text) : {};
   } catch {
-    throw new Error(`接口返回不是 JSON（HTTP ${response.status}）`);
+    throw new Error(i18n.t('接口返回不是 JSON（HTTP {code}）', { code: response.status }) as string);
   }
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || json.message || `请求失败（HTTP ${response.status}）`);
+    throw new Error(json.msg || json.message || (i18n.t('请求失败（HTTP {code}）', { code: response.status }) as string));
   }
   return (json.data ?? json) as T;
 }
@@ -92,8 +93,18 @@ export async function getThemeSettings(): Promise<{ themeStyle?: string } | null
   }
 }
 
-/** PC 公共头部：通常已经包含在 pageModule.pcHeader 中，此接口用于独立刷新。 */
-export async function getPcHeader(previewId?: number): Promise<Record<string, unknown> | null> {
+/** 站点积分名称（旧版 commonStore.integralName，后台可配置，缺省「积分」）。 */
+export async function getIntegralName(fallback = '积分'): Promise<string> {
+  try {
+    const response = await fetch(`${SERVER_API_BASE}/api/common/config/base`, { next: { revalidate: 300 } });
+    const config = await readData<{ integralName?: string }>(response);
+    return (config?.integralName || '').trim() || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** PC 公共头部：通常已经包含在 pageModule.pcHeader 中，此接口用于独立刷新。 */export async function getPcHeader(previewId?: number): Promise<Record<string, unknown> | null> {
   const query = previewId ? `?previewId=${previewId}` : '';
   const [headerResponse, configResponse] = await Promise.all([
     fetch(`${SERVER_API_BASE}/api/home/home/pcHeader${query}`, {
@@ -307,6 +318,7 @@ export interface FooterData {
   bottomNav: Array<Record<string, any>>;
   friendLinks: Array<Record<string, any>>;
   helpCategories: Array<Record<string, any>>;
+  currencies: Array<Record<string, any>>;
 }
 
 async function fetchJson<T>(path: string): Promise<T | null> {
@@ -321,19 +333,21 @@ async function fetchJson<T>(path: string): Promise<T | null> {
   }
 }
 
-/** PC 脚注：站点信息 / 底部导航 / 友情链接 / 帮助分类。 */
+/** PC 脚注：站点信息 / 底部导航 / 友情链接 / 帮助分类 / 货币列表（Footer 语言货币 toolbar 用）。 */
 export async function getFooterData(): Promise<FooterData> {
-  const [config, nav, friendLinks, helpCategories] = await Promise.all([
+  const [config, nav, friendLinks, helpCategories, currencies] = await Promise.all([
     fetchJson<Record<string, any>>('common/config/initConfigSettings'),
     fetchJson<Record<string, any>>('common/pc/getNav'),
     fetchJson<Array<Record<string, any>>>('home/home/friendLinks'),
     fetchJson<Array<Record<string, any>>>('article/category/indexBzzxList?categorySize=5&articleSize=4'),
+    fetchJson<Array<Record<string, any>>>('common/currency/getCurrency').catch(() => []),
   ]);
   return {
     config,
     bottomNav: Array.isArray(nav?.bottomNav) ? nav.bottomNav : [],
     friendLinks: Array.isArray(friendLinks) ? friendLinks : [],
     helpCategories: Array.isArray(helpCategories) ? helpCategories : [],
+    currencies: Array.isArray(currencies) ? currencies : [],
   };
 }
 
@@ -501,6 +515,9 @@ export async function getShopProducts(params: {
   keyword?: string;
   sortField?: string;
   sortOrder?: 'asc' | 'desc';
+  /** 价格区间（旧版 shopCategory/ShopFilter 价格筛选） */
+  minPrice?: number | string;
+  maxPrice?: number | string;
 }): Promise<ProductListResponse> {
   const query = new URLSearchParams();
   query.set('page', String(params.page || 1));
@@ -510,6 +527,8 @@ export async function getShopProducts(params: {
   if (params.keyword) query.set('keyword', params.keyword);
   if (params.sortField) query.set('sortField', params.sortField);
   if (params.sortOrder) query.set('sortOrder', params.sortOrder);
+  if (params.minPrice !== undefined && params.minPrice !== '') query.set('minPrice', String(params.minPrice));
+  if (params.maxPrice !== undefined && params.maxPrice !== '') query.set('maxPrice', String(params.maxPrice));
   const response = await fetch(`${SERVER_API_BASE}/api/product/product/list?${query.toString()}`, { cache: 'no-store' });
   const data = await readData<any>(response);
   return {
@@ -832,6 +851,13 @@ export interface GrouponListItem {
   productPrice?: number | string;
   minGroupNum?: number;
   joinNumCount?: number;
+  /** 拼团活动结束时间（旧版 JoiningGoodsList 倒计时用） */
+  endTime?: string;
+  /** 是否允许参与（false 显示「仅限会员」灰态） */
+  canJoin?: boolean;
+  restrictTip?: string;
+  /** 阶梯团档位 JSON（[{groupNumKey, groupNum}]） */
+  groupNum?: string;
   [key: string]: unknown;
 }
 

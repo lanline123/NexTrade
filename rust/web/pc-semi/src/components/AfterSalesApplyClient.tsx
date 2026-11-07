@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Card, Input, Select, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface ApplyItem {
   itemId: number;
   productName?: string;
@@ -27,6 +28,7 @@ interface ApplyConfig {
 }
 
 export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: number; itemId: number }) {
+    const { t } = useTranslation();
   const [data, setData] = useState<ApplyData | null>(null);
   const [config, setConfig] = useState<ApplyConfig>({});
   const [quantities, setQuantities] = useState<Record<number, number>>({});
@@ -58,7 +60,7 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
       .catch((error) => {
         const message = error instanceof Error ? error.message : '';
         setNeedLogin(message.includes('登录') || message.includes('401'));
-        Toast.error({ content: message || '售后数据加载失败' });
+        Toast.error({ content: message || t('售后数据加载失败') });
       })
       .finally(() => setLoading(false));
   }, [orderId, itemId]);
@@ -99,7 +101,7 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
       });
       const json = await response.json();
       if (json?.code !== undefined && json.code !== 0) {
-        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        Toast.error({ content: String(json?.msg || json?.message || t('上传失败')) });
         return;
       }
       const data = json?.data;
@@ -136,19 +138,19 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
     }
   };
 
-  if (loading) return <Card className="cart-state">售后申请数据加载中...</Card>;
+  if (loading) return <Card className="cart-state">{t('售后申请数据加载中...')}</Card>;
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后申请售后</h2>
-        <Link href={`/login?redirect=/member/aftersales/apply?orderId=${orderId}`}><Button theme="solid" type="primary">去登录</Button></Link>
+        <h2>{t('登录后申请售后')}</h2>
+        <Link href={`/login?redirect=/member/aftersales/apply?orderId=${orderId}`}><Button theme="solid" type="primary">{t('去登录')}</Button></Link>
       </Card>
     );
   }
 
   return (
     <div className="member-aftersales-apply">
-      <Card className="member-card" title={`订单 ${data?.order?.orderSn || orderId}`}>
+      <Card className="member-card" title={t('订单 {id}', { id: data?.order?.orderSn || String(orderId) })}>
         <div className="member-aftersales-apply__items">
           {(data?.list || []).map((item) => {
             const checked = Boolean(quantities[item.itemId]);
@@ -178,39 +180,39 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
         </div>
       </Card>
 
-      <Card className="member-card" title="售后信息">
+      <Card className="member-card" title={t('售后信息')}>
         <div className="member-aftersales-apply__form">
-          <label>售后类型</label>
+          <label>{t('售后类型')}</label>
           <Select value={type} onChange={(value) => setType(Number(value))}>
             {Object.entries(config.aftersaleType || { '1': '退货/退款', '2': '仅退款' }).map(([key, label]) => (
               <Select.Option key={key} value={Number(key)}>{label}</Select.Option>
             ))}
           </Select>
-          <label>售后原因</label>
+          <label>{t('售后原因')}</label>
           {Number(config.afterSalesReasonEnabled ?? 1) === 1 && config.aftersaleReason?.length ? (
             <Select value={reason} onChange={(value) => setReason(String(value))}>
               {config.aftersaleReason.map((item) => <Select.Option key={item} value={item}>{item}</Select.Option>)}
             </Select>
           ) : (
-            <Input value={reason} onChange={setReason} placeholder="请输入售后原因" />
+            <Input value={reason} onChange={setReason} placeholder={t('请输入售后原因')} />
           )}
-          <label>问题描述</label>
-          <Input value={description} onChange={setDescription} placeholder="请描述遇到的问题" />
+          <label>{t('问题描述')}</label>
+          <Input value={description} onChange={setDescription} placeholder={t('请描述遇到的问题')} />
         </div>
 
         {/* 源码 return/Info.vue：上传凭证图片（最多 5 张，单张 2M） */}
         <div style={{ marginTop: 16 }}>
-          <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>上传凭证</div>
+          <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>{t('上传凭证')}</div>
           <div className="aftersales-pics">
             {pics.map((pic, index) => (
               <span className="aftersales-pics__item" key={index}>
-                <img src={String(pic.picThumb || pic.picUrl || '')} alt="凭证" />
+                <img src={String(pic.picThumb || pic.picUrl || '')} alt={t('凭证')} />
                 <button type="button" onClick={() => setPics((current) => current.filter((_, i) => i !== index))}>×</button>
               </span>
             ))}
             {pics.length < 5 ? (
               <label className="aftersales-pics__pick">
-                {uploading ? '上传中...' : '+ 上传'}
+                {uploading ? t('上传中...') : '+ 上传'}
                 <input
                   type="file"
                   accept="image/*"
@@ -228,10 +230,8 @@ export default function AfterSalesApplyClient({ orderId, itemId }: { orderId: nu
       </Card>
 
       <div className="member-aftersales-apply__actions">
-        <Link href="/member/aftersales">返回售后列表</Link>
-        <Button theme="solid" type="primary" size="large" loading={submitting} disabled={!selectedItems.length} onClick={submit}>
-          提交申请
-        </Button>
+        <Link href="/member/aftersales">{t('返回售后列表')}</Link>
+        <Button theme="solid" type="primary" size="large" loading={submitting} disabled={!selectedItems.length} onClick={submit}>{t('提交申请')}</Button>
       </div>
     </div>
   );

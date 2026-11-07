@@ -4,12 +4,16 @@ import PcHeader from '@/components/PcHeaderWithData';
 import PcFooter from '@/components/PcFooter';
 import { getPcHeader, getShopList, type ShopListItem } from '@/lib/api';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: '店铺街 · 万物新生',
-  description: '平台入驻店铺列表，查看店铺热销商品。',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getServerT();
+  return {
+  title: t('店铺街 · 万物新生'),
+  description: t('平台入驻店铺列表，查看店铺热销商品。'),
 };
+}
 
 interface PageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
@@ -29,6 +33,7 @@ function shopHref(shop: ShopListItem): string {
 }
 
 export default async function ShopListPage({ searchParams }: PageProps) {
+    const t = getServerT();
   const page = Math.max(1, Number(readParam(searchParams?.page)) || 1);
   const size = 10;
   const keyword = readParam(searchParams?.keyword);
@@ -53,13 +58,13 @@ export default async function ShopListPage({ searchParams }: PageProps) {
         <div className="shop-list-container">
           <div className="shop-list-toolbar">
             <div className="shop-list-tabs">
-              <Link href={hrefFor(1, '')} className={!sort ? 'is-active' : ''}>综合</Link>
-              <Link href={hrefFor(1, 'shopStar')} className={sort === 'shopStar' ? 'is-active' : ''}>评分</Link>
+              <Link href={hrefFor(1, '')} className={!sort ? 'is-active' : ''}>{t('综合')}</Link>
+              <Link href={hrefFor(1, 'shopStar')} className={sort === 'shopStar' ? 'is-active' : ''}>{t('评分')}</Link>
             </div>
             <form action="/shop" method="get" className="shop-list-search">
-              <input name="keyword" defaultValue={keyword} placeholder="搜索店铺" />
+              <input name="keyword" defaultValue={keyword} placeholder={t('搜索店铺')} />
               {sort ? <input type="hidden" name="sort" value={sort} /> : null}
-              <button type="submit">搜索</button>
+              <button type="submit">{t('搜索')}</button>
             </form>
           </div>
 
@@ -72,12 +77,12 @@ export default async function ShopListPage({ searchParams }: PageProps) {
                       <img src={shop.shopLogo || ''} alt={shop.shopTitle || ''} loading="lazy" />
                     </Link>
                     <div className="shop-content">
-                      <Link href={shopHref(shop)} target="_blank" className="shop-name">{shop.shopTitle || '未命名店铺'}</Link>
+                      <Link href={shopHref(shop)} target="_blank" className="shop-name">{shop.shopTitle || t('未命名店铺')}</Link>
                       <div className="shop-rating-row">
                         <span>{shop.shopStar ? `${Number(shop.shopStar).toFixed(1)} 分` : '暂无评分'}</span>
                         <span>{formatFans(shop.collectCount)} 粉丝</span>
                       </div>
-                      <Link href={shopHref(shop)} target="_blank" className="enter-shop-btn">进入店铺</Link>
+                      <Link href={shopHref(shop)} target="_blank" className="enter-shop-btn">{t('进入店铺')}</Link>
                     </div>
                   </div>
                   <div className="shop-product-list">
@@ -89,20 +94,20 @@ export default async function ShopListPage({ searchParams }: PageProps) {
                         <div className="shop-product-price">¥ {Number(product.productPrice || 0).toFixed(2)}</div>
                       </Link>
                     ))}
-                    {!(shop.listingProduct || []).length ? <div className="shop-product-empty">暂无商品</div> : null}
+                    {!(shop.listingProduct || []).length ? <div className="shop-product-empty">{t('暂无商品')}</div> : null}
                   </div>
                 </article>
               ))}
             </div>
           ) : (
-            <div className="shop-list-empty">暂无店铺数据</div>
+            <div className="shop-list-empty">{t('暂无店铺数据')}</div>
           )}
 
           {data.records.length > 0 && pages > 1 ? (
             <nav className="shop-pagination">
-              {page > 1 ? <Link href={hrefFor(page - 1)}>上一页</Link> : <span className="is-disabled">上一页</span>}
+              {page > 1 ? <Link href={hrefFor(page - 1)}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
               <span>{page} / {pages}</span>
-              {page < pages ? <Link href={hrefFor(page + 1)}>下一页</Link> : <span className="is-disabled">下一页</span>}
+              {page < pages ? <Link href={hrefFor(page + 1)}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
             </nav>
           ) : null}
         </div>

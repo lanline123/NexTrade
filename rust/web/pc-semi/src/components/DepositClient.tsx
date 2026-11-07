@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface DepositSetting { rechargeId: number; money?: number | string; discountMoney?: number | string; }
 const PAY_LABELS: Record<string, string> = {
   wechat: '微信支付',
@@ -18,6 +19,7 @@ const PAY_LABELS: Record<string, string> = {
 };
 
 export default function DepositClient() {
+    const { t } = useTranslation();
   const [settings, setSettings] = useState<DepositSetting[]>([]);
   const [payList, setPayList] = useState<string[]>([]);
   const [selected, setSelected] = useState(-1);
@@ -114,7 +116,7 @@ export default function DepositClient() {
 
   return (
     <Card className="member-card deposit-card" loading={loading}>
-      <h2>选择充值金额</h2>
+      <h2>{t('选择充值金额')}</h2>
       <div className="deposit-grid">
         {settings.map((item, index) => (
           <button key={item.rechargeId} type="button" className={selected === index ? 'is-active' : ''} onClick={() => { setSelected(index); setAmount(String(item.money || '')); }}>
@@ -123,12 +125,12 @@ export default function DepositClient() {
           </button>
         ))}
         <button type="button" className={selected === -1 ? 'is-active' : ''} onClick={() => setSelected(-1)}>
-          <input value={amount} onChange={(event) => { setSelected(-1); setAmount(event.target.value); }} placeholder="自定义金额" inputMode="decimal" />
-          <span>自定义金额</span>
+          <input value={amount} onChange={(event) => { setSelected(-1); setAmount(event.target.value); }} placeholder={t('自定义金额')} inputMode="decimal" />
+          <span>{t('自定义金额')}</span>
         </button>
       </div>
 
-      <h2>选择支付方式</h2>
+      <h2>{t('选择支付方式')}</h2>
       <div className="deposit-pay-list">
         {payList.map((type) => (
           <label key={type} className={payType === type ? 'is-active' : ''}>
@@ -139,20 +141,18 @@ export default function DepositClient() {
       </div>
 
       <label className="deposit-agreement">
-        <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
-        本人此操作将视为同意并接受《余额服务协议》
-      </label>
+        <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />{t('本人此操作将视为同意并接受《余额服务协议》')}</label>
 
       <div className="deposit-actions">
-        <span>充值金额：<b>¥ {Number(chosenAmount || 0).toFixed(2)}</b></span>
-        <Button theme="solid" type="primary" size="large" loading={submitting} onClick={() => void submit()}>提交申请</Button>
+        <span>{t('充值金额：')}<b>¥ {Number(chosenAmount || 0).toFixed(2)}</b></span>
+        <Button theme="solid" type="primary" size="large" loading={submitting} onClick={() => void submit()}>{t('提交申请')}</Button>
       </div>
 
       {qr ? (
         <div className="deposit-qr">
           <p>订单号：{orderId}，请扫码支付</p>
-          <img src={qr} alt="支付二维码" width={260} height={260} />
-          <Button onClick={() => { setQr(''); if (pollRef.current) clearInterval(pollRef.current); }}>取消</Button>
+          <img src={qr} alt={t('支付二维码')} width={260} height={260} />
+          <Button onClick={() => { setQr(''); if (pollRef.current) clearInterval(pollRef.current); }}>{t('取消')}</Button>
         </div>
       ) : null}
     </Card>

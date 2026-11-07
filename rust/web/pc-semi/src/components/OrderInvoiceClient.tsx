@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface InvoiceItem {
   productId?: number;
   productName?: string;
@@ -141,7 +142,8 @@ function productHref(item: InvoiceItem): string {
 }
 
 function statusCell(inv: InvoiceData | null) {
-  if (!inv) return <span className="inv-list__can">可申请</span>;
+    const { t } = useTranslation();
+  if (!inv) return <span className="inv-list__can">{t('可申请')}</span>;
   const status = numField(inv, 'status');
   if (status === 0 || status === 1) {
     return <span className="inv-list__ok">{STATUS_TEXT[status]}</span>;
@@ -160,8 +162,9 @@ function InfoRow({ label, children }: { label: string; children: React.ReactNode
 }
 
 function InvoiceInfo({ order, inv }: { order: InvoiceOrder; inv: InvoiceData | null }) {
+    const { t } = useTranslation();
   const status = numField(inv, 'status');
-  const statusName = field(inv, 'statusName', 'status_name') || STATUS_TEXT[status] || '失败/作废';
+  const statusName = field(inv, 'statusName', 'status_name') || STATUS_TEXT[status] || t('失败/作废');
   const invoiceType = numField(inv, 'invoiceType', 'invoice_type', 1);
   const titleType = numField(inv, 'titleType', 'title_type', 1);
   const isFirm = invoiceType === 2 || titleType === 2;
@@ -182,8 +185,7 @@ function InvoiceInfo({ order, inv }: { order: InvoiceOrder; inv: InvoiceData | n
 
   return (
     <div className="inv-dialog__info">
-      <div className="inv-dialog__audit">
-        审核状态：<span className={`is-${status}`}>{statusName}</span>
+      <div className="inv-dialog__audit">{t('审核状态：')}<span className={`is-${status}`}>{statusName}</span>
         {field(inv, 'applyReply', 'apply_reply') ? <div>{field(inv, 'applyReply', 'apply_reply')}</div> : null}
       </div>
       <dl className="inv-dialog__list">
@@ -194,9 +196,9 @@ function InvoiceInfo({ order, inv }: { order: InvoiceOrder; inv: InvoiceData | n
         </InfoRow>
         <InfoRow label="订单金额">¥ {money(order.totalAmount)}</InfoRow>
         <InfoRow label="发票金额">¥ {money(field(inv, 'amount') || (order.balance ?? order.totalAmount))}</InfoRow>
-        <InfoRow label="发票类型">{INVOICE_TYPE_TEXT[invoiceType] || '普通发票'}</InfoRow>
+        <InfoRow label="发票类型">{INVOICE_TYPE_TEXT[invoiceType] || t('普通发票')}</InfoRow>
         <InfoRow label="发票抬头">{TITLE_TYPE_TEXT[isFirm ? 2 : 1]}</InfoRow>
-        <InfoRow label={isFirm ? '企业名称' : '个人名称'}>{field(inv, 'companyName', 'company_name')}</InfoRow>
+        <InfoRow label={isFirm ? t('企业名称') : '个人名称'}>{field(inv, 'companyName', 'company_name')}</InfoRow>
         {isFirm ? (
           <>
             <InfoRow label="纳税人识别号">{field(inv, 'companyCode', 'company_code')}</InfoRow>
@@ -206,13 +208,13 @@ function InvoiceInfo({ order, inv }: { order: InvoiceOrder; inv: InvoiceData | n
             <InfoRow label="银行账户">{field(inv, 'companyAccount', 'company_account')}</InfoRow>
           </>
         ) : null}
-        <InfoRow label="发票内容">{field(inv, 'invoiceContent', 'invoice_content') || '商品明细'}</InfoRow>
+        <InfoRow label="发票内容">{field(inv, 'invoiceContent', 'invoice_content') || t('商品明细')}</InfoRow>
         <InfoRow label="收票人手机">{field(inv, 'mobile')}</InfoRow>
         <InfoRow label="收票人邮箱">{field(inv, 'email')}</InfoRow>
       </dl>
       {images.length ? (
         <div className="inv-dialog__images">
-          {images.map((src, index) => <img key={index} src={src} alt="发票图片" />)}
+          {images.map((src, index) => <img key={index} src={src} alt={t('发票图片')} />)}
         </div>
       ) : null}
     </div>
@@ -220,6 +222,7 @@ function InvoiceInfo({ order, inv }: { order: InvoiceOrder; inv: InvoiceData | n
 }
 
 export default function OrderInvoiceClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<InvoiceOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -270,7 +273,7 @@ export default function OrderInvoiceClient() {
       companyAccount: mode === 'reapply' ? field(inv, 'companyAccount', 'company_account') : '',
       mobile: mode === 'reapply' ? field(inv, 'mobile') : '',
       email: mode === 'reapply' ? field(inv, 'email') : '',
-      invoiceContent: mode === 'reapply' ? field(inv, 'invoiceContent', 'invoice_content') || '商品明细' : '商品明细',
+      invoiceContent: mode === 'reapply' ? field(inv, 'invoiceContent', 'invoice_content') || t('商品明细') : '商品明细',
     });
     setDialog({ mode, order });
   };
@@ -286,7 +289,7 @@ export default function OrderInvoiceClient() {
     if (!order.orderId) return Toast.error({ content: '缺少订单 ID' });
     if (!form.mobile.trim()) return Toast.error({ content: '请输入收票人手机' });
     if (!form.companyName.trim()) {
-      return Toast.error({ content: form.titleType === 1 ? '请输入个人名称' : '请输入企业名称' });
+      return Toast.error({ content: form.titleType === 1 ? t('请输入个人名称') : '请输入企业名称' });
     }
     if (form.invoiceType === 2 && !invoiceStatus) {
       return Toast.error({ content: '您还未通过增票资质申请，暂时无法开具增值税专用发票' });
@@ -295,7 +298,7 @@ export default function OrderInvoiceClient() {
       invoiceType: form.invoiceType,
       titleType: form.invoiceType === 2 ? 2 : form.titleType,
       amount: Number(form.amount) || Number(order.totalAmount) || 0,
-      invoiceContent: form.invoiceContent || '商品明细',
+      invoiceContent: form.invoiceContent || t('商品明细'),
       mobile: form.mobile.trim(),
       email: form.email.trim(),
       companyName: form.companyName.trim(),
@@ -334,8 +337,8 @@ export default function OrderInvoiceClient() {
     <>
       {/* 原版 MemberTopMenu：发票申请 / 增票资质 */}
       <nav className="invq-tabs">
-        <Link href="/member/orderInvoice/list" className="invq-tabs__item is-active">发票申请</Link>
-        <Link href="/member/userInvoice/info" className="invq-tabs__item">增票资质</Link>
+        <Link href="/member/orderInvoice/list" className="invq-tabs__item is-active">{t('发票申请')}</Link>
+        <Link href="/member/userInvoice/info" className="invq-tabs__item">{t('增票资质')}</Link>
       </nav>
 
       {/* 不用 Card 的 loading：Semi 会把整个 children 换成骨架屏，导致原版常驻的
@@ -344,13 +347,13 @@ export default function OrderInvoiceClient() {
         <div className="inv-list__content">
           {/* 原版 .table-head */}
           <div className="inv-list__head">
-            <div className="inv-list__head-cell">商品名称</div>
-            <div className="inv-list__head-cell">状态</div>
-            <div className="inv-list__head-cell">操作</div>
+            <div className="inv-list__head-cell">{t('商品名称')}</div>
+            <div className="inv-list__head-cell">{t('状态')}</div>
+            <div className="inv-list__head-cell">{t('操作')}</div>
           </div>
 
           {loading ? (
-            <div className="inv-list__loading">加载中...</div>
+            <div className="inv-list__loading">{t('加载中...')}</div>
           ) : rows.length ? (
             <div className="inv-list__cards">
               {rows.map((order) => {
@@ -367,12 +370,10 @@ export default function OrderInvoiceClient() {
                     </colgroup>
                     <thead>
                       <tr>
-                        <th className="inv-list__table-head" colSpan={3}>
-                          订单号：<span className="inv-list__sn">{order.orderSn || '-'}</span>
+                        <th className="inv-list__table-head" colSpan={3}>{t('订单号：')}<span className="inv-list__sn">{order.orderSn || '-'}</span>
                           <span className="inv-list__gap" />
                           下单时间：{order.addTime || '-'}
-                          <span className="inv-list__gap" />
-                          总金额：<span className="inv-list__price">¥ {money(order.totalAmount)}</span>
+                          <span className="inv-list__gap" />{t('总金额：')}<span className="inv-list__price">¥ {money(order.totalAmount)}</span>
                           (运费：<span className="inv-list__fee">¥ {money(order.shippingFee)}</span>)
                         </th>
                       </tr>
@@ -396,16 +397,16 @@ export default function OrderInvoiceClient() {
                         <td className="inv-list__actions">
                           {inv ? (
                             <>
-                              <button type="button" className="inv-list__link" onClick={() => openDialog('info', order)}>查看</button>
+                              <button type="button" className="inv-list__link" onClick={() => openDialog('info', order)}>{t('查看')}</button>
                               {status === 2 ? (
                                 <>
                                   <span className="inv-list__sep">｜</span>
-                                  <button type="button" className="inv-list__link" onClick={() => openDialog('reapply', order)}>重新申请</button>
+                                  <button type="button" className="inv-list__link" onClick={() => openDialog('reapply', order)}>{t('重新申请')}</button>
                                 </>
                               ) : null}
                             </>
                           ) : (
-                            <Button size="small" theme="solid" type="primary" onClick={() => openDialog('apply', order)}>发票申请</Button>
+                            <Button size="small" theme="solid" type="primary" onClick={() => openDialog('apply', order)}>{t('发票申请')}</Button>
                           )}
                         </td>
                       </tr>
@@ -415,16 +416,16 @@ export default function OrderInvoiceClient() {
               })}
               {pages > 1 ? (
                 <div className="comment-pagination">
-                  <button type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>上一页</button>
+                  <button type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>{t('上一页')}</button>
                   <span>{page} / {pages}</span>
-                  <button type="button" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>下一页</button>
+                  <button type="button" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>{t('下一页')}</button>
                 </div>
               ) : null}
             </div>
           ) : (
             <div className="inv-list__empty">
               <img src="/assets/images/empty-box.png" alt="" />
-              <div>还没有可申请订单</div>
+              <div>{t('还没有可申请订单')}</div>
             </div>
           )}
         </div>
@@ -432,17 +433,17 @@ export default function OrderInvoiceClient() {
 
       {/* 原版 InvoiceDialog.vue：查看 / 发票申请 / 重新申请共用一个弹窗 */}
       <Modal
-        title="发票申请"
+        title={t('发票申请')}
         visible={Boolean(dialog)}
         width={800}
         onCancel={closeDialog}
         footer={
           isInfo ? (
-            <Button onClick={closeDialog}>关闭</Button>
+            <Button onClick={closeDialog}>{t('关闭')}</Button>
           ) : (
             <div className="inv-dialog__footer">
-              <Button onClick={closeDialog}>暂不开票</Button>
-              <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>提交开票申请</Button>
+              <Button onClick={closeDialog}>{t('暂不开票')}</Button>
+              <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('提交开票申请')}</Button>
             </div>
           )
         }
@@ -453,8 +454,7 @@ export default function OrderInvoiceClient() {
           ) : (
             <div className="inv-dialog__form">
               {isReapply ? (
-                <div className="inv-dialog__audit">
-                  审核状态：<span className="is-2">失败/作废</span>
+                <div className="inv-dialog__audit">{t('审核状态：')}<span className="is-2">失败/作废</span>
                   {field(dialogInvoice, 'applyReply', 'apply_reply') ? (
                     <div>{field(dialogInvoice, 'applyReply', 'apply_reply')}</div>
                   ) : null}
@@ -467,55 +467,52 @@ export default function OrderInvoiceClient() {
                 <InfoRow label="发票金额">¥ {money(form.amount || dialog.order.totalAmount)}</InfoRow>
               </dl>
 
-              <label className="inv-dialog__label">发票类型</label>
+              <label className="inv-dialog__label">{t('发票类型')}</label>
               <div className="invoice-options">
-                <button type="button" className={form.invoiceType === 1 ? 'is-active' : ''} onClick={() => update('invoiceType', 1)}>普通发票</button>
-                <button type="button" className={form.invoiceType === 2 ? 'is-active' : ''} onClick={() => update('invoiceType', 2)}>增值税专用发票</button>
+                <button type="button" className={form.invoiceType === 1 ? 'is-active' : ''} onClick={() => update('invoiceType', 1)}>{t('普通发票')}</button>
+                <button type="button" className={form.invoiceType === 2 ? 'is-active' : ''} onClick={() => update('invoiceType', 2)}>{t('增值税专用发票')}</button>
               </div>
               {form.invoiceType === 2 && !invoiceStatus ? (
-                <div className="invoice-error">
-                  您还未通过增票资质申请，暂时无法开具增值税专用发票，
-                  <Link href="/member/userInvoice/info">点击这里</Link> 去申请增票资质。
-                </div>
+                <div className="invoice-error">{t('您还未通过增票资质申请，暂时无法开具增值税专用发票，')}<Link href="/member/userInvoice/info">{t('点击这里')}</Link>{t('去申请增票资质。')}</div>
               ) : (
-                <p className="inv-dialog__hint">所有发票由商品供货商开具</p>
+                <p className="inv-dialog__hint">{t('所有发票由商品供货商开具')}</p>
               )}
 
               {form.invoiceType === 1 ? (
                 <>
-                  <label className="inv-dialog__label">发票抬头</label>
+                  <label className="inv-dialog__label">{t('发票抬头')}</label>
                   <div className="invoice-options">
-                    <button type="button" className={form.titleType === 1 ? 'is-active' : ''} onClick={() => update('titleType', 1)}>个人</button>
-                    <button type="button" className={form.titleType === 2 ? 'is-active' : ''} onClick={() => update('titleType', 2)}>企业</button>
+                    <button type="button" className={form.titleType === 1 ? 'is-active' : ''} onClick={() => update('titleType', 1)}>{t('个人')}</button>
+                    <button type="button" className={form.titleType === 2 ? 'is-active' : ''} onClick={() => update('titleType', 2)}>{t('企业')}</button>
                   </div>
                 </>
               ) : null}
 
-              <label className="inv-dialog__label">{isFirm ? '企业名称' : '个人名称'}</label>
-              <input value={form.companyName} onChange={(event) => update('companyName', event.target.value)} placeholder={isFirm ? '请输入企业名称' : '请输入个人名称'} />
+              <label className="inv-dialog__label">{isFirm ? t('企业名称') : '个人名称'}</label>
+              <input value={form.companyName} onChange={(event) => update('companyName', event.target.value)} placeholder={isFirm ? t('请输入企业名称') : '请输入个人名称'} />
               {isFirm ? (
                 <>
-                  <label className="inv-dialog__label">纳税人识别号</label>
-                  <input value={form.companyCode} onChange={(event) => update('companyCode', event.target.value)} placeholder="请输入纳税人识别号" />
-                  <label className="inv-dialog__label">单位地址</label>
-                  <input value={form.companyAddress} onChange={(event) => update('companyAddress', event.target.value)} placeholder="请输入单位地址" />
-                  <label className="inv-dialog__label">单位电话</label>
-                  <input value={form.companyPhone} onChange={(event) => update('companyPhone', event.target.value)} placeholder="请输入单位电话" />
-                  <label className="inv-dialog__label">开户银行</label>
-                  <input value={form.companyBank} onChange={(event) => update('companyBank', event.target.value)} placeholder="请输入开户银行" />
-                  <label className="inv-dialog__label">银行账户</label>
-                  <input value={form.companyAccount} onChange={(event) => update('companyAccount', event.target.value)} placeholder="请输入银行账户" />
+                  <label className="inv-dialog__label">{t('纳税人识别号')}</label>
+                  <input value={form.companyCode} onChange={(event) => update('companyCode', event.target.value)} placeholder={t('请输入纳税人识别号')} />
+                  <label className="inv-dialog__label">{t('单位地址')}</label>
+                  <input value={form.companyAddress} onChange={(event) => update('companyAddress', event.target.value)} placeholder={t('请输入单位地址')} />
+                  <label className="inv-dialog__label">{t('单位电话')}</label>
+                  <input value={form.companyPhone} onChange={(event) => update('companyPhone', event.target.value)} placeholder={t('请输入单位电话')} />
+                  <label className="inv-dialog__label">{t('开户银行')}</label>
+                  <input value={form.companyBank} onChange={(event) => update('companyBank', event.target.value)} placeholder={t('请输入开户银行')} />
+                  <label className="inv-dialog__label">{t('银行账户')}</label>
+                  <input value={form.companyAccount} onChange={(event) => update('companyAccount', event.target.value)} placeholder={t('请输入银行账户')} />
                 </>
               ) : null}
 
-              <label className="inv-dialog__label">发票内容</label>
-              <input value={form.invoiceContent} onChange={(event) => update('invoiceContent', event.target.value)} placeholder="商品明细" />
-              <p className="inv-dialog__hint">发票内容将显示详细商品名称与价格信息；使用礼品卡支付部分的金额，不支持开发票</p>
+              <label className="inv-dialog__label">{t('发票内容')}</label>
+              <input value={form.invoiceContent} onChange={(event) => update('invoiceContent', event.target.value)} placeholder={t('商品明细')} />
+              <p className="inv-dialog__hint">{t('发票内容将显示详细商品名称与价格信息；使用礼品卡支付部分的金额，不支持开发票')}</p>
 
-              <label className="inv-dialog__label">收票人手机</label>
-              <input value={form.mobile} onChange={(event) => update('mobile', event.target.value)} placeholder="请输入收票人手机" />
-              <label className="inv-dialog__label">收票人邮箱</label>
-              <input value={form.email} onChange={(event) => update('email', event.target.value)} placeholder="请输入收票人邮箱" />
+              <label className="inv-dialog__label">{t('收票人手机')}</label>
+              <input value={form.mobile} onChange={(event) => update('mobile', event.target.value)} placeholder={t('请输入收票人手机')} />
+              <label className="inv-dialog__label">{t('收票人邮箱')}</label>
+              <input value={form.email} onChange={(event) => update('email', event.target.value)} placeholder={t('请输入收票人邮箱')} />
             </div>
           )
         ) : null}

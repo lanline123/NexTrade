@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import PcHeader from '@/components/PcHeaderWithData';
+import PcLoginHeader from '@/components/PcLoginHeader';
 import PcFooter from '@/components/PcFooter';
 import LoginClient from '@/components/LoginClient';
-import { getPcHeader, getPcLoginDecorate } from '@/lib/api';
+import { getPcLoginDecorate } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '登录 · 万物新生' };
@@ -13,13 +13,10 @@ export const metadata: Metadata = { title: '登录 · 万物新生' };
  * 装修配置 home/home/pcLogin 决定 loginMode（1 经典 / 2 现代）与背景图/背景色
  */
 export default async function LoginPage() {
-  const [header, decorate] = await Promise.all([
-    getPcHeader().catch(() => null),
-    getPcLoginDecorate().catch(() => null),
-  ]);
+  const decorate = await getPcLoginDecorate().catch(() => null);
   return (
     <>
-      <PcHeader config={header as any} />
+      <PcLoginHeader decorate={decorate} type="login" />
       <LoginClient decorate={decorate} />
       <PcFooter />
     </>

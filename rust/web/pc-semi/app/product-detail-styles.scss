@@ -685,3 +685,46 @@
     .pds-os__anchors { top: 0; overflow-x: auto; }
   }
 }
+
+/* —— 商详增补：视频缩略图 + 进行中拼单列表（源码 Thumb.vue / ProductJoining.vue / ToJoiningList.vue） —— */
+.pds-gallery__thumbs button { position: relative; }
+.pds-gallery__video-icon {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid #fff;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+  padding: 2px 1px 2px 3px;
+  box-sizing: content-box;
+}
+.pds-joining { margin-top: 14px; padding: 12px 14px; border: 1px solid #f2e8dc; border-radius: 8px; background: #fffaf4; }
+.pds-joining__head { margin-bottom: 8px; color: #666; font-size: 13px; }
+.pds-joining__head b { color: var(--pc-primary, #ff5000); font-size: 16px; }
+.pds-joining__list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pds-joining__row { display: flex; align-items: center; gap: 10px; }
+.pds-joining__name { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #333; font-size: 13px; }
+.pds-joining__remain { color: #666; font-size: 13px; }
+.pds-joining__remain i { color: var(--pc-primary, #ff5000); font-style: normal; font-weight: 600; }
+.pds-joining__countdown { margin-left: auto; color: #999; font-size: 12px; }
+.pds-joining__countdown .invite-countdown { display: inline; }
+.pds-joining__countdown .invite-countdown__label { margin-right: 4px; }
+.pds-articles { display: flex; flex-direction: column; gap: 10px; }
+.pds-articles a { color: #2563eb; font-size: 14px; line-height: 1.6; }
+
+/* —— 商品样式边框（旧版 .product-style-border：borderImage 叠加图） —— */
+.pic, .cart-pic { position: relative; }
+.product-style-border {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+  object-fit: fill;
+}

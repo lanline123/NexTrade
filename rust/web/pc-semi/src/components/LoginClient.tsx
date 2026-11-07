@@ -13,11 +13,13 @@ import Link from 'next/link';
 import { Button, Toast } from '@douyinfe/semi-ui';
 import type { PcLoginDecorate } from '@/lib/api';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 async function getCsrf(): Promise<string> {
   const response = await fetch('/api/common/csrf/create', { credentials: 'include' });
   const json = await response.json();
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || '获取 CSRF Token 失败');
+    throw new Error(json.msg || (i18n.t('获取 CSRF Token 失败') as string));
   }
   return typeof json.data === 'string' ? json.data : json.data?.token || '';
 }
@@ -32,7 +34,7 @@ async function postJson(path: string, body: unknown, headers: Record<string, str
   const text = await response.text();
   const json = text ? JSON.parse(text) : {};
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || json.message || `请求失败（${response.status}）`);
+    throw new Error(json.msg || json.message || (i18n.t('请求失败（{code}）', { code: response.status }) as string));
   }
   return json.data ?? json;
 }
@@ -44,6 +46,7 @@ function redirectAfterLogin() {
 }
 
 export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | null }) {
+    const { t } = useTranslation();
   /** 源码 loginMode：1 经典 / 2 现代；默认现代 */
   const loginMode = Number(decorate?.loginMode ?? 2) === 1 ? 1 : 2;
 
@@ -164,42 +167,41 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     <>
       {wechatMode ? (
         <div className="pdp-login__wechat">
-          <div className="pdp-login__wechat-title">请使用微信移动端扫描二维码</div>
+          <div className="pdp-login__wechat-title">{t('请使用微信移动端扫描二维码')}</div>
           {wechatQr && !wechatExpired ? (
-            <img src={wechatQr} alt="微信二维码" />
+            <img src={wechatQr} alt={t('微信二维码')} />
           ) : (
-            <div className="pdp-login__wechat-empty">{wechatExpired ? '二维码已失效' : '加载中...'}</div>
+            <div className="pdp-login__wechat-empty">{wechatExpired ? t('二维码已失效') : '加载中...'}</div>
           )}
           <div className="pdp-login__wechat-actions">
-            <Button onClick={() => void openWechat()}>刷新二维码</Button>
-            <Button onClick={() => { setWechatMode(false); if (poll.current) clearInterval(poll.current); }}>返回</Button>
+            <Button onClick={() => void openWechat()}>{t('刷新二维码')}</Button>
+            <Button onClick={() => { setWechatMode(false); if (poll.current) clearInterval(poll.current); }}>{t('返回')}</Button>
           </div>
         </div>
       ) : (
         <>
           <div className="pdp-login__head">
-            <h1>{loginMode === 1 ? '欢迎登录' : '登录'}</h1>
-            <div className="pdp-login__register">
-              没有账号？<Link href="/register">去注册</Link>
+            <h1>{loginMode === 1 ? t('欢迎登录') : '登录'}</h1>
+            <div className="pdp-login__register">{t('没有账号？')}<Link href="/register">{t('去注册')}</Link>
             </div>
           </div>
 
           {/* 经典：普通登录 / 手机登录；现代：密码登录 / 验证码登录 */}
           <div className="pdp-login__tabs">
             <button type="button" className={tab === 'normal' ? 'is-active' : ''} onClick={() => { setTab('normal'); setError(''); }}>
-              {loginMode === 1 ? '普通登录' : '密码登录'}
+              {loginMode === 1 ? t('普通登录') : '密码登录'}
             </button>
             <button type="button" className={tab === 'mobile' ? 'is-active' : ''} onClick={() => { setTab('mobile'); setError(''); }}>
-              {loginMode === 1 ? '手机登录' : '验证码登录'}
+              {loginMode === 1 ? t('手机登录') : '验证码登录'}
             </button>
           </div>
 
           <form onSubmit={submit} className="pdp-login__form">
             {tab === 'normal' ? (
               <>
-                <input className="pdp-login__input" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="用户名/手机/邮箱" />
-                <input className="pdp-login__input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="密码" />
-                <div className="pdp-login__forget"><Link href="/member/reset">忘记密码？</Link></div>
+                <input className="pdp-login__input" value={username} onChange={(event) => setUsername(event.target.value)} placeholder={t('用户名/手机/邮箱')} />
+                <input className="pdp-login__input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('密码')} />
+                <div className="pdp-login__forget"><Link href="/member/reset">{t('忘记密码？')}</Link></div>
               </>
             ) : (
               <>
@@ -208,10 +210,10 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
                     <option value="+86">(+86)</option>
                     <option value="+61">(+61)</option>
                   </select>
-                  <input className="pdp-login__input" value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder="手机号" maxLength={11} />
+                  <input className="pdp-login__input" value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder={t('手机号')} maxLength={11} />
                 </div>
                 <div className="pdp-login__row">
-                  <input className="pdp-login__input" value={mobileCode} onChange={(event) => setMobileCode(event.target.value)} placeholder="请输入验证码" maxLength={8} />
+                  <input className="pdp-login__input" value={mobileCode} onChange={(event) => setMobileCode(event.target.value)} placeholder={t('请输入验证码')} maxLength={8} />
                   <Button disabled={countdown > 0} onClick={() => void sendCode()}>{countdown > 0 ? `${countdown}s` : '获取验证码'}</Button>
                 </div>
               </>
@@ -219,21 +221,17 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
 
             <label className="pdp-login__agree">
               <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
-              <span>
-                我已阅读并同意
-                <Link href="/article/issue/info?articleSn=fwxy" target="_blank">《服务协议》</Link>
-                和
-                <Link href="/article/issue/info?articleSn=ysxy" target="_blank">《隐私协议》</Link>
+              <span>{t('我已阅读并同意')}<Link href="/article/issue/info?articleSn=fwxy" target="_blank">{t('《服务协议》')}</Link>{t('和')}<Link href="/article/issue/info?articleSn=ysxy" target="_blank">{t('《隐私协议》')}</Link>
               </span>
             </label>
 
             {error ? <div className="pdp-login__error">{error}</div> : null}
 
-            <Button htmlType="submit" theme="solid" type="primary" size="large" block loading={loading}>登录</Button>
+            <Button htmlType="submit" theme="solid" type="primary" size="large" block loading={loading}>{t('登录')}</Button>
           </form>
 
           <div className="pdp-login__other">
-            <button type="button" onClick={() => void openWechat()}>微信扫码登录</button>
+            <button type="button" onClick={() => void openWechat()}>{t('微信扫码登录')}</button>
           </div>
         </>
       )}

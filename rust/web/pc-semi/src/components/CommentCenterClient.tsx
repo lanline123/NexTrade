@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { Button, Spin, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 type TabKey = 'pending' | 'showed' | 'commented';
 
 interface OrderItem {
@@ -100,10 +101,11 @@ function skuText(sku: OrderItem['skuData']): string {
 
 /** 评分星标：1-5 星，缺省不展示 */
 function Stars({ rank }: { rank?: number }) {
+    const { t } = useTranslation();
   const value = Math.min(5, Math.max(0, Number(rank ?? 0)));
   if (!value) return null;
   return (
-    <span className="comment-list__stars" aria-label={`评分 ${value} 星`}>
+    <span className="comment-list__stars" aria-label={t('评分 {v} 星', { v: value })}>
       {'★'.repeat(value)}
       {'☆'.repeat(5 - value)}
     </span>
@@ -111,6 +113,7 @@ function Stars({ rank }: { rank?: number }) {
 }
 
 export default function CommentCenterClient({ initialTab }: { initialTab?: TabKey }) {
+    const { t } = useTranslation();
   const [tab, setTab] = useState<TabKey>(initialTab && TABS.some((item) => item.key === initialTab) ? initialTab : 'pending');
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [comments, setComments] = useState<CommentRow[]>([]);
@@ -214,7 +217,7 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
         <div className="pc-order-panel__body">
           {commentEnabled === 0 ? (
             <div className="comment-empty">
-              <p>评价功能已关闭</p>
+              <p>{t('评价功能已关闭')}</p>
             </div>
           ) : loading ? (
             <div className="member-orders__loading"><Spin size="large" /></div>
@@ -227,13 +230,12 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
                     <article className="member-order" key={item.orderId || index}>
                       <header className="member-order__head">
                         <span className={`member-order__status ${tab === 'pending' ? 'is-s0' : 'is-s2'}`}>
-                          {tab === 'pending' ? '待评价' : '待晒单'}
+                          {tab === 'pending' ? t('待评价') : '待晒单'}
                         </span>
                         <span className="member-order__sn">{item.orderSn || '-'}</span>
                         <span className="comment-center__consignee">收货人：{item.consignee || '-'}</span>
                         <span className="member-order__time">{item.addTime || ''}</span>
-                        <Link className="member-order__detail" href={`/member/order/info?id=${item.orderId || ''}`} target="_blank">
-                          订单详情<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <Link className="member-order__detail" href={`/member/order/info?id=${item.orderId || ''}`} target="_blank">{t('订单详情')}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </Link>
                       </header>
                       {(item.items || []).map((product, productIndex) => (
@@ -245,7 +247,7 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
                           >
                             <img src={product.picThumb || product.productImage || ''} alt={product.productName || ''} />
                             <div className="member-order__shop-text">
-                              <div className="member-order__shop-name">{product.productName || '商品'}</div>
+                              <div className="member-order__shop-name">{product.productName || t('商品')}</div>
                               {skuText(product.skuData) ? <div className="member-order__shop-sku">{skuText(product.skuData)}</div> : null}
                             </div>
                           </Link>
@@ -258,12 +260,12 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
                       <footer className="member-order__foot">
                         <div className="member-order__total">
                           <span>共 {totalCount} 件</span>
-                          <span className="member-order__total-label">合计</span>
+                          <span className="member-order__total-label">{t('合计')}</span>
                           <b>¥ {money(item.totalAmount)}</b>
                         </div>
                         <div className="member-order__bot-actions">
                           <Link href={`/member/comment/info?orderId=${item.orderId || ''}`}>
-                            <Button size="small" theme="solid" type="primary">{tab === 'pending' ? '去评价' : '去晒单'}</Button>
+                            <Button size="small" theme="solid" type="primary">{tab === 'pending' ? t('去评价') : '去晒单'}</Button>
                           </Link>
                         </div>
                       </footer>
@@ -273,21 +275,20 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
               </div>
             ) : (
               <div className="member-orders__empty">
-                <p className="member-orders__empty-title">{tab === 'pending' ? '当前筛选下还没有任何订单哦!' : '暂无待晒单订单'}</p>
-                <p className="member-orders__empty-sub">
-                  现在就去：<Link href="/">选购商品</Link>
+                <p className="member-orders__empty-title">{tab === 'pending' ? t('当前筛选下还没有任何订单哦!') : '暂无待晒单订单'}</p>
+                <p className="member-orders__empty-sub">{t('现在就去：')}<Link href="/">{t('选购商品')}</Link>
                 </p>
               </div>
             )
           ) : comments.length ? (
             <div className="member-orders__list">
               {comments.map((item, index) => {
-                const author = item.isAnonymous === 1 ? '匿名用户' : item.username || '会员';
+                const author = item.isAnonymous === 1 ? t('匿名用户') : item.username || t('会员');
                 return (
                   <article className="member-order comment-card" key={item.commentId || index}>
                     <header className="member-order__head">
                       <span className={`member-order__status ${item.isShowed === 1 ? 'is-s2' : 'is-s3'}`}>
-                        {item.isShowed === 1 ? '已晒单' : item.statusText || '已评价'}
+                        {item.isShowed === 1 ? t('已晒单') : item.statusText || t('已评价')}
                       </span>
                       <span className="comment-card__author">
                         {item.avatar ? (
@@ -298,15 +299,14 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
                         {author}
                       </span>
                       <span className="member-order__time">{item.addTime || ''}</span>
-                      <Link className="member-order__detail" href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank">
-                        商品详情<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <Link className="member-order__detail" href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank">{t('商品详情')}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </Link>
                     </header>
                     <div className="member-order__shop comment-card__product">
                       <Link href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank" className="member-order__shop-main">
                         <img src={item.picThumb || ''} alt={item.productName || ''} />
                         <div className="member-order__shop-text">
-                          <div className="member-order__shop-name">{item.productName || '商品'}</div>
+                          <div className="member-order__shop-name">{item.productName || t('商品')}</div>
                           {item.productSn ? <div className="member-order__shop-sku">货号：{item.productSn}</div> : null}
                         </div>
                       </Link>
@@ -338,7 +338,7 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
                         <div className="comment-list__replies">
                           {(item.replies || []).map((reply, replyIndex) => (
                             <div key={reply.commentId || replyIndex} className="comment-list__reply">
-                              <b>{reply.kefuName || item.kefuName || '商家'}回复：</b>
+                              <b>{reply.kefuName || item.kefuName || t('商家')}回复：</b>
                               <span>{reply.content}</span>
                               {reply.addTime ? <small>{reply.addTime}</small> : null}
                             </div>
@@ -352,9 +352,8 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
             </div>
           ) : (
             <div className="member-orders__empty">
-              <p className="member-orders__empty-title">暂无已评价记录</p>
-              <p className="member-orders__empty-sub">
-                现在就去：<Link href="/">选购商品</Link>
+              <p className="member-orders__empty-title">{t('暂无已评价记录')}</p>
+              <p className="member-orders__empty-sub">{t('现在就去：')}<Link href="/">{t('选购商品')}</Link>
               </p>
             </div>
           )}

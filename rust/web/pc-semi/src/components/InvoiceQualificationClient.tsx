@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { Button, Card, Checkbox, Input, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface InvoiceForm {
   invoiceId?: number;
   status?: number;
@@ -67,6 +68,7 @@ const READONLY_FIELDS: Array<{ key: keyof InvoiceForm; label: string; wide?: boo
 ];
 
 export default function InvoiceQualificationClient() {
+    const { t } = useTranslation();
   const [form, setForm] = useState<InvoiceForm>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -139,8 +141,8 @@ export default function InvoiceQualificationClient() {
       {/* 旧版 MemberTopMenu：发票申请 / 增票资质 —— 收进卡片顶栏，与下方内容同属一块 */}
       <div className="invq-head">
         <nav className="invq-tabs">
-          <Link href="/member/orderInvoice/list" className="invq-tabs__item">发票申请</Link>
-          <Link href="/member/userInvoice/info" className="invq-tabs__item is-active">增票资质</Link>
+          <Link href="/member/orderInvoice/list" className="invq-tabs__item">{t('发票申请')}</Link>
+          <Link href="/member/userInvoice/info" className="invq-tabs__item is-active">{t('增票资质')}</Link>
         </nav>
       </div>
 
@@ -155,8 +157,8 @@ export default function InvoiceQualificationClient() {
           {/* 顶部：标题 + 状态徽标 + 主操作 */}
           <header className="invq-hero">
             <div className="invq-hero__main">
-              <span className="invq-hero__eyebrow">增值税专用发票</span>
-              <h2 className="invq-hero__title">您的增票资质</h2>
+              <span className="invq-hero__eyebrow">{t('增值税专用发票')}</span>
+              <h2 className="invq-hero__title">{t('您的增票资质')}</h2>
               <div className={`invq-badge is-${meta.tone}`}>
                 <i className="invq-badge__dot" />
                 {meta.text}
@@ -166,7 +168,7 @@ export default function InvoiceQualificationClient() {
             <div className="invq-hero__actions">
               {readonly ? (
                 <Button theme="solid" type="primary" onClick={() => toggleEdit(true)}>
-                  {status === 0 ? '添加增票资质' : '修改并重新审核'}
+                  {status === 0 ? t('添加增票资质') : '修改并重新审核'}
                 </Button>
               ) : null}
             </div>
@@ -176,13 +178,12 @@ export default function InvoiceQualificationClient() {
           <section className="invq-notice">
             <span className="invq-notice__badge">!</span>
             <div className="invq-notice__body">
-              <b>温馨提示</b>
+              <b>{t('温馨提示')}</b>
               <ul>
-                <li>我们会在一个工作日内完成审核工作。</li>
-                <li>
-                  资质审核结果查询时间：<em>资质上传一到两个工作日后即可查询</em>。
+                <li>{t('我们会在一个工作日内完成审核工作。')}</li>
+                <li>{t('资质审核结果查询时间：')}<em>{t('资质上传一到两个工作日后即可查询')}</em>。
                 </li>
-                <li>注意：有效增值税专用发票开票资质仅为一个。</li>
+                <li>{t('注意：有效增值税专用发票开票资质仅为一个。')}</li>
               </ul>
             </div>
           </section>
@@ -190,7 +191,7 @@ export default function InvoiceQualificationClient() {
           {/* 审核未通过原因（旧版 status === 3） */}
           {status === 3 && form.applyReply ? (
             <div className="invq-alert">
-              <span className="invq-alert__label">审核失败原因</span>
+              <span className="invq-alert__label">{t('审核失败原因')}</span>
               <p className="invq-alert__text">{form.applyReply}</p>
             </div>
           ) : null}
@@ -199,8 +200,8 @@ export default function InvoiceQualificationClient() {
           {readonly ? (
             <section className="invq-panel">
               <div className="invq-panel__head">
-                <h3>资质信息</h3>
-                <span>以下为已提交的增票资质内容</span>
+                <h3>{t('资质信息')}</h3>
+                <span>{t('以下为已提交的增票资质内容')}</span>
               </div>
               <dl className="invq-grid">
                 {READONLY_FIELDS.map((field) => (
@@ -220,9 +221,8 @@ export default function InvoiceQualificationClient() {
             /* 编辑态：填写资质信息 */
             <section className="invq-panel">
               <div className="invq-panel__head">
-                <h3>填写增票资质信息</h3>
-                <span>
-                  所有信息均为<em>必填</em>
+                <h3>{t('填写增票资质信息')}</h3>
+                <span>{t('所有信息均为')}<em>{t('必填')}</em>
                 </span>
               </div>
               <div className="invq-form">
@@ -245,18 +245,12 @@ export default function InvoiceQualificationClient() {
                 ))}
               </div>
               <div className="invq-agree">
-                <Checkbox checked={agreed} onChange={(event) => setAgreed(Boolean(event.target.checked))}>
-                  我已阅读并同意
-                </Checkbox>
-                <Link href="/member/userInvoice/confirmInfo" target="_blank" className="invq-agree__link">
-                  《增票资质确认书》
-                </Link>
+                <Checkbox checked={agreed} onChange={(event) => setAgreed(Boolean(event.target.checked))}>{t('我已阅读并同意')}</Checkbox>
+                <Link href="/member/userInvoice/confirmInfo" target="_blank" className="invq-agree__link">{t('《增票资质确认书》')}</Link>
               </div>
               <div className="invq-actions">
-                <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>
-                  确认
-                </Button>
-                <Button onClick={() => toggleEdit(false)}>取消</Button>
+                <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('确认')}</Button>
+                <Button onClick={() => toggleEdit(false)}>{t('取消')}</Button>
               </div>
             </section>
           )}

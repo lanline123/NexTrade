@@ -4,9 +4,11 @@ import PcFooter from '@/components/PcFooter';
 import { getPcHeader } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
 export default async function ReturnInfoRedirect({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+    const t = getServerT();
   const read = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] || '' : value || '');
   const aftersalesId = read(searchParams?.id) || read(searchParams?.aftersalesId);
   const orderId = read(searchParams?.orderId) || read(searchParams?.order_id);
@@ -18,8 +20,8 @@ export default async function ReturnInfoRedirect({ searchParams }: { searchParam
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title="退款详情">
-    <div className="comment-empty">缺少售后单号或订单号，无法打开退款详情。请从订单列表进入。</div>
+        <MemberShell title={t('退款详情')}>
+    <div className="comment-empty">{t('缺少售后单号或订单号，无法打开退款详情。请从订单列表进入。')}</div>
         </MemberShell>
       </main>
       <PcFooter />

@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface GrouponRecord {
   grouponPromotionRecordId?: number;
   productName?: string;
@@ -56,6 +57,7 @@ function money(value: unknown): string {
 }
 
 export default function PinListClient() {
+    const { t } = useTranslation();
   const [orderType, setOrderType] = useState(0);
   const [dateType, setDateType] = useState(4);
   const [keyword, setKeyword] = useState('');
@@ -116,37 +118,36 @@ export default function PinListClient() {
         <input
           className="pin-toolbar__input"
           value={keyword}
-          placeholder="订单号或商品名称"
+          placeholder={t('订单号或商品名称')}
           onChange={(event) => setKeyword(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter') { setSearchTerm(keyword.trim()); setPage(1); }
           }}
         />
-        <Button onClick={() => { setSearchTerm(keyword.trim()); setPage(1); }}>搜索</Button>
+        <Button onClick={() => { setSearchTerm(keyword.trim()); setPage(1); }}>{t('搜索')}</Button>
         <select className="pin-toolbar__select" value={dateType} onChange={(event) => { setDateType(Number(event.target.value)); setPage(1); }}>
           {DATE_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
       </div>
 
       <div className="pin-table-head">
-        <div style={{ width: '40%' }}>商品</div>
-        <div style={{ width: '12%' }}>数量</div>
-        <div style={{ width: '12%' }}>金额</div>
-        <div style={{ width: '12%' }}>团购状态</div>
-        <div style={{ width: '12%' }}>订单状态</div>
-        <div style={{ width: '12%' }}>操作</div>
+        <div style={{ width: '40%' }}>{t('商品')}</div>
+        <div style={{ width: '12%' }}>{t('数量')}</div>
+        <div style={{ width: '12%' }}>{t('金额')}</div>
+        <div style={{ width: '12%' }}>{t('团购状态')}</div>
+        <div style={{ width: '12%' }}>{t('订单状态')}</div>
+        <div style={{ width: '12%' }}>{t('操作')}</div>
       </div>
 
-      {loading ? <Card className="cart-state">加载中...</Card> : null}
+      {loading ? <Card className="cart-state">{t('加载中...')}</Card> : null}
 
       {!loading && records.map((item) => (
         <table className="pin-table" key={String(item.grouponPromotionRecordId)}>
           <thead>
             <tr>
-              <th colSpan={4}>
-                团购订单号：<span className="pin-red">{item.orderSn || '-'}</span>
+              <th colSpan={4}>{t('团购订单号：')}<span className="pin-red">{item.orderSn || '-'}</span>
                 <span className="pin-gap">创团时间：{item.orderAddTime || item.startTime || '-'}</span>
-                <span className="pin-gap">创团类型：{Number(item.joinType) === 1 ? '建团（团长）' : '参团'}</span>
+                <span className="pin-gap">创团类型：{Number(item.joinType) === 1 ? t('建团（团长）') : '参团'}</span>
               </th>
             </tr>
           </thead>
@@ -156,7 +157,7 @@ export default function PinListClient() {
                 <div className="pin-goods">
                   <img src={item.picThumb || ''} alt={item.productName || ''} />
                   <div>
-                    <p>{item.productName || '商品'}</p>
+                    <p>{item.productName || t('商品')}</p>
                     <ul>
                       <li>¥ {money(item.minGrouponPrice ?? item.productPrice)}</li>
                     </ul>
@@ -166,17 +167,17 @@ export default function PinListClient() {
               <td>X{Number(item.joinNumCount || 1)}</td>
               <td>总额：¥ {money(item.minGrouponPrice ?? item.productPrice)}</td>
               <td>
-                <div className="pin-status">{item.joinStatusDesc || '进行中'}</div>
+                <div className="pin-status">{item.joinStatusDesc || t('进行中')}</div>
                 {item.minGroupNum ? <div className="pin-sub">还差 {Math.max(0, Number(item.minGroupNum) - Number(item.joinNumCount || 0))} 人成团</div> : null}
               </td>
               <td>
-                <div>{item.orderId ? '已确认付款' : '待支付'}</div>
+                <div>{item.orderId ? t('已确认付款') : '待支付'}</div>
                 {item.orderId ? (
-                  <Link className="pin-link" href={`/member/order/detail?id=${item.orderId}`}>订单详情</Link>
+                  <Link className="pin-link" href={`/member/order/detail?id=${item.orderId}`}>{t('订单详情')}</Link>
                 ) : null}
               </td>
               <td>
-                <Link className="pin-link" href={`/member/pin/group?id=${item.grouponPromotionRecordId}`} target="_blank">团购详情</Link>
+                <Link className="pin-link" href={`/member/pin/group?id=${item.grouponPromotionRecordId}`} target="_blank">{t('团购详情')}</Link>
               </td>
             </tr>
           </tbody>
@@ -185,16 +186,16 @@ export default function PinListClient() {
 
       {!loading && !records.length ? (
         <Card className="cart-state pin-empty">
-          <p className="pin-empty__title">当前筛选下还没有任何订单哦!</p>
-          <p>现在就去：<Link href="/">选购商品</Link></p>
+          <p className="pin-empty__title">{t('当前筛选下还没有任何订单哦!')}</p>
+          <p>{t('现在就去：')}<Link href="/">{t('选购商品')}</Link></p>
         </Card>
       ) : null}
 
       {pages > 1 ? (
         <div className="comment-pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>上一页</button>
+          <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>{t('上一页')}</button>
           <span>{page} / {pages}</span>
-          <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>下一页</button>
+          <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>{t('下一页')}</button>
         </div>
       ) : null}
     </>

@@ -39,6 +39,10 @@ function add(text) {
   if (!/[\u4e00-\u9fa5]/.test(value)) return;
   if (/^(https?:)?\/\//.test(value)) return;
   if (/^[\d\s.,%¥$+\-]+/.test(value)) return;
+  // 动态插值模板（含 ${}）无法作为静态 key，运行时由 I18nTranslator.translateDynamic 正则兜底，不计入静态覆盖率
+  if (value.includes('${')) return;
+  // 排除通用引号正则误抓的 JSX/代码片段（含尖括号、箭头函数、HTML 实体、转义换行、语句分号）
+  if (/[<>`]|=>|&[lg]t;|\\n|;/.test(value)) return;
   candidates.set(value, (candidates.get(value) || 0) + 1);
 }
 

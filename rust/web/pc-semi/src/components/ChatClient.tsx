@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import { EMOJI_BASE, emojiElements, splitEmoji } from '@/components/emojiElements';
 
+import { useTranslation } from 'react-i18next';
 interface Conversation {
   conversationId?: number;
   shopId?: number;
@@ -46,7 +48,28 @@ function cardOf(message: ChatMessage, kind: 'product' | 'order'): Record<string,
   return (raw as Record<string, unknown>) || null;
 }
 
+/** 文本渲染：`[表情名]` → OSS 表情图（源码 EmojiHtml.replaceEmojiToHtml） */
+function TextWithEmoji({ text }: { text: string }) {
+  return (
+    <>
+      {splitEmoji(text).map((part, index) =>
+        part.type === 'emoji' ? (
+          <img
+            key={index}
+            className="chat-emoji"
+            src={`${EMOJI_BASE}${emojiElements.find((item) => item.name === part.value)?.id || ''}.png`}
+            alt={part.value}
+          />
+        ) : (
+          <span key={index}>{part.value}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 export default function ChatClient() {
+    const { t } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [active, setActive] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,6 +80,15 @@ export default function ChatClient() {
   const socketRef = useRef<WebSocket | null>(null);
   const activeRef = useRef<Conversation | null>(null);
   const closedRef = useRef(false);
+  // 源码 ChatInput.vue：表情选择器（[表情名] 标记插入输入框）
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  // 源码 ChatRight.vue：右侧信息栏（店铺 / 咨询商品 / 相关订单卡片）
+  const [pendingProduct, setPendingProduct] = useState<Record<string, any> | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<Record<string, any> | null>(null);
+  // 历史消息分页（源码 ChatMessageList：first_id 向前翻页），与 5s 轮询的增量列表分开存放
+  const [olderMessages, setOlderMessages] = useState<ChatMessage[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     activeRef.current = active;
@@ -135,6 +167,37 @@ export default function ChatClient() {
       .catch(() => setMessages([]));
   };
 
+  /** 切换会话时清空已加载的历史页 */
+  const resetHistory = () => {
+    setOlderMessages([]);
+    setHasMore(false);
+  };
+
+  /** 源码 ChatMessageList：以当前最早一条消息 id 向前翻历史页（first_id + desc 取 20 条再倒序） */
+  const loadOlder = async () => {
+    const conversation = active;
+    if (!conversation || loadingMore) return;
+    const firstId = Number(olderMessages[0]?.id || messages[0]?.id || 0);
+    if (!firstId) return;
+    setLoadingMore(true);
+    try {
+      const result = await apiGet<{ records?: ChatMessage[] }>('im/conversation/message/list', {
+        shopId: conversation.shopId || 0,
+        conversationId: conversation.conversationId || 0,
+        firstId,
+        sortOrder: 'desc',
+        size: 20,
+      });
+      const records = (result?.records || []).slice().reverse();
+      setOlderMessages((current) => [...records, ...current]);
+      setHasMore(records.length >= 20);
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
       setLoading(false);
@@ -142,7 +205,69 @@ export default function ChatClient() {
       return;
     }
     loadConversations();
+    // 源码 chat/index.vue:660-680：商详/订单页跳转携带 shopId/productId/orderId，
+    // 自动取详情并推送商品/订单卡片发起会话
+    const params = new URLSearchParams(window.location.search);
+    const shopIdParam = Number(params.get('shopId')) || 0;
+    const productIdParam = Number(params.get('productId')) || 0;
+    const orderIdParam = Number(params.get('orderId')) || 0;
+    if (productIdParam) {
+      apiGet<Record<string, any>>('product/product/detail', { id: productIdParam })
+        .then((result) => {
+          const row = result?.item || {};
+          const card = {
+            messageType: 'custom',
+            productId: row.productId,
+            picUrl: row.picThumb || row.picUrl || '',
+            productName: row.productName || '',
+            productSn: row.productSn || '',
+            productPrice: Number(row.productPrice || 0),
+          };
+          setPendingProduct(card);
+          void sendCard(card, shopIdParam);
+        })
+        .catch(() => undefined);
+    }
+    if (orderIdParam) {
+      apiGet<Record<string, any>>('user/order/detail', { id: orderIdParam })
+        .then((result) => {
+          const items = Array.isArray(result?.items) ? result.items : [];
+          const card = {
+            orderId: result?.orderId,
+            orderSn: result?.orderSn || '',
+            picUrl: items[0]?.picThumb || '',
+            productName: items[0]?.productName || '',
+            productNum: items.length,
+            totalAmount: Number(result?.totalAmount || 0),
+            orderStatusName: result?.orderStatusName || '',
+          };
+          setPendingOrder(card);
+          void sendCard(card, shopIdParam, 'order');
+        })
+        .catch(() => undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** 源码 chat/index.vue handleSendProduct/handleSendOrder：custom 卡片消息（新会话不带 conversationId） */
+  const sendCard = async (card: Record<string, any>, shopIdParam?: number, kind: 'product' | 'order' = 'product') => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) return;
+    try {
+      const isNew = !active || Number(active.conversationId) === -1;
+      const payload: Record<string, any> = {
+        shopId: shopIdParam ?? active?.shopId ?? 0,
+        content: kind === 'product'
+          ? { messageType: 'custom', product: card }
+          : { messageType: 'custom', order: card },
+      };
+      if (!isNew && active?.conversationId) payload.conversationId = active.conversationId;
+      else if (shopIdParam !== undefined) payload.conversationId = undefined;
+      await apiPost('im/conversation/message/send', payload);
+      loadConversations();
+    } catch {
+      // 新会话首条卡片发送失败不打断页面
+    }
+  };
 
   useEffect(() => {
     loadMessages(active);
@@ -173,7 +298,7 @@ export default function ChatClient() {
       });
       const json = await response.json();
       if (json?.code !== undefined && json.code !== 0) {
-        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        Toast.error({ content: String(json?.msg || json?.message || t('上传失败')) });
         return;
       }
       const data = json?.data;
@@ -209,8 +334,8 @@ export default function ChatClient() {
     }
   };
 
-  if (loading) return <Card className="member-card">会话加载中...</Card>;
-  if (!conversations.length) return <Card className="member-card">暂无会话。进入商品或店铺后点击客服即可发起咨询。</Card>;
+  if (loading) return <Card className="member-card">{t('会话加载中...')}</Card>;
+  if (!conversations.length) return <Card className="member-card">{t('暂无会话。进入商品或店铺后点击客服即可发起咨询。')}</Card>;
 
   return (
     <div className="chat-layout">
@@ -224,7 +349,7 @@ export default function ChatClient() {
           >
             <img src={item.shopLogo || ''} alt={item.shopTitle || ''} />
             <div>
-              <b>{item.shopTitle || (item.shopId ? '店铺客服' : '平台自营')}</b>
+              <b>{item.shopTitle || (item.shopId ? t('店铺客服') : '平台自营')}</b>
               <span>{item.lastMessage || ''}</span>
             </div>
             {Number(item.unreadCount || 0) > 0 ? <i>{item.unreadCount}</i> : null}
@@ -232,9 +357,14 @@ export default function ChatClient() {
         ))}
       </aside>
       <section className="chat-panel">
-        <header>{active?.shopTitle || '客服会话'}</header>
+        <header>{active?.shopTitle || t('客服会话')}</header>
         <div className="chat-messages">
-          {messages.map((message, index) => {
+          {hasMore || olderMessages.length ? (
+            <button type="button" className="chat-load-more" disabled={loadingMore} onClick={() => void loadOlder()}>
+              {loadingMore ? t('加载中...') : hasMore ? t('查看更多消息') : ''}
+            </button>
+          ) : null}
+          {[...olderMessages, ...messages].map((message, index) => {
             const self = Boolean(message.isSelf) || Number(message.senderType) === 1;
             const kind = messageKind(message);
             const product = cardOf(message, 'product');
@@ -243,7 +373,7 @@ export default function ChatClient() {
               <div key={message.id || index} className={`chat-message${self ? ' is-self' : ''}`}>
                 <div className="chat-message__bubble">
                   {kind === 'image' ? (
-                    <img className="chat-message__image" src={textOf(message)} alt="图片消息" />
+                    <img className="chat-message__image" src={textOf(message)} alt={t('图片消息')} />
                   ) : product ? (
                     <a className="chat-message__card" href={`/product/${String(product.productId || product.id || '')}`} target="_blank" rel="noreferrer">
                       <img src={String(product.picThumb || product.pic || '')} alt="" />
@@ -260,7 +390,7 @@ export default function ChatClient() {
                       </div>
                     </div>
                   ) : (
-                    textOf(message) || '[非文本消息]'
+                    <TextWithEmoji text={textOf(message) || t('[非文本消息]')} />
                   )}
                 </div>
                 <div className="chat-message__time">{message.sendTime || message.addTime || ''}</div>
@@ -269,11 +399,40 @@ export default function ChatClient() {
           })}
           <div ref={bottomRef} />
         </div>
+        {pendingProduct || pendingOrder ? (
+          <aside className="chat-side">
+            {pendingProduct ? (
+              <div className="chat-side__section">
+                <div className="chat-side__title">{t('咨询商品')}</div>
+                <div className="chat-side__card">
+                  <img src={String(pendingProduct.picUrl || '')} alt="" />
+                  <div>
+                    <div className="chat-side__name">{String(pendingProduct.productName || '')}</div>
+                    <div className="chat-side__price">¥{Number(pendingProduct.productPrice || 0).toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {pendingOrder ? (
+              <div className="chat-side__section">
+                <div className="chat-side__title">{t('相关订单')}</div>
+                <div className="chat-side__card">
+                  <img src={String(pendingOrder.picUrl || '')} alt="" />
+                  <div>
+                    <div className="chat-side__name">{String(pendingOrder.productName || '')}</div>
+                    <div className="chat-side__price">
+                      ¥{Number(pendingOrder.totalAmount || 0).toFixed(2)} · {String(pendingOrder.orderStatusName || '')}
+                    </div>
+                  </div>
+                </div>
+                <Button size="small" onClick={() => void sendCard(pendingOrder, active?.shopId ?? 0, 'order')}>{t('再次发送订单卡片')}</Button>
+              </div>
+            ) : null}
+          </aside>
+        ) : null}
         <div className="chat-input">
           <div className="chat-input__tools">
-            <label className="chat-input__tool">
-              图片
-              <input
+            <label className="chat-input__tool">{t('图片')}<input
                 type="file"
                 accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
                 hidden
@@ -284,12 +443,31 @@ export default function ChatClient() {
                 }}
               />
             </label>
-            <span className="chat-input__tips">按 Shift + Enter 换行</span>
+            {/* 源码 ChatInput/Emoji.vue：表情选择器，插入 [表情名] 标记 */}
+            <button type="button" className="chat-input__tool" onClick={() => setEmojiOpen((open) => !open)}>{t('表情')}</button>
+            <span className="chat-input__tips">{t('按 Shift + Enter 换行')}</span>
+            {emojiOpen ? (
+              <div className="chat-emoji-picker">
+                {emojiElements.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    title={item.name}
+                    onClick={() => {
+                      setInput((current) => `${current}[${item.name}]`);
+                      setEmojiOpen(false);
+                    }}
+                  >
+                    <img src={`${EMOJI_BASE}${item.id}.png`} alt={item.name} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="输入消息，按发送"
+            placeholder={t('输入消息，按发送')}
             rows={3}
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
@@ -298,7 +476,7 @@ export default function ChatClient() {
               }
             }}
           />
-          <Button theme="solid" type="primary" loading={sending} onClick={() => void send()}>发送</Button>
+          <Button theme="solid" type="primary" loading={sending} onClick={() => void send()}>{t('发送')}</Button>
         </div>
       </section>
     </div>

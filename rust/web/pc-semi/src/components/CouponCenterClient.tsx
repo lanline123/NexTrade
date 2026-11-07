@@ -19,6 +19,8 @@ import { useSearchParams } from 'next/navigation';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 interface Coupon {
   couponId: number;
   couponName?: string;
@@ -54,15 +56,16 @@ function couponStatus(coupon: Coupon): '已领取' | '马上领' | '再次领取
 
 function validityText(coupon: Coupon): string {
   if (Number(coupon.sendType) === 1) {
-    return `${coupon.useStartDate || ''} 至 ${coupon.useEndDate || ''}`.trim();
+    return i18n.t('{a} 至 {b}', { a: coupon.useStartDate || '', b: coupon.useEndDate || '' }) as string;
   }
   const delayDay = Number(coupon.delayDay || 0);
   const useDay = Number(coupon.useDay || 0);
-  if (delayDay > 0) return `领券${delayDay}天后生效，有效期${useDay}天`;
-  return `领券当日起${useDay}天内可用`;
+  if (delayDay > 0) return i18n.t('领券{d}天后生效，有效期{u}天', { d: delayDay, u: useDay }) as string;
+  return i18n.t('领券当日起{u}天内可用', { u: useDay }) as string;
 }
 
 export default function CouponCenterClient() {
+    const { t } = useTranslation();
   const searchParams = useSearchParams();
   const shopIdFromQuery = Number(searchParams?.get('shopId') || 0);
   const [rows, setRows] = useState<Coupon[]>([]);
@@ -75,7 +78,8 @@ export default function CouponCenterClient() {
     setLoading(true);
     apiGet<{ records?: Coupon[]; total?: number }>('user/coupon/getList', {
       page: 1,
-      size: 20,
+      // 旧版一次拉全量（List.vue filterParams 仅 page:1），放大 size 保证券全部可领
+      size: 100,
       isShow: 1,
       shopId: shopIdFromQuery > 0 ? shopIdFromQuery : -1,
     })
@@ -86,7 +90,7 @@ export default function CouponCenterClient() {
       .catch((error) => {
         const message = error instanceof Error ? error.message : '';
         if (message.includes('登录') || message.includes('401')) setNeedLogin(true);
-        else Toast.error({ content: message || '优惠券加载失败' });
+        else Toast.error({ content: message || t('优惠券加载失败') });
         setRows([]);
         setTotal(0);
       })
@@ -120,21 +124,21 @@ export default function CouponCenterClient() {
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后领取优惠券</h2>
-        <p>登录后可查看并领取集券中心优惠券。</p>
+        <h2>{t('登录后领取优惠券')}</h2>
+        <p>{t('登录后可查看并领取集券中心优惠券。')}</p>
         <Link href={`/login?redirect=${encodeURIComponent('/coupon/list')}`}>
-          <Button theme="solid" type="primary" size="large">去登录</Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </Card>
     );
   }
 
   if (loading) {
-    return <Card className="member-card">优惠券加载中...</Card>;
+    return <Card className="member-card">{t('优惠券加载中...')}</Card>;
   }
 
   if (!rows.length) {
-    return <Card className="member-card">暂无可领取的优惠券～</Card>;
+    return <Card className="member-card">{t('暂无可领取的优惠券～')}</Card>;
   }
 
   return (
@@ -158,7 +162,7 @@ export default function CouponCenterClient() {
                 ) : (
                   <b>
                     {Number(coupon.couponDiscount || 0)}
-                    <small>折</small>
+                    <small>{t('折')}</small>
                   </b>
                 )}
               </div>
@@ -180,7 +184,7 @@ export default function CouponCenterClient() {
                 </Button>
               </div>
               {coupon.shopId ? (
-                <span style={{ display: 'block', marginTop: 8, color: '#98a2b3', fontSize: 12 }}>店铺券</span>
+                <span style={{ display: 'block', marginTop: 8, color: '#98a2b3', fontSize: 12 }}>{t('店铺券')}</span>
               ) : null}
               </Card>
             </div>

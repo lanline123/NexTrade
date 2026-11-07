@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface Profile {
   userId?: number;
   username?: string;
@@ -25,6 +26,7 @@ interface Profile {
 }
 
 export default function ProfileClient() {
+    const { t } = useTranslation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState({ nickname: '', email: '', birthday: '' });
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export default function ProfileClient() {
       });
       const json = await response.json();
       if (json?.code !== undefined && json.code !== 0) {
-        Toast.error({ content: String(json?.msg || json?.message || '上传失败') });
+        Toast.error({ content: String(json?.msg || json?.message || t('上传失败')) });
         return;
       }
       const data = json?.data;
@@ -103,13 +105,13 @@ export default function ProfileClient() {
     }
   };
 
-  if (loading) return <Card className="member-card">资料加载中...</Card>;
+  if (loading) return <Card className="member-card">{t('资料加载中...')}</Card>;
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后查看资料</h2>
+        <h2>{t('登录后查看资料')}</h2>
         <Link href="/login?redirect=/member/profile">
-          <Button theme="solid" type="primary" size="large">去登录</Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </Card>
     );
@@ -117,13 +119,13 @@ export default function ProfileClient() {
 
   return (
     <Card className="member-card member-profile">
-      <h3 className="profile-title">用户信息</h3>
-      <p className="profile-tip">请在这里填写准确的个人信息</p>
+      <h3 className="profile-title">{t('用户信息')}</h3>
+      <p className="profile-tip">{t('请在这里填写准确的个人信息')}</p>
 
       <div className="profile-avatar">
-        {profile?.avatar ? <img src={profile.avatar} alt="头像" /> : <span>头像</span>}
+        {profile?.avatar ? <img src={profile.avatar} alt={t('头像')} /> : <span>{t('头像')}</span>}
         <label className="profile-avatar__pick">
-          {uploading ? '上传中...' : '更换头像'}
+          {uploading ? t('上传中...') : '更换头像'}
           <input
             type="file"
             accept="image/*"
@@ -138,13 +140,13 @@ export default function ProfileClient() {
       </div>
 
       <div className="security-form profile-form">
-        <label>生日</label>
+        <label>{t('生日')}</label>
         <input type="date" value={form.birthday} onChange={(event) => setForm((current) => ({ ...current, birthday: event.target.value }))} />
 
-        <label>昵称</label>
-        <input value={form.nickname} onChange={(event) => setForm((current) => ({ ...current, nickname: event.target.value }))} placeholder="请输入昵称" />
+        <label>{t('昵称')}</label>
+        <input value={form.nickname} onChange={(event) => setForm((current) => ({ ...current, nickname: event.target.value }))} placeholder={t('请输入昵称')} />
 
-        <label>手机</label>
+        <label>{t('手机')}</label>
         <div className="profile-bind">
           {profile?.mobile ? (
             <>
@@ -153,13 +155,13 @@ export default function ProfileClient() {
             </>
           ) : (
             <>
-              <span>未绑定</span>
+              <span>{t('未绑定')}</span>
               <Link href="/member/security/info">[去绑定]</Link>
             </>
           )}
         </div>
 
-        <label>邮箱</label>
+        <label>{t('邮箱')}</label>
         <div className="profile-bind">
           {profile?.email ? (
             <>
@@ -168,15 +170,15 @@ export default function ProfileClient() {
             </>
           ) : (
             <>
-              <span>未绑定</span>
+              <span>{t('未绑定')}</span>
               <Link href="/member/security/info">[去绑定]</Link>
             </>
           )}
         </div>
 
         <div className="profile-actions">
-          <Button onClick={() => window.history.back()}>取消</Button>
-          <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>保存资料</Button>
+          <Button onClick={() => window.history.back()}>{t('取消')}</Button>
+          <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('保存资料')}</Button>
         </div>
       </div>
     </Card>

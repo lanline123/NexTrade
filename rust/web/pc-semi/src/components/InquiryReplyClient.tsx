@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { Button, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 export default function InquiryReplyClient({ id }: { id: number }) {
+    const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -38,10 +40,10 @@ export default function InquiryReplyClient({ id }: { id: number }) {
 
   return (
     <div className="inquiry-reply-form">
-      <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={4} placeholder="请输入回复内容" />
+      <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={4} placeholder={t('请输入回复内容')} />
       <div className="inquiry-reply-actions">
-        <Button theme="solid" type="primary" loading={loading} onClick={() => void reply()}>回复咨询</Button>
-        <Button type="danger" loading={loading} onClick={() => void remove()}>删除咨询</Button>
+        <Button theme="solid" type="primary" loading={loading} onClick={() => void reply()}>{t('回复咨询')}</Button>
+        <Button type="danger" loading={loading} onClick={() => void remove()}>{t('删除咨询')}</Button>
       </div>
     </div>
   );

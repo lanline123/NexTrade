@@ -29,6 +29,7 @@ import Link from 'next/link';
 import { Spin, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 /** 后端默认 size=15（CollectListQuery::page_params），与原版不传 size 时一致 */
 const PAGE_SIZE = 15;
 const GRID_GAP = 8;
@@ -118,6 +119,7 @@ function parseStyleMap(raw: unknown): Record<number, ActiveStyle> {
 }
 
 export default function CollectProductClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<CollectRow[]>([]);
   const [briefs, setBriefs] = useState<Record<number, ProductBrief>>({});
   const [styles, setStyles] = useState<Record<number, ActiveStyle>>({});
@@ -206,7 +208,7 @@ export default function CollectProductClient() {
       setRows([]);
       setTotal(0);
       if (!message.includes('登录') && !message.includes('401')) {
-        Toast.error({ content: message || '心愿单加载失败' });
+        Toast.error({ content: message || t('心愿单加载失败') });
       }
     } finally {
       if (current === generation.current) setLoading(false);
@@ -258,12 +260,12 @@ export default function CollectProductClient() {
   if (needLogin) {
     return (
       <div className="collect-product collect-product--empty">
-        <div className="title-or-tabs"><span className="card-title">心愿单</span></div>
+        <div className="title-or-tabs"><span className="card-title">{t('心愿单')}</span></div>
         <div className="no-result">
           <div className="empty">
             <img className="empty-img" src="/assets/images/empty-box.png" alt="" />
-            <div className="empty-text">登录后查看心愿单</div>
-            <Link className="collect-product__login" href="/login?redirect=/member/collectProduct/list">去登录</Link>
+            <div className="empty-text">{t('登录后查看心愿单')}</div>
+            <Link className="collect-product__login" href="/login?redirect=/member/collectProduct/list">{t('去登录')}</Link>
           </div>
         </div>
       </div>
@@ -275,7 +277,7 @@ export default function CollectProductClient() {
   return (
     <div className="collect-product">
       <div className="title-or-tabs">
-        <span className="card-title">心愿单</span>
+        <span className="card-title">{t('心愿单')}</span>
         {total > 0 ? <span className="collect-product__count">共 {total} 件商品</span> : null}
       </div>
       <div className="page-body">
@@ -292,7 +294,7 @@ export default function CollectProductClient() {
             const stock = row.productStock ?? brief?.productStock;
             const soldOut = stock !== undefined && Number(stock) === 0;
             const sales = Number(row.virtualSales ?? row.sales ?? brief?.virtualSales ?? brief?.sales ?? 0);
-            const shopTitle = row.shop?.shopTitle || row.shopTitle || '官方自营';
+            const shopTitle = row.shop?.shopTitle || row.shopTitle || t('官方自营');
             const borderImage = imageUrl(style?.borderImage || style?.borderPic || style?.borderImageUrl);
 
             return (
@@ -322,7 +324,7 @@ export default function CollectProductClient() {
                   <div className="collect-card__more" data-collect-more onClick={(event) => event.stopPropagation()}>
                     <button
                       type="button"
-                      aria-label="更多操作"
+                      aria-label={t('更多操作')}
                       aria-expanded={openMore === key}
                       onClick={() => setOpenMore((current) => (current === key ? null : key))}
                     >
@@ -334,7 +336,7 @@ export default function CollectProductClient() {
                     </button>
                     {openMore === key ? (
                       <div className="collect-card__pop">
-                        <button type="button" onClick={() => void remove(row)}>删除</button>
+                        <button type="button" onClick={() => void remove(row)}>{t('删除')}</button>
                       </div>
                     ) : null}
                   </div>
@@ -342,7 +344,7 @@ export default function CollectProductClient() {
 
                 <div className="collect-card__body">
                   <div className="collect-card__name">{name}</div>
-                  <div className="collect-card__sales">{soldOut ? '已售罄' : `已售 ${sales}`}</div>
+                  <div className="collect-card__sales">{soldOut ? t('已售罄') : t('已售 {n}', { n: sales })}</div>
                   <div className="collect-card__tag-slot" />
                   <div className="collect-card__price-row">
                     <div className="collect-card__price">
@@ -353,7 +355,7 @@ export default function CollectProductClient() {
                     <button
                       type="button"
                       className={`collect-card__add${soldOut ? ' is-disabled' : ''}`}
-                      aria-label="加入购物车"
+                      aria-label={t('加入购物车')}
                       disabled={soldOut}
                       onClick={(event) => void addToCart(event, row, href)}
                     >
@@ -372,14 +374,14 @@ export default function CollectProductClient() {
             <div className="no-result">
               <div className="empty">
                 <img className="empty-img" src="/assets/images/empty-box.png" alt="" />
-                <div className="empty-text">您还没有收藏的商品</div>
+                <div className="empty-text">{t('您还没有收藏的商品')}</div>
               </div>
             </div>
           ) : null}
 
           {total > PAGE_SIZE && !loading ? (
             <div className="pc-pagination collect-product__pagination">
-              <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>上一页</button>
+              <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>{t('上一页')}</button>
               {pageNumbers.map((number) => (
                 <button
                   type="button"
@@ -390,7 +392,7 @@ export default function CollectProductClient() {
                   {number}
                 </button>
               ))}
-              <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>下一页</button>
+              <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>{t('下一页')}</button>
             </div>
           ) : null}
 

@@ -4,6 +4,7 @@ import PcHeader from '@/components/PcHeaderWithData';
 import { getPcHeader } from '@/lib/api';
 import PcFooter from '@/components/PcFooter';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '帮助中心 · 万物新生' };
 
@@ -15,14 +16,15 @@ const FAQS = [
 ];
 
 export default async function HelpPage() {
+    const t = getServerT();
   const header = await getPcHeader().catch(() => null);
   return (
     <>
       <PcHeader config={header as any} />
       <main className="pc-static-page">
         <div className="pc-container">
-          <nav className="pc-breadcrumb"><Link href="/">首页</Link><span>/</span><span>帮助中心</span></nav>
-          <h1 className="pc-cart-title">帮助中心</h1>
+          <nav className="pc-breadcrumb"><Link href="/">{t('首页')}</Link><span>/</span><span>{t('帮助中心')}</span></nav>
+          <h1 className="pc-cart-title">{t('帮助中心')}</h1>
           <div className="pc-faq-list">
             {FAQS.map((item) => (
               <div key={item.q} className="pc-faq-item">

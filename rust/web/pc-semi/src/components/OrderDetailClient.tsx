@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface OrderItem {
   itemId?: number;
   productId?: number;
@@ -153,6 +154,7 @@ const STATUS_DESC = [
 ];
 
 export default function OrderDetailClient({ orderId }: { orderId: number }) {
+    const { t } = useTranslation();
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [needLogin, setNeedLogin] = useState(false);
@@ -229,7 +231,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       return;
     }
     try {
-      await apiPost('user/order/cancelOrder', { id: orderId, description: cancelReason || '用户主动取消' });
+      await apiPost('user/order/cancelOrder', { id: orderId, description: cancelReason || t('用户主动取消') });
       Toast.success({ content: '订单已取消' });
       setCancelVisible(false);
       load();
@@ -274,18 +276,18 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
     }
   };
 
-  if (loading) return <Card className="cart-state">订单详情加载中...</Card>;
+  if (loading) return <Card className="cart-state">{t('订单详情加载中...')}</Card>;
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后查看订单</h2>
+        <h2>{t('登录后查看订单')}</h2>
         <Link href={`/login?redirect=/member/order/detail?id=${orderId}`}>
-          <Button theme="solid" type="primary" size="large">去登录</Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </Card>
     );
   }
-  if (!detail) return <Card className="cart-state">订单不存在</Card>;
+  if (!detail) return <Card className="cart-state">{t('订单不存在')}</Card>;
 
   const actions = detail.availableActions || {};
   const items = detail.items || [];
@@ -329,11 +331,11 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
   const noDeliveryTypes = new Set([2, 3, 4, 9, 8]);
   const isNoDelivery = items.some((item) => noDeliveryTypes.has(Number(item.productType))) || shippingTypeName.includes('无需配送');
   const showShippingFee = !isPickupOrder && (isReserveOrder || isLocalDeliveryOrder || !isNoDelivery);
-  const shippingFeeLabel = isReserveOrder ? '上门服务费' : isLocalDeliveryOrder ? '配送费' : '快递';
-  const shippingFeeFreeText = isReserveOrder ? '免费上门' : isLocalDeliveryOrder ? '免配送费' : '包邮';
+  const shippingFeeLabel = isReserveOrder ? t('上门服务费') : isLocalDeliveryOrder ? t('配送费') : '快递';
+  const shippingFeeFreeText = isReserveOrder ? t('免费上门') : isLocalDeliveryOrder ? t('免配送费') : '包邮';
 
   const payText =
-    isGiftCardExchange ? '礼品卡兑换' : Number(detail.payTypeId) === 1 ? '在线支付' : Number(detail.payTypeId) === 2 ? '货到付款' : '线下支付';
+    isGiftCardExchange ? t('礼品卡兑换') : Number(detail.payTypeId) === 1 ? t('在线支付') : Number(detail.payTypeId) === 2 ? t('货到付款') : '线下支付';
 
   return (
     <div className="member-order-detail">
@@ -341,7 +343,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       <Card className="member-card">
         <div className="member-order-detail__head">
           <div>
-            <span className="member-order__status">{detail.orderStatusName || '订单'}</span>
+            <span className="member-order__status">{detail.orderStatusName || t('订单')}</span>
             <h2>订单号：{detail.orderSn}</h2>
             {detail.shop?.shopTitle ? <p>下单门店：{detail.shop.shopTitle}</p> : null}
             <p>下单时间：{detail.addTime || '-'}</p>
@@ -349,27 +351,23 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
             {detail.orderStatusTip ? <p className="member-order-detail__tip">{detail.orderStatusTip}</p> : null}
             {detail.cancelRemark ? <p>取消原因：{detail.cancelRemark}</p> : null}
             {isGiftCardProduct ? (
-              <p className="member-order-detail__tip">
-                为了您的财产安全，请妥善保管卡密信息，切勿将卡号、卡密、二维码截图等任何信息发送他人，谨防上当受骗!
-              </p>
+              <p className="member-order-detail__tip">{t('为了您的财产安全，请妥善保管卡密信息，切勿将卡号、卡密、二维码截图等任何信息发送他人，谨防上当受骗!')}</p>
             ) : null}
-            {offlineClaimStatus === 0 ? <p>您已提交汇款凭证，等待财务人员核对流水，我们尽快完成审核。</p> : null}
+            {offlineClaimStatus === 0 ? <p>{t('您已提交汇款凭证，等待财务人员核对流水，我们尽快完成审核。')}</p> : null}
             {offlineClaimRejected ? (
               <p className="member-order-detail__tip">
                 认款审核未通过{detail.offlinePaymentClaimRejectReason ? `：${detail.offlinePaymentClaimRejectReason}` : ''}
               </p>
             ) : null}
             {showPayCountdown ? (
-              <p className="member-order-detail__tip">
-                还剩 <b>{payCountdown}</b> 订单自动取消
-              </p>
+              <p className="member-order-detail__tip">{t('还剩')}<b>{payCountdown}</b>{t('订单自动取消')}</p>
             ) : null}
             {isOfflineOrder && offlineClaimStatus === 1 && offlineClaimAuditRemark ? <p>审核备注：{offlineClaimAuditRemark}</p> : null}
             {!showPayCountdown && actionEnabled(actions, 'toPay') && !offlineClaimRejected ? (
-              <p>请尽快完成支付，以免订单被自动取消</p>
+              <p>{t('请尽快完成支付，以免订单被自动取消')}</p>
             ) : null}
             {detail.cycleCardInfo?.expireTimeStr ? (
-              <p>{detail.cycleCardInfo.expireTimeStr === '长期有效' ? '长期有效' : `有效期至：${detail.cycleCardInfo.expireTimeStr}`}</p>
+              <p>{detail.cycleCardInfo.expireTimeStr === '长期有效' ? t('长期有效') : t('有效期至：{d}', { d: detail.cycleCardInfo.expireTimeStr })}</p>
             ) : null}
             {[1, 2].includes(orderStatus) && Number(detail.autoDeliveryDays || 0) > 0 ? (
               <p>订单将在 {detail.autoDeliveryDays} 天后自动收货</p>
@@ -381,35 +379,35 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
           </div>
           <div className="member-order-detail__actions">
             {actionEnabled(actions, 'cancelOrder') ? (
-              <Button type="danger" onClick={() => { setCancelReason(''); setCancelVisible(true); }}>取消订单</Button>
+              <Button type="danger" onClick={() => { setCancelReason(''); setCancelVisible(true); }}>{t('取消订单')}</Button>
             ) : null}
             {actionEnabled(actions, 'offlinePaymentClaimDetail') && !offlineClaimRejected ? (
-              <Link href={`/member/order/claimInfo?orderId=${detail.orderId || orderId}`}><Button>认款详情</Button></Link>
+              <Link href={`/member/order/claimInfo?orderId=${detail.orderId || orderId}`}><Button>{t('认款详情')}</Button></Link>
             ) : null}
             {actionEnabled(actions, 'toPay') ? (
               offlineClaimRejected ? (
-                <Link href={`/member/order/claimInfo?orderId=${detail.orderId || orderId}`}><Button theme="solid" type="primary">修改申请</Button></Link>
+                <Link href={`/member/order/claimInfo?orderId=${detail.orderId || orderId}`}><Button theme="solid" type="primary">{t('修改申请')}</Button></Link>
               ) : (
-                <Link href={`/order/pay?id=${detail.orderId || orderId}`}><Button theme="solid" type="primary">付款</Button></Link>
+                <Link href={`/order/pay?id=${detail.orderId || orderId}`}><Button theme="solid" type="primary">{t('付款')}</Button></Link>
               )
             ) : null}
             {/* 源码 OrderInfoHeader.vue：预售待付尾款 → 支付尾款 */}
             {detail.isPresale && Number(detail.presaleInfo?.presaleStatus) === 1 ? (
-              <Link href={`/order/pay?id=${detail.orderId || orderId}&type=tail`}><Button theme="solid" type="primary">支付尾款</Button></Link>
+              <Link href={`/order/pay?id=${detail.orderId || orderId}&type=tail`}><Button theme="solid" type="primary">{t('支付尾款')}</Button></Link>
             ) : null}
-            {actionEnabled(actions, 'confirmReceipt') && orderType !== 9 && orderType !== 10 ? <Button onClick={confirm}>确认收货</Button> : null}
+            {actionEnabled(actions, 'confirmReceipt') && orderType !== 9 && orderType !== 10 ? <Button onClick={confirm}>{t('确认收货')}</Button> : null}
             {actionEnabled(actions, 'toAftersales', 'toAfterSales') && !giftCardBlocked && orderSource !== 'pos' && orderType !== 14 && !isPickupCompleted ? (
-              <Link href={`/member/return/info?orderId=${detail.orderId || orderId}`}><Button>整单售后</Button></Link>
+              <Link href={`/member/return/info?orderId=${detail.orderId || orderId}`}><Button>{t('整单售后')}</Button></Link>
             ) : null}
             {actionEnabled(actions, 'toAftersales', 'toAfterSales') ? (
-              <Link href={`/member/aftersales/apply?orderId=${detail.orderId || orderId}`}><Button>按商品售后</Button></Link>
+              <Link href={`/member/aftersales/apply?orderId=${detail.orderId || orderId}`}><Button>{t('按商品售后')}</Button></Link>
             ) : null}
             {actionEnabled(actions, 'toComment') ? (
-              <Link href={`/member/comment/info?orderId=${detail.orderId || orderId}`}><Button>评价</Button></Link>
+              <Link href={`/member/comment/info?orderId=${detail.orderId || orderId}`}><Button>{t('评价')}</Button></Link>
             ) : null}
-            {actionEnabled(actions, 'delOrder') ? <Button onClick={deleteOrder}>删除订单</Button> : null}
-            {actionEnabled(actions, 'rebuy') ? <Button onClick={buyAgain}>再次购买</Button> : null}
-            {detail.trackingNo || detail.logisticsName ? <Button onClick={openShipping}>查看物流</Button> : null}
+            {actionEnabled(actions, 'delOrder') ? <Button onClick={deleteOrder}>{t('删除订单')}</Button> : null}
+            {actionEnabled(actions, 'rebuy') ? <Button onClick={buyAgain}>{t('再次购买')}</Button> : null}
+            {detail.trackingNo || detail.logisticsName ? <Button onClick={openShipping}>{t('查看物流')}</Button> : null}
           </div>
         </div>
 
@@ -424,7 +422,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       </Card>
 
       {/* 订单信息（OrderDeliveryInfo.vue） */}
-      <Card className="member-card" title="订单信息">
+      <Card className="member-card" title={t('订单信息')}>
         <div className="member-order-detail__address">
           {(detail.userAddress || detail.consignee || detail.mobile) && orderSource !== 'pos' ? (
             <span>收货信息：{detail.userAddress} {detail.consignee} {detail.mobile}</span>
@@ -445,16 +443,16 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       </Card>
 
       {/* 商品明细（OrderProductTable.vue） */}
-      <Card className="member-card" title="订单商品">
+      <Card className="member-card" title={t('订单商品')}>
         <div className="member-order-table">
           <table>
             <thead>
               <tr>
-                <th>商品名称</th>
-                <th>商品价格</th>
-                <th>购买数量</th>
-                <th>小计</th>
-                {showItemAftersalesAction ? <th>操作</th> : null}
+                <th>{t('商品名称')}</th>
+                <th>{t('商品价格')}</th>
+                <th>{t('购买数量')}</th>
+                <th>{t('小计')}</th>
+                {showItemAftersalesAction ? <th>{t('操作')}</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -489,11 +487,11 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                     <td>
                       {item.isGift === 0 && Number(item.quantity || 0) > Number(item.aftersalesNumber || 0) && !item.aftersalesItem ? (
                         <Link href={`/member/return/info?orderId=${detail.orderId || orderId}&itemId=${item.itemId || ''}`}>
-                          <Button size="small">申请售后</Button>
+                          <Button size="small">{t('申请售后')}</Button>
                         </Link>
                       ) : item.aftersalesItem ? (
                         <Link href={`/member/return/logInfo?id=${item.aftersalesItem.aftersaleId || ''}`}>
-                          <Button size="small">售后详情</Button>
+                          <Button size="small">{t('售后详情')}</Button>
                         </Link>
                       ) : null}
                     </td>
@@ -520,7 +518,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                     {Number(detail.creditAmount || 0) > 0 ? <span>账期金额：¥ {money(detail.creditAmount)}</span> : null}
                     {Number(detail.onlinePaidAmount || 0) > 0 ? <span>线上支付：¥ {money(detail.onlinePaidAmount)}</span> : null}
                     {Number(detail.offlinePaidAmount || 0) > 0 ? <span>线下支付：¥ {money(detail.offlinePaidAmount)}</span> : null}
-                    <span className="total">{payStatus === 2 ? '实付款' : '应付款'}：<b>¥ {money(detail.totalAmount)}</b></span>
+                    <span className="total">{payStatus === 2 ? t('实付款') : '应付款'}：<b>¥ {money(detail.totalAmount)}</b></span>
                   </div>
                 </td>
               </tr>
@@ -531,16 +529,16 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
 
       {/* 卡券信息（OrderEcard.vue） */}
       {ecardItems.length ? (
-        <Card className="member-card" title="卡券信息">
+        <Card className="member-card" title={t('卡券信息')}>
           {ecardItems.map((item, index) => (
             <div key={index} className="member-order__ecard">
               <div className="member-order__ecard-title">{item.productName}</div>
               <div className="member-order__ecard-list">
                 {(item.eCard || []).map((card, cardIndex) => (
                   <div key={cardIndex} className="member-order__ecard-item">
-                    <span>卡号：<b>{card.cardNumber}</b></span>
-                    <span>卡密：<b>{card.cardPassword || card.cardPwd}</b></span>
-                    <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || card.cardPwd || ''}`)}>复制</Button>
+                    <span>{t('卡号：')}<b>{card.cardNumber}</b></span>
+                    <span>{t('卡密：')}<b>{card.cardPassword || card.cardPwd}</b></span>
+                    <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || card.cardPwd || ''}`)}>{t('复制')}</Button>
                   </div>
                 ))}
               </div>
@@ -551,14 +549,14 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
 
       {/* 礼品卡信息（OrderGiftCard.vue） */}
       {giftCardInfo.length ? (
-        <Card className="member-card" title={`卡片信息（共 ${detail.giftCardOrder?.num ?? giftCardInfo.length} 张）`}>
+        <Card className="member-card" title={t('卡片信息（共 {n} 张）', { n: detail.giftCardOrder?.num ?? giftCardInfo.length })}>
           <div className="member-order__giftcards">
             {giftCardInfo.map((card, index) => (
               <div key={card.giftCardsId || index} className="member-order__giftcard">
-                <div>卡号：<b>{card.cardNumber}</b></div>
-                <div>卡密：<b>{card.cardPassword}</b></div>
-                <div>状态：{card.statusName || (card.status === 0 ? '未使用' : '已使用')}</div>
-                <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || ''}`)}>复制卡号卡密</Button>
+                <div>{t('卡号：')}<b>{card.cardNumber}</b></div>
+                <div>{t('卡密：')}<b>{card.cardPassword}</b></div>
+                <div>状态：{card.statusName || (card.status === 0 ? t('未使用') : '已使用')}</div>
+                <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || ''}`)}>{t('复制卡号卡密')}</Button>
               </div>
             ))}
           </div>
@@ -566,13 +564,13 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       ) : null}
 
       {detail.buyerNote ? (
-        <Card className="member-card" title="买家留言">
+        <Card className="member-card" title={t('买家留言')}>
           {detail.buyerNote}
         </Card>
       ) : null}
 
       {detail.invoiceData ? (
-        <Card className="member-card" title="发票信息">
+        <Card className="member-card" title={t('发票信息')}>
           <div className="member-order-detail__address">
             {detail.invoiceData.invoiceTitle || detail.invoiceData.title ? <span>抬头：{detail.invoiceData.invoiceTitle || detail.invoiceData.title}</span> : null}
             {detail.invoiceData.taxNo ? <span>税号：{detail.invoiceData.taxNo}</span> : null}
@@ -583,23 +581,23 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
 
       <div className="member-order-detail__links">
         <Link href={`/member/feedback/askList?orderId=${detail.orderId || orderId}&orderSn=${detail.orderSn || ''}`}>订单留言/咨询</Link>
-        <Link href="/member/order/list" className="member-order-detail__back">返回订单列表</Link>
+        <Link href="/member/order/list" className="member-order-detail__back">{t('返回订单列表')}</Link>
       </div>
 
       {/* 取消订单原因（CancelOrderReasonDialog.vue） */}
-      <Modal visible={cancelVisible} title="取消订单" onCancel={() => setCancelVisible(false)} onOk={() => void submitCancel()}>
+      <Modal visible={cancelVisible} title={t('取消订单')} onCancel={() => setCancelVisible(false)} onOk={() => void submitCancel()}>
         {Number(reasonConfig?.afterSalesReasonEnabled ?? 0) === 1 && (reasonConfig?.cancelOrderReasonList || []).length ? (
           <select value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} style={{ width: '100%', padding: '8px' }}>
-            <option value="">请选择取消原因</option>
+            <option value="">{t('请选择取消原因')}</option>
             {(reasonConfig?.cancelOrderReasonList || []).map((reason) => <option key={reason} value={reason}>{reason}</option>)}
           </select>
         ) : (
-          <p>确认取消该订单？</p>
+          <p>{t('确认取消该订单？')}</p>
         )}
       </Modal>
 
       {/* 物流跟踪 */}
-      <Modal visible={shippingVisible} title="物流跟踪" footer={null} onCancel={() => setShippingVisible(false)} width={560}>
+      <Modal visible={shippingVisible} title={t('物流跟踪')} footer={null} onCancel={() => setShippingVisible(false)} width={560}>
         {shipping ? (
           <div>
             <p>物流单号：{shipping.logisticCode || detail.trackingNo || '-'}</p>
@@ -609,9 +607,9 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                 <span>{trace.acceptTime || ''}</span>
                 <div>{trace.acceptStation || trace.action || trace.location || ''}</div>
               </div>
-            )) : <p>暂无物流轨迹</p>}
+            )) : <p>{t('暂无物流轨迹')}</p>}
           </div>
-        ) : <p>暂无物流轨迹</p>}
+        ) : <p>{t('暂无物流轨迹')}</p>}
       </Modal>
     </div>
   );

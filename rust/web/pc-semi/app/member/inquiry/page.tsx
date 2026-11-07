@@ -5,6 +5,7 @@ import PcFooter from '@/components/PcFooter';
 import { getInquiryList, getPcHeader } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '商品咨询 · 万物新生', robots: { index: false, follow: false } };
 
@@ -12,6 +13,7 @@ interface PageProps { searchParams?: { [key: string]: string | string[] | undefi
 function read(value: string | string[] | undefined): string { return Array.isArray(value) ? value[0] || '' : value || ''; }
 
 export default async function InquiryListPage({ searchParams }: PageProps) {
+    const t = getServerT();
   const page = Math.max(1, Number(read(searchParams?.page)) || 1);
   const statusRaw = read(searchParams?.status);
   const status = statusRaw === '1' ? 1 : statusRaw === '0' ? 0 : undefined;
@@ -32,15 +34,15 @@ export default async function InquiryListPage({ searchParams }: PageProps) {
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title="商品咨询">
+        <MemberShell title={t('商品咨询')}>
               <div className="inquiry-tabs">
-      <Link href="/member/inquiry" className={!statusRaw ? 'is-active' : ''}>全部</Link>
-      <Link href="/member/inquiry?status=1" className={statusRaw === '1' ? 'is-active' : ''}>已回复</Link>
-      <Link href="/member/inquiry?status=0" className={statusRaw === '0' ? 'is-active' : ''}>未回复</Link>
+      <Link href="/member/inquiry" className={!statusRaw ? 'is-active' : ''}>{t('全部')}</Link>
+      <Link href="/member/inquiry?status=1" className={statusRaw === '1' ? 'is-active' : ''}>{t('已回复')}</Link>
+      <Link href="/member/inquiry?status=0" className={statusRaw === '0' ? 'is-active' : ''}>{t('未回复')}</Link>
     </div>
     <section className="account-table-wrap">
       <table className="account-table inquiry-table">
-        <thead><tr><th>商品</th><th>咨询内容</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+        <thead><tr><th>{t('商品')}</th><th>{t('咨询内容')}</th><th>{t('状态')}</th><th>{t('时间')}</th><th>{t('操作')}</th></tr></thead>
         <tbody>
           {data.records.map((item) => (
             <tr key={item.id}>
@@ -51,19 +53,19 @@ export default async function InquiryListPage({ searchParams }: PageProps) {
                 </div>
               </td>
               <td className="inquiry-content">{item.content || '-'}</td>
-              <td>{Number(item.status) === 1 ? '已回复' : '未回复'}</td>
+              <td>{Number(item.status) === 1 ? t('已回复') : '未回复'}</td>
               <td>{item.createTime || '-'}</td>
-              <td><Link href={`/member/inquiry/info?id=${item.id}`}>查看</Link></td>
+              <td><Link href={`/member/inquiry/info?id=${item.id}`}>{t('查看')}</Link></td>
             </tr>
           ))}
-          {!data.records.length ? <tr><td colSpan={5} className="account-empty">暂无咨询</td></tr> : null}
+          {!data.records.length ? <tr><td colSpan={5} className="account-empty">{t('暂无咨询')}</td></tr> : null}
         </tbody>
       </table>
       {pages > 1 ? (
         <nav className="account-pagination">
-          {page > 1 ? <Link href={href(page - 1)}>上一页</Link> : <span className="is-disabled">上一页</span>}
+          {page > 1 ? <Link href={href(page - 1)}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
           <span>{page} / {pages}</span>
-          {page < pages ? <Link href={href(page + 1)}>下一页</Link> : <span className="is-disabled">下一页</span>}
+          {page < pages ? <Link href={href(page + 1)}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
         </nav>
       ) : null}
     </section>

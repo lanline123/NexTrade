@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { useTranslation } from 'react-i18next';
 export interface ShopCategory {
   categoryId?: number | string;
   categoryName?: string;
@@ -26,6 +27,7 @@ export default function ShopCategoryMenu({
   categories: ShopCategory[];
   currentCategoryId?: string;
 }) {
+    const { t } = useTranslation();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const current = String(currentCategoryId || '');
 
@@ -49,7 +51,7 @@ export default function ShopCategoryMenu({
   return (
     <nav className="shop-category-menu">
       <div className={`menu-item all-products${current ? '' : ' active'}`}>
-        <Link href={`/shop/${shopId}`}>全部商品</Link>
+        <Link href={`/shop/${shopId}`}>{t('全部商品')}</Link>
       </div>
 
       <div className="category-list">
@@ -69,7 +71,7 @@ export default function ShopCategoryMenu({
                   <button
                     type="button"
                     className={`arrow-icon${isOpen ? ' expanded' : ''}`}
-                    aria-label={isOpen ? '收起子分类' : '展开子分类'}
+                    aria-label={isOpen ? t('收起子分类') : '展开子分类'}
                     onClick={() => toggle(key)}
                   >
                     ⌄

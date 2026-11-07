@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface AccountCard {
   accountId: number;
   accountType: number;
@@ -22,6 +23,7 @@ function mask(value?: string): string {
 }
 
 export default function CardManagementClient() {
+    const { t } = useTranslation();
   const [type, setType] = useState(1);
   const [rows, setRows] = useState<AccountCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,12 +80,12 @@ export default function CardManagementClient() {
     <Card className="member-card" loading={loading}>
       <div className="card-tabs">
         {[1, 2, 3].map((value) => (
-          <button key={value} type="button" className={type === value ? 'is-active' : ''} onClick={() => setType(value)}>{TYPE_LABELS[value]}</button>
+          <button key={value} type="button" className={type === value ? 'is-active' : ''} onClick={() => setType(value)}>{t(TYPE_LABELS[value])}</button>
         ))}
-        <Button theme="solid" type="primary" onClick={() => setOpen(true)}>添加新卡</Button>
+        <Button theme="solid" type="primary" onClick={() => setOpen(true)}>{t('添加新卡')}</Button>
       </div>
       <table className="account-table">
-        <thead><tr><th>真实姓名</th><th>身份证号码</th><th>账户号码</th>{type === 1 ? <th>银行卡详情</th> : null}<th>操作</th></tr></thead>
+        <thead><tr><th>{t('真实姓名')}</th><th>{t('身份证号码')}</th><th>{t('账户号码')}</th>{type === 1 ? <th>{t('银行卡详情')}</th> : null}<th>{t('操作')}</th></tr></thead>
         <tbody>
           {rows.map((item) => (
             <tr key={item.accountId}>
@@ -91,25 +93,25 @@ export default function CardManagementClient() {
               <td>{mask(item.identity)}</td>
               <td>{mask(item.accountNo)}</td>
               {type === 1 ? <td>{item.bankName || '-'}</td> : null}
-              <td><button type="button" className="link-danger" onClick={() => void remove(item)}>删除</button></td>
+              <td><button type="button" className="link-danger" onClick={() => void remove(item)}>{t('删除')}</button></td>
             </tr>
           ))}
-          {!rows.length ? <tr><td colSpan={type === 1 ? 5 : 4} className="account-empty">暂无卡片</td></tr> : null}
+          {!rows.length ? <tr><td colSpan={type === 1 ? 5 : 4} className="account-empty">{t('暂无卡片')}</td></tr> : null}
         </tbody>
       </table>
 
-      <Modal title="添加新卡" visible={open} onCancel={() => setOpen(false)} onOk={() => void add()} confirmLoading={saving} okText="保存">
+      <Modal title={t('添加新卡')} visible={open} onCancel={() => setOpen(false)} onOk={() => void add()} confirmLoading={saving} okText="保存">
         <div className="security-form">
-          <label>真实姓名</label>
-          <input value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} placeholder="请输入真实姓名" />
-          <label>{TYPE_LABELS[type]}账号</label>
-          <input value={form.accountNo} onChange={(event) => setForm({ ...form, accountNo: event.target.value })} placeholder={`请输入${TYPE_LABELS[type]}账号`} />
-          <label>身份证号（选填）</label>
-          <input value={form.identity} onChange={(event) => setForm({ ...form, identity: event.target.value })} placeholder="请输入身份证号" />
+          <label>{t('真实姓名')}</label>
+          <input value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} placeholder={t('请输入真实姓名')} />
+          <label>{t(TYPE_LABELS[type])}{t('账号')}</label>
+          <input value={form.accountNo} onChange={(event) => setForm({ ...form, accountNo: event.target.value })} placeholder={t('请输入{type}账号', { type: t(TYPE_LABELS[type]) })} />
+          <label>{t('身份证号（选填）')}</label>
+          <input value={form.identity} onChange={(event) => setForm({ ...form, identity: event.target.value })} placeholder={t('请输入身份证号')} />
           {type === 1 ? (
             <>
-              <label>银行卡详情</label>
-              <input value={form.bankName} onChange={(event) => setForm({ ...form, bankName: event.target.value })} placeholder="请输入开户行等银行卡详情" />
+              <label>{t('银行卡详情')}</label>
+              <input value={form.bankName} onChange={(event) => setForm({ ...form, bankName: event.target.value })} placeholder={t('请输入开户行等银行卡详情')} />
             </>
           ) : null}
         </div>

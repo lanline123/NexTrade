@@ -7,10 +7,10 @@ __pycache__/
 *.pyc
 _diag/
 _page.html
-# ±¾µØ±£ÁôµÄÄÚ²¿Ç¨ÒÆ/½»½Ó/Ñ²¼ìÎÄµµ£¬²»Ìá½»
+# ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½Ç¨ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½/Ñ²ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»
 rust/docs/
-rust/Rust-ÖØ¹¹·Ö½×¶ÎÇ¨ÒÆ¼Æ»®.md
-rust/javaµçÉÌÏµÍ³RustÖØÐ´Éó¼Æ±¨¸æ V1.0.md
+rust/Rust-ï¿½Ø¹ï¿½ï¿½Ö½×¶ï¿½Ç¨ï¿½Æ¼Æ»ï¿½.md
+rust/javaï¿½ï¿½ï¿½ï¿½ÏµÍ³Rustï¿½ï¿½Ð´ï¿½ï¿½Æ±ï¿½ï¿½ï¿½ V1.0.md
 rust/Java-to-Rust-Realistic-Tools-Guide.md
 rust/MIGRATION-TOOLS-SUMMARY.md
 rust/rust-migration-assessment.md
@@ -24,6 +24,7 @@ scratch/
 **/.next.bak*/
 **/.next.bak-*/
 rust/web/pc-semi/.next/
+rust/web/pc-semi/.next-*/
 **/*.tsbuildinfo
 
 # Next.js ad-hoc check caches (local build artifacts)

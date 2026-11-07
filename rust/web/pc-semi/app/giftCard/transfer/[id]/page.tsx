@@ -5,6 +5,7 @@ import PcFooter from '@/components/PcFooter';
 import { getGiftCardDetail, getPcHeader, type GiftCardInfo } from '@/lib/api';
 import GiftCardClaimClient from '@/components/GiftCardClaimClient';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -17,6 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function GiftCardTransferPage({ params }: PageProps) {
+    const t = getServerT();
   const sn = decodeURIComponent(params.id);
   const [card, header] = await Promise.all([
     getGiftCardDetail(sn).catch(() => null),
@@ -32,11 +34,11 @@ export default async function GiftCardTransferPage({ params }: PageProps) {
         <div className="giftcard-container">
           <section className="giftcard-hero">
             <div className="giftcard-visual">
-              <img src={card?.imageUrl || group.imageUrl || ''} alt={card?.cardGroupName || '礼品卡'} />
+              <img src={card?.imageUrl || group.imageUrl || ''} alt={card?.cardGroupName || t('礼品卡')} />
             </div>
             <div className="giftcard-info">
-              <span className="giftcard-tag">礼品卡</span>
-              <h1>{card?.cardGroupName || group.cardGroupName || '礼品卡兑换'}</h1>
+              <span className="giftcard-tag">{t('礼品卡')}</span>
+              <h1>{card?.cardGroupName || group.cardGroupName || t('礼品卡兑换')}</h1>
               <p className="giftcard-sn">卡号：{card?.cardNumber || sn}</p>
               {card?.shopTitle ? <p className="giftcard-shop">适用店铺：{card.shopTitle}</p> : null}
               {card?.expiredTime ? <p className="giftcard-expire">有效期至：{String(card.expiredTime)}</p> : null}
@@ -45,19 +47,19 @@ export default async function GiftCardTransferPage({ params }: PageProps) {
           </section>
 
           <section className="giftcard-steps">
-            <h2>使用方法</h2>
+            <h2>{t('使用方法')}</h2>
             <div className="giftcard-steps__row">
-              <div><b>1</b><span>礼品卡下单</span></div>
-              <div><b>2</b><span>礼品卡兑换</span></div>
-              <div><b>3</b><span>输入卡号卡密</span></div>
-              <div><b>4</b><span>立即兑换</span></div>
+              <div><b>1</b><span>{t('礼品卡下单')}</span></div>
+              <div><b>2</b><span>{t('礼品卡兑换')}</span></div>
+              <div><b>3</b><span>{t('输入卡号卡密')}</span></div>
+              <div><b>4</b><span>{t('立即兑换')}</span></div>
             </div>
           </section>
 
           {products.length ? (
             <section className="giftcard-products">
-              <h2>兑换商品</h2>
-              <p className="giftcard-products__sub">该兑换卡可兑换商品</p>
+              <h2>{t('兑换商品')}</h2>
+              <p className="giftcard-products__sub">{t('该兑换卡可兑换商品')}</p>
               <div className="giftcard-products__grid">
                 {products.map((product) => (
                   <Link key={product.productId} href={`/product/${product.productId}`} className="giftcard-product" target="_blank">

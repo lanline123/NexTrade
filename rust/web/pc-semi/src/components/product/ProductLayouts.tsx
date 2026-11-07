@@ -1,5 +1,7 @@
-import type { ReactNode } from 'react';
+'use client';
 
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 /**
  * PC 商品详情页三套布局（结构级还原，不再靠同一份 DOM 换 CSS 类）。
  *
@@ -92,7 +94,7 @@ interface OverseasLayoutProps extends LayoutProps {
 export function ClassicLayout({ blocks }: LayoutProps) {
   return (
     <div className="pdp-style pdp-style-old">
-      <div className="pds-container pds-container--old">
+      <div className="pds-container pds-container--old container">
         {blocks.crumb}
         {blocks.shopCard}
 
@@ -133,16 +135,17 @@ export function ClassicLayout({ blocks }: LayoutProps) {
  * （el-scrollbar max-height calc(100vh - 24px)）→ 右栏底部 FloatBuyBar 购买区。
  */
 export function ModernLayout({ blocks }: LayoutProps) {
+  const { t } = useTranslation();
   return (
     <div className="pdp-style pdp-style-new">
       <div className="pds-new__topbar">
         <div className="pds-new__topbar-inner">
-          <span className="pds-new__topbar-brand">商城</span>
+          <span className="pds-new__topbar-brand">{t('商城')}</span>
           <span className="pds-new__topbar-sep" />
-          <span className="pds-new__topbar-label">商品详情</span>
+          <span className="pds-new__topbar-label">{t('商品详情')}</span>
         </div>
       </div>
-      <div className="pds-container pds-container--new">
+      <div className="pds-container pds-container--new container-new">
         {blocks.shopCard}
 
         <div className="pds-new__product">
@@ -164,7 +167,7 @@ export function ModernLayout({ blocks }: LayoutProps) {
                 {blocks.services}
               </div>
             </div>
-            <div className="pds-new__actions">{blocks.actions}</div>
+            <div className="pds-new__actions" id="float-buy-bar">{blocks.actions}</div>
           </div>
         </div>
 
@@ -184,9 +187,10 @@ export function ModernLayout({ blocks }: LayoutProps) {
  * 末尾 ProdSwiper「精选好物」。
  */
 export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: OverseasLayoutProps) {
+  const { t } = useTranslation();
   return (
     <div className="pdp-style pdp-style-overseas">
-      <div className="pds-container pds-container--overseas">
+      <div className="pds-container pds-container--overseas container-overseas">
         <div className="pds-os__top">{blocks.crumb}{blocks.shareSocial}</div>
         {blocks.shopCard}
 
@@ -194,7 +198,7 @@ export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: Overseas
           <div className="pds-os__left">
             {blocks.gallery}
 
-            <nav className="pds-os__anchors" aria-label="商品详情锚点">
+            <nav className="pds-os__anchors" aria-label={t('商品详情锚点')}>
               {blocks.sections.map((section) => (
                 <button
                   key={section.key}
@@ -229,7 +233,7 @@ export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: Overseas
                 {blocks.services}
               </div>
             </div>
-            <div className="pds-os__actions">{blocks.actions}</div>
+            <div className="pds-os__actions" id="overseas-product-buy-actions">{blocks.actions}</div>
           </div>
         </div>
       </div>
@@ -254,4 +258,48 @@ export function ProductLayout({
   if (uiStyle === 'old') return <ClassicLayout blocks={blocks} />;
   if (uiStyle === 'new') return <ModernLayout blocks={blocks} />;
   return <OverseasLayout blocks={blocks} activeAnchor={activeAnchor} onAnchorClick={onAnchorClick} />;
+}
+
+/**
+ * 三套加载骨架（源码 pages/item/src/ProductSkeleton.vue：
+ * 第 9 行 new / 第 75 行 overseas / 第 140 行 old 各自独立结构）。
+ * 服务端 Suspense 与客户端加载态共用，避免三套版式在等待期显示同一份占位。
+ */
+export function ProductSkeleton({ uiStyle }: { uiStyle: ProductUiStyleKey }) {
+  const bar = (width: string, height = 16) => <div className="pds-skeleton__block" style={{ width, height }} />;
+  if (uiStyle === 'new') {
+    return (
+      <div className="pds-skeleton pds-skeleton--new pdp-style pdp-style-new">
+        <div className="pds-new__topbar"><div className="pds-skeleton__row">{bar('180px', 20)}</div></div>
+        <div className="pds-skeleton__row" style={{ marginTop: 20 }}>
+          <div style={{ flex: 1 }}>{bar('100%', 360)}{bar('70%')}{bar('40%')}</div>
+          <div style={{ flex: '0 0 420px' }}>{bar('80%', 28)}{bar('60%')}{bar('100%', 120)}{bar('100%', 44)}</div>
+        </div>
+      </div>
+    );
+  }
+  if (uiStyle === 'overseas') {
+    return (
+      <div className="pds-skeleton pds-skeleton--overseas pdp-style pdp-style-overseas">
+        {bar('40%', 12)}
+        <div className="pds-skeleton__row" style={{ marginTop: 20 }}>
+          <div style={{ flex: '0 0 752px' }}>{bar('100%', 460)}{bar('100%', 40)}{bar('100%', 220)}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>{bar('90%', 28)}{bar('70%')}{bar('100%', 160)}{bar('100%', 48)}</div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="pds-skeleton pds-skeleton--old pdp-style pdp-style-old">
+      {bar('30%', 12)}
+      <div className="pds-skeleton__row" style={{ marginTop: 20 }}>
+        <div style={{ flex: '0 0 420px' }}>{bar('100%', 380)}{bar('80%')}</div>
+        <div style={{ flex: 1 }}>{bar('90%', 28)}{bar('60%')}{bar('100%', 120)}{bar('100%', 44)}</div>
+      </div>
+      <div className="pds-skeleton__row" style={{ marginTop: 20 }}>
+        <div style={{ flex: '0 0 220px' }}>{bar('100%', 220)}</div>
+        <div style={{ flex: 1 }}>{bar('100%', 220)}</div>
+      </div>
+    </div>
+  );
 }

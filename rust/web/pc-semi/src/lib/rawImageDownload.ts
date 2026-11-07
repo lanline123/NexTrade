@@ -1,3 +1,5 @@
+
+import i18n from '@/i18n';
 /**
  * 商品原图批量下载（PC 渠道）。
  *
@@ -98,7 +100,7 @@ export function parseRawImageError(text: string, status = 200): RawImageDownload
       );
     }
   } catch { /* 非 JSON 响应 */ }
-  return new RawImageDownloadError(status === 401 ? '登录已失效，请重新登录' : '下载内容异常，请重试', status);
+  return new RawImageDownloadError(status === 401 ? (i18n.t('登录已失效，请重新登录') as string) : '下载内容异常，请重试', status);
 }
 
 export function isZipHeader(bytes: Uint8Array): boolean {

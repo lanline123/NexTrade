@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface CompanyData {
   documentType?: string;
   corporateName?: string;
@@ -136,6 +137,7 @@ function normalizeApply(input: unknown): ApplyState | null {
 }
 
 export default function CertificationClient() {
+    const { t } = useTranslation();
   const [state, setState] = useState<ApplyState | null>(null);
   const [form, setForm] = useState<ApplyState>({ type: 1, companyData: {} });
   const [loading, setLoading] = useState(true);
@@ -207,76 +209,116 @@ export default function CertificationClient() {
     }
   };
 
-  if (loading) return <Card className="member-card">加载中...</Card>;
+  if (loading) return <Card className="member-card">{t('加载中...')}</Card>;
   const status = Number(state?.status ?? 0);
   const hasRecord = Boolean(state);
+  /** 分步指示（对照旧版 step.vue）：1 资料填写 / 2 审核及公示。 */
+  const currentStep = !hasRecord || editing || status === 0 ? 1 : 2;
 
   return (
     <Card className="member-card certification-card">
-      <div className={`cert-status cert-status--${status}`}>{hasRecord ? STATUS_TEXT[status] || '待审核' : '未申请'}</div>
+      <div className="cert-steps" style={{ display: 'flex', marginBottom: 16 }}>
+        {['1. 资料填写', '2. 审核及公示'].map((label, index) => (
+          <div
+            key={label}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              padding: '12px 10px',
+              fontSize: 14,
+              background: currentStep === index + 1 ? '#a9781b' : '#f5f6fa',
+              color: currentStep === index + 1 ? '#fff' : '#333',
+            }}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+      <div className={`cert-status cert-status--${status}`}>{hasRecord ? STATUS_TEXT[status] || t('待审核') : '未申请'}</div>
       {status === 2 && state?.auditRemark ? <div className="cert-error">审核未通过原因：{state.auditRemark}</div> : null}
 
       {!editing && state?.companyData?.corporateName ? (
         <div className="cert-readonly">
           <h3 className="cert-readonly__title">
-            {status === 1 ? '恭喜您，您的申请审核通过' : status === 2 ? '很遗憾，您的申请审核未通过' : '申请已受理，我们将在 3 个工作日内完成审核'}
+            {status === 1 ? t('恭喜您，您的申请审核通过') : status === 2 ? t('很遗憾，您的申请审核未通过') : '申请已受理，我们将在 3 个工作日内完成审核'}
           </h3>
-          <div className="cert-readonly__sub">基本信息 · 以下为本次申请内容：</div>
-          <div><label>认证类型</label><span>{Number(state.type) === 1 ? '个人' : '企业'}</span></div>
-          <div><label>证件类型</label><span>{state.companyData.documentType || '-'}</span></div>
-          <div><label>{Number(state.type) === 1 ? '姓名' : '法定代表人姓名'}</label><span>{state.companyData.corporateName}</span></div>
-          <div><label>证件号码</label><span>{state.companyData.documentNumber}</span></div>
-          <div><label>联系人手机</label><span>{state.companyData.contactPhone}</span></div>
+          <div className="cert-readonly__sub">{t('基本信息 · 以下为本次申请内容：')}</div>
+          <div><label>{t('认证类型')}</label><span>{Number(state.type) === 1 ? t('个人') : '企业'}</span></div>
+          <div><label>{t('证件类型')}</label><span>{state.companyData.documentType || '-'}</span></div>
+          <div><label>{Number(state.type) === 1 ? t('姓名') : '法定代表人姓名'}</label><span>{state.companyData.corporateName}</span></div>
+          <div><label>{t('证件号码')}</label><span>{state.companyData.documentNumber}</span></div>
+          <div><label>{t('联系人手机')}</label><span>{state.companyData.contactPhone}</span></div>
+          <div><label>{t('出生日期')}</label><span>{state.companyData.birthday || '-'}</span></div>
+          <div><label>{t('证件有效期')}</label><span>{Number(state.companyData.certificateValidityPeriod) === 1 ? t('长期有效') : t('{a} 至 {b}', { a: state.companyData.certificateValidityPeriodDate || '-', b: state.companyData.certificateValidityPeriodEnd || '-' })}</span></div>
           {Number(state.type) === 2 ? (
             <>
-              <div><label>企业名称</label><span>{state.companyData.companyName || '-'}</span></div>
-              <div><label>统一社会信用代码</label><span>{state.companyData.businessLicenseId || '-'}</span></div>
-              <div><label>注册地址</label><span>{state.companyData.businessLicenseAddress || '-'}</span></div>
+              <div><label>{t('企业名称')}</label><span>{state.companyData.companyName || '-'}</span></div>
+              <div><label>{t('统一社会信用代码')}</label><span>{state.companyData.businessLicenseId || '-'}</span></div>
+              <div><label>{t('注册地址')}</label><span>{state.companyData.businessLicenseAddress || '-'}</span></div>
             </>
           ) : null}
-          <div><label>备注</label><span>{state.auditRemark || '-'}</span></div>
-          {status === 2 ? <Button onClick={() => setEditing(true)}>重新申请</Button> : null}
+          <div><label>{t('备注')}</label><span>{state.auditRemark || '-'}</span></div>
+          {status === 2 ? <Button onClick={() => setEditing(true)}>{t('重新申请')}</Button> : null}
         </div>
       ) : (
         <div className="security-form cert-form">
-          {status === 0 ? <div className="cert-tip">认证资料审核中，如需修改请等待审核结果。</div> : null}
-          <label>认证类型</label>
+          {status === 0 ? <div className="cert-tip">{t('认证资料审核中，如需修改请等待审核结果。')}</div> : null}
+          <label>{t('认证类型')}</label>
           <div className="cert-options">
-            <button type="button" className={Number(form.type) === 1 ? 'is-active' : ''} onClick={() => setForm({ ...form, type: 1 })}>个人</button>
-            <button type="button" className={Number(form.type) === 2 ? 'is-active' : ''} onClick={() => setForm({ ...form, type: 2 })}>企业</button>
+            <button type="button" className={Number(form.type) === 1 ? 'is-active' : ''} onClick={() => setForm({ ...form, type: 1 })}>{t('个人')}</button>
+            <button type="button" className={Number(form.type) === 2 ? 'is-active' : ''} onClick={() => setForm({ ...form, type: 2 })}>{t('企业')}</button>
           </div>
-          <div className="cert-section">{Number(form.type) === 1 ? '个人信息' : '法定代表人信息'}</div>
-          <label>证件类型</label>
+          <div className="cert-section">{Number(form.type) === 1 ? t('个人信息') : '法定代表人信息'}</div>
+          <label>{t('证件类型')}</label>
           <select value={form.companyData?.documentType || ''} onChange={(event) => update('documentType', event.target.value)}>
-            <option value="">请选择证件类型</option>
-            <option value="1">身份证</option>
-            <option value="2">护照</option>
-            <option value="3">营业执照</option>
+            <option value="">{t('请选择证件类型')}</option>
+            <option value="1">{t('大陆身份证')}</option>
+            <option value="2">{t('护照（限境外人士）')}</option>
+            <option value="3">{t('来往内地通行证（中国香港居民）')}</option>
+            <option value="4">{t('来往内地通行证（中国澳门居民）')}</option>
+            <option value="5">{t('来往大陆通行证（中国台湾居民）')}</option>
           </select>
-          <label>{Number(form.type) === 1 ? '姓名' : '法定代表人姓名'}</label>
-          <input value={form.companyData?.corporateName || ''} onChange={(event) => update('corporateName', event.target.value)} placeholder="填写中文名（英文名），如“张三（Zhang San）”" />
-          <label>证件号码</label>
-          <input value={form.companyData?.documentNumber || ''} onChange={(event) => update('documentNumber', event.target.value)} placeholder="请输入证件号码" />
-          <label>联系人手机</label>
-          <input value={form.companyData?.contactPhone || ''} onChange={(event) => update('contactPhone', event.target.value)} placeholder="请输入联系人手机" />
+          <label>{Number(form.type) === 1 ? t('姓名') : '法定代表人姓名'}</label>
+          <input value={form.companyData?.corporateName || ''} onChange={(event) => update('corporateName', event.target.value)} placeholder={t('填写中文名（英文名），如“张三（Zhang San）”')} />
+          <label>{t('证件号码')}</label>
+          <input
+            value={form.companyData?.documentNumber || ''}
+            onChange={(event) => {
+              const value = event.target.value;
+              setForm((current) => {
+                const companyData: CompanyData = { ...(current.companyData || {}), documentNumber: value };
+                // 大陆身份证自动识别出生日期（对照旧版 Info.vue 的证件号监听）
+                if (String(companyData.documentType) === '1' && value.length >= 18 && !companyData.birthday) {
+                  const part = value.slice(6, 14);
+                  companyData.birthday = `${part.slice(0, 4)}-${part.slice(4, 6)}-${part.slice(6, 8)}`;
+                }
+                return { ...current, companyData };
+              });
+            }}
+            placeholder={t('请输入证件号码')}
+          />
+          <label>{t('联系人手机')}</label>
+          <input value={form.companyData?.contactPhone || ''} onChange={(event) => update('contactPhone', event.target.value)} placeholder={t('请输入联系人手机')} />
+          <label>{t('出生日期')}</label>
+          <input type="date" value={form.companyData?.birthday || ''} onChange={(event) => update('birthday', event.target.value)} placeholder={t('请选择出生日期')} />
           {Number(form.type) === 1 ? (
             <>
-              <label>居住地址</label>
-              <input value={form.companyData?.residentialAddress || ''} onChange={(event) => update('residentialAddress', event.target.value)} placeholder="请输入居住地址" />
-              <label>证件有效期</label>
+              <label>{t('居住地址')}</label>
+              <input value={form.companyData?.residentialAddress || ''} onChange={(event) => update('residentialAddress', event.target.value)} placeholder={t('请输入居住地址')} />
+              <label>{t('证件有效期')}</label>
               <div className="cert-options">
                 <button
                   type="button"
                   className={Number(form.companyData?.certificateValidityPeriod) === 1 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), certificateValidityPeriod: 1 } }))}
-                >长期有效</button>
+                >{t('长期有效')}</button>
                 <button
                   type="button"
                   className={Number(form.companyData?.certificateValidityPeriod) === 2 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), certificateValidityPeriod: 2 } }))}
-                >区间有效</button>
+                >{t('区间有效')}</button>
               </div>
-              <label>证件有效期</label>
+              <label>{t('证件有效期')}</label>
               <div className="cert-range">
                 <input
                   type="date"
@@ -284,7 +326,7 @@ export default function CertificationClient() {
                   disabled={Number(form.companyData?.certificateValidityPeriod) !== 2}
                   onChange={(event) => update('certificateValidityPeriodDate', event.target.value)}
                 />
-                <span>至</span>
+                <span>{t('至')}</span>
                 <input
                   type="date"
                   value={form.companyData?.certificateValidityPeriodEnd || ''}
@@ -292,8 +334,8 @@ export default function CertificationClient() {
                   onChange={(event) => update('certificateValidityPeriodEnd', event.target.value)}
                 />
               </div>
-              <label>{Number(form.type) === 1 ? '个人证件照' : '法定代表人证件照'}</label>
-              <p className="cert-field-tip">必须为彩色图片且小于2M，若为复印件，需加盖公司红章。</p>
+              <label>{Number(form.type) === 1 ? t('个人证件照') : '法定代表人证件照'}</label>
+              <p className="cert-field-tip">{t('必须为彩色图片且小于2M，若为复印件，需加盖公司红章。')}</p>
               <div className="cert-uploads">
                 <CertImageUpload label="证件照（人像面）" value={form.companyData?.frontOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), frontOfPhoto: list } }))} />
                 <CertImageUpload label="证件照（国徽面）" value={form.companyData?.backOfPhoto} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), backOfPhoto: list } }))} />
@@ -301,29 +343,29 @@ export default function CertificationClient() {
             </>
           ) : (
             <>
-              <div className="cert-section">企业信息</div>
-              <label>企业名称</label>
-              <input value={form.companyData?.companyName || ''} onChange={(event) => update('companyName', event.target.value)} placeholder="请输入企业名称" />
-              <label>统一社会信用代码</label>
-              <input value={form.companyData?.businessLicenseId || ''} onChange={(event) => update('businessLicenseId', event.target.value)} placeholder="请输入营业执照上18位统一社会信用代码" />
-              <label>注册地址</label>
-              <input value={form.companyData?.businessLicenseAddress || ''} onChange={(event) => update('businessLicenseAddress', event.target.value)} placeholder="注册地址需与营业执照登记住所一致" />
-              <label>经营范围</label>
-              <input value={form.companyData?.businessScope || ''} onChange={(event) => update('businessScope', event.target.value)} placeholder="请输入经营范围" />
-              <label>经营期限</label>
+              <div className="cert-section">{t('企业信息')}</div>
+              <label>{t('企业名称')}</label>
+              <input value={form.companyData?.companyName || ''} onChange={(event) => update('companyName', event.target.value)} placeholder={t('请输入企业名称')} />
+              <label>{t('统一社会信用代码')}</label>
+              <input value={form.companyData?.businessLicenseId || ''} onChange={(event) => update('businessLicenseId', event.target.value)} placeholder={t('请输入营业执照上18位统一社会信用代码')} />
+              <label>{t('注册地址')}</label>
+              <input value={form.companyData?.businessLicenseAddress || ''} onChange={(event) => update('businessLicenseAddress', event.target.value)} placeholder={t('注册地址需与营业执照登记住所一致')} />
+              <label>{t('经营范围')}</label>
+              <input value={form.companyData?.businessScope || ''} onChange={(event) => update('businessScope', event.target.value)} placeholder={t('请输入经营范围')} />
+              <label>{t('经营期限')}</label>
               <div className="cert-options">
                 <button
                   type="button"
                   className={Number(form.companyData?.operatingTermType) === 1 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), operatingTermType: 1 } }))}
-                >长期</button>
+                >{t('长期')}</button>
                 <button
                   type="button"
                   className={Number(form.companyData?.operatingTermType) === 2 ? 'is-active' : ''}
                   onClick={() => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), operatingTermType: 2 } }))}
-                >区间有效</button>
+                >{t('区间有效')}</button>
               </div>
-              <label>营业期限</label>
+              <label>{t('营业期限')}</label>
               <div className="cert-range">
                 <input
                   type="date"
@@ -331,7 +373,7 @@ export default function CertificationClient() {
                   disabled={Number(form.companyData?.operatingTermType) !== 2}
                   onChange={(event) => update('operatingTermTypeDate', event.target.value)}
                 />
-                <span>至</span>
+                <span>{t('至')}</span>
                 <input
                   type="date"
                   value={form.companyData?.operatingTermTypeEnd || ''}
@@ -339,13 +381,13 @@ export default function CertificationClient() {
                   onChange={(event) => update('operatingTermTypeEnd', event.target.value)}
                 />
               </div>
-              <label>营业执照图片</label>
+              <label>{t('营业执照图片')}</label>
               <div className="cert-uploads">
                 <CertImageUpload label="营业执照" value={form.companyData?.businessLicenseImg} onChange={(list) => setForm((current) => ({ ...current, companyData: { ...(current.companyData || {}), businessLicenseImg: list } }))} />
               </div>
             </>
           )}
-          <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>提交认证</Button>
+          <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('提交认证')}</Button>
         </div>
       )}
     </Card>

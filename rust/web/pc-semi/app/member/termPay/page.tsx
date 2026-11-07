@@ -6,36 +6,38 @@ import { getCreditDetail, getPcHeader } from '@/lib/api';
 import TermPaySettlementButton from '@/components/TermPaySettlementButton';
 import MemberShell from '@/components/MemberShell';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '账期支付 · 万物新生', robots: { index: false, follow: false } };
 
 interface PageProps { searchParams?: { [key: string]: string | string[] | undefined } }
 
 export default async function TermPayPage({ searchParams }: PageProps) {
+    const t = getServerT();
   const tab = searchParams?.tab === 'settled' ? 'settled' : 'pending';
   const [detail, header] = await Promise.all([
     getCreditDetail().catch(() => null),
     getPcHeader().catch(() => null),
   ]);
   const orders = tab === 'settled' ? (detail?.settledOrders || []) : (detail?.pendingOrders || []);
-  const settlementText = Number(detail?.settlementType) === 2 ? '季结' : '月结';
+  const settlementText = Number(detail?.settlementType) === 2 ? t('季结') : '月结';
 
   return (
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title="账期支付">
+        <MemberShell title={t('账期支付')}>
               {detail ? (
       <>
         <section className="term-summary">
-          <div><span>授信额度</span><b>¥ {Number(detail.creditLimit || 0).toFixed(2)}</b></div>
-          <div><span>可用额度</span><b>¥ {Number(detail.availableAmount || 0).toFixed(2)}</b></div>
-          <div><span>结算周期</span><b>{settlementText} / {detail.settlementDays || 30} 天</b></div>
-          <div><span>剩余天数</span><b>{detail.remainingDays ?? '-'} 天</b></div>
+          <div><span>{t('授信额度')}</span><b>¥ {Number(detail.creditLimit || 0).toFixed(2)}</b></div>
+          <div><span>{t('可用额度')}</span><b>¥ {Number(detail.availableAmount || 0).toFixed(2)}</b></div>
+          <div><span>{t('结算周期')}</span><b>{settlementText} / {detail.settlementDays || 30} 天</b></div>
+          <div><span>{t('剩余天数')}</span><b>{detail.remainingDays ?? '-'} 天</b></div>
         </section>
         <div style={{ marginBottom: 12 }}><TermPaySettlementButton /></div>
       </>
-    ) : <div className="comment-empty">暂无账期支付资格</div>}
+    ) : <div className="comment-empty">{t('暂无账期支付资格')}</div>}
 
     <div className="term-tabs">
       <Link href="/member/termPay" className={tab === 'pending' ? 'is-active' : ''}>未结算 ({detail?.pendingOrders?.length || 0})</Link>
@@ -47,8 +49,8 @@ export default async function TermPayPage({ searchParams }: PageProps) {
         {orders.map((order) => (
           <article className="term-order" key={order.orderId}>
             <header>
-              <span className={Number(order.riskStatus) === 1 ? 'is-overdue' : ''}>{order.riskStatusText || order.settlementStatusText || '待结算'}</span>
-              <span>订单号：<Link href={`/member/order/detail?id=${order.orderId}`}>{order.orderSn}</Link></span>
+              <span className={Number(order.riskStatus) === 1 ? 'is-overdue' : ''}>{order.riskStatusText || order.settlementStatusText || t('待结算')}</span>
+              <span>{t('订单号：')}<Link href={`/member/order/detail?id=${order.orderId}`}>{order.orderSn}</Link></span>
               <span>{order.orderTime || ''}</span>
             </header>
             <div className="term-order__body">
@@ -69,7 +71,7 @@ export default async function TermPayPage({ searchParams }: PageProps) {
           </article>
         ))}
       </div>
-    ) : <div className="comment-empty">{tab === 'pending' ? '暂无未结算订单' : '暂无已结算订单'}</div>}
+    ) : <div className="comment-empty">{tab === 'pending' ? t('暂无未结算订单') : '暂无已结算订单'}</div>}
         </MemberShell>
       </main>
       <PcFooter />

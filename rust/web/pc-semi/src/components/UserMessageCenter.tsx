@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface MessageItem {
   messageId?: number;
   title?: string;
@@ -27,6 +28,7 @@ interface MessageItem {
 }
 
 export default function UserMessageCenter() {
+    const { t } = useTranslation();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -95,21 +97,19 @@ export default function UserMessageCenter() {
   return (
     <div className="msg-center">
       <aside className="msg-center__side">
-        <b className="msg-center__side-title">消息中心</b>
-        <div className="msg-center__side-item is-active">账户信息</div>
+        <b className="msg-center__side-title">{t('消息中心')}</b>
+        <div className="msg-center__side-item is-active">{t('账户信息')}</div>
       </aside>
 
       <div className="msg-center__main">
         <div className="msg-center__toolbar">
-          <Button theme={onlyUnread ? 'solid' : 'light'} type={onlyUnread ? 'primary' : 'tertiary'} onClick={() => setOnlyUnread((value) => !value)}>
-            只看未读
-          </Button>
-          <Button onClick={() => void markAllRead()}>全部标记为已读</Button>
+          <Button theme={onlyUnread ? 'solid' : 'light'} type={onlyUnread ? 'primary' : 'tertiary'} onClick={() => setOnlyUnread((value) => !value)}>{t('只看未读')}</Button>
+          <Button onClick={() => void markAllRead()}>{t('全部标记为已读')}</Button>
         </div>
 
-        {loading ? <Card className="cart-state">加载中...</Card> : null}
+        {loading ? <Card className="cart-state">{t('加载中...')}</Card> : null}
 
-        {!loading && !messages.length ? <Card className="cart-state">暂无消息</Card> : null}
+        {!loading && !messages.length ? <Card className="cart-state">{t('暂无消息')}</Card> : null}
 
         {!loading && messages.map((item) => (
           <div
@@ -118,33 +118,31 @@ export default function UserMessageCenter() {
             onClick={() => void readItem(item)}
           >
             <div className="msg-card__head">
-              <span className="msg-card__source">系统通知</span>
+              <span className="msg-card__source">{t('系统通知')}</span>
               <span className="msg-card__date">{item.addTimeDate || item.addTime || ''}</span>
             </div>
             <h3 className="msg-card__title">
               {!item.isRead ? <i className="msg-card__dot" /> : null}
-              {item.title || '消息'}
+              {item.title || t('消息')}
             </h3>
             <p className="msg-card__text">{item.content || ''}</p>
             <button
               type="button"
               className="msg-card__del"
               onClick={(event) => { event.stopPropagation(); void remove(item.messageId); }}
-            >
-              删除
-            </button>
+            >{t('删除')}</button>
           </div>
         ))}
 
         {totalPages > 1 ? (
           <div className="comment-pagination">
-            <button type="button" disabled={page <= 1} onClick={() => void load(page - 1, onlyUnread)}>上一页</button>
+            <button type="button" disabled={page <= 1} onClick={() => void load(page - 1, onlyUnread)}>{t('上一页')}</button>
             <span>{page} / {totalPages}</span>
-            <button type="button" disabled={page >= totalPages} onClick={() => void load(page + 1, onlyUnread)}>下一页</button>
+            <button type="button" disabled={page >= totalPages} onClick={() => void load(page + 1, onlyUnread)}>{t('下一页')}</button>
           </div>
         ) : null}
 
-        <div className="comment-info-back"><Link href="/member">返回会员中心</Link></div>
+        <div className="comment-info-back"><Link href="/member">{t('返回会员中心')}</Link></div>
       </div>
     </div>
   );

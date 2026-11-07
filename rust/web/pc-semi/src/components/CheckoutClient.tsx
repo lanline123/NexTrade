@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Checkbox, InputNumber, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 /**
  * 确认订单（1:1 对照 java-b2b2c-overseas-v5.8.61/view/pc/pages/order/check.vue）
  *
@@ -189,6 +190,7 @@ function activityList(data: ActivityItem[] | null | undefined): ActivityItem[] {
 }
 
 export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: number[]; flowType?: number }) {
+    const { t } = useTranslation();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressId, setAddressId] = useState(0);
   const [data, setData] = useState<CheckoutData | null>(null);
@@ -461,7 +463,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
       return;
     }
     if (!String(next.companyName || '').trim()) {
-      Toast.warning({ content: Number(next.titleType) === 1 ? '请输入个人名称' : '请输入企业名称' });
+      Toast.warning({ content: Number(next.titleType) === 1 ? t('请输入个人名称') : '请输入企业名称' });
       return;
     }
     if (Number(next.titleType) === 2 && !String(next.companyCode || '').trim()) {
@@ -536,17 +538,15 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     }
   };
 
-  if (loading) return <div className="pc-co-state">结算数据加载中...</div>;
+  if (loading) return <div className="pc-co-state">{t('结算数据加载中...')}</div>;
 
   if (needLogin) {
     return (
       <div className="pc-co-state">
-        <h2>登录后结算</h2>
-        <p>请先登录账号，再确认收货地址和支付方式。</p>
+        <h2>{t('登录后结算')}</h2>
+        <p>{t('请先登录账号，再确认收货地址和支付方式。')}</p>
         <Link href="/login?redirect=/cart">
-          <Button theme="solid" type="primary" size="large">
-            去登录
-          </Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </div>
     );
@@ -554,9 +554,9 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
 
   const invoiceSummary =
     Number(invoiceData.invoiceType) === 1
-      ? '电子普通发票'
+      ? t('电子普通发票')
       : Number(invoiceData.invoiceType) === 2
-        ? '增值税专用发票'
+        ? t('增值税专用发票')
         : '不开发票';
 
   const submitDisabled = !items.length || (needAddress && !addressId) || !payTypeId || !shippingType;
@@ -567,9 +567,8 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {/* 收货地址 */}
         <section className="pc-co-card">
           <div className="pc-co-card__head">
-            <h2>收货地址</h2>
-            <button type="button" className="pc-co-link" onClick={() => setAddressOpen(true)}>
-              更改 <span className="pc-co-caret">›</span>
+            <h2>{t('收货地址')}</h2>
+            <button type="button" className="pc-co-link" onClick={() => setAddressOpen(true)}>{t('更改')}<span className="pc-co-caret">›</span>
             </button>
           </div>
           {selectedAddress ? (
@@ -580,7 +579,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                   {selectedAddress.mobileAreaCode ? `+${selectedAddress.mobileAreaCode} ` : ''}
                   {selectedAddress.mobile || '-'}
                 </span>
-                {Number(selectedAddress.isInvalid) ? <em className="pc-co-invalid">无效地址</em> : null}
+                {Number(selectedAddress.isInvalid) ? <em className="pc-co-invalid">{t('无效地址')}</em> : null}
               </div>
               <p>{selectedAddress.formattedAddress || selectedAddress.fullAddress || [selectedAddress.regionName, selectedAddress.address].filter(Boolean).join(' ')}</p>
               {selectedAddress.email || selectedAddress.telephone ? (
@@ -590,14 +589,12 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               ) : null}
             </div>
           ) : (
-            <div className="pc-co-address pc-co-address--empty">
-              暂无收货地址，
-              <Link href="/member/address">去添加地址</Link>
+            <div className="pc-co-address pc-co-address--empty">{t('暂无收货地址，')}<Link href="/member/address">{t('去添加地址')}</Link>
             </div>
           )}
           {showDeliveryOption ? (
             <p className="pc-co-hint">
-              {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? '门店自提' : '配送')}
+              {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? t('门店自提') : '配送')}
               {fieldValue(deliveryOption, ['storeName', 'pickupName']) ? `：${fieldValue(deliveryOption, ['storeName', 'pickupName'])}` : ''}
               {fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address']) ? ` · ${fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address'])}` : ''}
             </p>
@@ -607,7 +604,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {/* 支付方式 */}
         <section className="pc-co-card">
           <div className="pc-co-card__head">
-            <h2>支付方式</h2>
+            <h2>{t('支付方式')}</h2>
           </div>
           {payments.length ? (
             <div className="pc-co-pay">
@@ -619,12 +616,12 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                   onClick={() => setPayTypeId(payment.typeId)}
                 >
                   {payment.icon ? <img src={payment.icon} alt="" /> : null}
-                  <span>{payment.typeName || payment.name || `支付方式 ${payment.typeId}`}</span>
+                  <span>{payment.typeName || payment.name || t('支付方式 {id}', { id: payment.typeId })}</span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="pc-co-hint">暂无可用支付方式</p>
+            <p className="pc-co-hint">{t('暂无可用支付方式')}</p>
           )}
         </section>
 
@@ -638,17 +635,17 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
           return (
             <section className="pc-co-card" key={`shop-${group.shopId}`}>
               <div className="pc-co-shop">
-                <span>{Number(group.shopId) === 0 ? '自营' : `商家：${group.shopTitle || ''}`}</span>
+                <span>{Number(group.shopId) === 0 ? t('自营') : t('商家：{name}', { name: group.shopTitle || '' })}</span>
               </div>
 
               {Number(group.noShipping) === 1 ? (
                 <div className="pc-co-ship">
-                  <span className="pc-co-ship__label">配送</span>
-                  <em className="pc-co-ship__tab is-active">无需配送</em>
+                  <span className="pc-co-ship__label">{t('配送')}</span>
+                  <em className="pc-co-ship__tab is-active">{t('无需配送')}</em>
                 </div>
               ) : groupOptions.length ? (
                 <div className="pc-co-ship">
-                  <span className="pc-co-ship__label">配送</span>
+                  <span className="pc-co-ship__label">{t('配送')}</span>
                   {groupOptions.map((option, index) => {
                     const typeId = Number(option.shippingTypeId || option.typeId || 0);
                     const active = Number(selected?.typeId || 0) === typeId;
@@ -659,15 +656,15 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                         className={`pc-co-ship__tab${active ? ' is-active' : ''}`}
                         onClick={() => onChangeShipping(group.shopId, option)}
                       >
-                        {option.shippingTypeName || option.typeName || `配送 ${typeId}`}
+                        {option.shippingTypeName || option.typeName || t('配送 {id}', { id: typeId })}
                       </button>
                     );
                   })}
                 </div>
               ) : (
                 <div className="pc-co-ship">
-                  <span className="pc-co-ship__label">配送</span>
-                  <em className="pc-co-ship__error">该收货地址不支持配送</em>
+                  <span className="pc-co-ship__label">{t('配送')}</span>
+                  <em className="pc-co-ship__error">{t('该收货地址不支持配送')}</em>
                 </div>
               )}
 
@@ -709,7 +706,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                             <div className="pc-co-goods__promo">
                               {activityList(product.activityInfo).map((activity, index) => (
                                 <span key={`${activity.promotionId}-${index}`}>
-                                  {Number(activity.type) === 1 ? '秒杀价' : '限时折扣'}
+                                  {Number(activity.type) === 1 ? t('秒杀价') : '限时折扣'}
                                 </span>
                               ))}
                             </div>
@@ -725,7 +722,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
 
               {(group.gift || []).length ? (
                 <div className="pc-co-gift">
-                  <div className="pc-co-gift__title">赠品</div>
+                  <div className="pc-co-gift__title">{t('赠品')}</div>
                   <div className="pc-co-gift__list">
                     {(group.gift || []).map((gift, index) => (
                       <div className="pc-co-gift__item" key={`${gift.giftId}-${index}`}>
@@ -748,30 +745,30 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {presale ? (
           <section className="pc-co-card">
             <div className="pc-co-card__head">
-              <h2>预售信息</h2>
+              <h2>{t('预售信息')}</h2>
             </div>
             <div className="pc-co-presale">
               {Number(total.actualPayDepositAmount || 0) > 0 ? (
                 <div>
-                  <span>应付定金</span>
+                  <span>{t('应付定金')}</span>
                   <b>¥ {money(total.actualPayDepositAmount)}</b>
                 </div>
               ) : null}
               {fieldValue(presale, ['depositAmount', 'presaleDepositAmount']) ? (
                 <div>
-                  <span>定金</span>
+                  <span>{t('定金')}</span>
                   <b>¥ {money(fieldValue(presale, ['depositAmount', 'presaleDepositAmount']))}</b>
                 </div>
               ) : null}
               {fieldValue(presale, ['presalePrice', 'presalePriceAmount']) ? (
                 <div>
-                  <span>预售价</span>
+                  <span>{t('预售价')}</span>
                   <b>¥ {money(fieldValue(presale, ['presalePrice', 'presalePriceAmount']))}</b>
                 </div>
               ) : null}
               {fieldValue(presale, ['tailAmount', 'balanceAmount']) ? (
                 <div>
-                  <span>尾款</span>
+                  <span>{t('尾款')}</span>
                   <b>¥ {money(fieldValue(presale, ['tailAmount', 'balanceAmount']))}</b>
                 </div>
               ) : null}
@@ -783,14 +780,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {/* 订单备注 */}
         <section className="pc-co-card">
           <div className="pc-co-card__head">
-            <h2>订单备注</h2>
+            <h2>{t('订单备注')}</h2>
           </div>
           <div className="pc-co-note">
             <textarea
               rows={2}
               maxLength={50}
               value={buyerNote}
-              placeholder="提示：请勿填写有关支付、收货、发票方面的信息"
+              placeholder={t('提示：请勿填写有关支付、收货、发票方面的信息')}
               onChange={(event) => changeNote(event.target.value)}
             />
             <span>{buyerNote.length}/50</span>
@@ -801,13 +798,11 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {!giftCardMode && data?.couponList ? (
           <section className="pc-co-card">
             <div className="pc-co-card__head">
-              <h2>优惠券</h2>
+              <h2>{t('优惠券')}</h2>
               <div className="pc-co-tabs">
-                <button type="button" className={couponTab === 0 ? 'is-active' : ''} onClick={() => setCouponTab(0)}>
-                  可用 <em>{coupons.length}</em>
+                <button type="button" className={couponTab === 0 ? 'is-active' : ''} onClick={() => setCouponTab(0)}>{t('可用')}<em>{coupons.length}</em>
                 </button>
-                <button type="button" className={couponTab === 1 ? 'is-active' : ''} onClick={() => setCouponTab(1)}>
-                  不可用 <em>{disableCoupons.length}</em>
+                <button type="button" className={couponTab === 1 ? 'is-active' : ''} onClick={() => setCouponTab(1)}>{t('不可用')}<em>{disableCoupons.length}</em>
                 </button>
               </div>
             </div>
@@ -830,14 +825,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                           ) : (
                             <>
                               <b>{coupon.couponDiscount || '-'}</b>
-                              <small>折</small>
+                              <small>{t('折')}</small>
                             </>
                           )}
                         </div>
                         <div className="pc-co-coupon__main">
-                          <b>{coupon.couponName || '优惠券'}</b>
+                          <b>{coupon.couponName || t('优惠券')}</b>
                           <small className="pc-co-coupon__time">
-                            {coupon.startDate ? `${coupon.startDate} 至 ${coupon.endDate || ''}` : `${coupon.endDate || ''} 前有效`}
+                            {coupon.startDate ? t('{a} 至 {b}', { a: coupon.startDate, b: coupon.endDate || '' }) : t('{b} 前有效', { b: coupon.endDate || '' })}
                           </small>
                           {coupon.couponDesc ? <em>{coupon.couponDesc}</em> : null}
                         </div>
@@ -846,7 +841,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                   })}
                 </div>
               ) : (
-                <div className="pc-co-coupons__empty">没有可用的优惠券</div>
+                <div className="pc-co-coupons__empty">{t('没有可用的优惠券')}</div>
               )
             ) : disableCoupons.length ? (
               <div className="pc-co-coupon-grid">
@@ -862,14 +857,14 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                       ) : (
                         <>
                           <b>{coupon.couponDiscount || '-'}</b>
-                          <small>折</small>
+                          <small>{t('折')}</small>
                         </>
                       )}
                     </div>
                     <div className="pc-co-coupon__main">
-                      <b>{coupon.couponName || '优惠券'}</b>
+                      <b>{coupon.couponName || t('优惠券')}</b>
                       <small className="pc-co-coupon__time">
-                        {coupon.startDate ? `${coupon.startDate} 至 ${coupon.endDate || ''}` : `${coupon.endDate || ''} 前有效`}
+                        {coupon.startDate ? t('{a} 至 {b}', { a: coupon.startDate, b: coupon.endDate || '' }) : t('{b} 前有效', { b: coupon.endDate || '' })}
                       </small>
                       {coupon.couponDesc ? <em>{coupon.couponDesc}</em> : null}
                     </div>
@@ -877,7 +872,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                 ))}
               </div>
             ) : (
-              <div className="pc-co-coupons__empty">没有不可用的优惠券</div>
+              <div className="pc-co-coupons__empty">{t('没有不可用的优惠券')}</div>
             )}
           </section>
         ) : null}
@@ -886,10 +881,8 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {!giftCardMode && flowType === 1 ? (
           <section className="pc-co-card">
             <div className="pc-co-card__head">
-              <h2>使用积分</h2>
-              <span className="pc-co-card__sub">
-                当前账户共 <b>{availablePoints}</b> 积分
-              </span>
+              <h2>{t('使用积分')}</h2>
+              <span className="pc-co-card__sub">{t('当前账户共')}<b>{availablePoints}</b>{t('积分')}</span>
             </div>
             <div className="pc-co-points">
               <InputNumber
@@ -903,9 +896,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               <div className="pc-co-points__tips">
                 {Number(total.pointsAmount || 0) > 0 ? <span>共抵扣 ¥ {money(total.pointsAmount)}</span> : null}
                 <span>该订单最多可用 {availablePoints} 积分</span>
-                <Link href="/article/issue?articleId=7" target="_blank" className="pc-co-link">
-                  【如何获得积分?】
-                </Link>
+                <Link href="/article/issue?articleId=7" target="_blank" className="pc-co-link">{t('【如何获得积分?】')}</Link>
               </div>
             </div>
           </section>
@@ -915,14 +906,11 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {!giftCardMode && titleText ? (
           <section className="pc-co-card">
             <div className="pc-co-card__head">
-              <h2>余额</h2>
+              <h2>{t('余额')}</h2>
             </div>
             <div className="pc-co-check">
-              <Checkbox checked={useBalance > 0} disabled={availableBalance <= 0} onChange={(event) => toggleBalance(Boolean(event.target.checked))}>
-                使用余额
-              </Checkbox>
-              <span className="pc-co-card__sub">
-                当前账户余额 <b>{money(availableBalance)}</b>
+              <Checkbox checked={useBalance > 0} disabled={availableBalance <= 0} onChange={(event) => toggleBalance(Boolean(event.target.checked))}>{t('使用余额')}</Checkbox>
+              <span className="pc-co-card__sub">{t('当前账户余额')}<b>{money(availableBalance)}</b>
               </span>
             </div>
           </section>
@@ -932,17 +920,15 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {!giftCardMode ? (
           <section className="pc-co-card">
             <div className="pc-co-card__head">
-              <h2>发票信息</h2>
-              <span className="pc-co-card__sub">开企业抬头发票须填写纳税人识别号，以免影响报销</span>
+              <h2>{t('发票信息')}</h2>
+              <span className="pc-co-card__sub">{t('开企业抬头发票须填写纳税人识别号，以免影响报销')}</span>
             </div>
             <div className="pc-co-invoice">
               <span>{invoiceSummary}</span>
-              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 1 ? <em>个人</em> : null}
-              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 2 ? <em>企业</em> : null}
+              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 1 ? <em>{t('个人')}</em> : null}
+              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 2 ? <em>{t('企业')}</em> : null}
               {invoiceData.companyName ? <span>{invoiceData.companyName}</span> : null}
-              <button type="button" className="pc-co-link" onClick={() => void openInvoice()}>
-                修改
-              </button>
+              <button type="button" className="pc-co-link" onClick={() => void openInvoice()}>{t('修改')}</button>
             </div>
           </section>
         ) : null}
@@ -951,14 +937,12 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         {canUseCredit ? (
           <section className="pc-co-card">
             <div className="pc-co-card__head">
-              <h2>账期</h2>
+              <h2>{t('账期')}</h2>
             </div>
             <div className="pc-co-check">
-              <Checkbox checked={useCredit === 1} disabled={creditDisabled} onChange={(event) => changeCredit(Boolean(event.target.checked))}>
-                账期支付
-              </Checkbox>
+              <Checkbox checked={useCredit === 1} disabled={creditDisabled} onChange={(event) => changeCredit(Boolean(event.target.checked))}>{t('账期支付')}</Checkbox>
               <span className="pc-co-card__sub">
-                {creditInfo?.disableReason ? creditInfo.disableReason : <>当前可用额度 <b>{money(creditInfo?.availableAmount)}</b></>}
+                {creditInfo?.disableReason ? creditInfo.disableReason : <>{t('当前可用额度')}<b>{money(creditInfo?.availableAmount)}</b></>}
               </span>
               {Number(creditInfo?.settlementDays || 0) > 0 ? <span className="pc-co-card__sub">账期 {creditInfo?.settlementDays} 天</span> : null}
             </div>
@@ -968,62 +952,62 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
 
       {/* 右栏：订单详情 */}
       <aside className="pc-co__summary">
-        <h2 className="pc-co-summary__title">订单详情</h2>
+        <h2 className="pc-co-summary__title">{t('订单详情')}</h2>
         <div className="pc-co-summary__list">
           <div className="pc-co-line pc-co-line--label">
-            <span>商品总价：</span>
+            <span>{t('商品总价：')}</span>
             <b>¥ {money(total.productAmount)}</b>
           </div>
           {Number(total.serviceFee || 0) > 0 ? (
             <div className="pc-co-line">
-              <span>附加费用：</span>
+              <span>{t('附加费用：')}</span>
               <b>¥ {money(total.serviceFee)}</b>
             </div>
           ) : null}
           {Number(total.balance || 0) > 0 && useBalance > 0 ? (
             <div className="pc-co-line">
-              <span>使用余额：</span>
+              <span>{t('使用余额：')}</span>
               <b className="is-deduct">- ¥ {money(total.balance)}</b>
             </div>
           ) : null}
           {Number(total.giftCardAmount || 0) > 0 ? (
             <div className="pc-co-line">
-              <span>使用礼品卡：</span>
+              <span>{t('使用礼品卡：')}</span>
               <b className="is-deduct">- ¥ {money(total.giftCardAmount)}</b>
             </div>
           ) : null}
           {Number(total.pointsAmount || 0) > 0 && flowType !== 3 ? (
             <div className="pc-co-line">
-              <span>积分减免：</span>
+              <span>{t('积分减免：')}</span>
               <b className="is-deduct">- ¥ {money(total.pointsAmount)}</b>
             </div>
           ) : null}
           <div className="pc-co-line--group">
             {Number(total.discounts || 0) > 0 ? (
               <div className="pc-co-line">
-                <span>共优惠</span>
+                <span>{t('共优惠')}</span>
                 <b className="is-deduct">- ¥ {money(total.discounts)}</b>
               </div>
             ) : null}
             <div className="pc-co-line">
-              <span>商品总额</span>
+              <span>{t('商品总额')}</span>
               <b>¥ {money(total.productAmount)}</b>
             </div>
             {Number(total.discountCouponAmount || 0) > 0 ? (
               <div className="pc-co-line">
-                <span>优惠券</span>
+                <span>{t('优惠券')}</span>
                 <b className="is-deduct">- ¥ {money(total.discountCouponAmount)}</b>
               </div>
             ) : null}
             {Number(total.discountDiscountAmount || 0) > 0 ? (
               <div className="pc-co-line">
-                <span>其他优惠</span>
+                <span>{t('其他优惠')}</span>
                 <b className="is-deduct">- ¥ {money(total.discountDiscountAmount)}</b>
               </div>
             ) : null}
             {needShipping ? (
               <div className="pc-co-line">
-                <span>快递：</span>
+                <span>{t('快递：')}</span>
                 {Number(total.shippingFee || 0) > 0 ? (
                   <b>¥ {money(total.shippingFee)}</b>
                 ) : (
@@ -1033,13 +1017,13 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             ) : null}
             {showTaxAmount ? (
               <div className="pc-co-line">
-                <span>税费：</span>
+                <span>{t('税费：')}</span>
                 <b>¥ {money(total.taxRateAmount)}</b>
               </div>
             ) : null}
             {Number(total.discountAfter || 0) > 0 ? (
               <div className="pc-co-line">
-                <span>合计</span>
+                <span>{t('合计')}</span>
                 <b>¥ {money(total.discountAfter)}</b>
               </div>
             ) : null}
@@ -1051,7 +1035,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             运费明细：
             {Object.entries(total.storeShippingFee as Record<string, unknown>).map(([shopId, fee]) => (
               <span key={shopId}>
-                {Number(shopId) === 0 ? '自营' : `店铺 ${shopId}`} ¥{money(fee)}
+                {Number(shopId) === 0 ? t('自营') : t('店铺 {id}', { id: shopId })} ¥{money(fee)}
               </span>
             ))}
           </p>
@@ -1062,10 +1046,10 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
         ) : null}
 
         <div className="pc-co-summary__total">
-          <span>仍需支付：</span>
+          <span>{t('仍需支付：')}</span>
           {flowType === 3 ? (
             <span className="pc-co-summary__exchange">
-              {total.exchangePoints} <small>积分</small> +
+              {total.exchangePoints} <small>{t('积分')}</small> +
             </span>
           ) : null}
           <b>¥ {money(payAmount)}</b>
@@ -1081,13 +1065,13 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
           disabled={submitDisabled}
           onClick={submit}
         >
-          {isDepositPresale ? '支付定金' : '立即下单'}
+          {isDepositPresale ? t('支付定金') : '立即下单'}
         </Button>
       </aside>
 
       {/* 地址选择弹窗（旧版 Address.vue） */}
-      <Modal title="收货地址" visible={addressOpen} onCancel={() => setAddressOpen(false)} footer={null} width={880}>
-        <p className="pc-co-hint">不同地区的配送选项和配送速度可能会有所不同</p>
+      <Modal title={t('收货地址')} visible={addressOpen} onCancel={() => setAddressOpen(false)} footer={null} width={880}>
+        <p className="pc-co-hint">{t('不同地区的配送选项和配送速度可能会有所不同')}</p>
         <div className="pc-co-address-list">
           {addresses.map((item) => (
             <button
@@ -1102,38 +1086,36 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                   {item.mobileAreaCode ? `+${item.mobileAreaCode} ` : ''}
                   {item.mobile || '-'}
                 </span>
-                {Number(item.isInvalid) ? <em className="pc-co-invalid">无效地址</em> : null}
+                {Number(item.isInvalid) ? <em className="pc-co-invalid">{t('无效地址')}</em> : null}
               </div>
               <p>{item.formattedAddress || item.fullAddress || [item.regionName, item.address].filter(Boolean).join(' ')}</p>
               <small>
                 {item.email || '-'} / {item.telephone || '-'}
               </small>
-              {Number(item.isSelected) === 1 ? <em className="pc-co-default">默认地址</em> : null}
+              {Number(item.isSelected) === 1 ? <em className="pc-co-default">{t('默认地址')}</em> : null}
             </button>
           ))}
-          {!addresses.length ? <p className="pc-co-hint">暂无收货地址</p> : null}
+          {!addresses.length ? <p className="pc-co-hint">{t('暂无收货地址')}</p> : null}
         </div>
         <div className="pc-co-address-actions">
           <Link href="/member/address">
-            <Button theme="light">管理地址</Button>
+            <Button theme="light">{t('管理地址')}</Button>
           </Link>
-          <Button theme="borderless" onClick={() => void loadAddresses()}>
-            刷新地址
-          </Button>
+          <Button theme="borderless" onClick={() => void loadAddresses()}>{t('刷新地址')}</Button>
         </div>
       </Modal>
 
       {/* 发票弹窗 */}
-      <Modal title="发票信息" visible={invoiceOpen} onCancel={() => setInvoiceOpen(false)} onOk={confirmInvoice} okText="保存" cancelText="取消" width={560}>
+      <Modal title={t('发票信息')} visible={invoiceOpen} onCancel={() => setInvoiceOpen(false)} onOk={confirmInvoice} okText="保存" cancelText="取消" width={560}>
         <div className="pc-invoice-form">
           <div className="pc-invoice-form__row">
-            <span>发票类型</span>
+            <span>{t('发票类型')}</span>
             <select
               value={invoiceForm.invoiceType}
               onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceType: Number(event.target.value) }))}
             >
-              <option value={0}>不开发票</option>
-              <option value={1}>电子普通发票</option>
+              <option value={0}>{t('不开发票')}</option>
+              <option value={1}>{t('电子普通发票')}</option>
               <option value={2} disabled={!invoiceQualified}>
                 增值税专用发票{invoiceQualified ? '' : '（需资质审核）'}
               </option>
@@ -1142,17 +1124,17 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
           {Number(invoiceForm.invoiceType) !== 0 ? (
             <>
               <div className="pc-invoice-form__row">
-                <span>抬头类型</span>
+                <span>{t('抬头类型')}</span>
                 <select
                   value={invoiceForm.titleType}
                   onChange={(event) => setInvoiceForm((prev) => ({ ...prev, titleType: Number(event.target.value) }))}
                 >
-                  <option value={1}>个人</option>
-                  <option value={2}>企业</option>
+                  <option value={1}>{t('个人')}</option>
+                  <option value={2}>{t('企业')}</option>
                 </select>
               </div>
               <div className="pc-invoice-form__row">
-                <span>{Number(invoiceForm.titleType) === 1 ? '个人名称' : '企业名称'}</span>
+                <span>{Number(invoiceForm.titleType) === 1 ? t('个人名称') : '企业名称'}</span>
                 <input
                   value={String(invoiceForm.companyName || '')}
                   onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyName: event.target.value }))}
@@ -1160,7 +1142,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               </div>
               {Number(invoiceForm.titleType) === 2 || Number(invoiceForm.invoiceType) === 2 ? (
                 <div className="pc-invoice-form__row">
-                  <span>纳税人识别号</span>
+                  <span>{t('纳税人识别号')}</span>
                   <input
                     value={String(invoiceForm.companyCode || '')}
                     onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyCode: event.target.value }))}
@@ -1170,28 +1152,28 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               {Number(invoiceForm.invoiceType) === 2 ? (
                 <>
                   <div className="pc-invoice-form__row">
-                    <span>单位地址</span>
+                    <span>{t('单位地址')}</span>
                     <input
                       value={String(invoiceForm.companyAddress || '')}
                       onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAddress: event.target.value }))}
                     />
                   </div>
                   <div className="pc-invoice-form__row">
-                    <span>单位电话</span>
+                    <span>{t('单位电话')}</span>
                     <input
                       value={String(invoiceForm.companyPhone || '')}
                       onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyPhone: event.target.value }))}
                     />
                   </div>
                   <div className="pc-invoice-form__row">
-                    <span>开户银行</span>
+                    <span>{t('开户银行')}</span>
                     <input
                       value={String(invoiceForm.companyBank || '')}
                       onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyBank: event.target.value }))}
                     />
                   </div>
                   <div className="pc-invoice-form__row">
-                    <span>银行账户</span>
+                    <span>{t('银行账户')}</span>
                     <input
                       value={String(invoiceForm.companyAccount || '')}
                       onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAccount: event.target.value }))}
@@ -1200,15 +1182,15 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
                 </>
               ) : null}
               <div className="pc-invoice-form__row">
-                <span>收票人邮箱</span>
+                <span>{t('收票人邮箱')}</span>
                 <input
                   value={String(invoiceForm.email || '')}
-                  placeholder="选填，用于接收电子发票"
+                  placeholder={t('选填，用于接收电子发票')}
                   onChange={(event) => setInvoiceForm((prev) => ({ ...prev, email: event.target.value }))}
                 />
               </div>
               <div className="pc-invoice-form__row">
-                <span>发票内容</span>
+                <span>{t('发票内容')}</span>
                 <input
                   value={String(invoiceForm.invoiceContent || '')}
                   onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceContent: event.target.value }))}
@@ -1216,7 +1198,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
               </div>
             </>
           ) : null}
-          {!invoiceQualified ? <p className="pc-co-hint">增值税专用发票需先在会员中心完成增票资质审核。</p> : null}
+          {!invoiceQualified ? <p className="pc-co-hint">{t('增值税专用发票需先在会员中心完成增票资质审核。')}</p> : null}
         </div>
       </Modal>
     </div>

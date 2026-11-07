@@ -16,6 +16,7 @@ import Search from '@icon-park/react/es/icons/Search';
 import Down from '@icon-park/react/es/icons/Down';
 import PcImageSearchEntry from '@/components/PcImageSearchEntry';
 
+import { useTranslation } from 'react-i18next';
 type SearchType = 'product' | 'shop';
 
 interface GuessItem {
@@ -33,6 +34,7 @@ export default function PcSearchBox({
   enableGuess?: boolean;
   defaultSearchType?: SearchType;
 }) {
+    const { t } = useTranslation();
   const [keyword, setKeyword] = useState('');
   const [focus, setFocus] = useState(false);
   const [guessList, setGuessList] = useState<GuessItem[]>([]);
@@ -167,7 +169,7 @@ export default function PcSearchBox({
             className="search-input"
             type="text"
             autoComplete="off"
-            placeholder="请输入关键词"
+            placeholder={t('请输入关键词')}
             name="keywords"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}

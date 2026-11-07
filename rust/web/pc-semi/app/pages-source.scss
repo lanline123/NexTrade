@@ -2090,3 +2090,10 @@
   .collect-product .collect-list-content { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .collect-card__price b { font-size: 22px; }
 }
+/* 文章相关商品（旧版 article/src/productItem.vue） */
+.article-products { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.article-product { display: block; padding: 8px; border: 1px solid #f0f0f0; border-radius: 8px; background: #fff; }
+.article-product img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; }
+.article-product span { display: block; margin-top: 6px; overflow: hidden; color: #333; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.article-product b { color: var(--pc-primary, #165dff); font-size: 14px; }
+@media (max-width: 900px) { .article-products { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

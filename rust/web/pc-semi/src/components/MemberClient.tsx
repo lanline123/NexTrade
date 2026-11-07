@@ -6,6 +6,7 @@ import { Avatar, Button, Card, Skeleton, Tag } from '@douyinfe/semi-ui';
 import { IconArrowRight, IconOrderedList, IconUser } from '@douyinfe/semi-icons';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface MemberInfo {
   userId?: number;
   username?: string;
@@ -47,6 +48,7 @@ const MEMBER_NAV = [
 ];
 
 export default function MemberClient() {
+    const { t } = useTranslation();
   const [info, setInfo] = useState<MemberInfo | null>(null);
   const [orderNum, setOrderNum] = useState<OrderNum>({});
   const [loading, setLoading] = useState(true);
@@ -70,10 +72,10 @@ export default function MemberClient() {
   if (needLogin) {
     return (
       <Card className="cart-state">
-        <h2>登录后进入会员中心</h2>
-        <p>查看订单、优惠券、收货地址和个人资料。</p>
+        <h2>{t('登录后进入会员中心')}</h2>
+        <p>{t('查看订单、优惠券、收货地址和个人资料。')}</p>
         <Link href="/login?redirect=/member">
-          <Button theme="solid" type="primary" size="large">去登录</Button>
+          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
         </Link>
       </Card>
     );
@@ -84,11 +86,11 @@ export default function MemberClient() {
       <aside className="member-side">
         <Card className="member-side__profile">
           <Avatar size="large" src={info?.avatar}>
-            {(info?.nickname || info?.username || '会').slice(0, 1)}
+            {(info?.nickname || info?.username || t('会')).slice(0, 1)}
           </Avatar>
           <div>
-            <b>{info?.nickname || info?.username || '会员'}</b>
-            <span>{info?.mobile || '欢迎回来'}</span>
+            <b>{info?.nickname || info?.username || t('会员')}</b>
+            <span>{info?.mobile || t('欢迎回来')}</span>
           </div>
           {info?.rankName ? <Tag color="orange">{info.rankName}</Tag> : null}
         </Card>
@@ -106,20 +108,20 @@ export default function MemberClient() {
       <div className="member-main">
         <div className="member-stats">
           <Card className="member-stat">
-            <span>账户余额</span>
+            <span>{t('账户余额')}</span>
             <b>¥ {Number(info?.balance || 0).toFixed(2)}</b>
           </Card>
           <Card className="member-stat">
-            <span>积分</span>
+            <span>{t('积分')}</span>
             <b>{info?.points ?? 0}</b>
           </Card>
           <Card className="member-stat">
-            <span>优惠券</span>
+            <span>{t('优惠券')}</span>
             <b>{info?.coupon ?? info?.awaitCoupon ?? 0}</b>
           </Card>
         </div>
 
-        <Card className="member-card" title="我的订单">
+        <Card className="member-card" title={t('我的订单')}>
           <div className="member-order-shortcuts">
             {ORDER_SHORTCUTS.map((item) => (
               <Link key={item.key} href={item.href} className="member-order-shortcut">
@@ -129,7 +131,7 @@ export default function MemberClient() {
             ))}
           </div>
           <div className="member-card__more">
-            <Link href="/member/order/list">查看全部订单 <IconArrowRight /></Link>
+            <Link href="/member/order/list">{t('查看全部订单')}<IconArrowRight /></Link>
           </div>
         </Card>
       </div>

@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface MenuItem {
   name: string;
   url: string;
@@ -38,6 +39,7 @@ interface ConfigBase {
 const OVERSEAS = true;
 
 export default function MemberNav() {
+    const { t } = useTranslation();
   const pathname = usePathname() || '';
   const [expanded, setExpanded] = useState<boolean[]>([true, true, true, true, true]);
   const [orderNum, setOrderNum] = useState<Record<string, number>>({});
@@ -121,7 +123,7 @@ export default function MemberNav() {
           // 账期支付：B2B 且开通信用支付（跨境 B2C 隐藏）
           { name: '账期支付', url: '/member/termPay/list', show: false },
           { name: '账户信息', url: '/member/account/detail', show: true },
-          { name: `${config.integralName || '积分'}明细`, url: '/member/point/list', show: true },
+          { name: `${config.integralName || t('积分')}明细`, url: '/member/point/list', show: true },
           { name: '礼品卡兑换', url: '/member/giftCard/exchange', show: true },
         ],
       },

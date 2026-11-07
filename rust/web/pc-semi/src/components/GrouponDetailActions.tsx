@@ -10,11 +10,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Modal, Toast } from '@douyinfe/semi-ui';
 
+import { useTranslation } from 'react-i18next';
 function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
 
 function useCountdown(endTime?: string | number) {
+    const { t } = useTranslation();
   const target = useMemo(() => {
     if (!endTime) return 0;
     if (typeof endTime === 'number') return endTime > 1e12 ? endTime : endTime * 1000;
@@ -53,6 +55,7 @@ export default function GrouponDetailActions({
   canInvite: boolean;
   orderId?: number;
 }) {
+    const { t } = useTranslation();
   const { days, hours, minutes, seconds, ended } = useCountdown(endTime);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
@@ -87,10 +90,10 @@ export default function GrouponDetailActions({
       {endTime ? (
         <div className="groupon-detail__countdown">
           {ended ? (
-            <span className="is-ended">拼团已结束</span>
+            <span className="is-ended">{t('拼团已结束')}</span>
           ) : (
             <>
-              <span className="groupon-detail__countdown-label">距结束</span>
+              <span className="groupon-detail__countdown-label">{t('距结束')}</span>
               <span className="groupon-detail__countdown-time">
                 {days > 0 ? `${days}天 ` : ''}{pad(hours)}:{pad(minutes)}:{pad(seconds)}
               </span>
@@ -100,27 +103,25 @@ export default function GrouponDetailActions({
       ) : null}
 
       <div className="groupon-detail__cta">
-        <Button theme="solid" type="primary" disabled={!canInvite || ended} onClick={openInvite}>
-          邀请好友参团
-        </Button>
+        <Button theme="solid" type="primary" disabled={!canInvite || ended} onClick={openInvite}>{t('邀请好友参团')}</Button>
         {orderId ? (
-          <Button onClick={() => { window.location.href = `/member/order/detail?id=${orderId}`; }}>查看订单</Button>
+          <Button onClick={() => { window.location.href = `/member/order/detail?id=${orderId}`; }}>{t('查看订单')}</Button>
         ) : null}
       </div>
 
       <Modal
-        title="通过链接邀请"
+        title={t('通过链接邀请')}
         visible={inviteOpen}
         onCancel={() => setInviteOpen(false)}
         footer={
           <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <Button onClick={() => setInviteOpen(false)}>关闭</Button>
-            <Button theme="solid" type="primary" onClick={() => void copyLink()}>复制链接</Button>
+            <Button onClick={() => setInviteOpen(false)}>{t('关闭')}</Button>
+            <Button theme="solid" type="primary" onClick={() => void copyLink()}>{t('复制链接')}</Button>
           </div>
         }
       >
         <input readOnly value={inviteLink} className="groupon-invite__input" />
-        <p className="groupon-invite__tip">发送链接给好友，好友打开后即可参与拼团。</p>
+        <p className="groupon-invite__tip">{t('发送链接给好友，好友打开后即可参与拼团。')}</p>
       </Modal>
     </>
   );

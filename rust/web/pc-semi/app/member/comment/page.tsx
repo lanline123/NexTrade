@@ -5,10 +5,12 @@ import CommentCenterClient from '@/components/CommentCenterClient';
 import { getPcHeader } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '评价晒单 · 万物新生', robots: { index: false, follow: false } };
 
 export default async function CommentCenterPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+    const t = getServerT();
   const header = await getPcHeader().catch(() => null);
   // 旧版 List.vue：orderType query 初始化 Tab（0 待评价 / 1 待晒单 / 2 已评价）
   const rawType = searchParams?.orderType;
@@ -18,7 +20,7 @@ export default async function CommentCenterPage({ searchParams }: { searchParams
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title="评价晒单">
+        <MemberShell title={t('评价晒单')}>
     <CommentCenterClient initialTab={initialTab} />
         </MemberShell>
       </main>

@@ -5,18 +5,23 @@ import CheckoutClient from '@/components/CheckoutClient';
 import { getPcHeader } from '@/lib/api';
 import PcFooter from '@/components/PcFooter';
 
+import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: '确认订单 · 万物新生',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getServerT();
+  return {
+  title: t('确认订单 · 万物新生'),
   robots: { index: false, follow: false },
 };
+}
 
 export default async function CheckoutPage({
   searchParams,
 }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
+    const t = getServerT();
   const raw = searchParams?.cartIds;
   const text = Array.isArray(raw) ? raw[0] || '' : raw || '';
   const cartIds = text
@@ -35,13 +40,13 @@ export default async function CheckoutPage({
       <main className="pc-checkout-page">
         <div className="pc-container">
           <nav className="pc-breadcrumb">
-            <Link href="/">首页</Link>
+            <Link href="/">{t('首页')}</Link>
             <span>/</span>
-            <Link href="/cart">购物车</Link>
+            <Link href="/cart">{t('购物车')}</Link>
             <span>/</span>
-            <span>确认订单</span>
+            <span>{t('确认订单')}</span>
           </nav>
-          <h1 className="pc-cart-title">订单结算页</h1>
+          <h1 className="pc-cart-title">{t('订单结算页')}</h1>
           <CheckoutClient cartIds={cartIds} flowType={flowType} />
         </div>
       </main>

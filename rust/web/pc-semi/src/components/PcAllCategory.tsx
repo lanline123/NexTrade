@@ -15,6 +15,7 @@ import Down from '@icon-park/react/es/icons/Down';
 import HamburgerButton from '@icon-park/react/es/icons/HamburgerButton';
 import { ensureCatIcoCss } from '@/lib/cat-icon-css';
 
+import { useTranslation } from 'react-i18next';
 type CatNode = Record<string, any> & {
   categoryId?: string | number;
   id?: string | number;
@@ -91,6 +92,7 @@ function resolveFloorTitleLink(
 }
 
 export default function PcAllCategory({ isWhite = false }: { isWhite?: boolean }) {
+    const { t } = useTranslation();
   const [floors, setFloors] = useState<DisplayFloor[]>([]);
   const [visible, setVisible] = useState(false);
   const [activeId, setActiveId] = useState('');
@@ -257,7 +259,7 @@ export default function PcAllCategory({ isWhite = false }: { isWhite?: boolean }
                 <HamburgerButton size={14} />
               </span>
             </div>
-            <div className="txt">分类</div>
+            <div className="txt">{t('分类')}</div>
             <div className="icon ml">
               <span className={`pc-icon pc-icon--arrow arrow${visible ? ' rotate' : ''}`}>
                 <Down size={14} />
@@ -276,7 +278,7 @@ export default function PcAllCategory({ isWhite = false }: { isWhite?: boolean }
           >
             <div className="popover-cate-content">
               {floors.length === 0 ? (
-                <div style={{ padding: 20, textAlign: 'center' }}>暂无分类数据</div>
+                <div style={{ padding: 20, textAlign: 'center' }}>{t('暂无分类数据')}</div>
               ) : (
                 <div className="category-content-wrapper">
                   <div className="left-wrap">

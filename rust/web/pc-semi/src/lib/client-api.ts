@@ -1,4 +1,5 @@
-function authHeaders(): Record<string, string> {
+
+import i18n from '@/i18n';function authHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
   const token = localStorage.getItem('accessToken');
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -37,11 +38,11 @@ async function read<T>(response: Response): Promise<T> {
   try {
     json = text ? JSON.parse(text) : ({} as T);
   } catch {
-    throw new Error(`接口返回格式异常（HTTP ${response.status}）`);
+    throw new Error(i18n.t('接口返回格式异常（HTTP {code}）', { code: response.status }) as string);
   }
   const envelope = json as ApiEnvelope<T>;
   if (!response.ok || (envelope.code !== undefined && envelope.code !== 0)) {
-    throw new Error(envelope.msg || envelope.message || `请求失败（HTTP ${response.status}）`);
+    throw new Error(envelope.msg || envelope.message || (i18n.t('请求失败（HTTP {code}）', { code: response.status }) as string));
   }
   return (envelope.data ?? json) as T;
 }

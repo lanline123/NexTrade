@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 // 与后端 UserFeedbackType 枚举一致：0建议 / 1投诉 / 2商品 / 3其他 / 4店铺投诉 / 5订单问题 / 6订单咨询
 const TYPES = [
   { value: 0, label: '建议' },
@@ -16,6 +17,7 @@ const TYPES = [
 ];
 
 export default function FeedbackFormClient({ orderId = 0, orderSn = '' }: { orderId?: number; orderSn?: string }) {
+    const { t } = useTranslation();
   const [type, setType] = useState(0);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -45,16 +47,16 @@ export default function FeedbackFormClient({ orderId = 0, orderSn = '' }: { orde
 
   return (
     <Card className="member-card feedback-form">
-      <h2>新增留言</h2>
+      <h2>{t('新增留言')}</h2>
       <div className="security-form">
         {orderId ? (
           <>
-            <label>订单编号</label>
+            <label>{t('订单编号')}</label>
             <input value={orderSn || String(orderId)} disabled />
           </>
         ) : (
           <>
-            <label>留言类型</label>
+            <label>{t('留言类型')}</label>
             <div className="feedback-form__types">
               {TYPES.map((item) => (
                 <button key={item.value} type="button" className={type === item.value ? 'is-active' : ''} onClick={() => setType(item.value)}>{item.label}</button>
@@ -62,11 +64,11 @@ export default function FeedbackFormClient({ orderId = 0, orderSn = '' }: { orde
             </div>
           </>
         )}
-        <label>主题</label>
-        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="请输入主题" />
-        <label>留言内容</label>
-        <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={5} placeholder="请输入留言内容" />
-        <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>提交留言</Button>
+        <label>{t('主题')}</label>
+        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t('请输入主题')} />
+        <label>{t('留言内容')}</label>
+        <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={5} placeholder={t('请输入留言内容')} />
+        <Button theme="solid" type="primary" loading={loading} onClick={() => void submit()}>{t('提交留言')}</Button>
       </div>
     </Card>
   );

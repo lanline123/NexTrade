@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 const STEPS = ['软件许可协议', '系统环境检测', '创建数据', '安装结果'];
 
 async function readJson(response: Response) {
   const text = await response.text();
   const json = text ? JSON.parse(text) : {};
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || json.message || `请求失败（${response.status}）`);
+    throw new Error(json.msg || json.message || (i18n.t('请求失败（{code}）', { code: response.status }) as string));
   }
   return json.data ?? json;
 }
 
 export default function InstallPage() {
+    const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [agreement, setAgreement] = useState('');
   const [checks, setChecks] = useState<any[]>([]);
@@ -84,64 +87,64 @@ export default function InstallPage() {
       </header>
 
       <section className="install-body">
-        {loading ? <div className="install-loading">加载中...</div> : null}
+        {loading ? <div className="install-loading">{t('加载中...')}</div> : null}
         {error ? <div className="install-error">{error}</div> : null}
 
         {step === 0 ? (
           <div className="install-agreement">
-            <h1>软件许可协议</h1>
-            <div dangerouslySetInnerHTML={{ __html: agreement || '请阅读并同意软件许可协议。' }} />
+            <h1>{t('软件许可协议')}</h1>
+            <div dangerouslySetInnerHTML={{ __html: agreement || t('请阅读并同意软件许可协议。') }} />
           </div>
         ) : null}
 
         {step === 1 ? (
           <div className="install-checks">
-            <h1>系统环境检测</h1>
+            <h1>{t('系统环境检测')}</h1>
             {checks.length ? checks.map((item, index) => (
               <div className="install-check" key={index}>
                 <span className={item.status === 1 || item.result === 1 ? 'is-ok' : 'is-fail'}>{item.status === 1 || item.result === 1 ? '✓' : '✗'}</span>
-                <b>{item.name || item.title || '检测项'}</b>
+                <b>{item.name || item.title || t('检测项')}</b>
                 <span>{item.value || item.message || ''}</span>
               </div>
-            )) : <div className="install-empty">暂无检测项</div>}
+            )) : <div className="install-empty">{t('暂无检测项')}</div>}
           </div>
         ) : null}
 
         {step === 2 ? (
           <div className="install-form">
-            <h1>创建数据</h1>
-            <label>后台管理员账号</label><input value={form.account} onChange={(event) => update('account', event.target.value)} />
-            <label>后台管理员密码</label><input type="password" value={form.password} onChange={(event) => update('password', event.target.value)} />
-            <label>数据库类型</label>
+            <h1>{t('创建数据')}</h1>
+            <label>{t('后台管理员账号')}</label><input value={form.account} onChange={(event) => update('account', event.target.value)} />
+            <label>{t('后台管理员密码')}</label><input type="password" value={form.password} onChange={(event) => update('password', event.target.value)} />
+            <label>{t('数据库类型')}</label>
             <select value={form.sql} onChange={(event) => update('sql', event.target.value)}><option value="mysql">MySQL</option></select>
-            <label>数据库地址</label><input value={form.dbhost} onChange={(event) => update('dbhost', event.target.value)} />
-            <label>数据库名称</label><input value={form.dbname} onChange={(event) => update('dbname', event.target.value)} />
-            <label>数据库端口</label><input value={form.dbport} onChange={(event) => update('dbport', event.target.value)} />
-            <label>数据库用户名</label><input value={form.dbuser} onChange={(event) => update('dbuser', event.target.value)} />
-            <label>数据库密码</label><input type="password" value={form.dbpwd} onChange={(event) => update('dbpwd', event.target.value)} />
-            <label>Redis 地址</label><input value={form.redishost} onChange={(event) => update('redishost', event.target.value)} />
-            <label>Redis 端口</label><input value={form.redisport} onChange={(event) => update('redisport', event.target.value)} />
-            <label>Redis 密码</label><input type="password" value={form.redispwd} onChange={(event) => update('redispwd', event.target.value)} />
-            <label>Redis Select 库</label><input value={form.redisselect} onChange={(event) => update('redisselect', event.target.value)} />
+            <label>{t('数据库地址')}</label><input value={form.dbhost} onChange={(event) => update('dbhost', event.target.value)} />
+            <label>{t('数据库名称')}</label><input value={form.dbname} onChange={(event) => update('dbname', event.target.value)} />
+            <label>{t('数据库端口')}</label><input value={form.dbport} onChange={(event) => update('dbport', event.target.value)} />
+            <label>{t('数据库用户名')}</label><input value={form.dbuser} onChange={(event) => update('dbuser', event.target.value)} />
+            <label>{t('数据库密码')}</label><input type="password" value={form.dbpwd} onChange={(event) => update('dbpwd', event.target.value)} />
+            <label>{t('Redis 地址')}</label><input value={form.redishost} onChange={(event) => update('redishost', event.target.value)} />
+            <label>{t('Redis 端口')}</label><input value={form.redisport} onChange={(event) => update('redisport', event.target.value)} />
+            <label>{t('Redis 密码')}</label><input type="password" value={form.redispwd} onChange={(event) => update('redispwd', event.target.value)} />
+            <label>{t('Redis Select 库')}</label><input value={form.redisselect} onChange={(event) => update('redisselect', event.target.value)} />
           </div>
         ) : null}
 
         {step === 3 ? (
           <div className="install-success">
-            <h1>安装完成</h1>
+            <h1>{t('安装完成')}</h1>
             <p>安装完成后建议删除 public/install 下的文件。</p>
             <div className="install-links">
-              <a href="/">进入前台（PC 端）</a>
-              <a href="/mobile/">进入前台（H5 端）</a>
-              <a href="/admin/">进入后台</a>
+              <a href="/">{t('进入前台（PC 端）')}</a>
+              <a href="/mobile/">{t('进入前台（H5 端）')}</a>
+              <a href="/admin/">{t('进入后台')}</a>
             </div>
           </div>
         ) : null}
       </section>
 
       <footer className="install-footer">
-        {step > 0 ? <button type="button" onClick={() => setStep((value) => Math.max(0, value - 1))}>上一步</button> : null}
-        {step < 3 ? <button type="button" className="is-primary" disabled={loading || (step === 2 && !done)} onClick={() => void next()}>{step === 2 ? '提交' : '下一步'}</button> : null}
+        {step > 0 ? <button type="button" onClick={() => setStep((value) => Math.max(0, value - 1))}>{t('上一步')}</button> : null}
+        {step < 3 ? <button type="button" className="is-primary" disabled={loading || (step === 2 && !done)} onClick={() => void next()}>{step === 2 ? t('提交') : '下一步'}</button> : null}
       </footer>
     </main>
   );

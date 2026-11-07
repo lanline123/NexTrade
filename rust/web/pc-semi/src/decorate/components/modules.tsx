@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Toast } from '@douyinfe/semi-ui';
-import Plus from '@icon-park/react/es/icons/Plus';
 import { apiGet, apiPost } from '@/lib/client-api';
+import { formatPrice } from '@/lib/currency';
+import { imageFormat } from '@/lib/image';
 import { ensureCatIcoCss } from '@/lib/cat-icon-css';
 import type { DecorateModule, PageModule } from '../types';
 import { imageUrl } from './common';
 import { CONTRACT_ADAPTERS, FLAT_FRAME, linkHref, type ContractRenderPlan } from './contract';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 /**
  * PC 首页装修模块渲染器（React + Semi 栈）
  *
@@ -59,15 +62,8 @@ function openLink(raw?: string | Record<string, any> | null): void {
 }
 
 function picSrc(pic?: Record<string, any> | null): string {
-  return pic?.picUrl || pic?.picThumb || '';
-}
-
-function formatPrice(value: unknown): string {
-  if (value === undefined || value === null || value === '') return '';
-  const text = String(value);
-  if (/[¥$€£]/.test(text)) return text;
-  const amount = Number(value);
-  return Number.isFinite(amount) ? `¥${amount}` : text;
+  // 相对路径兜底拼接 storageUrl（完整 http URL 原样返回）
+  return imageFormat(pic?.picUrl || pic?.picThumb || '');
 }
 
 /** 旧版 imgPadding 在图片列表里既是 item padding 又是 gap，单位 px。 */
@@ -76,8 +72,22 @@ function px(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/** 旧版 useBuyBtnStyle.normalizeBuyBtnStyle：购买按钮配置兼容 {showBtn,btnType} 对象与数字两种格式。 */
+function normalizeBuyBtnStyle(raw: unknown): { show: boolean; style: number } {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const obj = raw as Record<string, unknown>;
+    return { show: Boolean(obj.showBtn), style: Number(obj.btnType) || 1 };
+  }
+  if (typeof raw === 'number' || typeof raw === 'string') {
+    const n = Number(raw);
+    return { show: n > 0, style: n };
+  }
+  return { show: false, style: 0 };
+}
+
 /** 简易自动轮播：translate 横向切换 + 圆点，支持 hover 暂停（替代旧版 Swiper）。 */
 function useCarousel(length: number, delay = 3000) {
+    const { t } = useTranslation();
   const [index, setIndexRaw] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
@@ -201,13 +211,14 @@ function SwiperNav({
   onNext: () => void;
   visible?: boolean;
 }) {
+  const { t } = useTranslation();
   if (!visible) return null;
   return (
     <>
-      <button type="button" className="dec-swiper-nav dec-swiper-nav--prev" onClick={onPrev} aria-label="上一张">
+      <button type="button" className="dec-swiper-nav dec-swiper-nav--prev" onClick={onPrev} aria-label={t('上一张')}>
         ‹
       </button>
-      <button type="button" className="dec-swiper-nav dec-swiper-nav--next" onClick={onNext} aria-label="下一张">
+      <button type="button" className="dec-swiper-nav dec-swiper-nav--next" onClick={onNext} aria-label={t('下一张')}>
         ›
       </button>
     </>
@@ -265,8 +276,13 @@ function productDetailHref(product: any): string {
   return product?.seoLink || (sn ? `/product/${sn}` : `/product/${product?.productId ?? ''}`);
 }
 
+/** 售罄口径（旧 PcProductGroup.isSoldOut / PcSeckillLegacy disabled 条件）：
+ * 普通商品看 productStock；秒杀商品（isSeckill==1）看 seckillStock。 */
 function productSoldOut(product: any): boolean {
-  return Number(product?.productStock ?? 1) === 0;
+  if (!product) return false;
+  const isSeckill = (product as any).isSeckill;
+  if (Number(isSeckill) === 1) return Number((product as any).seckillStock ?? 1) === 0;
+  return Number(product.productStock ?? 1) === 0;
 }
 
 /** 复刻原版 FormatPrice 的整数/小数拆分（match(/^(\d+)(\.\d+)?$/)，小数不足补到 2 位）。 */
@@ -278,6 +294,37 @@ function priceParts(value: unknown): { int: string; dec: string } {
   const rawDec = match[2] || '.00';
   const dec = rawDec.length < 3 ? rawDec.padEnd(3, '0') : rawDec;
   return { int, dec };
+}
+
+/** 活动类型文字白名单（原版 PcProductGroup.vue ACTIVITY_TYPE_TEXT：仅展示这些，type=2 券走独立样式、type=8 抽奖不展示）。 */
+const ACTIVITY_TYPE_TEXT: Record<number, string> = {
+  1: '秒杀',
+  3: '满减',
+  4: '满折',
+  5: '满赠',
+  6: '限时折扣',
+  7: '拼团',
+};
+
+/** 商品命中的活动标签文案（原版 getActivityTags：type 无效/为 2 跳过，typeText 优先、白名单兜底）。 */
+function activityTagsOf(
+  promotions: Record<string, { activityInfo?: Array<{ type?: number; typeText?: string }> }>,
+  productId: unknown,
+): string[] {
+  const pid = productId == null ? '' : String(productId);
+  if (!pid) return [];
+  const info = promotions[pid]?.activityInfo;
+  if (!Array.isArray(info)) return [];
+  const tags: string[] = [];
+  info.forEach((item) => {
+    const type = Number(item?.type);
+    if (!Number.isFinite(type) || type === 2) return;
+    const fallback = ACTIVITY_TYPE_TEXT[type];
+    if (typeof fallback !== 'string') return;
+    const text = typeof item?.typeText === 'string' ? item.typeText.trim() : '';
+    tags.push(text || fallback);
+  });
+  return tags;
 }
 
 function needsProductDetail(product: any): boolean {
@@ -310,6 +357,7 @@ async function buyProduct(product: any, options: { isQuick?: number } = {}): Pro
 
 /** 用户详情（旧版 useUserStore：nickname/avatar/coupon/balance/points）。 */
 function useUserProfile(): Record<string, any> | null {
+    const { t } = useTranslation();
   const [profile, setProfile] = useState<Record<string, any> | null>(null);
   useEffect(() => {
     if (!isLoggedIn()) return undefined;
@@ -382,7 +430,7 @@ function toHeroCatItem(floor: any, index: number): HeroCatItem | null {
     .replace(/[，,、]/g, ' / ')
     .replace(/\s*\/\s*/g, ' / ')
     .trim();
-  const title = nameLinks.length ? nameLinks.slice(0, 3).map((name) => name.categoryTitleName).join(' / ') : floorName || '类目';
+  const title = nameLinks.length ? nameLinks.slice(0, 3).map((name) => name.categoryTitleName).join(' / ') : floorName || (i18n.t('类目') as string);
   const firstPic = typeof firstCat?.pic === 'string' ? firstCat.pic : '';
   const imageUrl = typeof floor.imageUrl === 'string' ? floor.imageUrl : typeof firstCat?.categoryPic === 'string' ? firstCat.categoryPic : firstPic;
   return {
@@ -398,6 +446,7 @@ function toHeroCatItem(floor: any, index: number): HeroCatItem | null {
 }
 
 function useHeroCatItems(): HeroCatItem[] {
+    const { t } = useTranslation();
   const [items, setItems] = useState<HeroCatItem[]>([]);
   useEffect(() => {
     let alive = true;
@@ -505,6 +554,7 @@ function Container({
 
 /** 旧版 shop/Title.vue：标题栏（含背景渐变/圆角/图文/更多链接）。 */
 function ShopTitle({ title, rightText }: { title?: Record<string, any> | null; rightText?: string }) {
+    const { t } = useTranslation();
   if (!title || Number(title.showTitle) !== 1) return null;
   const style: Record<string, any> = {
     borderTopLeftRadius: `${px(title.titleRadius)}px`,
@@ -515,7 +565,7 @@ function ShopTitle({ title, rightText }: { title?: Record<string, any> | null; r
   } else if (title.titleBackground) {
     style.background = title.titleBackground;
   }
-  const moreText = title?.moreLink?.title || rightText || '查看更多';
+  const moreText = title?.moreLink?.title || rightText || t('查看更多');
   return (
     <div className={`top-bar top-bar--style-${title.titleStyle || 1} top-bar--align-${title.titleAlign || 1}`} style={style}>
       <div className="left-title">
@@ -543,6 +593,7 @@ function ShopTitle({ title, rightText }: { title?: Record<string, any> | null; r
  * swiperPreView（轮播每屏张数）、swiperPageColor（指示器激活色）、title、frame。
  */
 function ImageAd({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
   if (!pics.length) return null;
   const picType = Number(module.picType ?? 1);
@@ -596,6 +647,7 @@ function ImageAd({ module }: ModuleProps) {
 }
 
 function ImageAdCarousel({ pics, perView }: { pics: any[]; perView: number }) {
+    const { t } = useTranslation();
   const pages = Math.max(1, Math.ceil(pics.length / perView));
   const { index, setIndex, setPaused } = useCarousel(pages, 3000);
   const swipe = useSwipeDrag(index, pages, setIndex);
@@ -605,21 +657,26 @@ function ImageAdCarousel({ pics, perView }: { pics: any[]; perView: number }) {
         <div className="dec-image-ad__swiper-track" style={{ transform: `translateX(calc(-${index * 100}% + ${swipe.offset}px))` }}>
           {Array.from({ length: pages }).map((_, page) => (
             <div className="dec-image-ad__swiper-page" key={page} style={{ gridTemplateColumns: `repeat(${perView}, minmax(0, 1fr))` }}>
-              {pics.slice(page * perView, page * perView + perView).map((pic, i) => (
-                <div className="dec-image-ad__item" key={i}>
-                  <a
-                    className="dec-image-ad__link"
-                    href={navHref(pic.picLink) || '#'}
-                    onClick={(event) => {
-                      if (!navHref(pic.picLink)) event.preventDefault();
-                    }}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <img className="dec-image-ad__image" src={picSrc(pic)} alt="" loading="lazy" />
-                  </a>
-                </div>
-              ))}
+              {/* 旧 Carousel：尾页不足一屏时以占位补齐，保持网格不偏左 */}
+              {Array.from({ length: perView }).map((_, cell) => {
+                const pic = pics[page * perView + cell];
+                if (!pic) return <div className="dec-image-ad__item" key={`placeholder-${cell}`} aria-hidden />;
+                return (
+                  <div className="dec-image-ad__item" key={cell}>
+                    <a
+                      className="dec-image-ad__link"
+                      href={navHref(pic.picLink) || '#'}
+                      onClick={(event) => {
+                        if (!navHref(pic.picLink)) event.preventDefault();
+                      }}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img className="dec-image-ad__image" src={picSrc(pic)} alt="" loading="lazy" />
+                    </a>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -632,7 +689,7 @@ function ImageAdCarousel({ pics, perView }: { pics: any[]; perView: number }) {
               type="button"
               className={`dec-image-ad__dot${dot === index ? ' is-active' : ''}`}
               onClick={() => setIndex(dot)}
-              aria-label={`第 ${dot + 1} 屏`}
+              aria-label={t('第 {n} 屏', { n: dot + 1 })}
             />
           ))}
         </div>
@@ -654,12 +711,16 @@ interface ProductItem {
   picThumb?: string;
   picUrl?: string;
   productStock?: number;
+  /* 商品分组卡用（原版 PcProductGroup.vue：已售数与店铺信息） */
+  virtualSales?: number;
+  shop?: { shopTitle?: string };
 }
 
 /** PcProduct.vue：products.productSelectType(1 指定/2 分类/3 标签)、productIds、
  * productCategoryId/productNumber、productTag/productNumber、style(2=5 列，否则 4 列)、
  * goodsPadding、frame、showName/showBrief/showPrice、buyBtnStyle。 */
 function Product({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
   const config = module.products || {};
@@ -670,7 +731,8 @@ function Product({ module }: ModuleProps) {
   const showName = module.showName !== false && module.showName !== 0;
   const showBrief = module.showBrief !== false && module.showBrief !== 0;
   const showPrice = module.showPrice !== false && module.showPrice !== 0;
-  const buyBtnStyle = px(module.buyBtnStyle);
+  const buyBtnConfig = normalizeBuyBtnStyle(module.buyBtnStyle);
+  const buyBtnStyle = buyBtnConfig.style;
 
   useEffect(() => {
     let cancelled = false;
@@ -762,7 +824,8 @@ function Product({ module }: ModuleProps) {
                       target="_blank"
                     >
                       <div className="dec-pc-product__photo">
-                        <img className="dec-pc-product__img" src={product.picUrl || product.picThumb || ''} alt={product.productName || ''} loading="lazy" />
+                        {/* 旧 pickPic 兜底链：picUrl → picThumb → picLarge */}
+                        <img className="dec-pc-product__img" src={product.picUrl || product.picThumb || (product as any).picLarge || ''} alt={product.productName || ''} loading="lazy" />
                       </div>
                       <div className="dec-pc-product__info">
                         {showName ? <div className="dec-pc-product__name">{product.productName}</div> : null}
@@ -777,30 +840,36 @@ function Product({ module }: ModuleProps) {
                               <span className="dec-pc-product__price-dec">{priceParts(product.productPrice).dec}</span>
                             </div>
                           ) : null}
-                          {buyBtnStyle > 0 ? (
+                          {buyBtnConfig.show && buyBtnStyle > 0 ? (
                             <button
                               type="button"
                               className={`dec-pc-product__buy dec-buy-btn dec-buy-btn--${buyBtnStyle}${productSoldOut(product) ? ' is-disabled' : ''}`}
                               onClick={(event) => {
                                 event.preventDefault();
                                 event.stopPropagation();
-                                void buyProduct(product);
+                                void buyProduct(product, { isQuick: 1 });
                               }}
                             >
                               {buyBtnStyle <= 4 ? (
-                                /* 旧版 ProductButton：1/2=购物车图标，3/4=加号图标，24px 纯图标无底色 */
+                                /* 旧版 ProductButton：1/2=购物车图标，3/4=加号图标，24px 纯图标无底色；
+                                   每组的第一个（1、3）用线框字形，第二个（2、4）用实心字形 */
                                 <i className="dec-buy-btn__icon">
-                                  {/* 1/2 用与顶部条同源的实心购物车 mask 图标，3/4 用加号 */}
                                   {buyBtnStyle <= 2 ? (
-                                    <span className="dec-buy-btn__ico dec-buy-btn__ico--cart" aria-hidden="true" />
+                                    <span
+                                      className={`dec-buy-btn__ico dec-buy-btn__ico--cart${buyBtnStyle === 1 ? ' is-outline' : ''}`}
+                                      aria-hidden="true"
+                                    />
                                   ) : (
-                                    <Plus size={24} />
+                                    <span
+                                      className={`dec-buy-btn__ico dec-buy-btn__ico--plus${buyBtnStyle === 3 ? ' is-outline' : ''}`}
+                                      aria-hidden="true"
+                                    />
                                   )}
                                 </i>
                               ) : (
                                 /* 旧版 el-button 文案：5/6=购买，7/8=马上抢（售罄时给明确提示） */
                                 <span className="dec-buy-btn__text">
-                                  {productSoldOut(product) ? '已售罄' : buyBtnStyle >= 7 ? '马上抢' : '购买'}
+                                  {productSoldOut(product) ? t('已售罄') : buyBtnStyle >= 7 ? t('马上抢') : '购买'}
                                 </span>
                               )}
                             </button>
@@ -873,6 +942,7 @@ function QuickNav({ module }: ModuleProps) {
  * 内容层 .mod_seckill 用 module.backgroundColor；showTitle、displayNum/rowNum(1~10)、
  * 热门分类取自 /api/category/category/hot（categoryPic/categoryName/seoLink/categoryId）。 */
 function CategoryNav({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const [categories, setCategories] = useState<any[]>([]);
   const cateListRef = useRef<HTMLDivElement | null>(null);
   const frame = module.frame || {};
@@ -913,7 +983,7 @@ function CategoryNav({ module }: ModuleProps) {
           <div className="mod_seckill" style={{ backgroundColor: module.backgroundColor || undefined }}>
             {showTitle ? (
               <div className="seckill-top">
-                <div className="seckill-title">{module.titleName || '热门分类'}</div>
+                <div className="seckill-title">{module.titleName || t('热门分类')}</div>
               </div>
             ) : null}
             <div className="seckill_list_wrap">
@@ -934,7 +1004,7 @@ function CategoryNav({ module }: ModuleProps) {
                     }
                   >
                     <a
-                      href={item.seoLink || `/search?categoryId=${item.categoryId ?? ''}`}
+                      href={item.seoLink || `/list?categoryId=${item.categoryId ?? ''}`}
                       target="_blank"
                       rel="noreferrer"
                       title={item.categoryName || ''}
@@ -989,6 +1059,7 @@ const themeAwareBadgeColor = themeAwareColor;
  * right{user,userCardBackground,userCardGradientColorA/B/Type,premiumMember,shortcuts,
  * shopsTitle,shopsSubTitle,shopsSubTitleBg,shopsMoreText,shopsMoreLink,shopsTextColor}、style{...}。 */
 function HomeHero({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const left = module.left || {};
   const center = module.center || {};
   const right = module.right || {};
@@ -1001,8 +1072,63 @@ function HomeHero({ module }: ModuleProps) {
   const cards = [...rawModules];
   while (cards.length < 6) cards.push({});
   const allCards = cards.slice(0, 6);
-  const promoCards = allCards.slice(0, 2);
-  const productCards = allCards.slice(2, 6);
+
+  /* 旧版 fetchGroupProducts：卡位配置 productSource=productGroup 时按分组拉商品（size=2），
+     拉到结果后替换该卡位的 products（admin PcHomeHeroPreview 支持该配置）。 */
+  const [groupProductsMap, setGroupProductsMap] = useState<Record<number, any[]>>({});
+  const groupCardKeys = allCards.map((c) => `${c.productSource}-${c.productGroupId}`).join('|');
+  useEffect(() => {
+    let cancelled = false;
+    allCards.forEach((card, idx) => {
+      if (card.productSource === 'productGroup' && card.productGroupId) {
+        const params = new URLSearchParams({ page: '1', size: '2', productGroupId: String(card.productGroupId) });
+        fetch(`/api/product/product/list?${params.toString()}`)
+          .then((response) => response.json())
+          .then((json) => {
+            if (cancelled) return;
+            const records = json?.data?.records || json?.records || [];
+            setGroupProductsMap((current) => ({ ...current, [idx]: Array.isArray(records) ? records : [] }));
+          })
+          .catch(() => {
+            if (!cancelled) setGroupProductsMap((current) => ({ ...current, [idx]: [] }));
+          });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupCardKeys]);
+
+  // 旧版 enhancedModules：商品分组卡位使用拉取到的商品数据（pic 包装成 {picUrl,picThumb,picLarge}）
+  const enhancedCards = allCards.map((card, idx) => {
+    const fetched = groupProductsMap[idx];
+    if (card.productSource === 'productGroup' && Array.isArray(fetched) && fetched.length) {
+      return {
+        ...card,
+        products: fetched.map((item: any) => ({
+          ...item,
+          pic: { picUrl: item.picUrl || '', picThumb: item.picThumb || '', picLarge: item.picLarge || '' },
+        })),
+      };
+    }
+    return card;
+  });
+  const promoCards = enhancedCards.slice(0, 2);
+  const productCards = enhancedCards.slice(2, 6);
+
+  /* 旧版依赖 commonStore.shopRegClosed / shopName：注册入口开关与未登录欢迎语（/api/common/config/base） */
+  const [shopRegClosed, setShopRegClosed] = useState<number>(0);
+  const [siteName, setSiteName] = useState<string>('');
+  useEffect(() => {
+    fetch('/api/common/config/base')
+      .then((response) => response.json())
+      .then((json) => {
+        setShopRegClosed(Number(json?.data?.shopRegClosed ?? 0));
+        setSiteName(String(json?.data?.shopName || ''));
+      })
+      .catch(() => undefined);
+  }, []);
 
   /* ---- 左侧类目：对齐旧版 PcHomeHero.displayCategories —— 只取分类楼层接口（commonStore.allCate），
      装修配置的 left.categories 在原版并不参与渲染。若用配置兜底，首屏会先闪出配置里的示例分类
@@ -1065,7 +1191,7 @@ function HomeHero({ module }: ModuleProps) {
   const profile = useUserProfile();
   const authed = Boolean(profile);
   const profileName = String(profile?.nickname || profile?.dimUsername || profile?.username || '');
-  const userDisplayName = authed ? profileName || '会员' : right.user?.nickname || '欢迎来商城！';
+  const userDisplayName = authed ? profileName || t('会员') : right.user?.nickname || (siteName ? t('欢迎来{name}！', { name: siteName }) : t('欢迎来商城！'));
   const userAvatarSrc = authed ? String(profile?.avatar || '') : picSrc(right.user?.avatar);
   const assetNumber = (value: unknown): string => {
     const num = Number(value ?? 0);
@@ -1088,14 +1214,23 @@ function HomeHero({ module }: ModuleProps) {
   const premiumMember = right.premiumMember || {};
   const premiumShow = [true, 1, '1', 'true'].includes(premiumMember.show);
   const shops = {
-    title: right.shopsTitle || '店铺街',
+    title: right.shopsTitle || t('店铺街'),
     subTitle: right.shopsSubTitle || '',
     subTitleBg: themeAwareBadgeColor(right.shopsSubTitleBg, 'var(--pc-primary)'),
-    moreText: right.shopsMoreText || '查看全部',
+    moreText: right.shopsMoreText || t('查看全部'),
     moreLink: right.shopsMoreLink,
     textColor: right.shopsTextColor || '#a06a38',
   };
-  const subTitleBg = (card: any) => `linear-gradient(${HERO_GRADIENT_DIR[card.moduleSubTitleBgType || 'leftRight'] || 'to right'}, ${themeAwareBadgeColor(card.moduleSubTitleBgColorA, HERO_DEFAULT_SUBTITLE_A)}, ${themeAwareBadgeColor(card.moduleSubTitleBgColorB, HERO_DEFAULT_SUBTITLE_B)})`;
+  const subTitleBg = (card: any): string => {
+    const colorA = card.moduleSubTitleBgColorA;
+    const colorB = card.moduleSubTitleBgColorB;
+    if (colorA && colorB) {
+      return `linear-gradient(${HERO_GRADIENT_DIR[card.moduleSubTitleBgType || 'leftRight'] || 'to right'}, ${themeAwareBadgeColor(colorA, HERO_DEFAULT_SUBTITLE_A)}, ${themeAwareBadgeColor(colorB, HERO_DEFAULT_SUBTITLE_B)})`;
+    }
+    // 旧 getSubTitleBg：双渐变缺省时回落单色 moduleSubTitleBg
+    if (card.moduleSubTitleBg) return card.moduleSubTitleBg;
+    return `linear-gradient(to right, ${HERO_DEFAULT_SUBTITLE_A}, ${HERO_DEFAULT_SUBTITLE_B})`;
+  };
 
   const cssVars: Record<string, any> = {
     '--dec-box-padding': `${px(module.frame?.boxPadding)}px`,
@@ -1143,7 +1278,9 @@ function HomeHero({ module }: ModuleProps) {
                   style={{
                     background: product.labelBgColorA && product.labelBgColorB
                       ? `linear-gradient(${HERO_GRADIENT_DIR[product.labelBgType || 'leftRight'] || 'to right'}, ${themeAwareColor(product.labelBgColorA, HERO_DEFAULT_SUBTITLE_A)}, ${themeAwareColor(product.labelBgColorB, HERO_DEFAULT_SUBTITLE_B)})`
-                      : `linear-gradient(to right, ${HERO_DEFAULT_SUBTITLE_A}, ${HERO_DEFAULT_SUBTITLE_B})`,
+                      : product.labelBg
+                        ? product.labelBg
+                        : `linear-gradient(to right, ${HERO_DEFAULT_SUBTITLE_A}, ${HERO_DEFAULT_SUBTITLE_B})`,
                     color: '#fff',
                   }}
                 >
@@ -1238,7 +1375,7 @@ function HomeHero({ module }: ModuleProps) {
                           ))
                         ) : (
                           <span className="dec-pc-home-hero__cate-link" onClick={() => openLink(item.entryLink)}>
-                            {item.title || '类目'}
+                            {item.title || t('类目')}
                           </span>
                         )}
                       </div>
@@ -1285,7 +1422,7 @@ function HomeHero({ module }: ModuleProps) {
               {promoCards.map((card, index) => (
                 <div className="dec-pc-home-hero__panel dec-pc-home-hero__promo-card" key={index} onClick={() => openLink(card.link)}>
                   <div className="dec-pc-home-hero__card-header">
-                    <div className="dec-pc-home-hero__card-title" title={card.moduleTitle || ''}>{card.moduleTitle || '促销'}</div>
+                    <div className="dec-pc-home-hero__card-title" title={card.moduleTitle || ''}>{card.moduleTitle || t('促销')}</div>
                     {card.moduleSubTitle ? (
                       <div className="dec-pc-home-hero__card-badge" style={{ background: subTitleBg(card) }}>{card.moduleSubTitle}</div>
                     ) : null}
@@ -1302,7 +1439,7 @@ function HomeHero({ module }: ModuleProps) {
                 {productCards.map((card, index) => (
                   <div className="dec-pc-home-hero__channel-card" key={index} onClick={() => openLink(card.link)}>
                     <div className="dec-pc-home-hero__card-header">
-                      <div className="dec-pc-home-hero__card-title" title={card.moduleTitle || ''}>{card.moduleTitle || '推荐'}</div>
+                      <div className="dec-pc-home-hero__card-title" title={card.moduleTitle || ''}>{card.moduleTitle || t('推荐')}</div>
                       {card.moduleSubTitle ? (
                         <div className="dec-pc-home-hero__card-badge" style={{ background: subTitleBg(card) }}>{card.moduleSubTitle}</div>
                       ) : null}
@@ -1323,7 +1460,7 @@ function HomeHero({ module }: ModuleProps) {
                 title={premiumMember.description || premiumMember.title}
                 onClick={() => openLink(premiumMember.link)}
               >
-                <span className="dec-pc-home-hero__premium-member-title">{premiumMember.title || '会员'}</span>
+                <span className="dec-pc-home-hero__premium-member-title">{premiumMember.title || t('会员')}</span>
                 {premiumMember.description ? <span className="dec-pc-home-hero__premium-member-desc">{premiumMember.description}</span> : null}
               </div>
             ) : null}
@@ -1334,15 +1471,20 @@ function HomeHero({ module }: ModuleProps) {
                 <div className="dec-pc-home-hero__user-links">
                   {authed ? (
                     <>
-                      <Link className="dec-pc-home-hero__user-link" href="/member/profile">账号设置</Link>
+                      <Link className="dec-pc-home-hero__user-link" href="/member/profile">{t('账号设置')}</Link>
                       <span className="divider" />
-                      <Link className="dec-pc-home-hero__user-link" href="/member/address">收货地址</Link>
+                      <Link className="dec-pc-home-hero__user-link" href="/member/address">{t('收货地址')}</Link>
                     </>
                   ) : (
                     <>
-                      <Link className="dec-pc-home-hero__user-link" href="/register">注册</Link>
-                      <span className="divider" />
-                      <Link className="dec-pc-home-hero__user-link" href="/join">入驻</Link>
+                      {/* 旧版：shopRegClosed===0 才显示「注册」；「入驻」仅 isMerchant/isStore，海外版该位为「登录」 */}
+                      {shopRegClosed === 0 ? (
+                        <>
+                          <Link className="dec-pc-home-hero__user-link" href="/register">{t('注册')}</Link>
+                          <span className="divider" />
+                        </>
+                      ) : null}
+                      <Link className="dec-pc-home-hero__user-link" href="/member/login">{t('登录')}</Link>
                     </>
                   )}
                 </div>
@@ -1351,45 +1493,45 @@ function HomeHero({ module }: ModuleProps) {
 
             {authed ? (
               <div className={`dec-pc-home-hero__user-assets${needWideAssets ? ' dec-pc-home-hero__user-assets--wide' : ''}`}>
-                <Link className="dec-pc-home-hero__asset-item" href="/member/coupon" title={`优惠券 ${assetNumber(profile?.coupon)}`}>
+                <Link className="dec-pc-home-hero__asset-item" href="/member/coupon" title={t('优惠券 {n}', { n: assetNumber(profile?.coupon) })}>
                   <div className="dec-pc-home-hero__asset-num">{assetNumber(profile?.coupon)}</div>
-                  <div className="dec-pc-home-hero__asset-label">优惠券</div>
+                  <div className="dec-pc-home-hero__asset-label">{t('优惠券')}</div>
                 </Link>
-                <Link className="dec-pc-home-hero__asset-item" href="/member/balance" title={`余额 ¥${assetMoney(profile?.balance)}`}>
+                <Link className="dec-pc-home-hero__asset-item" href="/member/balance" title={t('余额 ¥{n}', { n: assetMoney(profile?.balance) })}>
                   <div className="dec-pc-home-hero__asset-num">{assetMoney(profile?.balance)}</div>
-                  <div className="dec-pc-home-hero__asset-label">余额</div>
+                  <div className="dec-pc-home-hero__asset-label">{t('余额')}</div>
                 </Link>
-                <Link className="dec-pc-home-hero__asset-item" href="/member/points" title={`积分 ${assetNumber(profile?.points)}`}>
+                <Link className="dec-pc-home-hero__asset-item" href="/member/points" title={t('积分 {n}', { n: assetNumber(profile?.points) })}>
                   <div className="dec-pc-home-hero__asset-num">{assetNumber(profile?.points)}</div>
-                  <div className="dec-pc-home-hero__asset-label">积分</div>
+                  <div className="dec-pc-home-hero__asset-label">{t('积分')}</div>
                 </Link>
               </div>
             ) : (
               <>
                 <div className="dec-pc-home-hero__user-desc">
-                  <div className="title">{right.user?.welcomeText || '登录后更多精彩'}</div>
-                  <div className="subtitle">一键登录，福利好物全拥有</div>
+                  <div className="title">{right.user?.welcomeText || t('登录后更多精彩')}</div>
+                  <div className="subtitle">{t('一键登录，福利好物全拥有')}</div>
                 </div>
-                <Link className="dec-pc-home-hero__login-btn" href="/member/login">立即登录</Link>
+                <Link className="dec-pc-home-hero__login-btn" href="/member/login">{t('立即登录')}</Link>
               </>
             )}
 
             <div className="dec-pc-home-hero__user-actions">
               <Link className="dec-pc-home-hero__action-item" href="/member/order">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--order" />
-                <span>我的订单</span>
+                <span>{t('我的订单')}</span>
               </Link>
               <Link className="dec-pc-home-hero__action-item" href="/member/browsingHistory">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--history" />
-                <span>浏览记录</span>
+                <span>{t('浏览记录')}</span>
               </Link>
               <Link className="dec-pc-home-hero__action-item" href="/member/favorite">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--wish" />
-                <span>心愿单</span>
+                <span>{t('心愿单')}</span>
               </Link>
               <Link className="dec-pc-home-hero__action-item" href="/member/collectShop">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--shop" />
-                <span>关注店铺</span>
+                <span>{t('关注店铺')}</span>
               </Link>
             </div>
           </div>
@@ -1412,7 +1554,7 @@ function HomeHero({ module }: ModuleProps) {
                     <div className="dec-pc-home-hero__shop-img-box">
                       <img className="dec-pc-home-hero__shop-icon" src={picSrc(shortcut)} alt="" loading="lazy" />
                     </div>
-                    <span className="dec-pc-home-hero__shop-enter" style={{ color: shops.textColor }}>{shortcut.picTitle || '进入店铺'}</span>
+                    <span className="dec-pc-home-hero__shop-enter" style={{ color: shops.textColor }}>{shortcut.picTitle || t('进入店铺')}</span>
                   </div>
                 ))}
               </div>
@@ -1430,6 +1572,7 @@ function HomeHero({ module }: ModuleProps) {
 /** PcCoupon.vue：itemPadding、frame{boxPaddingTop,boxPaddingBottom,boxPadding,backgroundColor,boxRadius 默认 8}、
  * showTitle==1、title、desc、titleColor；内部委托 home/Coupon.vue（/api/home/home/getCoupon）。 */
 function Coupon({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<number | null>(null);
@@ -1477,14 +1620,22 @@ function Coupon({ module }: ModuleProps) {
     }
   };
 
+  // 旧 components/home/Coupon.vue couponStatus 三态口径：
+  // limitNum=0：已领取 / 再次领取(已领过未限量) / 马上领；limitNum>0：马上领 / 已领取(抢光) / 再次领取
   const statusText = (coupon: any): string => {
-    if (Number(coupon?.isReceive) === 1) return '已领取';
     const limit = Number(coupon?.limitNum ?? 0);
     const received = Number(coupon?.receiveNum ?? 0);
-    if (limit > 0 && received >= limit) return '已抢光';
-    return '立即领取';
+    if (limit === 0) {
+      if (Number(coupon?.isReceive) === 1) return '已领取';
+      if (received > 0) return '再次领取';
+      return '马上领';
+    }
+    if (Number(coupon?.isReceive) === 0) return '马上领';
+    if (received >= limit) return '已领取';
+    return '再次领取';
   };
-  const claimable = (coupon: any): boolean => statusText(coupon) === '立即领取';
+  // 旧 onSubmit 只拦「已领取」，其余状态（含再次领取）均可领取
+  const claimable = (coupon: any): boolean => statusText(coupon) !== '已领取';
 
   if (loading || !coupons.length) return null;
 
@@ -1500,7 +1651,7 @@ function Coupon({ module }: ModuleProps) {
         <div className="mod_coupon">
           <div className="coupon_tit">
             <Link href="/coupon/list" target="_blank">
-              <h4>领券中心</h4>
+              <h4>{t('领券中心')}</h4>
               <p className="en_tit">COUPON</p>
               <p className="go_coupon">GO <em>&gt;&gt;</em></p>
             </Link>
@@ -1512,7 +1663,7 @@ function Coupon({ module }: ModuleProps) {
                 <div className="coupon_detail">
                   <div className="price">
                     {Number(coupon.couponType) === 2 ? (
-                      <div className="coupon_discount">{coupon.couponDiscount}<span>折</span></div>
+                      <div className="coupon_discount">{coupon.couponDiscount}<span>{t('折')}</span></div>
                     ) : (
                       <b>¥{Number(coupon.couponMoney || 0).toFixed(0)}</b>
                     )}
@@ -1530,13 +1681,13 @@ function Coupon({ module }: ModuleProps) {
                     void claim(coupon);
                   }}
                 >
-                  {claimingId === Number(coupon.couponId) ? '领取中' : statusText(coupon)}<em>&nbsp;&gt;</em>
+                  {claimingId === Number(coupon.couponId) ? t('领取中') : statusText(coupon)}<em>&nbsp;&gt;</em>
                 </p>
                 <div className="coupon_edge" />
               </div>
             ))}
             <div className="more_coupon">
-              <Link href="/coupon/list" target="_blank">查看更多</Link>
+              <Link href="/coupon/list" target="_blank">{t('查看更多')}</Link>
             </div>
           </div>
         </div>
@@ -1553,6 +1704,7 @@ function Coupon({ module }: ModuleProps) {
  * titleColor,titleRadius,titlePaddingTop,titlePaddingBottom,titleBackground,titleBackground2,titleBackgroundPic,
  * showMore,moreLink,moreColor,countdownLabel}、backgroundColor/boxRadius、seckillTitle（旧字段兼容）。 */
 function Seckill({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(0);
@@ -1583,12 +1735,14 @@ function Seckill({ module }: ModuleProps) {
 
   const title = module.title || {};
   const showTitle = Number(title.showTitle ?? 1) === 1;
-  const titleText = title.titleText ?? module.seckillTitle ?? '限时秒杀';
+  const titleText = title.titleText ?? module.seckillTitle ?? t('限时秒杀');
   const style = Number(module.style ?? 6);
   const showName = module.showName !== 0 && module.showName !== false;
   const showPrice = module.showPrice !== 0 && module.showPrice !== false;
   const goodsGap = px(module.goodsGap ?? module.goodsPadding, 10);
-  const columns = style === 1 ? 4 : style === 2 ? 5 : 6;
+  /* 旧 getItemWidth：style1=25%（4个/行）、style2=20%（5个/行）、其余（3/4/7…）默认 25%，
+     style 6 才是横向 swiper */
+  const columns = style === 1 ? 4 : style === 2 ? 5 : 4;
   const remaining = endTime && now ? Math.max(0, endTime - now) : 0;
   const countdown = now && remaining > 0
     ? `${String(Math.floor(remaining / 3600000)).padStart(2, '0')}:${String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0')}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}`
@@ -1641,12 +1795,12 @@ function Seckill({ module }: ModuleProps) {
                 </div>
                 <div className="seckill-top-right" style={{ color: title.moreColor || '#1a1a1a' }}>
                   {Number(title.showMore) === 1 ? (
-                    <a className="seckill-more" href={navHref(title.moreLink) || '/seckill/list'}>{title.moreLink?.title || '更多'}<i className="iconfont-pc icon-login-jt" /></a>
+                    <a className="seckill-more" href={navHref(title.moreLink) || '/seckill/list'}>{title.moreLink?.title || t('更多')}<i className="iconfont-pc icon-login-jt" /></a>
                   ) : null}
                   {countdown ? (
                     <div className="seckill-count-down">
                       <div className="countdown-box">
-                        <span className="countdown-text">{title.countdownLabel || '距结束'}:</span>
+                        <span className="countdown-text">{title.countdownLabel || t('距结束')}:</span>
                         <span className="countdown-item">{countdown.split(':')[0]}</span>
                         <span className="countdown-separator-text">:</span>
                         <span className="countdown-item">{countdown.split(':')[1]}</span>
@@ -1678,9 +1832,10 @@ function Seckill({ module }: ModuleProps) {
                             <div className="item-photo seckill-item-image">
                               <img className="item-image pro_pic" src={product.picUrl || product.picThumb || ''} alt={product.productName || ''} loading="lazy" />
                             </div>
-                            {product.productPrice ? (
+                            {(product.productPrice || (product as any).marketPrice) ? (
                               <div className="seckill-item-discount">
-                                优惠{Math.max(0, Math.round((1 - Number(product.seckillPrice || 0) / Number(product.productPrice || 1)) * 100))}%
+                                {/* 旧 getDiscount：基准价优先 productPrice，回退 marketPrice */}
+                                优惠{Math.max(0, Math.round((1 - Number(product.seckillPrice || 0) / Number(product.productPrice || (product as any).marketPrice || 1)) * 100))}%
                               </div>
                             ) : null}
                           </div>
@@ -1733,6 +1888,7 @@ function Seckill({ module }: ModuleProps) {
  * backgroundColor/boxRadius、showName(==1)/showPrice(==1)、cardStyle、textAlign、textWeight、buyBtnStyle、
  * title{...同 Seckill}。数据 /api/promotion/groupon/itemList。 */
 function Groupon({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(0);
@@ -1816,6 +1972,22 @@ function Groupon({ module }: ModuleProps) {
     }
   };
 
+  /* 旧 cardStyle=1：图下「拼团」倒计时条（未开始显示距开始），文本格式 X天 HH:MM:SS */
+  const isCardStyle1 = Number(module.cardStyle) === 1;
+  const cardCountdownText = (item: any): string => {
+    const current = now || Date.now();
+    const start = parseTime(item.startTime);
+    const started = !(start > current);
+    const target = started ? parseTime(item.endTime) : start;
+    const ms = target - current;
+    if (!target || ms <= 0) return '';
+    const days = Math.floor(ms / 86400000);
+    const hh = String(Math.floor((ms % 86400000) / 3600000)).padStart(2, '0');
+    const mm = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
+    const ss = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+    return days > 0 ? t('{d}天 {t}', { d: days, t: `${hh}:${mm}:${ss}` }) : `${hh}:${mm}:${ss}`;
+  };
+
   return (
     <div className="module-groupon-goods_ad-wrapper">
       <div className={`module-ad-con module-goods_ad module-groupon-goods_ad ad-style__${style} ad-buy_btn_style__${px(module.buyBtnStyle)}`} style={shellStyle}>
@@ -1837,7 +2009,7 @@ function Groupon({ module }: ModuleProps) {
                   {title.titleBackgroundPic?.picUrl ? (
                     <img className="image-size" src={title.titleBackgroundPic.picUrl} alt="" />
                   ) : null}
-                  <div className="groupon-title" style={{ color: title.titleColor || '#1a1a1a' }}>{title.titleText || '拼团'}</div>
+                  <div className="groupon-title" style={{ color: title.titleColor || '#1a1a1a' }}>{title.titleText || t('拼团')}</div>
                   {title.descText ? (
                     <div className={`groupon-desc ${Number(title.titleStyle) === 2 ? 'big-sm' : 'sm'}`} style={{ color: title.descColor || '#1a1a1a' }}>
                       {title.descText}
@@ -1847,7 +2019,7 @@ function Groupon({ module }: ModuleProps) {
                 {countdown ? (
                   <div className="groupon-count-down" style={{ color: title.moreColor || '#1a1a1a' }}>
                     <div className="countdown-box">
-                      <span className="countdown-text">{title.countdownLabel || '距结束'}:</span>
+                      <span className="countdown-text">{title.countdownLabel || t('距结束')}:</span>
                       <span className="countdown-item">{countdown.split(':')[0]}</span>
                       <span className="countdown-separator-text">:</span>
                       <span className="countdown-item">{countdown.split(':')[1]}</span>
@@ -1880,13 +2052,22 @@ function Groupon({ module }: ModuleProps) {
                                 <img className="pro_pic" src={item.picUrl || item.picThumb || ''} alt={item.productName || ''} loading="lazy" />
                               </div>
                             </div>
+                            {isCardStyle1 ? (
+                              <div className="countdown">
+                                <div className="title">{t('拼团')}</div>
+                                <div className="countdown-time">
+                                  <div className="time">{!(parseTime(item.startTime) > (now || Date.now())) ? t('距结束') : '距开始'}</div>
+                                  <div className="text">{cardCountdownText(item)}</div>
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                         </Link>
                         {showName ? (
-                          <div className="titleBox groupon-item__name">
+                          <div className="titleBox groupon-item__name" style={isCardStyle1 ? { marginBottom: 0 } : undefined}>
                             <div
                               className="title product-name-text"
-                              data-group-label={`${minGroupNum(item) || 0}人团`}
+                              data-group-label={t(`${minGroupNum(item) || 0}人团`)}
                               style={{ textAlign: Number(module.textAlign) === 1 ? 'left' : 'center', fontWeight: Number(module.textWeight) === 1 ? 'normal' : 'bold' }}
                             >
                               {item.productName}
@@ -1894,25 +2075,37 @@ function Groupon({ module }: ModuleProps) {
                           </div>
                         ) : null}
                         {showPrice ? (
-                          <div className="groupon-item__price" style={{ flexDirection: Number(module.textAlign) === 1 ? 'row' : 'column' }}>
-                            <div className="price-wrapper">
-                              <span className="price price-miaosha">{formatPrice(item.minGrouponPrice ?? item.grouponPrice)}</span>
-                              {Number(item.productPrice) > 0 ? <s className="price price-origin">{formatPrice(item.productPrice)}</s> : null}
+                          isCardStyle1 ? (
+                            <div className="priceBox">
+                              <div className="priceBoxNum">
+                                <span className="minGrouponPrice">{formatPrice(item.minGrouponPrice ?? item.grouponPrice)}</span>
+                                <div className="old">
+                                  <s>{formatPrice(item.productPrice)}</s>
+                                </div>
+                              </div>
+                              <div className="text">{t('拼')}</div>
                             </div>
-                            <div className="buy">
-                              <button
-                                type="button"
-                                className={`view_detail${productSoldOut(item) ? ' disabled' : ''}`}
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  void buyProduct(item, { isQuick: 1 });
-                                }}
-                              >
-                                <i className="iconfont-pc icon-tianjia" />
-                              </button>
+                          ) : (
+                            <div className="groupon-item__price" style={{ flexDirection: Number(module.textAlign) === 1 ? 'row' : 'column' }}>
+                              <div className="price-wrapper">
+                                <span className="price price-miaosha">{formatPrice(item.minGrouponPrice ?? item.grouponPrice)}</span>
+                                {Number(item.productPrice) > 0 ? <s className="price price-origin">{formatPrice(item.productPrice)}</s> : null}
+                              </div>
+                              <div className="buy">
+                                <button
+                                  type="button"
+                                  className={`view_detail${productSoldOut(item) ? ' disabled' : ''}`}
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    void buyProduct(item, { isQuick: 1 });
+                                  }}
+                                >
+                                  <i className="iconfont-pc icon-tianjia" />
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                          )
                         ) : null}
                       </div>
                     </div>
@@ -1932,6 +2125,7 @@ function Groupon({ module }: ModuleProps) {
 /** PcImageNav.vue：picList、navType(1 固定栅格/2 轮播)、navStyle(1 图+文/2 仅图/3 仅文)、
  * rowNum(3~6)、colNum(1~3)、radioStyle(2 圆角)、picPageType、backgroundColor、frame。 */
 function ImageNav({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const pics: any[] = Array.isArray(module.picList)
     ? module.picList
     : Array.isArray(module.items)
@@ -1950,7 +2144,7 @@ function ImageNav({ module }: ModuleProps) {
   for (let start = 0; start < pics.length; start += itemsPerPage) {
     pages.push(pics.slice(start, start + itemsPerPage));
   }
-  const { index, setIndex, setPaused } = useCarousel(Math.max(1, pages.length), 5000);
+  const { index, setIndex, setPaused } = useCarousel(Math.max(1, pages.length), 3000);
   const imageNavSwipe = useSwipeDrag(index, Math.max(1, pages.length), setIndex);
   if (!pics.length) return null;
   const cssVars: Record<string, any> = {
@@ -1961,7 +2155,10 @@ function ImageNav({ module }: ModuleProps) {
     '--dec-bg-color': frame.backgroundColor || '#ffffff',
     '--dec-content-bg': module.backgroundColor || '#ffffff',
     '--dec-item-radius': `${radius}px`,
-    '--dec-nav-cols': String(colNum),
+    // 旧版网格：columns=rowNum(3~6)，间距=imgPadding(默认8)，同时作 gap 与内边距
+    '--dec-row-num': String(rowNum),
+    '--dec-item-gap': `${module.imgPadding ?? 8}px`,
+    '--dec-indicator-color': module.swiperPageColor || '#333333',
   };
   const classes = [`dec-pc-image-nav--type-${navType}`, `dec-pc-image-nav--style-${navStyle}`, `dec-pc-image-nav--indicator-${module.picPageType ?? 1}`];
   if (Number(module.radioStyle) === 2) classes.push('dec-pc-image-nav--rounded');
@@ -1969,7 +2166,7 @@ function ImageNav({ module }: ModuleProps) {
     <div className={`dec-pc-image-nav ${classes.join(' ')}`} style={cssVars}>
       <div className="dec-pc-image-nav__content">
         {navType === 1 ? (
-          <div className="dec-pc-image-nav__grid" style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))` }}>
+          <div className="dec-pc-image-nav__grid" style={{ gridTemplateColumns: `repeat(${rowNum}, minmax(0, 1fr))` }}>
             {pages[0].map((item, index) => (
               <div className="dec-pc-image-nav__item" key={index}>
                 <a className="dec-pc-image-nav__link" href={navHref(item.picLink) || '#'} target="_blank" rel="noreferrer">
@@ -1995,7 +2192,7 @@ function ImageNav({ module }: ModuleProps) {
                   <div
                     className="dec-pc-image-nav__swiper-page"
                     key={pageIndex}
-                    style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rowNum}, auto)` }}
+                    style={{ gridTemplateColumns: `repeat(${rowNum}, minmax(0, 1fr))` }}
                   >
                     {Array.from({ length: itemsPerPage }).map((_, cellIndex) => {
                       const item = page[cellIndex];
@@ -2026,7 +2223,7 @@ function ImageNav({ module }: ModuleProps) {
                     type="button"
                     className={dot === index ? 'is-active' : ''}
                     onClick={() => setIndex(dot)}
-                    aria-label={`第 ${dot + 1} 页`}
+                    aria-label={t('第 {n} 页', { n: dot + 1 })}
                   />
                 ))}
               </div>
@@ -2038,38 +2235,81 @@ function ImageNav({ module }: ModuleProps) {
   );
 }
 
-/** PcImageSquareAd.vue：picList、picType(5 大图+2 小图 / 6 三宫格 / 7 四宫格 / 8 五宫格变体，按旧版布局类)、
- * imgPadding（--img-gap）、title、frame（TotalContainer），内容左右内边距 frame.leftAndRightPadding。 */
+/** PcImageSquareAd.vue：picList、picType（5=左大图+右上下2图 / 6=左大图+右上1下2 / 7=上大图+下2图 /
+ * 1~4=2/3/4/2x2 列栅格）、imgPadding（--img-gap）、title、frame（TotalContainer + base-class 恒裁切）。
+ * DOM 复刻旧版复合结构（image-square-layout + grid-layout-2/3 嵌套），不再平铺。 */
 function ImageSquareAd({ module }: ModuleProps) {
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
   if (!pics.length) return null;
   const picType = Number(module.picType ?? 5);
   const frame = module.frame || {};
   const xPadding = px(frame.leftAndRightPadding ?? frame.innerPadding ?? 0);
-  const layoutClass = picType === 5 ? 'image-square-layout' : picType === 6 ? 'image-square-layout-3' : picType === 7 ? 'image-square-layout-4' : 'image-square-layout-5';
+  const cell = (index: number) => {
+    const pic = pics[index];
+    if (!pic) return null;
+    const inner = (
+      <div className="item-img-a">
+        <img src={pic.picUrl || pic.picThumb || ''} alt={pic.picTitle || ''} loading="lazy" />
+      </div>
+    );
+    return pic.picLink ? (
+      <a className="item-content" href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer">
+        {inner}
+      </a>
+    ) : (
+      <div className="item-content">{inner}</div>
+    );
+  };
   return (
-    <Container module={frame}>
+    <Container module={frame} className="module-image-square-ad">
       <div style={{ padding: `${xPadding}px` }}>
         <ShopTitle title={module.title} />
-        <div className="image-list" style={{ ['--img-gap' as string]: `${px(module.imgPadding)}px` }}>
-          <div className={`${layoutClass}`}>
-            {pics.map((pic, index) => (
-              <div className="image-ad-item" key={index}>
-                <a
-                  className="item-content"
-                  href={navHref(pic.picLink) || '#'}
-                  onClick={(event) => {
-                    if (!navHref(pic.picLink)) event.preventDefault();
-                  }}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <img src={pic.picUrl || pic.picThumb || ''} alt={pic.picTitle || ''} loading="lazy" />
-                </a>
+        {picType === 5 ? (
+          <div className="image-list" style={{ ['--img-gap' as string]: `${px(module.imgPadding)}px` }}>
+            <div className="image-square-layout image-square-layout-height2">
+              <div className="image-ad-item">{cell(0)}</div>
+              <div className="grid-layout-2">
+                <div className="image-ad-item">{cell(1)}</div>
+                <div className="image-ad-item">{cell(2)}</div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        ) : picType === 7 ? (
+          <div className="image-list" style={{ ['--img-gap' as string]: `${px(module.imgPadding)}px` }}>
+            <div className="image-square-layout2">
+              <div className="image-ad-item">{cell(0)}</div>
+              <div className="grid-layout-2">
+                <div className="image-ad-item">{cell(1)}</div>
+                <div className="image-ad-item">{cell(2)}</div>
+              </div>
+            </div>
+          </div>
+        ) : picType === 6 ? (
+          <div className="image-list" style={{ ['--img-gap' as string]: `${px(module.imgPadding)}px` }}>
+            <div className="image-square-layout image-square-layout3 image-square-layout-height2">
+              <div className="image-ad-item">{cell(0)}</div>
+              <div className="grid-layout-2">
+                <div>
+                  <div className="image-ad-item">{cell(1)}</div>
+                </div>
+                <div className="grid-layout-3">
+                  <div className="image-ad-item">{cell(2)}</div>
+                  <div className="image-ad-item">{cell(3)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="image-list" style={{ ['--img-gap' as string]: `${px(module.imgPadding)}px` }}>
+            <div className={`image-square-layout-${picType} image-square-layout-height1`}>
+              {pics.map((pic, index) => (
+                <div className="image-ad-item" key={index}>
+                  {cell(index)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Container>
   );
@@ -2078,6 +2318,7 @@ function ImageSquareAd({ module }: ModuleProps) {
 /** PcImageHotarea.vue：picList[].hotarea[]（width/height/pageX|left/pageY|top/link.name）、
  * imgPadding、title、frame（TotalContainer）；热区坐标基于 500px 基准，窄容器按比例缩放由 CSS 变量完成。 */
 function ImageHotarea({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
   const frame = module.frame || {};
   const innerPad = px(frame.leftAndRightPadding ?? frame.innerPadding);
@@ -2164,6 +2405,7 @@ function ImageHotarea({ module }: ModuleProps) {
 /** PcTitleAd.vue：title{titleText,descText,titleAlign,titleStyle,titleColor,descColor,titleBackground,
  * titleBackground2,titleRadius,showMore,moreLink,moreColor}、frame{leftAndRightPadding,backgroundColor,boxRadius}。 */
 function TitleAd({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const title = module.title || {};
   const frame = module.frame || {};
   const leftRight = px(frame.leftAndRightPadding);
@@ -2182,7 +2424,7 @@ function TitleAd({ module }: ModuleProps) {
       {!title.titleText || String(title.titleText).trim() === '' ? (
         <div className="module-ad-empty empty-title_ad">
           <div className="image-empty-bg" />
-          <div className="desc">点击添加标题</div>
+          <div className="desc">{t('点击添加标题')}</div>
         </div>
       ) : (
         <div className={`title-ad-warp ad-title_align__${align}`} style={{ paddingLeft: leftRight, paddingRight: leftRight }}>
@@ -2201,7 +2443,7 @@ function TitleAd({ module }: ModuleProps) {
                     <div className="image-ad-title-r">
                       <a className="more-link" href={navHref(title.moreLink) || '#'} target="_blank" rel="noreferrer" style={{ color: title.moreColor || undefined }}>
                         <div className="flex align-center">
-                          <span>{title.moreLink?.title || '查看更多'}</span>
+                          <span>{title.moreLink?.title || t('查看更多')}</span>
                           <i className="iconfont-pc icon-login-jt" />
                         </div>
                       </a>
@@ -2320,6 +2562,7 @@ function Spacer({ module }: ModuleProps) {
 /** PcBanner2.vue：picList、number(1~3 每屏张数，默认 1)、slideGap（默认 12）、
  * frame{boxPadding,boxPaddingTop,boxPaddingBottom,boxRadius,backgroundColor,leftAndRightPadding}。 */
 function Banner2({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
   const frame = module.frame || {};
   const perView = Math.min(3, Math.max(1, Number(module.number) || 1));
@@ -2354,7 +2597,7 @@ function Banner2({ module }: ModuleProps) {
         {pages > 1 ? (
           <div className="dec-banner2__dots">
             {Array.from({ length: pages }).map((_, dot) => (
-              <button key={dot} type="button" className={dot === index ? 'is-active' : ''} onClick={() => setIndex(dot)} aria-label={`第 ${dot + 1} 张`} />
+              <button key={dot} type="button" className={dot === index ? 'is-active' : ''} onClick={() => setIndex(dot)} aria-label={t('第 {n} 张', { n: dot + 1 })} />
             ))}
           </div>
         ) : null}
@@ -2366,6 +2609,7 @@ function Banner2({ module }: ModuleProps) {
 /** PcCategoryNav3.vue：picList、titleText、showMore/showMoreText/moreLink、backgroundColor、
  * frame{boxPadding,boxPaddingTop,boxPaddingBottom,boxRadius,boxHeight 默认352}、imageBackgroundColor。 */
 function CategoryNav3({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const pics: any[] = Array.isArray(module.picList) ? module.picList : [];
   const nav3Ref = useRef<HTMLDivElement | null>(null);
   const frame = module.frame || {};
@@ -2386,7 +2630,7 @@ function CategoryNav3({ module }: ModuleProps) {
         <div className="dec-category-nav3__title">{module.titleText || ''}</div>
         {Number(module.showMore) === 1 ? (
           <a className="dec-category-nav3__more" href={navHref(module.moreLink) || '#'} target="_blank" rel="noreferrer">
-            {module.showMoreText || '更多'}
+            {module.showMoreText || t('更多')}
             <span className="dec-category-nav3__more-icon" aria-hidden>›</span>
           </a>
         ) : null}
@@ -2454,13 +2698,6 @@ function GroupBanner({ module }: ModuleProps) {
           ))}
         </div>
         <SwiperNav visible={pages > 1} onPrev={() => setIndex(index - 1)} onNext={() => setIndex(index + 1)} />
-        {pages > 1 ? (
-          <div className="dec-group-banner__dots">
-            {Array.from({ length: pages }).map((_, dot) => (
-              <button key={dot} type="button" className={dot === index ? 'is-active' : ''} onClick={() => setIndex(dot)} aria-label={`第 ${dot + 1} 张`} />
-            ))}
-          </div>
-        ) : null}
       </div>
     </div>
   );
@@ -2470,6 +2707,7 @@ function GroupBanner({ module }: ModuleProps) {
  * productTag,productNumber}、frame{columns 默认5,itemGap,boxPadding,boxPaddingTop,boxPaddingBottom,
  * boxRadius,backgroundColor}；滚动分页（本实现按 productNumber 一次取满，见报告）。 */
 function RecommendProduct({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const frame = module.frame || {};
   const config = module.products || {};
   const columns = Number(frame.columns) > 0 ? Number(frame.columns) : 5;
@@ -2569,6 +2807,14 @@ function RecommendProduct({ module }: ModuleProps) {
     '--dec-columns': String(columns),
   };
 
+  // 旧 utils/getBuyText（B2B 分支不涉及 C 端海外版）：1=加入购物车，5/6=立即预约，其余=立即购买
+  const buyText = (type: unknown): string => {
+    const n = Number(type ?? 1);
+    if (n === 1) return '加入购物车';
+    if (n === 5 || n === 6) return '立即预约';
+    return '立即购买';
+  };
+
   return (
     <div className="dec-recommend-product" style={cssVars}>
       {module.titleName ? <h3 className="dec-recommend-product__title">{module.titleName}</h3> : null}
@@ -2583,18 +2829,26 @@ function RecommendProduct({ module }: ModuleProps) {
                   </Link>
                 </div>
                 <div className="dec-recommend-product__name">
-                  <Link href={productDetailHref(product)} target="_blank">{product.productName}</Link>
+                  <Link href={productDetailHref(product)} target="_blank">
+                    {Number((product as any).deliveryMode) === 2 && Number((product as any).deliveryType) === 1 ? (
+                      <span className="dec-recommend-product__tag">{t('周期购')}</span>
+                    ) : null}
+                    {Number((product as any).deliveryMode) === 2 && Number((product as any).deliveryType) === 2 ? (
+                      <span className="dec-recommend-product__tag">{t('次卡兑换')}</span>
+                    ) : null}
+                    {product.productName}
+                  </Link>
                 </div>
                 <div className="dec-recommend-product__price">{formatPrice(product.productPrice)}</div>
               </div>
               <div className="dec-recommend-product__operate">
-                <Link className="dec-recommend-product__detail" href={productDetailHref(product)} target="_blank">查看详情</Link>
+                <Link className="dec-recommend-product__detail" href={productDetailHref(product)} target="_blank">{t('查看详情')}</Link>
                 <button
                   type="button"
                   className={`dec-recommend-product__buy${productSoldOut(product) ? ' is-disabled' : ''}`}
                   onClick={() => void buyProduct(product, { isQuick: Number((product as any).productType ?? 1) !== 1 ? 1 : 0 })}
                 >
-                  {needsProductDetail(product) ? '查看详情' : productSoldOut(product) ? '已售罄' : '立即购买'}
+                  {buyText((product as any).productType)}
                 </button>
               </div>
             </div>
@@ -2605,7 +2859,7 @@ function RecommendProduct({ module }: ModuleProps) {
         {loading ? (
           <div className="dec-recommend-product__loading"><div className="gif-loading" /></div>
         ) : null}
-        {noMore && products.length > 0 ? <div className="dec-recommend-product__end">没有更多喽~</div> : null}
+        {noMore && products.length > 0 ? <div className="dec-recommend-product__end">{t('没有更多喽~')}</div> : null}
       </div>
     </div>
   );
@@ -2617,23 +2871,77 @@ function RecommendProduct({ module }: ModuleProps) {
  * infoLeftRightPadding}、moduleStyle{boxPadding,boxPaddingTop,boxPaddingBottom,backgroundColor}、
  * contentStyle{paddingTop,paddingBottom,paddingLeftRight,boxRadius,backgroundColor}、buyBtnStyle.showBtn。 */
 function ProductGroup({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const groups: Array<Record<string, any>> = Array.isArray(module.productGroups) ? module.productGroups : [];
   const [active, setActive] = useState(0);
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
+  /** 活动数据（原版 usePromotionActivity：POST product/product/promotion → {[productId]: {activityInfo}}） */
+  const [promotions, setPromotions] = useState<Record<string, { activityInfo?: Array<{ type?: number; typeText?: string }> }>>({});
   const productColor = module.productColor || {};
   const groupTitle = module.groupTitle || {};
   const moduleStyle = module.moduleStyle || {};
   const contentStyle = module.contentStyle || {};
   const listStyle = Number(module.listStyle ?? 4);
   const cardRadius = px(module.cardRadius, 4);
-  const columns = listStyle === 1 ? 4 : listStyle === 2 ? 5 : listStyle === 3 ? 6 : 4;
+  /* 旧版 getColumnsCount（取数 size=cols*3 用）：{4:4, 6:5, 7:6}，其余兜底 4 */
+  const columns = listStyle === 6 ? 5 : listStyle === 7 ? 6 : 4;
+  /* 渲染列数（旧 itemWidthStyle 语义）：1~4=listStyle 列，5=瀑布（2列+每3项跨全行），6=5列，7=6列 */
+  const gridColumns = listStyle === 5 ? 2 : listStyle >= 1 && listStyle <= 4 ? listStyle : columns;
   const showGroupTitle = Number(groupTitle.showTitle ?? 1) === 1;
   const showName = Number(module.showProductName ?? 1) !== 0;
   const showPrice = Number(module.showProductPrice ?? 1) !== 0;
   const showCrossed = Number(module.crossedOutPrice ?? 1) !== 0;
   const showSales = Number(module.showSales ?? 1) !== 0;
   const showBuy = Number(module.buyBtnStyle?.showBtn ?? 1) !== 0;
+  const showShopTag = Number(module.showShopTag ?? 1) !== 0;
+
+  /* 旧版 tab 左右箭头：溢出时显示，滚动/切换后更新位置 */
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
+  const updateArrows = () => {
+    const el = tabsRef.current;
+    if (!el) {
+      setShowLeftArrow(false);
+      setShowRightArrow(false);
+      return;
+    }
+    setShowLeftArrow(el.scrollLeft > 0);
+    setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useEffect(() => {
+    updateArrows();
+    const onResize = () => updateArrows();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups.length, showGroupTitle]);
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const step = el.clientWidth * 0.6;
+    el.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' });
+  };
+
+  // 旧版 handleTabClick：切换分组并让点击的 tab 滚动到居中
+  const handleTabClick = (index: number) => {
+    setActive(index);
+    requestAnimationFrame(() => {
+      const container = tabsRef.current;
+      if (!container) return;
+      const tabEl = container.children[index] as HTMLElement | undefined;
+      if (!tabEl) return;
+      const containerRect = container.getBoundingClientRect();
+      const tabRect = tabEl.getBoundingClientRect();
+      const tabCenter = (tabRect.left + tabRect.right) / 2 - containerRect.left;
+      const containerCenter = container.clientWidth / 2;
+      container.scrollBy({ left: tabCenter - containerCenter, behavior: 'smooth' });
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -2643,34 +2951,84 @@ function ProductGroup({ module }: ModuleProps) {
       setLoading(false);
       return undefined;
     }
-    const params = new URLSearchParams({ page: '1', size: '12' });
+    // 旧 fetchProductList 开头 clearPromotionList：切换分组先清空上一组活动标签
+    setPromotions({});
+    setLoading(true);
+    // 旧 usePromotionActivity.fetchPromotionList：自动携带首个商品的 shopId，失败即清空
+    const requestPromotions = (list: any[]) => {
+      const promotionItems = list
+        .map((p: any) => ({ productId: p.productId ?? p.id }))
+        .filter((p: any) => p.productId != null && String(p.productId) !== '');
+      if (!promotionItems.length) {
+        if (!cancelled) setPromotions({});
+        return;
+      }
+      const rawShopId = list.find((item: any) => item.shopId)?.shopId;
+      fetch('/api/product/product/promotion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: promotionItems, ...(rawShopId ? { shopId: String(rawShopId) } : {}), from: 'list' }),
+      })
+        .then((r) => r.json())
+        .then((j) => {
+          if (!cancelled) setPromotions(j?.data && typeof j.data === 'object' ? j.data : {});
+        })
+        .catch(() => {
+          if (!cancelled) setPromotions({});
+        });
+    };
     if (group.sourceType === 'productGroup' && group.productGroupId) {
-      params.set('productGroupId', String(group.productGroupId));
+      const params = new URLSearchParams({ page: '1', size: String(columns * 3), productGroupId: String(group.productGroupId) });
+      fetch(`/api/product/product/list?${params.toString()}`)
+        .then((response) => response.json())
+        .then((json) => {
+          if (cancelled) return;
+          const records = json?.data?.records || json?.data || json?.records || [];
+          const list = Array.isArray(records) ? records : [];
+          setProducts(list);
+          requestPromotions(list);
+        })
+        .catch(() => {
+          if (!cancelled) setProducts([]);
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
     } else {
-      const ids = (Array.isArray(group.productList) ? group.productList : []).map((item: any) => item.productId || item.id).filter(Boolean);
+      const fromList = Array.isArray(group.productList) ? group.productList : [];
+      const ids = fromList
+        .map((item: any) => item.productId ?? item.id)
+        .filter((id: any) => Boolean(id) && String(id) !== '0');
       if (!ids.length) {
         setProducts([]);
         setLoading(false);
         return undefined;
       }
-      params.set('ids', ids.join(','));
-      params.set('size', String(ids.length));
+      const params = new URLSearchParams({ ids: ids.join(','), size: String(ids.length) });
+      fetch(`/api/product/product/list?${params.toString()}`)
+        .then((response) => response.json())
+        .then((json) => {
+          if (cancelled) return;
+          const records = json?.data?.records || json?.data || json?.records || [];
+          const list = Array.isArray(records) ? records : [];
+          setProducts(list);
+          requestPromotions(list);
+        })
+        .catch(() => {
+          // 旧版：接口异常时降级使用装修数据中已有的商品信息
+          if (!cancelled) {
+            setProducts(fromList);
+            requestPromotions(fromList);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
     }
-    setLoading(true);
-    fetch(`/api/product/product/list?${params.toString()}`)
-      .then((response) => response.json())
-      .then((json) => {
-        if (cancelled) return;
-        const records = json?.data?.records || json?.data || json?.records || [];
-        setProducts(Array.isArray(records) ? records : []);
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(groups), active]);
 
   if (!groups.length) return null;
@@ -2693,80 +3051,191 @@ function ProductGroup({ module }: ModuleProps) {
     '--dec-title-size': `${px(module.productNameSize, 16)}px`,
     '--dec-title-rows': String(module.productNameRow ?? 1),
     '--dec-price-color': themeAwareColor(productColor.priceColor, 'var(--price)'),
+    // 旧版 itemGap = productColor.infoLeftRightPadding（默认 3），同时是商品间距
+    '--dec-item-gap': `${Math.max(0, px(productColor.infoLeftRightPadding, 3))}px`,
+    // 划线价颜色（旧 pc.crossedOutPriceColor，默认 #999999）
+    '--dec-origin-price-color': productColor.crossedOutPriceColor ?? '#999999',
+    // 分组标题样式体系（旧 gt.* 十项，缺省值对齐旧版）
+    '--dec-tab-margin-lr': `${px(groupTitle.marginLeftRight)}px`,
+    '--dec-tab-title-size': `${px(groupTitle.bigTitleFontSize, 14)}px`,
+    '--dec-tab-title-color': groupTitle.titleColor ?? '#444444',
+    '--dec-tab-title-active-color': groupTitle.activeTitleColor ?? '#FF0F23',
+    '--dec-tab-active-bg': groupTitle.activeTitleBgColor ?? '#ffebf1',
+    '--dec-tab-title-min-width': `${px(groupTitle.titleMinWidth, 80)}px`,
+    '--dec-tab-title-padding-tb': `${px(groupTitle.titlePaddingTopBottom, 8)}px`,
+    '--dec-tab-title-padding-lr': `${px(groupTitle.titlePaddingLeftRight, 12)}px`,
+    '--dec-tab-title-radius': `${px(groupTitle.titleRadius, 4)}px`,
+    '--dec-tab-line-color': groupTitle.splitLineColor ?? '#DADADA',
   };
   return (
     <div
       className={`dec-product-group dec-product-group--card-style-${module.productCardStyle ?? 1} dec-product-group--list-style-${listStyle}`}
       style={cssVars}
     >
-      <div className="dec-product-group__container" style={{ background: moduleStyle.backgroundColor || undefined }}>
+      {/* 旧版 __container 背景来自 contentStyle.backgroundColor（--dec-content-bg），勿再叠画 moduleStyle 背景 */}
+      <div className="dec-product-group__container">
         {showGroupTitle ? (
           <div className="dec-product-group__tabs-wrapper">
-            <div className="dec-product-group__tabs">
+            {showLeftArrow ? (
+              <div className="dec-product-group__arrow dec-product-group__arrow--left" onClick={() => scrollTabs('left')}>
+                <span className="dec-product-group__arrow-btn">
+                  <svg className="dec-product-group__arrow-icon dec-product-group__arrow-icon--flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m9 5 7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            ) : null}
+            <div className="dec-product-group__tabs" ref={tabsRef} onScroll={updateArrows}>
               {groups.map((group, index) => (
                 <div
                   className={`dec-product-group__tab${index === active ? ' dec-product-group__tab--active' : ''}`}
                   key={index}
-                  onClick={() => setActive(index)}
+                  onClick={() => handleTabClick(index)}
                 >
                   {index > 0 ? <div className="dec-product-group__tab-line" /> : null}
                   <div className="dec-product-group__tab-content">
                     {picSrc(group.titlePic) ? <img className="dec-product-group__tab-icon" src={picSrc(group.titlePic)} alt="" /> : null}
-                    <div className="dec-product-group__tab-title">{group.title || `分组 ${index + 1}`}</div>
+                    <div className="dec-product-group__tab-title">{group.title || t('分组 {n}', { n: index + 1 })}</div>
                   </div>
                 </div>
               ))}
             </div>
+            {showRightArrow ? (
+              <div className="dec-product-group__arrow dec-product-group__arrow--right" onClick={() => scrollTabs('right')}>
+                <span className="dec-product-group__arrow-btn">
+                  <svg className="dec-product-group__arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m9 5 7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            ) : null}
           </div>
         ) : null}
         <div className="dec-product-group__products">
           <div className="dec-product-group__list">
             {loading ? (
-              Array.from({ length: columns }).map((_, index) => (
+              Array.from({ length: gridColumns }).map((_, index) => (
                 <div className="dec-product-group__item" key={`skeleton-${index}`}>
                   <div className="dec-product-group__card"><span className="dec-skeleton-line" /></div>
                 </div>
               ))
             ) : products.length ? (
-              products.map((product, index) => (
-                <div className="dec-product-group__item" key={product.productSn || product.productId || index}>
+              products.map((product, index) => {
+                const tags = activityTagsOf(promotions, product.productId);
+                return (
+                // 旧 listStyle=5 瀑布：index%3===0 的项占满整行，其余两项各占一半
+                <div
+                  className="dec-product-group__item"
+                  key={product.productSn || product.productId || index}
+                  style={listStyle === 5 && index % 3 === 0 ? { gridColumn: '1 / -1' } : undefined}
+                >
                   <Link className="dec-product-group__card" href={product.seoLink || `/product/${product.productSn || product.productId || ''}`} target="_blank">
                     <div className="dec-product-group__image">
                       <img className="dec-product-group__image-inner" src={product.picUrl || product.picThumb || ''} alt={product.productName || ''} loading="lazy" />
                     </div>
                     <div className="dec-product-group__info">
                       {showName ? <div className="dec-product-group__name">{product.productName}</div> : null}
-                      {showSales ? <div className="dec-product-group__status-wrap"><div className="dec-product-group__sales">已售 0</div></div> : null}
+                      {showSales ? (
+                        <div className="dec-product-group__status-wrap">
+                          <div className="dec-product-group__sales">已售 {product.virtualSales ?? 0}</div>
+                        </div>
+                      ) : null}
+                      {tags.length ? (
+                        <div className="dec-product-group__tag-wrap">
+                          {tags.map((tag) => (
+                            <span className="dec-product-group__tag" key={tag}>{tag}</span>
+                          ))}
+                        </div>
+                      ) : null}
                       <div className="dec-product-group__price-box">
                         <div className="dec-product-group__price-row">
-                          {showPrice ? <span className="dec-product-group__price">{formatPrice(product.productPrice)}</span> : null}
-                          {showCrossed ? <s className="dec-product-group__price-origin">{formatPrice((product as any).marketPrice)}</s> : null}
+                          {/* 旧 FormatPrice 三段式：￥16px + 整数 28px/600 + 小数 16px，色 var(--primary-dark-2) */}
+                          {showPrice ? (
+                            <span className="dec-product-group__price">
+                              <span className="dec-product-group__price-currency">￥</span>
+                              <span className="dec-product-group__price-int">{priceParts(product.productPrice).int}</span>
+                              <span className="dec-product-group__price-dec">{priceParts(product.productPrice).dec}</span>
+                            </span>
+                          ) : null}
+                          {showCrossed ? (
+                            <s className="dec-product-group__price-origin">
+                              <span className="dec-product-group__price-origin-currency">￥</span>
+                              {priceParts((product as any).marketPrice).int}
+                              {priceParts((product as any).marketPrice).dec}
+                            </s>
+                          ) : null}
                         </div>
                         {showBuy ? (
                           <button
                             type="button"
-                            className={`dec-product-group__cart-btn${productSoldOut(product) ? ' is-disabled' : ''}`}
+                            className={`dec-product-group__cart-btn dec-product-group__cart-btn--style-${Number(module.buyBtnStyle?.btnType ?? 1) || 1}${productSoldOut(product) ? ' is-disabled' : ''}`}
                             onClick={(event) => {
                               event.preventDefault();
                               event.stopPropagation();
                               void buyProduct(product);
                             }}
                           >
-                            <span className="dec-product-group__cart-inner">+</span>
+                            <span className="dec-product-group__cart-inner">
+                              {Number(module.buyBtnStyle?.btnType ?? 1) === 2 ? (
+                                <BuyIconCart />
+                              ) : Number(module.buyBtnStyle?.btnType ?? 1) === 3 ? (
+                                <BuyIconCartCircle />
+                              ) : (
+                                <BuyIconPlus />
+                              )}
+                            </span>
                           </button>
                         ) : null}
                       </div>
+                      {/* 原版 __shop：多商户显示 shop.shopTitle，否则「官方自营」 */}
+                      {showShopTag ? (
+                        <div className="dec-product-group__shop">{(product as any).shop?.shopTitle || t('官方自营')}</div>
+                      ) : null}
                     </div>
                   </Link>
                 </div>
-              ))
+                );
+              })
             ) : (
-              <div className="dec-empty">该分组暂无商品</div>
+              <div className="dec-empty">{t('该分组暂无商品')}</div>
             )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+/* ======================= 9.5 ProductGroup 购买按钮图标（旧 SvgIcon buy-jia/buy-cart/buy-cart-circle） ======================= */
+
+function BuyIconPlus() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M12 4.5v15M4.5 12h15" />
+    </svg>
+  );
+}
+
+function BuyIconCart() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2.5 3.5h2.2l2.2 10.9a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.25L20.3 7H6" />
+      <circle cx="9.5" cy="19.6" r="1.4" />
+      <circle cx="17.5" cy="19.6" r="1.4" />
+    </svg>
+  );
+}
+
+function BuyIconCartCircle() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <circle cx="12" cy="12" r="10.2" />
+      <g strokeLinecap="round" strokeLinejoin="round">
+        <path d="M7.5 8.5h1.6l1.5 7.1a1.2 1.2 0 0 0 1.2 1h4.1a1.2 1.2 0 0 0 1.2-.95L18.3 11H9.4" />
+        <circle cx="11" cy="18.4" r="0.9" />
+        <circle cx="15.6" cy="18.4" r="0.9" />
+      </g>
+    </svg>
   );
 }
 
@@ -2829,6 +3298,7 @@ function ContractBanner({ module }: ModuleProps) {
 
 /** pcCatProductNormal / pcCatProductWide / pcCatProductSimple 共用：标题 + 关键词链接行 + 可选图片条 + 商品网格。 */
 function ContractCatProduct({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const links: Array<{ link: string; text: string }> = module.links || [];
   const moreHref = linkHref(module.moreLink);
   const bannerPics: any[] = module.banner?.picList || [];
@@ -2840,7 +3310,7 @@ function ContractCatProduct({ module }: ModuleProps) {
           {links.map((item, index) => (
             <a key={index} href={navHref(item.link) || '#'}>{item.text}</a>
           ))}
-          {moreHref ? <a href={moreHref} style={{ marginLeft: 'auto', color: 'var(--pc-primary)' }}>查看更多 ›</a> : null}
+          {moreHref ? <a href={moreHref} style={{ marginLeft: 'auto', color: 'var(--pc-primary)' }}>{t('查看更多 ›')}</a> : null}
         </div>
       ) : null}
       {bannerPics.length ? <ImageAd module={{ picList: bannerPics, frame: FLAT_FRAME }} /> : null}
@@ -2851,6 +3321,7 @@ function ContractCatProduct({ module }: ModuleProps) {
 
 /** pcCategoryNav / pcCategoryNav3 / pcCatWide 共用：热门分类卡片（category/hot），可按 catIds 过滤。 */
 function ContractCategoryHot({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const catIds: number[] = module.catIds || [];
@@ -2883,13 +3354,13 @@ function ContractCategoryHot({ module }: ModuleProps) {
     <Container module={FLAT_FRAME}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <ShopTitle title={module.title} />
-        {moreHref ? <a href={moreHref} style={{ fontSize: 13, color: '#666', whiteSpace: 'nowrap' }}>{module.moreText || '查看更多'} ›</a> : null}
+        {moreHref ? <a href={moreHref} style={{ fontSize: 13, color: '#666', whiteSpace: 'nowrap' }}>{module.moreText || t('查看更多')} ›</a> : null}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${rowNum}, minmax(0, 1fr))`, gap: 12 }}>
         {filtered.map((category: any, index: number) => (
           <a key={category.categoryId || index} href={`/search?categoryId=${category.categoryId || ''}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '8px 4px', textAlign: 'center' }}>
             <img src={category.categoryPic || category.picUrl || category.picThumb || ''} alt={category.categoryName || ''} style={{ width: 48, height: 48, objectFit: 'contain', background: module.imageBackgroundColor || 'transparent', borderRadius: 8 }} />
-            <span style={{ fontSize: 14, color: '#333' }}>{category.categoryName || '分类'}</span>
+            <span style={{ fontSize: 14, color: '#333' }}>{category.categoryName || t('分类')}</span>
           </a>
         ))}
       </div>
@@ -2920,11 +3391,12 @@ function ContractCustomAd({ module }: ModuleProps) {
 /* ======================= 注册表 / 渲染入口 ======================= */
 
 function Fallback({ module }: ModuleProps) {
+    const { t } = useTranslation();
   return (
     <Container module={FLAT_FRAME}>
       <div className="dec-fallback">
-        <span>{module.label || '装修模块'}</span>
-        <span className="dec-fallback__hint">该模块已注册，React 版渲染待补齐</span>
+        <span>{module.label || t('装修模块')}</span>
+        <span className="dec-fallback__hint">{t('该模块已注册，React 版渲染待补齐')}</span>
       </div>
     </Container>
   );

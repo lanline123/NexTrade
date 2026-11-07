@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
+import { useTranslation } from 'react-i18next';
 import {
   canDownloadRawImages,
   fetchRawImageArchive,
@@ -32,6 +33,7 @@ const DownloadIcon = () => (
 );
 
 export default function RawImageDownloadButton({ productId, shopId, nearestShopId }: Props) {
+    const { t } = useTranslation();
   const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -83,10 +85,8 @@ export default function RawImageDownloadButton({ productId, shopId, nearestShopI
       icon={<DownloadIcon />}
       loading={busy}
       disabled={busy}
-      title="下载商品原图压缩包"
+      title={t('下载商品原图压缩包')}
       onClick={() => void download()}
-    >
-      素材下载
-    </Button>
+    >{t('素材下载')}</Button>
   );
 }

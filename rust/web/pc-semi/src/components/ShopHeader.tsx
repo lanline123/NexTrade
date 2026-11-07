@@ -10,6 +10,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@douyinfe/semi-ui';
 
+import { useTranslation } from 'react-i18next';
 export interface ShopHeaderInfo {
   shopId?: number;
   shopTitle?: string;
@@ -32,6 +33,7 @@ export default function ShopHeader({
   onCollect?: () => void;
   onSearch?: (keyword: string, scope: 'site' | 'shop') => void;
 }) {
+  const { t } = useTranslation();
   const [keyword, setKeyword] = useState('');
   const hasLicense = Boolean(shopInfo?.businessLicensePic);
 
@@ -51,7 +53,7 @@ export default function ShopHeader({
       <div className="shop-ref-header__container">
         <div className="shop-ref-header__top">
           <Link href="/" className="shop-ref-header__site-logo">
-            {siteLogo ? <img src={siteLogo} alt="logo" /> : <span>万物新生</span>}
+            {siteLogo ? <img src={siteLogo} alt="logo" /> : <span>{t('万物新生')}</span>}
           </Link>
           <div className="shop-ref-header__search">
             <input
@@ -60,11 +62,11 @@ export default function ShopHeader({
               onKeyDown={(event) => {
                 if (event.key === 'Enter') submit('site');
               }}
-              placeholder="搜索商品"
+              placeholder={t('搜索商品')}
             />
-            <button type="button" className="shop-ref-header__btn" onClick={() => submit('site')}>搜全站</button>
+            <button type="button" className="shop-ref-header__btn" onClick={() => submit('site')}>{t('搜全站')}</button>
             {shopInfo?.shopId ? (
-              <button type="button" className="shop-ref-header__btn is-shop" onClick={() => submit('shop')}>搜本店</button>
+              <button type="button" className="shop-ref-header__btn is-shop" onClick={() => submit('shop')}>{t('搜本店')}</button>
             ) : null}
           </div>
         </div>
@@ -72,13 +74,13 @@ export default function ShopHeader({
         <div className="shop-ref-header__info">
           <div className="shop-ref-header__card">
             <div className="shop-ref-header__logo">
-              {shopInfo?.shopLogo ? <img src={String(shopInfo.shopLogo)} alt={shopInfo.shopTitle || ''} /> : <span>店</span>}
+              {shopInfo?.shopLogo ? <img src={String(shopInfo.shopLogo)} alt={shopInfo.shopTitle || ''} /> : <span>{t('店')}</span>}
             </div>
             <div className="shop-ref-header__meta">
               <div className="shop-ref-header__title-row">
                 <span className="shop-ref-header__title">{shopInfo?.shopTitle || '店铺名称'}</span>
                 {hasLicense ? (
-                  <Link href={`/shop/license?id=${shopInfo?.shopId || ''}`} className="shop-ref-header__license">查看资质</Link>
+                  <Link href={`/shop/license?id=${shopInfo?.shopId || ''}`} className="shop-ref-header__license">{t('查看资质')}</Link>
                 ) : null}
               </div>
               <div className="shop-ref-header__sub">
@@ -89,7 +91,7 @@ export default function ShopHeader({
               </div>
             </div>
             <div className="shop-ref-header__actions">
-              <Button onClick={() => { window.location.href = `/chat?shopId=${shopInfo?.shopId || 0}`; }}>客服</Button>
+              <Button onClick={() => { window.location.href = `/chat?shopId=${shopInfo?.shopId || 0}`; }}>{t('客服')}</Button>
               <Button
                 theme={shopInfo?.collectShop ? 'light' : 'solid'}
                 type="primary"

@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
 function isMobileDevice(): boolean {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 export default function PcMobilePage() {
+    const { t } = useTranslation();
   const [h5Domain, setH5Domain] = useState('');
   const [ready, setReady] = useState(false);
 
@@ -46,5 +48,5 @@ export default function PcMobilePage() {
   }, [h5Url]);
 
   if (!ready || !h5Url) return null;
-  return <iframe src={h5Url} className="pc-mobile-iframe" title="移动端预览" allowFullScreen />;
+  return <iframe src={h5Url} className="pc-mobile-iframe" title={t('移动端预览')} allowFullScreen />;
 }

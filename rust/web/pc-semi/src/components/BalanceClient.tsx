@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button, Card } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface AccountLog {
   logId?: number;
   amount?: string;
@@ -19,6 +20,7 @@ interface AccountLog {
 }
 
 export default function BalanceClient() {
+    const { t } = useTranslation();
   const [balance, setBalance] = useState(0);
   const [rows, setRows] = useState<AccountLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,24 +43,24 @@ export default function BalanceClient() {
   }, []);
 
   if (needLogin) {
-    return <Card className="cart-state"><h2>登录后查看余额</h2><Link href="/login?redirect=/member/balance"><Button theme="solid" type="primary" size="large">去登录</Button></Link></Card>;
+    return <Card className="cart-state"><h2>{t('登录后查看余额')}</h2><Link href="/login?redirect=/member/balance"><Button theme="solid" type="primary" size="large">{t('去登录')}</Button></Link></Card>;
   }
 
   return (
     <div className="member-balance">
       <Card className="member-points__summary">
-        <span>账户余额</span>
+        <span>{t('账户余额')}</span>
         <b>¥ {balance.toFixed(2)}</b>
       </Card>
-      <Card className="member-card" title="余额明细">
+      <Card className="member-card" title={t('余额明细')}>
         {loading ? (
-          <p>余额记录加载中...</p>
+          <p>{t('余额记录加载中...')}</p>
         ) : rows.length ? (
           <div className="member-points__list">
             {rows.map((row, index) => (
               <div key={row.logId || index} className="member-points__row">
                 <div>
-                  <b>{row.type || row.changeTypeName || row.changeDesc || '余额变动'}</b>
+                  <b>{row.type || row.changeTypeName || row.changeDesc || t('余额变动')}</b>
                   <span>{row.addTime} {row.postscript ? `· ${row.postscript}` : ''}</span>
                 </div>
                 <b className={Number(row.amount) >= 0 ? 'is-plus' : 'is-minus'}>
@@ -68,7 +70,7 @@ export default function BalanceClient() {
             ))}
           </div>
         ) : (
-          <p>暂无余额记录</p>
+          <p>{t('暂无余额记录')}</p>
         )}
       </Card>
     </div>

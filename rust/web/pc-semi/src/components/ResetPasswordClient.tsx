@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 async function postJson(path: string, body: unknown, headers: Record<string, string> = {}) {
   const response = await fetch(`/api/${path}`, {
     method: 'POST',
@@ -13,7 +15,7 @@ async function postJson(path: string, body: unknown, headers: Record<string, str
   const text = await response.text();
   const json = text ? JSON.parse(text) : {};
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || json.message || `请求失败（${response.status}）`);
+    throw new Error(json.msg || json.message || (i18n.t('请求失败（{code}）', { code: response.status }) as string));
   }
   return json.data ?? json;
 }
@@ -22,12 +24,13 @@ async function getCsrf(): Promise<string> {
   const response = await fetch('/api/common/csrf/create', { credentials: 'include' });
   const json = await response.json();
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || '获取 CSRF Token 失败');
+    throw new Error(json.msg || (i18n.t('获取 CSRF Token 失败') as string));
   }
   return typeof json.data === 'string' ? json.data : json.data?.token || '';
 }
 
 export default function ResetPasswordClient() {
+    const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState('');
   const [code, setCode] = useState('');
@@ -108,41 +111,40 @@ export default function ResetPasswordClient() {
     <main className="pc-login-page">
       <div className="pc-login-brand">
         <div className="pc-login-brand__logo">W</div>
-        <h1>万物新生</h1>
-        <p>退役动力电池循环利用产业服务平台</p>
+        <h1>{t('万物新生')}</h1>
+        <p>{t('退役动力电池循环利用产业服务平台')}</p>
         <div className="pc-login-brand__points">
-          <span>安全合规</span>
-          <span>高效协同</span>
-          <span>绿色循环</span>
+          <span>{t('安全合规')}</span>
+          <span>{t('高效协同')}</span>
+          <span>{t('绿色循环')}</span>
         </div>
       </div>
       <div className="pc-login-card pc-login-native">
-        <h2>找回密码</h2>
-        <p>{step === 1 ? '验证手机号后设置新密码' : '设置新的登录密码'}</p>
+        <h2>{t('找回密码')}</h2>
+        <p>{step === 1 ? t('验证手机号后设置新密码') : '设置新的登录密码'}</p>
         {step === 1 ? (
           <form onSubmit={verify}>
-            <label htmlFor="reset-mobile">手机号码</label>
-            <input id="reset-mobile" value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder="请输入手机号" autoComplete="tel" />
-            <label htmlFor="reset-code">验证码</label>
+            <label htmlFor="reset-mobile">{t('手机号码')}</label>
+            <input id="reset-mobile" value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder={t('请输入手机号')} autoComplete="tel" />
+            <label htmlFor="reset-code">{t('验证码')}</label>
             <div className="pc-reset-code-row">
-              <input id="reset-code" value={code} onChange={(event) => setCode(event.target.value)} placeholder="请输入验证码" />
+              <input id="reset-code" value={code} onChange={(event) => setCode(event.target.value)} placeholder={t('请输入验证码')} />
               <button type="button" disabled={countdown > 0} onClick={() => void sendCode()}>{countdown > 0 ? `${countdown}s` : '获取验证码'}</button>
             </div>
             {error ? <div className="pc-login-native__error">{error}</div> : null}
-            <button type="submit" disabled={loading}>{loading ? '验证中...' : '下一步'}</button>
+            <button type="submit" disabled={loading}>{loading ? t('验证中...') : '下一步'}</button>
           </form>
         ) : (
           <form onSubmit={reset}>
-            <label htmlFor="reset-password">新密码</label>
-            <input id="reset-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入新密码" autoComplete="new-password" />
-            <label htmlFor="reset-password2">确认密码</label>
-            <input id="reset-password2" type="password" value={password2} onChange={(event) => setPassword2(event.target.value)} placeholder="请再次输入新密码" autoComplete="new-password" />
+            <label htmlFor="reset-password">{t('新密码')}</label>
+            <input id="reset-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('请输入新密码')} autoComplete="new-password" />
+            <label htmlFor="reset-password2">{t('确认密码')}</label>
+            <input id="reset-password2" type="password" value={password2} onChange={(event) => setPassword2(event.target.value)} placeholder={t('请再次输入新密码')} autoComplete="new-password" />
             {error ? <div className="pc-login-native__error">{error}</div> : null}
-            <button type="submit" disabled={loading}>{loading ? '提交中...' : '重置密码'}</button>
+            <button type="submit" disabled={loading}>{loading ? t('提交中...') : '重置密码'}</button>
           </form>
         )}
-        <div className="pc-login-tip">
-          想起密码了？<Link href="/login">返回登录</Link>
+        <div className="pc-login-tip">{t('想起密码了？')}<Link href="/login">{t('返回登录')}</Link>
         </div>
       </div>
     </main>

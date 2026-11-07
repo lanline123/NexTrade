@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { Button, Modal } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 type OfflineKey = 'thirdPartyPaymentTransfer' | 'offlinePayBank' | 'offlinePayCompany' | 'otherPaymentRemittance';
 
 const TAB_LABEL: Record<OfflineKey, string> = {
@@ -22,6 +23,7 @@ const TAB_LABEL: Record<OfflineKey, string> = {
 const TAB_ORDER: OfflineKey[] = ['thirdPartyPaymentTransfer', 'offlinePayBank', 'offlinePayCompany', 'otherPaymentRemittance'];
 
 export default function SettlementDialog({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const [list, setList] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState<OfflineKey | ''>('');
@@ -44,15 +46,15 @@ export default function SettlementDialog({ visible, onClose }: { visible: boolea
 
   return (
     <Modal
-      title="结算账号"
+      title={t('结算账号')}
       visible={visible}
       onCancel={onClose}
-      footer={<Button onClick={onClose}>关闭</Button>}
+      footer={<Button onClick={onClose}>{t('关闭')}</Button>}
       width={680}
     >
-      {loading ? <div style={{ color: '#8c8c8c' }}>加载中...</div> : null}
+      {loading ? <div style={{ color: '#8c8c8c' }}>{t('加载中...')}</div> : null}
       {!loading && !available.length ? (
-        <div style={{ color: '#8c8c8c' }}>暂无可用汇款账户，请联系客服。</div>
+        <div style={{ color: '#8c8c8c' }}>{t('暂无可用汇款账户，请联系客服。')}</div>
       ) : null}
       {available.length ? (
         <>

@@ -24,6 +24,7 @@ import ProductCard from '@/components/product/ProductCard';
 import { useProductColumns } from '@/components/product/use-product-columns';
 import '@/components/product/product-card.scss';
 
+import { useTranslation } from 'react-i18next';
 /** 原版 ProdSwiper 的 PAGE_SIZE */
 const PAGE_SIZE = 12;
 /** 原版 utils/util.ts isB2B()：跨境 B2C 构建为 false，企业认证徽章不渲染 */
@@ -62,6 +63,7 @@ function count(value: unknown): string {
 }
 
 export default function MemberCenterClient() {
+    const { t } = useTranslation();
   const [info, setInfo] = useState<MemberCenterInfo>({});
   const [orderNum, setOrderNum] = useState<OrderNum>({});
   const [recommend, setRecommend] = useState<RecommendProduct[]>([]);
@@ -90,7 +92,7 @@ export default function MemberCenterClient() {
       .catch((error) => {
         const message = error instanceof Error ? error.message : '';
         setNeedLogin(message.includes('登录') || message.includes('401'));
-        Toast.error({ content: message || '会员信息加载失败' });
+        Toast.error({ content: message || t('会员信息加载失败') });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -178,8 +180,8 @@ export default function MemberCenterClient() {
   if (needLogin) {
     return (
       <Card className="mc-card mc-login">
-        <h2>登录后查看会员中心</h2>
-        <Link href="/login?redirect=/member" className="mc-login__btn">去登录</Link>
+        <h2>{t('登录后查看会员中心')}</h2>
+        <Link href="/login?redirect=/member" className="mc-login__btn">{t('去登录')}</Link>
       </Card>
     );
   }
@@ -193,17 +195,17 @@ export default function MemberCenterClient() {
       {/* 用户信息（原版 .infout） */}
       <section className="mc-user">
         <div className={`mc-user__avatar${info.avatar ? '' : ' is-empty'}`}>
-          {info.avatar ? <img src={info.avatar} alt="" /> : <span>{(info.nickname || '会').slice(0, 1)}</span>}
+          {info.avatar ? <img src={info.avatar} alt="" /> : <span>{(info.nickname || t('会')).slice(0, 1)}</span>}
         </div>
         <div className="mc-user__col">
           <div className="mc-user__name">
-            <span>{info.nickname || '会员'}</span>
+            <span>{info.nickname || t('会员')}</span>
             {info.rankIco ? <img className="mc-user__rank" src={info.rankIco} alt="" /> : null}
             {showAuthBadge ? (
               <Link
                 href="/member/userCertification/info"
                 className={`mc-user__auth${verified ? ' is-verified' : ''}`}
-                title={verified ? '已认证' : '未认证'}
+                title={verified ? t('已认证') : '未认证'}
               >
                 <i className="mc-user__auth-ico" aria-hidden="true">
                   <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -211,14 +213,14 @@ export default function MemberCenterClient() {
                     <path d="M32.2 15h5.4l-7 12.8-3-5.4z" fill="#fff" />
                   </svg>
                 </i>
-                <span>{verified ? '已认证' : '未认证'}</span>
+                <span>{verified ? t('已认证') : '未认证'}</span>
               </Link>
             ) : null}
           </div>
           <div className="mc-user__links">
-            <Link href="/member/profile">编辑个人资料</Link>
-            <Link href="/member/security">账户</Link>
-            <Link href="/member/address/list">我的地址</Link>
+            <Link href="/member/profile">{t('编辑个人资料')}</Link>
+            <Link href="/member/security">{t('账户')}</Link>
+            <Link href="/member/address/list">{t('我的地址')}</Link>
           </div>
         </div>
       </section>
@@ -227,27 +229,27 @@ export default function MemberCenterClient() {
       <section className="mc-orders">
         <Link href="/member/order/list" className="mc-orders__title">
           <Order size={20} />
-          <span>我的订单</span>
+          <span>{t('我的订单')}</span>
           <Right size={14} />
         </Link>
         <Link href="/member/order/list?type=awaitPay" className="mc-orders__item">
           <b>{count(orderNum.awaitPay)}</b>
-          <span>待付款</span>
+          <span>{t('待付款')}</span>
         </Link>
         <Link href="/member/order/list?type=awaitReceived" className="mc-orders__item">
           <b>{count(orderNum.awaitReceived)}</b>
-          <span>待收货</span>
+          <span>{t('待收货')}</span>
         </Link>
         {/* D1146：评价功能关闭时不展示「评论」入口 */}
         {commentEnabled === 1 ? (
           <Link href="/member/comment/list" className="mc-orders__item">
             <b>{count(orderNum.awaitComment)}</b>
-            <span>评论</span>
+            <span>{t('评论')}</span>
           </Link>
         ) : null}
         <Link href="/member/return/log" className="mc-orders__item">
           <b>{count(orderNum.awaitAftersalesCollect ?? orderNum.awaitAftersales)}</b>
-          <span>售后</span>
+          <span>{t('售后')}</span>
         </Link>
       </section>
 
@@ -255,31 +257,31 @@ export default function MemberCenterClient() {
       <section className="mc-cards">
         <Link href="/member/coupon/list" className="mc-cards__item">
           <div className="mc-cards__top">
-            <span className="mc-cards__label"><Coupon size={20} />优惠券 <em>{count(info.awaitCoupon ?? info.coupon)}</em></span>
+            <span className="mc-cards__label"><Coupon size={20} />{t('优惠券')}<em>{count(info.awaitCoupon ?? info.coupon)}</em></span>
             <Right size={14} />
           </div>
-          <div className="mc-cards__sub">查看优惠券</div>
+          <div className="mc-cards__sub">{t('查看优惠券')}</div>
         </Link>
         <Link href="/member/collectProduct/list" className="mc-cards__item">
           <div className="mc-cards__top">
-            <span className="mc-cards__label"><Heart size={20} />心愿单</span>
+            <span className="mc-cards__label"><Heart size={20} />{t('心愿单')}</span>
             <Right size={14} />
           </div>
-          <div className="mc-cards__sub">查看心愿单</div>
+          <div className="mc-cards__sub">{t('查看心愿单')}</div>
         </Link>
         <Link href="/member/browsingHistory/list" className="mc-cards__item">
           <div className="mc-cards__top">
-            <span className="mc-cards__label"><History size={20} />浏览记录</span>
+            <span className="mc-cards__label"><History size={20} />{t('浏览记录')}</span>
             <Right size={14} />
           </div>
-          <div className="mc-cards__sub">查看浏览记录</div>
+          <div className="mc-cards__sub">{t('查看浏览记录')}</div>
         </Link>
       </section>
 
       {/* 精选好物（原版 ProdSwiper）—— 商品卡统一走 ProductCard */}
       {recommend.length ? (
         <section className="mc-recommend">
-          <h2 className="com-pc-title">精选好物</h2>
+          <h2 className="com-pc-title">{t('精选好物')}</h2>
           <div
             className="product-card-grid"
             ref={recommendGridRef}
@@ -290,7 +292,7 @@ export default function MemberCenterClient() {
             ))}
           </div>
           <div ref={sentinelRef} className="mc-recommend__more">
-            {recommendLoading ? <span>加载中…</span> : hasMore ? <span>上滑加载更多</span> : <span>没有更多喽~</span>}
+            {recommendLoading ? <span>{t('加载中…')}</span> : hasMore ? <span>{t('上滑加载更多')}</span> : <span>{t('没有更多喽~')}</span>}
           </div>
         </section>
       ) : null}

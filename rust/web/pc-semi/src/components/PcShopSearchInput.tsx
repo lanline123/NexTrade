@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import PcImageSearchEntry from '@/components/PcImageSearchEntry';
 
+import { useTranslation } from 'react-i18next';
 interface GuessItem {
   keyword?: string;
 }
@@ -27,6 +28,7 @@ function resolveShopIdFromPath(pathname: string | null): number {
 }
 
 export default function PcShopSearchInput({ shopId, page = '' }: { shopId?: number | string; page?: string }) {
+    const { t } = useTranslation();
   const pathname = usePathname();
   const initialShopId = Number(shopId && Number(shopId) > 0 ? shopId : resolveShopIdFromPath(pathname));
   const [keyword, setKeyword] = useState('');
@@ -102,7 +104,7 @@ export default function PcShopSearchInput({ shopId, page = '' }: { shopId?: numb
           autoComplete="off"
           className="search-input"
           name="keywords"
-          placeholder="搜索"
+          placeholder={t('搜索')}
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           onFocus={() => setFocus(true)}
@@ -114,12 +116,8 @@ export default function PcShopSearchInput({ shopId, page = '' }: { shopId?: numb
         />
         <PcImageSearchEntry shopId={initialShopId > 0 ? initialShopId : undefined} />
         <div className="search-buttons">
-          <button type="button" className="search-btn shop-search" onClick={onShopSearch}>
-            搜本店
-          </button>
-          <button type="button" className="search-btn site-search" onClick={onSiteSearch}>
-            搜全站
-          </button>
+          <button type="button" className="search-btn shop-search" onClick={onShopSearch}>{t('搜本店')}</button>
+          <button type="button" className="search-btn site-search" onClick={onSiteSearch}>{t('搜全站')}</button>
         </div>
       </div>
 

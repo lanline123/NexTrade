@@ -6,7 +6,7 @@
  * 仅 logo + 「购物车」标题 + 搜索框（无分类/导航），span 底部用 bottomDividerType 控制。
  * - bottomDividerType：0=不展示 / 1=阴影 / 其它=边框（购物车页默认边框）
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import PcSearchBox from '@/components/PcSearchBox';
@@ -52,7 +52,7 @@ export default function PcHeaderCartContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
+  const refreshCartCount = useCallback(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) return;
     let cancelled = false;
@@ -66,6 +66,13 @@ export default function PcHeaderCartContent({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    void refreshCartCount();
+    // 旧版购物车每次变更后调 asyncGetCartCount 同步头部角标（index.vue:591 _getCartCount）
+    window.addEventListener('pc-cart-change', refreshCartCount);
+    return () => window.removeEventListener('pc-cart-change', refreshCartCount);
+  }, [refreshCartCount]);
 
   const rawDivider = header.bottomDividerType;
   const dividerClass = rawDivider === 0 ? 'pc-header-divider--none' : rawDivider === 1 ? 'pc-header-divider--shadow' : 'pc-header-divider--border';

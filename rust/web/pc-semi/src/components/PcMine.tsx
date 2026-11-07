@@ -14,6 +14,7 @@ import User from '@icon-park/react/es/icons/User';
 import Down from '@icon-park/react/es/icons/Down';
 import { readHeaderBootstrap } from '@/lib/header-bootstrap';
 
+import { useTranslation } from 'react-i18next';
 interface MineUser {
   nickname?: string;
   dimUsername?: string;
@@ -32,6 +33,7 @@ export default function PcMine({
   /** 服务端预取的站点配置（默认头像 / 评价开关），保证首屏与其他头部模块同时就绪 */
   baseConfig?: Record<string, any> | null;
 }) {
+    const { t } = useTranslation();
   const [user, setUser] = useState<MineUser | null>(null);
   const [open, setOpen] = useState(false);
   const [defaultAvatar, setDefaultAvatar] = useState(String(baseConfig?.defaultAvatar || ''));
@@ -94,7 +96,7 @@ export default function PcMine({
   };
 
   const avatarSrc = String(user?.avatar || defaultAvatar || '');
-  const name = String(user?.nickname || user?.dimUsername || '我的');
+  const name = String(user?.nickname || user?.dimUsername || t('我的'));
 
   if (!user) {
     return (
@@ -105,7 +107,7 @@ export default function PcMine({
               <div className="icon">
                 <User size={18} />
               </div>
-              <div className="txt">登录</div>
+              <div className="txt">{t('登录')}</div>
             </Link>
           </div>
         </div>
@@ -128,7 +130,7 @@ export default function PcMine({
             <div className="icon">
               <User size={18} />
             </div>
-            <div className="txt">我的</div>
+            <div className="txt">{t('我的')}</div>
             <div className="icon ml">
               <Down className={`arrow${open ? ' rotate' : ''}`} size={14} />
             </div>
@@ -147,26 +149,14 @@ export default function PcMine({
             </Link>
           </div>
           <div className="menu-wrap">
-            <Link href="/member/order/list" className="item-wrap">
-              我的订单
-            </Link>
+            <Link href="/member/order/list" className="item-wrap">{t('我的订单')}</Link>
             {commentEnabled === 1 ? (
-              <Link href="/member/comment/list" className="item-wrap">
-                我的评价
-              </Link>
+              <Link href="/member/comment/list" className="item-wrap">{t('我的评价')}</Link>
             ) : null}
-            <Link href="/member/collectProduct/list" className="item-wrap">
-              心愿单
-            </Link>
-            <Link href="/member/address/list" className="item-wrap">
-              收货地址
-            </Link>
-            <Link href="/member/browsingHistory/list" className="item-wrap">
-              浏览记录
-            </Link>
-            <a className="item-wrap logout" onClick={logout}>
-              退出登录
-            </a>
+            <Link href="/member/collectProduct/list" className="item-wrap">{t('心愿单')}</Link>
+            <Link href="/member/address/list" className="item-wrap">{t('收货地址')}</Link>
+            <Link href="/member/browsingHistory/list" className="item-wrap">{t('浏览记录')}</Link>
+            <a className="item-wrap logout" onClick={logout}>{t('退出登录')}</a>
           </div>
         </div>
       ) : null}

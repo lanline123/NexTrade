@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface ShopProduct { productId?: number; productName?: string; productPrice?: string | number; picThumb?: string; }
 interface ShopObject {
   shopId?: number;
@@ -32,6 +33,7 @@ const TAB_LABEL: Record<ProductTab, string> = { hot: '热销商品', new: '新�
 const PAGE_SIZE = 5;
 
 export default function CollectShopClient() {
+    const { t } = useTranslation();
   const [rows, setRows] = useState<CollectShop[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -96,13 +98,13 @@ export default function CollectShopClient() {
                   <Link href={shopHref} className="collect-shop__logo">
                     <img src={item.shop.shopLogo || ''} alt={item.shop.shopTitle || ''} />
                   </Link>
-                  <Link href={shopHref} className="collect-shop__name">{item.shop.shopTitle || '店铺'}</Link>
+                  <Link href={shopHref} className="collect-shop__name">{item.shop.shopTitle || t('店铺')}</Link>
                   <div className="collect-shop__ops">
-                    <Link href={shopHref} target="_blank" className="collect-shop__btn">进入店铺</Link>
+                    <Link href={shopHref} target="_blank" className="collect-shop__btn">{t('进入店铺')}</Link>
                     {item.shop.kefuLink ? (
-                      <a href={String(item.shop.kefuLink)} target="_blank" rel="noreferrer" className="collect-shop__btn">联系客服</a>
+                      <a href={String(item.shop.kefuLink)} target="_blank" rel="noreferrer" className="collect-shop__btn">{t('联系客服')}</a>
                     ) : null}
-                    <button type="button" className="collect-shop__btn collect-shop__cancel" onClick={() => void cancel(item)}>取消收藏</button>
+                    <button type="button" className="collect-shop__btn collect-shop__cancel" onClick={() => void cancel(item)}>{t('取消收藏')}</button>
                   </div>
                 </div>
 
@@ -136,19 +138,19 @@ export default function CollectShopClient() {
                         <b>¥ {Number(product.productPrice || 0).toFixed(2)}</b>
                       </Link>
                     ))}
-                    {!visible.length ? <span className="collect-shop__empty">暂无商品</span> : null}
+                    {!visible.length ? <span className="collect-shop__empty">{t('暂无商品')}</span> : null}
                   </div>
                 </div>
               </article>
             );
           })}
         </div>
-      ) : <div className="comment-empty">暂无收藏店铺</div>}
+      ) : <div className="comment-empty">{t('暂无收藏店铺')}</div>}
       {pages > 1 ? (
         <div className="comment-pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>上一页</button>
+          <button type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>{t('上一页')}</button>
           <span>{page} / {pages}</span>
-          <button type="button" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>下一页</button>
+          <button type="button" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>{t('下一页')}</button>
         </div>
       ) : null}
     </Card>

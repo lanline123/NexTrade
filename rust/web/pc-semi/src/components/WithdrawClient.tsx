@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
+import { useTranslation } from 'react-i18next';
 interface AccountItem {
   accountId: number;
   accountType: number;
@@ -21,6 +22,7 @@ function mask(value?: string): string {
 }
 
 export default function WithdrawClient() {
+    const { t } = useTranslation();
   const [type, setType] = useState(1);
   const [accounts, setAccounts] = useState<AccountItem[]>([]);
   const [selected, setSelected] = useState<AccountItem | null>(null);
@@ -103,12 +105,12 @@ export default function WithdrawClient() {
     <Card className="member-card withdraw-card" loading={loading}>
       {!withdrawalEnabled ? (
         <div className="withdraw-disabled">
-          <p>会员余额提现功能已关闭。</p>
-          <a href="/member/account/detail">返回账户余额</a>
+          <p>{t('会员余额提现功能已关闭。')}</p>
+          <a href="/member/account/detail">{t('返回账户余额')}</a>
         </div>
       ) : null}
       <div className="withdraw-balance" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#fff' }}>
-        <span>可提现余额</span>
+        <span>{t('可提现余额')}</span>
         <b style={{ color: 'var(--price)', fontSize: 20 }}>¥ {balance.toFixed(2)}</b>
       </div>
       <div className="withdraw-types">
@@ -137,15 +139,15 @@ export default function WithdrawClient() {
       )}
 
       <div className="security-form withdraw-form">
-        <label>提现金额</label>
-        <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="请输入提现金额" inputMode="decimal" />
+        <label>{t('提现金额')}</label>
+        <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder={t('请输入提现金额')} inputMode="decimal" />
         {description ? (
           <div className="withdraw-desc" dangerouslySetInnerHTML={{ __html: description }} />
         ) : null}
         <div style={{ display: 'flex', gap: 10 }}>
-          <Button theme="solid" type="primary" disabled={!accounts.length || !withdrawalEnabled} loading={submitting} onClick={() => void submit()}>提交提现申请</Button>
-          <Button onClick={() => setAmount(balance > 0 ? balance.toFixed(2) : '')}>全部提现</Button>
-          <Button onClick={() => { window.location.href = '/member/account/cardManagement'; }}>管理提现账户</Button>
+          <Button theme="solid" type="primary" disabled={!accounts.length || !withdrawalEnabled} loading={submitting} onClick={() => void submit()}>{t('提交提现申请')}</Button>
+          <Button onClick={() => setAmount(balance > 0 ? balance.toFixed(2) : '')}>{t('全部提现')}</Button>
+          <Button onClick={() => { window.location.href = '/member/account/cardManagement'; }}>{t('管理提现账户')}</Button>
         </div>
       </div>
     </Card>
