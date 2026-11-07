@@ -4,7 +4,7 @@
  * 头图 + 竖直轮播公告（3s 自动切换），支持前缀标签/边框/内容底色。
  */
 import { useEffect, useMemo, useState } from "react";
-import { imageFormat } from "../../../shared/format";
+import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { noticeA3Defaults } from "./index";
 import "./Preview.css";
@@ -38,24 +38,20 @@ export default function NoticeA3Preview({ data }: { data: Record<string, any> })
     return (
         <div
             className="module-ad-con module-notice-a3"
-            style={{
-                ...commonStyle.moduleStyle.boxPaddingTop,
-                ...commonStyle.moduleStyle.boxPaddingBottom,
-                ...commonStyle.moduleStyle.boxPadding,
-                ...commonStyle.moduleStyle.backgroundSize,
-                ...commonStyle.moduleStyle.backgroundImage,
-            }}
+            style={cssText(commonStyle.moduleStyle.boxPaddingTop, commonStyle.moduleStyle.boxPaddingBottom, commonStyle.moduleStyle.boxPadding, commonStyle.moduleStyle.backgroundSize, commonStyle.moduleStyle.backgroundImage)}
         >
             <div
                 className="module-ad-content"
                 style={{
-                    ...commonStyle.moduleContentStyle.backgroundColor,
-                    ...commonStyle.moduleContentStyle.backgroundImage,
-                    ...commonStyle.moduleContentStyle.backgroundSize,
-                    ...commonStyle.moduleContentStyle.boxRadius2,
-                    ...commonStyle.moduleContentStyle.boxShadow,
-                    ...commonStyle.moduleContentStyle.paddingTopBottom,
-                    ...commonStyle.moduleContentStyle.paddingLeftRight,
+                    ...cssText(
+                        commonStyle.moduleContentStyle.backgroundColor,
+                        commonStyle.moduleContentStyle.backgroundImage,
+                        commonStyle.moduleContentStyle.backgroundSize,
+                        commonStyle.moduleContentStyle.boxRadius2,
+                        commonStyle.moduleContentStyle.boxShadow,
+                        commonStyle.moduleContentStyle.paddingTopBottom,
+                        commonStyle.moduleContentStyle.paddingLeftRight,
+                    ),
                     ...wrapStyle,
                 }}
             >

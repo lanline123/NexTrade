@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from "react";
 import { Swiper, SwiperItem } from "@nutui/nutui-react";
-import { imageFormat } from "../../../shared/format";
+import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { mixedNoticeDefaults } from "./index";
 import "./Preview.css";
@@ -47,23 +47,11 @@ export default function MixedNoticePreview({ data }: { data: Record<string, any>
     return (
         <div
             className="module-ad-con"
-            style={{
-                ...commonStyle.moduleStyle.boxPaddingBottom,
-                ...commonStyle.moduleStyle.boxPaddingTop,
-                ...commonStyle.moduleStyle.boxPadding,
-                ...commonStyle.moduleStyle.backgroundSize,
-                ...commonStyle.moduleStyle.backgroundImage,
-            }}
+            style={cssText(commonStyle.moduleStyle.boxPaddingBottom, commonStyle.moduleStyle.boxPaddingTop, commonStyle.moduleStyle.boxPadding, commonStyle.moduleStyle.backgroundSize, commonStyle.moduleStyle.backgroundImage)}
         >
             <div
                 className="module-ad-content"
-                style={{
-                    ...commonStyle.moduleContentStyle.backgroundImage,
-                    ...commonStyle.moduleContentStyle.backgroundSize,
-                    ...commonStyle.moduleContentStyle.boxRadius,
-                    ...commonStyle.moduleContentStyle.boxShadow,
-                    ...commonStyle.moduleContentStyle.innerPadding,
-                }}
+                style={cssText(commonStyle.moduleContentStyle.backgroundImage, commonStyle.moduleContentStyle.backgroundSize, commonStyle.moduleContentStyle.boxRadius, commonStyle.moduleContentStyle.boxShadow, commonStyle.moduleContentStyle.innerPadding)}
             >
                 <div className="mixed-notice">
                     <div className="notices">

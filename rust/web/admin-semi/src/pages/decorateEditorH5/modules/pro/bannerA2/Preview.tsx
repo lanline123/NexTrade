@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from "react";
 import { Swiper, SwiperItem } from "@nutui/nutui-react";
-import { imageFormat } from "../../../shared/format";
+import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { bannerA2Defaults } from "./index";
 import "./Preview.css";
@@ -43,11 +43,13 @@ export default function BannerA2Preview({ data }: { data: Record<string, any> })
             ) : null}
             <div
                 style={{
-                    ...commonStyle.moduleStyle.boxPaddingBottom,
-                    ...commonStyle.moduleStyle.boxPaddingTop,
-                    ...commonStyle.moduleStyle.boxPadding,
-                    ...commonStyle.moduleStyle.backgroundSize,
-                    ...commonStyle.moduleStyle.backgroundImage,
+                    ...cssText(
+                        commonStyle.moduleStyle.boxPaddingBottom,
+                        commonStyle.moduleStyle.boxPaddingTop,
+                        commonStyle.moduleStyle.boxPadding,
+                        commonStyle.moduleStyle.backgroundSize,
+                        commonStyle.moduleStyle.backgroundImage,
+                    ),
                     position: "relative",
                 }}
             >

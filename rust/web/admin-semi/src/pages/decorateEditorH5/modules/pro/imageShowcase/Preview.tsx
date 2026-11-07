@@ -2,7 +2,7 @@
  * 图片橱窗 预览（移植自 view/admin editor/modules/mobilePro/imageShowcase/Preview.vue）
  */
 import { useMemo } from "react";
-import { imageFormat } from "../../../shared/format";
+import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { imageShowcaseDefaults, imageShowcasePaddingMap } from "./index";
 import "./Preview.css";
@@ -42,25 +42,11 @@ export default function ImageShowcasePreview({ data }: { data: Record<string, an
     return (
         <div
             className="module-ad-con module-image_showcase"
-            style={{
-                ...commonStyle.moduleStyle.boxPaddingTop,
-                ...commonStyle.moduleStyle.boxPaddingBottom,
-                ...commonStyle.moduleStyle.boxPadding,
-                ...commonStyle.moduleStyle.backgroundColor,
-                ...commonStyle.moduleStyle.backgroundImage,
-                ...commonStyle.moduleStyle.backgroundSize,
-            }}
+            style={cssText(commonStyle.moduleStyle.boxPaddingTop, commonStyle.moduleStyle.boxPaddingBottom, commonStyle.moduleStyle.boxPadding, commonStyle.moduleStyle.backgroundColor, commonStyle.moduleStyle.backgroundImage, commonStyle.moduleStyle.backgroundSize)}
         >
             <div
                 className="module-ad-content"
-                style={{
-                    ...commonStyle.moduleContentStyle.backgroundImage,
-                    ...commonStyle.moduleContentStyle.backgroundSize,
-                    ...commonStyle.moduleContentStyle.boxRadius2,
-                    ...commonStyle.moduleContentStyle.boxShadow,
-                    ...commonStyle.moduleContentStyle.innerPadding,
-                    ...commonStyle.moduleContentStyle.backgroundColor,
-                }}
+                style={cssText(commonStyle.moduleContentStyle.backgroundImage, commonStyle.moduleContentStyle.backgroundSize, commonStyle.moduleContentStyle.boxRadius2, commonStyle.moduleContentStyle.boxShadow, commonStyle.moduleContentStyle.innerPadding, commonStyle.moduleContentStyle.backgroundColor)}
             >
                 {picList.length === 0 ? (
                     <div className="module-ad-empty empty-image_ad">

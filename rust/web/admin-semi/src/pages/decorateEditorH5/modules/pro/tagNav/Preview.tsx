@@ -4,6 +4,7 @@
  * 水滴形标签（右上尖角 50% 0 50% 50%），按 index%6 循环渐变色。
  */
 import { useMemo } from "react";
+import { cssText } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { tagNavDefaults } from "./index";
 import "./Preview.css";
@@ -42,14 +43,7 @@ export default function TagNavPreview({ data }: { data: Record<string, any> }) {
     return (
         <div
             className="module-ad-con module-tag_nav"
-            style={{
-                ...commonStyle.moduleStyle.boxPaddingTop,
-                ...commonStyle.moduleStyle.boxPaddingBottom,
-                ...commonStyle.moduleStyle.boxPadding,
-                ...commonStyle.moduleStyle.backgroundColor,
-                ...commonStyle.moduleStyle.backgroundImage,
-                ...commonStyle.moduleStyle.backgroundSize,
-            }}
+            style={cssText(commonStyle.moduleStyle.boxPaddingTop, commonStyle.moduleStyle.boxPaddingBottom, commonStyle.moduleStyle.boxPadding, commonStyle.moduleStyle.backgroundColor, commonStyle.moduleStyle.backgroundImage, commonStyle.moduleStyle.backgroundSize)}
         >
             {isEmpty ? (
                 <div className="module-ad-empty">

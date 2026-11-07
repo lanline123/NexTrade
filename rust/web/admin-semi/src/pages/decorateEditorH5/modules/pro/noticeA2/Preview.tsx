@@ -4,7 +4,7 @@
  * scroll 模式：内容按字符宽度估算宽度后横向 marquee 滚动（copyArray 重复 3 份）。
  */
 import { useMemo } from "react";
-import { imageFormat } from "../../../shared/format";
+import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { noticeA2Defaults } from "./index";
 import "./Preview.css";
@@ -41,23 +41,11 @@ export default function NoticeA2Preview({ data }: { data: Record<string, any> })
     return (
         <div
             className="module-ad-con"
-            style={{
-                ...commonStyle.moduleStyle.boxPaddingTopBottom,
-                ...commonStyle.moduleStyle.boxPadding,
-                ...commonStyle.moduleStyle.backgroundColor,
-            }}
+            style={cssText(commonStyle.moduleStyle.boxPaddingTopBottom, commonStyle.moduleStyle.boxPadding, commonStyle.moduleStyle.backgroundColor)}
         >
             <div
                 className="module-ad-content"
-                style={{
-                    ...commonStyle.moduleContentStyle.backgroundColor,
-                    ...commonStyle.moduleContentStyle.backgroundImage,
-                    ...commonStyle.moduleContentStyle.backgroundSize,
-                    ...commonStyle.moduleContentStyle.boxRadius2,
-                    ...commonStyle.moduleContentStyle.boxShadow,
-                    ...commonStyle.moduleContentStyle.paddingTopBottom,
-                    ...commonStyle.moduleContentStyle.paddingLeftRight,
-                }}
+                style={cssText(commonStyle.moduleContentStyle.backgroundColor, commonStyle.moduleContentStyle.backgroundImage, commonStyle.moduleContentStyle.backgroundSize, commonStyle.moduleContentStyle.boxRadius2, commonStyle.moduleContentStyle.boxShadow, commonStyle.moduleContentStyle.paddingTopBottom, commonStyle.moduleContentStyle.paddingLeftRight)}
             >
                 <div className="main">
                     <div className="headlines" style={{ width: "calc(100% + 0px)" }}>

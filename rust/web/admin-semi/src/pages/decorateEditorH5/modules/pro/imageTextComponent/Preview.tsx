@@ -2,7 +2,7 @@
  * 图文介绍 预览（移植自 view/admin editor/modules/mobilePro/imageTextComponent/Preview.vue）
  */
 import { useMemo } from "react";
-import { imageFormat } from "../../../shared/format";
+import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { imageTextComponentDefaults } from "./index";
 import "./Preview.css";
@@ -19,24 +19,11 @@ export default function ImageTextComponentPreview({ data }: { data: Record<strin
     return (
         <div
             className="module-ad-con"
-            style={{
-                ...commonStyle.moduleStyle.boxPaddingTop,
-                ...commonStyle.moduleStyle.boxPaddingBottom,
-                ...commonStyle.moduleStyle.boxPadding,
-                ...commonStyle.moduleStyle.backgroundSize,
-                ...commonStyle.moduleStyle.backgroundImage,
-            }}
+            style={cssText(commonStyle.moduleStyle.boxPaddingTop, commonStyle.moduleStyle.boxPaddingBottom, commonStyle.moduleStyle.boxPadding, commonStyle.moduleStyle.backgroundSize, commonStyle.moduleStyle.backgroundImage)}
         >
             <div
                 className="module-ad-content"
-                style={{
-                    ...commonStyle.moduleContentStyle.backgroundImage,
-                    ...commonStyle.moduleContentStyle.backgroundSize,
-                    ...commonStyle.moduleContentStyle.boxRadius2,
-                    ...commonStyle.moduleContentStyle.boxShadow,
-                    ...commonStyle.moduleContentStyle.innerPadding,
-                    ...commonStyle.moduleContentStyle.backgroundColor,
-                }}
+                style={cssText(commonStyle.moduleContentStyle.backgroundImage, commonStyle.moduleContentStyle.backgroundSize, commonStyle.moduleContentStyle.boxRadius2, commonStyle.moduleContentStyle.boxShadow, commonStyle.moduleContentStyle.innerPadding, commonStyle.moduleContentStyle.backgroundColor)}
             >
                 <div className="imagetext">
                     <div

@@ -855,8 +855,7 @@ export default function AutoConfigPage({
           <RichTextEditor value={text} onChange={(next) => update(key, next)} height={260} />
         ) : isColor ? (
           <ColorPicker
-            value={text as never}
-            alpha={false}
+            value={hexToColorValue(typeof text === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(text.trim()) ? text.trim() : '#ffffff')}
             onChange={(color: any) =>
               update(key, typeof color === 'string' ? color : color?.hex || '')
             }
@@ -1136,4 +1135,35 @@ export default function AutoConfigPage({
       {promptModal}
     </>
   );
+}
+
+/** hex → Semi ColorPicker 的 ColorValue（2.104 要求 {hsva, rgba, hex} 对象，传字符串会崩）。 */
+export function hexToColorValue(hex: string): {
+  hsva: { h: number; s: number; v: number; a: number };
+  rgba: { r: number; g: number; b: number; a: number };
+  hex: string;
+} {
+  let clean = hex.replace('#', '');
+  if (clean.length === 3 || clean.length === 4) {
+    clean = clean.split('').map((c) => c + c).join('');
+  }
+  const r = parseInt(clean.slice(0, 2), 16) || 0;
+  const g = parseInt(clean.slice(2, 4), 16) || 0;
+  const b = parseInt(clean.slice(4, 6), 16) || 0;
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === rn) h = ((gn - bn) / d) % 6;
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+  }
+  h = Math.round((h < 0 ? h + 6 : h) * 60);
+  const s = max === 0 ? 0 : Math.round((d / max) * 100);
+  const v = Math.round(max * 100);
+  return { hsva: { h, s, v, a: 1 }, rgba: { r, g, b, a: 1 }, hex };
 }

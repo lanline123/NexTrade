@@ -89,13 +89,47 @@ export function NumberField({ data, onChange, field, label, min = 0, max = 999, 
     );
 }
 
+/** 合法 hex（#rgb/#rgba/#rrggbb/#rrggbbaa）；Semi ColorPicker 收到 undefined/非法值会在 HSV 解析时抛错。 */
+const safeHex = (value: unknown): string => {
+    const text = typeof value === "string" ? value.trim() : "";
+    return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(text) ? text : "#ffffff";
+};
+
+/** hex → ColorValue（Semi 2.104 的 value/onChange 均为 {hsva, rgba, hex} 对象，传字符串会崩）。 */
+function hexToColorValue(hex: string): { hsva: { h: number; s: number; v: number; a: number }; rgba: { r: number; g: number; b: number; a: number }; hex: string } {
+    let clean = hex.replace("#", "");
+    if (clean.length === 3 || clean.length === 4) {
+        clean = clean.split("").map((c) => c + c).join("");
+    }
+    const r = parseInt(clean.slice(0, 2), 16) || 0;
+    const g = parseInt(clean.slice(2, 4), 16) || 0;
+    const b = parseInt(clean.slice(4, 6), 16) || 0;
+    const rn = r / 255;
+    const gn = g / 255;
+    const bn = b / 255;
+    const max = Math.max(rn, gn, bn);
+    const min = Math.min(rn, gn, bn);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+        if (max === rn) h = ((gn - bn) / d) % 6;
+        else if (max === gn) h = (bn - rn) / d + 2;
+        else h = (rn - gn) / d + 4;
+    }
+    h = Math.round((h < 0 ? h + 6 : h) * 60);
+    const s = max === 0 ? 0 : Math.round((d / max) * 100);
+    const v = Math.round(max * 100);
+    return { hsva: { h, s, v, a: 1 }, rgba: { r, g, b, a: 1 }, hex };
+}
+
 export function ColorField({ data, onChange, field, label, allowEmpty = true }: FieldProps & { field: string; label: string; allowEmpty?: boolean }) {
     const { t } = useI18n();
+    const colorValue = hexToColorValue(safeHex(data?.[field]));
     return (
         <SettingRow label={label}>
             <ColorPicker
-                value={data?.[field] || undefined}
-                onChange={(v: any) => onChange({ [field]: typeof v === "string" ? v : v?.hex })}
+                value={colorValue}
+                onChange={(v: any) => onChange({ [field]: typeof v === "string" ? v : v?.hex || "" })}
             />
             {allowEmpty ? (
                 <Button size="small" onClick={() => onChange({ [field]: "" })}>{t('清除')}</Button>
