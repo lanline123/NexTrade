@@ -397,7 +397,7 @@ impl UserOrderService {
             let sku_id = (item.sku_id > 0).then_some(item.sku_id);
             let quantity = item.quantity.max(1);
             match cart
-                .add(user_id, item.product_id, sku_id, quantity, None, false)
+                .add(user_id, item.product_id, sku_id, quantity, None, false, None)
                 .await
             {
                 Ok(_) => added += 1,

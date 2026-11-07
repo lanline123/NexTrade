@@ -11,6 +11,17 @@ use tigshop_infrastructure::db::Repositories;
 
 use crate::catalog::product::ProductService;
 
+/// 带价附加属性解析结果（加购落库用）。
+#[derive(Debug, Default)]
+struct ExtraAttrsResolved {
+    /// 命中的 `attributes_id`（用于判断是否携带附加属性）
+    ids: Vec<i32>,
+    /// `cart.extra_sku_data` JSON 串（未命中为 None）
+    json: Option<String>,
+    /// Σ`attr_price`（计入行到手价）
+    total_price: Decimal,
+}
+
 /// 购物车行 VO（Java `CartVO` 前端使用子集）。
 ///
 /// H5/PC 购物车页直接读取：cartId/productStatus/stock/price/originPrice/
@@ -143,6 +154,11 @@ impl CartService {
     ///
     /// `is_quick = true` 表示“立即购买”：先取消该会员其它购物车行的勾选，
     /// 保证结算页只带当前这一件商品。
+    ///
+    /// `extra_attr_ids`：带价附加属性 `product_attributes.attributes_id` 逗号串
+    /// （旧版 `ProductAttr.vue` `attr_type=2` 选中后提交，Java `AddToCartDTO.extraAttrIds`）。
+    /// 对齐 Java `CartServiceImpl`：Σ`attr_price` 计入行到手价，并把属性明细
+    /// （attributesId/attrName/attrValue/attrPrice）JSON 落 `cart.extra_sku_data`。
     pub async fn add(
         &self,
         user_id: i32,
@@ -151,12 +167,24 @@ impl CartService {
         quantity: i32,
         groupon_data: Option<&tigshop_core::models::trade::check::GrouponCartData>,
         is_quick: bool,
+        extra_attr_ids: Option<&str>,
     ) -> Result<i32> {
         if quantity <= 0 {
             return Err(Error::Validation("数量必须大于0".into()));
         }
         // 校验商品可购
         self.product.check_purchasable(product_id, sku_id, quantity).await?;
+
+        // 附加属性明细 + 价格合计（Java `CartServiceImpl:1615` str2IntList →
+        // `getProductAttributesByIds` → `CarExtraSkuDataDTO` 落 `cart.extraSkuData`）
+        let extra = self.resolve_extra_attrs(extra_attr_ids).await?;
+        let price = self
+            .product
+            .detail(product_id)
+            .await
+            .map(|v| v.product_price)
+            .unwrap_or_default()
+            + extra.total_price;
 
         if is_quick {
             self.repos.trade.cart.uncheck_all(user_id).await?;
@@ -173,19 +201,18 @@ impl CartService {
                 self.product.check_purchasable(product_id, sku_id, new_qty).await?;
                 let cart_id = existing.cart_id;
                 self.repos.trade.cart.update_quantity(cart_id, user_id, new_qty).await?;
+                // Java 合并是「删旧行 + 按本次选择重插」，extraSkuData / 到手价随之刷新
+                if !extra.ids.is_empty() {
+                    self.repos.trade.cart
+                        .update_extra_sku_data(cart_id, user_id, extra.json.as_deref(), price)
+                        .await?;
+                }
                 if is_quick {
                     self.repos.trade.cart.update_checked(cart_id, user_id, true).await?;
                 }
                 return Ok(cart_id);
             }
         }
-
-        let price = self
-            .product
-            .detail(product_id)
-            .await
-            .map(|v| v.product_price)
-            .unwrap_or_default();
 
         let cart = Cart {
             user_id,
@@ -198,9 +225,51 @@ impl CartService {
             r#type: 0,
             extra_data: groupon_data
                 .and_then(|g| serde_json::to_string(g).ok()),
+            extra_sku_data: extra.json,
             ..Default::default()
         };
         self.repos.trade.cart.insert(&cart).await
+    }
+
+    /// 解析带价附加属性：id 串 → `product_attributes` 明细 + 价格合计。
+    ///
+    /// JSON 形状对齐 Java `CarExtraSkuDataDTO`（`JSONUtil.toJsonStr`）：
+    /// `[{attributesId, attrName, attrValue, attrPrice}]`。
+    async fn resolve_extra_attrs(
+        &self,
+        extra_attr_ids: Option<&str>,
+    ) -> Result<ExtraAttrsResolved> {
+        let ids = super::proxy_shopping_product::parse_extra_attr_ids(extra_attr_ids);
+        if ids.is_empty() {
+            return Ok(ExtraAttrsResolved::default());
+        }
+        let rows = self
+            .repos
+            .trade
+            .proxy_shopping_product
+            .find_attribute_details(&ids)
+            .await?;
+        let mut total = Decimal::ZERO;
+        let items: Vec<serde_json::Value> = rows
+            .iter()
+            .map(|(id, name, value, price)| {
+                if let Some(p) = price {
+                    total += *p;
+                }
+                serde_json::json!({
+                    "attributesId": id,
+                    "attrName": name,
+                    "attrValue": value,
+                    "attrPrice": price.map(|p| p.to_string()),
+                })
+            })
+            .collect();
+        let json = if items.is_empty() {
+            None
+        } else {
+            Some(serde_json::to_string(&items).unwrap_or_default())
+        };
+        Ok(ExtraAttrsResolved { ids, json, total_price: total })
     }
 
     /// 修改数量。

@@ -1,5 +1,6 @@
 //! `cart` 仓储，替代 `CartMapper`。
 
+use rust_decimal::Decimal;
 use sqlx::MySqlPool;
 use tigshop_core::entities::Cart;
 use tigshop_core::{Error, Result};
@@ -65,8 +66,8 @@ impl CartRepository {
             "INSERT INTO cart
              (user_id, product_id, product_sn, pic_thumb, market_price,
               original_price, quantity, sku_id, sku_data, product_type,
-              is_checked, shop_id, `type`, update_time, extra_data)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+              is_checked, shop_id, `type`, update_time, extra_data, extra_sku_data)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(cart.user_id)
         .bind(cart.product_id)
@@ -83,6 +84,7 @@ impl CartRepository {
         .bind(cart.r#type)
         .bind(cart.update_time)
         .bind(&cart.extra_data)
+        .bind(&cart.extra_sku_data)
         .execute(&self.pool)
         .await
         .map_err(map_err)?;
@@ -105,6 +107,30 @@ impl CartRepository {
         if affected == 0 {
             return Err(Error::NotFound("购物车记录不存在".into()));
         }
+        Ok(())
+    }
+
+    /// 合并同款行时刷新附加属性 JSON 与含附加价到手价
+    /// （Java 加购对已存在行是「删旧插新」，`extraSkuData` / `originalPrice`
+    /// 均按本次选择重算；此处用 UPDATE 等价实现）。
+    pub async fn update_extra_sku_data(
+        &self,
+        cart_id: i32,
+        user_id: i32,
+        extra_sku_data: Option<&str>,
+        original_price: Decimal,
+    ) -> Result<()> {
+        sqlx::query(
+            "UPDATE cart SET extra_sku_data = ?, original_price = ?, update_time = ? WHERE cart_id = ? AND user_id = ?",
+        )
+        .bind(extra_sku_data)
+        .bind(original_price)
+        .bind(tigshop_common::utils::now_seconds() as i32)
+        .bind(cart_id)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await
+        .map_err(map_err)?;
         Ok(())
     }
 

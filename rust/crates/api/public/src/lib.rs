@@ -368,6 +368,9 @@ struct CartAddDTO {
     /// 拼团上下文（加购自拼团页时携带）
     #[serde(default)]
     groupon_data: Option<serde_json::Value>,
+    /// 带价附加属性（`attr_type=2`），旧版 `ProductAttr.vue` 选中后以 id 串提交
+    #[serde(default)]
+    extra_attr_ids: Option<String>,
 }
 
 /// 兼容原版前端的 `isQuick: 1/0`、字符串 `"1"/"true"` 和布尔值。
@@ -420,6 +423,7 @@ async fn cart_add(
             dto.quantity,
             groupon.as_ref(),
             dto.is_quick.unwrap_or(false),
+            dto.extra_attr_ids.as_deref(),
         )
         .await?;
     ok(cart_id)

@@ -94,6 +94,33 @@ impl ProxyShoppingProductRepository {
             .collect())
     }
 
+    /// 按 `attributes_id` 批量查询附加属性明细（名称 / 值 / 价格）。
+    ///
+    /// 对应 Java `ProductAttributesService#getProductAttributesByIds(ids)`，
+    /// 加购时用于构造 `Cart.extraSkuData`（Java `CarExtraSkuDataDTO`：
+    /// attributesId / attrName / attrValue / attrPrice）。
+    /// 返回 `(attributes_id, attr_name, attr_value, attr_price)`。
+    pub async fn find_attribute_details(
+        &self,
+        attributes_ids: &[i32],
+    ) -> Result<Vec<(i32, String, String, Option<Decimal>)>> {
+        if attributes_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let placeholders = std::iter::repeat_n("?", attributes_ids.len())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let sql = format!(
+            "SELECT attributes_id, attr_name, attr_value, attr_price FROM product_attributes WHERE attributes_id IN ({placeholders})"
+        );
+        let mut q = sqlx::query_as::<_, (i32, String, String, Option<Decimal>)>(&sql);
+        for id in attributes_ids {
+            q = q.bind(*id);
+        }
+        let rows = q.fetch_all(&self.pool).await.map_err(map_err)?;
+        Ok(rows)
+    }
+
     /// 每条规格维度的缩略图。
     ///
     /// 对应 Java `ProductServiceImpl#getProductAttribute(productId, attrName, attrValue)`：
