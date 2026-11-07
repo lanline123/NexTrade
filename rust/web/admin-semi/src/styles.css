@@ -4201,11 +4201,13 @@ body {
   height: 40px;
 }
 
-.semi-button-primary {
+/* 只覆盖实心主按钮；light/borderless 变体必须保留 Semi 的
+   浅底 + 蓝字配色，否则会变成蓝底蓝字（全局不可读） */
+.semi-button-primary.semi-button-solid {
   background-color: #1456f0;
 }
 
-.semi-button-primary:hover {
+.semi-button-primary.semi-button-solid:hover {
   background-color: #3d7dfc;
 }
 
