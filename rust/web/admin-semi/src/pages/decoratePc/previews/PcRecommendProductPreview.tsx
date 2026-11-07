@@ -15,6 +15,10 @@ import type { CSSProperties, SyntheticEvent } from 'react';
 import { apiGet } from '../../../api';
 import './pcRecommendProduct.css';
 
+import i18nInstance, { useI18n } from '../../../i18n';
+
+/** 非组件作用域的翻译：直接用 i18next 单例。 */
+const tl = (key: string, params?: Record<string, string | number>) => i18nInstance.t(key, params) as string;
 type AnyRecord = Record<string, any>;
 
 interface ProductItem {
@@ -121,7 +125,7 @@ function getPrice(item: PreviewProductItem): number | string | undefined {
 }
 
 function getShopTitle(item: PreviewProductItem): string {
-  return item.shop?.shopTitle || item.shopTitle || '官方自营';
+  return item.shop?.shopTitle || item.shopTitle || tl('官方自营');
 }
 
 function isSoldOut(item: PreviewProductItem): boolean {
@@ -145,6 +149,7 @@ function handleImgError(e: SyntheticEvent<HTMLImageElement>) {
 
 /** 按选品配置拉取商品列表（参数映射与旧版 Preview.vue 完全一致）。 */
 function useProductList(config: AnyRecord) {
+    const { t } = useI18n();
   const [productList, setProductList] = useState<PreviewProductItem[]>([]);
   const products = config.products as AnyRecord | undefined;
   const productsKey = products ? JSON.stringify(products) : '';
@@ -262,6 +267,7 @@ function useProductList(config: AnyRecord) {
 }
 
 export default function PcRecommendProductPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
   const config = useMemo(() => deepMerge(pcRecommendProductDefaults as AnyRecord, data), [JSON.stringify(data)]);
   const productList = useProductList(config);
   const frame = (config.frame || {}) as AnyRecord;
@@ -283,7 +289,7 @@ export default function PcRecommendProductPreview({ data }: { data: Record<strin
       {!hasProducts ? (
         <div className="dec-pc-recommend-product__empty">
           <div className="dec-pc-recommend-product__empty-icon" />
-          <div className="dec-pc-recommend-product__empty-text">点击添加商品</div>
+          <div className="dec-pc-recommend-product__empty-text">{t('点击添加商品')}</div>
         </div>
       ) : (
         <>
@@ -320,7 +326,7 @@ export default function PcRecommendProductPreview({ data }: { data: Record<strin
 
                     {/* 状态占位：不管有没有状态都占一行，保证价格/按钮对齐 */}
                     <div className={`desc-wrap desc-wrap--status${soldOut ? '' : ' is-empty'}`}>
-                      <div className="virtual-sales">{soldOut ? '已售罄' : ''}</div>
+                      <div className="virtual-sales">{soldOut ? t('已售罄') : ''}</div>
                     </div>
 
                     <div className="tag-wrap" />

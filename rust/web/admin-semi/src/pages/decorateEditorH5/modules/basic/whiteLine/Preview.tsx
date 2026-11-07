@@ -7,7 +7,9 @@ import { mergeDefaultModule, formatFrame } from "../../../contract/sharedDefault
 import { whiteLineDefaults } from "./index";
 import "./Preview.css";
 
+import { useI18n } from '../../../../../i18n';
 export default function WhiteLinePreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, whiteLineDefaults);
@@ -22,7 +24,7 @@ export default function WhiteLinePreview({ data }: { data: Record<string, any> }
                 {Object.values(module).length === 0 ? (
                     <div className="module-ad-empty empty-image_ad">
                         <div className="image-empty-bg" />
-                        <div className="desc">空白分割线</div>
+                        <div className="desc">{t('空白分割线')}</div>
                     </div>
                 ) : (
                     <div className="white-line-warp">

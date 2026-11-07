@@ -296,37 +296,6 @@ export default function SelfPackList() {
         </div>
       </Modal>
 
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>创建时间：</span>
-        <span>新增自提点</span>
-        <span>暂无数据</span>
-        <span>编辑自提点</span>
-        <span>编辑</span>
-        <span>所属类型</span>
-        <span>平台自营</span>
-        <span>门店自营</span>
-        <span>选择门店</span>
-        <span>门店名称</span>
-        <span>门店LOGO</span>
-        <span>商户名称</span>
-        <span>门店状态</span>
-        <span>认证日期</span>
-        <span>建议尺寸100x100</span>
-        <span>门头封面</span>
-        <span>自提点图片</span>
-        <span>自提点公告</span>
-        <span>（自提点）</span>
-        <span>自提点地址</span>
-        <span>详细地址</span>
-        <span>提交</span>
-        <span>shopCoverPicture</span>
-        <span>shopShowPicture</span>
-        <span>description</span>
-        <span>shopRegionIds</span>
-        <span>shopContactConfig</span>
-        <span>shopOpenCloseConfig</span>
-      </div>
     </>
   );
 }

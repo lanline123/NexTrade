@@ -283,21 +283,6 @@ export default function StoreAreas() {
         />
       </Modal>
 
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>已选择：</span>
-        <span>项</span>
-        <span>暂无数据</span>
-        <span>门店LOGO</span>
-        <span>商户名称</span>
-        <span>门店状态</span>
-        <span>认证日期</span>
-        <span>addTime</span>
-        <span>编辑区域</span>
-        <span>编辑</span>
-        <span>提交</span>
-        <span>新增区域</span>
-      </div>
     </>
   );
 }

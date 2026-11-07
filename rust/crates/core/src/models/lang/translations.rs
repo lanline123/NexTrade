@@ -16,6 +16,12 @@ use serde::{Deserialize, Serialize};
 /// 的 `handleSource` 分支）。
 pub const DATA_TYPE_IMAGE_TITLE: i32 = 7;
 
+/// 规格图片数据类型（Java `DataType.IMAGE_SPEC` = 8）。
+///
+/// 与 [`DATA_TYPE_IMAGE_TITLE`] 一起构成「图片类译文」：两者都会把译文
+/// 视为图片 URL，并双写 `image_i18n`（海外站图片本地化）。
+pub const DATA_TYPE_SPEC_IMAGE: i32 = 8;
+
 /// 默认译文来源（任务约定：AI 翻译写入 `translation_source = 1`）。
 pub const DEFAULT_TRANSLATION_SOURCE: i32 = 1;
 

@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '../../../api';
 import './pcGroupon.css';
 
+import { useI18n } from '../../../i18n';
 interface PreviewProduct {
   productId?: number | string;
   productName?: string;
@@ -81,6 +82,7 @@ function deepMerge<T extends Record<string, any>>(defaults: T, data?: Record<str
 
 /** 拼团商品（promotion/groupon/item/list）；无活动 ID 时不请求。 */
 function useGrouponItems(promotionId?: number) {
+    const { t } = useI18n();
   const [rows, setRows] = useState<PreviewProduct[]>([]);
   useEffect(() => {
     if (!promotionId) {
@@ -108,6 +110,7 @@ function useGrouponItems(promotionId?: number) {
 
 /** 1s 心跳，驱动倒计时实时走秒。 */
 function useNowTick(intervalMs = 1000) {
+    const { t } = useI18n();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), intervalMs);
@@ -161,6 +164,7 @@ function TitleMoreArrow() {
 
 /** 标题右侧倒计时（与秒杀同款深色数字方块）。 */
 function TitleCountdownBox({ label, targetTs, now }: { label: string; targetTs: number; now: number }) {
+    const { t } = useI18n();
   const remaining = targetTs ? Math.max(0, targetTs - now) : 0;
   const { days, hours, minutes, seconds } = parseCountdownParts(remaining);
   return (
@@ -170,7 +174,7 @@ function TitleCountdownBox({ label, targetTs, now }: { label: string; targetTs: 
         {days > 0 && (
           <>
             <span className="pc-groupon__countdown-item pc-groupon__countdown-item--days">{days}</span>
-            <span className="pc-groupon__countdown-daytext">天</span>
+            <span className="pc-groupon__countdown-daytext">{t('天')}</span>
           </>
         )}
         <span className="pc-groupon__countdown-item">{formatNumTwo(hours)}</span>
@@ -198,12 +202,13 @@ function GrouponTitleBar({
   now: number;
   moreColor: string;
 }) {
+    const { t } = useI18n();
   if (!title || Number(title.showTitle) !== 1) return null;
   const showMore = Number(title.showMore) === 1;
   const mode = Number(title.moreType) === 1 ? 1 : 2;
   const style = Number(title.titleStyle) || 1;
   const customLabel = String(title.countdownLabel || '').trim();
-  let label = customLabel || '距结束';
+  let label = customLabel || t('距结束');
   if (!customLabel && countdownTargetTs) {
     if (activityStartTs && activityStartTs > now) label = '距开始';
     else if (countdownTargetTs - now <= 0) label = '已结束';
@@ -236,7 +241,7 @@ function GrouponTitleBar({
       {showMore && mode === 2 && <TitleCountdownBox label={label} targetTs={countdownTargetTs} now={now} />}
       {showMore && mode === 1 && (
         <div className="pc-groupon__more" style={{ color: moreColor }}>
-          <span>{String(title.moreLink?.title || '').trim() || '更多'}</span>
+          <span>{String(title.moreLink?.title || '').trim() || t('更多')}</span>
           <TitleMoreArrow />
         </div>
       )}
@@ -292,6 +297,7 @@ function GrouponCard({
   countdownText: string;
   countdownLabel: string;
 }) {
+    const { t } = useI18n();
   const isCardStyle1 = cardStyle === 1;
   const groupNum = String(item.minGroupNum || '2');
   const groupPrice = String(item.minGroupPrice ?? item.productPrice ?? '0');
@@ -313,7 +319,7 @@ function GrouponCard({
       </div>
       {isCardStyle1 && (
         <div className="pc-groupon-card__countdown">
-          <div className="pc-groupon-card__countdown-title">拼团</div>
+          <div className="pc-groupon-card__countdown-title">{t('拼团')}</div>
           <div className="pc-groupon-card__countdown-time">
             <div className="pc-groupon-card__countdown-label">{countdownLabel}</div>
             {countdownText ? <div className="pc-groupon-card__countdown-text">{countdownText}</div> : null}
@@ -341,7 +347,7 @@ function GrouponCard({
               <span className="pc-groupon-card__price-current">¥{groupPrice}</span>
               <div className="pc-groupon-card__price-origin">¥{originPrice}</div>
             </div>
-            <div className="pc-groupon-card__pin">拼</div>
+            <div className="pc-groupon-card__pin">{t('拼')}</div>
           </div>
         ) : (
           <div className="pc-groupon-card__price-row" style={{ flexDirection: textAlign === 1 ? 'row' : 'column' }}>
@@ -359,6 +365,7 @@ function GrouponCard({
 }
 
 export default function PcGrouponPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
   const config = deepMerge<GrouponConfig>(GROUPON_DEFAULTS as GrouponConfig, data);
   const activity = (config.grouponActivityItem || null) as Record<string, any> | null;
   const activityId = Number(activity?.grouponPromotionId ?? activity?.grouponId) || undefined;
@@ -397,10 +404,10 @@ export default function PcGrouponPreview({ data }: { data: Record<string, any> }
     if (ended) return { label: '已结束', text: '' };
     const target = !started ? startTs : endTs;
     const remaining = target ? Math.max(0, target - now) : 0;
-    if (!remaining) return { label: started ? '距结束' : '距开始', text: '' };
+    if (!remaining) return { label: started ? t('距结束') : '距开始', text: '' };
     const { days, hours, minutes, seconds } = parseCountdownParts(remaining);
     return {
-      label: started ? '距结束' : '距开始',
+      label: started ? t('距结束') : '距开始',
       text:
         days > 0
           ? `${days}天${formatNumTwo(hours)}:${formatNumTwo(minutes)}:${formatNumTwo(seconds)}`

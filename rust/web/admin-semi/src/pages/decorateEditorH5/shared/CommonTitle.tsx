@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { formatTitle } from "../contract/sharedDefaults";
 import { cssText, productImage } from "./format";
 
+import { useI18n } from '../../../i18n';
 interface TitleData {
     showTitle?: number;
     titleStyle?: number;
@@ -29,6 +30,7 @@ interface TitleData {
 }
 
 export default function CommonTitle({ data }: { data: TitleData }) {
+    const { t } = useI18n();
     const title = data ?? ({} as TitleData);
     const titleFormat = useMemo(() => formatTitle(title), [title]);
     const titleBackgroundImage = productImage(title.titleBackgroundPic);
@@ -52,7 +54,7 @@ export default function CommonTitle({ data }: { data: TitleData }) {
             {!!title.showMore && (
                 <div className="image-ad-title-r">
                     <div className="more-link" style={{ color: title?.moreColor }}>
-                        <span style={{ color: title?.moreColor }}>更多</span>
+                        <span style={{ color: title?.moreColor }}>{t('更多')}</span>
                         <i className="iconfont-h5 icon-youjiantou h5-arrow-right" style={{ color: title?.moreColor }} />
                     </div>
                 </div>

@@ -28,6 +28,7 @@ use tigshop_core::entities::{
     Cart, Coupon, GrouponPromotion, GrouponPromotionItem, Product, SeckillItem, ShippingTpl,
     ShippingTplInfo, UserAddress,
 };
+use tigshop_core::models::catalog::exchange::CART_TYPE_EXCHANGE;
 use tigshop_core::models::trade::check::{
     allocate_discount, build_payment_types, calc_points, calc_shipping_fee, config_enabled,
     coupon_rule_discount, groupon_min_group_num, groupon_price_for, parse_groupon_data,
@@ -392,7 +393,7 @@ impl CheckService {
             ])
             .await?;
         let points_enabled = config_enabled(cfg.get(CFG_USE_POINTS).map(String::as_str));
-        let points = if points_enabled {
+        let mut points = if points_enabled {
             let base_after_coupon = (product_amount - coupons.total).max(Decimal::ZERO);
             calc_points(
                 param.use_point.unwrap_or(0),
@@ -405,6 +406,36 @@ impl CheckService {
         } else {
             Default::default()
         };
+
+        // —— 积分兑换（Java OrderCheckServiceImpl flowType==3 分支）——
+        // 兑换积分用量与抵扣金额由积分商品配置（exchange_integral / points_deducted_amount）决定，
+        // 不受积分支付比例约束，也不进入普通订单封顶逻辑（Java flowType!=3 才 min 封顶）。
+        let mut exchange_points = 0;
+        if flow_type == CART_TYPE_EXCHANGE {
+            let mut exchange_product_id = 0;
+            let mut exchange_sku_id = 0;
+            let mut exchange_number = 0i64;
+            for cart in &carts {
+                exchange_product_id = cart.product_id;
+                exchange_sku_id = cart.sku_id.unwrap_or(0);
+                exchange_number += i64::from(cart.quantity.max(1));
+            }
+            if exchange_product_id > 0 {
+                let activity = self
+                    .repos
+                    .marketing
+                    .points_exchange
+                    .find_by_product(exchange_product_id, exchange_sku_id)
+                    .await
+                    .unwrap_or_default();
+                if let Some(activity) = activity {
+                    exchange_points = activity.exchange_integral * exchange_number as i32;
+                    points.points_amount =
+                        activity.points_deducted_amount * Decimal::from(exchange_number);
+                    points.used_points = exchange_points;
+                }
+            }
+        }
 
         // —— 地区税率计算（Java OrderCheckServiceImpl#resolveOrderTaxRate）——
         let (tax_rate, _) = resolve_tax_rate(&self.repos, &region_ids).await;
@@ -610,6 +641,7 @@ impl CheckService {
             unpaid_amount,
             credit_amount,
             points_amount: points.points_amount,
+            exchange_points,
             deposit_amount,
             final_payment_amount,
             actual_pay_deposit_amount: deposit_amount,

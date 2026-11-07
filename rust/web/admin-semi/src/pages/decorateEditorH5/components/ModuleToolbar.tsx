@@ -12,6 +12,7 @@ import { editorStore } from "../store/editorStore";
 import { createModuleInstance } from "../contract/moduleRegistry";
 import type { ModuleDefinition } from "../contract/types";
 
+import { useI18n } from '../../../i18n';
 const GROUP_LABELS: Record<ToolbarGroup, string> = {
     basic: "基础模块",
     other: "其它模块",
@@ -25,6 +26,7 @@ const GROUP_LABELS: Record<ToolbarGroup, string> = {
 };
 
 export default function ModuleToolbar({ pageType, isShop }: { pageType: number; isShop?: boolean }) {
+    const { t } = useI18n();
     const groups = useMemo(() => getAvailableToolbarGroups(1, pageType), [pageType]);
     const modules = useMemo(() => getModulesByContext(1, pageType, { isShop }), [pageType, isShop]);
 
@@ -40,23 +42,23 @@ export default function ModuleToolbar({ pageType, isShop }: { pageType: number; 
 
     const handleAdd = (def: ModuleDefinition) => {
         if (isExclusiveModule(def.type) && editorStore.getState().moduleList.length > 0) {
-            Toast.warning("该模块为独占模块，需要清空页面后才能添加");
+            Toast.warning(t("该模块为独占模块，需要清空页面后才能添加"));
             return;
         }
         const instance = createModuleInstance(def.type, def.url);
         if (!instance) return;
         const result: any = editorStore.addModule(instance);
         if (result !== true && result && typeof result === "object") {
-            Toast.warning(String(result.reason || ''));
+            Toast.warning(t(String(result.reason || '')));
         }
     };
 
     const renderGrid = (list: ModuleDefinition[]) => (
         <div className="h5-editor-module-grid">
             {list.map((m) => (
-                <div key={`${m.type}@${m.url}`} className="h5-editor-module-item" onClick={() => handleAdd(m)} title={m.label}>
+                <div key={`${m.type}@${m.url}`} className="h5-editor-module-item" onClick={() => handleAdd(m)} title={t(m.label)}>
                     <div className="h5-editor-module-icon" dangerouslySetInnerHTML={{ __html: m.icon || "" }} />
-                    <div className="h5-editor-module-label">{m.label}</div>
+                    <div className="h5-editor-module-label">{t(m.label)}</div>
                 </div>
             ))}
         </div>
@@ -64,13 +66,13 @@ export default function ModuleToolbar({ pageType, isShop }: { pageType: number; 
 
     return (
         <div className="h5-editor-toolbar">
-            <div className="h5-editor-toolbar-title">模块库</div>
+            <div className="h5-editor-toolbar-title">{t('模块库')}</div>
             <Tabs type="card" size="small">
                 {groups.map((g) => {
                     const list = modulesByGroup.get(g);
                     if (!list || list.length === 0) return null;
                     return (
-                        <TabPane tab={GROUP_LABELS[g]} itemKey={g} key={g}>
+                        <TabPane tab={t(GROUP_LABELS[g])} itemKey={g} key={g}>
                             {renderGrid(list)}
                         </TabPane>
                     );

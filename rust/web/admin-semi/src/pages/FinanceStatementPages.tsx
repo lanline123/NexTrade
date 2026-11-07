@@ -22,6 +22,7 @@ import { IconRefresh, IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, getToken } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
+import ImageUploader from '../components/ImageUploader';
 import type { ColumnConfig } from '../framework/types';
 import './finance-statement.css';
 
@@ -514,6 +515,11 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
   const auditEndpoint = isVendor ? '/vendor/vendorWithdraw/audit' : '/merchant/shopWithdraw/audit';
   const voucherEndpoint = isVendor ? '/vendor/vendorWithdraw/uploadPayVoucher' : '/merchant/shopWithdraw/uploadPayVoucher';
 
+  const [voucherVisible, setVoucherVisible] = useState(false);
+  const [voucherTarget, setVoucherTarget] = useState<number | null>(null);
+  const [voucherUrl, setVoucherUrl] = useState('');
+  const [voucherSaving, setVoucherSaving] = useState(false);
+
   const handleAudit = async (id: number, status: number) => {
     try {
       await apiPost(auditEndpoint, { id, status });
@@ -521,6 +527,42 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
       setReloadKey((k) => k + 1);
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
+  const openVoucher = (record: WithdrawRow) => {
+    setVoucherTarget(record.shopWithdrawLogId ?? record.id ?? null);
+    setVoucherUrl('');
+    setVoucherVisible(true);
+  };
+
+  /** 打款凭证上传：真实落库到 shopWithdraw / vendorWithdraw.uploadPayVoucher，不再是假 Toast。 */
+  const saveVoucher = async () => {
+    if (!voucherUrl) {
+      Toast.warning({ content: t('请先上传打款凭证图片') });
+      return;
+    }
+    if (voucherTarget == null) {
+      Toast.error({ content: t('无法确定提现记录，请刷新后重试') });
+      return;
+    }
+    setVoucherSaving(true);
+    try {
+      // 供应商端通用 handler 读 keyword，商户端 DTO 读 payVoucher/paymentVoucher；
+      // 多带别名由后端 serde 忽略未知字段，两端都能正确落库。
+      await apiPost(voucherEndpoint, {
+        id: voucherTarget,
+        keyword: voucherUrl,
+        payVoucher: voucherUrl,
+        paymentVoucher: voucherUrl,
+      });
+      Toast.success({ content: t('打款凭证上传成功') });
+      setVoucherVisible(false);
+      setReloadKey((k) => k + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    } finally {
+      setVoucherSaving(false);
     }
   };
 
@@ -665,7 +707,7 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
                   theme="borderless"
                   size="small"
                   type="secondary"
-                  onClick={() => Toast.success({ content: t('打款凭证上传成功') })}
+                  onClick={() => openVoucher(record)}
                 >
                   {t('上传打款凭证')}
                 </Button>
@@ -716,17 +758,23 @@ export function ShopWithdrawApplies({ variant = 'shop' }: { variant?: 'shop' | '
         )}
       </Modal>
 
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>申请时间：</span>
-        <span>打款凭证</span>
-        <span>审核</span>
-        <span>暂无数据</span>
-        <span>提交</span>
-        <span>重置</span>
-        <span>搜索</span>
-        <span>auditRemark</span>
-      </div>
+      <Modal
+        title={t('上传打款凭证')}
+        visible={voucherVisible}
+        onCancel={() => setVoucherVisible(false)}
+        onOk={saveVoucher}
+        okText={t('提交')}
+        cancelText={t('取消')}
+        okButtonProps={{ loading: voucherSaving, disabled: voucherSaving }}
+        width={520}
+      >
+        <p style={{ marginBottom: 12 }}>{t('请上传向商户打款的凭证图片，提交后将关联到该提现记录。')}</p>
+        <ImageUploader
+          single
+          value={voucherUrl ? [voucherUrl] : []}
+          onChange={(urls) => setVoucherUrl(urls[0] || '')}
+        />
+      </Modal>
     </>
   );
 }

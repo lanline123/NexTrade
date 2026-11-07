@@ -10,8 +10,9 @@
 //!
 //! - Java `createTranslations` 落库后还会把译文写 Redis 缓存、并在图片类
 //!   （dataType=7/8 且原文为图片 URL）双写 `image_i18n`，随后
-//!   `updateTranslation()` 触发前台缓存刷新；Rust 侧无 Redis、
-//!   `image_i18n` 双写未接入，均省略（不影响管理端读写）。
+//!   `updateTranslation()` 触发前台缓存刷新；Rust 侧 **`image_i18n` 双写已接入**
+//!   （见 [`image_localization_row`]），Redis 缓存与前台缓存刷新仍未接入
+//!   （无 Redis 依赖，不影响管理端读写）。
 //! - `translationKey = md5(translationName)`：Java `SecureUtil.md5`
 //!   为小写十六进制，本实现等价产出。
 //! - `translation_source` 语义按 Java：仅 `dataType == 7`（商品图片）时
@@ -21,12 +22,15 @@ use std::sync::Arc;
 
 use md5::{Digest, Md5};
 
-use tigshop_core::entities::TranslationsData;
+use tigshop_common::utils::now_seconds;
+
+use tigshop_core::entities::{ImageI18n, TranslationsData};
 use tigshop_core::models::lang::locales::LocalesVO;
 use tigshop_core::models::lang::translations::{
     MultipleTranslationDTO, TranslationsBatchParam, TranslationsCreateParam, TranslationsDataVO,
     TranslationsDetailVO, TranslationsGetDTO, TranslationsListQuery, TranslationsVO,
-    TranslationTextDTO, TranslationTextVO, DATA_TYPE_IMAGE_TITLE, DEFAULT_TRANSLATION_SOURCE,
+    TranslationTextDTO, TranslationTextVO, DATA_TYPE_IMAGE_TITLE, DATA_TYPE_SPEC_IMAGE,
+    DEFAULT_TRANSLATION_SOURCE,
 };
 use tigshop_core::types::{PageQuery, PageResult};
 use tigshop_core::{Error, Result};
@@ -161,6 +165,17 @@ impl TranslationsService {
                     };
                     self.repos.lang.translations.insert(&row).await?;
                 }
+            }
+            // 图片类译文（dataType 7 商品图 / 8 规格图）额外双写 `image_i18n`：
+            // 前台按语言替换图片读的就是这张表。Java 在此之后还会刷 Redis 与
+            // 前台缓存，Rust 未接缓存层（见模块头「未迁移 / 偏差」）。
+            if let Some(image) = image_localization_row(
+                data_type,
+                translation_name,
+                locale_id,
+                item.translation_value.as_deref(),
+            ) {
+                self.repos.lang.image_i18n.upsert(&image).await?;
             }
         }
         Ok(())
@@ -470,6 +485,54 @@ pub fn md5_hex(input: &str) -> String {
     digest.iter().map(|b| format!("{b:02x}")).collect()
 }
 
+/// 图片类数据类型（商品图 7 / 规格图 8）—— 这类「译文」本身就是图片 URL。
+#[must_use]
+pub fn is_image_data_type(data_type: i32) -> bool {
+    data_type == DATA_TYPE_IMAGE_TITLE || data_type == DATA_TYPE_SPEC_IMAGE
+}
+
+/// 是否为绝对图片地址（`http://` / `https://` 前缀，忽略大小写与首尾空格）。
+#[must_use]
+pub fn looks_like_image_url(value: &str) -> bool {
+    let v = value.trim().to_ascii_lowercase();
+    v.starts_with("http://") || v.starts_with("https://")
+}
+
+/// 构造一条 `image_i18n`（图片本地化）记录。
+///
+/// 返回 `None` 表示这次译文不该写图片表：不是图片数据类型、原文不是绝对
+/// URL，或译文为空（= 还没翻译）。
+///
+/// # 偏差（推断，需真实数据回归核对）
+///
+/// Java 注释只写「dataType=7/8 且原文为图片 URL」。Rust 的 URL 判定放宽为
+/// 「`http(s)://` 开头 + 译文非空」，不校验扩展名 —— dataType 已经声明了
+/// 图片语义，再按 `.jpg/.png` 过滤会漏掉 CDN 上的无后缀图片地址。
+#[must_use]
+pub fn image_localization_row(
+    data_type: i32,
+    original_url: &str,
+    locale_id: i32,
+    localized_url: Option<&str>,
+) -> Option<ImageI18n> {
+    if !is_image_data_type(data_type) {
+        return None;
+    }
+    let localized = localized_url.map(str::trim).filter(|s| !s.is_empty())?;
+    if !looks_like_image_url(original_url) {
+        return None;
+    }
+    Some(ImageI18n {
+        id: 0,
+        locale_id,
+        data_type,
+        original_key: md5_hex(original_url),
+        original_url: original_url.to_string(),
+        localized_url: localized.to_string(),
+        add_time: Some(i32::try_from(now_seconds()).unwrap_or(0)),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,5 +542,57 @@ mod tests {
         // `SecureUtil.md5("abc")` = 900150983cd24fb0d6963f7d28e17f72
         assert_eq!(md5_hex("abc"), "900150983cd24fb0d6963f7d28e17f72");
         assert_eq!(md5_hex(""), "d41d8cd98f00b204e9800998ecf8427e");
+    }
+
+    #[test]
+    fn image_data_types_are_7_and_8() {
+        assert!(is_image_data_type(DATA_TYPE_IMAGE_TITLE));
+        assert!(is_image_data_type(DATA_TYPE_SPEC_IMAGE));
+        assert!(!is_image_data_type(0));
+        assert!(!is_image_data_type(1));
+    }
+
+    #[test]
+    fn image_url_detection_needs_absolute_http_url() {
+        assert!(looks_like_image_url("https://cdn.example.com/a/b.png"));
+        assert!(looks_like_image_url("  HTTP://cdn.example.com/a.png "));
+        assert!(!looks_like_image_url("/static/upload/a.png"));
+        assert!(!looks_like_image_url("red shoes"));
+        assert!(!looks_like_image_url(""));
+    }
+
+    #[test]
+    fn image_row_is_built_for_product_images_only() {
+        let url = "https://cdn.example.com/goods/1001.jpg";
+        let row = image_localization_row(DATA_TYPE_IMAGE_TITLE, url, 2, Some("https://cdn.example.com/goods/1001-en.jpg"))
+            .expect("图片类译文应写 image_i18n");
+        assert_eq!(row.locale_id, 2);
+        assert_eq!(row.data_type, DATA_TYPE_IMAGE_TITLE);
+        assert_eq!(row.original_key, md5_hex(url));
+        assert_eq!(row.original_url, url);
+        assert_eq!(row.localized_url, "https://cdn.example.com/goods/1001-en.jpg");
+        assert!(row.add_time.unwrap_or(0) > 0);
+
+        // 规格图同样写
+        assert!(image_localization_row(
+            DATA_TYPE_SPEC_IMAGE,
+            url,
+            3,
+            Some("https://cdn.example.com/goods/1001-fr.jpg")
+        )
+        .is_some());
+    }
+
+    #[test]
+    fn image_row_is_skipped_for_text_and_empty_values() {
+        let url = "https://cdn.example.com/goods/1001.jpg";
+        // 文字类译文（词条 / 接口）不写图片表
+        assert!(image_localization_row(0, "Red shoes", 2, Some("红色鞋子")).is_none());
+        assert!(image_localization_row(1, "Red shoes", 2, Some("红色鞋子")).is_none());
+        // 译文为空 = 还没翻译
+        assert!(image_localization_row(DATA_TYPE_IMAGE_TITLE, url, 2, None).is_none());
+        assert!(image_localization_row(DATA_TYPE_IMAGE_TITLE, url, 2, Some("   ")).is_none());
+        // 原文不是绝对地址
+        assert!(image_localization_row(DATA_TYPE_IMAGE_TITLE, "/static/a.jpg", 2, Some(url)).is_none());
     }
 }

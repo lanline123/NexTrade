@@ -6,7 +6,9 @@ import { cssText } from "../../../shared/format";
 import { mergeDefaultModule, formatCommonStyle } from "../../../contract/sharedDefaults";
 import { articleDefaults } from "./index";
 
+import { useI18n } from '../../../../../i18n';
 export default function ArticlePreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, articleDefaults);
@@ -36,9 +38,7 @@ export default function ArticlePreview({ data }: { data: Record<string, any> }) 
                     commonStyle.moduleContentStyle.boxShadow,
                     commonStyle.moduleContentStyle.innerPadding
                 )}
-            >
-                文章列表
-            </div>
+            >{t('文章列表')}</div>
         </div>
     );
 }

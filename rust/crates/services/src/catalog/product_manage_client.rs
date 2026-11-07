@@ -28,6 +28,7 @@ use rust_decimal::Decimal;
 use serde::Serialize;
 
 use tigshop_common::utils;
+use tigshop_core::entities::Promotion;
 use tigshop_core::models::catalog::product_manage_client::{
     html_escape, product_list_item, CommentListQuery, FeedbackListQuery, HistoryProductQuery,
     ProductAmountDTO, ProductAvailabilityQuery, ProductConfigQuery, ProductCopyDTO, ProductIdParam,
@@ -35,6 +36,7 @@ use tigshop_core::models::catalog::product_manage_client::{
     PresaleDepositQuery, SelectProductListQuery, BatchAvailabilityQuery, MSG_AMOUNT_ITEMS_REQUIRED,
     MSG_INQUIRY_CONTENT_REQUIRED, MSG_PRODUCT_ID_REQUIRED, MSG_PRODUCT_NOT_FOUND,
 };
+use tigshop_core::models::marketing::promotion as promotion_model;
 use tigshop_core::types::PageResult;
 use tigshop_core::{Error, Result};
 use tigshop_infrastructure::db::repo::catalog::product_manage::ProductManageRepository;
@@ -415,7 +417,13 @@ impl ProductManageClientService {
         }))
     }
 
-    /// 商品促销信息（Java `getProductsPromotion`；商品自身促销字段，不聚合营销活动）。
+    /// 商品促销信息（Java `getProductsPromotion`）。
+    ///
+    /// 商品自身促销字段 + `activityInfo`（进行中且范围命中该商品的营销活动，
+    /// 对齐 Java `PromotionServiceImpl#queryAvailablePromotion` + `range` 过滤）。
+    /// 与 Java 的差异（见模块偏差登记 3）：券资格/会员人群/批发旁路等计价装配
+    /// 未迁移，`activityInfo` 为纯展示用途（前台活动标签/拼团判定），且已排除
+    /// 优惠券（type=2，前台列表本就不展示）。
     pub async fn products_promotion(
         &self,
         dto: &ProductsPromotionDTO,
@@ -428,7 +436,39 @@ impl ProductManageClientService {
             .collect();
         let products = self.repo().find_products_by_ids(&ids).await?;
         let mut map = serde_json::Map::new();
+        if products.is_empty() {
+            return Ok(serde_json::Value::Object(map));
+        }
+
+        let now = i64::from(now_secs());
+        // Java：shopId=null → 不按店铺过滤（全平台活动）
+        let shop_ids: Option<Vec<i32>> = dto.shop_id.map(|s| vec![s]);
+        let promotions = self
+            .repos
+            .marketing
+            .promotion
+            .find_available(shop_ids.as_deref(), now)
+            .await
+            .unwrap_or_default();
+
         for p in products {
+            let activity_info: Vec<serde_json::Value> = promotions
+                .iter()
+                .filter(|pr| promotion_covers_product(pr, p.product_id))
+                .map(|pr| {
+                    serde_json::json!({
+                        "promotionId": pr.promotion_id,
+                        "promotionName": pr.promotion_name,
+                        "startTime": pr.start_time,
+                        "endTime": pr.end_time,
+                        "type": pr.r#type,
+                        "shopId": pr.shop_id,
+                        "relationId": pr.relation_id,
+                        "range": pr.range,
+                        "typeText": promotion_model::type_text(pr.r#type),
+                    })
+                })
+                .collect();
             map.insert(
                 p.product_id.to_string(),
                 serde_json::json!({
@@ -438,6 +478,7 @@ impl ProductManageClientService {
                     "promoteStartDate": p.promote_start_date,
                     "promoteEndDate": p.promote_end_date,
                     "productStatus": p.product_status,
+                    "activityInfo": activity_info,
                 }),
             );
         }
@@ -591,6 +632,52 @@ impl ProductManageClientService {
             .collect();
         Ok(PageResult::new(total, list, &page))
     }
+}
+
+/// 活动 `range` 是否覆盖商品（Java `getProductsPromotion` 的活动范围判定）。
+///
+/// `range`：None/0 = 全部商品；3 = 指定商品（`range_data` 含该商品 ID）；
+/// 4 = 不含以下商品（`range_data` 不含该商品 ID）。其余值按未指定处理（放行）。
+fn promotion_covers_product(promotion: &Promotion, product_id: i32) -> bool {
+    let range_ids = promotion.range.as_ref().and_then(|r| {
+        promotion
+            .range_data
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty() && *s != "null")
+            .and_then(parse_id_list)
+    });
+    match promotion.range.unwrap_or(0) {
+        0 => true,
+        3 => range_ids.is_some_and(|ids| ids.contains(&product_id)),
+        4 => !range_ids.is_some_and(|ids| ids.contains(&product_id)),
+        _ => true,
+    }
+}
+
+/// 解析活动范围 ID 列表（Java 侧存 `List.toString()` 文本，Rust 侧存 JSON；
+/// 两者形如 `[1, 2]` / `[1,2]`，按数字逐个扫描提取，兼容两种格式）。
+fn parse_id_list(raw: &str) -> Option<Vec<i32>> {
+    let mut out = Vec::new();
+    let bytes = raw.as_bytes();
+    let mut start: Option<usize> = None;
+    for (i, b) in bytes.iter().enumerate() {
+        if b.is_ascii_digit() {
+            if start.is_none() {
+                start = Some(i);
+            }
+        } else if let Some(s) = start.take() {
+            if let Ok(n) = raw[s..i].parse::<i32>() {
+                out.push(n);
+            }
+        }
+    }
+    if let Some(s) = start {
+        if let Ok(n) = raw[s..].parse::<i32>() {
+            out.push(n);
+        }
+    }
+    Some(out)
 }
 
 #[cfg(test)]

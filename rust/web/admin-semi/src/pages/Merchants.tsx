@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Badge,
   Button,
@@ -78,6 +78,142 @@ export default function Merchants() {
     } catch {
       // 降级使用现有行数据
     }
+  };
+
+  /**
+   * 商户详情：旧版为 5 个 Tab 的资质表单（基础/企业/法人/商户/店铺），
+   * 迁移后一度只剩 9 行纯文本，导致审核人看不到营业执照、法人证件与银行信息。
+   * 后端 /merchant/merchant/detail 已返回 baseData / merchantData / shopData，这里按旧版分区还原。
+   */
+  const renderMerchantDetail = (): ReactNode => {
+    const record = selectedRecord;
+    if (!record) return null;
+    const base = record.baseData || {};
+    const shop = record.shopData || {};
+    const merchant = record.merchantData || {};
+    const show = (value: unknown): ReactNode => {
+      if (value === undefined || value === null || value === '') return '--';
+      if (Array.isArray(value)) return value.length ? value.join('、') : '--';
+      if (typeof value === 'object') return JSON.stringify(value);
+      return String(value);
+    };
+    const picture = (value: unknown): ReactNode => {
+      const first = Array.isArray(value) ? value[0] : value;
+      const url =
+        typeof first === 'string' ? first : (first && (first.picUrl || first.url)) || '';
+      if (!url) return '--';
+      return (
+        <a href={String(url)} target="_blank" rel="noreferrer">
+          <img
+            src={String(url)}
+            alt=""
+            style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee' }}
+          />
+        </a>
+      );
+    };
+    const desc = (items: Array<[string, ReactNode]>) => (
+      <Descriptions data={items.map(([key, value]) => ({ key: t(key), value }))} />
+    );
+    const typeLabel =
+      record.type === 1 ? t('个人入驻') : record.type === 3 ? t('个体工商户入驻') : t('企业入驻');
+    const isStore = String(record.type) === '4' || Boolean(shop.isStore);
+
+    return (
+      <Tabs type="line" style={{ marginTop: 8 }}>
+        <TabPane tab={t('基础信息')} itemKey="base">
+          {desc([
+            ['商户ID', record.merchantId],
+            ['商户名称', merchant.merchantName || record.companyName],
+            [
+              '商户所属单位',
+              record.type === 1
+                ? record.corporateName || record.companyName
+                : record.companyName || record.corporateName,
+            ],
+            [
+              '商户所属会员(ID)',
+              record.user
+                ? `${record.user.username || '--'} (${record.user.userId || '--'})`
+                : '--',
+            ],
+            ['商户类型', record.typeText || (record.type === 1 ? t('个人') : t('企业'))],
+            ['入驻形态', typeLabel],
+            ['管理员', record.admin?.username],
+            ['已绑定店铺', String(record.shopCount ?? 0)],
+            ['认证状态', record.statusText || (record.status === 1 ? t('已认证') : t('未认证'))],
+            ['结算周期', t('{days} 天', { days: record.settlementCycle ?? 1 })],
+            ['认证日期', record.addTime],
+          ])}
+        </TabPane>
+
+        <TabPane tab={record.type === 1 ? t('个人信息') : t('企业信息')} itemKey="company">
+          {desc([
+            ['企业名称', base.companyName || record.companyName],
+            ['统一社会信用代码', base.businessLicenseId],
+            ['经营范围', base.businessScope],
+            [
+              '注册地址',
+              base.fullBusinessLicenseAddress ||
+                [merchant.licenseAddrProvinceName, merchant.businessLicenseAddress]
+                  .filter(Boolean)
+                  .join(' ') ||
+                merchant.fullBusinessLicenseAddress,
+            ],
+            [
+              '营业期限',
+              [base.operatingTermTypeDate || base.operatingTermTypeStart, base.operatingTermTypeEnd]
+                .filter(Boolean)
+                .join(' ~ '),
+            ],
+            ['经营地区', merchant.fullDetailedAddress || merchant.businessAddressName],
+            ['补充信息', base.supplementaryInformation],
+            ['客服电话', merchant.customerServicePhone || merchant.contactPhone],
+            ['营业执照', picture(merchant.businessLicenseImg || base.businessLicenseImg)],
+            ['开户许可证', picture(merchant.accountOpeningPermit)],
+            ['预期店铺名称', shop.shopTitle || merchant.expectedShopTitle],
+          ])}
+        </TabPane>
+
+        <TabPane tab={record.type === 1 ? t('个人信息') : t('法人代表信息')} itemKey="legal">
+          {desc([
+            ['法人姓名', base.corporateName || record.corporateName],
+            ['个人姓名', base.corporateName],
+            ['证件类型', base.documentTypeText || base.documentType],
+            ['证件号码', base.documentNumber],
+            ['性别', base.sexText || base.sex],
+            ['居住地址', base.residentialAddress],
+            ['证件有效期', base.certificateValidityPeriodDate],
+            ['证件照正面', picture(base.frontOfPhoto)],
+            ['证件照反面', picture(base.backOfPhoto)],
+          ])}
+        </TabPane>
+
+        <TabPane tab={t('商户信息')} itemKey="merchant">
+          {desc([
+            ['联系人姓名', merchant.contactName],
+            ['联系人手机', merchant.contactPhone],
+            ['联系人邮箱', merchant.contactEmail],
+            ['开户银行', merchant.bankDeposit],
+            ['开户支行', merchant.bankBranch],
+            ['银行卡号', merchant.bankCard],
+            ['对公账户', merchant.corporateAccount],
+            ['开户许可证', picture(merchant.accountOpeningPermit)],
+          ])}
+        </TabPane>
+
+        <TabPane tab={isStore ? t('门店信息') : t('店铺信息')} itemKey="shop">
+          {desc([
+            [isStore ? '门店名称' : '店铺名称', shop.shopTitle || shop.storeTitle],
+            [isStore ? '门店简介' : '店铺简介', shop.description || shop.storeDescription],
+            [isStore ? '门店logo' : '店铺logo', picture(shop.shopLogo || shop.storeLogo)],
+            ['门店名称', shop.storeTitle || shop.shopTitle],
+            ['门店简介', shop.storeDescription || shop.description],
+            ['门店logo', picture(shop.storeLogo || shop.shopLogo)],
+          ])}
+        </TabPane>
+      </Tabs>
+    );
   };
 
   const batchDelete = (ids: number[], clear: () => void) => {
@@ -254,6 +390,7 @@ export default function Merchants() {
                   initValue: 2,
                   options: [
                     { label: t('企业'), value: 2 },
+                    { label: t('个体工商户'), value: 3 },
                     { label: t('个人'), value: 1 },
                   ],
                 },
@@ -304,54 +441,9 @@ export default function Merchants() {
             {t('确定')}
           </Button>
         }
-        width={680}
+        width={900}
       >
-        {selectedRecord && (
-          <Descriptions
-            data={[
-              { key: t('商户ID'), value: selectedRecord.merchantId },
-              {
-                key: t('商户所属单位'),
-                value:
-                  selectedRecord.type === 1
-                    ? selectedRecord.corporateName || selectedRecord.companyName || '--'
-                    : selectedRecord.companyName || selectedRecord.corporateName || '--',
-              },
-              {
-                key: t('商户所属会员(ID)'),
-                value: selectedRecord.user
-                  ? `${selectedRecord.user.username || '--'} (${selectedRecord.user.userId || '--'})`
-                  : '--',
-              },
-              {
-                key: t('商户类型'),
-                value: selectedRecord.typeText || (selectedRecord.type === 1 ? t('个人') : t('企业')),
-              },
-              {
-                key: t('管理员'),
-                value: selectedRecord.admin?.username || '--',
-              },
-              {
-                key: t('已绑定店铺'),
-                value: String(selectedRecord.shopCount ?? 0),
-              },
-              {
-                key: t('认证状态'),
-                value:
-                  selectedRecord.statusText ||
-                  (selectedRecord.status === 1 ? t('已认证') : t('未认证')),
-              },
-              {
-                key: t('结算周期'),
-                value: t('{days} 天', { days: selectedRecord.settlementCycle ?? 1 }),
-              },
-              {
-                key: t('认证日期'),
-                value: selectedRecord.addTime || '--',
-              },
-            ]}
-          />
-        )}
+        {selectedRecord && renderMerchantDetail()}
       </Modal>
     </>
   );

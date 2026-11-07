@@ -558,9 +558,10 @@ impl GrouponPromotionRepository {
         row: &Promotion,
     ) -> Result<i32> {
         let res = sqlx::query(
+            // `range` 是 MySQL 8 保留字，必须加反引号（同表的 `type` 同理，历史写法已带引号时可保持）
             "INSERT INTO promotion
-               (promotion_name, start_time, end_time, type, shop_id, relation_id,
-                range, member_range, member_marks, member_scope)
+               (promotion_name, start_time, end_time, `type`, shop_id, relation_id,
+                `range`, member_range, member_marks, member_scope)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&row.promotion_name)

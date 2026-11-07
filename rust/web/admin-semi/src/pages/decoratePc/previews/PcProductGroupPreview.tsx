@@ -15,6 +15,7 @@ import type { CSSProperties } from 'react';
 import { apiGet } from '../../../api';
 import './pcProductGroup.css';
 
+import { useI18n } from '../../../i18n';
 type AnyRecord = Record<string, any>;
 
 interface ProductItem {
@@ -244,6 +245,7 @@ function formatPriceParts(price?: number | string): { int: string; dec: string }
 }
 
 export default function PcProductGroupPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
   const config = useMemo(() => deepMerge(productGroupDefaults as AnyRecord, data), [JSON.stringify(data)]);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -566,7 +568,7 @@ export default function PcProductGroupPreview({ data }: { data: Record<string, a
                         ) : null}
                       </div>
                       {showShopTag ? (
-                        <div className="dec-pc-product-group__shop">{product.shopTitle || '官方自营'}</div>
+                        <div className="dec-pc-product-group__shop">{product.shopTitle || t('官方自营')}</div>
                       ) : null}
                     </div>
                   </div>

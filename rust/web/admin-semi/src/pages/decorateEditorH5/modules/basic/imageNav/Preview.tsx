@@ -12,7 +12,9 @@ import { mergeDefaultModule, formatFrame } from "../../../contract/sharedDefault
 import { imageNavDefaults } from "./index";
 import "./Preview.css";
 
+import { useI18n } from '../../../../../i18n';
 export default function ImageNavPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, imageNavDefaults);
@@ -64,7 +66,7 @@ export default function ImageNavPreview({ data }: { data: Record<string, any> })
                 {!module.picList || module.picList.length === 0 ? (
                     <div className="module-ad-empty empty-image_ad">
                         <div className="image-empty-bg" />
-                        <div className="desc">点击添加图文导航</div>
+                        <div className="desc">{t('点击添加图文导航')}</div>
                     </div>
                 ) : (
                     <>

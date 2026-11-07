@@ -66,6 +66,10 @@ pub struct ArticleDetailVO {
     pub article_sn: String,
     pub article_tag: String,
     pub link: String,
+    /// 关联商品 ID（Java `ArticleDetailVO.productIds`，取自 `product_article.goods_id`，
+    /// 服务层填充；旧 PC 文章详情据此渲染「相关商品」区块）。
+    #[serde(default)]
+    pub product_ids: Vec<i32>,
 }
 
 impl From<&crate::entities::Article> for ArticleDetailVO {
@@ -77,6 +81,7 @@ impl From<&crate::entities::Article> for ArticleDetailVO {
             article_sn: a.article_sn.clone(),
             article_tag: a.article_tag.clone(),
             link: a.link.clone(),
+            product_ids: Vec::new(),
         }
     }
 }

@@ -41,6 +41,7 @@ import {
   IconSearch,
   IconRefresh,
   IconMore,
+  IconClose,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost, isDemo } from '../api';
 import { useI18n } from '../i18n';
@@ -67,7 +68,15 @@ function formatDecorateTime(value: number | string | undefined): string {
  * 1. PC Visual Decorator Studio (可视化装修工作台组件)
  * ========================================================================= */
 
-/** PageSpec 兼容标签：保存配置 保存风格 进入搜索页画布装修 删除(POST /decorate/decorate/del {id}, 仅 isHome=0) 分享(GET /decorate/decorateShare/share?decorateId= → 复制 apiUrl) 导出(GET /decorate/decorate/detail → 复制JSON) 推广(status=1 且 pageType∈[1,3], 展示路径 / 或 /activity) 更换首页(候选列表单选 → POST /decorate/decorate/setHome {id,pageType}) */
+/**
+ * 已实现的页面级操作接口契约：
+ * 删除 POST /decorate/decorate/del {id}（仅 isHome=0）；
+ * 分享 GET /decorate/decorateShare/share?decorateId= → 复制 apiUrl；
+ * 导出 GET /decorate/decorate/detail → 复制 JSON；
+ * 推广 status=1 且 pageType∈[1,3] 时展示 C 端路径；
+ * 更换首页 POST /decorate/decorate/setHome {id,pageType}。
+ * 尚未迁移：保存配置 / 保存风格 / 搜索页画布装修入口。
+ */
 interface DecorateRow {
   decorateId: number;
   decorateTitle?: string;
@@ -735,11 +744,11 @@ export function PcNavigation() {
 
   const typeName = t(
     activeKey === 1
-      ? '主导航'
+      ? t('主导航')
       : activeKey === 2
-      ? '顶部小导航'
+      ? t('顶部小导航')
       : activeKey === 3
-      ? '底部导航'
+      ? t('底部导航')
       : '侧边导航',
   );
 
@@ -1201,6 +1210,130 @@ export function PcNavigation() {
           </div>
         </div>
       </SideSheet>
+    </div>
+  );
+}
+
+/* =========================================================================
+ * IcoSelect：ICO 编码选择器（数据链路对齐旧版 SelectIco.vue + views/ico/List.vue）
+ * - 卡片化整体设计：上方「当前选择」预览区（大图标徽章 + 类名 + 清除按钮），
+ *   下方 Tab 分「自定义图标库 / 官方图标库」网格，点选即回填
+ * - 数据：GET /setting/config/getIcon
+ *   返回 { icoTig, tigClass, icoDefined, definedClass }（Rust get_icon_settings，
+ *   服务端实时抓取 icoTigCss / icoDefinedCss 两个字体 CSS 解析 :before 类名）
+ * - 选中值 = `${fontFamily} ${iconClass}`，如 iconfont-tig icon-yingxiaoguanli
+ *   / lyecs-defined-iconfont lyecs-defined-icon-dianchibao，与生产 floorIcoFont 一致
+ * - 样式：decorate-editor.css 的 .ico-picker 系列
+ * ========================================================================= */
+interface IcoIconData {
+  icoTig: string[];
+  tigClass: string;
+  icoDefined: string[];
+  definedClass: string;
+}
+
+export function IcoSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const { t } = useI18n();
+  const [data, setData] = useState<IcoIconData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    apiGet<IcoIconData>('/setting/config/getIcon')
+      .then((res) => {
+        if (cancelled) return;
+        setData({
+          icoTig: Array.isArray(res?.icoTig) ? res.icoTig : [],
+          tigClass: res?.tigClass || '',
+          icoDefined: Array.isArray(res?.icoDefined) ? res.icoDefined : [],
+          definedClass: res?.definedClass || '',
+        });
+      })
+      .catch((e: any) => {
+        if (!cancelled) Toast.error(e.message || t('获取图标库失败'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const renderGrid = (icons: string[], fontFamily: string) => (
+    <div className="ico-picker__grid">
+      {icons.map((item) => {
+        const val = fontFamily ? `${fontFamily} ${item}` : item;
+        const active = value === val;
+        return (
+          <div
+            key={val}
+            title={val}
+            onClick={() => onChange(val)}
+            className={`ico-picker__cell${active ? ' ico-picker__cell--active' : ''}`}
+          >
+            <i className={val} />
+          </div>
+        );
+      })}
+      {icons.length === 0 && <span style={{ color: '#bbb', fontSize: 12 }}>{t('暂无图标')}</span>}
+    </div>
+  );
+
+  const valueParts = value ? value.split(' ') : [];
+  return (
+    <div className="ico-picker">
+      {/* 当前选择预览区 */}
+      <div className="ico-picker__preview">
+        <span className={`ico-picker__badge${value ? '' : ' ico-picker__badge--empty'}`}>
+          {value ? <i className={value} /> : <IconDesktop />}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {value ? (
+            <>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#1d2129' }}>{valueParts[0]}</div>
+              <div style={{ fontSize: 12, color: '#666', wordBreak: 'break-all' }}>
+                {valueParts.slice(1).join(' ') || '--'}
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 13, color: '#8a94a6' }}>
+              {t('尚未选择图标，点击下方任意图标即可选用')}
+            </div>
+          )}
+        </div>
+        {value && (
+          <Button size="small" icon={<IconClose />} type="danger" theme="borderless" onClick={() => onChange('')}>
+            {t('清除')}
+          </Button>
+        )}
+      </div>
+      {/* 图标库：Tab 分库网格 */}
+      <Spin spinning={loading}>
+        <Tabs type="line" size="small" style={{ padding: '0 14px 12px' }}>
+          <TabPane
+            tab={`${t('自定义图标库')} (${data?.icoDefined.length ?? 0})`}
+            itemKey="defined"
+          >
+            <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+              {data ? renderGrid(data.icoDefined, data.definedClass) : null}
+            </div>
+          </TabPane>
+          <TabPane tab={`${t('官方图标库')} (${data?.icoTig.length ?? 0})`} itemKey="tig">
+            <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+              {data ? renderGrid(data.icoTig, data.tigClass) : null}
+            </div>
+          </TabPane>
+        </Tabs>
+      </Spin>
     </div>
   );
 }
@@ -1755,8 +1888,12 @@ export function PcCatFloor() {
               </div>
 
               <div style={{ fontSize: 12, color: '#888', marginTop: 8, lineHeight: 1.6 }}>
-                <div>• {t('提示：只能设置为一级或二级分类，且必须含有一个一级分类；如果存在二级分类，则必须存在该二级分类的上一级分类；')}</div>
-                <div>• {t('重命名为空则显示原分类名称，重命名为"-"符号则不会显示。')}</div>
+                <div>{t('提示：只能设置为一级或二级分类，且必须含有一个一级分类，如果存在二级分类，则必须存在该二级分类上一级分类；')}</div>
+                <div>{t('重命名为空则显示原分类名称，重命名的作用为方便排列')}</div>
+                <div>{t('设置规则如下：')}</div>
+                <div>{t('1、如果添加的分类为一级分类A、B、C，则抽屉一级会显示：A/B/C三个链接，二级为A、B、C下的所有二级分类')}</div>
+                <div>{t('2、如果添加的分类为一级分类A和A下面的二级分类a1、a2，则，会显示A/a1/a2三个链接，二级为A下的所有二级分类（包含了a1、a2）')}</div>
+                <div>{t('3、如果重命名为“-”符号，则不会显示')}</div>
               </div>
             </div>
 
@@ -1774,13 +1911,12 @@ export function PcCatFloor() {
               />
             </div>
 
-            {/* ICO编码 (floorIcoFont) */}
+            {/* ICO编码 (floorIcoFont)：对齐旧版 SelectIco 可视化选择器 */}
             <div>
               <div style={{ marginBottom: 6, fontWeight: 600 }}>{t('ICO编码：')}</div>
-              <Input
+              <IcoSelect
                 value={formState.floorIcoFont}
                 onChange={(v) => setFormState({ ...formState, floorIcoFont: v })}
-                placeholder={t('例如: iconfont-tig icon-yingxiaoguanli 或 lyecs-defined-iconfont lyecs-defined-icon-baipishu')}
               />
               <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>
                 {t('请先在本系统设置中的"接口设置"中设置"ico图标库地址"')}

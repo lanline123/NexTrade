@@ -368,6 +368,68 @@ export default function DeliverOrders({
     });
   };
 
+  /**
+   * 批量打印配送单。旧版跳转 `/print/orderPrint?ids=`，该打印设计器尚未迁移；
+   * 这里用浏览器原生打印输出所选订单的配送单，保留可用能力，不再是一个点了没反应的空按钮。
+   */
+  const printSelected = () => {
+    const selected = rows.filter((row) => selectedIds.includes(row.orderId));
+    if (!selected.length) {
+      Toast.warning({ content: t('请先选择要打印的订单') });
+      return;
+    }
+    const win = window.open('', '_blank', 'width=1024,height=768');
+    if (!win) {
+      Toast.error({ content: t('浏览器拦截了打印窗口，请允许弹出窗口后重试') });
+      return;
+    }
+    const esc = (value: unknown) =>
+      String(value ?? '').replace(
+        /[&<>"']/g,
+        (char) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] || char,
+      );
+    const money = (value: unknown) => `¥${Number(value || 0).toFixed(2)}`;
+    const tickets = selected
+      .map((row) => {
+        const goods = (row.items || [])
+          .map(
+            (item) =>
+              `<tr><td>${esc(item.productName)}</td><td>${esc(item.price)}</td><td>${esc(
+                item.quantity,
+              )}</td><td>${money(Number(item.price || 0) * Number(item.quantity || 0))}</td></tr>`,
+          )
+          .join('');
+        return `<section class="ticket">
+          <h2>${esc(t('配送单'))}</h2>
+          <table class="meta">
+            <tr><th>${esc(t('订单号'))}</th><td>${esc(row.orderSn)}</td><th>${esc(t('下单时间'))}</th><td>${esc(row.addTime)}</td></tr>
+            <tr><th>${esc(t('交易单号'))}</th><td>${esc(row.outTradeNo || '-')}</td><th>${esc(t('订单状态'))}</th><td>${esc(row.orderStatusName || '-')}</td></tr>
+            <tr><th>${esc(t('收货人'))}</th><td>${esc(row.consignee || '-')}</td><th>${esc(t('手机号'))}</th><td>${esc(row.mobile || '-')}</td></tr>
+            <tr><th>${esc(t('收货地址'))}</th><td colspan="3">${esc(row.userAddress || '-')}</td></tr>
+            <tr><th>${esc(t('配送方式'))}</th><td>${esc(row.shippingTypeName || row.logisticsName || '-')}</td><th>${esc(t('订单金额'))}</th><td>${money(row.totalAmount)}</td></tr>
+          </table>
+          <h3>${esc(t('商品明细'))}</h3>
+          <table class="goods"><thead><tr><th>${esc(t('商品名称'))}</th><th>${esc(t('单价'))}</th><th>${esc(t('数量'))}</th><th>${esc(t('小计'))}</th></tr></thead><tbody>${
+            goods || `<tr><td colspan="4">${esc(t('暂无商品明细'))}</td></tr>`
+          }</tbody></table>
+        </section>`;
+      })
+      .join('<div class="pagebreak"></div>');
+    win.document.write(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>${esc(
+      t('批量打印配送单'),
+    )}</title><style>
+      *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;color:#111;margin:24px}
+      .ticket{max-width:820px;margin:0 auto 24px}h2{text-align:center;margin:0 0 16px;font-size:20px}h3{font-size:14px;margin:16px 0 8px}
+      table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #999;padding:6px 8px;text-align:left}
+      .meta th{width:110px;background:#f5f5f5;white-space:nowrap}.goods th{background:#f5f5f5}
+      .pagebreak{page-break-after:always;break-after:page}
+      @media print{body{margin:0}.ticket{margin:0 auto}.pagebreak{page-break-after:always}}
+    </style></head><body>${tickets}</body></html>`);
+    win.document.close();
+    window.setTimeout(() => win.print(), 400);
+  };
+
   const renderOrderCard = (row: DeliverOrderRow): ReactNode => {
     const canShip =
       !row.isPickup && row.availableActions?.deliver && row.shippingTypeId !== 3;
@@ -630,7 +692,7 @@ export default function DeliverOrders({
             <Button disabled={!selectedIds.length || activeTab !== 1} onClick={() => setExcelOpen(true)}>
               {t('Excel批量发货')}
             </Button>
-            <Button disabled={!selectedIds.length} onClick={() => setExcelOpen(false)}>
+            <Button disabled={!selectedIds.length} onClick={printSelected}>
               {t('批量打印')}
             </Button>
             {selectedIds.length > 0 && (

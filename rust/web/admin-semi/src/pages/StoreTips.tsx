@@ -173,14 +173,6 @@ export default function StoreTips() {
         )}
       />
 
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>编辑区域</span>
-        <span>编辑</span>
-        <span>暂无数据</span>
-        <span>提交</span>
-        <span>新增标签</span>
-      </div>
     </>
   );
 }

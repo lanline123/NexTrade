@@ -3,7 +3,7 @@
 /**
  * 优惠券详情（已领取券）
  * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/coupon/index.vue
- * 接口：GET /api/user/coupon/info?id=  （旧版 getMyCouponInfo）
+ * 接口：GET /api/user/coupon/detail?id=  （旧版 getMyCouponInfo）
  * 展示：券名/描述、满减金额或折扣、有效期、已领取状态
  */
 import { useEffect, useState } from 'react';
@@ -39,7 +39,7 @@ export default function CouponDetailClient({ couponId }: { couponId: string }) {
     const token = localStorage.getItem('accessToken');
     const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    fetch(`/api/user/coupon/info?id=${encodeURIComponent(couponId)}`, { headers, credentials: 'include' })
+    fetch(`/api/user/coupon/detail?id=${encodeURIComponent(couponId)}`, { headers, credentials: 'include' })
       .then((response) => response.json())
       .then((json) => {
         if (json?.code !== undefined && json.code !== 0) {

@@ -20,7 +20,10 @@
 import { useEffect, useState, type CSSProperties, type SyntheticEvent } from 'react';
 
 import { apiGet } from '../../../api';
-import { useI18n } from '../../../i18n';
+import i18nInstance, { useI18n } from '../../../i18n';
+
+/** 非组件作用域的翻译：直接用 i18next 单例。 */
+const tl = (key: string, params?: Record<string, string | number>) => i18nInstance.t(key, params) as string;
 
 import './pcHomeHero.css';
 
@@ -616,7 +619,7 @@ function mapCatFloorToLeftItems(source: unknown): LeftCategoryItem[] {
     const floorIcoFont = getFirstString(floor, ['floorIcoFont']);
     const useImage = Number(floor.useImage ?? (iconUrl ? 1 : 0));
     const titleAndLink = getTitleAndLinkFromCategoryNames(floor.categoryNames);
-    const title = (getFirstString(floor, ['catFloorName', 'picTitle']) || titleAndLink.title || '类目')
+    const title = (getFirstString(floor, ['catFloorName', 'picTitle']) || titleAndLink.title || tl('类目'))
       .replace(/[，,、]/g, ' / ')
       .replace(/\s*\/\s*/g, ' / ')
       .trim();
@@ -788,7 +791,7 @@ function HeroCard({
     >
       <div className="dec-pc-home-hero__card-header">
         <div className="dec-pc-home-hero__card-title" title={card.moduleTitle || ''}>
-          {card.moduleTitle || t(variant === 'promo' ? '促销' : '推荐')}
+          {card.moduleTitle || t(variant === 'promo' ? t('促销') : '推荐')}
         </div>
         {card.moduleSubTitle ? (
           <div className="dec-pc-home-hero__card-badge" style={{ background: getSubTitleBg(card) }}>

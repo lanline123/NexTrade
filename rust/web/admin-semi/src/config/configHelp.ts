@@ -29,7 +29,8 @@ export const configHelp: Record<string, Record<string, string>> = {
     "isChangeOrderStatus": "开启后可对订单状态进行更改，更改完成后请及时关闭此功能，以免数据错乱。",
     "afterSalesLimitDays": "注：不适用虚拟商品、卡密商品、付费内容等特殊类型订单。",
     "financialReview": "开启后，售后申请经售后人员处理完毕，需由财务人员再次审核并执行退款操作。若关闭，线下退款的订单金额，需商家处理退款。",
-    "afterSalesReasonList": "开启后，买家申请售后和取消未支付订单时需选择原因，最多添加10项。",
+    "afterSalesReasonEnabled": "开启后，买家申请售后和取消未支付订单时需选择原因。",
+    "afterSalesReasonList": "售后原因列表，最多添加10项，单项不超过50个字，且不能重复。",
     "isPlatformCancelPaidOrder": "开启后，客户已支付的订单（待备货/待发货状态），管理员可以操作取消支付，已付款金额会流转至财务退款售后处理 查看示例",
     "isPlatformCancelDeliverOrder": "开启后，已发货订单平台管理员可取消发货，已填写的物流信息将会清空 查看示例",
     "isShopCancelDeliverOrder": "开启后，店铺后台已发货订单可取消发货，已填写的物流信息将会清空 查看示例",
@@ -42,7 +43,8 @@ export const configHelp: Record<string, Record<string, string>> = {
     "kefuWorkwxId": "提示：ID为空时客服设置不生效！ 提示：ID为空时客服设置不生效！",
     "corpId": "提示：小程序打开微信客服需要设置企业ID！ 提示：小程序打开微信客服需要设置企业ID！",
     "kefuCode": "如果是脚本控制的链接，请在此处填入： 请填写http开头的客服链接;",
-    "kefuPhone": "不填则不显示"
+    "kefuPhone": "不填则不显示",
+    "kefuWhatsappPhone": "海外客户可通过 WhatsApp 联系客服，不填则不显示（需后端重新部署后生效）。"
   },
   "globalSetting": {
     "shopTitleSuffix": "该后缀将显示在浏览器的标题栏，与SEO有关，建议长度不要超过20字符，效果如：“购物车 - Tig商城”",
@@ -61,6 +63,7 @@ export const configHelp: Record<string, Record<string, string>> = {
     "searchKeywords": "头部搜索框下方显示的搜索关键字,请用半角逗号(,)分隔多个关键字；颜色加亮请用b标签包含",
     "msgHackWord": "设置后留言中出现的字符会提示非法，请用“,”号隔开，",
     "isOpenPscws": "开启后将自动分词，比如：儿童机器人，分拆分为：儿童、机器人（会降低搜索结果精准度）",
+    "selfStoreName": "比如：官方自营、Tigshop自营，仅对B2B2C多商户版本有效",
     "selectSearchType": "选择Elasticsearch后，点击按钮将一次性将所有商品数据同步到搜索引擎中。此操作为异步执行，预计需要几分钟完成，请勿重复点击。",
     "shopCountry": "此地区会在系统未判断出用户IP所在地域时，默认定位地区（仅影响PC端右上角送货地址）",
     "defaultCountry": "如果选择了默认国家，则会员在选择地址时默认会显示该国家下的省份或地区，不再显示国家选择（修改设置对已经添加的会员地址不生效）",

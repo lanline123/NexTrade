@@ -28,6 +28,7 @@ import ShippingTypes from './pages/ShippingTypes';
 import ShippingSettingsPage from './pages/ShippingSettings';
 import AutoConfigPage, { BusinessLicenseConfigField, CopyrightConfigField, TechSupportConfigField, type ConfigRendererContext, type ConfigFieldGroup, type ConfigFieldRule, type ConfigNumberLimit } from './pages/AutoConfigPage';
 import MultilingualInput from './components/MultilingualInput';
+import AfterSalesReasonField from './config/AfterSalesReasonField';
 import LogisticsSettings from './pages/LogisticsSettings';
 import PayLogs from './pages/PayLogs';
 import RefundLogs from './pages/RefundLogs';
@@ -105,6 +106,8 @@ import {
   VendorFundsManage,
   VendorFinancialLogManage,
 } from './pages/OverseasExtraPages';
+import { ShopAccountOverview, ShopFundsManage, ShopFinancialLogManage } from './pages/ShopFundsPages';
+import LicensedPage from './pages/LicensedPage';
 import PcDecorateEditor from './pages/PcDecorateEditor';
 import MobileDecorateEditor from './pages/MobileDecorateEditor';
 import H5DecorateEditor from './pages/decorateEditorH5';
@@ -127,8 +130,8 @@ import {
   SignInSetting,
   ECard,
   GiftCard,
-  Lottery,
 } from './pages/PromotionExtraPages';
+import Lottery from './pages/Lottery';
 import {
   ThemeStyle,
   MobileDecoratePages,
@@ -224,6 +227,8 @@ import Placeholder from './pages/Placeholder';
 import { pageTitles } from './config/adminMenu';
 import { configSections } from './config/configSections';
 import { configHelp } from './config/configHelp';
+import { configActions } from './config/configActions';
+import type { ConfigAction } from './pages/AutoConfigPage';
 
 type ConfigPageDef = {
   title: string;
@@ -245,6 +250,8 @@ type ConfigPageDef = {
     values: Record<string, unknown>,
   ) => Record<string, unknown> | void;
   validate?: (values: Record<string, unknown>) => string | null | undefined;
+  /** 旧版配置页里的按钮型功能（密钥、批量更新、测试邮件等），由 AutoConfigPage 统一渲染。 */
+  actions?: ConfigAction[];
   modern?: boolean;
 };
 
@@ -603,6 +610,24 @@ const configPages: Record<string, ConfigPageDef> = {
       autoReturnGoods: { visibleWhen: { field: 'afterSalesReview', equals: 1 } },
       autoReturnGoodsDays: { disabledWhen: { field: 'autoReturnGoods', equals: 0 } },
     },
+    controls: {
+      afterSalesReasonEnabled: 'switch',
+    },
+    renderers: {
+      afterSalesReasonList: (context) => (
+        <AfterSalesReasonField
+          value={context.value}
+          onChange={(next) => context.update('afterSalesReasonList', next)}
+        />
+      ),
+    },
+    validate: (values) => {
+      if (Number(values.afterSalesReasonEnabled) !== 1) return null;
+      if (!Array.isArray(values.afterSalesReasonList) || values.afterSalesReasonList.length === 0) {
+        return '开启售后原因功能后，请至少添加一项原因';
+      }
+      return null;
+    },
   },
   kefuSetting: { title: '客服设置', getApi: '/setting/config/kefuSettings', saveApi: '/setting/config/saveKefu' },
   globalSetting: {
@@ -615,6 +640,12 @@ const configPages: Record<string, ConfigPageDef> = {
       layout: 'segmented',
       versionInfoHidden: 'radio',
       storageType: 'options',
+      // 以下 5 项旧版是 radio，此前未登记 controls/options，静默退化成了文本框
+      materialUploadNameType: 'radio',
+      selectSearchType: 'radio',
+      langType: 'radio',
+      seoCategoryEnable: 'radio',
+      seoProductEnable: 'radio',
     },
     options: {
       navTheme: [
@@ -641,6 +672,30 @@ const configPages: Record<string, ConfigPageDef> = {
         { label: '七牛云 KODO', value: 3 },
         { label: 'AWS S3', value: 4 },
       ],
+      materialUploadNameType: [
+        { label: '系统随机命名', value: 0 },
+        { label: '保留原素材名', value: 1 },
+      ],
+      selectSearchType: [
+        { label: 'Elasticsearch（推荐）', value: 'es' },
+        { label: 'MySQL（降级模式）', value: 'mysql' },
+      ],
+      langType: [{ label: '火山翻译', value: 1 }],
+      seoCategoryEnable: [
+        { label: '基础链接', value: 0 },
+        { label: 'SEO链接', value: 1 },
+      ],
+      seoProductEnable: [
+        { label: '基础链接', value: 0 },
+        { label: 'SEO链接', value: 1 },
+      ],
+    },
+    labels: {
+      langType: '接口翻译',
+      seoCategoryEnable: '商品类目链接使用',
+      seoProductEnable: '商品链接使用',
+      workbuddyApiKey: 'MCP 密钥',
+      workbuddyApiKeyExpiresAt: '密钥有效期',
     },
     hiddenFields: ['storageSaveFullPath'],
     fieldHelp: {
@@ -658,6 +713,11 @@ const configPages: Record<string, ConfigPageDef> = {
       storageQiniuSecretKey: '编辑完成后，点击下方提交按钮确认修改，请确保填写正确的 SecretKey',
       storageS3AccessKey: '编辑完成后，点击下方提交按钮确认修改，请确保填写正确的 Access key ID',
       storageS3SecretKey: '编辑完成后，点击下方提交按钮确认修改，请确保填写正确的 Secret access key',
+      selectSearchType: '选择 Elasticsearch 后，点击「同步到搜索引擎」将一次性把所有商品数据同步到搜索引擎，异步执行预计需要几分钟，请勿重复点击。',
+      seoCategoryEnable: '链接格式：域名/category/分类1/分类2；「批量更新商品类目链接」仅更新 SEO 链接为空的类目。',
+      seoProductEnable: '链接格式：域名/product/分类1/分类2/商品英文名称.[sn]；「批量更新商品链接」仅更新 SEO 链接为空的商品。',
+      workbuddyApiKey: '密钥始终掩码显示，可随时复制；生成新密钥后请点击页面底部保存。',
+      workbuddyApiKeyExpiresAt: '到期后 MCP 请求会被拒绝，请在到期前重新生成密钥。',
     },
     rules: {
       storageLocalUrl: { visibleWhen: { field: 'storageType', equals: 0 } },
@@ -733,15 +793,30 @@ const configPages: Record<string, ConfigPageDef> = {
   },
   storeAmapSetting: { title: '地图设置', getApi: '/setting/config/mapSettings', saveApi: '/setting/config/saveMapSettings' },
   personalizedManage: { title: '个性化设置', getApi: '/setting/config/getPersonalizedSetting', saveApi: '/setting/config/savePersonalizedSetting' },
-  baseNoticeManage: { title: '通知设置', getApi: '/setting/config/notifySettings', saveApi: '/setting/config/saveNotify' },
+  baseNoticeManage: {
+    title: '通知设置',
+    getApi: '/setting/config/notifySettings',
+    saveApi: '/setting/config/saveNotify',
+    controls: { mailService: 'radio' },
+    options: {
+      mailService: [
+        { label: '本地邮件服务器', value: 0 },
+        { label: 'SMTP服务', value: 1 },
+      ],
+    },
+    fieldHelp: {
+      mailService: '如果您选择了采用服务器内置的 Mail 服务，您不需要填写下面的 SMTP 内容。',
+    },
+  },
 };
 
 Object.entries(configPages).forEach(([key, page]) => {
   page.sections = configSections[key];
   page.fieldHelp = { ...configHelp[key], ...page.fieldHelp };
+  page.actions = configActions[key];
 });
 
-const knownPages = new Set(['dashboard', 'pcDecorateEditor', 'mobileDecorateEditor', 'h5DecorateEditor', 'shopGroupManage', 'shopTipManage', 'offlinePaymentClaimManage', 'imageSearchManage', 'vendorAccountManage', 'vendorFundsManage', 'vendorFinancialLogManage', 'products', 'brandManage', 'categoryManage', 'productGroupManage', 'productServicesManage', 'commentManage', 'productAttributesTplManage', 'friendLinksManage', 'regionManage', 'logisticsCompanyManage', 'appVersionManage', 'adminLogManage', 'adminUserManage', 'adminRoleManage', 'serviceAgreement', 'privacyAgreement', 'afterSaleService', 'accountManage', 'taxRateManage', 'shippingTypeManage', 'logisticsManage', 'logisticsCompanyConfigManage', 'payLogManage', 'refundLogManage', 'userBalanceLogManage', 'staffFundWalletLogManage', 'buyerShowManage', 'integralLogManage', 'refundApplyManage', 'userWithdrawApplyManage', 'userRechargeOrderManage', 'userInvoiceManage', 'orderInvoiceManage', 'depositRuleManage', 'depositPayeeAccountManage', 'depositAccountManage', 'depositPaymentAuditManage', 'depositLogManage', 'categoryFeeRuleManage', 'merchantApplicationManage', 'subMerchantManage', 'profitSharingSettlementManage', 'statementDownload', 'pos0', 'posOrderSetting', 'posCashierDeviceList', 'posReceiptPrint', 'posCashierList', 'baseBasicManage', 'baseProductManage', 'baseShoppingManage', 'baseOrderManage', 'kefuSetting', 'globalSetting', 'loginSetting', 'storeAmapSetting', 'personalizedManage', 'baseNoticeManage', 'paymentSetting', 'withdrawalSettingManage', 'profitsharingSettingManage', 'depositSettingManage', 'shopSettingsManage', 'adminMerchantSettingsManage', 'deliveryFundSettingsManage', 'serverFundSettingsManage', 'deliverManage', 'aftersalesManage', 'orderExportManage', 'exchangeOrderManage', 'cycleBuyManage', 'proxyShoppingManage', 'couponManage', 'rechargeSettingManage', 'pointsExchangeManage', 'productGiftManage', 'seckillManage', 'limitdiscountManage', 'fullReductionManage', 'grouponPromotionManage', 'inventoryQueryManage', 'productInventoryLogManage', 'inventoryAdjustmentManage', 'inventoryGoodsArePutIntoStorageManage', 'inventoryGoodsArePutOutOfStorageManage', 'storeInventoryTransferManage', 'enquiryManage', 'stockWarningManage', 'productBatchExportManage', 'productBatchAddManage', 'productBatchEditManage', 'storeInventoryCalendarManage', 'memberTagManage', 'feedbackManage', 'messageLogManage', 'levelManageManage', 'shopMemberSettingManage', 'userCertificationManage', 'userAuthenticationManage', 'userLevelProManage', 'articleCategoryManage', 'kefuManageList', 'kefuAccessSetting', 'kefuQuickReply', 'kefuAccountInfo', 'wechatLive', 'wechatLiveProduct', 'videoNumber', 'baseReceiptManage', 'authorityManage', 'materialCenter', 'termOrderManage', 'termPayManage', 'termMemberManage', 'shopManage', 'applyManage', 'adminMerchantManage', 'investmentManage', 'vendorListManage', 'vendorProductManage', 'vendorOrderManage', 'vendorSettingManage', 'storeSettingsManage', 'storeTipManage', 'storeAreaManage', 'storeListManage', 'storeSelfPackListManage', 'deliverymanList', 'servicemanList', 'statementDetails', 'shopWithdrawApplyManage', 'vendorWithdrawApplyManage', 'vendorStatementDownload', 'vendorWithdrawApplySummary', 'deliveryStaffWithdrawManage', 'serverStaffWithdrawManage', 'wholesalerManage', 'wholesalerGradeManage', 'wholesaleSettingManage', 'wholesaleProductManage', 'storePickupSettingManage', 'storeAppointmentTplManage', 'storeEntryRuleSetting', 'wechatLiveMiniAppSetting', 'shippingTplManage', 'messageTypeManage', 'consumerRanking', 'saleTargets', 'statisticsGoods', 'statisticsUser', 'newMembers', 'statisticsAccess', 'statisticsOrder', 'statisticsSale', 'salesman0', 'overviewManage', 'AnalysisTableManage', 'analysisTable', 'RankingTableManage', 'rankingTable', 'subgroupManage', 'subgroup', 'salesmanNoticeManage', 'salesmanNotice', 'materialCategoryManage', 'materialCategory', 'materialManage', 'material', 'salesmanDetailedManage', 'salesmanDetailed', 'customerTransactionsManage', 'customerTransactions', 'performanceSettlementSettingManage', 'performanceSettlementSetting', 'performanceSettlementManage', 'performanceSettlement', 'promoteModeManage', 'promoteMode', 'salesmanProductManage', 'salesmanProduct', 'promoterManage', 'promoter', 'languagesList', 'currencyManagement', 'translationContent', 'verbalAssociation', 'areaCode', 'aiImageSetting', 'intraCityDeliveryManage', 'intraCityDelivery', 'homeServiceManage', 'homeService', 'premiumMemberManage', 'premiumMember', 'premiumMemberRightManage', 'premiumMemberRight', 'supplierManage', 'supplierCategoryManage', 'supplierProductManage', 'purchaseSettingManage', 'purchaseOrderManage', 'purchaseInboundManage', 'purchaseReturnManage', 'purchaseReconciliationManage', 'analysisTableManage', 'rankingTableManage', 'languagesListManage', 'aiImageSettingManage', 'translationContentManage', 'currencyManagementManage', 'areaCodeManage', 'verbalAssociationManage', 'videoNumber', 'selfVendorManage', 'selfVendorCategoryManage', 'selfVendorProductManage', 'purchaseReceiptManage', 'accountPanelManage', 'distributionCommissionManage', 'shopWithdrawApplySummary', 'vendorStatementDetails', 'staffFundWalletManage', 'wechatMenu', 'wechatKeywordReply', 'wechatAutoReply', 'voiceBroadcastManage', 'promotion0', 'promotion2', 'rewardGiftManage', 'signInSettingManage', 'eCardManage', 'giftCardManage', 'lotteryManage', 'decorate0', 'mobileDecorateManage', 'mobileSplashAdManage', 'mobileSplashAdManage2', 'mobileuserUserOverseasManage', 'mobileSearchStyleManage', 'mobileNavManage', 'classifyManage', 'mobileUserManage', 'mobileCatNavManage', 'pcDecorateManage', 'pcNavigationManage', 'pcCatFloorManage', 'pcDecorateCustomManage', 'pcProductStyleManage','pcSearchStyleManage','pcDecorateOtherManage', 'pcSearchDecorateManage', 'pcLoginDecorateManage', 'customerService0', 'kefuHistoryList', 'afterSalesServiceManage', 'orders', 'members', 'content', 'decorate', 'decorate1', 'decorate2', 'pcDecorate', 'pcDecorateEdit', 'pcCustomPage']);
+const knownPages = new Set(['dashboard', 'pcDecorateEditor', 'mobileDecorateEditor', 'h5DecorateEditor', 'shopGroupManage', 'shopTipManage', 'offlinePaymentClaimManage', 'imageSearchManage', 'vendorAccountManage', 'vendorFundsManage', 'vendorFinancialLogManage', 'products', 'brandManage', 'categoryManage', 'productGroupManage', 'productServicesManage', 'commentManage', 'productAttributesTplManage', 'friendLinksManage', 'regionManage', 'logisticsCompanyManage', 'appVersionManage', 'adminLogManage', 'adminUserManage', 'adminRoleManage', 'serviceAgreement', 'privacyAgreement', 'afterSaleService', 'accountManage', 'taxRateManage', 'shippingTypeManage', 'logisticsManage', 'logisticsCompanyConfigManage', 'payLogManage', 'refundLogManage', 'userBalanceLogManage', 'staffFundWalletLogManage', 'buyerShowManage', 'integralLogManage', 'refundApplyManage', 'userWithdrawApplyManage', 'userRechargeOrderManage', 'userInvoiceManage', 'orderInvoiceManage', 'depositRuleManage', 'depositPayeeAccountManage', 'depositAccountManage', 'depositPaymentAuditManage', 'depositLogManage', 'categoryFeeRuleManage', 'merchantApplicationManage', 'subMerchantManage', 'profitSharingSettlementManage', 'statementDownload', 'pos0', 'posOrderSetting', 'posCashierDeviceList', 'posReceiptPrint', 'posCashierList', 'baseBasicManage', 'baseProductManage', 'baseShoppingManage', 'baseOrderManage', 'kefuSetting', 'globalSetting', 'loginSetting', 'storeAmapSetting', 'personalizedManage', 'baseNoticeManage', 'paymentSetting', 'withdrawalSettingManage', 'profitsharingSettingManage', 'depositSettingManage', 'shopSettingsManage', 'adminMerchantSettingsManage', 'deliveryFundSettingsManage', 'serverFundSettingsManage', 'deliverManage', 'aftersalesManage', 'orderExportManage', 'exchangeOrderManage', 'cycleBuyManage', 'proxyShoppingManage', 'couponManage', 'rechargeSettingManage', 'pointsExchangeManage', 'productGiftManage', 'seckillManage', 'limitdiscountManage', 'fullReductionManage', 'grouponPromotionManage', 'inventoryQueryManage', 'productInventoryLogManage', 'inventoryAdjustmentManage', 'inventoryGoodsArePutIntoStorageManage', 'inventoryGoodsArePutOutOfStorageManage', 'storeInventoryTransferManage', 'enquiryManage', 'stockWarningManage', 'productBatchExportManage', 'productBatchAddManage', 'productBatchEditManage', 'storeInventoryCalendarManage', 'memberTagManage', 'feedbackManage', 'messageLogManage', 'levelManageManage', 'shopMemberSettingManage', 'userCertificationManage', 'userAuthenticationManage', 'userLevelProManage', 'articleCategoryManage', 'kefuManageList', 'kefuAccessSetting', 'kefuQuickReply', 'kefuAccountInfo', 'wechatLive', 'wechatLiveProduct', 'videoNumber', 'baseReceiptManage', 'authorityManage', 'materialCenter', 'termOrderManage', 'termPayManage', 'termMemberManage', 'shopManage', 'applyManage', 'adminMerchantManage', 'investmentManage', 'vendorListManage', 'vendorProductManage', 'vendorOrderManage', 'vendorSettingManage', 'storeSettingsManage', 'storeTipManage', 'storeAreaManage', 'storeListManage', 'storeSelfPackListManage', 'deliverymanList', 'servicemanList', 'statementDetails', 'shopWithdrawApplyManage', 'vendorWithdrawApplyManage', 'vendorStatementDownload', 'vendorWithdrawApplySummary', 'deliveryStaffWithdrawManage', 'serverStaffWithdrawManage', 'wholesalerManage', 'wholesalerGradeManage', 'wholesaleSettingManage', 'wholesaleProductManage', 'storePickupSettingManage', 'storeAppointmentTplManage', 'storeEntryRuleSetting', 'wechatLiveMiniAppSetting', 'shippingTplManage', 'messageTypeManage', 'consumerRanking', 'saleTargets', 'statisticsGoods', 'statisticsUser', 'newMembers', 'statisticsAccess', 'statisticsOrder', 'statisticsSale', 'salesman0', 'overviewManage', 'AnalysisTableManage', 'analysisTable', 'RankingTableManage', 'rankingTable', 'subgroupManage', 'subgroup', 'salesmanNoticeManage', 'salesmanNotice', 'materialCategoryManage', 'materialCategory', 'materialManage', 'material', 'salesmanDetailedManage', 'salesmanDetailed', 'customerTransactionsManage', 'customerTransactions', 'performanceSettlementSettingManage', 'performanceSettlementSetting', 'performanceSettlementManage', 'performanceSettlement', 'promoteModeManage', 'promoteMode', 'salesmanProductManage', 'salesmanProduct', 'promoterManage', 'promoter', 'languagesList', 'currencyManagement', 'translationContent', 'verbalAssociation', 'areaCode', 'aiImageSetting', 'intraCityDeliveryManage', 'intraCityDelivery', 'homeServiceManage', 'homeService', 'premiumMemberManage', 'premiumMember', 'premiumMemberRightManage', 'premiumMemberRight', 'supplierManage', 'supplierCategoryManage', 'supplierProductManage', 'purchaseSettingManage', 'purchaseOrderManage', 'purchaseInboundManage', 'purchaseReturnManage', 'purchaseReconciliationManage', 'analysisTableManage', 'rankingTableManage', 'languagesListManage', 'aiImageSettingManage', 'translationContentManage', 'currencyManagementManage', 'areaCodeManage', 'verbalAssociationManage', 'videoNumber', 'selfVendorManage', 'selfVendorCategoryManage', 'selfVendorProductManage', 'purchaseReceiptManage', 'accountPanelManage', 'distributionCommissionManage', 'shopWithdrawApplySummary', 'vendorStatementDetails', 'shopAccountManage', 'shopFundsManage', 'financialLogManage', 'licensed', 'copyright', 'staffFundWalletManage', 'wechatMenu', 'wechatKeywordReply', 'wechatAutoReply', 'voiceBroadcastManage', 'promotion0', 'promotion2', 'rewardGiftManage', 'signInSettingManage', 'eCardManage', 'giftCardManage', 'lotteryManage', 'decorate0', 'mobileDecorateManage', 'mobileSplashAdManage', 'mobileSplashAdManage2', 'mobileuserUserOverseasManage', 'mobileSearchStyleManage', 'mobileNavManage', 'classifyManage', 'mobileUserManage', 'mobileCatNavManage', 'pcDecorateManage', 'pcNavigationManage', 'pcCatFloorManage', 'pcDecorateCustomManage', 'pcProductStyleManage','pcSearchStyleManage','pcDecorateOtherManage', 'pcSearchDecorateManage', 'pcLoginDecorateManage', 'customerService0', 'kefuHistoryList', 'afterSalesServiceManage', 'orders', 'members', 'content', 'decorate', 'decorate1', 'decorate2', 'pcDecorate', 'pcDecorateEdit', 'pcCustomPage']);
 
 if (new URLSearchParams(window.location.search).get('demo') === '1') {
   enterDemo();
@@ -1083,6 +1158,10 @@ export default function App() {
       {page === 'vendorAccountManage' && <VendorAccountManage />}
       {page === 'vendorFundsManage' && <VendorFundsManage />}
       {page === 'vendorFinancialLogManage' && <VendorFinancialLogManage />}
+      {page === 'shopAccountManage' && <ShopAccountOverview />}
+      {page === 'shopFundsManage' && <ShopFundsManage />}
+      {page === 'financialLogManage' && <ShopFinancialLogManage />}
+      {(page === 'licensed' || page === 'copyright') && <LicensedPage />}
       {page === 'offlinePaymentClaimManage' && <OfflinePaymentClaimManage />}
       {page === 'imageSearchManage' && <ImageSearchManage />}
       {page === 'shopGroupManage' && <ShopGroupManage />}
@@ -1108,7 +1187,9 @@ export default function App() {
       {page === 'vendorListManage' && <VendorList />}
       {page === 'vendorProductManage' && <VendorProducts />}
       {page === 'vendorOrderManage' && <VendorOrders />}
-      {configPages[page] && (
+      {/* storeSettingsManage 有专用页面 StoreSettings（自带完整 sections/renderers），
+          避免与通用 AutoConfigPage 同页重复渲染两份表单。 */}
+      {configPages[page] && page !== 'storeSettingsManage' && (
         <AutoConfigPage
           {...configPages[page]}
           onSaved={page === 'globalSetting' ? (values) => applyAndStore(values) : undefined}
@@ -1117,7 +1198,7 @@ export default function App() {
       {page === 'afterSaleService' && (
         <AgreementPage code="afterSalesService" title="售后服务" description="配置售后服务协议内容与启用状态。" />
       )}
-      {page === 'orders' && <Orders />}
+      {page === 'orders' && <Orders onNavigate={changePage} />}
       {page === 'members' && <Members />}
       {page === 'content' && <Content />}
       {!knownPages.has(page) && <Placeholder page={page} />}

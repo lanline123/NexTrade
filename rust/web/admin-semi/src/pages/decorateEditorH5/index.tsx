@@ -20,6 +20,7 @@ import "./styles/css/decorate.css";
 import "./styles/editor.less";
 import "./modules/index";
 
+import { useI18n } from '../../i18n';
 const DEFAULT_DECORATE_TITLE = "未命名页面";
 
 interface Props {
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTypeProp, decorateType = 1, onExit }: Props) {
+    const { t } = useI18n();
     const s = useEditorState();
 
     const query = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -81,7 +83,7 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
                 });
                 setDecorateTitleDraft(result.decorateTitle || "");
             })
-            .catch((error) => Toast.error(error.message || "加载装修详情失败"));
+            .catch((error) => Toast.error(error.message || t("加载装修详情失败")));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialId]);
 
@@ -90,7 +92,7 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
         if (editorStore.getState().decorateId) return true;
         const title = (editorStore.getState().decorateTitle || "").trim();
         if (!title || title === DEFAULT_DECORATE_TITLE) {
-            Toast.warning("请先修改页面名称");
+            Toast.warning(t("请先修改页面名称"));
             return false;
         }
         try {
@@ -101,7 +103,7 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
             });
             const newId = result?.decorateId ?? result?.id ?? 0;
             if (!newId) {
-                Toast.error("创建失败");
+                Toast.error(t("创建失败"));
                 return false;
             }
             const url = new URL(window.location.href);
@@ -109,7 +111,7 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
             window.history.replaceState(null, "", url.toString());
             return true;
         } catch (error: any) {
-            Toast.error(error.message || "创建失败");
+            Toast.error(error.message || t("创建失败"));
             return false;
         }
     };
@@ -127,10 +129,10 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
         setSaving(true);
         try {
             await apiPost("decorate/decorate/saveDraft", buildSavePayload(editorStore.getSaveData()));
-            Toast.success("操作成功");
+            Toast.success(t("操作成功"));
             editorStore.markAsSaved();
         } catch (error: any) {
-            Toast.error(error.message || "保存草稿失败");
+            Toast.error(error.message || t("保存草稿失败"));
         } finally {
             setSaving(false);
         }
@@ -148,10 +150,10 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
                 saveData.pageModule = { ...saveData.pageModule, homeStyleVersion: "new" };
             }
             await apiPost("decorate/decorate/publish", buildSavePayload(saveData));
-            Toast.success("操作成功");
+            Toast.success(t("操作成功"));
             editorStore.markAsSaved();
         } catch (error: any) {
-            Toast.error(error.message || "发布失败");
+            Toast.error(error.message || t("发布失败"));
         } finally {
             setSaving(false);
         }
@@ -166,7 +168,7 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
                 moduleList: result?.moduleList ?? []
             });
         } catch (error: any) {
-            Toast.error(error.message || "恢复草稿失败");
+            Toast.error(error.message || t("恢复草稿失败"));
         }
     }, []);
 
@@ -174,7 +176,7 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
         const val = (decorateTitleDraft || "").trim();
         const oldVal = (editorStore.getState().decorateTitle || "").trim();
         if (!val) {
-            Toast.warning("页面名称不能为空");
+            Toast.warning(t("页面名称不能为空"));
             return;
         }
         if (val === oldVal) return;
@@ -194,9 +196,9 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
         }
         try {
             await apiPost("decorate/decorate/updateField", { id: editorStore.getState().decorateId, field: "decorateTitle", val });
-            Toast.success("页面名称修改成功");
+            Toast.success(t("页面名称修改成功"));
         } catch (error: any) {
-            Toast.error(error.message || "修改失败");
+            Toast.error(error.message || t("修改失败"));
         }
     };
 
@@ -206,10 +208,8 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
         <div className="h5-editor-root">
             <div className="h5-editor-header">
                 <div className="h5-editor-header-left">
-                    <Button icon={<IconChevronLeft />} theme="borderless" onClick={onExit ?? (() => (window.location.href = window.location.origin))}>
-                        返回
-                    </Button>
-                    <span className="h5-editor-page-tag">移动端 H5 装修</span>
+                    <Button icon={<IconChevronLeft />} theme="borderless" onClick={onExit ?? (() => (window.location.href = window.location.origin))}>{t('返回')}</Button>
+                    <span className="h5-editor-page-tag">{t('移动端 H5 装修')}</span>
                     <Input
                         className="h5-editor-title-input"
                         value={decorateTitleDraft}
@@ -221,23 +221,15 @@ export default function H5DecorateEditor({ decorateId: idProp, pageType: pageTyp
                 </div>
                 <div className="h5-editor-header-right">
                     {s.hasDraft && (
-                        <Button onClick={onContinueDraft} style={{ marginRight: 8 }}>
-                            恢复草稿
-                        </Button>
+                        <Button onClick={onContinueDraft} style={{ marginRight: 8 }}>{t('恢复草稿')}</Button>
                     )}
-                    <Button loading={saving} onClick={onSavetoDraft} style={{ marginRight: 8 }}>
-                        保存草稿
-                    </Button>
-                    <Button theme="solid" type="primary" loading={saving} onClick={onPublish}>
-                        发布上线
-                    </Button>
+                    <Button loading={saving} onClick={onSavetoDraft} style={{ marginRight: 8 }}>{t('保存草稿')}</Button>
+                    <Button theme="solid" type="primary" loading={saving} onClick={onPublish}>{t('发布上线')}</Button>
                 </div>
             </div>
             <div className="h5-editor-body">
                 <div className="h5-editor-left">
-                    <div className="h5-editor-page-entry" onClick={() => editorStore.selectPage()}>
-                        页面设置
-                    </div>
+                    <div className="h5-editor-page-entry" onClick={() => editorStore.selectPage()}>{t('页面设置')}</div>
                     <ModuleToolbar pageType={pageType} isShop={localStorage.getItem("adminType") === "shop"} />
                 </div>
                 <div className="h5-editor-center">

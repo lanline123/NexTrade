@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Checkbox,
+  CheckboxGroup,
   DatePicker,
   Dropdown,
   Input,
@@ -14,17 +15,20 @@ import {
   SideSheet,
   Space,
   Spin,
+  Switch,
   Table,
   Tag,
+  TabPane,
+  Tabs,
   TextArea,
   Toast,
   Tooltip,
   Typography,
 } from '@douyinfe/semi-ui';
 import { IconPlus, IconRefresh, IconSearch } from '@douyinfe/semi-icons';
-import { apiGet, apiPost, apiUpload, getToken } from '../api';
+import { apiDownload, apiGet, apiPost, apiUpload, getToken } from '../api';
 import ListPage from '../framework/ListPage';
-import type { ColumnConfig } from '../framework/types';
+import type { ColumnConfig, FilterConfig } from '../framework/types';
 import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
 
@@ -39,73 +43,710 @@ function Simple({
   rowKey = 'id',
   label,
   columns,
+  rowActions,
+  toolbarExtra,
+  filters,
+  query,
+  listMethod,
 }: {
   api: string;
   rowKey?: string;
   label: string;
   columns: ColumnConfig<Row>[];
+  rowActions?: (record: Row) => ReactNode;
+  toolbarExtra?: ReactNode;
+  filters?: FilterConfig[];
+  query?: Record<string, unknown>;
+  listMethod?: 'get' | 'post';
 }) {
   return (
     <ListPage<Row>
       api={api}
+      listMethod={listMethod}
       rowKey={rowKey}
       pageSize={10}
-      filters={[
-        { field: 'keyword', label, type: 'input', placeholder: `输入${label}`, width: 240 },
-      ]}
+      query={query}
+      filters={
+        filters ?? [
+          { field: 'keyword', label, type: 'input', placeholder: `输入${label}`, width: 240 },
+        ]
+      }
       columns={columns}
+      rowActions={rowActions}
+      toolbarExtra={toolbarExtra}
     />
   );
 }
 
+/** 把 /product/category/getAllCategory 的树拍平为多选 optionList。 */
+function useCategoryOptions(visible: boolean) {
+  const [options, setOptions] = useState<Array<{ label: string; value: number }>>([]);
+  useEffect(() => {
+    if (!visible) return;
+    let alive = true;
+    apiGet<any[]>('/product/category/getAllCategory')
+      .then((data) => {
+        if (!alive) return;
+        const flat: Array<{ label: string; value: number }> = [];
+        const walk = (nodes: any[], depth = 0) =>
+          (Array.isArray(nodes) ? nodes : []).forEach((node) => {
+            if (!node) return;
+            const id = Number(node.categoryId ?? node.id);
+            if (Number.isFinite(id)) {
+              flat.push({
+                label: `${'　'.repeat(depth)}${node.categoryName ?? node.name ?? id}`,
+                value: id,
+              });
+            }
+            if (Array.isArray(node.children)) walk(node.children, depth + 1);
+          });
+        walk(Array.isArray(data) ? data : (data as any)?.records || []);
+        setOptions(flat);
+      })
+      .catch(() => alive && setOptions([]));
+    return () => {
+      alive = false;
+    };
+  }, [visible]);
+  return options;
+}
+
+/** 适用组织：店铺走 /merchant/shop/list，供应商走 /supplyChain/supplier/list。 */
+function useOrganizationOptions(visible: boolean, targetType: number) {
+  const [options, setOptions] = useState<Array<{ label: string; value: number }>>([]);
+  useEffect(() => {
+    if (!visible) return;
+    let alive = true;
+    const api = targetType === 2 ? '/supplyChain/supplier/list' : '/merchant/shop/list';
+    apiGet<any>(api, { page: 1, size: 200 })
+      .then((data) => {
+        if (!alive) return;
+        const list = Array.isArray(data) ? data : data?.records || data?.list || [];
+        setOptions(
+          (list as any[]).map((item) => {
+            const id = Number(
+              targetType === 2
+                ? item.supplierId ?? item.vendorId ?? item.id
+                : item.shopId ?? item.id,
+            );
+            return {
+              label: String(item.shopName ?? item.supplierName ?? item.shopTitle ?? item.name ?? id),
+              value: id,
+            };
+          }).filter((item) => Number.isFinite(item.value)),
+        );
+      })
+      .catch(() => alive && setOptions([]));
+    return () => {
+      alive = false;
+    };
+  }, [visible, targetType]);
+  return options;
+}
+
+const DEPOSIT_MERCHANT_TYPES = [
+  { label: '个人', value: 1 },
+  { label: '企业', value: 2 },
+];
+const DEPOSIT_ORG_SCOPES = [
+  { label: '店铺', value: 1 },
+  { label: '供应商', value: 2 },
+];
+
+interface DepositRuleForm {
+  shopDepositRuleId?: number;
+  ruleName: string;
+  merchantTypes: number[];
+  shopType: number;
+  categoryIds: number[];
+  depositAmount: string;
+  effectiveMode: 1 | 2;
+  startDate: string;
+  endDate: string;
+  longStartDate: string;
+  status: number;
+}
+
+const emptyDepositRuleForm = (): DepositRuleForm => ({
+  ruleName: '',
+  merchantTypes: [],
+  shopType: 1,
+  categoryIds: [],
+  depositAmount: '',
+  effectiveMode: 1,
+  startDate: '',
+  endDate: '',
+  longStartDate: '',
+  status: 1,
+});
+
+/** 旧版传的是 Unix 秒，前端 DatePicker 用 "YYYY-MM-DD HH:mm" 字符串。 */
+const dateTimeToUnix = (text: string): number => {
+  if (!text) return 0;
+  const ms = new Date(text.replace(' ', 'T')).getTime();
+  return Number.isFinite(ms) ? Math.floor(ms / 1000) : 0;
+};
+
+const unixToDateTime = (value: unknown): string => {
+  const sec = Number(value || 0);
+  if (!Number.isFinite(sec) || sec <= 0) return '';
+  const d = new Date(sec * 1000);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/** 保证金规则：旧版有筛选 / 添加 / 编辑 / 删除 / 启停 / 类目选择 / 生效时间两种模式。 */
 export function DepositRules() {
+  const { t } = useI18n();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
+  const [form, setForm] = useState<DepositRuleForm>(emptyDepositRuleForm());
+  const [saving, setSaving] = useState(false);
+  const categoryOptions = useCategoryOptions(Boolean(editor));
+
+  const reload = () => setReloadKey((key) => key + 1);
+  const setField = <K extends keyof DepositRuleForm>(key: K, value: DepositRuleForm[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  const openEditor = async (mode: 'create' | 'edit', row?: Row) => {
+    setEditor(mode);
+    setForm(emptyDepositRuleForm());
+    if (mode !== 'edit' || !row) return;
+    try {
+      const detail = await apiGet<Row>('/deposit/rule/detail', { id: row.shopDepositRuleId });
+      const start = unixToDateTime(detail.startTime);
+      const end = unixToDateTime(detail.endTime);
+      setForm({
+        shopDepositRuleId: detail.shopDepositRuleId,
+        ruleName: detail.ruleName || '',
+        merchantTypes: (detail.merchantTypes || []).map(Number),
+        shopType: Number((detail.shopTypes || [])[0] || 1),
+        categoryIds: (detail.categoryIds || []).map(Number),
+        depositAmount: String(detail.depositAmount ?? ''),
+        effectiveMode: Number(detail.endTime) > 0 ? 1 : 2,
+        startDate: Number(detail.endTime) > 0 ? start : '',
+        endDate: end,
+        longStartDate: Number(detail.endTime) > 0 ? '' : start,
+        status: Number(detail.status ?? 1),
+      });
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('详情加载失败') });
+    }
+  };
+
+  const submit = async () => {
+    if (!form.ruleName.trim()) return Toast.warning({ content: t('请输入规则名称') });
+    if (!form.merchantTypes.length) return Toast.warning({ content: t('请选择主体类型') });
+    if (!form.categoryIds.length) return Toast.warning({ content: t('请选择适用类目') });
+    if (!form.depositAmount || Number(form.depositAmount) < 0)
+      return Toast.warning({ content: t('请输入保证金金额') });
+    const startText = form.effectiveMode === 2 ? form.longStartDate : form.startDate;
+    if (!startText) return Toast.warning({ content: t('请选择生效时间') });
+    if (form.effectiveMode === 1 && !form.endDate)
+      return Toast.warning({ content: t('请选择生效结束时间') });
+
+    const payload: Record<string, unknown> = {
+      ruleName: form.ruleName.trim(),
+      merchantTypes: form.merchantTypes,
+      shopTypes: [form.shopType],
+      categoryIds: form.categoryIds,
+      depositAmount: Number(form.depositAmount),
+      startTime: dateTimeToUnix(startText),
+      endTime: form.effectiveMode === 2 ? 0 : dateTimeToUnix(form.endDate),
+      status: form.status,
+    };
+    if (editor === 'edit' && form.shopDepositRuleId) {
+      payload.shopDepositRuleId = form.shopDepositRuleId;
+    }
+    setSaving(true);
+    try {
+      await apiPost(editor === 'edit' ? '/deposit/rule/update' : '/deposit/rule/create', payload);
+      Toast.success({ content: t('操作成功') });
+      setEditor(null);
+      reload();
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changeStatus = async (row: Row, next: number) => {
+    try {
+      await apiPost('/deposit/rule/status', { shopDepositRuleId: row.shopDepositRuleId, status: next });
+      Toast.success({ content: t('操作成功') });
+      reload();
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
+  const remove = (row: Row) => {
+    Modal.confirm({
+      title: t('删除规则'),
+      content: t('确定删除规则「{name}」？', { name: row.ruleName || '' }),
+      onOk: async () => {
+        await apiPost('/deposit/rule/del', { id: row.shopDepositRuleId });
+        Toast.success({ content: t('删除成功') });
+        reload();
+      },
+    });
+  };
+
   return (
-    <Simple
-      api="/deposit/rule/list"
-      rowKey="shopDepositRuleId"
-      label="规则名称"
-      columns={[
-        { title: '规则名称', dataIndex: 'ruleName' },
-        { title: '商家类型', dataIndex: 'merchantTypeText', width: 120 },
-        { title: '保证金金额', dataIndex: 'depositAmount', width: 130 },
-        { title: '规则状态', dataIndex: 'statusText', width: 120 },
-        { title: '生效时间', dataIndex: 'effectiveTime', width: 180 },
-        { title: '创建时间', dataIndex: 'createTime', width: 180 },
-      ]}
-    />
+    <>
+      <Simple
+        key={reloadKey}
+        api="/deposit/rule/list"
+        rowKey="shopDepositRuleId"
+        label="规则名称"
+        filters={[
+          { field: 'ruleName', label: t('规则名称'), type: 'input', placeholder: t('请输入规则名称'), width: 220 },
+          { field: 'status', label: t('规则状态'), type: 'select', options: [{ label: t('启用'), value: 1 }, { label: t('禁用'), value: 0 }], width: 160 },
+        ]}
+        toolbarExtra={
+          <Button theme="solid" type="primary" icon={<IconPlus />} onClick={() => void openEditor('create')}>
+            {t('添加规则')}
+          </Button>
+        }
+        columns={[
+          { title: '规则名称', dataIndex: 'ruleName' },
+          {
+            title: '适用类目',
+            dataIndex: 'categoryNames',
+            width: 220,
+            render: (value: unknown) => {
+              const names = Array.isArray(value) ? value : [];
+              return names.length ? (
+                <Tooltip content={names.join('、')}>
+                  <span>{names.join('、')}</span>
+                </Tooltip>
+              ) : '--';
+            },
+          },
+          { title: '商家类型', dataIndex: 'merchantTypeText', width: 120 },
+          {
+            title: '保证金金额',
+            dataIndex: 'depositAmount',
+            width: 130,
+            render: (value: unknown) => `¥${Number(value || 0).toFixed(2)}`,
+          },
+          {
+            title: '规则状态',
+            dataIndex: 'status',
+            width: 110,
+            render: (value: unknown, row: Row) => (
+              <Switch
+                checked={Number(value) === 1}
+                onChange={(checked) => void changeStatus(row, checked ? 1 : 0)}
+              />
+            ),
+          },
+          {
+            title: '生效时间',
+            dataIndex: 'startTimeText',
+            width: 240,
+            render: (_: unknown, row: Row) => {
+              const start = row.startTimeText || unixToDateTime(row.startTime) || '--';
+              const end = Number(row.endTime) === 0 ? t('长期有效') : row.endTimeText || unixToDateTime(row.endTime) || '--';
+              return `${start} ~ ${end}`;
+            },
+          },
+          { title: '创建时间', dataIndex: 'addTime', width: 170 },
+        ]}
+        rowActions={(row) => (
+          <Space spacing={4}>
+            <Button theme="borderless" size="small" onClick={() => void openEditor('edit', row)}>
+              {t('编辑')}
+            </Button>
+            <Button theme="borderless" size="small" type="danger" onClick={() => remove(row)}>
+              {t('删除')}
+            </Button>
+          </Space>
+        )}
+      />
+      <Modal
+        title={editor === 'edit' ? t('编辑规则') : t('添加规则')}
+        visible={Boolean(editor)}
+        onCancel={() => setEditor(null)}
+        onOk={() => void submit()}
+        okText={t('保存')}
+        cancelText={t('取消')}
+        okButtonProps={{ loading: saving }}
+        width={720}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('规则名称')}</div>
+            <Input value={form.ruleName} onChange={(v) => setField('ruleName', String(v))} placeholder={t('请输入规则名称')} maxLength={50} style={{ width: 400 }} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('主体类型')}</div>
+            <CheckboxGroup
+              options={DEPOSIT_MERCHANT_TYPES.map((o) => ({ ...o, label: t(o.label) }))}
+              value={form.merchantTypes}
+              onChange={(values) => setField('merchantTypes', (values as number[]) || [])}
+            />
+            <div style={{ color: 'var(--semi-color-text-2)', fontSize: 12, marginTop: 4 }}>
+              {t('限定规则适用商户资质，勾选类型的商户按本规则缴保')}
+            </div>
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('适用组织')}</div>
+            <RadioGroup value={form.shopType} onChange={(e) => setField('shopType', Number(e.target.value))}>
+              {DEPOSIT_ORG_SCOPES.map((o) => (
+                <Radio key={o.value} value={o.value}>{t(o.label)}</Radio>
+              ))}
+            </RadioGroup>
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('适用类目')}</div>
+            <Select
+              multiple
+              filter
+              showClear
+              maxTagCount={4}
+              style={{ width: 400 }}
+              placeholder={t('请选择适用类目')}
+              optionList={categoryOptions}
+              value={form.categoryIds}
+              onChange={(v) => setField('categoryIds', (v as number[]) || [])}
+            />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('保证金金额')}</div>
+            <Input value={form.depositAmount} onChange={(v) => setField('depositAmount', String(v))} placeholder={t('请输入保证金金额')} style={{ width: 200 }} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('生效时间')}</div>
+            <RadioGroup
+              value={form.effectiveMode}
+              onChange={(e) => setField('effectiveMode', Number(e.target.value) as 1 | 2)}
+            >
+              <Radio value={1}>{t('区间有效')}</Radio>
+              <Radio value={2}>{t('长期有效')}</Radio>
+            </RadioGroup>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              {form.effectiveMode === 1 ? (
+                <>
+                  <DatePicker
+                    type="dateTime"
+                    format="yyyy-MM-dd HH:mm"
+                    value={form.startDate}
+                    placeholder={t('开始日期')}
+                    onChange={(_d, str) => setField('startDate', typeof str === 'string' ? str : '')}
+                  />
+                  <span>~</span>
+                  <DatePicker
+                    type="dateTime"
+                    format="yyyy-MM-dd HH:mm"
+                    value={form.endDate}
+                    placeholder={t('结束日期')}
+                    onChange={(_d, str) => setField('endDate', typeof str === 'string' ? str : '')}
+                  />
+                </>
+              ) : (
+                <>
+                  <DatePicker
+                    type="dateTime"
+                    format="yyyy-MM-dd HH:mm"
+                    value={form.longStartDate}
+                    placeholder={t('开始日期')}
+                    onChange={(_d, str) => setField('longStartDate', typeof str === 'string' ? str : '')}
+                  />
+                  <span>~ {t('长期')}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('规则状态')}</div>
+            <Switch checked={form.status === 1} onChange={(checked) => setField('status', checked ? 1 : 0)} />
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
+interface PayeeAccountForm {
+  id?: number;
+  accountType: number;
+  accountName: string;
+  accountNo: string;
+  bankName: string;
+  bankBranch: string;
+  status: number;
+  sortOrder: number;
+}
+
+const emptyPayeeAccountForm = (): PayeeAccountForm => ({
+  accountType: 1,
+  accountName: '',
+  accountNo: '',
+  bankName: '',
+  bankBranch: '',
+  status: 1,
+  sortOrder: 0,
+});
+
+/** 保证金收款账户：旧版有新增 / 编辑 / 删除，迁移后曾只有只读表格。 */
 export function DepositAccounts() {
+  const { t } = useI18n();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
+  const [form, setForm] = useState<PayeeAccountForm>(emptyPayeeAccountForm());
+  const [saving, setSaving] = useState(false);
+  const reload = () => setReloadKey((key) => key + 1);
+  const setField = <K extends keyof PayeeAccountForm>(key: K, value: PayeeAccountForm[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  const openEditor = (mode: 'create' | 'edit', row?: Row) => {
+    setEditor(mode);
+    setForm(
+      mode === 'edit' && row
+        ? {
+            id: row.id,
+            accountType: Number(row.accountType ?? 1),
+            accountName: row.accountName || '',
+            accountNo: row.accountNo || '',
+            bankName: row.bankName || '',
+            bankBranch: row.bankBranch || '',
+            status: Number(row.status ?? 1),
+            sortOrder: Number(row.sortOrder ?? 0),
+          }
+        : emptyPayeeAccountForm(),
+    );
+  };
+
+  const submit = async () => {
+    if (!form.accountName.trim()) return Toast.warning({ content: t('请输入账户名称') });
+    if (!form.accountNo.trim()) return Toast.warning({ content: t('请输入账号') });
+    setSaving(true);
+    try {
+      await apiPost(editor === 'edit' ? '/deposit/payeeAccount/update' : '/deposit/payeeAccount/create', form);
+      Toast.success({ content: t('操作成功') });
+      setEditor(null);
+      reload();
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = (row: Row) => {
+    Modal.confirm({
+      title: t('删除收款账户'),
+      content: t('确定删除账户「{name}」？', { name: row.accountName || '' }),
+      onOk: async () => {
+        await apiPost('/deposit/payeeAccount/del', { id: row.id });
+        Toast.success({ content: t('删除成功') });
+        reload();
+      },
+    });
+  };
+
   return (
-    <Simple
-      api="/deposit/payeeAccount/list"
-      label="账户名称"
-      columns={[
-        { title: '账户名称', dataIndex: 'accountName' },
-        { title: '账号', dataIndex: 'accountNo' },
-        { title: '账户类型', dataIndex: 'accountTypeText', width: 130 },
-        { title: '创建时间', dataIndex: 'createTime', width: 180 },
-      ]}
-    />
+    <>
+      <Simple
+        key={reloadKey}
+        api="/deposit/payeeAccount/list"
+        label="账户名称"
+        filters={[
+          { field: 'keyword', label: t('账户名称'), type: 'input', placeholder: t('请输入账户名称/账号'), width: 220 },
+          { field: 'accountType', label: t('账户类型'), type: 'select', options: [{ label: t('银行卡'), value: 1 }, { label: t('支付宝'), value: 2 }, { label: t('微信'), value: 3 }], width: 150 },
+          { field: 'status', label: t('状态'), type: 'select', options: [{ label: t('启用'), value: 1 }, { label: t('禁用'), value: 0 }], width: 130 },
+        ]}
+        toolbarExtra={
+          <Button theme="solid" type="primary" icon={<IconPlus />} onClick={() => openEditor('create')}>
+            {t('添加账户')}
+          </Button>
+        }
+        columns={[
+          { title: '账户名称', dataIndex: 'accountName' },
+          { title: '账号', dataIndex: 'accountNo' },
+          { title: '账户类型', dataIndex: 'accountTypeText', width: 130 },
+          { title: '银行名称', dataIndex: 'bankName', width: 150 },
+          { title: '开户支行', dataIndex: 'bankBranch', width: 180 },
+          {
+            title: '规则状态',
+            dataIndex: 'status',
+            width: 110,
+            render: (value: unknown) =>
+              Number(value) === 1 ? <Tag color="green">{t('启用')}</Tag> : <Tag color="grey">{t('禁用')}</Tag>,
+          },
+          { title: '创建时间', dataIndex: 'createTime', width: 170 },
+        ]}
+        rowActions={(row) => (
+          <Space spacing={4}>
+            <Button theme="borderless" size="small" onClick={() => openEditor('edit', row)}>{t('编辑')}</Button>
+            <Button theme="borderless" size="small" type="danger" onClick={() => remove(row)}>{t('删除')}</Button>
+          </Space>
+        )}
+      />
+      <Modal
+        title={editor === 'edit' ? t('编辑收款账户') : t('添加收款账户')}
+        visible={Boolean(editor)}
+        onCancel={() => setEditor(null)}
+        onOk={() => void submit()}
+        okText={t('保存')}
+        cancelText={t('取消')}
+        okButtonProps={{ loading: saving }}
+        width={560}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('账户类型')}</div>
+            <Select
+              style={{ width: '100%' }}
+              value={form.accountType}
+              optionList={[{ label: t('银行卡'), value: 1 }, { label: t('支付宝'), value: 2 }, { label: t('微信'), value: 3 }]}
+              onChange={(v) => setField('accountType', Number(v))}
+            />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('账户名称')}</div>
+            <Input value={form.accountName} onChange={(v) => setField('accountName', String(v))} placeholder={t('请输入账户名称')} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('账号')}</div>
+            <Input value={form.accountNo} onChange={(v) => setField('accountNo', String(v))} placeholder={t('请输入账号')} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('银行名称')}</div>
+            <Input value={form.bankName} onChange={(v) => setField('bankName', String(v))} placeholder={t('请输入银行名称')} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('开户支行')}</div>
+            <Input value={form.bankBranch} onChange={(v) => setField('bankBranch', String(v))} placeholder={t('请输入开户支行')} />
+          </div>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div>
+              <div style={{ marginBottom: 6 }}>{t('状态')}</div>
+              <Switch checked={form.status === 1} onChange={(checked) => setField('status', checked ? 1 : 0)} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ marginBottom: 6 }}>{t('排序')}</div>
+              <Input value={String(form.sortOrder)} onChange={(v) => setField('sortOrder', Number(v) || 0)} />
+            </div>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
+/** 保证金查询：旧版有调整/扣除/预警/详情/调整日志，迁移后曾被压平成只读表格，这里恢复操作。 */
 export function DepositQuery() {
+  const { t } = useI18n();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [action, setAction] = useState<{ mode: 'adjust' | 'deduct' | 'warn'; row: Row } | null>(null);
+  const [amount, setAmount] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const open = (mode: 'adjust' | 'deduct' | 'warn', row: Row) => {
+    setAction({ mode, row });
+    setAmount('');
+    setReason('');
+  };
+
+  const submit = async () => {
+    if (!action) return;
+    const { mode, row } = action;
+    if (mode !== 'warn' && (!amount || Number(amount) <= 0)) {
+      Toast.warning({ content: t('请输入大于 0 的金额') });
+      return;
+    }
+    const ownerId = row.shopId ?? row.ownerId ?? row.id;
+    const payload =
+      mode === 'adjust'
+        ? { ownerId, shopId: ownerId, adjustType: 2, requiredManual: Number(amount), reason }
+        : mode === 'deduct'
+          ? { ownerId, shopId: ownerId, amount: Number(amount), reason }
+          : {
+              ownerId,
+              shopId: ownerId,
+              title: t('保证金预警'),
+              content: reason || t('您的保证金余额不足，请及时补缴。'),
+            };
+    setBusy(true);
+    try {
+      await apiPost(`/deposit/account/${mode === 'warn' ? 'sendWarning' : mode}`, payload);
+      Toast.success({ content: t('操作成功') });
+      setAction(null);
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const actionTitle: Record<string, string> = {
+    adjust: t('调整保证金'),
+    deduct: t('扣除保证金'),
+    warn: t('发送保证金预警'),
+  };
+
   return (
-    <Simple
-      api="/deposit/account/list"
-      rowKey="shopId"
-      label="组织名称"
-      columns={[
-        { title: '组织名称', dataIndex: 'shopName' },
-        { title: '经营类目', dataIndex: 'categoryName', width: 140 },
-        { title: '应缴金额', dataIndex: 'shouldAmount', width: 130 },
-        { title: '已缴金额', dataIndex: 'paidAmount', width: 130 },
-        { title: '剩余待缴', dataIndex: 'remainingAmount', width: 130 },
-        { title: '保证金状态', dataIndex: 'statusText', width: 130 },
-      ]}
-    />
+    <>
+      <Simple
+        key={reloadKey}
+        api="/deposit/account/list"
+        rowKey="shopId"
+        label="组织名称"
+        columns={[
+          { title: '组织名称', dataIndex: 'shopName' },
+          { title: '经营类目', dataIndex: 'categoryName', width: 140 },
+          { title: '应缴金额', dataIndex: 'shouldAmount', width: 130 },
+          { title: '已缴金额', dataIndex: 'paidAmount', width: 130 },
+          { title: '剩余待缴', dataIndex: 'remainingAmount', width: 130 },
+          { title: '保证金状态', dataIndex: 'statusText', width: 130 },
+        ]}
+        rowActions={(row) => (
+          <Space>
+            <Button theme="borderless" size="small" onClick={() => open('adjust', row)}>
+              {t('调整保证金')}
+            </Button>
+            <Button theme="borderless" size="small" onClick={() => open('deduct', row)}>
+              {t('扣除保证金')}
+            </Button>
+            <Button theme="borderless" size="small" onClick={() => open('warn', row)}>
+              {t('发送预警')}
+            </Button>
+          </Space>
+        )}
+      />
+      <Modal
+        title={action ? actionTitle[action.mode] : ''}
+        visible={Boolean(action)}
+        onCancel={() => setAction(null)}
+        onOk={submit}
+        okText={t('提交')}
+        cancelText={t('取消')}
+        okButtonProps={{ loading: busy, disabled: busy }}
+        width={480}
+      >
+        {action?.mode !== 'warn' && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ marginBottom: 6 }}>{t('金额')}</div>
+            <Input
+              value={amount}
+              onChange={(next) => setAmount(String(next))}
+              placeholder={t('请输入金额')}
+              style={{ width: '100%' }}
+            />
+          </div>
+        )}
+        <div>
+          <div style={{ marginBottom: 6 }}>{t('原因 / 内容')}</div>
+          <TextArea value={reason} onChange={setReason} rows={3} />
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -116,6 +757,7 @@ export function DepositAudit() {
   const [auditTarget, setAuditTarget] = useState<Row | null>(null);
   const [auditPass, setAuditPass] = useState(true);
   const [auditRemark, setAuditRemark] = useState('');
+  const [voucherPhotos, setVoucherPhotos] = useState<string[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
   const isRefund = mainTab === 'refund';
 
@@ -132,17 +774,27 @@ export function DepositAudit() {
 
   const submitAudit = async () => {
     if (!auditTarget) return;
+    // 旧版退还审核：通过必须上传打款凭证，驳回必须填写备注；不再硬编码空凭证。
+    if (isRefund && auditPass && !voucherPhotos.length) {
+      Toast.warning({ content: t('请上传打款凭证') });
+      return;
+    }
+    if (!auditPass && !auditRemark.trim()) {
+      Toast.warning({ content: t('请填写审核备注') });
+      return;
+    }
     try {
       const payload: Record<string, unknown> = {
         id: rowId(auditTarget),
         pass: auditPass,
         auditRemark: auditRemark.trim(),
       };
-      if (isRefund && auditPass) payload.payVoucher = '';
+      if (isRefund && auditPass) payload.payVoucher = voucherPhotos.join(',');
       await apiPost(`/deposit/${mainTab}/audit`, payload);
       Toast.success({ content: t('审核完成') });
       setAuditTarget(null);
       setAuditRemark('');
+      setVoucherPhotos([]);
       setReloadKey((key) => key + 1);
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : t('审核失败') });
@@ -201,7 +853,7 @@ export function DepositAudit() {
               {t('详细')}
             </Button>
             {Number(record.status) === 0 ? (
-              <Button theme="borderless" type="warning" size="small" onClick={() => { setAuditTarget(record); setAuditPass(true); setAuditRemark(''); }}>
+              <Button theme="borderless" type="warning" size="small" onClick={() => { setAuditTarget(record); setAuditPass(true); setAuditRemark(''); setVoucherPhotos([]); }}>
                 {isRefund ? t('退还审核') : t('充值审核')}
               </Button>
             ) : null}
@@ -231,6 +883,7 @@ export function DepositAudit() {
         onCancel={() => setAuditTarget(null)}
         onOk={() => void submitAudit()}
         okText={t('提交审核')}
+        okButtonProps={{ disabled: isRefund && auditPass && !voucherPhotos.length }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>{t('组织名称')}：{auditTarget?.shopName || auditTarget?.ownerName || '--'}</div>
@@ -239,41 +892,426 @@ export function DepositAudit() {
             <label><input type="radio" checked={auditPass} onChange={() => setAuditPass(true)} /> {t('审核通过')}</label>
             <label><input type="radio" checked={!auditPass} onChange={() => setAuditPass(false)} /> {t('审核驳回')}</label>
           </div>
-          <TextArea value={auditRemark} onChange={setAuditRemark} placeholder={t('审核备注')} rows={3} />
+          {isRefund && auditPass && (
+            <div>
+              <div style={{ marginBottom: 6 }}>{t('打款凭证（通过时必传）')}</div>
+              <ImageUploader value={voucherPhotos} onChange={setVoucherPhotos} max={5} />
+            </div>
+          )}
+          <TextArea
+            value={auditRemark}
+            onChange={setAuditRemark}
+            placeholder={auditPass ? t('审核备注') : t('请输入驳回原因（必填）')}
+            rows={3}
+          />
         </div>
       </Modal>
     </div>
   );
 }
 
+/** 交易流水：旧版有组织类型 / 主体类型 / 交易类型 / 快捷时间 / 交易详情。 */
 export function DepositLogs() {
+  const { t } = useI18n();
+  const [quickRange, setQuickRange] = useState('');
+  const [detail, setDetail] = useState<Row | null>(null);
+
+  const timeQuery = useCallback((): Record<string, unknown> => {
+    if (!quickRange) return {};
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    if (quickRange === 'yesterday') {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    } else if (quickRange === '7days') {
+      start.setDate(start.getDate() - 6);
+    } else if (quickRange === '30days') {
+      start.setDate(start.getDate() - 29);
+    } else if (quickRange === 'halfYear') {
+      start.setMonth(start.getMonth() - 6);
+    }
+    return {
+      startTime: Math.floor(start.getTime() / 1000),
+      endTime: Math.floor(end.getTime() / 1000),
+    };
+  }, [quickRange]);
+
+  const openDetail = async (row: Row) => {
+    try {
+      const data = await apiGet<Row>('/deposit/log/detail', { id: row.shopDepositLogId ?? row.id });
+      setDetail(data || row);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('详情加载失败') });
+    }
+  };
+
   return (
-    <Simple
-      api="/deposit/log/list"
-      rowKey="shopDepositLogId"
-      label="组织名称"
-      columns={[
-        { title: '组织名称', dataIndex: 'shopName' },
-        { title: '交易类型', dataIndex: 'typeText', width: 130 },
-        { title: '交易金额', dataIndex: 'amount', width: 130 },
-        { title: '交易时间', dataIndex: 'addTimeText', width: 170 },
-      ]}
-    />
+    <>
+      <Simple
+        api="/deposit/log/list"
+        rowKey="shopDepositLogId"
+        label="组织名称"
+        query={timeQuery()}
+        filters={[
+          { field: 'ownerName', label: t('组织名称'), type: 'input', placeholder: t('请输入组织名称'), width: 200 },
+          { field: 'ownerType', label: t('组织类型'), type: 'select', options: [{ label: t('店铺'), value: 1 }, { label: t('供应商'), value: 2 }], width: 140 },
+          { field: 'subjectType', label: t('主体类型'), type: 'select', options: [{ label: t('个人'), value: 1 }, { label: t('企业'), value: 2 }], width: 140 },
+          { field: 'type', label: t('交易类型'), type: 'select', options: [{ label: t('缴纳'), value: 1 }, { label: t('扣除'), value: 2 }, { label: t('退还'), value: 3 }], width: 140 },
+          { field: 'tradeNo', label: t('交易单号'), type: 'input', placeholder: t('请输入交易单号'), width: 190 },
+        ]}
+        toolbarExtra={
+          <Select
+            showClear
+            style={{ width: 150 }}
+            placeholder={t('快捷时间')}
+            value={quickRange || undefined}
+            onChange={(v) => setQuickRange(String(v || ''))}
+            optionList={[
+              { label: t('今天'), value: 'today' },
+              { label: t('昨天'), value: 'yesterday' },
+              { label: t('近7天'), value: '7days' },
+              { label: t('近30天'), value: '30days' },
+              { label: t('近半年'), value: 'halfYear' },
+            ]}
+          />
+        }
+        columns={[
+          { title: '组织名称', dataIndex: 'shopName', render: (v: unknown, row: Row) => row.shopName || row.ownerName || v || '--' },
+          { title: '主体类型', dataIndex: 'subjectTypeText', width: 110 },
+          { title: '交易类型', dataIndex: 'typeText', width: 110 },
+          { title: '交易金额', dataIndex: 'amount', width: 130, render: (v: unknown) => `¥${Number(v || 0).toFixed(2)}` },
+          { title: '支付方式', dataIndex: 'payeeAccountTypeText', width: 120 },
+          { title: '交易备注', dataIndex: 'remark', width: 160, render: (v: unknown) => String(v || '--') },
+          { title: '关联凭证', dataIndex: 'payVoucher', width: 110, render: (v: unknown) => (v ? <Tag color="green">{t('已上传')}</Tag> : '--') },
+          { title: '交易时间', dataIndex: 'addTimeText', width: 170 },
+        ]}
+        rowActions={(row) => (
+          <Button theme="borderless" size="small" onClick={() => void openDetail(row)}>{t('详细')}</Button>
+        )}
+      />
+      <Modal title={t('交易详情')} visible={Boolean(detail)} footer={null} onCancel={() => setDetail(null)} width={640}>
+        {detail ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {Object.entries(detail)
+              .filter(([, value]) => value !== undefined && value !== null && value !== '' && typeof value !== 'object')
+              .map(([key, value]) => (
+                <div key={key} style={{ display: 'flex', gap: 16 }}>
+                  <span style={{ width: 190, color: 'var(--semi-color-text-2)' }}>{key}</span>
+                  <span>{String(value)}</span>
+                </div>
+              ))}
+          </div>
+        ) : null}
+      </Modal>
+    </>
   );
 }
 
+type FeeRuleTabKey = 'store' | 'supplier';
+type OrganizationMode = 'ALL' | 'INCLUDE' | 'EXCLUDE';
+
+interface FeeRuleForm {
+  id?: number;
+  ruleName: string;
+  categoryIds: number[];
+  organizationMode: OrganizationMode;
+  targetIds: number[];
+  serviceFeeRate: string;
+  remark: string;
+  status: number;
+}
+
+const emptyFeeRuleForm = (): FeeRuleForm => ({
+  ruleName: '',
+  categoryIds: [],
+  organizationMode: 'ALL',
+  targetIds: [],
+  serviceFeeRate: '',
+  remark: '',
+  status: 1,
+});
+
+const scopeTypeOf = (mode: OrganizationMode): number =>
+  mode === 'INCLUDE' ? 2 : mode === 'EXCLUDE' ? 3 : 1;
+
+const modeOfScope = (scope: unknown): OrganizationMode =>
+  Number(scope) === 2 ? 'INCLUDE' : Number(scope) === 3 ? 'EXCLUDE' : 'ALL';
+
+/**
+ * 类目服务费率规则：
+ * - 旧版按「店铺服务费 / 供应商服务费」分 Tab，列表接口是 POST（迁移版曾误用 GET 导致空列表）
+ * - 恢复新增 / 编辑 / 删除 / 启停 / 选择类目 / 适用组织 / 冲突预检 / 费率说明提示
+ */
 export function CategoryFeeRules() {
+  const { t } = useI18n();
+  const [activeTab, setActiveTab] = useState<FeeRuleTabKey>('store');
+  const [reloadKey, setReloadKey] = useState(0);
+  const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
+  const [form, setForm] = useState<FeeRuleForm>(emptyFeeRuleForm());
+  const [saving, setSaving] = useState(false);
+  const targetType = activeTab === 'supplier' ? 2 : 1;
+  const categoryOptions = useCategoryOptions(Boolean(editor));
+  const organizationOptions = useOrganizationOptions(Boolean(editor), targetType);
+
+  const reload = () => setReloadKey((key) => key + 1);
+  const setField = <K extends keyof FeeRuleForm>(key: K, value: FeeRuleForm[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  const openEditor = async (mode: 'create' | 'edit', row?: Row) => {
+    setEditor(mode);
+    setForm(emptyFeeRuleForm());
+    if (mode !== 'edit' || !row) return;
+    try {
+      const detail = await apiGet<Row>('/finance/categoryFeeRule/detail', { id: row.id });
+      setForm({
+        id: detail.id ?? row.id,
+        ruleName: detail.ruleName || '',
+        categoryIds: (detail.categories || []).map((item: Row) => Number(item.categoryId)).filter(Number.isFinite),
+        organizationMode: modeOfScope(detail.scopeType),
+        targetIds: (detail.targets || []).map((item: Row) => Number(item.targetId)).filter(Number.isFinite),
+        serviceFeeRate: String(detail.serviceFeeRate ?? ''),
+        remark: detail.remark || '',
+        status: Number(detail.status ?? 1),
+      });
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('详情加载失败') });
+    }
+  };
+
+  const buildPayload = (): Record<string, unknown> | null => {
+    if (!form.ruleName.trim()) {
+      Toast.warning({ content: t('请输入规则名称') });
+      return null;
+    }
+    if (!form.categoryIds.length) {
+      Toast.warning({ content: t('请选择商品类目') });
+      return null;
+    }
+    const scopeType = scopeTypeOf(form.organizationMode);
+    if (scopeType !== 1 && !form.targetIds.length) {
+      Toast.warning({ content: t('请选择{value}', { value: targetType === 2 ? t('供应商') : t('店铺') }) });
+      return null;
+    }
+    if (!form.serviceFeeRate || Number(form.serviceFeeRate) < 0 || Number(form.serviceFeeRate) > 100) {
+      Toast.warning({ content: t('请输入 0-100 之间的服务费率') });
+      return null;
+    }
+    return {
+      ruleName: form.ruleName.trim(),
+      targetType,
+      scopeType,
+      serviceFeeRate: Number(form.serviceFeeRate),
+      remark: form.remark.trim() || undefined,
+      status: form.status,
+      categoryIds: form.categoryIds,
+      targetIds: scopeType === 1 ? undefined : form.targetIds,
+      ...(editor === 'edit' && form.id ? { id: form.id } : {}),
+    };
+  };
+
+  const submit = async () => {
+    const payload = buildPayload();
+    if (!payload) return;
+    setSaving(true);
+    try {
+      // 与旧版一致：保存前先做规则冲突预检，冲突项提示用户但不硬阻断（后端会自动禁用冲突规则）
+      try {
+        const conflict = await apiPost<{ hasConflict?: boolean; conflicts?: Row[] }>(
+          '/finance/categoryFeeRule/checkConflict',
+          {
+            ruleId: form.id,
+            targetType,
+            scopeType: payload.scopeType,
+            categoryIds: payload.categoryIds,
+            targetIds: payload.targetIds,
+          },
+        );
+        if (conflict?.hasConflict && conflict.conflicts?.length) {
+          Toast.warning({
+            content: t('检测到 {count} 条冲突规则，保存后系统将自动禁用冲突项', { count: conflict.conflicts.length }),
+          });
+        }
+      } catch {
+        // 预检失败不阻断保存，由后端 save/update 的强校验兜底
+      }
+      const disabled = await apiPost<string[]>(
+        editor === 'edit' ? '/finance/categoryFeeRule/update' : '/finance/categoryFeeRule/save',
+        payload,
+      );
+      Toast.success({
+        content: disabled?.length
+          ? t('操作成功，已自动禁用：{join}', { join: disabled.join('、') })
+          : t('操作成功'),
+      });
+      setEditor(null);
+      reload();
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const changeStatus = async (row: Row, next: number) => {
+    try {
+      const disabled = await apiPost<string[]>('/finance/categoryFeeRule/updateStatus', {
+        id: row.id,
+        status: next,
+      });
+      Toast.success({
+        content: disabled?.length
+          ? t('操作成功，已自动禁用：{join}', { join: disabled.join('、') })
+          : t('操作成功'),
+      });
+      reload();
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
+  const remove = (row: Row) => {
+    Modal.confirm({
+      title: t('删除规则'),
+      content: t('删除后规则将无法恢复，请确认是否删除该规则？'),
+      onOk: async () => {
+        await apiPost('/finance/categoryFeeRule/del', { ids: [row.id] });
+        Toast.success({ content: t('删除成功') });
+        reload();
+      },
+    });
+  };
+
+  const organizationLabel = targetType === 2 ? t('供应商') : t('店铺');
+
   return (
-    <Simple
-      api="/finance/categoryFeeRule/list"
-      label="费率名称"
-      columns={[
-        { title: '费率名称', dataIndex: 'ruleName' },
-        { title: '适用类目', dataIndex: 'categoryCount', width: 130 },
-        { title: '服务费率', dataIndex: 'serviceFeeRate', width: 130 },
-        { title: '规则状态', dataIndex: 'statusText', width: 120 },
-      ]}
-    />
+    <>
+      <Simple
+        key={`${activeTab}-${reloadKey}`}
+        api="/finance/categoryFeeRule/list"
+        listMethod="post"
+        query={{ targetType }}
+        label="费率名称"
+        filters={[
+          { field: 'keyword', label: t('费率名称'), type: 'input', placeholder: t('请输入规则名称'), width: 220 },
+          { field: 'status', label: t('规则状态'), type: 'select', options: [{ label: t('启用'), value: 1 }, { label: t('禁用'), value: 0 }], width: 150 },
+        ]}
+        toolbarExtra={
+          <Space>
+            <Tabs type="button" activeKey={activeTab} onChange={(key) => setActiveTab(key as FeeRuleTabKey)}>
+              <TabPane tab={t('店铺服务费')} itemKey="store" />
+              <TabPane tab={t('供应商服务费')} itemKey="supplier" />
+            </Tabs>
+            <Button theme="solid" type="primary" icon={<IconPlus />} onClick={() => void openEditor('create')}>
+              {t('新增规则')}
+            </Button>
+          </Space>
+        }
+        columns={[
+          { title: '费率名称', dataIndex: 'ruleName' },
+          {
+            title: '适用类目',
+            dataIndex: 'categoryCount',
+            width: 130,
+            render: (value: unknown) => (Number(value) > 0 ? t('{count}个类目', { count: Number(value) }) : '--'),
+          },
+          {
+            title: t('服务费率'),
+            dataIndex: 'serviceFeeRate',
+            width: 130,
+            render: (value: unknown) => `${Number(value || 0)}%`,
+          },
+          { title: '适用范围', dataIndex: 'scopeTypeName', width: 130 },
+          {
+            title: '规则状态',
+            dataIndex: 'status',
+            width: 110,
+            render: (value: unknown, row: Row) => (
+              <Switch checked={Number(value) === 1} onChange={(checked) => void changeStatus(row, checked ? 1 : 0)} />
+            ),
+          },
+          { title: '创建时间', dataIndex: 'createTime', width: 170 },
+        ]}
+        rowActions={(row) => (
+          <Space spacing={4}>
+            <Button theme="borderless" size="small" onClick={() => void openEditor('edit', row)}>{t('编辑')}</Button>
+            <Button theme="borderless" size="small" type="danger" onClick={() => remove(row)}>{t('删除')}</Button>
+          </Space>
+        )}
+      />
+      <Modal
+        title={editor === 'edit' ? t('编辑规则') : t('新增规则')}
+        visible={Boolean(editor)}
+        onCancel={() => setEditor(null)}
+        onOk={() => void submit()}
+        okText={t('保存')}
+        cancelText={t('取消')}
+        okButtonProps={{ loading: saving }}
+        width={720}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('规则名称')}</div>
+            <Input value={form.ruleName} onChange={(v) => setField('ruleName', String(v))} placeholder={t('请输入规则名称')} maxLength={50} style={{ width: 400 }} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('选择类目')}</div>
+            <Select
+              multiple
+              filter
+              showClear
+              maxTagCount={4}
+              style={{ width: 400 }}
+              placeholder={t('请选择商品类目')}
+              optionList={categoryOptions}
+              value={form.categoryIds}
+              onChange={(v) => setField('categoryIds', (v as number[]) || [])}
+            />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('适用{organizationLabel}', { organizationLabel })}</div>
+            <RadioGroup
+              value={form.organizationMode}
+              onChange={(e) => setField('organizationMode', String(e.target.value) as OrganizationMode)}
+            >
+              <Radio value="ALL">{t('全部{organizationLabel}', { organizationLabel })}</Radio>
+              <Radio value="INCLUDE">{t('以下{organizationLabel}', { organizationLabel })}</Radio>
+              <Radio value="EXCLUDE">{t('不含以下{organizationLabel}', { organizationLabel })}</Radio>
+            </RadioGroup>
+            {form.organizationMode !== 'ALL' && (
+              <div style={{ marginTop: 8 }}>
+                <Select
+                  multiple
+                  filter
+                  showClear
+                  maxTagCount={4}
+                  style={{ width: 400 }}
+                  placeholder={t('请选择{value}', { value: organizationLabel })}
+                  optionList={organizationOptions}
+                  value={form.targetIds}
+                  onChange={(v) => setField('targetIds', (v as number[]) || [])}
+                />
+              </div>
+            )}
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('服务费率')}</div>
+            <Input value={form.serviceFeeRate} onChange={(v) => setField('serviceFeeRate', String(v))} placeholder={t('请输入服务费率')} style={{ width: 180 }} suffix="%" />
+            <div style={{ color: 'var(--semi-color-text-2)', fontSize: 12, marginTop: 4 }}>
+              {t('优先执行指定对象 + 精确匹配品类的专属规则，其次通用规则，最后采用系统全局默认费率')}
+            </div>
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('备注')}</div>
+            <TextArea value={form.remark} onChange={(v) => setField('remark', String(v))} placeholder={t('请输入备注')} maxCount={200} rows={3} />
+          </div>
+          <div>
+            <div style={{ marginBottom: 6 }}>{t('规则状态')}</div>
+            <Switch checked={form.status === 1} onChange={(checked) => setField('status', checked ? 1 : 0)} />
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -2913,19 +3951,42 @@ export function ProfitSharing() {
   );
 }
 
+/** 账单下载：文件名叫 Download 却一直没有下载动作，这里接回 Rust 的 exportStatement 文件流。 */
 export function StatementDownload() {
+  const { t } = useI18n();
+  const [downloading, setDownloading] = useState(false);
+
+  const download = async () => {
+    setDownloading(true);
+    try {
+      await apiDownload('/finance/statement/exportStatement', {}, t('对账单'));
+      Toast.success({ content: t('报表已开始下载') });
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('下载失败') });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <Simple
-      api="/finance/statement/getStatementStatisticsList"
-      rowKey="invoiceId"
-      label="日期"
-      columns={[
-        { title: '日期', dataIndex: 'statementDate', width: 160 },
-        { title: '账户', dataIndex: 'accountType', width: 140 },
-        { title: '收入', dataIndex: 'income', width: 150 },
-        { title: '支出', dataIndex: 'expenditure', width: 150 },
-      ]}
-    />
+    <>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <Button theme="solid" type="primary" loading={downloading} onClick={download}>
+          {t('下载报表')}
+        </Button>
+      </div>
+      <Simple
+        api="/finance/statement/getStatementStatisticsList"
+        rowKey="invoiceId"
+        label="日期"
+        columns={[
+          { title: '日期', dataIndex: 'statementDate', width: 160 },
+          { title: '账户', dataIndex: 'accountType', width: 140 },
+          { title: '收入', dataIndex: 'income', width: 150 },
+          { title: '支出', dataIndex: 'expenditure', width: 150 },
+        ]}
+      />
+    </>
   );
 }
 

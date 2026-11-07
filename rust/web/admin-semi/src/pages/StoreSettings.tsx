@@ -209,27 +209,6 @@ export default function StoreSettings() {
   return (
     <>
       <AutoConfigPage {...localized} />
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>允许门店自建商品</span>
-        <span>商品默认审核通过</span>
-        <span>门店可修改商品名称</span>
-        <span>门店可修改商品主图、详情页</span>
-        <span>使用门店独立库存</span>
-        <span>使用平台库存</span>
-        <span>库存模式</span>
-        <span>上架</span>
-        <span>下架</span>
-        <span>显示</span>
-        <span>不显示</span>
-        <span>自提优先</span>
-        <span>配送优先</span>
-        <span>同城优先</span>
-        <span>使用总部统一配置</span>
-        <span>使用门店独立配置</span>
-        <span>使用总部/区域统一售价</span>
-        <span>使用门店独立售价</span>
-      </div>
     </>
   );
 }

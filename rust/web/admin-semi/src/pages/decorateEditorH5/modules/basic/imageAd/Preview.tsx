@@ -11,7 +11,9 @@ import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatFrame } from "../../../contract/sharedDefaults";
 import { imageAdDefaults } from "./index";
 
+import { useI18n } from '../../../../../i18n';
 export default function ImageAdPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, imageAdDefaults);
@@ -64,7 +66,7 @@ export default function ImageAdPreview({ data }: { data: Record<string, any> }) 
                 {!module.picList || module.picList.length === 0 ? (
                     <div className="module-ad-empty empty-image_ad">
                         <div className="image-empty-bg" />
-                        <div className="desc">点击添加图片广告</div>
+                        <div className="desc">{t('点击添加图片广告')}</div>
                     </div>
                 ) : null}
                 {module.picType == 2 ? (

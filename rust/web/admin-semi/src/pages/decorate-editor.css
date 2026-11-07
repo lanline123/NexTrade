@@ -2527,3 +2527,82 @@
 .square-thumb--7 i:nth-child(1) { grid-column: span 2; }
 .square-thumb--7 i:nth-child(n+4) { display: none; }
 .square-template__option.is-active .square-thumb i { background: var(--semi-color-primary); }
+
+/* ============ ICO 编码选择器（PcCatFloor 抽屉） ============ */
+/* 整体：预览区 + Tab 分库网格，卡片化容器 */
+.ico-picker {
+  border: 1px solid #e6eaf0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+/* 当前选择预览区 */
+.ico-picker__preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #f8faff, #fff);
+  border-bottom: 1px solid #eef1f6;
+}
+.ico-picker__badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  background: #eaf1ff;
+  color: #165dff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 26px;
+}
+.ico-picker__badge--empty {
+  color: #b6c2d4;
+  background: #f2f4f8;
+}
+/* 图标网格：自适应列数，格子等比 */
+.ico-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 10px;
+  padding: 4px 2px 8px;
+}
+.ico-picker__cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #eef1f6;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 24px;
+  color: #475467;
+  transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+.ico-picker__cell:hover {
+  border-color: #428ce8;
+  box-shadow: 0 2px 8px rgba(66, 140, 232, 0.18);
+  color: #165dff;
+}
+.ico-picker__cell--active {
+  border: 2px solid #428ce8;
+  background: #f0f6ff;
+  color: #165dff;
+}
+.ico-picker__cell--active::after {
+  content: '✓';
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #165dff;
+  color: #fff;
+  font-size: 11px;
+  line-height: 17px;
+  text-align: center;
+}

@@ -353,15 +353,6 @@ export function StaffManagement({ staffType }: { staffType: 'deliveryman' | 'ser
         )}
       </Modal>
 
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>编辑配送员</span>
-        <span>编辑服务员</span>
-        <span>编辑</span>
-        <span>暂无数据</span>
-        <span>提交</span>
-        <span>storeId</span>
-      </div>
     </>
   );
 }

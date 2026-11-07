@@ -80,6 +80,10 @@ export interface OrderRow {
   totalAmount: string;
   paidAmount: string;
   addTime: string;
+  /** 配送方式：3 为同城配送，列表行操作文案用「完成配送」而非「确认收货」。 */
+  shippingTypeId?: number;
+  /** 自提订单不展示确认收货入口。 */
+  isPickup?: boolean;
   items?: Array<{ productName?: string; productNum?: number; productImage?: string }>;
 }
 

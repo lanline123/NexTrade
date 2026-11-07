@@ -29,96 +29,213 @@ const { Text, Title } = Typography;
  * labels: 活动名称, 活动类型, 活动时间, 状态, 操作
  * props: promotionName, typeText, timeText
  * ========================================================================= */
+/** 活动类型 → 对应管理页，供「查看」跳转（旧版 List.vue toPage：type 5 满赠 → reward-gift 列表）。 */
+const PROMOTION_TYPE_PAGES: Array<[string, string]> = [
+  ['优惠券', 'couponManage'],
+  ['限时秒杀', 'seckillManage'],
+  ['秒杀', 'seckillManage'],
+  ['限时折扣', 'limitdiscountManage'],
+  ['满减', 'fullReductionManage'],
+  ['满送', 'rewardGiftManage'],
+  ['满赠', 'rewardGiftManage'],
+  ['拼团', 'grouponPromotionManage'],
+  ['赠品', 'productGiftManage'],
+];
+
+function promotionPageOf(row: any): string {
+  const text = String(row?.typeText || row?.promotionTypeName || row?.type || '');
+  return PROMOTION_TYPE_PAGES.find(([key]) => text.includes(key))?.[1] || 'promotion0';
+}
+
+function asCount(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+/** 旧版 activityStatusText：未开始 / 进行中 / 已过期。 */
+function activityStatus(row: any): { text: string; color: string } {
+  const now = Date.now();
+  const start = Date.parse(String(row?.startTime || row?.startDate || ''));
+  const end = Date.parse(String(row?.endTime || row?.endDate || ''));
+  if (Number.isFinite(start) && start > now) return { text: '未开始', color: 'grey' };
+  if (Number.isFinite(end) && end < now) return { text: '已过期', color: 'red' };
+  return { text: '进行中', color: 'green' };
+}
+
+/** 「商家常用」九宫格入口（旧版 List.vue，admin 类型才显示日历签到/余额充值）。 */
+const QUICK_ENTRIES: Array<{ name: string; tip: string; badge: string; page: string; adminOnly?: boolean }> = [
+  { name: '优惠券', tip: '向客户发放店铺优惠券', badge: '券', page: 'couponManage' },
+  { name: '限时秒杀', tip: '快速抢购引导顾客更多消费', badge: '秒', page: 'seckillManage' },
+  { name: '满减', tip: '购满一定金额或件数享受优惠', badge: '减', page: 'fullReductionManage' },
+  { name: '满送', tip: '购满一定金额或件数享受优惠', badge: '送', page: 'rewardGiftManage' },
+  { name: '限时折扣', tip: '设置商品限时打折促销', badge: '折', page: 'limitdiscountManage' },
+  { name: '日历签到', tip: '每日签到领取积分或奖励', badge: '签', page: 'signInSettingManage', adminOnly: true },
+  { name: '赠品', tip: '设置赠品, 回馈客户', badge: '赠', page: 'productGiftManage' },
+  { name: '余额充值', tip: '充值店铺余额', badge: '充', page: 'rechargeSettingManage', adminOnly: true },
+];
+
+/** 「活动记录」7 类型 Tab（旧版 promotionStatusList；满减后端按 [3,4] 两个 type 查）。 */
+const ACTIVITY_TABS: Array<{ label: string; value: number; typeParam?: string }> = [
+  { label: '全部', value: 0 },
+  { label: '秒杀', value: 1, typeParam: '1' },
+  { label: '优惠券', value: 2, typeParam: '2' },
+  { label: '限时折扣', value: 6, typeParam: '6' },
+  { label: '满减', value: 3, typeParam: '3,4' },
+  { label: '满赠', value: 5, typeParam: '5' },
+  { label: '拼团', value: 7, typeParam: '7' },
+];
+
+const gotoPage = (page: string) => {
+  window.location.href = `${window.location.origin}/?page=${page}`;
+};
+
 export function PromotionOverview() {
   const { t } = useI18n();
-  const [stats, setStats] = useState({
-    activeCount: 12,
-    totalCount: 48,
-    userCount: 1250,
-    discountAmount: 18920,
-  });
+  const [counts, setCounts] = useState<Record<number, number | null>>({ 1: null, 2: null, 3: null });
+  const [timeType, setTimeType] = useState(1);
+  const [activityType, setActivityType] = useState(0);
+  const [isAdmin] = useState(() => localStorage.getItem('adminType') === 'admin');
+
+  // 统计来自真实接口；接口不可用显示 --，不再编造 activeCount:12 之类的假数据。
+  useEffect(() => {
+    apiGet<Record<string, unknown>>('/promotion/promotion/getPromotionCount')
+      .then((data) =>
+        setCounts({
+          1: asCount(data?.timeType1Count ?? data?.activeCount),
+          2: asCount(data?.timeType2Count ?? data?.expiringCount),
+          3: asCount(data?.timeType3Count ?? data?.notStartedCount),
+        }),
+      )
+      .catch(() => {
+        /* 保持 null，界面显示 -- */
+      });
+  }, []);
+
+  const cards: Array<{ type: number; label: string; color?: string }> = [
+    { type: 1, label: '进行中活动', color: 'var(--semi-color-primary)' },
+    { type: 2, label: '7天内到期' },
+    { type: 3, label: '未开始活动', color: 'var(--semi-color-success)' },
+  ];
 
   const columns: ColumnConfig<any>[] = [
     {
       title: '活动名称',
       dataIndex: 'promotionName',
       width: 200,
-      render: (v: any) => v || '新人首单立减券',
+      render: (v: any) => v || '-',
     },
     {
       title: '活动类型',
       dataIndex: 'typeText',
       width: 140,
-      render: (v: any) => <Tag color="blue">{v || '优惠券'}</Tag>,
+      render: (v: any) => <Tag color="blue">{v || '-'}</Tag>,
     },
     {
       title: '活动时间',
       dataIndex: 'timeText',
       width: 220,
-      render: (v: any) => v || '2026-10-01 ~ 2026-12-31',
+      render: (v: any) => v || '-',
     },
     {
       title: '状态',
       dataIndex: 'status',
       width: 110,
-      render: (s: any) => <Tag color="green">{t('进行中')}</Tag>,
+      render: (_: any, row: any) => {
+        const status = activityStatus(row);
+        return <Tag color={status.color as any}>{t(status.text)}</Tag>;
+      },
     },
     {
       title: '操作',
       dataIndex: 'actions',
       width: 100,
       render: (_: any, row: any) => (
-        <Button theme="borderless" type="primary">
+        <Button theme="borderless" type="primary" onClick={() => gotoPage(promotionPageOf(row))}>
           {t('查看')}
         </Button>
       ),
     },
   ];
 
+  const quickEntries = QUICK_ENTRIES.filter((entry) => !entry.adminOnly || isAdmin);
+  const activeTab = ACTIVITY_TABS.find((tab) => tab.value === activityType);
+  const typeQuery = activeTab?.typeParam ? { type: activeTab.typeParam } : {};
+
   return (
     <div style={{ padding: 20 }}>
       <Row gutter={16} style={{ marginBottom: 20 }}>
-        <Col span={6}>
-          <Card>
-            <Text type="secondary">{t('进行中活动')}</Text>
-            <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-primary)' }}>
-              {t('{count} 个', { count: stats.activeCount })}
+        {cards.map((card) => (
+          <Col span={8} key={card.type}>
+            <div
+              onClick={() => setTimeType(card.type)}
+              style={{ cursor: 'pointer', outline: timeType === card.type ? '2px solid var(--semi-color-primary)' : 'none', borderRadius: 4 }}
+            >
+              <Card>
+                <Text type="secondary">{t(card.label)}</Text>
+                <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: card.color }}>
+                  {counts[card.type] === null ? '--' : t('{count} 个', { count: counts[card.type] as number })}
+                </div>
+              </Card>
             </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Text type="secondary">{t('累计开展活动')}</Text>
-            <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8 }}>
-              {t('{count} 个', { count: stats.totalCount })}
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Text type="secondary">{t('参与客户数')}</Text>
-            <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-success)' }}>
-              {t('{count} 人', { count: stats.userCount })}
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Text type="secondary">{t('累计优惠金额')}</Text>
-            <div style={{ fontSize: 24, fontWeight: 'bold', marginTop: 8, color: 'var(--semi-color-danger)' }}>
-              ¥{stats.discountAmount.toFixed(2)}
-            </div>
-          </Card>
-        </Col>
+          </Col>
+        ))}
       </Row>
+
+      {/* 商家常用：对齐旧版 List.vue 九宫格快捷入口 */}
+      <Title heading={5} style={{ marginBottom: 12 }}>{t('商家常用')}</Title>
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        {quickEntries.map((entry) => (
+          <Col span={6} key={entry.page} style={{ marginBottom: 16 }}>
+            <div
+              onClick={() => gotoPage(entry.page)}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '16px 20px', background: 'var(--semi-color-fill-0)', borderRadius: 4 }}
+            >
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 5,
+                  marginRight: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#df4544',
+                  color: '#fff',
+                  fontSize: 18,
+                  fontWeight: 600,
+                }}
+              >
+                {t(entry.badge)}
+              </div>
+              <div>
+                <div style={{ fontSize: 14 }}>{t(entry.name)}</div>
+                <div style={{ color: 'var(--semi-color-text-2)', fontSize: 12, lineHeight: '16px', marginTop: 4 }}>{t(entry.tip)}</div>
+              </div>
+            </div>
+          </Col>
+        ))}
+      </Row>
+
+      {/* 活动记录：7 类型 Tab，切换后由 ListPage 依赖 query 变化自动重新拉取 */}
+      <Title heading={5} style={{ marginBottom: 12 }}>{t('活动记录')}</Title>
+      <Tabs
+        type="card"
+        activeKey={String(activityType)}
+        onChange={(key) => setActivityType(Number(key))}
+        style={{ marginBottom: 12 }}
+      >
+        {ACTIVITY_TABS.map((tab) => (
+          <TabPane tab={t(tab.label)} itemKey={String(tab.value)} key={tab.value} />
+        ))}
+      </Tabs>
 
       <ListPage
         api="/promotion/productPromotion/list"
         rowKey="promotionId"
         columns={columns}
-        filters={[
-          { field: 'promotionName', label: '活动名称', type: 'input' },
-        ]}
+        query={{ timeType, ...typeQuery }}
+        filters={[{ field: 'keyword', label: '活动名称', type: 'input' }]}
       />
     </div>
   );
@@ -139,7 +256,7 @@ export function PromotionStyle() {
       title: '类型',
       dataIndex: 'styleTypeName',
       width: 130,
-      render: (v: any) => v || '商品边框',
+      render: (v: any) => v || '--',
     },
     { title: '商品数', dataIndex: 'productCount', width: 100, render: (v: any) => v ?? 0 },
     {
@@ -160,17 +277,8 @@ export function PromotionStyle() {
       render: (v: any) => <Tag color={v !== false ? 'green' : 'grey'}>{v !== false ? t('开启') : t('关闭')}</Tag>,
     },
     { title: '创建时间', dataIndex: 'addTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">{t('编辑')}</Button>
-          <Button theme="borderless" type="danger">{t('删除')}</Button>
-        </Space>
-      ),
-    },
+    // 编辑/删除由 ListPage 的 drawer（createApi / deleteApi）渲染，
+    // 这里不再放无 onClick 的假按钮，避免同表格出现两个「操作」列。
   ];
 
   return (
@@ -236,7 +344,7 @@ export function RewardGift() {
       width: 130,
       render: (v: any) => t('满 ¥{amount}', { amount: Number(v || 0).toFixed(2) }),
     },
-    { title: '赠品名称', dataIndex: 'giftName', width: 180, render: (v: any) => v || '专属定制礼包' },
+    { title: '赠品名称', dataIndex: 'giftName', width: 180, render: (v: any) => v || '--' },
     {
       title: '起止时间',
       dataIndex: 'timeRange',
@@ -249,17 +357,8 @@ export function RewardGift() {
       width: 100,
       render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('进行中') : t('未开启')}</Tag>,
     },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">{t('编辑')}</Button>
-          <Button theme="borderless" type="danger">{t('删除')}</Button>
-        </Space>
-      ),
-    },
+    // 编辑/删除由 ListPage 的 drawer（createApi / deleteApi）渲染，
+    // 这里不再放无 onClick 的假按钮，避免同表格出现两个「操作」列。
   ];
 
   return (
@@ -313,17 +412,8 @@ export function SignInSetting() {
       render: (v: any) => <Tag color="orange">{t('+{points} 积分', { points: v || 10 })}</Tag>,
     },
     { title: '排序', dataIndex: 'sortOrder', width: 100, render: (v: any) => v ?? 50 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">{t('编辑')}</Button>
-          <Button theme="borderless" type="danger">{t('删除')}</Button>
-        </Space>
-      ),
-    },
+    // 编辑/删除由 ListPage 的 drawer（createApi / deleteApi）渲染，
+    // 这里不再放无 onClick 的假按钮，避免同表格出现两个「操作」列。
   ];
 
   return (
@@ -379,17 +469,8 @@ export function ECard() {
     { title: '备注', dataIndex: 'remark', width: 200, render: (v: any) => v || '--' },
     { title: '创建时间', dataIndex: 'addTime', width: 170 },
     { title: '修改时间', dataIndex: 'upTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">{t('编辑')}</Button>
-          <Button theme="borderless" type="danger">{t('删除')}</Button>
-        </Space>
-      ),
-    },
+    // 编辑/删除由 ListPage 的 drawer（createApi / deleteApi）渲染，
+    // 这里不再放无 onClick 的假按钮，避免同表格出现两个「操作」列。
   ];
 
   return (
@@ -438,7 +519,7 @@ export function GiftCard() {
       title: '卡类型',
       dataIndex: 'groupTypeName',
       width: 130,
-      render: (v: any) => v || '通用礼品卡',
+      render: (v: any) => v || '--',
     },
     {
       title: '状态',
@@ -448,17 +529,8 @@ export function GiftCard() {
     },
     { title: '备注', dataIndex: 'remark', width: 180, render: (v: any) => v || '--' },
     { title: '创建时间', dataIndex: 'addTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">{t('编辑')}</Button>
-          <Button theme="borderless" type="danger">{t('删除')}</Button>
-        </Space>
-      ),
-    },
+    // 编辑/删除由 ListPage 的 drawer（createApi / deleteApi）渲染，
+    // 这里不再放无 onClick 的假按钮，避免同表格出现两个「操作」列。
   ];
 
   return (
@@ -493,68 +565,5 @@ export function GiftCard() {
   );
 }
 
-/* =========================================================================
- * 7. Lottery (lotteryManage 抽奖)
- * 契约对齐: java/view/admin/src/views/promotion/lottery/List.vue
- * labels: 活动名称, 状态, 参与人数, 开始时间, 结束时间, 创建时间, 操作
- * props: activityName, status, participantCount, startTime, endTime, createTime
- * ========================================================================= */
-export function Lottery() {
-  const { t } = useI18n();
-  const columns: ColumnConfig<any>[] = [
-    { title: '活动名称', dataIndex: 'activityName', width: 180 },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 110,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('进行中') : t('未开启')}</Tag>,
-    },
-    { title: '参与人数', dataIndex: 'participantCount', width: 110, render: (v: any) => v ?? 0 },
-    { title: '开始时间', dataIndex: 'startTime', width: 170 },
-    { title: '结束时间', dataIndex: 'endTime', width: 170 },
-    { title: '创建时间', dataIndex: 'createTime', width: 170 },
-    {
-      title: '操作',
-      dataIndex: 'actions',
-      width: 140,
-      render: () => (
-        <Space>
-          <Button theme="borderless" type="primary">{t('编辑')}</Button>
-          <Button theme="borderless" type="danger">{t('删除')}</Button>
-        </Space>
-      ),
-    },
-  ];
-
-  return (
-    <div>
-      <ListPage
-        api="/promotion/lotteryActivity/list"
-        rowKey="activityId"
-        columns={columns}
-        filters={[
-          { field: 'activityName', label: '活动名称', type: 'input' },
-        ]}
-        drawer={{
-          title: '抽奖活动配置',
-          addText: '添加抽奖活动',
-          width: 600,
-          createApi: '/promotion/lotteryActivity/create',
-          updateApi: '/promotion/lotteryActivity/update',
-          deleteApi: '/promotion/lotteryActivity/delete',
-          sections: [
-            {
-              key: 'basic',
-              title: '基础配置',
-              fields: [
-                { field: 'activityName', label: t('活动名称'), type: 'input', required: true },
-                { field: 'startTime', label: t('开始时间'), type: 'date', required: true },
-                { field: 'endTime', label: t('结束时间'), type: 'date', required: true },
-              ],
-            },
-          ],
-        }}
-      />
-    </div>
-  );
-}
+/* Lottery 已迁移至独立页面 pages/Lottery.tsx（三步表单 + 九宫格 + 用户管理，
+ * 对齐旧版 promotion/lottery 的 Info/List/UserManage），此处不再保留简化版。 */

@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { apiGet } from '../../../api';
 import './pcSeckill.css';
 
+import { useI18n } from '../../../i18n';
 interface PreviewProduct {
   productId?: number;
   productName?: string;
@@ -74,6 +75,7 @@ function deepMerge<T extends Record<string, any>>(defaults: T, data?: Record<str
 
 /** 秒杀预览数据（原版 listForHomePreview）。 */
 function useSeckillPreview() {
+    const { t } = useI18n();
   const [rows, setRows] = useState<PreviewProduct[]>([]);
   useEffect(() => {
     let alive = true;
@@ -96,6 +98,7 @@ function useSeckillPreview() {
 
 /** 1s 心跳，驱动倒计时实时走秒。 */
 function useNowTick(intervalMs = 1000) {
+    const { t } = useI18n();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), intervalMs);
@@ -144,6 +147,7 @@ function TitleMoreArrow() {
 
 /** 标题右侧倒计时（深色数字方块）。 */
 function TitleCountdownBox({ label, targetTs, now, color }: { label: string; targetTs: number; now: number; color: string }) {
+    const { t } = useI18n();
   const remaining = targetTs ? Math.max(0, targetTs - now) : 0;
   const { days, hours, minutes, seconds } = parseCountdownParts(remaining);
   return (
@@ -153,7 +157,7 @@ function TitleCountdownBox({ label, targetTs, now, color }: { label: string; tar
         {days > 0 && (
           <>
             <span className="pc-seckill__countdown-item pc-seckill__countdown-item--days">{days}</span>
-            <span className="pc-seckill__countdown-daytext">天</span>
+            <span className="pc-seckill__countdown-daytext">{t('天')}</span>
           </>
         )}
         <span className="pc-seckill__countdown-item">{formatNumTwo(hours)}</span>
@@ -180,6 +184,7 @@ function SeckillTitleBar({
   now: number;
   innerPaddingPx: number;
 }) {
+    const { t } = useI18n();
   if (!title || Number(title.showTitle) !== 1) return null;
   const showMore = Number(title.showMore) === 1;
   const moreTypeRaw = Number(title.moreType);
@@ -189,7 +194,7 @@ function SeckillTitleBar({
   const moreColor = title.moreColor || '#1a1a1a';
   const style = Number(title.titleStyle) || 1;
   const customLabel = String(title.countdownLabel || '').trim();
-  let countdownLabel = customLabel || '倒计时';
+  let countdownLabel = customLabel || t('倒计时');
   if (!customLabel && countdownTargetTs) {
     if (countdownTargetTs - now <= 0) countdownLabel = '已结束';
   }
@@ -221,7 +226,7 @@ function SeckillTitleBar({
       {showMore && mode === 2 && <TitleCountdownBox label={countdownLabel} targetTs={countdownTargetTs} now={now} color={moreColor} />}
       {showMore && mode === 1 && (
         <div className="pc-seckill__more" style={{ color: moreColor }}>
-          <span>{String(title.moreLink?.title || '').trim() || '更多'}</span>
+          <span>{String(title.moreLink?.title || '').trim() || t('更多')}</span>
           <TitleMoreArrow />
         </div>
       )}
@@ -251,6 +256,7 @@ const EMPTY_IMG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect fill='%23f0f0f0' width='180' height='180'/%3E%3C/svg%3E";
 
 export default function PcSeckillPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
   const config = deepMerge<SeckillConfig>(SECKILL_DEFAULTS as SeckillConfig, data);
   const frame = (config.frame || {}) as Record<string, any>;
   const title = (config.title || {}) as Record<string, any>;
@@ -285,7 +291,7 @@ export default function PcSeckillPreview({ data }: { data: Record<string, any> }
     >
       <SeckillTitleBar
         title={title}
-        fallbackText={config.seckillTitle || '限时秒杀'}
+        fallbackText={config.seckillTitle || t('限时秒杀')}
         countdownTargetTs={countdownTargetTs}
         now={now}
         innerPaddingPx={innerPadding}
@@ -313,7 +319,7 @@ export default function PcSeckillPreview({ data }: { data: Record<string, any> }
                       <span className="pc-seckill__price-dec">.{parts.dec}</span>
                     </div>
                     <div className="pc-seckill__buy">
-                      <span className="pc-seckill__add-btn" title="添加购物车">
+                      <span className="pc-seckill__add-btn" title={t('添加购物车')}>
                         <i className="pc-seckill__add-icon" />
                       </span>
                     </div>

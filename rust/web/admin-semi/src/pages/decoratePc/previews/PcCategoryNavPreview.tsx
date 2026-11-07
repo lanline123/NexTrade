@@ -229,13 +229,13 @@ export default function PcCategoryNavPreview({ data }: { data: Record<string, an
                   <button
                     type="button"
                     className="dec-pc-category-nav__arrow dec-pc-category-nav__arrow--prev"
-                    aria-label="上一组"
+                    aria-label={t('上一组')}
                     onClick={() => scrollByPage(-1)}
                   />
                   <button
                     type="button"
                     className="dec-pc-category-nav__arrow dec-pc-category-nav__arrow--next"
-                    aria-label="下一组"
+                    aria-label={t('下一组')}
                     onClick={() => scrollByPage(1)}
                   />
                 </>

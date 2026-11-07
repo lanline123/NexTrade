@@ -88,6 +88,8 @@ export interface ColumnConfig<T = any> {
 
 export interface ListPageProps<T = any> {
   api: string;
+  /** 列表请求方式：多数页面走 GET；少数旧版 DTO 是 POST（如 /finance/categoryFeeRule/list）。 */
+  listMethod?: 'get' | 'post';
   /** 行唯一键：字段名，或 (row) => string（表格内部会生成 __frameworkKey）。 */
   rowKey: string | ((row: T) => string);
   columns: ColumnConfig<T>[];

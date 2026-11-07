@@ -137,6 +137,21 @@ impl ArticleRepository {
         Ok(())
     }
 
+    /// 查询文章关联的商品 ID（`product_article.goods_id`，按 article_id 关联）。
+    ///
+    /// 对应 Java `ArticleServiceImpl.detail` 内的
+    /// `productArticleService.lambdaQuery().eq(ProductArticle::getArticleId, id)`；
+    /// 结果填充 `ArticleDetailVO.productIds`，旧 PC 文章详情「相关商品」区块使用。
+    pub async fn find_product_ids_by_article(&self, article_id: i32) -> Result<Vec<i32>> {
+        let rows: Vec<(i32,)> =
+            sqlx::query_as("SELECT goods_id FROM product_article WHERE article_id = ?")
+                .bind(article_id)
+                .fetch_all(&self.pool)
+                .await
+                .map_err(map_err)?;
+        Ok(rows.into_iter().map(|(id,)| id).collect())
+    }
+
     /// 新增文章，返回自增主键。
     pub async fn insert(&self, a: &Article) -> Result<i32> {
         let r = sqlx::query(

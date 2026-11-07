@@ -138,6 +138,37 @@ impl PromotionRepository {
             .map_err(map_err)
     }
 
+    /// 进行中的可用活动（Java `PromotionServiceImpl#queryAvailablePromotion`）。
+    ///
+    /// 条件：`(is_available = 1 OR type = 2)`（优惠券不受启用开关约束）+
+    /// 可选 `shop_id IN (...)`（None = 不限店铺/全平台）+ 进行中
+    /// `((start_time <= now AND end_time >= now) OR (start_time = 0 AND end_time = 0))`，
+    /// 排序对齐 Java `FIELD(type, 1,7,6,2,3,4,5,8)`（前台活动标记顺序）。
+    pub async fn find_available(
+        &self,
+        shop_ids: Option<&[i32]>,
+        now: i64,
+    ) -> Result<Vec<Promotion>> {
+        let mut qb: QueryBuilder<'_, MySql> =
+            QueryBuilder::new(format!("SELECT {PROMOTION_COLUMNS} FROM promotion WHERE (is_available = 1 OR type = 2)"));
+        if let Some(ids) = shop_ids.filter(|s| !s.is_empty()) {
+            qb.push(" AND shop_id IN (");
+            let mut sep = qb.separated(", ");
+            for id in ids {
+                sep.push_bind(*id);
+            }
+            sep.push_unseparated(")");
+        }
+        qb.push(" AND (((start_time <= ");
+        qb.push_bind(now);
+        qb.push(" AND end_time >= ");
+        qb.push_bind(now);
+        qb.push(") OR (start_time = 0 AND end_time = 0)))");
+        qb.push(" ORDER BY FIELD(`type`, 1, 7, 6, 2, 3, 4, 5, 8)");
+        let rows = qb.build_query_as::<Promotion>().fetch_all(&self.pool).await.map_err(map_err)?;
+        Ok(rows)
+    }
+
     /// 新增（Java `save`），返回主键。
     pub async fn insert(&self, p: &Promotion) -> Result<i32> {
         let res = sqlx::query(

@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NexTrade · 数字化交易底座</title>
+    <!--
+      后台 iconfont 图标库（与旧版 view/admin/src/style/global.css 头部 @import 对齐）。
+      只能放在 index.html：CSS 文件内的远程 @import 会被 Vite/构建器丢弃（见
+      pages/decorate-editor.css 顶部注释的历史坑）。覆盖字体族：
+      iconfont-tig（消息中心/分类抽屉楼层图标）、lyecs-defined-iconfont（自定义图标库，
+      分类抽屉/菜单图标字段）、iconfont-pc / iconfont-h5（PC/H5 装修预览）。
+    -->
+    <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_4441878_qtp4q1dvdpo.css" />
+    <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_400590_7he137t8862.css" />
+    <!-- 生产（admin.recy.cc）后台「图标设置 → 自定义ico图标库」当前配置值：
+         分类抽屉楼层图标 icon-dianchibao / icon-eshiposuiji 等都在这个项目里。
+         若后台更换了 icoDefinedCss 配置，此处需同步更换。 -->
+    <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_4761676_q6djhlipj9l.css" />
+    <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_4389188_6kr776u0szi.css" />
+    <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_3378474_nv3pk6rxn7f.css" />
   </head>
   <body>
     <div id="root"></div>

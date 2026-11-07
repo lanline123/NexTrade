@@ -9,7 +9,7 @@
  * 接口：GET  /api/user/message/list
  *       POST /api/user/message/updateAllRead
  *       POST /api/user/message/del
- *       POST /api/user/message/read（单条已读）
+ *       POST /api/user/message/updateMessageRead（单条已读）
  */
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -74,7 +74,7 @@ export default function UserMessageCenter() {
   const readItem = async (item: MessageItem) => {
     if (item.isRead || !item.messageId) return;
     try {
-      await apiPost('user/message/read', { messageId: item.messageId });
+      await apiPost('user/message/updateMessageRead', { messageId: item.messageId });
       setMessages((current) => current.map((row) => (row.messageId === item.messageId ? { ...row, isRead: 1 } : row)));
     } catch {
       /* 单条已读失败不打断浏览 */

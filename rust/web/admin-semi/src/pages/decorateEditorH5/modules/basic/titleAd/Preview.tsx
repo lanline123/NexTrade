@@ -7,7 +7,9 @@ import { mergeDefaultModule, formatFrame } from "../../../contract/sharedDefault
 import { titleAdDefaults } from "./index";
 import "./Preview.css";
 
+import { useI18n } from '../../../../../i18n';
 export default function TitleAdPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, titleAdDefaults);
@@ -44,7 +46,7 @@ export default function TitleAdPreview({ data }: { data: Record<string, any> }) 
                                     </div>
                                     {title?.showMore === 1 ? (
                                         <div className="image-ad-title-r">
-                                            <span style={cssText(allFormat.moreColor)}>更多</span>
+                                            <span style={cssText(allFormat.moreColor)}>{t('更多')}</span>
                                             <i className="iconfont-h5 icon-youjiantou h5-arrow-right" style={cssText(allFormat.moreColor)} />
                                         </div>
                                     ) : null}

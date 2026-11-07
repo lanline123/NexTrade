@@ -11,6 +11,7 @@ import { editorStore, useEditorState } from "../store/editorStore";
 import { getSettingsComponent, getModuleDefinition } from "../contract/moduleRegistry";
 import { imageFormat } from "../shared/format";
 
+import { useI18n } from '../../../i18n';
 const settingsCache = new Map<string, React.ComponentType<any>>();
 
 function getLazySettings(type: string, url?: string): React.ComponentType<any> | null {
@@ -37,26 +38,25 @@ const backgroundSizeOptions = [
 ];
 
 function PageSettings({ pageModule }: { pageModule: Record<string, any> }) {
+    const { t } = useI18n();
     const bg = (pageModule.backgroundImage && typeof pageModule.backgroundImage === "object" ? pageModule.backgroundImage : null) as
         | { picUrl?: string; picThumb?: string }
         | null;
     return (
         <div className="h5-editor-settings-body">
             <div className="h5-editor-setting-group">
-                <div className="h5-editor-setting-label">页面背景色</div>
+                <div className="h5-editor-setting-label">{t('页面背景色')}</div>
                 <ColorPicker
                     value={pageModule.backgroundColor || "#f5f5f5"}
                     onChange={(v: any) => editorStore.updatePageModule({ backgroundColor: typeof v === "string" ? v : v.hex })}
                 />
             </div>
             <div className="h5-editor-setting-group">
-                <div className="h5-editor-setting-label">页面背景图</div>
+                <div className="h5-editor-setting-label">{t('页面背景图')}</div>
                 {bg?.picUrl ? (
                     <div className="h5-editor-pic-row">
                         <img src={imageFormat(bg.picThumb || bg.picUrl)} alt="" />
-                        <Button size="small" type="danger" onClick={() => editorStore.updatePageModule({ backgroundImage: null })}>
-                            移除
-                        </Button>
+                        <Button size="small" type="danger" onClick={() => editorStore.updatePageModule({ backgroundImage: null })}>{t('移除')}</Button>
                     </div>
                 ) : (
                     <Upload
@@ -66,16 +66,16 @@ function PageSettings({ pageModule }: { pageModule: Record<string, any> }) {
                             if (url) {
                                 editorStore.updatePageModule({ backgroundImage: { picUrl: url, picThumb: url } });
                             } else {
-                                Toast.error("上传失败");
+                                Toast.error(t("上传失败"));
                             }
                         }}
                     >
-                        <Button icon={<IconPlus />}>上传图片</Button>
+                        <Button icon={<IconPlus />}>{t('上传图片')}</Button>
                     </Upload>
                 )}
             </div>
             <div className="h5-editor-setting-group">
-                <div className="h5-editor-setting-label">背景平铺</div>
+                <div className="h5-editor-setting-label">{t('背景平铺')}</div>
                 <select
                     className="h5-editor-select"
                     value={pageModule.backgroundRepeat ?? 1}
@@ -83,13 +83,13 @@ function PageSettings({ pageModule }: { pageModule: Record<string, any> }) {
                 >
                     {backgroundRepeatOptions.map((o) => (
                         <option key={o.value} value={o.value}>
-                            {o.label}
+                            {t(o.label)}
                         </option>
                     ))}
                 </select>
             </div>
             <div className="h5-editor-setting-group">
-                <div className="h5-editor-setting-label">背景尺寸</div>
+                <div className="h5-editor-setting-label">{t('背景尺寸')}</div>
                 <select
                     className="h5-editor-select"
                     value={pageModule.backgroundSize ?? 1}
@@ -97,7 +97,7 @@ function PageSettings({ pageModule }: { pageModule: Record<string, any> }) {
                 >
                     {backgroundSizeOptions.map((o) => (
                         <option key={o.value} value={o.value}>
-                            {o.label}
+                            {t(o.label)}
                         </option>
                     ))}
                 </select>
@@ -107,6 +107,7 @@ function PageSettings({ pageModule }: { pageModule: Record<string, any> }) {
 }
 
 export default function SettingsPanel() {
+    const { t } = useI18n();
     const s = useEditorState();
     const activeModule = s.activeModuleIndex !== null ? s.moduleList[s.activeModuleIndex] : null;
 
@@ -118,12 +119,12 @@ export default function SettingsPanel() {
     return (
         <div className="h5-editor-settings">
             <div className="h5-editor-settings-header">
-                {s.editMode === "page" ? "页面设置" : activeModule ? activeModule.label || activeModule.type : "设置"}
+                {s.editMode === "page" ? t("页面设置") : activeModule ? t(activeModule.label || activeModule.type) : t("设置")}
             </div>
             {s.editMode === "page" ? (
                 <PageSettings pageModule={s.pageModule as Record<string, any>} />
             ) : activeModule && SettingsComp ? (
-                <Suspense fallback={<div className="h5-editor-preview-loading">设置加载中…</div>}>
+                <Suspense fallback={<div className="h5-editor-preview-loading">{t('设置加载中…')}</div>}>
                     <SettingsComp
                         data={activeModule.module}
                         onChange={(patch: Record<string, any>) => editorStore.updateActiveModule(patch)}
@@ -131,7 +132,7 @@ export default function SettingsPanel() {
                     />
                 </Suspense>
             ) : (
-                <div className="h5-editor-settings-empty">请选择模块或页面进行设置</div>
+                <div className="h5-editor-settings-empty">{t('请选择模块或页面进行设置')}</div>
             )}
         </div>
     );

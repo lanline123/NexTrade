@@ -859,6 +859,14 @@ export const navGroups: NavGroup[] = [
         "label": "店铺资金管理",
         "children": [
           {
+            "key": "shopAccountManage",
+            "label": "资金概览"
+          },
+          {
+            "key": "shopFundsManage",
+            "label": "店铺资金"
+          },
+          {
             "key": "statementDownload",
             "label": "对账单下载"
           },
@@ -873,6 +881,10 @@ export const navGroups: NavGroup[] = [
           {
             "key": "shopWithdrawApplySummary",
             "label": "提现汇总"
+          },
+          {
+            "key": "financialLogManage",
+            "label": "资金日志"
           }
         ]
       },
@@ -1315,6 +1327,10 @@ export const navGroups: NavGroup[] = [
           {
             "key": "friendLinksManage",
             "label": "友情链接"
+          },
+          {
+            "key": "licensed",
+            "label": "授权信息"
           }
         ]
       },
@@ -1545,6 +1561,10 @@ export const pageTitles: Record<string, string> = {
   "profitSharingSettlementManage": "分账结算",
   "statementDownload": "对账单下载",
   "statementDetails": "对账单明细",
+  "shopAccountManage": "资金概览",
+  "shopFundsManage": "店铺资金",
+  "financialLogManage": "资金日志",
+  "licensed": "授权信息",
   "shopWithdrawApplyManage": "提现管理",
   "shopWithdrawApplySummary": "提现汇总",
   "vendorWithdrawApplySummary": "提现汇总",

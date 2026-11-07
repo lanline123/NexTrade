@@ -137,7 +137,7 @@ export default function PcCategoryNav3Preview({ data }: { data: Record<string, a
           </div>
         ) : (
           <div className="dec-pc-category-nav3__list">
-            <div className="dec-pc-category-nav3__scroll" aria-label="分类导航列表">
+            <div className="dec-pc-category-nav3__scroll" aria-label={t('分类导航列表')}>
               {picList.map((item, index) => (
                 <div
                   className="dec-pc-category-nav3__item"

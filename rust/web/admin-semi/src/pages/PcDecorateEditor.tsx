@@ -47,7 +47,11 @@ import {
   IconRefresh,
 } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '../api';
-import { useI18n } from '../i18n';
+import i18nInstance, { useI18n } from '../i18n';
+
+/** 供模块级工具函数 / 字段定义使用的翻译（非组件作用域拿不到 useI18n，用 i18next 单例）。 */
+const tl = (key: string, params?: Record<string, string | number>) =>
+  i18nInstance.t(key, params) as string;
 import DecorateLoading from './components/DecorateLoading';
 import PcBanner2Preview from './decoratePc/previews/PcBanner2Preview';
 import PcGroupBannerPreview from './decoratePc/previews/PcGroupBannerPreview';
@@ -394,7 +398,7 @@ const titleFields = (opts: { moreType?: boolean; verticalPadding?: boolean; hide
           { kind: 'slider' as const, key: 'title.titlePaddingBottom', label: '标题下边距', max: 60 },
         ]
       : []),
-    { kind: 'switch', key: 'title.showMore', label: opts.moreType ? '显示右侧内容' : '显示更多链接', showIf: showTitleOn },
+    { kind: 'switch', key: 'title.showMore', label: opts.moreType ? tl('显示右侧内容') : '显示更多链接', showIf: showTitleOn },
     ...(opts.moreType
       ? [
           { kind: 'radio' as const, key: 'title.moreType', label: '右侧内容', options: [{ label: '显示更多', value: 1 }, { label: '显示倒计时', value: 2 }], showIf: showMoreOn },
@@ -402,7 +406,7 @@ const titleFields = (opts: { moreType?: boolean; verticalPadding?: boolean; hide
         ]
       : []),
     { kind: 'input', key: 'title.moreLink.title', label: '链接文字', showIf: linkMode },
-    { kind: 'color', key: 'title.moreColor', label: opts.moreType ? '文字颜色' : '链接颜色', resetValue: moreColorDefault, showIf: countdownMode },
+    { kind: 'color', key: 'title.moreColor', label: opts.moreType ? tl('文字颜色') : '链接颜色', resetValue: moreColorDefault, showIf: countdownMode },
     { kind: 'color', key: 'title.moreColor', label: '链接颜色', resetValue: moreColorDefault, showIf: (m) => linkMode(m) && (!opts.moreType || Number(getPath(m, 'title.moreType')) !== 2) },
     { kind: 'link', key: 'title.moreLink', label: '链接地址', showIf: linkMode },
   ];
@@ -486,7 +490,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'radio', key: 'navStyle', label: '样式', options: [{ label: '图文', value: 1 }, { label: '仅图片', value: 2 }, { label: '仅文字', value: 3 }] },
       { kind: 'select', key: 'rowNum', label: '一行显示', options: [3, 4, 5, 6].map((n) => ({ label: `${n}个`, value: n })) },
       { kind: 'select', key: 'colNum', label: '显示行数', options: [1, 2, 3].map((n) => ({ label: `${n}行`, value: n })) },
-      { kind: 'picList', key: 'picList', label: '导航项', hint: '可拖拽排序', picAddTextFor: (m) => Number(m.navStyle) === 3 ? '添加导航项' : '添加图片' },
+      { kind: 'picList', key: 'picList', label: '导航项', hint: '可拖拽排序', picAddTextFor: (m) => Number(m.navStyle) === 3 ? tl('添加导航项') : '添加图片' },
       { kind: 'color', key: 'backgroundColor', label: '背景颜色', resetValue: '#ffffff' },
       { kind: 'slider', key: 'imgPadding', label: '元素边距', max: 30 },
       // 原版 isNavStyleImage = navStyle !== 3：仅文字模式下不显示图片边角
@@ -606,6 +610,28 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
     settings: [
       { kind: 'radio', key: 'style', label: '展示样式', options: [{ label: '一行四个', value: 1 }, { label: '一行五个', value: 2 }] },
       { kind: 'slider', key: 'goodsPadding', label: '商品边距', max: 30 },
+      // 原版 PC 商品面板未暴露这三项与购买按钮样式（默认值写死在 index.ts），
+      // 此处补齐，使模块行为可配置又不改变默认表现（默认值与原版一致：全部显示 / 购物车图标）。
+      { kind: 'switch', key: 'showName', label: '显示商品名称', section: '商品内容' },
+      { kind: 'switch', key: 'showBrief', label: '显示商品简介', section: '商品内容' },
+      { kind: 'switch', key: 'showPrice', label: '显示商品价格', section: '商品内容' },
+      {
+        kind: 'select',
+        key: 'buyBtnStyle',
+        label: '购买按钮',
+        section: '购买按钮',
+        options: [
+          { label: '不显示', value: 0 },
+          { label: '购物车图标', value: 1 },
+          { label: '购物车图标（实心）', value: 2 },
+          { label: '加号图标', value: 3 },
+          { label: '加号图标（实心）', value: 4 },
+          { label: '“购买”描边按钮', value: 5 },
+          { label: '“购买”圆角实心', value: 6 },
+          { label: '“马上抢”描边按钮', value: 7 },
+          { label: '“马上抢”圆角实心', value: 8 },
+        ],
+      },
       { kind: 'products', key: 'products', label: '选择商品', section: '商品设置' },
       { kind: 'title', key: 'title', label: '标题设置', titleHideMoreType: true, titleHideVerticalPadding: true },
       ...containerFields({ showInnerPadding: true }),
@@ -893,7 +919,7 @@ const NEW_MODULE_DEFS: ModuleDef[] = [
       { kind: 'slider', key: 'frame.itemHeight', label: '组件高度', min: 0, max: 100 },
       ...containerFields().map((f, index) => (index === 0 ? { ...f, section: '容器设置' } : f)),
     ],
-    summary: (m) => (Number(m.lineType) === 1 ? '空白' : '分割线'),
+    summary: (m) => (Number(m.lineType) === 1 ? tl('空白') : '分割线'),
   },
   {
     type: 'pc-spacer', label: '空白辅助', group: '辅助元素',
@@ -1357,7 +1383,17 @@ export default function PcDecorateEditor({ decorateId, onExit }: PcDecorateEdito
           {getSaveData().pageModule.homeStyleVersion === 'new' ? <Tag color="green">{t('新版装修')}</Tag> : <Tag color="grey">{t('旧版兼容')}</Tag>}
         </Space>
         <div style={{ flex: 1 }} />
-        <Button icon={<IconRefresh />} onClick={() => window.open(`${window.location.origin}/?page=home`, '_blank')}>
+        <Button
+          icon={<IconRefresh />}
+          onClick={() => {
+            // 与 AdminLayout 的前台入口保持同一地址来源；不能再打开后台自身的 /?page=home
+            // （该 key 不在 knownPages，只会落到「尚未迁移」占位页，属于假预览）。
+            const mallUrl =
+              import.meta.env.VITE_MALL_URL ||
+              (import.meta.env.DEV ? 'http://127.0.0.1:3004/' : '/');
+            window.open(mallUrl, '_blank');
+          }}
+        >
           {t('打开商城首页')}
         </Button>
         <Button theme="light" loading={saving === 'draft'} onClick={() => handleSave('draft')}>
@@ -2807,7 +2843,7 @@ function TitleAdPreview({ data }: { data: Record<string, any> }) {
                     ...(align === 2 ? { position: 'absolute' as const, right: 0 } : {}),
                   }}
                 >
-                  <span>{t('查看更多')}</span>
+                  <span>{tl('查看更多')}</span>
                   <span style={{ fontSize: 12, lineHeight: '12px' }}>&gt;</span>
                 </span>
               )}
@@ -2874,6 +2910,7 @@ function SpacerPreview({ data }: { data: Record<string, any> }) {
 
 /** 优惠券预览（对齐原版 _shared/coupon/PcCouponPreview：标题栏 + 领券中心条 + 4 张演示券 + 查看更多竖条） */
 function CouponPreview({ data }: { data: Record<string, any> }) {
+  const { t } = useI18n();
   const itemPadding = Number(data.itemPadding) || 0;
   const boxRadius = Number(data.boxRadius) || 0;
   const mockCoupons = [
@@ -2903,7 +2940,7 @@ function CouponPreview({ data }: { data: Record<string, any> }) {
           <div style={{ height: 106, display: 'flex', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', flexShrink: 0 }}>
               <div style={{ width: 153, padding: '12px 0 0 18px', borderRadius: '2px 0 0 2px', backgroundColor: '#ec3639', color: '#fff', boxSizing: 'border-box' }}>
-                <div style={{ height: 30, lineHeight: '30px', fontSize: 22 }}>领券中心</div>
+                <div style={{ height: 30, lineHeight: '30px', fontSize: 22 }}>{tl('领券中心')}</div>
                 <div style={{ fontSize: 14, lineHeight: '28px', color: '#f7afb0' }}>COUPON</div>
                 <div style={{ margin: '8px 0 0', fontSize: 12 }}>GO <em>&gt;&gt;</em></div>
               </div>
@@ -2923,7 +2960,7 @@ function CouponPreview({ data }: { data: Record<string, any> }) {
                           </div>
                         ) : (
                           <div style={{ fontWeight: 'bold', textAlign: 'center', lineHeight: '32px' }}>
-                            {c.discount}<span style={{ fontSize: 12, marginLeft: 5 }}>折</span>
+                            {c.discount}<span style={{ fontSize: 12, marginLeft: 5 }}>{tl('折')}</span>
                           </div>
                         )}
                       </div>
@@ -2932,8 +2969,7 @@ function CouponPreview({ data }: { data: Record<string, any> }) {
                         <p style={{ height: 20, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', margin: 0, fontSize: 12 }}>{c.desc}</p>
                       </div>
                     </div>
-                    <p style={{ borderTop: '1px solid #f3f3f3', textAlign: 'center', lineHeight: '30px', marginTop: 15, marginBottom: 0, color: '#999' }}>
-                      马上领<em>&nbsp;&gt;</em>
+                    <p style={{ borderTop: '1px solid #f3f3f3', textAlign: 'center', lineHeight: '30px', marginTop: 15, marginBottom: 0, color: '#999' }}>{tl('马上领')}<em>&nbsp;&gt;</em>
                     </p>
                   </div>
                   <div style={{ width: 15, height: 106, flexShrink: 0, background: 'radial-gradient(circle at 0 53px, transparent 5px, #fff 5px), #fff', boxShadow: '-1px 0 2px #eee' }} />
@@ -2945,9 +2981,7 @@ function CouponPreview({ data }: { data: Record<string, any> }) {
                     height: '100%', position: 'absolute', top: -5, left: -9, overflow: 'hidden', padding: '30px 10px 0', textAlign: 'left', lineHeight: '14px', color: '#ccc',
                     writingMode: 'vertical-lr', background: 'linear-gradient(180deg, #f5f5f5, #e8e8e8)', fontSize: 12,
                   }}
-                >
-                  查看更多
-                </span>
+                >{tl('查看更多')}</span>
               </div>
             </div>
           </div>
@@ -3639,7 +3673,7 @@ function AlphaColorInput({ value, onChange }: { value: string; onChange: (v: str
         <Input
           size="small"
           value={value}
-          placeholder="#ffffff 或 rgba(...)"
+          placeholder={t('#ffffff 或 rgba(...)')}
           onChange={(next) => onChange(next)}
         />
         <input
@@ -3709,6 +3743,7 @@ function HeaderColorInput({ value, onChange }: { value: string; onChange: (v: st
 
 /** 左列类目：优先取 pcCatFloor/list（PC 分类抽屉）真实数据，回退到配置项 */
 function useHeroLeftCategories(configCategories: PicItem[], showCount: number) {
+  const { t } = useI18n();
   const [apiCategories, setApiCategories] = useState<PicItem[]>([]);
   useEffect(() => {
     let alive = true;
@@ -3723,7 +3758,7 @@ function useHeroLeftCategories(configCategories: PicItem[], showCount: number) {
           picUrl: item.picUrl || item.imageUrl || '',
           picThumb: item.picThumb || item.picUrl || item.imageUrl || '',
           picName: item.picName || '',
-          picTitle: item.picTitle || item.title || '类目',
+          picTitle: item.picTitle || item.title || tl('类目'),
           picDesc: '',
           picLink: { link: item.picLink?.link || item.link || '', name: '' },
         }));
@@ -4674,7 +4709,7 @@ function PcHeaderPanel({
         </RadioGroup>
       </HeaderField>
 
-      <HeaderSection title="LOGO设置">
+      <HeaderSection title={t('LOGO设置')}>
         <div style={{ width: '100%' }}>
           <HeaderField label="LOGO图片" value="建议 320*120 PNG 透明底">
             <a style={{ fontSize: 12, cursor: 'pointer', color: 'var(--semi-color-primary)' }} onClick={() => set('logoPic', { picUrl: '', picThumb: '' })}>{t('默认logo')}</a>
@@ -4716,8 +4751,8 @@ function PcHeaderPanel({
         </HeaderField>
       </HeaderSection>
 
-      <HeaderSection title="购物车">
-        <HeaderField label="右侧购物车" value={Number(header.rightCartShow ?? 1) === 0 ? '隐藏' : '显示'}>
+      <HeaderSection title={t('购物车')}>
+        <HeaderField label="右侧购物车" value={Number(header.rightCartShow ?? 1) === 0 ? t('隐藏') : '显示'}>
           <RadioGroup value={Number(header.rightCartShow ?? 1)} onChange={(e: any) => set('rightCartShow', Number(e.target.value))} type="button">
             <Radio value={1}>{t('显示')}</Radio>
             <Radio value={0}>{t('隐藏')}</Radio>
@@ -4737,7 +4772,7 @@ function PcHeaderPanel({
             <Input value={header.cartPic?.picUrl || ''} onChange={(v) => set('cartPic', { picUrl: v, picThumb: v })} placeholder={t('购物车图片 URL')} size="small" />
           </div>
         )}
-        <HeaderField label="顶部菜单购物车" value={Number(header.topMenuCartShow ?? 1) === 0 ? '隐藏' : '显示'}>
+        <HeaderField label="顶部菜单购物车" value={Number(header.topMenuCartShow ?? 1) === 0 ? t('隐藏') : '显示'}>
           <RadioGroup value={Number(header.topMenuCartShow ?? 1)} onChange={(e: any) => set('topMenuCartShow', Number(e.target.value))} type="button">
             <Radio value={1}>{t('显示')}</Radio>
             <Radio value={0}>{t('隐藏')}</Radio>
@@ -4745,8 +4780,8 @@ function PcHeaderPanel({
         </HeaderField>
       </HeaderSection>
 
-      <HeaderSection title="搜索条">
-        <HeaderField label="搜索条颜色" value={Number(header.searchColorType ?? 1) === 2 ? '自定义' : '跟随系统'}>
+      <HeaderSection title={t('搜索条')}>
+        <HeaderField label="搜索条颜色" value={Number(header.searchColorType ?? 1) === 2 ? t('自定义') : '跟随系统'}>
           <RadioGroup value={Number(header.searchColorType ?? 1)} onChange={(e: any) => set('searchColorType', Number(e.target.value))} type="button">
             <Radio value={1}>{t('系统')}</Radio>
             <Radio value={2}>{t('自定义')}</Radio>
@@ -4757,13 +4792,13 @@ function PcHeaderPanel({
             <HeaderColorInput value={header.searchColor || ''} onChange={(v) => set('searchColor', v)} />
           </HeaderField>
         )}
-        <HeaderField label="所有商品分类" value={Number(header.showCategory ?? 1) === 0 ? '关闭' : '开启'}>
+        <HeaderField label="所有商品分类" value={Number(header.showCategory ?? 1) === 0 ? t('关闭') : '开启'}>
           <RadioGroup value={Number(header.showCategory ?? 1)} onChange={(e: any) => set('showCategory', Number(e.target.value))} type="button">
             <Radio value={1}>{t('开启')}</Radio>
             <Radio value={0}>{t('关闭')}</Radio>
           </RadioGroup>
         </HeaderField>
-        <HeaderField label="首页分类" value={Number(header.showHomeCategory ?? 1) === 0 ? '隐藏' : '显示'}>
+        <HeaderField label="首页分类" value={Number(header.showHomeCategory ?? 1) === 0 ? t('隐藏') : '显示'}>
           <RadioGroup value={Number(header.showHomeCategory ?? 1)} onChange={(e: any) => set('showHomeCategory', Number(e.target.value))} type="button">
             <Radio value={1}>{t('显示')}</Radio>
             <Radio value={0}>{t('隐藏')}</Radio>
@@ -4774,8 +4809,8 @@ function PcHeaderPanel({
         </HeaderField>
       </HeaderSection>
 
-      <HeaderSection title="导航栏">
-        <HeaderField label="主导航" value={Number(header.showMainNav ?? 1) === 0 ? '隐藏' : '显示'}>
+      <HeaderSection title={t('导航栏')}>
+        <HeaderField label="主导航" value={Number(header.showMainNav ?? 1) === 0 ? t('隐藏') : '显示'}>
           <RadioGroup value={Number(header.showMainNav ?? 1)} onChange={(e: any) => set('showMainNav', Number(e.target.value))} type="button">
             <Radio value={1}>{t('显示')}</Radio>
             <Radio value={0}>{t('隐藏')}</Radio>
@@ -4789,7 +4824,7 @@ function PcHeaderPanel({
         </HeaderField>
       </HeaderSection>
 
-      <HeaderSection title="顶部提示条">
+      <HeaderSection title={t('顶部提示条')}>
         <HeaderField label="展示 benefit bar">
           <Switch checked={Number(header.showBenefitBar ?? 1) === 1} onChange={(v) => set('showBenefitBar', v ? 1 : 0)} />
         </HeaderField>
@@ -4826,26 +4861,26 @@ function PcHeaderPanel({
       </HeaderSection>
 
       {simple && (
-        <HeaderSection title="顶部提示条（简约风）">
+        <HeaderSection title={t('顶部提示条（简约风）')}>
           <HeaderField label="顶部菜单文字颜色">
             <HeaderColorInput value={header.topMenuTextColor || ''} onChange={(v) => set('topMenuTextColor', v)} />
           </HeaderField>
           <HeaderField label="顶部菜单文字悬浮颜色">
             <HeaderColorInput value={header.topMenuTextHoverColor || ''} onChange={(v) => set('topMenuTextHoverColor', v)} />
           </HeaderField>
-          <HeaderField label="站点导航" value={Number(header.showTopSiteNav ?? 1) === 0 ? '隐藏' : '显示'}>
+          <HeaderField label="站点导航" value={Number(header.showTopSiteNav ?? 1) === 0 ? t('隐藏') : '显示'}>
             <RadioGroup value={Number(header.showTopSiteNav ?? 1)} onChange={(e: any) => set('showTopSiteNav', Number(e.target.value))} type="button">
               <Radio value={1}>{t('显示')}</Radio>
               <Radio value={0}>{t('隐藏')}</Radio>
             </RadioGroup>
           </HeaderField>
-          <HeaderField label="会员信息" value={Number(header.showTopMemberName ?? 1) === 0 ? '隐藏' : '显示'}>
+          <HeaderField label="会员信息" value={Number(header.showTopMemberName ?? 1) === 0 ? t('隐藏') : '显示'}>
             <RadioGroup value={Number(header.showTopMemberName ?? 1)} onChange={(e: any) => set('showTopMemberName', Number(e.target.value))} type="button">
               <Radio value={1}>{t('显示')}</Radio>
               <Radio value={0}>{t('隐藏')}</Radio>
             </RadioGroup>
           </HeaderField>
-          <HeaderField label="地区选择" value={Number(header.showTopRegion ?? 1) === 0 ? '隐藏' : '显示'}>
+          <HeaderField label="地区选择" value={Number(header.showTopRegion ?? 1) === 0 ? t('隐藏') : '显示'}>
             <RadioGroup value={Number(header.showTopRegion ?? 1)} onChange={(e: any) => set('showTopRegion', Number(e.target.value))} type="button">
               <Radio value={1}>{t('显示')}</Radio>
               <Radio value={0}>{t('隐藏')}</Radio>
@@ -4859,7 +4894,7 @@ function PcHeaderPanel({
           </HeaderField>
           {Number(header.showTopMenuBar ?? 1) !== 0 && (
             <>
-              <HeaderField label="右侧菜单" value={Number(header.showTopUserMenu ?? 1) === 0 ? '隐藏' : '显示'}>
+              <HeaderField label="右侧菜单" value={Number(header.showTopUserMenu ?? 1) === 0 ? t('隐藏') : '显示'}>
                 <RadioGroup value={Number(header.showTopUserMenu ?? 1)} onChange={(e: any) => set('showTopUserMenu', Number(e.target.value))} type="button">
                   <Radio value={1}>{t('显示')}</Radio>
                   <Radio value={0}>{t('隐藏')}</Radio>
@@ -4867,19 +4902,19 @@ function PcHeaderPanel({
               </HeaderField>
               {Number(header.showTopUserMenu ?? 1) !== 0 && (
                 <>
-                  <HeaderField label="站内消息" value={Number(header.showTopMessage ?? 1) === 0 ? '隐藏' : '显示'}>
+                  <HeaderField label="站内消息" value={Number(header.showTopMessage ?? 1) === 0 ? t('隐藏') : '显示'}>
                     <RadioGroup value={Number(header.showTopMessage ?? 1)} onChange={(e: any) => set('showTopMessage', Number(e.target.value))} type="button">
                       <Radio value={1}>{t('显示')}</Radio>
                       <Radio value={0}>{t('隐藏')}</Radio>
                     </RadioGroup>
                   </HeaderField>
-                  <HeaderField label="我的订单" value={Number(header.showTopOrders ?? 1) === 0 ? '隐藏' : '显示'}>
+                  <HeaderField label="我的订单" value={Number(header.showTopOrders ?? 1) === 0 ? t('隐藏') : '显示'}>
                     <RadioGroup value={Number(header.showTopOrders ?? 1)} onChange={(e: any) => set('showTopOrders', Number(e.target.value))} type="button">
                       <Radio value={1}>{t('显示')}</Radio>
                       <Radio value={0}>{t('隐藏')}</Radio>
                     </RadioGroup>
                   </HeaderField>
-                  <HeaderField label="会员中心" value={Number(header.showTopMemberCenter ?? 1) === 0 ? '隐藏' : '显示'}>
+                  <HeaderField label="会员中心" value={Number(header.showTopMemberCenter ?? 1) === 0 ? t('隐藏') : '显示'}>
                     <RadioGroup value={Number(header.showTopMemberCenter ?? 1)} onChange={(e: any) => set('showTopMemberCenter', Number(e.target.value))} type="button">
                       <Radio value={1}>{t('显示')}</Radio>
                       <Radio value={0}>{t('隐藏')}</Radio>
@@ -4968,7 +5003,7 @@ function ModuleSettingsPanel({
     ? def.settings.filter((field) => (activeTab === 'extend' ? isExtendField(field) : !isExtendField(field)))
     : def.settings;
   const blockKinds = new Set(['picList', 'pic', 'products', 'title', 'container', 'hotarea', 'news', 'groupon', 'squareTemplate']);
-  const contentTabLabel = def.type === 'pc-product-group' ? '商品设置' : '内容设置';
+  const contentTabLabel = def.type === 'pc-product-group' ? t('商品设置') : '内容设置';
   const SECTION_LEVELS: Record<string, 1 | 2> = {
     // 模块级 / 内容级 / 扩展级
     '内容设置': 1,
@@ -5073,7 +5108,7 @@ function ModuleSettingsPanel({
             if (field.showIf && !field.showIf(moduleData)) return null;
             let section = isQuickNav && activeTab === 'content' ? quickNavSection(field) : field.section;
             if (def.type === 'pc-image-nav' && field.key === 'picList') {
-              section = Number(moduleData.navStyle) === 3 ? '添加导航项' : '添加图片';
+              section = Number(moduleData.navStyle) === 3 ? tl('添加导航项') : '添加图片';
             }
             const sectionList = (field.sections?.length ? field.sections : section ? [section] : [])
               .filter((item) => item !== lastSection);
@@ -5434,7 +5469,7 @@ function PicListEditor({
       {(!max || list.length < max) && (
         <div className="dec-pic-list__add">
           <Button size="small" icon={<IconPlus />} onClick={() => onChange([...list, { picUrl: '', picThumb: '', picName: '', picTitle: '', picLink: { link: '', name: '' } } as PicItem])}>
-            {t(addText || '添加图片')}
+            {t(addText || t('添加图片'))}
           </Button>
         </div>
       )}
@@ -5614,7 +5649,7 @@ function FieldControl({
       };
       return (
         <div className="square-template">
-          <div className="square-template__value">{t(options.find((item) => item.value === current)?.label || '一行两个')}</div>
+          <div className="square-template__value">{t(options.find((item) => item.value === current)?.label || t('一行两个'))}</div>
           <div className="square-template__options">
             {options.map((item) => (
               <Tooltip key={item.value} content={t(item.label)} position="top">

@@ -11,7 +11,9 @@ import { mergeDefaultModule, formatFrame } from "../../../contract/sharedDefault
 import { imageSquareAdDefaults } from "./index";
 import "./Preview.css";
 
+import { useI18n } from '../../../../../i18n';
 function SquareItem({ pic, imgPadding }: { pic?: Record<string, any>; imgPadding: string }) {
+    const { t } = useI18n();
     return (
         <div className="image-ad-item">
             <div className="item-content" style={cssText(imgPadding)}>
@@ -24,6 +26,7 @@ function SquareItem({ pic, imgPadding }: { pic?: Record<string, any>; imgPadding
 }
 
 export default function ImageSquareAdPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, imageSquareAdDefaults);
@@ -52,7 +55,7 @@ export default function ImageSquareAdPreview({ data }: { data: Record<string, an
                 {picList.length === 0 ? (
                     <div className="module-ad-empty empty-image_ad">
                         <div className="image-empty-bg" />
-                        <div className="desc">点击添加模块图片广告</div>
+                        <div className="desc">{t('点击添加模块图片广告')}</div>
                     </div>
                 ) : (
                     <div className="image-ad-warp" style={cssText(frameFormat.innerPadding)}>

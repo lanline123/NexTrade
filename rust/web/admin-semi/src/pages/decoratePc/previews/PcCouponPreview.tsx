@@ -8,6 +8,7 @@
  */
 import './pcCoupon.css';
 
+import { useI18n } from '../../../i18n';
 /** 旧版 `pcCouponDefaults`（`_shared/coupon/defaults.ts`）。 */
 const COUPON_DEFAULTS = {
   showTitle: 0,
@@ -63,6 +64,7 @@ function deepMerge<T extends Record<string, any>>(defaults: T, data?: Record<str
 }
 
 export default function PcCouponPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
   const moduleConfig = deepMerge<CouponConfig>(COUPON_DEFAULTS, data);
   const isEmpty = !data || Object.keys(data).length === 0;
 
@@ -77,7 +79,7 @@ export default function PcCouponPreview({ data }: { data: Record<string, any> })
       <div className="pc-coupon" style={{ padding: itemPadding }}>
         <div className="pc-coupon__empty">
           <div className="pc-coupon__empty-bg" />
-          <div className="pc-coupon__empty-text">优惠券</div>
+          <div className="pc-coupon__empty-text">{t('优惠券')}</div>
         </div>
       </div>
     );
@@ -106,7 +108,7 @@ export default function PcCouponPreview({ data }: { data: Record<string, any> })
           <div className="pc-coupon__main">
             <div className="pc-coupon__tit">
               <div className="pc-coupon__tit-main">
-                <p className="pc-coupon__tit-zh">领券中心</p>
+                <p className="pc-coupon__tit-zh">{t('领券中心')}</p>
                 <p className="pc-coupon__tit-en">COUPON</p>
                 <p className="pc-coupon__tit-go">
                   GO <em>&gt;&gt;</em>
@@ -130,7 +132,7 @@ export default function PcCouponPreview({ data }: { data: Record<string, any> })
                         ) : (
                           <div className="pc-coupon__discount">
                             {coupon.couponDiscount}
-                            <span>折</span>
+                            <span>{t('折')}</span>
                           </div>
                         )}
                       </div>
@@ -139,15 +141,14 @@ export default function PcCouponPreview({ data }: { data: Record<string, any> })
                         <p className="pc-coupon__desc">{coupon.couponDesc}</p>
                       </div>
                     </div>
-                    <p className="pc-coupon__use-btn">
-                      马上领<em>&nbsp;&gt;</em>
+                    <p className="pc-coupon__use-btn">{t('马上领')}<em>&nbsp;&gt;</em>
                     </p>
                   </div>
                   <div className="pc-coupon__item-notch" />
                 </div>
               ))}
               <div className="pc-coupon__more">
-                <span className="pc-coupon__more-text">查看更多</span>
+                <span className="pc-coupon__more-text">{t('查看更多')}</span>
               </div>
             </div>
           </div>

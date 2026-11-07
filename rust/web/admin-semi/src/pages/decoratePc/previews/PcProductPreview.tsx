@@ -17,6 +17,7 @@ import type { CSSProperties } from 'react';
 import { apiGet } from '../../../api';
 import './pcProduct.css';
 
+import { useI18n } from '../../../i18n';
 type AnyRecord = Record<string, any>;
 
 interface ProductItem {
@@ -127,6 +128,7 @@ function productImage(source?: ProductItem | null): string {
 }
 
 function formatImage(url?: string): string {
+    const { t } = useI18n();
   if (!url) {
     return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f5f5f5" width="100" height="100"/></svg>';
   }
@@ -141,6 +143,7 @@ function formatPrice(price?: number | string): string {
 
 /** 模块标题（对齐旧版 _shared/ModuleTitle.vue：样式一/二/三装饰、对齐、背景、圆角、更多链接）。 */
 function ModuleTitle({ title }: { title?: AnyRecord }) {
+    const { t } = useI18n();
   if (!title || Number(title.showTitle) !== 1) return null;
   const align = Number(title.titleAlign ?? 1);
   const style = Number(title.titleStyle ?? 1);
@@ -172,7 +175,7 @@ function ModuleTitle({ title }: { title?: AnyRecord }) {
       {Number(title.showMore) === 1 ? (
         <div className="dec-module-title__right">
           <a className="dec-module-title__more" href={title.moreLink?.link || 'javascript:;'} style={{ color: title.moreColor || '#969799' }}>
-            <span>{title.moreLink?.title || '更多'}</span>
+            <span>{title.moreLink?.title || t('更多')}</span>
             <i>›</i>
           </a>
         </div>
@@ -183,6 +186,7 @@ function ModuleTitle({ title }: { title?: AnyRecord }) {
 
 /** 按选品配置拉取商品列表（参数映射与旧版 Preview.vue 完全一致）。 */
 function useProductList(config: AnyRecord) {
+    const { t } = useI18n();
   const [productList, setProductList] = useState<ProductItem[]>([]);
   const products = config.products as AnyRecord | undefined;
   const productsKey = products ? JSON.stringify(products) : '';
@@ -281,11 +285,14 @@ function useProductList(config: AnyRecord) {
 }
 
 export default function PcProductPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
   const config = useMemo(() => deepMerge(pcProductDefaults as AnyRecord, data), [JSON.stringify(data)]);
   const productList = useProductList(config);
   const frame = (config.frame || {}) as AnyRecord;
   const style = Number(config.style ?? 1);
   const columns = style === 2 ? 5 : 4;
+  // 购买按钮样式：0=不显示，1/2=购物车（线框/实心），3/4=加号（线框/实心），5~8=文字按钮（原版 ProductButton.vue）
+  const buyStyle = Number(config.buyBtnStyle ?? 1);
 
   const cssVars = {
     // 扩展设置（ModuleContainerSettings）写入的是 frame，预览优先读取 frame
@@ -311,7 +318,7 @@ export default function PcProductPreview({ data }: { data: Record<string, any> }
         {!hasProducts ? (
           <div className="dec-pc-product__empty">
             <div className="dec-pc-product__empty-icon" />
-            <div className="dec-pc-product__empty-text">点击添加商品</div>
+            <div className="dec-pc-product__empty-text">{t('点击添加商品')}</div>
           </div>
         ) : null}
 
@@ -329,11 +336,28 @@ export default function PcProductPreview({ data }: { data: Record<string, any> }
                     <div className="dec-pc-product__info">
                       {Number(config.showName) !== 0 ? <div className="dec-pc-product__name">{item.productName}</div> : null}
                       {Number(config.showBrief) !== 0 ? (
-                        <div className="dec-pc-product__brief">{item.brief || '商品描述'}</div>
+                        <div className="dec-pc-product__brief">{item.brief || t('商品描述')}</div>
                       ) : null}
-                      {Number(config.showPrice) !== 0 ? (
-                        <div className="dec-pc-product__price">{formatPrice(item.productPrice)}</div>
-                      ) : null}
+                      <div className="dec-pc-product__bottom">
+                        {Number(config.showPrice) !== 0 ? (
+                          <div className="dec-pc-product__price">{formatPrice(item.productPrice)}</div>
+                        ) : null}
+                        {buyStyle > 0 ? (
+                          <span className="dec-pc-product__buy">
+                            {buyStyle <= 4 ? (
+                              <i
+                                className={`dec-pc-product__buy-ico dec-pc-product__buy-ico--${buyStyle <= 2 ? 'cart' : 'plus'}${buyStyle === 1 || buyStyle === 3 ? ' is-outline' : ''}`}
+                              />
+                            ) : (
+                              <span
+                                className={`dec-pc-product__buy-text ${buyStyle === 6 || buyStyle === 8 ? 'dec-pc-product__buy-text--solid' : 'dec-pc-product__buy-text--outline'}`}
+                              >
+                                {buyStyle >= 7 ? t('马上抢') : '购买'}
+                              </span>
+                            )}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </a>
                 </div>

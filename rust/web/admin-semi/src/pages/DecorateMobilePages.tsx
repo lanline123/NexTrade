@@ -86,7 +86,6 @@ function buildCustomVars(main: string, vice: string): ThemeVars {
   };
 }
 
-/** PageSpec 兼容标签：保存设置 保存样式 进入可视化画布装修 删除 keyword */
 export function ThemeStyle() {
   const { t } = useI18n();
   const [mode, setMode] = useState<1 | 2>(1);
@@ -242,26 +241,26 @@ export function ThemeStyle() {
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ width: 210, border: '1px solid #eee', borderRadius: 8, padding: 14, background: '#fff' }}>
                 <div style={{ fontSize: 20, fontWeight: 700, ...priceStyle }}>¥395.00</div>
-                <div style={{ color: '#999', fontSize: 12, margin: '8px 0' }}>由本系统配送并提供售后服务</div>
+                <div style={{ color: '#999', fontSize: 12, margin: '8px 0' }}>{t('由本系统配送并提供售后服务')}</div>
                 <Space>
-                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>9折</span>
-                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>满100-10</span>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>{t('9折')}</span>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>{t('满100-10')}</span>
                 </Space>
                 <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>加入购物车</span>
-                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>立即购买</span>
+                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>{t('加入购物车')}</span>
+                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>{t('立即购买')}</span>
                 </div>
               </div>
               <div style={{ width: 210, border: '1px solid #eee', borderRadius: 8, padding: 14, background: '#fff' }}>
                 <div style={{ fontSize: 20, fontWeight: 700, ...priceStyle }}>¥231.10</div>
                 <div style={{ display: 'flex', gap: 8, margin: '10px 0' }}>
-                  <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>金色</span>
+                  <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>{t('金色')}</span>
                   <span style={{ border: `1px solid ${vars['--main-bg']}`, color: vars['--general'], padding: '2px 10px', borderRadius: 4, fontSize: 12 }}>XS</span>
                 </div>
-                <div style={{ color: '#39bf3e', marginBottom: 10 }}>充足</div>
+                <div style={{ color: '#39bf3e', marginBottom: 10 }}>{t('充足')}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>加入购物车</span>
-                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>立即购买</span>
+                  <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>{t('加入购物车')}</span>
+                  <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>{t('立即购买')}</span>
                 </div>
               </div>
             </div>
@@ -646,7 +645,7 @@ function MobileNavEditor({ id, onBack }: { id: number; onBack: () => void }) {
   return (
     <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
       <div style={{ width: 375, flexShrink: 0, border: '1px solid #e5e6eb', borderRadius: 8, overflow: 'hidden', background: '#f7f8fa' }}>
-        <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', borderBottom: '1px solid #eee' }}>页面标题</div>
+        <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', borderBottom: '1px solid #eee' }}>{t('页面标题')}</div>
         <div style={{ height: 420 }} />
         <div style={{ background: bg, borderRadius: radius, padding: '8px 4px', display: 'flex', justifyContent: 'space-around' }}>
           {module.navList.map((item, index) => (

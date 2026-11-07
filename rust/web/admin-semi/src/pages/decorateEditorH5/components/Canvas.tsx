@@ -16,6 +16,7 @@ import { editorStore, useEditorState } from "../store/editorStore";
 import { getPreviewComponent, getModuleDefinition } from "../contract/moduleRegistry";
 import type { DecorateModuleBase } from "../contract/types";
 
+import { useI18n } from '../../../i18n';
 /** 预览组件缓存（moduleIndex 无关，按 type@url 缓存） */
 const previewCache = new Map<string, React.ComponentType<any>>();
 
@@ -58,6 +59,7 @@ function pageBackgroundStyle(pageModule: Record<string, any>, pageType: number):
 }
 
 function ModuleItem({ moduleData, index }: { moduleData: DecorateModuleBase; index: number }) {
+    const { t } = useI18n();
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: moduleData.moduleIndex });
     const Preview = getLazyPreview(moduleData.type, moduleData.url);
     const isActive = editorStore.getState().activeModuleIndex === index;
@@ -77,51 +79,52 @@ function ModuleItem({ moduleData, index }: { moduleData: DecorateModuleBase; ind
             {...attributes}
             {...listeners}
         >
-            <div className="h5-editor-module-label-tag">{moduleData.label || moduleData.type}</div>
+            <div className="h5-editor-module-label-tag">{t(moduleData.label || moduleData.type)}</div>
             <div className="h5-editor-module-actions" onClick={(e) => e.stopPropagation()}>
-                <span title="上移" onClick={() => tryMove(index, index - 1)}>
+                <span title={t('上移')} onClick={() => tryMove(index, index - 1, t)}>
                     <IconMinus />
                 </span>
-                <span title="下移" onClick={() => tryMove(index, index + 1)}>
+                <span title={t('下移')} onClick={() => tryMove(index, index + 1, t)}>
                     <IconPlus />
                 </span>
                 <span
-                    title="复制"
+                    title={t('复制')}
                     onClick={() => {
                         editorStore.copyModule(index);
                     }}
                 >
                     <IconCopy />
                 </span>
-                <span title={moduleData.isShow === false ? "显示" : "隐藏"} onClick={() => editorStore.toggleModuleVisibility(index)}>
+                <span title={moduleData.isShow === false ? t("显示") : t("隐藏")} onClick={() => editorStore.toggleModuleVisibility(index)}>
                     {moduleData.isShow === false ? <IconEyeClosed /> : <IconEyeOpened />}
                 </span>
-                <span title="删除" onClick={() => editorStore.removeModule(index)}>
+                <span title={t('删除')} onClick={() => editorStore.removeModule(index)}>
                     <IconDelete />
                 </span>
             </div>
             <div className="h5-editor-module-preview" onClick={(e) => e.stopPropagation()}>
                 {Preview ? (
-                    <Suspense fallback={<div className="h5-editor-preview-loading">模块加载中…</div>}>
+                    <Suspense fallback={<div className="h5-editor-preview-loading">{t('模块加载中…')}</div>}>
                         <Preview data={moduleData.module} />
                     </Suspense>
                 ) : (
-                    <div className="h5-editor-preview-missing">「{moduleData.label || moduleData.type}」预览待移植</div>
+                    <div className="h5-editor-preview-missing">「{t(moduleData.label || moduleData.type)}」{t('预览待移植')}</div>
                 )}
             </div>
         </div>
     );
 }
 
-function tryMove(from: number, to: number) {
+function tryMove(from: number, to: number, t: (key: string) => string) {
     if (to < 0) return;
     const state = editorStore.getState();
     if (to >= state.moduleList.length) return;
     const result: any = editorStore.moveModule(from, to);
-    if (result !== true) Toast.warning(String(result?.reason || ''));
+    if (result !== true) Toast.warning(t(String(result?.reason || '')));
 }
 
 export default function Canvas() {
+    const { t } = useI18n();
     const s = useEditorState();
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -135,7 +138,7 @@ export default function Canvas() {
         if (oldIndex === -1 || newIndex === -1) return;
         const validation: any = editorStore.moveModule(oldIndex, newIndex);
         if (validation !== true) {
-            Toast.warning(String(validation?.reason || ''));
+            Toast.warning(t(String(validation?.reason || '')));
             return;
         }
     };
@@ -149,7 +152,7 @@ export default function Canvas() {
                             {items.map((m, index) => (
                                 <ModuleItem key={m.moduleIndex} moduleData={m} index={index} />
                             ))}
-                            {items.length === 0 && <div className="h5-editor-canvas-empty">请在左侧模块库点击添加模块</div>}
+                            {items.length === 0 && <div className="h5-editor-canvas-empty">{t('请在左侧模块库点击添加模块')}</div>}
                         </div>
                     </SortableContext>
                 </DndContext>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
@@ -6,9 +6,11 @@ import {
   ColorPicker,
   Input,
   InputNumber,
+  Modal,
   Radio,
   RadioGroup,
   Select,
+  Space,
   Switch,
   TextArea,
   Toast,
@@ -321,6 +323,35 @@ export type ConfigControlType =
   | 'richtext'
   | 'textarea';
 
+/** 配置页动作按钮的执行上下文。旧版配置页里的按钮型功能统一走这里，避免"字段在、功能不在"。 */
+export type ConfigActionContext = {
+  values: Record<string, unknown>;
+  /** prompt 弹窗里用户输入的内容 */
+  input: string;
+  apiGet: typeof apiGet;
+  apiPost: typeof apiPost;
+  reload: () => Promise<void>;
+  copy: (text: string) => Promise<void>;
+};
+
+export type ConfigAction = {
+  label: string;
+  /** 归属的分组标题；填写后按钮渲染在该分组卡片头部，否则渲染在页面底部操作区。 */
+  section?: string;
+  /** 二次确认文案 */
+  confirm?: string;
+  /** 需要用户输入（例如测试邮箱） */
+  prompt?: { label: string; placeholder?: string; defaultValue?: string };
+  /** 成功提示文案 */
+  success?: string;
+  /** 执行完成后重新拉取配置 */
+  reload?: boolean;
+  visibleWhen?: (values: Record<string, unknown>) => boolean;
+  /** 主要动作用 solid，其余用 light */
+  primary?: boolean;
+  run: (context: ConfigActionContext) => Promise<void>;
+};
+
 interface AutoConfigPageProps {
   title: string;
   getApi: string;
@@ -348,6 +379,8 @@ interface AutoConfigPageProps {
   ) => Record<string, unknown> | void;
   /** 保存前校验；返回错误文案则中止保存。 */
   validate?: (values: Record<string, unknown>) => string | null | undefined;
+  /** 旧版配置页里的按钮型功能：密钥生成/复制、批量更新、测试邮件等。 */
+  actions?: ConfigAction[];
   onSaved?: (values: Record<string, unknown>) => void;
   modern?: boolean;
 }
@@ -400,7 +433,8 @@ const labelMap: Record<string, string> = {
   adminDomain: '后台域名',
   pcDomain: 'PC 域名',
   h5Domain: 'H5 域名',
-  isOpenPscws: '开启 PC 客服',
+  isOpenPscws: '搜索分词',
+  selfStoreName: '自营名称',
   navTheme: '外观',
   primaryColor: '主题色',
   versionInfoHidden: '是否隐藏版本号',
@@ -545,6 +579,7 @@ export default function AutoConfigPage({
   numberLimits,
   adjustValues,
   validate,
+  actions,
   onSaved,
   modern,
 }: AutoConfigPageProps) {
@@ -554,37 +589,62 @@ export default function AutoConfigPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState(0);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
+  const [actionPrompt, setActionPrompt] = useState<{ action: ConfigAction; value: string } | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     setLoading(true);
-    apiGet<Record<string, unknown>>(getApi)
-      .then((result) => {
-        const data = { ...defaults, ...(result || {}) };
-        // 品牌迁移仅作用于品牌相关配置，避免把计算字段注入其它配置分组
-        const brandConfigApi = /basicSettings|globalSettings|getAdmin/.test(getApi);
-        if (brandConfigApi && typeof data.defaultCopyright === 'string') {
-          data.defaultCopyright = data.defaultCopyright.replace(/Tigshop/gi, 'NexTrade');
-        }
-        // 历史默认技术支持图来自第三方 OSS / 旧品牌，统一替换为平台自有标识
-        if (
-          brandConfigApi &&
-          (typeof data.defaultTechSupport !== 'string' ||
-            !data.defaultTechSupport ||
-            /tigshop|nlatstore|default_tech_support/i.test(data.defaultTechSupport))
-        ) {
-          data.defaultTechSupport = `${window.location.origin}${NEXTRADE_TECH_SUPPORT}`;
-        }
-        setValues(data);
-        const drafts: Record<string, string> = {};
-        Object.entries(data).forEach(([key, value]) => {
-          if (value && typeof value === 'object') drafts[key] = JSON.stringify(value, null, 2);
-        });
-        setJsonDrafts(drafts);
-      })
-      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : '加载失败' }))
-      .finally(() => setLoading(false));
+    try {
+      const result = await apiGet<Record<string, unknown>>(getApi);
+      const data = { ...defaults, ...(result || {}) };
+      // 品牌迁移仅作用于品牌相关配置，避免把计算字段注入其它配置分组
+      const brandConfigApi = /basicSettings|globalSettings|getAdmin/.test(getApi);
+      if (brandConfigApi && typeof data.defaultCopyright === 'string') {
+        data.defaultCopyright = data.defaultCopyright.replace(/Tigshop/gi, 'NexTrade');
+      }
+      // 历史默认技术支持图来自第三方 OSS / 旧品牌，统一替换为平台自有标识
+      if (
+        brandConfigApi &&
+        (typeof data.defaultTechSupport !== 'string' ||
+          !data.defaultTechSupport ||
+          /tigshop|nlatstore|default_tech_support/i.test(data.defaultTechSupport))
+      ) {
+        data.defaultTechSupport = `${window.location.origin}${NEXTRADE_TECH_SUPPORT}`;
+      }
+      setValues(data);
+      const drafts: Record<string, string> = {};
+      Object.entries(data).forEach(([key, value]) => {
+        if (value && typeof value === 'object') drafts[key] = JSON.stringify(value, null, 2);
+      });
+      setJsonDrafts(drafts);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '加载失败' });
+    } finally {
+      setLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getApi]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // 开发期告警：声明成选项型控件却没配 options 的字段会静默退化成空选项组 / 文本框。
+  useEffect(() => {
+    if (!import.meta.env.DEV || !controls) return;
+    const missing = Object.entries(controls)
+      .filter(
+        ([key, control]) =>
+          ['select', 'options', 'multi', 'radio', 'segmented'].includes(control) &&
+          !options?.[key]?.length,
+      )
+      .map(([key]) => key);
+    if (missing.length) {
+      console.warn(
+        `[AutoConfigPage] ${title} 的以下字段声明了选项型控件但未提供 options，将退化为空选项组：${missing.join(', ')}`,
+      );
+    }
+  }, [controls, options, title]);
 
   const entries = useMemo(() => Object.entries(values), [values]);
 
@@ -636,6 +696,83 @@ export default function AutoConfigPage({
       setSaving(false);
     }
   };
+
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // 非安全上下文（http / 旧浏览器）降级为 execCommand
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  };
+
+  const visibleActions = (sectionTitle?: string) =>
+    (actions || []).filter(
+      (action) =>
+        action.section === sectionTitle &&
+        (!action.visibleWhen || action.visibleWhen(values)),
+    );
+
+  const runAction = async (action: ConfigAction, input = '') => {
+    if (action.confirm) {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        Modal.confirm({
+          title: t('确认操作'),
+          content: t(action.confirm as string),
+          okText: t('确定'),
+          cancelText: t('取消'),
+          onOk: () => resolve(true),
+          onCancel: () => resolve(false),
+        });
+      });
+      if (!confirmed) return;
+    }
+    setActionBusy(action.label);
+    try {
+      await action.run({ values, input, apiGet, apiPost, reload: load, copy: copyText });
+      if (action.reload) await load();
+      Toast.success({ content: t(action.success || '操作成功') });
+    } catch (error) {
+      if (error instanceof Error && error.message === '__cancelled__') return;
+      // 后端明确返回业务错误（例如能力未迁移的 1001）时如实展示，不做"假成功"
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
+  const onActionClick = (action: ConfigAction) => {
+    if (action.prompt) {
+      setActionPrompt({
+        action,
+        value: String(action.prompt.defaultValue ?? ''),
+      });
+      return;
+    }
+    void runAction(action);
+  };
+
+  const actionButtons = (list: ConfigAction[]) =>
+    list.map((action) => (
+      <Button
+        key={action.label}
+        size="small"
+        theme={action.primary ? 'solid' : 'light'}
+        type={action.primary ? 'primary' : undefined}
+        loading={actionBusy === action.label}
+        disabled={Boolean(actionBusy) || loading}
+        onClick={() => onActionClick(action)}
+      >
+        {t(action.label)}
+      </Button>
+    ));
 
   const grouped = useMemo(() => {
     if (!sections?.length) return [{ title: '', items: entries }];
@@ -907,57 +1044,96 @@ export default function AutoConfigPage({
     );
   };
 
+  const promptModal = (
+    <Modal
+      title={actionPrompt ? t(actionPrompt.action.prompt?.label || '请输入') : ''}
+      visible={Boolean(actionPrompt)}
+      okText={t('确定')}
+      cancelText={t('取消')}
+      onCancel={() => setActionPrompt(null)}
+      onOk={() => {
+        if (!actionPrompt) return;
+        const { action, value } = actionPrompt;
+        setActionPrompt(null);
+        void runAction(action, value.trim());
+      }}
+    >
+      <Input
+        value={actionPrompt?.value ?? ''}
+        placeholder={actionPrompt ? t(actionPrompt.action.prompt?.placeholder || '') : undefined}
+        onChange={(next) =>
+          setActionPrompt((current) => (current ? { ...current, value: next } : current))
+        }
+      />
+    </Modal>
+  );
+
   if (modern !== false) {
     return (
-      <div className="base-settings-list">
-        {grouped.map((group, index) => (
-          <Card
-            key={group.title || index}
-            className="base-settings-card"
-            title={
-              <div className="base-settings-card__title">
-                <span className="base-settings-card__icon">{CONFIG_SECTION_ICONS[group.title] || <IconSetting />}</span>
-                <span className="base-settings-card__title-text">
-                  <strong>{t(group.title || '其他')}</strong>
-                  <small>
-                    {t(CONFIG_SECTION_DESCRIPTIONS[group.title] || '配置{title}相关参数。', {
-                      title: t(group.title || '其他'),
-                    })}
-                  </small>
-                </span>
-              </div>
-            }
-            headerExtraContent={
-              <span className="base-settings-card__count">
-                {t('{count} 项', { count: group.items.length })}
-              </span>
-            }
-          >
-            {renderSection(group, index)}
-          </Card>
-        ))}
-        <div className="base-settings-list__actions">
-          <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
-            {t('保存')}
-          </Button>
+      <>
+        <div className="base-settings-list">
+          {grouped.map((group, index) => (
+            <Card
+              key={group.title || index}
+              className="base-settings-card"
+              title={
+                <div className="base-settings-card__title">
+                  <span className="base-settings-card__icon">{CONFIG_SECTION_ICONS[group.title] || <IconSetting />}</span>
+                  <span className="base-settings-card__title-text">
+                    <strong>{t(group.title || '其他')}</strong>
+                    <small>
+                      {t(CONFIG_SECTION_DESCRIPTIONS[group.title] || '配置{title}相关参数。', {
+                        title: t(group.title || '其他'),
+                      })}
+                    </small>
+                  </span>
+                </div>
+              }
+              headerExtraContent={
+                <Space>
+                  <span className="base-settings-card__count">
+                    {t('{count} 项', { count: group.items.length })}
+                  </span>
+                  {actionButtons(visibleActions(group.title))}
+                </Space>
+              }
+            >
+              {renderSection(group, index)}
+            </Card>
+          ))}
+          <div className="base-settings-list__actions">
+            <Space wrap>
+              {actionButtons(visibleActions(undefined))}
+              <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
+                {t('保存')}
+              </Button>
+            </Space>
+          </div>
         </div>
-      </div>
+        {promptModal}
+      </>
     );
   }
 
   return (
-    <Card className="auto-config-card" shadows="hover">
-      <div className="auto-config-head">
-        <Text type="tertiary" size="small">
-          {t('共 {count} 项配置', { count: visibleEntries.length })}
-        </Text>
-      </div>
-      {grouped.map((group, index) => renderSection(group, index))}
-      <div className="auto-config-actions">
-        <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
-          {t('保存')}
-        </Button>
-      </div>
-    </Card>
+    <>
+      <Card className="auto-config-card" shadows="hover">
+        <div className="auto-config-head">
+          <Text type="tertiary" size="small">
+            {t('共 {count} 项配置', { count: visibleEntries.length })}
+          </Text>
+        </div>
+        {grouped.map((group, index) => renderSection(group, index))}
+        <div className="auto-config-actions">
+          <Space wrap>
+            {actionButtons((actions || []).filter((action) => !action.visibleWhen || action.visibleWhen(values)))}
+            <Button theme="solid" type="primary" loading={saving || loading} onClick={save}>
+              {t('保存')}
+            </Button>
+          </Space>
+        </div>
+      </Card>
+      {promptModal}
+    </>
   );
 }

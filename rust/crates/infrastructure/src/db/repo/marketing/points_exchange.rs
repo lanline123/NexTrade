@@ -126,6 +126,24 @@ impl PointsExchangeRepository {
         Ok(row.0)
     }
 
+    /// 按商品 + SKU 查活动（Java `OrderCheckServiceImpl` flowType==3 分支：
+    /// `pointsExchangeMapper.selectOne(eq(productId).eq(skuId))`）。
+    /// 结算装配据 `exchange_integral` / `points_deducted_amount` 计算兑换积分与抵扣金额。
+    pub async fn find_by_product(
+        &self,
+        product_id: i32,
+        sku_id: i32,
+    ) -> Result<Option<PointsExchange>> {
+        sqlx::query_as::<_, PointsExchange>(&format!(
+            "{SELECT} WHERE product_id = ? AND sku_id = ? LIMIT 1"
+        ))
+        .bind(product_id)
+        .bind(sku_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_err)
+    }
+
     /// SKU 启用校验（Java `checkSkuEnabled`：skuId 空/<=0 跳过）。
     pub async fn sku_enabled(&self, product_id: i32, sku_id: i32) -> Result<bool> {
         let row: (i64,) = sqlx::query_as(

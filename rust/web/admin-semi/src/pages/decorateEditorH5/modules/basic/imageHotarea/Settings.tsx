@@ -10,12 +10,14 @@ import { IconDelete, IconPlus } from "@douyinfe/semi-icons";
 import { SettingGroup, TitleSettingsField, FrameSettingsField } from "../../../shared/settingWidgets";
 import { imageFormat } from "../../../shared/format";
 
+import { useI18n } from '../../../../../i18n';
 /** 与 Vue 版 ImageHotarea.vue addHotarea 的新区域初始值一致 */
 const emptyHotarea = { height: 100, width: 100, left: 10, top: 10 };
 
 const rowStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 } as React.CSSProperties;
 
 export default function ImageHotareaSettings({ data, onChange }: { data: Record<string, any>; onChange: (patch: Record<string, any>) => void }) {
+    const { t } = useI18n();
     const picList: any[] = Array.isArray(data?.picList) ? data.picList : [];
 
     const setPicList = (next: any[]) => onChange({ picList: next });
@@ -35,18 +37,18 @@ export default function ImageHotareaSettings({ data, onChange }: { data: Record<
         onSuccess: (body: any) => {
             const url = body?.data?.url || body?.url;
             if (!url) {
-                Toast.error("上传失败");
+                Toast.error(t("上传失败"));
                 return;
             }
             setPicList([...picList, { picUrl: url, picThumb: url, picTitle: "", hotarea: [] }]);
         },
-        onError: () => Toast.error("上传失败")
+        onError: () => Toast.error(t("上传失败"))
     };
 
     return (
         <div className="h5-editor-settings-body">
             <SettingGroup title="绘制热区">
-                <div style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>提示：添加图片后，点击图片进入绘制</div>
+                <div style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>{t('提示：添加图片后，点击图片进入绘制')}</div>
                 {picList.map((pic, picIndex) => (
                     <div key={picIndex} style={{ border: "1px solid #f0f0f0", borderRadius: 4, padding: 8, marginBottom: 8 }}>
                         <div className="h5-editor-pic-row" style={{ marginBottom: 8 }}>
@@ -54,7 +56,7 @@ export default function ImageHotareaSettings({ data, onChange }: { data: Record<
                             <div style={{ flex: 1, display: "flex", gap: 6, justifyContent: "flex-end" }}>
                                 <Input
                                     size="small"
-                                    placeholder="图片标题"
+                                    placeholder={t('图片标题')}
                                     style={{ width: 120 }}
                                     value={pic.picTitle ?? ""}
                                     onChange={(v: string) => setPic(picIndex, { picTitle: v })}
@@ -100,7 +102,7 @@ export default function ImageHotareaSettings({ data, onChange }: { data: Record<
                                     ))}
                                 </div>
                                 <div style={rowStyle}>
-                                    <span style={{ fontSize: 13, flexShrink: 0 }}>链接名称</span>
+                                    <span style={{ fontSize: 13, flexShrink: 0 }}>{t('链接名称')}</span>
                                     <Input
                                         size="small"
                                         style={{ width: 180 }}
@@ -114,11 +116,11 @@ export default function ImageHotareaSettings({ data, onChange }: { data: Record<
                                     />
                                 </div>
                                 <div style={rowStyle}>
-                                    <span style={{ fontSize: 13, flexShrink: 0 }}>链接地址</span>
+                                    <span style={{ fontSize: 13, flexShrink: 0 }}>{t('链接地址')}</span>
                                     <Input
                                         size="small"
                                         style={{ width: 180 }}
-                                        placeholder="如 /pages/product/index?id=1"
+                                        placeholder={t('如 /pages/product/index?id=1')}
                                         value={hotarea.link?.path ?? ""}
                                         onChange={(v: string) =>
                                             setHotarea(
@@ -134,15 +136,11 @@ export default function ImageHotareaSettings({ data, onChange }: { data: Record<
                             size="small"
                             icon={<IconPlus />}
                             onClick={() => setHotarea(picIndex, [...(pic.hotarea || []), { ...emptyHotarea }])}
-                        >
-                            添加热区
-                        </Button>
+                        >{t('添加热区')}</Button>
                     </div>
                 ))}
                 <Upload {...(uploadProps as any)} accept="image/*" showUploadList={false}>
-                    <Button size="small" icon={<IconPlus />}>
-                        添加新热图
-                    </Button>
+                    <Button size="small" icon={<IconPlus />}>{t('添加新热图')}</Button>
                 </Upload>
             </SettingGroup>
             <TitleSettingsField data={data} onChange={onChange} />

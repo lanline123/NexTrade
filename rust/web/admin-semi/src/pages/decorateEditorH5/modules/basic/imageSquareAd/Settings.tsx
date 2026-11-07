@@ -11,6 +11,7 @@ import { IconDelete, IconPlus } from "@douyinfe/semi-icons";
 import { SettingGroup, RadioRowField, NumberField, TitleSettingsField, FrameSettingsField } from "../../../shared/settingWidgets";
 import { imageFormat } from "../../../shared/format";
 
+import { useI18n } from '../../../../../i18n';
 const lengthMap: Record<number, number> = { 1: 2, 2: 3, 5: 3, 7: 3, 3: 4, 4: 4, 6: 4 };
 const emptyPic = { picId: 0, picThumb: "", picUrl: "", picName: "" };
 
@@ -40,6 +41,7 @@ function Box({ src, selected, onClick }: { src?: string; selected: boolean; onCl
 }
 
 export default function ImageSquareAdSettings({ data, onChange }: { data: Record<string, any>; onChange: (patch: Record<string, any>) => void }) {
+    const { t } = useI18n();
     const picList: any[] = Array.isArray(data?.picList) ? data.picList : [];
     const [picIndex, setPicIndex] = useState(0);
 
@@ -70,12 +72,12 @@ export default function ImageSquareAdSettings({ data, onChange }: { data: Record
         onSuccess: (body: any) => {
             const url = body?.data?.url || body?.url;
             if (!url) {
-                Toast.error("上传失败");
+                Toast.error(t("上传失败"));
                 return;
             }
             setPic(Math.min(picIndex, picList.length - 1), { picUrl: url, picThumb: url });
         },
-        onError: () => Toast.error("上传失败")
+        onError: () => Toast.error(t("上传失败"))
     };
 
     const currentItem = picList[Math.min(picIndex, picList.length - 1)];
@@ -184,7 +186,7 @@ export default function ImageSquareAdSettings({ data, onChange }: { data: Record
                         </Upload>
                         <Input
                             size="small"
-                            placeholder="跳转链接，如 /pages/product/index?id=1"
+                            placeholder={t('跳转链接，如 /pages/product/index?id=1')}
                             value={currentItem.picLink?.link ?? ""}
                             onChange={(v: string) => {
                                 const link = { ...(currentItem.picLink || { title: "" }), link: v };
@@ -193,7 +195,7 @@ export default function ImageSquareAdSettings({ data, onChange }: { data: Record
                         />
                     </>
                 ) : (
-                    <div style={{ fontSize: 12, color: "#999" }}>请先选择布局并选中图片位后编辑</div>
+                    <div style={{ fontSize: 12, color: "#999" }}>{t('请先选择布局并选中图片位后编辑')}</div>
                 )}
             </SettingGroup>
             <SettingGroup title="图片设置">

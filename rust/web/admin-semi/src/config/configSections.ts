@@ -141,6 +141,7 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
         "autoReturnGoodsDays",
         "autoConfirmReceiptDays",
         "financialReview",
+        "afterSalesReasonEnabled",
         "afterSalesReasonList"
       ]
     },
@@ -182,6 +183,7 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
       "title": "客服信息",
       "fields": [
         "kefuPhone",
+        "kefuWhatsappPhone",
         "kefuTime"
       ]
     }
@@ -233,6 +235,7 @@ export const configSections: Record<string, Array<{ title: string; fields: strin
         "searchKeywords",
         "msgHackWord",
         "isOpenPscws",
+        "selfStoreName",
         "selectSearchType"
       ]
     },

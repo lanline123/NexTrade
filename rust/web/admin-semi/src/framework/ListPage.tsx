@@ -84,6 +84,7 @@ function renderFilter(
 
 export default function ListPage<T extends Record<string, any>>({
   api,
+  listMethod = 'get',
   rowKey,
   columns,
   filters = [],
@@ -142,12 +143,17 @@ export default function ListPage<T extends Record<string, any>>({
     if (isDemo()) return;
     let alive = true;
     setLoading(true);
-    apiGet<{ records: T[]; total: number }>(api, {
+    const params = {
       page,
       size: pageSize,
       ...query,
       ...filterValues,
-    })
+    };
+    const request =
+      listMethod === 'post'
+        ? apiPost<{ records: T[]; total: number }>(api, params)
+        : apiGet<{ records: T[]; total: number }>(api, params);
+    request
       .then((result) => {
         if (!alive) return;
         setRows(result.records || []);
@@ -159,7 +165,7 @@ export default function ListPage<T extends Record<string, any>>({
     return () => {
       alive = false;
     };
-  }, [api, page, pageSize, query, filterValues, reloadKey]);
+  }, [api, listMethod, page, pageSize, query, filterValues, reloadKey]);
 
   const search = () => {
     setPage(1);

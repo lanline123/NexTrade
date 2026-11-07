@@ -66,7 +66,17 @@ impl ContentService {
                 tracing::warn!("文章浏览计数失败 article_id={article_id}: {e}");
             }
         }
-        Ok(ArticleDetailVO::from(&a))
+        // 关联商品 ID（Java ArticleDetailVO.productIds）：查询失败不阻断详情返回
+        let product_ids = self
+            .repos
+            .content
+            .article
+            .find_product_ids_by_article(article_id)
+            .await
+            .unwrap_or_default();
+        let mut vo = ArticleDetailVO::from(&a);
+        vo.product_ids = product_ids;
+        Ok(vo)
     }
 
     /// 热门文章（前台首页）。

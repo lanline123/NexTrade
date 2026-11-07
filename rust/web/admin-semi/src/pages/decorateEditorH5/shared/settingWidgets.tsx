@@ -7,6 +7,7 @@ import { Button, ColorPicker, Input, InputNumber, RadioGroup, Radio, Select, Swi
 import { IconPlus, IconDelete } from "@douyinfe/semi-icons";
 import { imageFormat, pickPic } from "./format";
 
+import { useI18n } from '../../../i18n';
 type Patch = Record<string, any>;
 interface FieldProps {
     data: Record<string, any>;
@@ -16,18 +17,20 @@ interface FieldProps {
 // ---------------- 布局 ----------------
 
 export function SettingGroup({ title, children }: { title?: string; children: React.ReactNode }) {
+    const { t } = useI18n();
     return (
         <div className="h5-editor-setting-group" style={{ borderBottom: "1px solid #f0f0f0", paddingBottom: 12 }}>
-            {title ? <div className="h5-editor-setting-label" style={{ fontWeight: 600 }}>{title}</div> : null}
+            {title ? <div className="h5-editor-setting-label" style={{ fontWeight: 600 }}>{t(title)}</div> : null}
             {children}
         </div>
     );
 }
 
 export function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
+    const { t } = useI18n();
     return (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 13, flexShrink: 0 }}>{label}</span>
+            <span style={{ fontSize: 13, flexShrink: 0 }}>{t(label)}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>{children}</div>
         </div>
     );
@@ -37,6 +40,7 @@ export function SettingRow({ label, children }: { label: string; children: React
 
 /** 单选（数字值），options: [{value,label}] */
 export function RadioField({ data, onChange, field, options }: FieldProps & { field: string; options: Array<{ value: number | string; label: string }> }) {
+    const { t } = useI18n();
     return (
         <SettingRow label=" ">
             <RadioGroup
@@ -47,7 +51,7 @@ export function RadioField({ data, onChange, field, options }: FieldProps & { fi
             >
                 {options.map((o) => (
                     <Radio key={String(o.value)} value={o.value}>
-                        {o.label}
+                        {t(o.label)}
                     </Radio>
                 ))}
             </RadioGroup>
@@ -57,6 +61,7 @@ export function RadioField({ data, onChange, field, options }: FieldProps & { fi
 
 /** 带标题的单选 */
 export function RadioRowField({ data, onChange, field, label, options }: FieldProps & { field: string; label: string; options: Array<{ value: number | string; label: string }> }) {
+    const { t } = useI18n();
     return (
         <SettingRow label={label}>
             <RadioGroup
@@ -67,7 +72,7 @@ export function RadioRowField({ data, onChange, field, label, options }: FieldPr
             >
                 {options.map((o) => (
                     <Radio key={String(o.value)} value={o.value}>
-                        {o.label}
+                        {t(o.label)}
                     </Radio>
                 ))}
             </RadioGroup>
@@ -85,6 +90,7 @@ export function NumberField({ data, onChange, field, label, min = 0, max = 999, 
 }
 
 export function ColorField({ data, onChange, field, label, allowEmpty = true }: FieldProps & { field: string; label: string; allowEmpty?: boolean }) {
+    const { t } = useI18n();
     return (
         <SettingRow label={label}>
             <ColorPicker
@@ -92,18 +98,17 @@ export function ColorField({ data, onChange, field, label, allowEmpty = true }: 
                 onChange={(v: any) => onChange({ [field]: typeof v === "string" ? v : v?.hex })}
             />
             {allowEmpty ? (
-                <Button size="small" onClick={() => onChange({ [field]: "" })}>
-                    清除
-                </Button>
+                <Button size="small" onClick={() => onChange({ [field]: "" })}>{t('清除')}</Button>
             ) : null}
         </SettingRow>
     );
 }
 
 export function TextField({ data, onChange, field, label, placeholder }: FieldProps & { field: string; label: string; placeholder?: string }) {
+    const { t } = useI18n();
     return (
         <SettingRow label={label}>
-            <Input value={data?.[field] ?? ""} placeholder={placeholder} style={{ width: 180 }} onChange={(v: string) => onChange({ [field]: v })} />
+            <Input value={data?.[field] ?? ""} placeholder={placeholder ? t(placeholder) : undefined} style={{ width: 180 }} onChange={(v: string) => onChange({ [field]: v })} />
         </SettingRow>
     );
 }
@@ -117,9 +122,10 @@ export function SwitchField({ data, onChange, field, label }: FieldProps & { fie
 }
 
 export function SelectField({ data, onChange, field, label, options }: FieldProps & { field: string; label: string; options: Array<{ value: number | string; label: string }> }) {
+    const { t } = useI18n();
     return (
         <SettingRow label={label}>
-            <Select value={data?.[field]} style={{ width: 180 }} optionList={options as any} onChange={(v: any) => onChange({ [field]: v })} />
+            <Select value={data?.[field]} style={{ width: 180 }} optionList={options.map((o) => ({ ...o, label: t(o.label) })) as any} onChange={(v: any) => onChange({ [field]: v })} />
         </SettingRow>
     );
 }
@@ -135,6 +141,7 @@ export interface PicItem {
 
 /** 图片列表编辑器：上传/删除图片 + 链接地址（与旧 PicList 语义一致） */
 export function PicListField({ data, onChange, field, label, max = 20 }: FieldProps & { field: string; label: string; max?: number }) {
+    const { t } = useI18n();
     const list: PicItem[] = Array.isArray(data?.[field]) ? data[field] : [];
 
     const uploadProps = {
@@ -142,25 +149,25 @@ export function PicListField({ data, onChange, field, label, max = 20 }: FieldPr
         onSuccess: (body: any, file: any) => {
             const url = body?.data?.url || body?.url;
             if (!url) {
-                Toast.error("上传失败");
+                Toast.error(t("上传失败"));
                 return;
             }
             const next = [...list, { picUrl: url, picThumb: url, picLink: { link: "", title: "" } }];
             onChange({ [field]: next });
         },
-        onError: () => Toast.error("上传失败")
+        onError: () => Toast.error(t("上传失败"))
     };
 
     return (
         <div className="h5-editor-setting-group">
-            <div className="h5-editor-setting-label">{label}</div>
+            <div className="h5-editor-setting-label">{t(label)}</div>
             {list.map((item, index) => (
                 <div key={index} className="h5-editor-pic-row" style={{ marginBottom: 8 }}>
                     <img src={imageFormat(pickPic(item))} alt="" />
                     <div style={{ flex: 1 }}>
                         <Input
                             size="small"
-                            placeholder="跳转链接，如 /pages/product/index?id=1"
+                            placeholder={t('跳转链接，如 /pages/product/index?id=1')}
                             value={item.picLink?.link ?? ""}
                             onChange={(v: string) => {
                                 const next = [...list];
@@ -179,9 +186,7 @@ export function PicListField({ data, onChange, field, label, max = 20 }: FieldPr
             ))}
             {list.length < max && (
                 <Upload {...(uploadProps as any)} accept="image/*" showUploadList={false}>
-                    <Button size="small" icon={<IconPlus />}>
-                        添加图片
-                    </Button>
+                    <Button size="small" icon={<IconPlus />}>{t('添加图片')}</Button>
                 </Upload>
             )}
         </div>
@@ -190,17 +195,16 @@ export function PicListField({ data, onChange, field, label, max = 20 }: FieldPr
 
 /** 单图编辑器 */
 export function SinglePicField({ data, onChange, field, label }: FieldProps & { field: string; label: string }) {
+    const { t } = useI18n();
     const pic = data?.[field];
     const url = pic && typeof pic === "object" ? pickPic(pic) : typeof pic === "string" ? pic : "";
     return (
         <div className="h5-editor-setting-group">
-            <div className="h5-editor-setting-label">{label}</div>
+            <div className="h5-editor-setting-label">{t(label)}</div>
             {url ? (
                 <div className="h5-editor-pic-row">
                     <img src={imageFormat(url)} alt="" />
-                    <Button size="small" type="danger" onClick={() => onChange({ [field]: { picUrl: "", picThumb: "" } })}>
-                        移除
-                    </Button>
+                    <Button size="small" type="danger" onClick={() => onChange({ [field]: { picUrl: "", picThumb: "" } })}>{t('移除')}</Button>
                 </div>
             ) : (
                 <Upload
@@ -210,12 +214,10 @@ export function SinglePicField({ data, onChange, field, label }: FieldProps & { 
                     onSuccess={(body: any) => {
                         const u = body?.data?.url || body?.url;
                         if (u) onChange({ [field]: { picUrl: u, picThumb: u } });
-                        else Toast.error("上传失败");
+                        else Toast.error(t("上传失败"));
                     }}
                 >
-                    <Button size="small" icon={<IconPlus />}>
-                        上传图片
-                    </Button>
+                    <Button size="small" icon={<IconPlus />}>{t('上传图片')}</Button>
                 </Upload>
             )}
         </div>
@@ -225,6 +227,7 @@ export function SinglePicField({ data, onChange, field, label }: FieldProps & { 
 // ---------------- 模块标题（defaultTitle） ----------------
 
 export function TitleSettingsField({ data, onChange, field = "title", label = "模块标题" }: FieldProps & { field?: string; label?: string }) {
+    const { t } = useI18n();
     const title = data?.[field] ?? {};
     const set = (patch: Patch) => onChange({ [field]: { ...title, ...patch } });
     return (

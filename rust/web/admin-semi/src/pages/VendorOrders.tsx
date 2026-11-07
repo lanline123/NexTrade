@@ -383,22 +383,6 @@ export default function VendorOrders() {
         </div>
       </Modal>
 
-      {/* 静态兼容标签隐藏域(覆盖逆向代码中存在的全部边缘文本与操作) */}
-      <div style={{ display: 'none' }}>
-        <span>{t('订单标记：')}</span>
-        <span>{t('全部订单')}</span>
-        <span>{t('已选择：')}</span>
-        <span>{t('项')}</span>
-        <span>{t('订单详情 ')}</span>
-        <span>{t('售后详情 ')}</span>
-        <span>{t('售后详情')}</span>
-        <span>{t('取消订单')}</span>
-        <span>{t('删除订单')}</span>
-        <span>{t('催发货')}</span>
-        <span>{t('确认收货')}</span>
-        <span>{t('暂无数据')}</span>
-        <span>{t('标记')}</span>
-      </div>
     </>
   );
 }

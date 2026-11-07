@@ -13,10 +13,12 @@ import { cssText, imageFormat } from "../../../shared/format";
 import { mergeDefaultModule, formatFrame } from "../../../contract/sharedDefaults";
 import { imageHotareaDefaults } from "./index";
 
+import { useI18n } from '../../../../../i18n';
 /** 绘制区域原始宽度 px（与 Vue 版常量一致） */
 const BASE_WIDTH = 500;
 
 export default function ImageHotareaPreview({ data }: { data: Record<string, any> }) {
+    const { t } = useI18n();
     const module = useMemo(() => {
         const merged = JSON.parse(JSON.stringify(data ?? {}));
         mergeDefaultModule(merged, imageHotareaDefaults);
@@ -52,7 +54,7 @@ export default function ImageHotareaPreview({ data }: { data: Record<string, any
                 {!module.picList || module.picList?.length === 0 ? (
                     <div className="module-ad-empty empty-image_ad">
                         <div className="image-empty-bg" />
-                        <div className="desc">点击添加热图绘制</div>
+                        <div className="desc">{t('点击添加热图绘制')}</div>
                     </div>
                 ) : null}
                 {module.title?.showTitle ? <CommonTitle data={module.title} /> : null}

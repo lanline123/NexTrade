@@ -1582,7 +1582,7 @@ static EP7_FIELDS: [FieldSpec; 16] = [
     FieldSpec { field: "adminShoppingUseBalance", code: "adminShoppingUseBalance", ty: ValueType::Int, default: Some("0"), is_list: false, label: None, widget: None, required: None, group: None },
 ];
 
-static EP8_FIELDS: [FieldSpec; 9] = [
+static EP8_FIELDS: [FieldSpec; 10] = [
     FieldSpec {
         field: "kefuType",
         code: "kefuType",
@@ -1663,6 +1663,19 @@ static EP8_FIELDS: [FieldSpec; 9] = [
     FieldSpec {
         field: "kefuPhone",
         code: "kefuPhone",
+        ty: ValueType::Str,
+        default: None,
+        is_list: false,
+        label: None,
+        widget: None,
+        required: None,
+        group: None,
+    },
+    // Java KefuSettingsVO/KefuSaveParam/SettingsEnum.KEFU_WHATSAPP_PHONE 同名字段，
+    // 旧版海外版客服设置含 WhatsApp 号码，此前 FieldSpec 漏登记导致保存被白名单丢弃。
+    FieldSpec {
+        field: "kefuWhatsappPhone",
+        code: "kefuWhatsappPhone",
         ty: ValueType::Str,
         default: None,
         is_list: false,
@@ -1684,7 +1697,7 @@ static EP8_FIELDS: [FieldSpec; 9] = [
     },
 ];
 
-static EP9_FIELDS: [FieldSpec; 9] = [
+static EP9_FIELDS: [FieldSpec; 10] = [
     FieldSpec {
         field: "kefuType",
         code: "kefuType",
@@ -1765,6 +1778,18 @@ static EP9_FIELDS: [FieldSpec; 9] = [
     FieldSpec {
         field: "kefuPhone",
         code: "kefuPhone",
+        ty: ValueType::Str,
+        default: None,
+        is_list: false,
+        label: None,
+        widget: None,
+        required: None,
+        group: None,
+    },
+    // 与 EP8 对齐：Java KefuSaveParam 含 kefuWhatsappPhone，保存白名单需放行。
+    FieldSpec {
+        field: "kefuWhatsappPhone",
+        code: "kefuWhatsappPhone",
         ty: ValueType::Str,
         default: None,
         is_list: false,
@@ -2254,7 +2279,7 @@ static EP11_FIELDS: [FieldSpec; 21] = [
     },
 ];
 
-static EP12_FIELDS: [FieldSpec; 56] = [
+static EP12_FIELDS: [FieldSpec; 57] = [
     FieldSpec {
         field: "navTheme",
         code: "navTheme",
@@ -2501,6 +2526,17 @@ static EP12_FIELDS: [FieldSpec; 56] = [
         field: "isOpenPscws",
         code: "isOpenPscws",
         ty: ValueType::Int,
+        default: None,
+        is_list: false,
+        label: None,
+        widget: None,
+        required: None,
+        group: None,
+    },
+    FieldSpec {
+        field: "selfStoreName",
+        code: "selfStoreName",
+        ty: ValueType::Str,
         default: None,
         is_list: false,
         label: None,
@@ -2873,7 +2909,7 @@ static EP12_FIELDS: [FieldSpec; 56] = [
     },
 ];
 
-static EP13_FIELDS: [FieldSpec; 56] = [
+static EP13_FIELDS: [FieldSpec; 57] = [
     FieldSpec {
         field: "navTheme",
         code: "navTheme",
@@ -3120,6 +3156,17 @@ static EP13_FIELDS: [FieldSpec; 56] = [
         field: "isOpenPscws",
         code: "isOpenPscws",
         ty: ValueType::Int,
+        default: None,
+        is_list: false,
+        label: None,
+        widget: None,
+        required: None,
+        group: None,
+    },
+    FieldSpec {
+        field: "selfStoreName",
+        code: "selfStoreName",
+        ty: ValueType::Str,
         default: None,
         is_list: false,
         label: None,

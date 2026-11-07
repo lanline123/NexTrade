@@ -80,7 +80,7 @@ export default function ShopHeader({
               <div className="shop-ref-header__title-row">
                 <span className="shop-ref-header__title">{shopInfo?.shopTitle || '店铺名称'}</span>
                 {hasLicense ? (
-                  <Link href={`/shop/license?id=${shopInfo?.shopId || ''}`} className="shop-ref-header__license">{t('查看资质')}</Link>
+                  <Link href={`/shop/license?shopId=${shopInfo?.shopId || ''}`} className="shop-ref-header__license">{t('查看资质')}</Link>
                 ) : null}
               </div>
               <div className="shop-ref-header__sub">

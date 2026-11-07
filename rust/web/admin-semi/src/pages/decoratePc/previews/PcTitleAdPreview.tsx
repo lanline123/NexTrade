@@ -198,7 +198,7 @@ export default function PcTitleAdPreview({ data }: { data: Record<string, any> }
                         >
                           {countdown.days}
                         </span>
-                        <span className="countdown-separator-text">天</span>
+                        <span className="countdown-separator-text">{t('天')}</span>
                       </>
                     )}
                     <span className="countdown-item">{formatNum(countdown.hours)}</span>

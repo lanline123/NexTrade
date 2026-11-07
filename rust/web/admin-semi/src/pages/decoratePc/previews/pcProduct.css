@@ -87,6 +87,86 @@
   color: #e60012;
 }
 
+/* 价格 + 购买按钮同行（对齐 C 端 dec-pc-product__bottom 的 flex 布局） */
+.dec-pc-product__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  min-height: 24px;
+}
+
+.dec-pc-product__bottom .dec-pc-product__price {
+  margin-top: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dec-pc-product__buy {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pc-primary, #65c4aa);
+}
+
+.dec-pc-product__buy-ico {
+  display: block;
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.dec-pc-product__buy-ico--cart {
+  mask-image: url('/assets/icons/cart.svg');
+  -webkit-mask-image: url('/assets/icons/cart.svg');
+}
+
+.dec-pc-product__buy-ico--cart.is-outline {
+  mask-image: url('/assets/icons/cart-outline.svg');
+  -webkit-mask-image: url('/assets/icons/cart-outline.svg');
+}
+
+.dec-pc-product__buy-ico--plus {
+  mask-image: url('/assets/icons/plus.svg');
+  -webkit-mask-image: url('/assets/icons/plus.svg');
+}
+
+.dec-pc-product__buy-ico--plus.is-outline {
+  mask-image: url('/assets/icons/plus-outline.svg');
+  -webkit-mask-image: url('/assets/icons/plus-outline.svg');
+}
+
+.dec-pc-product__buy-text {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 15px;
+  font-size: 14px;
+}
+
+.dec-pc-product__buy-text--outline {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+}
+
+.dec-pc-product__buy-text--solid {
+  border-radius: 20px;
+  background: var(--pc-primary, #65c4aa);
+  color: #fff;
+}
+
 .dec-pc-product__empty {
   padding-top: 30px;
   text-align: center;

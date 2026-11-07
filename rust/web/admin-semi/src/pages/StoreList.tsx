@@ -397,31 +397,6 @@ export default function StoreList() {
         </div>
       </Modal>
 
-      {/* 静态兼容标签隐藏域(覆盖旧vue模板中全部文本) */}
-      <div style={{ display: 'none' }}>
-        <span>暂无数据</span>
-        <span>编辑门店</span>
-        <span>编辑</span>
-        <span>选择商户</span>
-        <span>个人</span>
-        <span>企业</span>
-        <span>商户所属会员(ID)</span>
-        <span>管理员</span>
-        <span>认证状态</span>
-        <span>建议尺寸300x300</span>
-        <span>门头封面</span>
-        <span>请填写门店简介，该简介会显示在用户门店详细中</span>
-        <span>门店标签</span>
-        <span>选择标签</span>
-        <span>打烊</span>
-        <span>提交</span>
-        <span>新增门店</span>
-        <span>typeText</span>
-        <span>shopRegionIds</span>
-        <span>shopTips</span>
-        <span>shopContactConfig</span>
-        <span>shopOpenCloseConfig</span>
-      </div>
     </>
   );
 }
