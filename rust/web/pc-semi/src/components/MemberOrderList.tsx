@@ -20,8 +20,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Button, Card, Input, Modal, Radio, Spin, Toast } from '@douyinfe/semi-ui';
+import { Button, Card, Modal, Spin, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import MemberCancelOrderDialog from '@/components/MemberCancelOrderDialog';
+import MemberLogisticsDialog from '@/components/MemberLogisticsDialog';
+import MemberOfflineClaimDialog from '@/components/MemberOfflineClaimDialog';
+import MemberOrderFilter from '@/components/MemberOrderFilter';
 
 import { useTranslation } from 'react-i18next';
 type TabKey = 'all' | 'awaitPay' | 'awaitShipping' | 'awaitReceived' | 'awaitComment';
@@ -64,12 +68,12 @@ interface OrderRow {
   cycleCardInfo?: { statusName?: string } | null;
   payTypeId?: number | string | null;
   offlinePaymentClaimStatus?: number | string | null;
-}
-
-interface TraceNode {
-  acceptTime?: string;
-  acceptStation?: string;
-  action?: string;
+  /** 快递单号（物流弹窗头部展示） */
+  trackingNo?: string;
+  /** 快递公司名（物流弹窗头部展示） */
+  logisticsName?: string;
+  /** 配送方式：1 快递 2 自提 3 同城 */
+  shippingMethod?: number;
 }
 
 const TABS: Array<{ key: TabKey; label: string; orderStatus: number; commentStatus: number }> = [
@@ -153,23 +157,17 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
   const [nums, setNums] = useState<NumMap>({});
   const [commentEnabled, setCommentEnabled] = useState<number | null>(null);
 
-  // 取消订单原因弹窗（CancelOrderReasonDialog 对照）
-  const [cancelState, setCancelState] = useState<{ visible: boolean; orderId: number; reasons: string[]; selected: string; submitting: boolean }>({
-    visible: false,
-    orderId: 0,
-    reasons: [],
-    selected: '',
-    submitting: false,
-  });
-  // 查看物流弹窗（LogisticsTracking 对照）
-  const [track, setTrack] = useState<{ visible: boolean; loading: boolean; orderId: number; shipperCode: string; logisticCode: string; traces: TraceNode[] }>({
-    visible: false,
-    loading: false,
-    orderId: 0,
-    shipperCode: '',
-    logisticCode: '',
-    traces: [],
-  });
+  // 取消订单原因弹窗（MemberCancelOrderDialog 对照）
+  const [cancelVisible, setCancelVisible] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState(0);
+  // 查看物流弹窗（MemberLogisticsDialog 对照）
+  const [trackVisible, setTrackVisible] = useState(false);
+  const [trackOrderId, setTrackOrderId] = useState(0);
+  const [trackOrder, setTrackOrder] = useState<{ trackingNo?: string; logisticsName?: string; shippingMethod?: number }>({});
+  // 线下支付认领弹窗（MemberOfflineClaimDialog 对照）
+  const [claimVisible, setClaimVisible] = useState(false);
+  const [claimOrderId, setClaimOrderId] = useState(0);
+  const [claimEditable, setClaimEditable] = useState(false);
 
   const size = 10;
 
@@ -275,54 +273,9 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
   };
 
   // —— 操作：取消订单（reasonConfig 原因弹窗，未启用原因时回落确认框）——
-  const onCancelOrder = async (orderId: number) => {
-    setCancelState({ visible: false, orderId, reasons: [], selected: '', submitting: false });
-    try {
-      const config = await apiGet<{ afterSalesReasonEnabled?: number; afterSalesReasonList?: string[]; cancelOrderReasonList?: string[] }>(
-        'user/order/reasonConfig',
-      );
-      const reasons = Array.isArray(config?.afterSalesReasonList) ? config.afterSalesReasonList : Array.isArray(config?.cancelOrderReasonList) ? config.cancelOrderReasonList : [];
-      if (Number(config?.afterSalesReasonEnabled) === 1 && reasons.length) {
-        setCancelState({ visible: true, orderId, reasons, selected: '', submitting: false });
-        return;
-      }
-      cancelWithoutReason(orderId);
-    } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '获取取消原因失败' });
-      cancelWithoutReason(orderId);
-    }
-  };
-
-  const cancelWithoutReason = (orderId: number) => {
-    Modal.confirm({
-      title: '确认要取消该订单吗',
-      okText: '确定',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          await apiPost('user/order/cancelOrder', { id: orderId });
-          Toast.success({ content: '取消订单成功' });
-          afterAction();
-        } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '取消失败' });
-        }
-      },
-    });
-  };
-
-  const submitCancelWithReason = async () => {
-    if (!cancelState.selected || cancelState.submitting) return;
-    setCancelState((state) => ({ ...state, submitting: true }));
-    try {
-      await apiPost('user/order/cancelOrder', { id: cancelState.orderId, description: cancelState.selected });
-      Toast.success({ content: '取消订单成功' });
-      setCancelState((state) => ({ ...state, visible: false }));
-      afterAction();
-    } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '取消失败' });
-    } finally {
-      setCancelState((state) => ({ ...state, submitting: false }));
-    }
+  const onCancelOrder = (orderId: number) => {
+    setCancelOrderId(orderId);
+    setCancelVisible(true);
   };
 
   // —— 操作：再次购买（跨境：buyAgain → /order/check，对齐原版 onReBuy）——
@@ -338,27 +291,28 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
     }
   };
 
-  // —— 操作：查看物流（shippingInfo 弹窗，对齐原版 viewLogistics + LogisticsTracking）——
+  // —— 操作：查看物流（MemberLogisticsDialog 对照）——
   const viewLogistics = (order: OrderRow) => {
-    setTrack({ visible: true, loading: true, orderId: order.orderId, shipperCode: '', logisticCode: '', traces: [] });
-    apiGet<{ shipperCode?: string; logisticCode?: string; traces?: TraceNode[] } | TraceNode[]>('user/order/shippingInfo', { id: order.orderId })
-      .then((result) => {
-        if (Array.isArray(result)) {
-          setTrack((state) => ({ ...state, loading: false, traces: result }));
-        } else {
-          setTrack((state) => ({
-            ...state,
-            loading: false,
-            shipperCode: String(result?.shipperCode || ''),
-            logisticCode: String(result?.logisticCode || ''),
-            traces: Array.isArray(result?.traces) ? result.traces : [],
-          }));
-        }
-      })
-      .catch((error) => {
-        setTrack((state) => ({ ...state, loading: false }));
-        Toast.error({ content: error instanceof Error ? error.message : '物流查询失败' });
-      });
+    setTrackOrderId(order.orderId);
+    setTrackOrder({
+      trackingNo: order.trackingNo,
+      logisticsName: order.logisticsName,
+      shippingMethod: order.shippingMethod,
+    });
+    setTrackVisible(true);
+  };
+
+  // —— 操作：线下支付认领（MemberOfflineClaimDialog 对照）——
+  const openClaimDetail = (orderId: number) => {
+    setClaimOrderId(orderId);
+    setClaimEditable(false);
+    setClaimVisible(true);
+  };
+
+  const openClaimEdit = (orderId: number) => {
+    setClaimOrderId(orderId);
+    setClaimEditable(true);
+    setClaimVisible(true);
   };
 
   const visibleTabs = useMemo(() => TABS.filter((item) => item.key !== 'awaitComment' || commentEnabled === 1), [commentEnabled]);
@@ -379,29 +333,20 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
     <div className="member-orders">
       <div className="pc-order-panel">
         <div className="pc-order-panel__head">
-          <div className="member-orders__tabs">
-            {visibleTabs.map((item) => {
-              const num = Number(nums[item.key] || 0);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={item.key === tab ? 'is-active' : ''}
-                  onClick={() => {
-                    setPage(1);
-                    setTab(item.key);
-                  }}
-                >
-                  {item.label}
-                  {num > 0 ? <span className="member-orders__num">{num}</span> : null}
-                </button>
-              );
-            })}
-          </div>
-          <div className="member-orders__search">
-            <Input value={keyword} onChange={setKeyword} placeholder={t('收货人名称或订单号')} onEnterPress={() => { setPage(1); load(); }} />
-            <Button onClick={() => { setPage(1); load(); }}>{t('搜索')}</Button>
-          </div>
+          <MemberOrderFilter
+            tabs={visibleTabs.map((item) => ({ key: item.key, label: item.label, num: Number(nums[item.key] || 0) }))}
+            activeKey={tab}
+            keyword={keyword}
+            onTabChange={(key) => {
+              setPage(1);
+              setTab(key as TabKey);
+            }}
+            onSearch={(value) => {
+              setKeyword(value);
+              setPage(1);
+              load();
+            }}
+          />
         </div>
 
         <div className="pc-order-panel__body">
@@ -469,15 +414,15 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
                     ) : null}
                     {canShowToPay(order) ? (
                       Number(order.offlinePaymentClaimStatus) === 2 ? (
-                        <Link href={`/member/order/claiminfo?orderId=${order.orderId}`}><Button size="small" theme="solid" type="primary">{t('修改申请')}</Button></Link>
+                        <Button size="small" theme="solid" type="primary" onClick={() => openClaimEdit(order.orderId)}>{t('修改申请')}</Button>
                       ) : (
                         <Link href={`/order/pay?id=${order.orderId}`}><Button size="small" theme="solid" type="primary">{t('去支付')}</Button></Link>
                       )
                     ) : null}
                     {Boolean(actions.offlinePaymentClaimDetail) && Number(order.offlinePaymentClaimStatus) !== 2 ? (
-                      <Link href={`/member/order/claiminfo?orderId=${order.orderId}`}><Button size="small">{t('认款详情')}</Button></Link>
+                      <Button size="small" onClick={() => openClaimDetail(order.orderId)}>{t('认款详情')}</Button>
                     ) : null}
-                    {actions.cancelOrder ? <Button size="small" onClick={() => void onCancelOrder(order.orderId)}>{t('取消订单')}</Button> : null}
+                    {actions.cancelOrder ? <Button size="small" onClick={() => onCancelOrder(order.orderId)}>{t('取消订单')}</Button> : null}
                     {actions.delOrder ? <Button size="small" onClick={() => onDelOrder(order.orderId)}>{t('删除订单')}</Button> : null}
                     {actions.confirmReceipt && Number(order.orderType) !== 9 && Number(order.orderType) !== 10 ? (
                       <Button size="small" theme="solid" type="primary" onClick={() => onConfirmReceipt(order.orderId)}>{t('确认收货')}</Button>
@@ -526,57 +471,31 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
       </div>
 
       {/* 取消订单原因弹窗（CancelOrderReasonDialog 对照） */}
-      <Modal
-        title={t('请选择取消订单原因')}
-        visible={cancelState.visible}
-        width={480}
-        closeOnEsc
-        onCancel={() => setCancelState((state) => ({ ...state, visible: false }))}
-        footer={
-          <>
-            <Button onClick={() => setCancelState((state) => ({ ...state, visible: false }))}>{t('取消')}</Button>
-            <Button theme="solid" type="primary" loading={cancelState.submitting} disabled={!cancelState.selected} onClick={() => void submitCancelWithReason()}>{t('确定')}</Button>
-          </>
-        }
-      >
-        <Radio.Group value={cancelState.selected} onChange={(event) => setCancelState((state) => ({ ...state, selected: String(event.target.value ?? '') }))}>
-          <div className="member-orders__reasons">
-            {cancelState.reasons.map((reason) => (
-              <Radio key={reason} value={reason}>{reason}</Radio>
-            ))}
-          </div>
-        </Radio.Group>
-      </Modal>
+      <MemberCancelOrderDialog
+        visible={cancelVisible}
+        orderId={cancelOrderId}
+        onClose={() => setCancelVisible(false)}
+        onSuccess={afterAction}
+      />
 
       {/* 查看物流弹窗（LogisticsTracking 对照） */}
-      <Modal title={t('物流跟踪')} visible={track.visible} width={770} footer={null} onCancel={() => setTrack((state) => ({ ...state, visible: false }))}>
-        <div className="member-orders__track">
-          {track.loading ? (
-            <div className="member-orders__track-loading"><Spin /></div>
-          ) : (
-            <>
-              <div className="member-orders__track-head">
-                {track.logisticCode ? <>快递公司：【{track.shipperCode || '-'}】，快递单号：【{track.logisticCode}】</> : '暂无物流信息'}
-              </div>
-              {track.traces.length ? (
-                <ul className="member-orders__track-list">
-                  {track.traces.map((node, index) => (
-                    <li key={index} className={index === 0 ? 'is-first' : ''}>
-                      <i />
-                      <div>
-                        <span className="member-orders__track-station">{node.acceptStation || node.action || ''}</span>
-                        <span className="member-orders__track-time">{node.acceptTime || ''}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="member-orders__track-loading">{t('查无信息，请刷新后重试或者联系客服！')}</div>
-              )}
-            </>
-          )}
-        </div>
-      </Modal>
+      <MemberLogisticsDialog
+        visible={trackVisible}
+        orderId={trackOrderId}
+        trackingNo={trackOrder.trackingNo}
+        logisticsName={trackOrder.logisticsName}
+        shippingMethod={trackOrder.shippingMethod}
+        onClose={() => setTrackVisible(false)}
+      />
+
+      {/* 线下支付认领弹窗（OfflinePaymentClaimDetail 对照） */}
+      <MemberOfflineClaimDialog
+        visible={claimVisible}
+        orderId={claimOrderId}
+        editable={claimEditable}
+        onClose={() => setClaimVisible(false)}
+        onSubmitted={afterAction}
+      />
     </div>
   );
 }

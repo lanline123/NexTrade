@@ -16,6 +16,9 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import MemberCancelOrderDialog from '@/components/MemberCancelOrderDialog';
+import MemberLogisticsDialog from '@/components/MemberLogisticsDialog';
+import PresaleSteps from '@/components/PresaleSteps';
 
 import { useTranslation } from 'react-i18next';
 interface OrderItem {
@@ -70,6 +73,7 @@ interface OrderDetail {
   userAddress?: string;
   address?: string;
   shippingTypeName?: string;
+  shippingMethod?: number;
   trackingNo?: string;
   logisticsName?: string;
   buyerNote?: string;
@@ -102,23 +106,17 @@ interface OrderDetail {
   offlinePaymentClaim?: { auditRemark?: string };
   autoDeliveryDays?: number;
   isPresale?: boolean;
-  presaleInfo?: { presaleStatus?: number; saleMode?: number; finalPaymentStartTimeText?: string };
+  presaleInfo?: {
+    presaleStatus?: number;
+    saleMode?: number;
+    finalPaymentStartTimeText?: string;
+    /** 预售规则文案（PresaleSteps 需要） */
+    [key: string]: unknown;
+  };
   isCycleOrder?: number;
   cycleCardInfo?: { expireTimeStr?: string; statusName?: string };
   giftCardOrder?: { num?: number; giftCardOrderInfo?: GiftCardInfo[] };
   availableActions?: Record<string, boolean>;
-}
-
-interface ReasonConfig {
-  afterSalesReasonEnabled?: number;
-  cancelOrderReasonList?: string[];
-}
-
-interface ShippingResult {
-  logisticCode?: string;
-  state?: string;
-  stateEx?: string;
-  traces?: Array<{ acceptTime?: string; acceptStation?: string; action?: string; location?: string }>;
 }
 
 function money(value: unknown): string {
@@ -158,11 +156,8 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [needLogin, setNeedLogin] = useState(false);
-  const [reasonConfig, setReasonConfig] = useState<ReasonConfig | null>(null);
   const [cancelVisible, setCancelVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
   const [shippingVisible, setShippingVisible] = useState(false);
-  const [shipping, setShipping] = useState<ShippingResult | null>(null);
   const [nowTs, setNowTs] = useState(Date.now());
 
   const load = () => {
@@ -186,9 +181,6 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
 
   useEffect(() => {
     load();
-    apiGet<ReasonConfig>('user/order/reasonConfig')
-      .then((config) => setReasonConfig(config || null))
-      .catch(() => setReasonConfig(null));
     const timer = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -224,22 +216,6 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
     });
   };
 
-  const submitCancel = async () => {
-    const reasons = reasonConfig?.cancelOrderReasonList || [];
-    if (Number(reasonConfig?.afterSalesReasonEnabled ?? 0) === 1 && reasons.length && !cancelReason) {
-      Toast.error({ content: '请选择取消原因' });
-      return;
-    }
-    try {
-      await apiPost('user/order/cancelOrder', { id: orderId, description: cancelReason || t('用户主动取消') });
-      Toast.success({ content: '订单已取消' });
-      setCancelVisible(false);
-      load();
-    } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '取消失败' });
-    }
-  };
-
   const deleteOrder = () => {
     Modal.confirm({
       title: '删除订单',
@@ -266,14 +242,8 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
     }
   };
 
-  const openShipping = async () => {
-    try {
-      const result = await apiGet<ShippingResult>('user/order/shippingInfo', { id: orderId });
-      setShipping(result || null);
-      setShippingVisible(true);
-    } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '物流信息加载失败' });
-    }
+  const openShipping = () => {
+    setShippingVisible(true);
   };
 
   if (loading) return <Card className="cart-state">{t('订单详情加载中...')}</Card>;
@@ -322,6 +292,17 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
   const offlineClaimRejected = isOfflineOrder && offlineClaimStatus === 2 && orderStatus !== 3;
   const offlineClaimAuditRemark = String(detail.offlinePaymentClaim?.auditRemark || '').trim();
   const showPayCountdown = actionEnabled(actions, 'toPay') && Boolean(payCountdown);
+
+  /**
+   * 预售配送方式（源码 OrderStatusSteps.vue presaleDeliveryType）：
+   * 自提 → 2，同城 → 3，其余 → undefined（快递）
+   */
+  const presaleDeliveryType = useMemo(() => {
+    if (detail?.isPickup) return 2;
+    const shippingTypeName = String(detail?.shippingTypeName || '');
+    if (shippingTypeName.includes('同城')) return 3;
+    return undefined;
+  }, [detail?.isPickup, detail?.shippingTypeName]);
 
   // 运费/服务费文案（OrderProductTable shippingFeeLabel/FreeText 规则）
   const shippingTypeName = String(detail.shippingTypeName || '');
@@ -379,7 +360,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
           </div>
           <div className="member-order-detail__actions">
             {actionEnabled(actions, 'cancelOrder') ? (
-              <Button type="danger" onClick={() => { setCancelReason(''); setCancelVisible(true); }}>{t('取消订单')}</Button>
+              <Button type="danger" onClick={() => setCancelVisible(true)}>{t('取消订单')}</Button>
             ) : null}
             {actionEnabled(actions, 'offlinePaymentClaimDetail') && !offlineClaimRejected ? (
               <Link href={`/member/order/claiminfo?orderId=${detail.orderId || orderId}`}><Button>{t('认款详情')}</Button></Link>
@@ -419,6 +400,19 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
             </div>
           ))}
         </div>
+
+        {/* 预售状态步骤条（源码 pages/member/order/src/OrderStatusSteps.vue → PresaleSteps） */}
+        {detail.isPresale && detail.presaleInfo ? (
+          <div className="member-order-detail__presale">
+            <div className="member-order-detail__sub-title">{t('预售状态')}</div>
+            <PresaleSteps
+              productPresale={detail.presaleInfo as unknown as Record<string, any>}
+              presaleStatus={Number(detail.presaleInfo.presaleStatus ?? 0)}
+              total={detail as unknown as Record<string, any>}
+              deliveryType={presaleDeliveryType}
+            />
+          </div>
+        ) : null}
       </Card>
 
       {/* 订单信息（OrderDeliveryInfo.vue） */}
@@ -585,32 +579,23 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       </div>
 
       {/* 取消订单原因（CancelOrderReasonDialog.vue） */}
-      <Modal visible={cancelVisible} title={t('取消订单')} onCancel={() => setCancelVisible(false)} onOk={() => void submitCancel()}>
-        {Number(reasonConfig?.afterSalesReasonEnabled ?? 0) === 1 && (reasonConfig?.cancelOrderReasonList || []).length ? (
-          <select value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} style={{ width: '100%', padding: '8px' }}>
-            <option value="">{t('请选择取消原因')}</option>
-            {(reasonConfig?.cancelOrderReasonList || []).map((reason) => <option key={reason} value={reason}>{reason}</option>)}
-          </select>
-        ) : (
-          <p>{t('确认取消该订单？')}</p>
-        )}
-      </Modal>
+      {/* 取消订单原因弹窗（CancelOrderReasonDialog 对照） */}
+      <MemberCancelOrderDialog
+        visible={cancelVisible}
+        orderId={orderId}
+        onClose={() => setCancelVisible(false)}
+        onSuccess={load}
+      />
 
-      {/* 物流跟踪 */}
-      <Modal visible={shippingVisible} title={t('物流跟踪')} footer={null} onCancel={() => setShippingVisible(false)} width={560}>
-        {shipping ? (
-          <div>
-            <p>物流单号：{shipping.logisticCode || detail.trackingNo || '-'}</p>
-            <p>物流状态：{shipping.state || shipping.stateEx || '-'}</p>
-            {(shipping.traces || []).length ? (shipping.traces || []).map((trace, index) => (
-              <div key={index} className="member-order-shipping__trace">
-                <span>{trace.acceptTime || ''}</span>
-                <div>{trace.acceptStation || trace.action || trace.location || ''}</div>
-              </div>
-            )) : <p>{t('暂无物流轨迹')}</p>}
-          </div>
-        ) : <p>{t('暂无物流轨迹')}</p>}
-      </Modal>
+      {/* 物流跟踪（LogisticsTracking 对照） */}
+      <MemberLogisticsDialog
+        visible={shippingVisible}
+        orderId={orderId}
+        trackingNo={detail.trackingNo}
+        logisticsName={detail.logisticsName}
+        shippingMethod={detail.shippingMethod}
+        onClose={() => setShippingVisible(false)}
+      />
     </div>
   );
 }

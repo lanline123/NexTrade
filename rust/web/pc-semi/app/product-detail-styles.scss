@@ -241,6 +241,91 @@
   .pds-sku__pic { width: 22px; height: 22px; margin-right: 4px; object-fit: cover; vertical-align: middle; }
   .pds-wholesale { margin-top: 12px; .account-table { margin-top: 6px; } }
 
+  /* ---- B2B 批量采购（源码 components/product/B2bTab.vue + B2bSku.vue + ProductAmount.vue）---- */
+  .pds-b2b-tab {
+    display: inline-flex;
+    margin-top: 12px;
+    padding: 4px;
+    background: #f5f5f7;
+    border-radius: 12px;
+    gap: 4px;
+    .pds-b2b-tab__item {
+      min-width: 96px;
+      height: 34px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #999;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      &.is-active {
+        background: #fff;
+        color: rgba(9, 9, 10, 0.92);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+    }
+  }
+  .pds-b2b {
+    margin: 16px 0;
+    border: 1px solid #eef0f3;
+    border-radius: var(--pds-radius);
+    overflow: hidden;
+    .pds-b2b__list { max-height: 260px; overflow-y: auto; }
+    .pds-b2b__row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #f2f3f5;
+      &:last-child { border-bottom: 0; }
+    }
+    .pds-b2b__title { flex: 1; min-width: 0; color: #333; font-size: 13px; word-break: break-all; }
+    .pds-b2b__meta { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .pds-b2b__price { color: var(--pds-primary); font-size: 13px; font-weight: 700; }
+    .pds-b2b__stock { color: var(--pds-muted); font-size: 12px; }
+    .pds-b2b__num { width: 130px; flex-shrink: 0; }
+    .pds-b2b__total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px;
+      background: #fafbfc;
+      border-top: 1px solid #eef0f3;
+      color: #333;
+      font-size: 13px;
+    }
+  }
+
+  /* ---- 带价附加属性（attr_type=2，源码 components/product/ProductAttr.vue）---- */
+  .pds-extra-attrs { margin-top: 16px; }
+  .pds-extra-attrs__group { margin-bottom: 12px; }
+  .pds-extra-attrs__title { margin-bottom: 8px; color: #999; font-size: 13px; }
+  .pds-extra-attrs__list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pds-extra-attrs__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid #e7e7e7;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+    &:hover { border-color: var(--pds-primary); }
+    &.is-active {
+      border-color: var(--pds-primary);
+      color: var(--pds-primary);
+    }
+  }
+  .pds-extra-attrs__price { color: var(--pds-primary); font-weight: 600; }
+
   .pds-qty { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 0; }
   .pds-qty__label { color: #666; font-size: 13px; }
   .pds-qty__stock { color: var(--pds-muted); font-size: 12px; }

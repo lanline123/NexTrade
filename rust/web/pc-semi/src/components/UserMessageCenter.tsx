@@ -74,7 +74,9 @@ export default function UserMessageCenter() {
   const readItem = async (item: MessageItem) => {
     if (item.isRead || !item.messageId) return;
     try {
-      await apiPost('user/message/updateMessageRead', { messageId: item.messageId });
+      // 后端 UserMessageIdDTO 的字段是 `id`（crates/core/src/models/member/user_message.rs），
+      // 传 `messageId` 会被忽略导致「单条已读」不生效。
+      await apiPost('user/message/updateMessageRead', { id: item.messageId });
       setMessages((current) => current.map((row) => (row.messageId === item.messageId ? { ...row, isRead: 1 } : row)));
     } catch {
       /* 单条已读失败不打断浏览 */
@@ -84,7 +86,7 @@ export default function UserMessageCenter() {
   const remove = async (messageId?: number) => {
     if (!messageId) return;
     try {
-      await apiPost('user/message/del', { messageId });
+      await apiPost('user/message/del', { id: messageId });
       Toast.success({ content: '已删除' });
       await load(page, onlyUnread);
     } catch (error) {

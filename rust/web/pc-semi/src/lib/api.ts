@@ -259,6 +259,10 @@ export async function addToCart(payload: {
   number: number;
   skuId?: number;
   isQuick?: number;
+  /** 带价附加属性 id 串（attr_type=2），对齐旧版 checkedAttrs.filter(Boolean).join(",") */
+  extraAttrIds?: string;
+  /** 拼团上下文（参团/开团） */
+  grouponData?: Record<string, any>;
 }): Promise<Record<string, unknown>> {
   const response = await fetch('/api/cart/cart/addToCart', {
     method: 'POST',
@@ -553,8 +557,12 @@ export interface ShopDecorateData {
   decorateId?: number;
   moduleList?: Array<{
     type: string;
+    url?: string;
+    /** 模块标题（旧版装修契约字段，contract.ts 适配层会消费） */
+    label?: string;
     moduleIndex?: number | string;
     isShow?: boolean;
+    fixed?: boolean;
     module?: Record<string, any>;
   }>;
   pageModule?: Record<string, any>;
@@ -894,10 +902,16 @@ export async function getFeedbackList(params: { page?: number; size?: number; or
 
 export interface AftersalesRecordItem {
   aftersalesId?: number;
+  /** 售后单号（Rust AftersalesVO.aftersales_sn） */
+  aftersalesSn?: string;
+  /** 售后类型名（Rust AftersalesVO.aftersales_type_name） */
+  aftersalesTypeName?: string;
   orderSn?: string;
   addTime?: string;
   statusName?: string;
-  aftersalesItems?: Array<{ productId?: number; productName?: string; picThumb?: string; quantity?: number }>;
+  /** 退款金额（Rust AftersalesVO.refund_amount，字符串） */
+  refundAmount?: string;
+  aftersalesItems?: Array<{ productId?: number; productName?: string; productSn?: string; picThumb?: string; quantity?: number }>;
   [key: string]: unknown;
 }
 

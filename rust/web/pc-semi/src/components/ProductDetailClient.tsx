@@ -61,6 +61,8 @@ interface SkuRow {
   limitNumber?: number;
   picThumb?: string;
   picUrl?: string;
+  /** 规格值（旧版 skuValue，管道符分隔，如「红色|L」），B2B 批量列表标题用 */
+  skuValue?: string;
   skuData?: Array<{ name?: string; value?: string }>;
 }
 
@@ -170,6 +172,30 @@ export default function ProductDetailClient({
   const [quantity, setQuantity] = useState(1);
   const [skuId, setSkuId] = useState<number | undefined>(undefined);
   const [adding, setAdding] = useState(false);
+
+  /**
+   * SKU 实时可用性（价格 / 库存 / 划线价）。
+   *
+   * 旧版 pages/item/src/Product.vue 切规格时调 GET /product/product/getProductAvailability
+   * 重拉当前 SKU 的 price/stock，页面价格、库存、限购上限随规格变化。
+   * 新版此前直接用 skuList 里的静态 skuPrice → 切规格后价格/库存不刷新（价格错误风险）。
+   */
+  const [availability, setAvailability] = useState<Record<string, any> | null>(null);
+
+  /**
+   * B2B 批量采购（旧版 components/product/B2bTab.vue + B2bSku.vue + ProductAmount.vue）。
+   * 仅当 isB2B && skuList.length > 1 && bulkPurchase === 1 时启用。
+   */
+  const [b2bTabIndex, setB2bTabIndex] = useState<0 | 1>(0);
+  const [b2bSkuList, setB2bSkuList] = useState<Array<Record<string, any>>>([]);
+  const [b2bAmount, setB2bAmount] = useState<Record<string, any> | null>(null);
+
+  /**
+   * 带价附加属性选中项（attr_type=2）。
+   * 旧版 components/product/ProductAttr.vue 的 checkedAttrs：按组下标记录 attributesId，
+   * 提交时以逗号串拼接。此处保持同构。
+   */
+  const [selectedExtraAttrs, setSelectedExtraAttrs] = useState<Array<number | string | null>>([]);
   // 旧版 OverseasThumb/Thumb：视频缩略图（videoCover + ▶）排在相册之后，点中主区播放 video
   const videoList = ((detail as any).videoList || []) as Array<{ videoUrl?: string; videoCover?: string }>;
   const [playingVideo, setPlayingVideo] = useState(-1);
@@ -256,12 +282,18 @@ export default function ProductDetailClient({
     return undefined;
   }, [skuGroups, selected, skuList, skuId]);
 
-  const stock = Number(selectedSku?.skuStock ?? item.productStock ?? 0);
+  /**
+   * 实时可用性优先：切规格后 price/stock 由 getProductAvailability 重拉，
+   * 静态 skuList 只作为兜底（接口失败时用）。
+   */
+  const livePrice = availability?.price;
+  const liveStock = availability?.stock;
+  const stock = Number(liveStock ?? selectedSku?.skuStock ?? item.productStock ?? 0);
   const limit = Number(selectedSku?.limitNumber ?? item.limitNumber ?? 0);
   const maxQuantity = limit > 0 ? limit : stock > 0 ? stock : 1;
   const outOfStock = stock <= 0;
   const skuDisabled = selectedSku?.isEnabled === 0;
-  const price = selectedSku?.skuPrice ?? selectedSku?.price ?? item.productPrice;
+  const price = livePrice ?? selectedSku?.skuPrice ?? selectedSku?.price ?? item.productPrice;
   const requireSku = skuGroups.length > 0 && !selectedSku;
   const mainImage = skuPic || selectedSku?.picThumb || selectedSku?.picUrl || pictures[activeImage]?.picUrl || pictures[activeImage]?.picThumb || '';
 
@@ -290,6 +322,69 @@ export default function ProductDetailClient({
       setSkuId(Number(skuList[0].skuId));
     }
   }, [skuGroups.length, skuList, skuId]);
+
+  /**
+   * 切规格 → 重拉当前 SKU 的实时可用性（价格 / 库存）。
+   * 旧版 pages/item/src/Product.vue 通过 getProductAvailability 实现，新版此前缺失。
+   */
+  useEffect(() => {
+    if (!productId) return;
+    const targetSkuId = Number(selectedSku?.skuId ?? skuId ?? 0);
+    let alive = true;
+    setAvailability(null);
+    apiGet<Record<string, any>>('product/product/getProductAvailability', {
+      id: productId,
+      skuId: targetSkuId || undefined,
+    })
+      .then((result) => {
+        if (alive && result) setAvailability(result);
+      })
+      .catch(() => {
+        /* 接口失败时回退静态 skuList 的 skuPrice / skuStock */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [productId, selectedSku?.skuId, skuId]);
+
+  /**
+   * B2B 批量采购模式：拉取每个 SKU 的实时 price / stock。
+   * 旧版 pages/item/src/Product.vue:956 getBatchProductAvailabilityList。
+   */
+  const isB2BMode = useMemo(() => {
+    const bulk = Number((detail as any).bulkPurchase ?? (item as any).bulkPurchase ?? 0) === 1;
+    return bulk && skuList.length > 1;
+  }, [detail, item, skuList.length]);
+
+  useEffect(() => {
+    if (!isB2BMode || !skuList.length) {
+      setB2bSkuList([]);
+      return undefined;
+    }
+    let alive = true;
+    const skuIds = skuList.map((sku) => Number(sku.skuId)).filter(Boolean).join(',');
+    if (!skuIds) return undefined;
+    apiGet<Record<string, any>>('product/product/getBatchProductAvailability', { skuIds })
+      .then((result) => {
+        if (!alive || !result) return;
+        const rows = skuList.map((sku) => {
+          const sid = String(sku.skuId ?? '');
+          const live = result[sid] || {};
+          return {
+            skuId: sku.skuId,
+            title: String(sku.skuValue ?? '').replace(/\|/g, ','),
+            price: live.price ?? sku.skuPrice ?? item.productPrice,
+            stock: live.stock ?? sku.skuStock ?? 0,
+            num: 0,
+          };
+        });
+        setB2bSkuList(rows);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [isB2BMode, skuList, item.productPrice]);
 
   // —— 首屏并行加载：优惠券 / 拼团 / 店铺 / 推荐 / 评价统计 / 评价首屏 / 咨询首屏 ——
   useEffect(() => {
@@ -448,6 +543,8 @@ export default function ProductDetailClient({
         number: quantity,
         skuId: selectedSku?.skuId ? Number(selectedSku.skuId) : skuId,
         isQuick: next === 'buy' ? 1 : 0,
+        // 带价附加属性（attr_type=2）：旧版 ProductAttr.vue 选中后以 id 串提交
+        ...(extraAttrIds ? { extraAttrIds } : {}),
         // 旧版 Buy.vue：拼团商品加购时携带 grouponData（参团/开团上下文）
         ...(grouponData ? { grouponData } : {}),
       } as Parameters<typeof addToCart>[0]);
@@ -472,6 +569,74 @@ export default function ProductDetailClient({
       setAdding(false);
     }
   };
+
+  /**
+   * 带价附加属性：选中/取消切换（再次点击同一项取消）。
+   * 旧版 components/product/ProductAttr.vue handleAttrClick。
+   */
+  const toggleExtraAttr = (groupIndex: number, attributesId?: number | string) => {
+    setSelectedExtraAttrs((current) => {
+      const next = [...current];
+      next[groupIndex] = current[groupIndex] === attributesId ? null : (attributesId ?? null);
+      return next;
+    });
+  };
+
+  /** 选中的附加属性 id 串（提交给后端，对齐旧版 checkedAttrs.filter(Boolean).join(",")） */
+  const extraAttrIds = selectedExtraAttrs.filter(Boolean).join(',');
+
+  /**
+   * B2B 批量采购：修改某个 SKU 的采购数量。
+   * 旧版 components/product/B2bSku.vue handleNumberChange（带 300ms 防抖）。
+   */
+  const changeB2bNum = (index: number, value: number) => {
+    setB2bSkuList((current) =>
+      current.map((row, i) => {
+        if (i !== index) return row;
+        const max = Math.max(0, Number(row.stock) || 0);
+        const next = Math.max(0, Math.min(max, Math.floor(Number(value) || 0)));
+        return { ...row, num: next };
+      }),
+    );
+  };
+
+  /**
+   * B2B 批量采购：重算合计（件数 / 总额）。
+   * 旧版 components/product/B2bSku.vue __getProductAmount → POST /product/product/getProductAmount
+   * （参数 {id, skuItem}）；接口不可用时本地兜底累加。
+   */
+  useEffect(() => {
+    if (!isB2BMode || b2bTabIndex !== 1 || !b2bSkuList.length) {
+      setB2bAmount(null);
+      return undefined;
+    }
+    const selected = b2bSkuList.filter((row) => Number(row.num) > 0);
+    if (!selected.length) {
+      setB2bAmount({ count: 0, total: 0 });
+      return undefined;
+    }
+    let alive = true;
+    const skuItem = selected.map((row) => ({
+      skuId: Number(row.skuId) || 0,
+      num: Number(row.num) || 0,
+      price: Number(row.price) || 0,
+    }));
+    apiPost<Record<string, any>>('product/product/getProductAmount', { id: productId, skuItem })
+      .then((result) => {
+        if (!alive || !result) return;
+        const count = Number(result.count ?? selected.reduce((sum, row) => sum + Number(row.num || 0), 0));
+        const total = Number(result.total ?? selected.reduce((sum, row) => sum + Number(row.num || 0) * Number(row.price || 0), 0));
+        setB2bAmount({ ...result, count, total });
+      })
+      .catch(() => {
+        const count = selected.reduce((sum, row) => sum + Number(row.num || 0), 0);
+        const total = selected.reduce((sum, row) => sum + Number(row.num || 0) * Number(row.price || 0), 0);
+        setB2bAmount({ count, total });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [isB2BMode, b2bTabIndex, b2bSkuList, productId]);
 
   const collect = async () => {
     if (!requireLogin()) return;
@@ -867,6 +1032,99 @@ export default function ProductDetailClient({
     </div>
   ) : null;
 
+  /**
+   * 带价附加属性（attr_type=2，旧版 components/product/ProductAttr.vue）。
+   *
+   * 每项是一个可点击标签：文案 + 价格（attrPrice）。点击选中/取消，
+   * 选中结果以 attributesId 逗号串提交（与旧版 checkedAttrs.join(",") 一致）。
+   * 后端 group_attributes 已按 attr_type 分出 extra 并带 attr_price（见
+   * crates/services/src/catalog/product_manage.rs:1484），此前仅前端未渲染。
+   */
+  const extraAttrs = (detail.attrList as any)?.extra as Array<Record<string, any>> | undefined;
+  const extraAttrBlock = Array.isArray(extraAttrs) && extraAttrs.length ? (
+    <div className="pds-extra-attrs">
+      {extraAttrs.map((group, groupIndex) => (
+        <div className="pds-extra-attrs__group" key={group.attrName ?? groupIndex}>
+          <div className="pds-extra-attrs__title">{group.attrName}</div>
+          <div className="pds-extra-attrs__list">
+            {(Array.isArray(group.attrList) ? group.attrList : []).map((sub: any) => {
+              const active = selectedExtraAttrs[groupIndex] === sub.attributesId;
+              return (
+                <button
+                  type="button"
+                  key={sub.attributesId ?? `${groupIndex}-${sub.attrValue}`}
+                  className={`pds-extra-attrs__tag${active ? ' is-active' : ''}`}
+                  onClick={() => toggleExtraAttr(groupIndex, sub.attributesId)}
+                >
+                  <span className="pds-extra-attrs__value">{sub.attrValue}</span>
+                  {sub.attrPrice !== undefined && sub.attrPrice !== null && sub.attrPrice !== '' ? (
+                    <span className="pds-extra-attrs__price">¥ {Number(sub.attrPrice).toFixed(2)}</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : null;
+
+  /**
+   * B2B 批量采购 Tab（源码 components/product/B2bTab.vue：单品采购 / 批量采购）。
+   * 仅 B2B 场景 + 多规格 + bulkPurchase=1 时出现。
+   */
+  const b2bTab = isB2BMode ? (
+    <div className="pds-b2b-tab">
+      <button
+        type="button"
+        className={`pds-b2b-tab__item${b2bTabIndex === 0 ? ' is-active' : ''}`}
+        onClick={() => setB2bTabIndex(0)}
+      >
+        {t('单品采购')}
+      </button>
+      <button
+        type="button"
+        className={`pds-b2b-tab__item${b2bTabIndex === 1 ? ' is-active' : ''}`}
+        onClick={() => setB2bTabIndex(1)}
+      >
+        {t('批量采购')}
+      </button>
+    </div>
+  ) : null;
+
+  /**
+   * B2B 批量 SKU 列表 + 合计（源码 components/product/B2bSku.vue + ProductAmount.vue）。
+   * 每个 SKU 一行：规格名 / 单价 / 库存 / 采购数量。
+   */
+  const b2bPanel = isB2BMode && b2bTabIndex === 1 ? (
+    <div className="pds-b2b">
+      <div className="pds-b2b__list">
+        {b2bSkuList.map((row, index) => (
+          <div className="pds-b2b__row" key={String(row.skuId ?? index)}>
+            <div className="pds-b2b__title">{row.title || t('规格')}</div>
+            <div className="pds-b2b__meta">
+              <span className="pds-b2b__price">¥ {Number(row.price || 0).toFixed(2)}</span>
+              <span className="pds-b2b__stock">{t('库存')}：{Number(row.stock || 0)}</span>
+            </div>
+            <InputNumber
+              className="pds-b2b__num"
+              min={0}
+              max={Number(row.stock || 0)}
+              value={Number(row.num || 0)}
+              onChange={(value) => changeB2bNum(index, Number(value) || 0)}
+            />
+          </div>
+        ))}
+      </div>
+      {b2bAmount && Number(b2bAmount.count || 0) > 0 ? (
+        <div className="pds-b2b__total">
+          <span>{t('合计')}{Number(b2bAmount.count || 0)}{t('件')}</span>
+          <span>{t('商品金额')}：¥ {Number(b2bAmount.total || 0).toFixed(2)}</span>
+        </div>
+      ) : null}
+    </div>
+  ) : null;
+
   /** 源码 ProductSku / OverseasProductInfo 规格区 */
   const sku = skuGroups.length ? (
     <div className="pds-sku">
@@ -959,6 +1217,13 @@ export default function ProductDetailClient({
       {limit > 0 ? <span className="pds-limit">限购 {limit} 件</span> : null}
     </div>
   );
+
+  /**
+   * 数量区：批量采购模式下用批量面板替代单品数量选择器。
+   * 旧版 ProductInfo.vue：<template v-if="tabIndex !== 1"> 才渲染 ProductSku 与数量步进器，
+   * 批量模式（tabIndex===1）只渲染 ProductB2bSku。
+   */
+  const qtyBlock = isB2BMode && b2bTabIndex === 1 ? b2bPanel : qty;
 
   /** 源码 Buy / FloatBuyBar / #overseas-product-buy-actions */
   const actions = (
@@ -1272,9 +1537,11 @@ export default function ProductDetailClient({
     promos,
     price: priceBlock,
     attrs,
+    b2bTab,
+    extraAttrBlock,
     sku,
     wholesale,
-    qty,
+    qty: qtyBlock,
     actions,
     tips,
     services,

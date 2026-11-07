@@ -8,7 +8,8 @@
  * - 邀请二维码/分享入口
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Modal, Toast } from '@douyinfe/semi-ui';
+import { Button } from '@douyinfe/semi-ui';
+import MemberInviteDialog from '@/components/MemberInviteDialog';
 
 import { useTranslation } from 'react-i18next';
 function pad(value: number): string {
@@ -67,24 +68,6 @@ export default function GrouponDetailActions({
     setInviteOpen(true);
   };
 
-  const copyLink = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(inviteLink);
-      } else {
-        const input = document.createElement('input');
-        input.value = inviteLink;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-      }
-      Toast.success({ content: '链接已复制' });
-    } catch {
-      Toast.error({ content: '复制失败，请手动复制' });
-    }
-  };
-
   return (
     <>
       {endTime ? (
@@ -109,20 +92,12 @@ export default function GrouponDetailActions({
         ) : null}
       </div>
 
-      <Modal
-        title={t('通过链接邀请')}
+      {/* 通过链接邀请（showInviteDialog 对照） */}
+      <MemberInviteDialog
         visible={inviteOpen}
-        onCancel={() => setInviteOpen(false)}
-        footer={
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-            <Button onClick={() => setInviteOpen(false)}>{t('关闭')}</Button>
-            <Button theme="solid" type="primary" onClick={() => void copyLink()}>{t('复制链接')}</Button>
-          </div>
-        }
-      >
-        <input readOnly value={inviteLink} className="groupon-invite__input" />
-        <p className="groupon-invite__tip">{t('发送链接给好友，好友打开后即可参与拼团。')}</p>
-      </Modal>
+        inviteLink={inviteLink}
+        onClose={() => setInviteOpen(false)}
+      />
     </>
   );
 }

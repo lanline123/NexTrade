@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Button, Checkbox, InputNumber, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import PresaleSteps from '@/components/PresaleSteps';
 
 import { useTranslation } from 'react-i18next';
 /**
@@ -761,6 +762,8 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
             <div className="pc-co-card__head">
               <h2>{t('预售信息')}</h2>
             </div>
+            {/* 预售步骤条（源码 pages/order/src/presaleSteps.vue，三段式定金→尾款→发货 + 规则浮层） */}
+            <PresaleSteps productPresale={presale} presaleStatus={0} total={total} />
             <div className="pc-co-presale">
               {Number(total.actualPayDepositAmount || 0) > 0 ? (
                 <div>

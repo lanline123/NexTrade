@@ -157,10 +157,22 @@ function adaptPcBanner(item: DecorateModule): ContractRenderPlan {
   };
 }
 
-/** pcBanner2：同 pcBanner 字段，仅消费 picList（1264x280 全宽轮播）→ GroupBanner 平铺。 */
+/**
+ * pcBanner2：旧版 components/home/BannerNew.vue。
+ * slideNum 决定一屏显示几张图（1/2/3），对应新版 Banner2 组件（number + slideGap + picList）。
+ * 此前错误地指向 GroupBanner（多图并排版式），导致 pcBanner2 渲染效果与旧版不符。
+ */
 function adaptPcBanner2(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
-  return { component: 'GroupBanner', module: { banners: picList(m, 'picList'), frame: frameOf(m) } };
+  return {
+    component: 'Banner2',
+    module: {
+      picList: picList(m, 'picList'),
+      number: m.slideNum ?? m.number,
+      slideGap: m.slideGap,
+      frame: frameOf(m),
+    },
+  };
 }
 
 /** pcGroupBanner：pcBanner 字段 + number（一组显示数量≤3）→ GroupBanner，按 number 截取 picList。 */
@@ -249,6 +261,14 @@ function adaptPcCatProductNormal(item: DecorateModule): ContractRenderPlan {
       banner: { picList: picList(m, 'picList') },
       links: toCategoryLinks(m.childCategoryList),
       frame: frameOf(m),
+      baseStyle: m.baseStyle,
+      // 商品卡片视觉字段（后台配置，需落到渲染层才生效）
+      goodsStyle: m.goodsStyle,
+      goodsRadioStyle: m.goodsRadioStyle,
+      goodsPadding: m.goodsPadding,
+      buyBtnStyle: m.buyBtnStyle,
+      showName: m.showName,
+      showPrice: m.showPrice,
       // color/color2/logo/enTitle/shortTitle/picList2 为原版专属视觉字段，降级省略
     },
   };
@@ -272,6 +292,7 @@ function adaptPcCatProductWide(item: DecorateModule): ContractRenderPlan {
       banner: { picList: picList(m, 'picList') },
       links: [...toLinks(m.linkList), ...toCategoryLinks(m.childCategoryList)],
       frame: frameOf(m),
+      baseStyle: m.baseStyle,
       // color/color2/logo/enTitle/shortTitle/picList2（原版右侧促销卡）降级省略
     },
   };
@@ -295,7 +316,9 @@ function adaptPcCatProductSimple(item: DecorateModule): ContractRenderPlan {
       },
       banner: { picList: picList(m, 'picList') },
       frame: frameOf(m),
-      // baseStyle（左图右商品布局）降级为上下结构；moreLink 由 ContractCatProduct 渲染为“查看更多”
+      // baseStyle=2 → 左图右商品布局（旧版 CatProductNormal.vue 的 .mod_columns_floor 608px 宽块）
+      baseStyle: m.baseStyle,
+      // moreLink 由 ContractCatProduct 渲染为“查看更多”
     },
   };
 }
@@ -317,6 +340,13 @@ function adaptPcRecommendProduct(item: DecorateModule): ContractRenderPlan {
         title: toTitle(m.titleName ?? m.title),
         products: { productSelectType: 1, productIds, productNumber: productIds.length },
         frame: frameOf(m),
+      // 商品卡片视觉字段（后台配置，需落到渲染层才生效）
+      goodsStyle: m.goodsStyle,
+      goodsRadioStyle: m.goodsRadioStyle,
+      goodsPadding: m.goodsPadding,
+      buyBtnStyle: m.buyBtnStyle,
+      showName: m.showName,
+      showPrice: m.showPrice,
       },
     };
   }

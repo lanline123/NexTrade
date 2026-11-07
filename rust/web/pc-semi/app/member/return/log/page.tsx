@@ -29,8 +29,11 @@ export default async function ReturnLogPage({ searchParams }: { searchParams?: {
       {data.records.length ? data.records.map((item, index) => (
         <article className="return-log-card" key={item.aftersalesId || index}>
           <header>
+            {/* 源码 return/Log.vue：售后单号 / 订单号 / 申请时间 / 售后类型 / 审核状态 */}
+            <span>售后单号：{item.aftersalesSn || '-'}</span>
             <span>订单号：{item.orderSn || '-'}</span>
             <span>申请时间：{item.addTime || '-'}</span>
+            <span className="return-log-card__type">{item.aftersalesTypeName || '-'}</span>
             <span className="return-log-card__status">{item.statusName || '-'}</span>
           </header>
           <div className="return-log-card__body">

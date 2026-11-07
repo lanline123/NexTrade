@@ -15,6 +15,9 @@ interface AccountItem {
 
 const TYPE_LABELS: Record<number, string> = { 1: '银行卡', 2: '支付宝', 3: '微信' };
 
+/** 旧版 Raplytocard.vue：提现金额上限 12300 */
+const MAX_WITHDRAW_AMOUNT = 12300;
+
 function mask(value?: string): string {
   if (!value) return '-';
   if (value.length < 7) return value;
@@ -43,12 +46,17 @@ export default function WithdrawClient() {
         if (config.memberWithdrawalEnabled !== undefined) {
           setWithdrawalEnabled(Number(config.memberWithdrawalEnabled) === 1);
         }
-        const rawMethods = config.memberWithdrawalMethod ?? config.memberWithdrawalMethods;
+        // 旧版 commonStore.memberWithdrawalReceiptMethod（Java SettingsEnum 同名，
+        // Rust config_client.rs::member_withdrawal_receipt_method 同源）
+        const rawMethods = config.memberWithdrawalReceiptMethod ?? config.memberWithdrawalMethod;
         if (rawMethods) {
-          const list = String(rawMethods)
-            .split(',')
-            .map((item) => Number(String(item).trim()))
-            .filter((item) => [1, 2, 3].includes(item));
+          const list = Array.isArray(rawMethods)
+            ? rawMethods.map((item: unknown) => Number(item))
+            : String(rawMethods)
+                .replace(/^\[|\]$/g, '')
+                .split(',')
+                .map((item) => Number(String(item).trim()))
+                .filter((item) => [1, 2, 3].includes(item));
           if (list.length) {
             setMethods(list);
             setType((current) => (list.includes(current) ? current : list[0]));
@@ -80,7 +88,20 @@ export default function WithdrawClient() {
 
   const submit = async () => {
     if (!selected) return Toast.error({ content: '请先添加并选择提现账户' });
-    if (!amount || Number(amount) <= 0) return Toast.error({ content: '请输入提现金额' });
+    // 旧版 Raplytocard.vue amountRules：必填 + 0-12300 两位小数 + 不高于可用余额
+    const amountText = amount.trim();
+    if (!amountText) return Toast.error({ content: '请输入提现金额' });
+    if (!/^(0|\d{0,9})(\.\d{1,2})?$/.test(amountText)) {
+      return Toast.error({ content: '提现金额必须大于0，且最多保留两位小数' });
+    }
+    const amountValue = Number(amountText);
+    if (amountValue <= 0) return Toast.error({ content: '提现金额必须大于0，且最多保留两位小数' });
+    if (amountValue > MAX_WITHDRAW_AMOUNT) {
+      return Toast.error({ content: '提现金额不能高于可用余额' });
+    }
+    if (amountValue > Number(balance || 0)) {
+      return Toast.error({ content: '提现金额不能高于可用余额' });
+    }
     setSubmitting(true);
     try {
       await apiPost('user/withdrawApply/apply', {
@@ -90,7 +111,7 @@ export default function WithdrawClient() {
           accountName: selected.accountName,
           bankName: selected.bankName,
         },
-        amount: Number(amount),
+        amount: amountValue,
       });
       Toast.success({ content: '提现申请已提交' });
       setAmount('');

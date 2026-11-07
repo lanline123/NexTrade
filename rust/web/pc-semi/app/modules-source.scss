@@ -335,6 +335,22 @@
     background: #fff;
     text-decoration: none;
     color: inherit;
+
+    /* 卡片边框样式（后台 goodsStyle 配置，源码 components/shop/product/ProductCard.vue）：
+       2 → 阴影、3 → 细边框、1 → 无边框、其余（默认/4）→ 透明底 */
+    &.product-card-border-2 {
+      border-color: transparent;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+    &.product-card-border-3 {
+      border: 1px solid rgba(50, 50, 51, 0.1);
+    }
+    &.product-card-border-4 {
+      border-color: transparent;
+      background-color: transparent;
+    }
+    /* 图片圆角（goodsRadioStyle=2） */
+    &.box-radius { border-radius: 6px; }
   }
 
   &__photo {
@@ -349,6 +365,11 @@
     height: 100%;
     display: block;
     object-fit: cover;
+    /* 图片顶部圆角（goodsRadioStyle=2，源码 ProductCard.vue .image-box-radius） */
+    &.image-box-radius {
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
   }
 
   &__info {
@@ -397,6 +418,99 @@
     align-items: center;
     justify-content: space-between;
     margin-top: auto;
+  }
+
+  /* ---- 店铺商品卡片版式（源码 components/shop/product/*，由 module.style 决定）----
+     style=1/2/3 → 一行 N 个竖排（默认网格，用 __list）
+     style=4     → 一大两小（OneBig2Small.vue）
+     style=5     → 横排（OneRowProductX.vue direction="land"）
+     style=6     → 横向滑动（OneRowProductX.vue direction="slide"）
+     style=7     → 每屏 3 个轮播（OneRow3Carousel.vue） */
+
+  /* style=4：一大两小 */
+  &__groups {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: var(--dec-goods-padding, 5px);
+  }
+  &__group {
+    display: flex;
+    gap: 8px;
+  }
+  &__group-big {
+    flex: 2;
+    min-width: 0;
+  }
+  &__group-small {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  &__card--big .dec-pc-product__name {
+    font-size: 15px;
+    line-height: 20px;
+  }
+  &__card--small .dec-pc-product__name {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  /* style=5：横排卡片 */
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    &.is-slide {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+  &__card--land {
+    flex-direction: row;
+    align-items: stretch;
+    width: calc(50% - 6px);
+    min-width: 260px;
+  }
+  &__photo--land {
+    flex: 0 0 200px;
+    width: 200px;
+    aspect-ratio: auto;
+    height: auto;
+    min-height: 200px;
+  }
+  &__info--land {
+    justify-content: center;
+    padding: 12px 14px;
+  }
+
+  /* style=6：滑动卡片固定宽度 */
+  &__card--slide {
+    flex: 0 0 220px;
+    width: 220px;
+  }
+
+  /* style=7：每屏 3 个轮播页 */
+  &__carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: var(--dec-goods-padding, 5px);
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+  &__carousel-page {
+    display: flex;
+    gap: 12px;
+    flex: 0 0 100%;
+  }
+  &__carousel-page .dec-pc-product__card {
+    flex: 1;
+    min-width: 0;
   }
 
   &__buy {

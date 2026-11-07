@@ -50,6 +50,10 @@ export interface ProductBlocks {
   price: ReactNode;
   /** 规格参数 */
   attrs: ReactNode;
+  /** B2B 批量采购 Tab（单品采购 / 批量采购），非 B2B 场景为 null */
+  b2bTab?: ReactNode;
+  /** 带价附加属性（attr_type=2），无则 null */
+  extraAttrBlock?: ReactNode;
   /** SKU 选择 */
   sku: ReactNode;
   /** B2B 阶梯价 */
@@ -108,6 +112,8 @@ export function ClassicLayout({ blocks }: LayoutProps) {
             {blocks.promos}
             {blocks.price}
             {blocks.attrs}
+            {blocks.b2bTab}
+            {blocks.extraAttrBlock}
             {blocks.sku}
             {blocks.wholesale}
             {blocks.qty}
@@ -160,6 +166,8 @@ export function ModernLayout({ blocks }: LayoutProps) {
                 {blocks.promos}
                 {blocks.price}
                 {blocks.attrs}
+                {blocks.b2bTab}
+                {blocks.extraAttrBlock}
                 {blocks.sku}
                 {blocks.wholesale}
                 {blocks.qty}
@@ -226,6 +234,8 @@ export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: Overseas
                 {blocks.promos}
                 {blocks.price}
                 {blocks.attrs}
+                {blocks.b2bTab}
+                {blocks.extraAttrBlock}
                 {blocks.sku}
                 {blocks.wholesale}
                 {blocks.qty}

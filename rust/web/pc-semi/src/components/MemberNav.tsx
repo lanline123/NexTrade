@@ -34,6 +34,8 @@ interface ConfigBase {
   canInvoice?: number;
   invoiceAdded?: number;
   integralName?: string;
+  /** D1146：商品评价总开关（关闭时隐藏「评价晒单」入口） */
+  productCommentEnabled?: number;
 }
 
 const OVERSEAS = true;
@@ -94,6 +96,8 @@ export default function MemberNav() {
   };
 
   const canInvoice = Number(config.canInvoice ?? 0) === 1;
+  // D1146：商品评价总开关（对应旧版 Nav.vue:132 的 commonStore.productCommentEnabled === 1）
+  const commentEnabled = Number(config.productCommentEnabled ?? 1) === 1;
   const menuList = useMemo<MenuGroup[]>(
     () => [
       {
@@ -102,7 +106,7 @@ export default function MemberNav() {
           { name: '我的订单', url: '/member/order/list', show: true },
           { name: '我的拼团', url: OVERSEAS ? '/member/group/list' : '/member/joining/list', show: true },
           // D1146：评价功能关闭时隐藏该入口
-          { name: '评价晒单', url: '/member/comment/list', show: true, badge: 'awaitComment' },
+          { name: '评价晒单', url: '/member/comment/list', show: commentEnabled, badge: 'awaitComment' },
           { name: '我的购物车', url: '/cart', show: true },
           { name: '发票申请', url: '/member/orderinvoice/list', show: canInvoice },
           { name: '增票资质', url: '/member/userinvoice/info', show: canInvoice && Number(config.invoiceAdded ?? 0) === 1 },
@@ -146,7 +150,7 @@ export default function MemberNav() {
         ],
       },
     ],
-    [canInvoice, config.invoiceAdded, config.integralName],
+    [canInvoice, config.invoiceAdded, config.integralName, commentEnabled],
   );
 
   const toggleGroup = (idx: number) => {

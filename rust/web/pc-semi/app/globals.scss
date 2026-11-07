@@ -90,6 +90,44 @@ img {
   }
 }
 
+/* 首页通栏区：旧版 pages/index.vue 把 pcBanner / pcBanner2 渲染在容器外（通栏），
+   其余模块在 .container 内的 .home-warp。通栏区自身不加左右内边距，
+   由各 Banner 模块的 frame.boxPadding 控制内边距。 */
+.home-flux {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* 旧链首页容器内模块区（旧版 .home-warp）
+   旧版 pages/index.vue:227-232 是 display:flex; flex-wrap:wrap; justify-content:space-between，
+   使 CatProductNormal（608px）与 CatProductWide 可两列并排。新版此前单列纵向流 → 版式全丢。
+   仅 .home-warp 生效；新版链（kebab）首页没有 .home-warp 包裹，仍是 column 单列。 */
+.home-warp {
+  width: 100%;
+}
+
+/* 旧链首页两列并排：把 renderer 自身改成 row 换行容器 */
+.home-warp > .decorate-renderer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0 16px;
+}
+
+/* 旧链模块容器：让宽模块（分类商品系 608px）占一列、窄模块并排另一列 */
+.home-warp > .decorate-renderer > .decorate-renderer__module {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+/* 通栏模块（customAd / recommendProduct 等）需独占整行 */
+.home-warp > .decorate-renderer > .decorate-renderer__module.home-warp__item--full {
+  flex: 1 0 100%;
+  width: 100%;
+}
+
 /* ---------------- Header ---------------- */
 
 .pc-header {
@@ -7297,6 +7335,44 @@ img {
   }
 }
 
+/* 预售步骤条（源码 pages/order/src/presaleSteps.vue） */
+.pc-presale-steps {
+  margin: 4px 0 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #fafbfc;
+}
+.pc-presale-steps__container { display: flex; flex-wrap: wrap; align-items: flex-start; }
+.pc-presale-steps__item { flex: 1 1 0; min-width: 0; }
+.pc-presale-steps__content { display: flex; align-items: center; gap: 8px; }
+.pc-presale-steps__dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #d0d5dd;
+  &.is-active { background: var(--pc-primary, #1456f0); }
+  &.is-completed { background: var(--pc-primary, #1456f0); }
+}
+.pc-presale-steps__text {
+  color: #667085;
+  font-size: 13px;
+  line-height: 20px;
+  &.is-active { color: #1a1a1a; font-weight: 500; }
+}
+.pc-presale-steps__amount { display: inline-flex; align-items: baseline; gap: 4px; }
+.pc-presale-steps__rule-link { display: inline-flex; align-items: center; cursor: pointer; }
+.pc-presale-steps__line {
+  height: 1px;
+  margin: 8px 0 8px 18px;
+  background: #e4e7ec;
+  &.is-active { background: var(--pc-primary, #1456f0); }
+}
+.pc-presale-rule { font-size: 13px; line-height: 20px; color: #475467; }
+.pc-presale-rule__section { margin-bottom: 10px; &:last-child { margin-bottom: 0; } }
+.pc-presale-rule__title { margin-bottom: 4px; color: #101828; font-weight: 600; }
+.pc-presale-rule__item { display: flex; gap: 4px; }
+
 /* 备注 */
 .pc-co-note {
   position: relative;
@@ -8052,4 +8128,846 @@ img {
   h1 {
     display: none;
   }
+}
+
+/* ============ 会员中心弹窗组件（对齐旧版 view/pc/components/member/**） ============ */
+
+/* 取消订单原因弹窗（CancelOrderReasonDialog.vue） */
+.member-reason-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+}
+
+/* 物流轨迹弹窗（LogisticsTracking.vue） */
+.member-logistics {
+  padding: 10px;
+}
+
+.member-logistics__head {
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.member-logistics__loading,
+.member-logistics__empty {
+  min-height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #999;
+}
+
+.member-logistics__list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 5px 25px 15px 38px;
+  margin: 0;
+  list-style: none;
+}
+
+.member-logistics__list li {
+  padding: 10px 0;
+  position: relative;
+}
+
+.member-logistics__list li:not(:last-child)::after {
+  content: "";
+  background: #3985ff;
+  width: 1px;
+  height: 100%;
+  position: absolute;
+  left: -20px;
+  top: 20px;
+}
+
+.member-logistics__list li i {
+  background: #fff;
+  border: 1px solid #3985ff;
+  border-radius: 8px;
+  height: 8px;
+  width: 8px;
+  position: absolute;
+  left: -24px;
+  top: 13px;
+  z-index: 1;
+}
+
+.member-logistics__list li i::after {
+  background: #3985ff;
+  border-radius: 6px;
+  content: "";
+  display: block;
+  height: 6px;
+  width: 6px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.member-logistics__list li.is-first i {
+  border-color: #fb8a00;
+}
+
+.member-logistics__list li.is-first i::after {
+  background-color: #fb8a00;
+}
+
+.member-logistics__station {
+  color: #666;
+}
+
+.member-logistics__list li.is-first .member-logistics__station {
+  color: #1a1a1a;
+}
+
+.member-logistics__time {
+  display: block;
+  margin-top: 2px;
+  color: #999;
+  font-size: 12px;
+}
+
+/* 收货地址编辑弹窗（DialogEditRegion.vue + EditRegion.vue） */
+.member-address-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.member-address-dialog__field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-address-dialog__label {
+  flex: 0 0 90px;
+  text-align: right;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.member-address-dialog__input {
+  width: 300px;
+}
+
+.member-address-dialog__region {
+  display: flex;
+  gap: 8px;
+}
+
+.member-address-dialog__region .semi-select {
+  width: 160px;
+}
+
+.member-address-dialog__footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* 邀请拼团弹窗（showInviteDialog.vue） */
+.member-invite {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+}
+
+.member-invite__input {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #e0e1e5;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-invite__tip {
+  margin: 10px 0 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.member-invite__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 删除记录二次确认（DeleteRecord.vue） */
+.member-delete-confirm__text {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 订单筛选条（OrderListFilter.v1.vue） */
+.member-order-filter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.member-order-filter__tabs {
+  display: flex;
+  gap: 26px;
+}
+
+.member-order-filter__tabs button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 54px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--ui-text-2, #475467);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.member-order-filter__tabs button.is-active {
+  color: var(--ui-text, #0f1728);
+  font-weight: 600;
+}
+
+.member-order-filter__tabs button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--pc-primary);
+}
+
+.member-order-filter__num {
+  margin-left: 6px;
+  padding: 1px 7px;
+  min-width: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--pc-primary) 10%, transparent);
+  color: var(--pc-primary);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.member-order-filter__tabs button.is-active .member-order-filter__num {
+  background: var(--pc-primary);
+  color: #fff;
+}
+
+.member-order-filter__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-order-filter__search .semi-input-wrapper {
+  width: 230px;
+}
+
+/* 会员评价列表（CommentList.vue） */
+.member-comment-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.member-comment-list__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  padding: 10px;
+}
+
+.member-comment-list__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.member-comment-list__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-comment-list__star {
+  color: #fb8a00;
+  letter-spacing: 1px;
+}
+
+.member-comment-list__time {
+  color: #999;
+  font-size: 12px;
+}
+
+.member-comment-list__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.member-comment-list__tags > span {
+  background-color: #eeeeee;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
+.member-comment-list__body {
+  display: flex;
+  gap: 10px;
+  flex-direction: row;
+}
+
+.member-comment-list__thumb {
+  flex: 0 0 60px;
+}
+
+.member-comment-list__thumb img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.member-comment-list__main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #999;
+  min-width: 0;
+}
+
+.member-comment-list__product {
+  color: #000;
+}
+
+.member-comment-list__content {
+  flex: 1 0 auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.member-comment-list__pics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.member-comment-list__pic {
+  width: 80px;
+  height: 80px;
+  border: 1px solid #eee;
+  margin-right: 5px;
+}
+
+.member-comment-list__reply {
+  margin: 5px 0;
+  padding: 10px;
+  background: #f7f7f7;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+  line-height: 1.75;
+  color: #666;
+}
+
+.member-comment-list__reply-name {
+  color: #666;
+}
+
+.member-comment-list__reply-text {
+  color: #000;
+  display: block;
+}
+
+.member-comment-list__reply-time {
+  margin-left: 8px;
+  color: #999;
+  font-size: 12px;
+}
+
+/* 优惠券卡片（CouponCard.vue） */
+.member-coupon-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  height: fit-content;
+  min-height: 108px;
+  border-radius: 6px;
+  padding: 11px;
+  border: 1px solid var(--main-bg, #3985ff);
+  border-left-width: 4px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.member-coupon-card.is-disabled {
+  border-color: #c3c3c3;
+  cursor: not-allowed;
+}
+
+.member-coupon-card.is-selected {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pc-primary) 35%, transparent);
+}
+
+.member-coupon-card__info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 8px;
+}
+
+.member-coupon-card__amount {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.member-coupon-card__price {
+  color: var(--main-bg, #3985ff);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.member-coupon-card__price small {
+  font-size: 14px;
+}
+
+.member-coupon-card__discount {
+  color: var(--main-bg, #3985ff);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.member-coupon-card__discount small {
+  font-size: 14px;
+}
+
+.member-coupon-card__name {
+  margin-left: 10px;
+  color: var(--main-bg, #3985ff);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-coupon-card__time {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #c99227;
+  background-color: #fff8ea;
+}
+
+.member-coupon-card__action {
+  flex: 0 0 auto;
+  margin-left: 12px;
+}
+
+.member-coupon-card__btn {
+  display: inline-block;
+  min-width: 48px;
+  height: 20px;
+  padding: 0 4px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 4px;
+  border: 1px solid var(--main-bg, #3985ff);
+  color: var(--main-bg, #3985ff);
+  font-size: 12px;
+  font-weight: 500;
+  background: #fff;
+  cursor: pointer;
+}
+
+.member-coupon-card__btn.is-disabled {
+  border-color: #888b94;
+  color: #888b94;
+  cursor: not-allowed;
+}
+
+.member-coupon-card__desc {
+  font-size: 12px;
+  line-height: 16px;
+  color: #888b94;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-coupon-card.is-disabled .member-coupon-card__price,
+.member-coupon-card.is-disabled .member-coupon-card__discount,
+.member-coupon-card.is-disabled .member-coupon-card__name {
+  color: #c3c3c3;
+}
+
+.member-coupon-card.is-disabled .member-coupon-card__time {
+  color: #c3c3c3;
+  background-color: #f0f0f0;
+}
+
+.member-coupon__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.member-coupon__del {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  color: #e5484d;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* 线下支付认领弹窗（OfflinePaymentClaimDetail.vue） */
+.member-claim {
+  color: #333;
+  font-size: 14px;
+}
+
+.member-claim__loading {
+  min-height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.member-claim__empty {
+  min-height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #999;
+}
+
+.member-claim__summary {
+  padding: 8px 0 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.member-claim__summary-row {
+  display: flex;
+  gap: 70px;
+  align-items: center;
+  line-height: 32px;
+}
+
+.member-claim__status {
+  font-weight: 600;
+}
+
+.member-claim__status.is-1 {
+  color: #67c23a;
+}
+
+.member-claim__status.is-2 {
+  color: #f56c6c;
+}
+
+.member-claim__tip {
+  margin-top: 12px;
+  color: #666;
+  line-height: 24px;
+}
+
+.member-claim__section {
+  padding-top: 20px;
+}
+
+.member-claim__section h3 {
+  margin: 0 0 14px;
+  color: #222;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.member-claim__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 56px;
+}
+
+.member-claim__grid-row {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  line-height: 1.5;
+}
+
+.member-claim__grid-row > span:first-child {
+  flex: 0 0 100px;
+  color: #666;
+}
+
+.member-claim__grid-row b {
+  flex: 1;
+  color: #333;
+  font-weight: 400;
+  word-break: break-all;
+}
+
+.member-claim__grid-row--voucher {
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.member-claim__vouchers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.member-claim__empty-text {
+  color: #999;
+}
+
+.member-claim__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.member-claim__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-claim__row label {
+  flex: 0 0 90px;
+  text-align: right;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.member-claim__row input {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #e0e1e5;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.member-claim__readonly {
+  flex: 1;
+  color: #333;
+}
+
+.member-claim__row--upload {
+  align-items: flex-start;
+}
+
+.member-claim__uploader {
+  flex: 1;
+}
+
+.member-claim__vouchers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.member-claim__voucher {
+  position: relative;
+  display: inline-block;
+}
+
+.member-claim__voucher > button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.member-claim__voucher--add {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  color: #999;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.member-claim__upload-tip {
+  margin-top: 6px;
+  color: #999;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* 评价表单：星级文字 + 自定义标签（comment/Info.vue） */
+.comment-item__rank-text {
+  margin-left: 6px;
+  color: #666;
+  font-size: 13px;
+}
+
+.comment-item__custom-add {
+  border-style: dashed !important;
+  border-color: #ccc !important;
+}
+
+.comment-item__custom-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-item__custom-tag input {
+  width: 140px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid #e0e1e5;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.comment-item__content {
+  margin: 10px 0 4px;
+  color: #666;
+  font-size: 13px;
+}
+
+/* 售后申请：货号 + 预计退款金额 */
+.member-aftersales-apply__sn {
+  color: #999;
+  font-size: 12px;
+}
+
+/* 发票弹窗：发票图片 + 说明（orderInvoice/Info.vue） */
+.inv-dialog__extra {
+  margin: -6px 0 10px;
+  color: #999;
+  font-size: 12px;
+}
+
+.inv-dialog__uploader {
+  width: 100%;
+}
+
+.inv-dialog__images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inv-dialog__image {
+  position: relative;
+  display: inline-block;
+  width: 88px;
+  height: 88px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.inv-dialog__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inv-dialog__image > button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.inv-dialog__image--add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  color: #999;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* 卡管理：编辑入口 */
+.link-primary {
+  border: 0;
+  background: none;
+  color: var(--pc-primary);
+  font-size: 13px;
+  cursor: pointer;
+  margin-right: 12px;
+  padding: 0;
+}
+
+.card-type-group {
+  display: flex;
+  gap: 8px;
+}
+
+.card-type-group button {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid #e0e1e5;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.card-type-group button.is-active {
+  border-color: var(--pc-primary);
+  color: var(--pc-primary);
 }

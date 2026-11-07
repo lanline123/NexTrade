@@ -15,6 +15,8 @@ import type { PcLoginDecorate } from '@/lib/api';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import VerifySlide from '@/components/VerifySlide';
+import { useOauthLogin, OauthButtons } from '@/components/oauth/useOauthLogin';
 async function getCsrf(): Promise<string> {
   const response = await fetch('/api/common/csrf/create', { credentials: 'include' });
   const json = await response.json();
@@ -22,6 +24,24 @@ async function getCsrf(): Promise<string> {
     throw new Error(json.msg || (i18n.t('获取 CSRF Token 失败') as string));
   }
   return typeof json.data === 'string' ? json.data : json.data?.token || '';
+}
+
+/**
+ * 登录接口错误。
+ *
+ * 源码 components/member/login/BaseLogin.vue:236：
+ * `if (error.code == 1002) verify.value.show();` —— 登录失败且 code=1002 时
+ * 弹出滑块验证，用户完成验证后带 verifyToken 重试。
+ * 这里保留业务 code，供调用方判断是否弹验证码。
+ */
+class ApiError extends Error {
+  code?: number;
+
+  constructor(message: string, code?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+  }
 }
 
 async function postJson(path: string, body: unknown, headers: Record<string, string> = {}) {
@@ -34,7 +54,11 @@ async function postJson(path: string, body: unknown, headers: Record<string, str
   const text = await response.text();
   const json = text ? JSON.parse(text) : {};
   if (!response.ok || (json.code !== undefined && json.code !== 0)) {
-    throw new Error(json.msg || json.message || (i18n.t('请求失败（{code}）', { code: response.status }) as string));
+    const code = typeof json.code === 'number' ? json.code : undefined;
+    throw new ApiError(
+      json.msg || json.message || (i18n.t('请求失败（{code}）', { code: response.status }) as string),
+      code,
+    );
   }
   return json.data ?? json;
 }
@@ -63,6 +87,12 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
   const [wechatMode, setWechatMode] = useState(false);
   const [wechatQr, setWechatQr] = useState('');
   const [wechatExpired, setWechatExpired] = useState(false);
+  /**
+   * 滑块行为验证码（源码 BaseLogin.vue / OverseasLogin.vue 的 Verify 组件）。
+   * 登录接口返回 code=1002 时弹出；验证成功拿到 verifyToken 后重试登录。
+   */
+  const [verifyOpen, setVerifyOpen] = useState(false);
+  const [verifyToken, setVerifyToken] = useState('');
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -77,6 +107,12 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
     backgroundColor: bgColor || undefined,
   };
+
+  /**
+   * 第三方登录开关（源码 components/member/login/OverseasLogin.vue:117-127）。
+   * 后台配置项：common/config/base → googleLoginOn / facebookLoginOn / twitterLoginOn。
+   */
+  const { switches: oauthSwitches, start: startOauth } = useOauthLogin();
 
   const sendCode = async () => {
     if (countdown > 0) return;
@@ -100,8 +136,8 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     }
   };
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const submit = async (event?: React.FormEvent) => {
+    event?.preventDefault();
     if (!agreed) return setError('请先阅读并同意服务协议与隐私协议');
     if (tab === 'normal') {
       if (!username.trim() || !password) return setError('请输入账号和密码');
@@ -115,8 +151,8 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
       const result: any = await postJson(
         'user/login/signin',
         tab === 'normal'
-          ? { loginType: 'password', username: username.trim(), password, mobile: '', mobileCode: '', verifyToken: '' }
-          : { loginType: 'mobile', username: '', password: '', mobile: mobile.trim(), mobileCode: mobileCode.trim(), areaCode, verifyToken: '' },
+          ? { loginType: 'password', username: username.trim(), password, mobile: '', mobileCode: '', verifyToken }
+          : { loginType: 'mobile', username: '', password: '', mobile: mobile.trim(), mobileCode: mobileCode.trim(), areaCode, verifyToken },
         { 'X-CSRF-Token': csrf },
       );
       const token = result?.token || result?.accessToken;
@@ -126,6 +162,12 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
       Toast.success({ content: '登录成功' });
       redirectAfterLogin();
     } catch (reason) {
+      // 源码 BaseLogin.vue:236：code=1002 → 弹滑块验证，完成后带 verifyToken 重试
+      if (reason instanceof ApiError && reason.code === 1002) {
+        setVerifyOpen(true);
+        setLoading(false);
+        return;
+      }
       setError(reason instanceof Error ? reason.message : '登录失败');
       setLoading(false);
     }
@@ -233,6 +275,9 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
           <div className="pdp-login__other">
             <button type="button" onClick={() => void openWechat()}>{t('微信扫码登录')}</button>
           </div>
+
+          {/* 第三方登录（源码 OverseasLogin.vue:117-127 Google / Facebook / Twitter-X） */}
+          <OauthButtons switches={oauthSwitches} onStart={startOauth} />
         </>
       )}
     </>
@@ -252,6 +297,17 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
           <div className="pdp-login__card">{card}</div>
         </div>
       )}
+      {/* 滑块行为验证码（源码 BaseLogin.vue 的 <Verify mode="pop" captchaType="blockPuzzle">） */}
+      <VerifySlide
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
+        onSuccess={(token) => {
+          setVerifyToken(token);
+          setVerifyOpen(false);
+          // 验证通过后带 verifyToken 重试登录（源码 BaseLogin.vue okCallback）
+          void submit();
+        }}
+      />
     </div>
   );
 }

@@ -100,10 +100,28 @@ export default async function HomePage({
   }
 
   // 原版 decorate/isNewHome.ts：homeStyleVersion=new 或模块 type 含 kebab → 新版注册表；
-  // =old、全是旧模块 type、或装修数据为空/接口失败 → 回退旧版硬编码首页。
+  // =old → 旧版 camelCase 装修链；两者都用装修模块渲染，不是硬编码首页。
+  //
+  // 注意：旧链的 16 个 camelCase type（pcBanner / pcCatWide / pcSeckill / pcGroupon /
+  // pcCategoryNav / pcCategoryNav3 / pcGroupBanner / pcCoupon / pcCatProductNormal /
+  // pcCatProductWide / pcCatProductSimple / pcCustomAd1 / pcCustomAd2 / pcImageAd /
+  // pcRecommendProduct / pcBanner2）在 contract.ts 里都有适配器，可直接由 DecorateRenderer 渲染。
+  // 此前此处对 old 链回退到静态 LegacyHome，导致旧装修配置全部不渲染（16 个模块消失）。
   const declaredStyle = data?.pageModule?.homeStyleVersion;
-  const hasKebabModule = (data?.moduleList || []).some((item) => String(item?.type || '').includes('-'));
-  const useLegacy = Boolean(error) || declaredStyle === 'old' || (!declaredStyle && !hasKebabModule) || !data?.moduleList?.length;
+  const moduleList = data?.moduleList || [];
+  const hasKebabModule = moduleList.some((item) => String(item?.type || '').includes('-'));
+  const hasCamelModule = moduleList.some((item) => String(item?.type || '').startsWith('pc'));
+  // 只有装修数据缺失 / 接口报错 / 模块类型完全不认识时才回退静态首页
+  const useLegacy = Boolean(error) || !moduleList.length || (!hasKebabModule && !hasCamelModule);
+
+  /**
+   * 旧版 pages/index.vue 的布局分区：
+   * - pcBanner / pcBanner2 渲染在容器外（通栏区），bannerStyle==1 时额外套 .container
+   * - 其余模块渲染在 .container 内的 .home-warp
+   */
+  const FLUX_TYPES = new Set(['pcBanner', 'pcBanner2']);
+  const fluxModules = moduleList.filter((item) => FLUX_TYPES.has(String(item?.type || '')));
+  const innerModules = moduleList.filter((item) => !FLUX_TYPES.has(String(item?.type || '')));
 
   return (
     <>
@@ -114,10 +132,27 @@ export default async function HomePage({
       ) : null}
       <PcHeader config={data?.pageModule?.pcHeader} />
       <main className="pc-home" style={pageBackground(data?.pageModule)}>
-        <div className="pc-container">
-          {error ? <div className="legacy-home__notice">装修数据暂不可用：{error}，已切换为默认首页。</div> : null}
-          {useLegacy ? <LegacyHome /> : <DecorateRenderer modules={data?.moduleList || []} />}
-        </div>
+        {error ? <div className="legacy-home__notice">装修数据暂不可用：{error}，已切换为默认首页。</div> : null}
+        {useLegacy ? (
+          <div className="pc-container">
+            <LegacyHome />
+          </div>
+        ) : (
+          <>
+            {/* 通栏区（容器外） */}
+            {fluxModules.length ? (
+              <div className="home-flux">
+                <DecorateRenderer modules={fluxModules as any} />
+              </div>
+            ) : null}
+            {/* 容器内 */}
+            <div className="pc-container">
+              <div className="home-warp">
+                <DecorateRenderer modules={innerModules as any} />
+              </div>
+            </div>
+          </>
+        )}
       </main>
       <PcFooter showFriendly />
     </>

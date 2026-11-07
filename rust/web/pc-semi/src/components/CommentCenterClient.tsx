@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button, Spin, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
+import MemberCommentList, { MemberCommentItem } from '@/components/MemberCommentList';
 
 import { useTranslation } from 'react-i18next';
 type TabKey = 'pending' | 'showed' | 'commented';
@@ -97,19 +98,6 @@ function skuText(sku: OrderItem['skuData']): string {
     .map((item) => (item?.name || item?.value ? `${item.name ?? ''}${item.name && item.value ? '：' : ''}${item.value ?? ''}` : ''))
     .filter(Boolean)
     .join('；');
-}
-
-/** 评分星标：1-5 星，缺省不展示 */
-function Stars({ rank }: { rank?: number }) {
-    const { t } = useTranslation();
-  const value = Math.min(5, Math.max(0, Number(rank ?? 0)));
-  if (!value) return null;
-  return (
-    <span className="comment-list__stars" aria-label={t('评分 {v} 星', { v: value })}>
-      {'★'.repeat(value)}
-      {'☆'.repeat(5 - value)}
-    </span>
-  );
 }
 
 export default function CommentCenterClient({ initialTab }: { initialTab?: TabKey }) {
@@ -281,75 +269,8 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
               </div>
             )
           ) : comments.length ? (
-            <div className="member-orders__list">
-              {comments.map((item, index) => {
-                const author = item.isAnonymous === 1 ? t('匿名用户') : item.username || t('会员');
-                return (
-                  <article className="member-order comment-card" key={item.commentId || index}>
-                    <header className="member-order__head">
-                      <span className={`member-order__status ${item.isShowed === 1 ? 'is-s2' : 'is-s3'}`}>
-                        {item.isShowed === 1 ? t('已晒单') : item.statusText || t('已评价')}
-                      </span>
-                      <span className="comment-card__author">
-                        {item.avatar ? (
-                          <img src={item.avatar} alt="" className="comment-card__avatar" />
-                        ) : (
-                          <span className="comment-card__avatar comment-card__avatar--fallback" aria-hidden="true">{author.slice(0, 1)}</span>
-                        )}
-                        {author}
-                      </span>
-                      <span className="member-order__time">{item.addTime || ''}</span>
-                      <Link className="member-order__detail" href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank">{t('商品详情')}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </Link>
-                    </header>
-                    <div className="member-order__shop comment-card__product">
-                      <Link href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank" className="member-order__shop-main">
-                        <img src={item.picThumb || ''} alt={item.productName || ''} />
-                        <div className="member-order__shop-text">
-                          <div className="member-order__shop-name">{item.productName || t('商品')}</div>
-                          {item.productSn ? <div className="member-order__shop-sku">货号：{item.productSn}</div> : null}
-                        </div>
-                      </Link>
-                      <div className="comment-card__rank">
-                        <Stars rank={item.commentRank} />
-                        {Number(item.commentRank || 0) > 0 ? <span>{Number(item.commentRank)} 分</span> : null}
-                      </div>
-                    </div>
-                    <div className="comment-card__body">
-                      {(item.commentTag || []).length ? (
-                        <div className="comment-list__tags">
-                          {(item.commentTag || []).map((tag) => <span key={tag}>{tag}</span>)}
-                        </div>
-                      ) : null}
-                      {item.skuData?.length ? (
-                        <div className="comment-list__sku">
-                          {item.skuData.map((sku, skuIndex) => <span key={skuIndex}>{sku.name}：{sku.value}</span>)}
-                        </div>
-                      ) : null}
-                      {item.content ? <div className="comment-list__content">{item.content}</div> : null}
-                      {(item.showPics || []).length ? (
-                        <div className="comment-list__pics">
-                          {(item.showPics || []).map((pic, picIndex) => (
-                            <img key={picIndex} src={pic.picUrl || pic.picThumb || ''} alt="" />
-                          ))}
-                        </div>
-                      ) : null}
-                      {(item.replies || []).length ? (
-                        <div className="comment-list__replies">
-                          {(item.replies || []).map((reply, replyIndex) => (
-                            <div key={reply.commentId || replyIndex} className="comment-list__reply">
-                              <b>{reply.kefuName || item.kefuName || t('商家')}回复：</b>
-                              <span>{reply.content}</span>
-                              {reply.addTime ? <small>{reply.addTime}</small> : null}
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+            /* 已评价列表（CommentList.vue 对照 → MemberCommentList.tsx） */
+            <MemberCommentList comments={comments as MemberCommentItem[]} />
           ) : (
             <div className="member-orders__empty">
               <p className="member-orders__empty-title">{t('暂无已评价记录')}</p>

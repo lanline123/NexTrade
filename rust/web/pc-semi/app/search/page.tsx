@@ -3,6 +3,7 @@ import Link from 'next/link';
 import PcHeader from '@/components/PcHeaderWithData';
 import ProductGrid from '@/components/ProductGrid';
 import SearchBrandFilter from '@/components/SearchBrandFilter';
+import SearchAllFilterPanel from '@/components/SearchAllFilterPanel';
 import { SearchSideLayout, SearchClassicLayout, SearchModernLayout, type SearchLayoutContext } from '@/components/SearchLayoutVariants';
 import { getPcHeader } from '@/lib/api';
 import type { ProductListItem } from '@/lib/api';
@@ -655,6 +656,16 @@ export default async function SearchPage(props: PageProps) {
                     );
                   })}
                 </div>
+                {/* 「全部筛选」浮层面板（旧版 SortFilter.vue filterPanel 区块）：
+                    顶部筛选版右侧触发器 + 浮层（品牌 / ES 属性分区 tab、可展开收起、重置）。 */}
+                <SearchAllFilterPanel
+                  brands={brands}
+                  attrs={esAttrs}
+                  selectedBrands={brand ? brand.split(',').filter(Boolean) : []}
+                  selectedAttrs={Object.fromEntries(selectedAttrs.map((item) => [item.attrName, item.attrValue]))}
+                  baseQuery={brandBaseQuery}
+                  basePath={listPath}
+                />
                 <Link href="/search/image" className="pc-image-search-entry">{t('以图搜图')}</Link>
               </div>
 

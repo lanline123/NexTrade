@@ -13,6 +13,7 @@ import { imageUrl } from './common';
 import { CONTRACT_ADAPTERS, FLAT_FRAME, linkHref, type ContractRenderPlan } from './contract';
 
 import { useTranslation } from 'react-i18next';
+import { ShopProductCard, useProductStyleMap } from '@/components/product/ShopProductCard';
 import i18n from '@/i18n';
 /**
  * PC 首页装修模块渲染器（React + Semi 栈）
@@ -283,6 +284,15 @@ function productSoldOut(product: any): boolean {
   const isSeckill = (product as any).isSeckill;
   if (Number(isSeckill) === 1) return Number((product as any).seckillStock ?? 1) === 0;
   return Number(product.productStock ?? 1) === 0;
+}
+
+/** 数组分块（店铺卡片版式用：style=4 每 3 个一组、style=7 每屏 3 个）。 */
+function chunk<T>(list: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < list.length; i += size) {
+    out.push(list.slice(i, i + size));
+  }
+  return out;
 }
 
 /** 复刻原版 FormatPrice 的整数/小数拆分（match(/^(\d+)(\.\d+)?$/)，小数不足补到 2 位）。 */
@@ -724,7 +734,18 @@ function Product({ module }: ModuleProps) {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
   const config = module.products || {};
-  const columns = Number(module.style) === 2 ? 5 : 4;
+  /**
+   * 店铺商品卡片版式（源码 components/shop/ShopProduct.vue:4-8，module.style 决定）：
+   *   1 / 2 / 3 → OneRowProductX（竖排 ProductCard，可换行）
+   *   4       → OneBig2Small（一大两小，每 3 个一组）
+   *   5       → OneRowProductX direction="land"（横排 ProductCardLand）
+   *   6       → OneRowProductX direction="slide"（ProductCardSlide，横向不换行）
+   *   7       → OneRow3Carousel（每屏 3 个 ProductCardSlide，轮播）
+   *
+   * 此前只按 style===2 切列数（5 列），其余版式全部退化为同一网格 → 后台配的版式不生效。
+   */
+  const cardStyle = Number(module.style) || 1;
+  const columns = cardStyle === 2 ? 5 : 4;
   const goodsPadding = px(module.goodsPadding, 5);
   const frame = module.frame || {};
   const xPadding = frame.leftAndRightPadding ?? frame.innerPadding ?? module.innerPadding ?? 0;
@@ -733,6 +754,20 @@ function Product({ module }: ModuleProps) {
   const showPrice = module.showPrice !== false && module.showPrice !== 0;
   const buyBtnConfig = normalizeBuyBtnStyle(module.buyBtnStyle);
   const buyBtnStyle = buyBtnConfig.style;
+  /**
+   * 卡片边框样式（源码 components/shop/product/ProductCard.vue）：
+   * goodsStyle 2 → product-card-border-2；3 → product-card-border-3；
+   * 1 → 无边框类；其余（默认/4）→ product-card-border-4。
+   * goodsRadioStyle 2 → 图片圆角（image-box-radius）。
+   * 此前这两个字段被读取但未落到 class，后台配置不生效。
+   */
+  const goodsStyle = Number(module.goodsStyle ?? 0);
+  const cardBorderClass =
+    goodsStyle === 2 ? 'product-card-border-2'
+      : goodsStyle === 3 ? 'product-card-border-3'
+        : goodsStyle === 1 ? ''
+          : 'product-card-border-4';
+  const goodsRadioStyle = Number(module.goodsRadioStyle ?? 0);
 
   useEffect(() => {
     let cancelled = false;
@@ -783,6 +818,12 @@ function Product({ module }: ModuleProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(config), columns]);
 
+  /**
+   * 生效商品样式（活动边框图 borderImage）。
+   * 旧版 hooks/useProductStyle.ts：按模块内商品批量取生效样式。
+   */
+  const styleMap = useProductStyleMap(products as any);
+
   // 旧版首屏无数据时整块不渲染（TotalContainer v-if productList.length）
   if (!loading && !products.length) return null;
 
@@ -815,71 +856,68 @@ function Product({ module }: ModuleProps) {
             </div>
           ) : (
             <div className="dec-pc-product__wrapper">
-              <div className="dec-pc-product__list">
-                {products.map((product, index) => (
-                  <div className="dec-pc-product__item" key={product.productSn || product.productId || index}>
-                    <Link
-                      className="dec-pc-product__card"
-                      href={product.seoLink || (product.productSn ? `/product/${product.productSn}` : `/product/${product.productId || ''}`)}
-                      target="_blank"
-                    >
-                      <div className="dec-pc-product__photo">
-                        {/* 旧 pickPic 兜底链：picUrl → picThumb → picLarge */}
-                        <img className="dec-pc-product__img" src={product.picUrl || product.picThumb || (product as any).picLarge || ''} alt={product.productName || ''} loading="lazy" />
+              {/* style=4：一大两小（源码 OneBig2Small.vue，每 3 个一组：1 大 + 2 小） */}
+              {cardStyle === 4 ? (
+                <div className="dec-pc-product__groups">
+                  {chunk(products, 3).map((group, groupIndex) => (
+                    <div className="dec-pc-product__group" key={groupIndex}>
+                      <div className="dec-pc-product__group-big">
+                        {group[0] ? (
+                          <ShopProductCard product={group[0] as any} module={module} variant="standard" styleMap={styleMap} />
+                        ) : null}
                       </div>
-                      <div className="dec-pc-product__info">
-                        {showName ? <div className="dec-pc-product__name">{product.productName}</div> : null}
-                        {showBrief ? <div className="dec-pc-product__brief">{product.productBrief || product.brief}</div> : null}
-                        <div className="dec-pc-product__bottom">
-                          {showPrice ? (
-                            <div className="dec-pc-product__price">
-                              {/* 原版 <FormatPrice>：￥ + 整数 + 小数 三段同行（currencyFormat 默认 true），
-                                  整数/小数无独立样式时统一回落到 fontStyle，故三段同字号同色 */}
-                              <span className="dec-pc-product__price-sym">￥</span>
-                              <span className="dec-pc-product__price-int">{priceParts(product.productPrice).int}</span>
-                              <span className="dec-pc-product__price-dec">{priceParts(product.productPrice).dec}</span>
-                            </div>
-                          ) : null}
-                          {buyBtnConfig.show && buyBtnStyle > 0 ? (
-                            <button
-                              type="button"
-                              className={`dec-pc-product__buy dec-buy-btn dec-buy-btn--${buyBtnStyle}${productSoldOut(product) ? ' is-disabled' : ''}`}
-                              onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                void buyProduct(product, { isQuick: 1 });
-                              }}
-                            >
-                              {buyBtnStyle <= 4 ? (
-                                /* 旧版 ProductButton：1/2=购物车图标，3/4=加号图标，24px 纯图标无底色；
-                                   每组的第一个（1、3）用线框字形，第二个（2、4）用实心字形 */
-                                <i className="dec-buy-btn__icon">
-                                  {buyBtnStyle <= 2 ? (
-                                    <span
-                                      className={`dec-buy-btn__ico dec-buy-btn__ico--cart${buyBtnStyle === 1 ? ' is-outline' : ''}`}
-                                      aria-hidden="true"
-                                    />
-                                  ) : (
-                                    <span
-                                      className={`dec-buy-btn__ico dec-buy-btn__ico--plus${buyBtnStyle === 3 ? ' is-outline' : ''}`}
-                                      aria-hidden="true"
-                                    />
-                                  )}
-                                </i>
-                              ) : (
-                                /* 旧版 el-button 文案：5/6=购买，7/8=马上抢（售罄时给明确提示） */
-                                <span className="dec-buy-btn__text">
-                                  {productSoldOut(product) ? t('已售罄') : buyBtnStyle >= 7 ? t('马上抢') : '购买'}
-                                </span>
-                              )}
-                            </button>
-                          ) : null}
-                        </div>
+                      <div className="dec-pc-product__group-small">
+                        {group[1] ? (
+                          <ShopProductCard product={group[1] as any} module={module} variant="standard" styleMap={styleMap} />
+                        ) : null}
+                        {group[2] ? (
+                          <ShopProductCard product={group[2] as any} module={module} variant="standard" styleMap={styleMap} />
+                        ) : null}
                       </div>
-                    </Link>
-                  </div>
-                ))}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              ) : cardStyle === 7 ? (
+                /* style=7：每屏 3 个横滑卡片（源码 OneRow3Carousel.vue） */
+                <div className="dec-pc-product__carousel">
+                  {chunk(products, 3).map((group, groupIndex) => (
+                    <div className="dec-pc-product__carousel-page" key={groupIndex}>
+                      {group.map((product) => (
+                        <ShopProductCard
+                          key={product.productSn || product.productId}
+                          product={product as any}
+                          module={module}
+                          variant="slide"
+                          outWidth="33.3%"
+                          styleMap={styleMap}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : cardStyle === 5 || cardStyle === 6 ? (
+                /* style=5 横排 / style=6 横向滑动（源码 OneRowProductX.vue direction） */
+                <div className={`dec-pc-product__row${cardStyle === 6 ? ' is-slide' : ''}`}>
+                  {products.map((product, index) => (
+                    <ShopProductCard
+                      key={product.productSn || product.productId || index}
+                      product={product as any}
+                      module={module}
+                      variant={cardStyle === 5 ? 'land' : 'slide'}
+                      styleMap={styleMap}
+                    />
+                  ))}
+                </div>
+              ) : (
+                /* style=1/2/3：一行 N 个竖排卡片（源码 OneRowProductX.vue 默认方向） */
+                <div className="dec-pc-product__list">
+                  {products.map((product, index) => (
+                    <div className="dec-pc-product__item" key={product.productSn || product.productId || index}>
+                      <ShopProductCard product={product as any} module={module} variant="standard" styleMap={styleMap} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -3254,6 +3292,8 @@ export const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Ele
   ContractCatProduct,
   ContractCategoryHot,
   ContractCustomAd,
+  CategoryNav3,
+  Banner2,
   // ---- 店铺装修（旧版 pages/shop/src/ShopHomepage.vue 的 camelCase type）----
   ImageNav,
   ImageSquareAd,
@@ -3310,8 +3350,14 @@ function ContractCatProduct({ module }: ModuleProps) {
   const links: Array<{ link: string; text: string }> = module.links || [];
   const moreHref = linkHref(module.moreLink);
   const bannerPics: any[] = module.banner?.picList || [];
+  /**
+   * 旧版分类楼层块固定 608px（components/home/CatProductNormal.vue:170
+   * `.mod_columns_wrap .mod_columns_floor { width: 608px; height: 430px }`），
+   * 在旧链首页 .home-warp 的 flex 两列里占一列。baseStyle=2 为「左图右商品」布局。
+   */
+  const columnWidth = Number(module.baseStyle) === 2 ? 608 : undefined;
   return (
-    <Container module={FLAT_FRAME}>
+    <Container module={FLAT_FRAME} className="dec-cat-product" style={columnWidth ? { width: `${columnWidth}px` } : undefined}>
       <ShopTitle title={module.title} />
       {links.length || moreHref ? (
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, margin: '4px 0 10px', fontSize: 13, color: '#666' }}>
@@ -3435,6 +3481,12 @@ export const PC_MODULE_REGISTRY: Record<string, (props: ModuleProps) => JSX.Elem
 
 export function DecorateRenderer({ modules }: { modules: DecorateModule[] }) {
   type ModuleComponent = (props: ModuleProps) => JSX.Element | null;
+  /**
+   * 旧链首页容器内是 flex 两列（.home-warp），宽模块（分类商品系 608px）占一列、
+   * 窄模块并排另一列；customAd / recommendProduct 这类横贯模块需独占整行。
+   * 新版此前全部单列纵向流 → 旧版后台配的版式在首页看不到。
+   */
+  const FULL_WIDTH_TYPES = new Set(['pcCustomAd1', 'pcCustomAd2', 'pcRecommendProduct', 'pcGroupBanner', 'pcCoupon']);
   return (
     <div className="decorate-renderer">
       {modules
@@ -3456,8 +3508,12 @@ export function DecorateRenderer({ modules }: { modules: DecorateModule[] }) {
             }
           }
           if (!Component) Component = Fallback;
+          const isFullWidth = FULL_WIDTH_TYPES.has(item.type);
           return (
-            <div className="decorate-renderer__module" key={item.moduleIndex ?? `${item.type}-${index}`}>
+            <div
+              className={`decorate-renderer__module home-warp__item${isFullWidth ? ' home-warp__item--full' : ''}`}
+              key={item.moduleIndex ?? `${item.type}-${index}`}
+            >
               <Component module={moduleProps.module} />
             </div>
           );

@@ -29,19 +29,31 @@ interface CollectShop { id?: number; collectId?: number; shop: ShopObject; }
 type ProductTab = 'hot' | 'new' | 'best';
 
 const TAB_LABEL: Record<ProductTab, string> = { hot: '热销商品', new: '新品上市', best: '精品推荐' };
-/** 源码：每组最多显示 5 条，超出后左右翻页 */
+/** 源码 collectshop/List.vue：每组最多显示 5 条，超出后左右翻页 */
 const PAGE_SIZE = 5;
+/**
+ * 源码 collectshop/List.vue 的 isStore() 分支（门店版文案）：
+ * 旧版由构建期环境变量 VITE_IS_STORE 决定；新版沿用 NEXT_PUBLIC_PC_IS_STORE 约定。
+ * 跨境 B2C 部署下恒为 false，标题/按钮保持「收藏的店铺 / 进入店铺」。
+ */
+const IS_STORE = process.env.NEXT_PUBLIC_PC_IS_STORE === '1';
 
 export default function CollectShopClient() {
     const { t } = useTranslation();
-  const [rows, setRows] = useState<CollectShop[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  /** 每个收藏项的商品 Tab 与偏移：key = 收藏 id */
-  const [tabs, setTabs] = useState<Record<string, ProductTab>>({});
-  const [offsets, setOffsets] = useState<Record<string, number>>({});
-  const size = 10;
+    const [rows, setRows] = useState<CollectShop[]>([]);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(true);
+    /** 每个收藏项的商品 Tab 与偏移：key = 收藏 id */
+    const [tabs, setTabs] = useState<Record<string, ProductTab>>({});
+    const [offsets, setOffsets] = useState<Record<string, number>>({});
+    const size = 10;
+
+    /** 源码 collectshop/List.vue：pageTitle / cardTitle / enterLabel / emptyText */
+    const pageTitle = IS_STORE ? t('收藏的门店') : t('收藏的店铺');
+    const cardTitle = IS_STORE ? t('收藏门店') : t('收藏店铺');
+    const enterLabel = IS_STORE ? t('进入门店') : t('进入店铺');
+    const emptyText = IS_STORE ? t('您还没有收藏的门店') : t('您还没有收藏的店铺');
 
   const load = () => {
     setLoading(true);
@@ -81,6 +93,8 @@ export default function CollectShopClient() {
 
   return (
     <Card className="member-card collect-shop" loading={loading}>
+      {/* 源码 collectshop/List.vue：cardTitle（门店版为「收藏门店」） */}
+      <div className="collect-shop__title">{cardTitle}</div>
       {rows.length ? (
         <div className="collect-shop__list">
           {rows.map((item) => {
@@ -100,7 +114,7 @@ export default function CollectShopClient() {
                   </Link>
                   <Link href={shopHref} className="collect-shop__name">{item.shop.shopTitle || t('店铺')}</Link>
                   <div className="collect-shop__ops">
-                    <Link href={shopHref} target="_blank" className="collect-shop__btn">{t('进入店铺')}</Link>
+                    <Link href={shopHref} target="_blank" className="collect-shop__btn">{enterLabel}</Link>
                     {item.shop.kefuLink ? (
                       <a href={String(item.shop.kefuLink)} target="_blank" rel="noreferrer" className="collect-shop__btn">{t('联系客服')}</a>
                     ) : null}
@@ -145,7 +159,7 @@ export default function CollectShopClient() {
             );
           })}
         </div>
-      ) : <div className="comment-empty">{t('暂无收藏店铺')}</div>}
+      ) : <div className="comment-empty">{emptyText}</div>}
       {pages > 1 ? (
         <div className="comment-pagination">
           <button type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>{t('上一页')}</button>

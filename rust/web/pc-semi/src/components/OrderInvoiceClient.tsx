@@ -209,6 +209,7 @@ function InvoiceInfo({ order, inv }: { order: InvoiceOrder; inv: InvoiceData | n
           </>
         ) : null}
         <InfoRow label="发票内容">{field(inv, 'invoiceContent', 'invoice_content') || t('商品明细')}</InfoRow>
+        <div className="inv-dialog__extra">{t('发票内容将显示详细商品名称与价格信息')}</div>
         <InfoRow label="收票人手机">{field(inv, 'mobile')}</InfoRow>
         <InfoRow label="收票人邮箱">{field(inv, 'email')}</InfoRow>
       </dl>
@@ -231,6 +232,9 @@ export default function OrderInvoiceClient() {
   const [form, setForm] = useState<InvoiceForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [invoiceStatus, setInvoiceStatus] = useState(false);
+  /** 发票图片（源码 orderInvoice/Info.vue invoiceAttachment） */
+  const [invoiceImages, setInvoiceImages] = useState<Array<{ picUrl?: string; picThumb?: string }>>([]);
+  const [uploading, setUploading] = useState(false);
   const size = 10;
 
   const load = useCallback(() => {
@@ -260,6 +264,17 @@ export default function OrderInvoiceClient() {
   const openDialog = (mode: DialogMode, order: InvoiceOrder) => {
     const inv = invoiceOf(order);
     const amount = String(order.balance ?? order.totalAmount ?? 0);
+    // 重新申请时回显已有发票图片
+    let images: Array<{ picUrl?: string; picThumb?: string }> = [];
+    try {
+      const parsed: unknown = JSON.parse(field(inv, 'invoiceAttachment', 'invoice_attachment'));
+      if (Array.isArray(parsed)) {
+        images = parsed.map((entry) => (entry && typeof entry === 'object' ? { picUrl: String((entry as { picUrl?: string }).picUrl || ''), picThumb: String((entry as { picThumb?: string }).picThumb || '') } : { picUrl: '' })).filter((entry) => entry.picUrl);
+      }
+    } catch {
+      // 非 JSON 字符串按空处理
+    }
+    setInvoiceImages(images);
     setForm({
       ...EMPTY_FORM,
       amount,
@@ -280,6 +295,46 @@ export default function OrderInvoiceClient() {
 
   const update = (key: keyof InvoiceForm, value: string | number) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  /**
+   * 发票图片上传（源码 pages/member/orderInvoice/Info.vue 的 invoiceAttachment 字段）。
+   * 后端 OrderInvoiceSaveParam.invoice_attachment 为 Vec<serde_json::Value>，
+   * 落库时序列化成 JSON 字符串（services/src/trade/order_invoice_client.rs）。
+   */
+  const uploadInvoiceImage = async (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      Toast.error({ content: '只能上传 2M 以内的图片' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('accessToken') || '';
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/user/user/uploadImg', {
+        method: 'POST',
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+      });
+      const json = await response.json();
+      if (!response.ok || (json?.code !== undefined && json.code !== 0)) {
+        Toast.error({ content: String(json?.msg || json?.message || t('上传失败')) });
+        return;
+      }
+      const data = json?.data;
+      const picUrl = typeof data === 'string' ? data : String(data?.picUrl || data?.url || '');
+      if (!picUrl) {
+        Toast.error({ content: t('上传失败') });
+        return;
+      }
+      setInvoiceImages((current) => [...current, { picUrl, picThumb: String(data?.picThumb || picUrl) }]);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('上传失败') });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const submit = async () => {
@@ -307,6 +362,8 @@ export default function OrderInvoiceClient() {
       companyPhone: form.companyPhone.trim(),
       companyBank: form.companyBank.trim(),
       companyAccount: form.companyAccount.trim(),
+      // 发票图片（后端 invoice_attachment 形如 [{ picUrl, picThumb }]）
+      invoiceAttachment: invoiceImages,
     };
     setSaving(true);
     try {
@@ -513,6 +570,38 @@ export default function OrderInvoiceClient() {
               <input value={form.mobile} onChange={(event) => update('mobile', event.target.value)} placeholder={t('请输入收票人手机')} />
               <label className="inv-dialog__label">{t('收票人邮箱')}</label>
               <input value={form.email} onChange={(event) => update('email', event.target.value)} placeholder={t('请输入收票人邮箱')} />
+
+              {/* 发票图片（源码 orderInvoice/Info.vue invoiceAttachment） */}
+              <label className="inv-dialog__label">{t('发票图片')}</label>
+              <div className="inv-dialog__uploader">
+                <div className="inv-dialog__images">
+                  {invoiceImages.map((image, index) => (
+                    <span className="inv-dialog__image" key={`${image.picUrl || ''}-${index}`}>
+                      <img src={image.picThumb || image.picUrl || ''} alt={t('发票图片')} />
+                      <button
+                        type="button"
+                        onClick={() => setInvoiceImages((current) => current.filter((_, i) => i !== index))}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <label className="inv-dialog__image inv-dialog__image--add">
+                    {uploading ? t('上传中...') : '+'}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      hidden
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) void uploadInvoiceImage(file);
+                        event.target.value = '';
+                      }}
+                    />
+                  </label>
+                </div>
+                <p className="inv-dialog__hint">{t('最多上传2M 以内的图片')}</p>
+              </div>
             </div>
           )
         ) : null}

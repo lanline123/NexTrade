@@ -18,6 +18,7 @@ import { Button, Card, Input, Toast, Typography } from '@douyinfe/semi-ui';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { useOauthLogin, OauthButtons } from '@/components/oauth/useOauthLogin';
 async function getCsrf(): Promise<string> {
   const response = await fetch('/api/common/csrf/create', { credentials: 'include' });
   const json = await response.json();
@@ -31,6 +32,8 @@ type Mode = 'mobile' | 'email' | 'wechat';
 
 export default function RegisterClient() {
     const { t } = useTranslation();
+  /** 第三方注册入口（源码 pages/member/Register.vue:192-203） */
+  const { switches: oauthSwitches, start: startOauth } = useOauthLogin();
   const [mode, setMode] = useState<Mode>('mobile');
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
@@ -293,6 +296,8 @@ export default function RegisterClient() {
           <Link href="/login">{t('已有账号？去登录！')}</Link>
           <Link href="/">{t('返回首页')}</Link>
         </div>
+        {/* 第三方注册（源码 pages/member/Register.vue:192-203 Google / Facebook / Twitter-X） */}
+        <OauthButtons switches={oauthSwitches} onStart={startOauth} />
       </Card>
     </main>
   );
