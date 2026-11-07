@@ -8265,6 +8265,31 @@ body {
 
 /* ============================== 客服工作台 ============================== */
 
+/* 独立全屏版（对齐旧版 /im 专属布局：新标签打开，无后台侧边栏） */
+.kefu-workbench-standalone {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--semi-color-bg-0);
+}
+.kefu-workbench-standalone-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--semi-color-border);
+  flex-shrink: 0;
+}
+.kefu-workbench-standalone-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.kefu-workbench-standalone .kefu-workbench {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
 .kefu-workbench {
   display: flex;
   flex-direction: column;

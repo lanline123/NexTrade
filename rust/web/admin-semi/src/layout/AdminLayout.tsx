@@ -76,6 +76,19 @@ interface AdminLayoutProps {
 export default function AdminLayout({ page, layout = 'default', logo, onPageChange, onLogout, children }: AdminLayoutProps) {
   const { locale, setLocale, t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
+
+  /**
+   * 客服工作台：对齐旧版 customerService.ts（blank: true, targetRouteName: imChart）——
+   * 菜单点击在新标签打开全屏 IM 会话页，不在后台框架内切换。
+   */
+  const openPage = (key: PageKey) => {
+    if (key === 'customerService0' || key === 'imWorkbench') {
+      window.open(`${window.location.origin}/?page=imWorkbench`, '_blank');
+      return;
+    }
+    onPageChange(key);
+  };
+
   const [msgCount, setMsgCount] = useState(0);
   /** 「新订单 N」角标：口径 = is_broadcast=1 且 send_time >= lastOpenTime 的新订单消息数（同原版 MsgCount.vue） */
   const [newOrderCount, setNewOrderCount] = useState(0);
@@ -358,7 +371,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                     onClick={() => {
                       if (suppressClickRef.current) return;
                       const first = group.items[0];
-                      onPageChange(first.children?.[0]?.key || first.key);
+                      openPage(first.children?.[0]?.key || first.key);
                     }}
                   >
                     <span className="rail-icon">{group.icon}</span>
@@ -381,7 +394,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                         title={`${t('点击进入')} ${t(item.label)}`}
                         onClick={() => {
                           const target = item.children?.[0]?.key || item.key;
-                          onPageChange(target);
+                          openPage(target);
                         }}
                       >
                         <span>{t(item.label)}</span>
@@ -393,7 +406,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                           className={`submenu-item submenu-item-child ${
                             page === child.key ? 'is-active' : ''
                           }`}
-                          onClick={() => onPageChange(child.key)}
+                          onClick={() => openPage(child.key)}
                           key={child.key}
                         >
                           {/* 对齐跨境版 pageLeftMenu 的 menu-chider-item：三级项只有文字，无装饰点 */}
@@ -405,7 +418,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                     <button
                       type="button"
                       className={`submenu-item submenu-item-leaf ${page === item.key ? 'is-active' : ''}`}
-                      onClick={() => onPageChange(item.key)}
+                      onClick={() => openPage(item.key)}
                       key={item.key}
                     >
                       {/* 对齐跨境版 pageLeftMenu：叶子菜单项只有文字，无装饰点 */}
@@ -458,7 +471,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
               className="collapse-btn"
               onClick={() => setCollapsed((value) => !value)}
             />
-            <MenuSearch onNavigate={(next) => onPageChange(next as PageKey)} />
+            <MenuSearch onNavigate={(next) => openPage(next as PageKey)} />
           </div>
 
           <div className="topbar-right">

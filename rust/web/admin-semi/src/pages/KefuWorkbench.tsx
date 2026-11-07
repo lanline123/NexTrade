@@ -777,6 +777,30 @@ export function KefuWorkbench() {
   );
 }
 
+/**
+ * 全屏独立版工作台（对齐旧版 /im/index 的 layouts/im 专属布局：无后台侧边栏，
+ * 菜单「客服工作台」以新标签打开，顶部提供返回后台入口）。
+ */
+export function KefuWorkbenchStandalone() {
+  const { t } = useI18n();
+  return (
+    <div className="kefu-workbench-standalone">
+      <div className="kefu-workbench-standalone-bar">
+        <span className="kefu-workbench-standalone-title">{t('客服工作台')}</span>
+        <Button
+          theme="borderless"
+          onClick={() => {
+            window.location.href = `${window.location.origin}/?page=dashboard`;
+          }}
+        >
+          {t('返回后台')}
+        </Button>
+      </div>
+      <KefuWorkbench />
+    </div>
+  );
+}
+
 /* ============================== 历史会话列表 ============================== */
 
 interface ConsultHistoryRow {

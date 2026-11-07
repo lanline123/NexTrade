@@ -1434,6 +1434,7 @@ export const navGroups: NavGroup[] = [
 
 export const pageTitles: Record<string, string> = {
   "customerService0": "客服工作台",
+  "imWorkbench": "客服工作台",
   "kefuHistoryList": "历史会话列表",
   "kefuQuickReply": "快捷回复",
   "kefuAccountInfo": "账户信息",
