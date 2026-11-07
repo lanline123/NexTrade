@@ -81,9 +81,13 @@ else {
 
   $manifestPath = "$RemoteBackupDir/merge.json"
   $manifest = @{ split_file_path = "$RemoteBackupDir/$prefix" } | ConvertTo-Json -Compress
-  # BT 的 SaveFileBody 要求文件已存在，先 CreateFile 再写入
-  Post 'files' @{ action = 'CreateFile'; path = $manifestPath } | Out-Null
-  Post 'files' @{ action = 'SaveFileBody'; path = $manifestPath; data = $manifest; encoding = 'utf-8' } | Out-Null
+  # ⚠️ 面板 SaveFileBody(utf-8) 会剥离请求体里的双引号（WAF 行为），写出的 JSON 无法被
+  #    merge_split_file 解析（"Expecting property name enclosed in double quotes"）。
+  #    改走与分片相同的 multipart UploadFile 通道上传清单，内容不受剥离影响。
+  $localManifest = Join-Path $env:TEMP 'bt_merge.json'
+  [IO.File]::WriteAllText($localManifest, $manifest, (New-Object Text.UTF8Encoding $false))
+  UploadPart $localManifest 'merge.json' (Get-Item $localManifest).Length
+  Remove-Item $localManifest -Force
   $merge = Post 'files' @{ action = 'merge_split_file'; json_file_path = $manifestPath }
   Write-Host "merge: $merge"
   if ($merge -notmatch '"status"\s*:\s*true') { throw 'merge failed' }
