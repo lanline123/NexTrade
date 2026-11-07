@@ -556,6 +556,21 @@ export default function AftersalesOrders() {
         ) : (
           <div className="aftersales-form">
             <label>{t('拒绝说明')}</label>
+            {/* 快捷拒绝理由（对齐旧版 RejectReceive：formData.refuseReason 服务端下发） */}
+            {Array.isArray((handleTarget?.row as any)?.refuseReason) &&
+              ((handleTarget?.row as any).refuseReason as string[]).length > 0 && (
+                <Space wrap style={{ marginBottom: 8 }}>
+                  {((handleTarget?.row as any).refuseReason as string[]).map((phrase) => (
+                    <Tag
+                      key={phrase}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setHandleForm((c) => ({ ...c, reply: phrase }))}
+                    >
+                      {phrase}
+                    </Tag>
+                  ))}
+                </Space>
+              )}
             <TextArea
               value={handleForm.reply}
               onChange={(next) => setHandleForm((c) => ({ ...c, reply: next }))}

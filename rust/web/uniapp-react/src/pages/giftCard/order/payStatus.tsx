@@ -8,8 +8,8 @@ import TigLoadingPage from "@/components/tig/tig-loadingpage";
 import { useConfigStore } from "@/store/config";
 import { useThemeStore } from "@/store/theme";
 import Animation from "@/pages/order/src/Animation";
-// 旧 components/recommend 共享组件：目标工程随购物车页落地，跨页复用
-import Recommend from "@/pages/cart/src/Recommend";
+// 旧 components/recommend 共享组件（含 Masonry 瀑布流与 titleBg prop）
+import Recommend from "@/components/recommend";
 import type { PayLogData } from "@/types/order/payStatus";
 import { redirect } from "@/utils";
 import { t } from "@/utils/i18n";
@@ -80,8 +80,8 @@ export default function GiftCardPayStatus() {
                         <View className="recommend">
                             <View className="recommend-mask" />
                             <View className="recommend-content">
-                                {/* 旧 <recommend title-bg="#fff" />：cart 版 Recommend 无 titleBg prop，TODO(MIGRATION) 随共享组件补齐 */}
-                                <Recommend />
+                                {/* 旧 <recommend title-bg="#fff" />（已收敛到共享组件） */}
+                                <Recommend titleBg="#fff" />
                             </View>
                         </View>
                     ) : null}

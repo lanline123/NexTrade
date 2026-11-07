@@ -51,6 +51,47 @@ export interface PageModule {
   [key: string]: unknown;
 }
 
+/**
+ * 旧链（PC 旧版 camelCase 装修）模块的图片项。
+ * 源码对照：view/pc/components/home/*.vue 的 module.picList / picList2 / picList3。
+ */
+export interface LegacyPicItem {
+  picUrl?: string;
+  picThumb?: string;
+  picTitle?: string;
+  picDesc?: string;
+  picLink?: { link?: string; title?: string };
+}
+
+/**
+ * 旧链「分类商品」系（pcCatProductNormal / pcCatProductWide / pcCatProductSimple）
+ * 的原始契约字段。旧版 Vue 组件直接消费这些字段，适配层曾把它们全部丢弃。
+ */
+export interface LegacyCatProductContract {
+  categoryId?: number | number[];
+  title?: string;
+  shortTitle?: string;
+  enTitle?: string;
+  color?: string;
+  color2?: string;
+  logo?: { picUrl?: string; picThumb?: string };
+  picList?: LegacyPicItem[];
+  picList2?: LegacyPicItem[];
+  picList3?: LegacyPicItem[];
+  productIds?: number[];
+  linkList?: Array<{ link?: { link?: string; title?: string }; linkTitle?: string }>;
+  childCategoryIds?: number[];
+  baseStyle?: number;
+  products?: {
+    productSelectType?: number;
+    productCategoryId?: number;
+    productNumber?: number;
+    productIds?: number[];
+    productTag?: string;
+  };
+  moreLink?: string;
+}
+
 export interface DecorateModule<T = Record<string, any>> {
   type: string;
   url?: string;

@@ -81,7 +81,7 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
           <button type="button" className={form.invoiceType === 2 ? 'is-active' : ''} onClick={() => update('invoiceType', 2)}>{t('增值税专用发票')}</button>
         </div>
         {form.invoiceType === 2 && !invoiceStatus ? (
-          <div className="invoice-error">{t('您还未通过增票资质申请，暂时无法开具增值税专用发票，')}<Link href="/member/userinvoice/confirmInfo">{t('去申请增票资质')}</Link>
+          <div className="invoice-error">{t('您还未通过增票资质申请，暂时无法开具增值税专用发票，')}<Link href="/member/userinvoice/confirminfo">{t('去申请增票资质')}</Link>
           </div>
         ) : null}
         <p className="invoice-hint">{t('注意：有效增值税专用发票开票资质仅为一个')}</p>
@@ -135,7 +135,7 @@ export default function InvoiceApplyClient({ orderId }: { orderId: number }) {
             {isReapply ? t('重新提交开票申请') : '提交开票申请'}
           </Button>
           <Button onClick={() => window.history.back()}>{t('暂不开票')}</Button>
-          <Link href="/member/userinvoice/confirmInfo">{t('增票资质')}</Link>
+          <Link href="/member/userinvoice/confirminfo">{t('增票资质')}</Link>
         </div>
       </div>
     </Card>

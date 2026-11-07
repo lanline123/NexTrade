@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Modal, Space, TextArea, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, Image, Modal, Space, TextArea, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
@@ -165,6 +165,21 @@ export default function Feedbacks() {
               <Text type="tertiary">{t('留言内容：')}</Text>
               <span>{replyTarget.content || '-'}</span>
             </div>
+            {/* 留言图片预览（对齐旧版 Info.vue feedbackPics） */}
+            {Array.isArray((replyTarget as any).feedbackPics) &&
+              ((replyTarget as any).feedbackPics as string[]).length > 0 && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {((replyTarget as any).feedbackPics as string[]).map((pic, index) => (
+                    <Image
+                      key={index}
+                      src={pic}
+                      width={120}
+                      height={120}
+                      style={{ objectFit: 'contain', borderRadius: 4 }}
+                    />
+                  ))}
+                </div>
+              )}
             <Text strong>{t('回复内容')}</Text>
             <TextArea
               value={replyContent}

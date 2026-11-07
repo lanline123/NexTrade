@@ -246,7 +246,7 @@ export default function InvoiceQualificationClient() {
               </div>
               <div className="invq-agree">
                 <Checkbox checked={agreed} onChange={(event) => setAgreed(Boolean(event.target.checked))}>{t('我已阅读并同意')}</Checkbox>
-                <Link href="/member/userinvoice/confirmInfo" target="_blank" className="invq-agree__link">{t('《增票资质确认书》')}</Link>
+                <Link href="/member/userinvoice/confirminfo" target="_blank" className="invq-agree__link">{t('《增票资质确认书》')}</Link>
               </div>
               <div className="invq-actions">
                 <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('确认')}</Button>

@@ -16,7 +16,7 @@ import {
 import { apiGet, apiPost, apiUpload } from '../api';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
-import ProductPicker from '../components/ProductPicker';
+import SkuPicker from '../components/SkuPicker';
 import { useI18n } from '../i18n';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
@@ -35,6 +35,8 @@ interface PickedProduct {
   productId?: number;
   productName?: string;
   productSkuId?: number;
+  skuValue?: string;
+  stock?: number;
   quantity?: number;
 }
 
@@ -188,23 +190,40 @@ export default function StockRecords({ inOrOut }: { inOrOut: 1 | 2 }) {
               const picked: PickedProduct[] = values.productStockRecordDetailList || [];
               return (
                 <div className="stock-record-picker">
-                  <ProductPicker
-                    value={picked.map((item) => Number(item.productId))}
-                    onChange={(ids) => {
-                      const next: PickedProduct[] = ids.map((id) => {
-                        const existed = picked.find((item) => Number(item.productId) === id);
-                        return existed
-                          ? existed
-                          : { productId: id, quantity: 1 };
+                  <SkuPicker
+                    value={picked.map((item) => ({
+                      productId: Number(item.productId),
+                      productName: (item as any).productName,
+                      skuId: Number((item as any).productSkuId ?? (item as any).skuId ?? 0),
+                      skuValue: (item as any).skuValue,
+                      stock: (item as any).stock,
+                    }))}
+                    onChange={(picks) => {
+                      const next: PickedProduct[] = picks.map((pick) => {
+                        const existed = picked.find(
+                          (item) =>
+                            Number(item.productId) === pick.productId &&
+                            Number((item as any).productSkuId ?? (item as any).skuId ?? 0) === pick.skuId,
+                        );
+                        return {
+                          ...((existed || {}) as PickedProduct),
+                          productId: pick.productId,
+                          productName: pick.productName,
+                          productSkuId: pick.skuId,
+                          skuValue: pick.skuValue,
+                          stock: pick.stock,
+                          quantity: existed?.quantity ?? 1,
+                        };
                       });
                       formApi?.setValue('productStockRecordDetailList', next);
                     }}
                     max={50}
                   />
                   {picked.map((item, index) => (
-                    <div className="stock-record-row" key={item.productId}>
+                    <div className="stock-record-row" key={`${item.productId}-${item.productSkuId ?? 0}-${index}`}>
                       <span className="stock-record-name">
                         {item.productName || t('商品#{id}', { id: String(item.productId ?? '') })}
+                        {Number(item.productSkuId ?? 0) > 0 ? `（${item.skuValue || item.productSkuId}）` : ''}
                       </span>
                       <InputNumber
                         size="small"

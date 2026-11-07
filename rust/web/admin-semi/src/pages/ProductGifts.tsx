@@ -3,7 +3,7 @@ import { Button, Modal, Space, Toast } from '@douyinfe/semi-ui';
 import { apiPost } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
-import ProductPicker from '../components/ProductPicker';
+import SkuPicker, { type SkuPick } from '../components/SkuPicker';
 import type { ColumnConfig } from '../framework/types';
 
 interface ProductGiftRow {
@@ -123,16 +123,23 @@ export default function ProductGifts() {
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <div>
-                    <ProductPicker
-                      value={Array.isArray(values.productId)
-                        ? (values.productId as number[])
+                    <SkuPicker
+                      value={Array.isArray(values.skuPick)
+                        ? (values.skuPick as SkuPick[])
                         : values.productId
-                          ? [Number(values.productId)]
+                          ? ([{ productId: Number(values.productId), skuId: Number(values.skuId || 0) }] as SkuPick[])
                           : []}
-                      onChange={(ids) => formApi?.setValue('productId', ids)}
+                      onChange={(picks) => {
+                        formApi?.setValue('skuPick', picks);
+                        formApi?.setValue('productId', picks[0]?.productId);
+                        formApi?.setValue('skuId', picks[0]?.skuId ?? 0);
+                        // 赠品库存默认取所选 SKU 库存（对齐旧版赠品库存取自 SKU）
+                        if (picks[0]?.stock !== undefined) {
+                          formApi?.setValue('giftStock', Number(picks[0].stock || 0));
+                        }
+                      }}
                       max={1}
                     />
-                    <input type="hidden" data-field="skuId" data-gift-stock="giftStock" />
                   </div>
                 ),
               },
@@ -141,17 +148,22 @@ export default function ProductGifts() {
           },
         ],
         toPayload: (values) => {
-          const productIds = Array.isArray(values.productId)
-            ? values.productId
-            : values.productId
-              ? [Number(values.productId)]
-              : [];
+          const picks = (values.skuPick as SkuPick[]) || [];
+          const productIds = picks.length
+            ? picks.map((item) => item.productId)
+            : Array.isArray(values.productId)
+              ? values.productId
+              : values.productId
+                ? [Number(values.productId)]
+                : [];
           if (!values.giftName || !String(values.giftName).trim()) {
             throw new Error(t('赠品名称不能为空!'));
           }
           return {
             ...values,
             productId: productIds[0] ?? 0,
+            // SKU 级选择（对齐旧版 SelectProduct isSku）：赠品库存取自所选 SKU
+            skuId: picks[0]?.skuId ?? Number(values.skuId || 0),
             giftStock: Number(values.giftStock ?? 0),
           };
         },

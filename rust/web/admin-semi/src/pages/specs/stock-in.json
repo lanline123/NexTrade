@@ -19,6 +19,6 @@
   "notes": [
     "商品入库(inOrOut=1)/出库(inOrOut=2)共用 StockRecords 组件：列表 /product/stock/record/page?inOrOut=，明细 /product/stock/getRecordDetail，新增 stockIn/stockOut（payload {type,comment,productStockRecordDetailList:[{productId,skuId,quantity}]}），批量导入 batchImport + downloadTemplate。",
     "入库类型：采购11/退货12/其他10；出库类型：过期21/订单22/其他23（与旧版一致）。",
-    "与旧版差异：商品明细按商品级选择+手填数量（旧版为 SKU 级选择器并读 SKU 库存），SKU 级待办。"
+    "与旧版差异：商品明细用 SkuPicker（SKU 级选择，对齐旧版 SelectProduct isSku）：SKU 行可勾选并填数量，无规格商品选整件（skuId=0）。"
   ]
 }

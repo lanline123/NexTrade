@@ -3,6 +3,7 @@ import { Button, Checkbox, Empty, Input, Modal, Select, Space, Tag, Toast } from
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
+import { LinkField, type LinkValue } from '../components/LinkPicker';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 interface MessageLogRow {
@@ -323,7 +324,22 @@ export default function MessageLogs() {
         fields: [
           { field: 'messageTitle', label: t('标题'), type: 'input', required: true },
           { field: 'messageContent', label: t('内容'), type: 'textarea', required: true },
-          { field: 'messageLink', label: t('链接'), type: 'input', placeholder: t('请输入跳转链接（可选）') },
+          {
+            field: 'messageLinkValue',
+            label: t('链接'),
+            type: 'custom',
+            span: 24,
+            render: ({ formApi, values }) => (
+              <LinkField
+                value={values.messageLinkValue as LinkValue}
+                onChange={(next) => {
+                  formApi.setValue('messageLinkValue', next);
+                  formApi.setValue('messageLink', (next && (next.link || next.path)) || '');
+                }}
+                placeholder={t('请选择跳转链接（可选）')}
+              />
+            ),
+          },
           {
             field: 'sendUserTarget',
             label: t('发送会员'),

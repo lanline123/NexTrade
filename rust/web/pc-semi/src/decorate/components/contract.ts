@@ -202,7 +202,36 @@ function adaptPcCoupon(item: DecorateModule): ContractRenderPlan {
  */
 function adaptPcGroupon(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
-  return { component: 'Groupon', module: { title: toTitle(m.title), frame: frameOf(m) } };
+  // 必须透传 grouponActivityItem：modules.tsx 的 Groupon 组件靠
+  // module.grouponActivityItem.grouponPromotionId 调 /api/promotion/groupon/itemList 取拼团数据。
+  // 此前此处只传 title/frame，导致 promotionId 为空 → 拼团模块必然空白。
+  return {
+    component: 'Groupon',
+    module: {
+      title: toTitle(m.title),
+      frame: frameOf(m),
+      grouponActivityItem: m.grouponActivityItem,
+      // PcGrouponLegacy.vue 消费的样式字段（此前全部丢失）
+      style: m.style,
+      goodsPadding: m.goodsPadding,
+      innerPadding: m.innerPadding,
+      boxPadding: m.boxPadding,
+      boxPaddingTop: m.boxPaddingTop,
+      boxPaddingBottom: m.boxPaddingBottom,
+      backgroundColor: m.backgroundColor,
+      boxRadius: m.boxRadius,
+      showName: m.showName,
+      showPrice: m.showPrice,
+      cardStyle: m.cardStyle,
+      textAlign: m.textAlign,
+      textWeight: m.textWeight,
+      buyBtnStyle: m.buyBtnStyle,
+      goodsNamePadding: m.goodsNamePadding,
+      goodsNameRow: m.goodsNameRow,
+      goodsStyle: m.goodsStyle,
+      goodsRadioStyle: m.goodsRadioStyle,
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -372,20 +401,24 @@ function adaptPcCategoryNav(item: DecorateModule): ContractRenderPlan {
 }
 
 /**
- * pcCategoryNav3：pcBanner 字段 + imageBackgroundColor/titleText/showMore/showMoreText/moreLink。
- * 与 pcCategoryNav 同源（热门分类接口），额外支持标题/更多链接/图片底色；
- * 契约中的 picList/picList2/picList3 为原版轮播字段，降级省略。
+ * pcCategoryNav3：picList 图片轮播 + titleText/showMore/showMoreText/moreLink/imageBackgroundColor。
+ * 对应旧版 decorate/components/pc/PcCategoryNavWrapper.vue → components/home/CategoryNew3.vue。
+ * 契约指向 CategoryNav3（图片轮播版），此前误指向 ContractCategoryHot（热门分类卡片版），
+ * 导致 picList 丢失、整个模块退化为热门分类。
  */
 function adaptPcCategoryNav3(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   return {
-    component: 'ContractCategoryHot',
+    component: 'CategoryNav3',
     module: {
       title: toTitle(m.titleText ?? m.titleName ?? m.title),
+      titleText: m.titleText,
+      picList: picList(m, 'picList'),
       rowNum: clamp(toNumber(m.rowNum ?? m.displayNum, 6), 1, 10),
       showMore: toNumber(m.showMore, 0) === 1,
       moreText: m.showMoreText || (i18n.t('查看更多') as string),
       moreLink: m.moreLink,
+      backgroundColor: m.backgroundColor,
       imageBackgroundColor: m.imageBackgroundColor,
       catIds: [],
       frame: frameOf(m),
@@ -404,6 +437,198 @@ function adaptPcCatWide(item: DecorateModule): ContractRenderPlan {
     module: {
       catIds: idList(m.catIds),
       rowNum: 6,
+      frame: frameOf(m),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 店铺装修（camelCase type，旧版 pages/shop/src/ShopHomepage.vue）
+// ---------------------------------------------------------------------------
+
+/**
+ * 店铺装修适配器组。
+ *
+ * 背景：旧版店铺首页（pages/shop/src/ShopHomepage.vue）遍历 moduleList 渲染
+ * components/shop/** 的 11 个组件，type 为 camelCase：
+ *   shopInfo / notice / coupon / imageSquareAd / whiteBlank / whiteLine /
+ *   titleAd / imageNav / imageAd / imageHotarea / product
+ * 新版 PC_MODULE_REGISTRY 只注册了 kebab-case 的 pc-* 类型，导致店铺装修整体降级
+ * （ShopHomepageClient 自建 switch，modules.tsx 里已写好的组件全闲置）。
+ *
+ * 这里把旧 camelCase type 映射到 modules.tsx 现有渲染器：字段结构本就一致
+ * （picList / picType / isFluxWidth / frame / title），无需重复实现。
+ */
+
+/**
+ * shopInfo：店铺信息卡。
+ *
+ * 注意：旧版 ShopInfo.vue 消费的是整个 shopInfo 对象（logo / 名称 / 评分 / 资质 / 客服 / 关注按钮），
+ * 而不是 module 内的字段；新版这些信息由 ShopRefHeaderBlock（店铺装修模块列表之前独立渲染）
+ * 承担，参见 src/components/ShopHomepageClient.tsx。
+ * 因此这里返回空计划，由 ShopHomepageClient 跳过该 type，避免重复渲染两张店铺信息卡。
+ */
+function adaptShopInfo(item: DecorateModule): ContractRenderPlan {
+  return { component: 'ShopInfoCard', module: {} };
+}
+
+/**
+ * notice：店铺公告。
+ * 旧版 ShopNotice.vue 读 module.text（文本）+ module.icoPic（图标）+ module.frame，
+ * 而非新版 Notice 组件期望的 noticeList —— 此前读 noticeList 导致公告恒空。
+ */
+function adaptShopNotice(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  const text = m.text || m.noticeTitle || '';
+  const icoPic = m.icoPic || {};
+  return {
+    component: 'Notice',
+    module: {
+      // 旧版单条公告：文本 + 图标，转成新版 noticeList 结构
+      noticeList: text
+        ? [
+            {
+              picTitle: text,
+              picUrl: icoPic.picUrl || icoPic.picThumb || '',
+              picLink: m.link || m.picLink,
+            },
+          ]
+        : [],
+      icoPic,
+      text,
+      frame: {
+        ...frameOf(m),
+        itemHeight: m.frame?.itemHeight,
+        itemRadius: m.frame?.itemRadius,
+        itemBackgroundColor: m.frame?.itemBackgroundColor,
+        textColor: m.frame?.textColor,
+      },
+    },
+  };
+}
+
+/** imageAd：图片广告。picType 决定版式，isFluxWidth=1 为通栏。 */
+function adaptShopImageAd(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'ImageAd',
+    module: {
+      picList: picList(m, 'picList'),
+      picType: m.picType,
+      isFluxWidth: m.isFluxWidth,
+      title: m.title,
+      frame: m.frame || { boxPaddingTop: m.boxPaddingTop, boxPaddingBottom: m.boxPaddingBottom },
+    },
+  };
+}
+
+/** imageNav：图片导航（横向图片链接列表）。 */
+function adaptShopImageNav(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'ImageNav',
+    module: {
+      picList: picList(m, 'picList'),
+      items: asArray(m.items),
+      title: m.title,
+      frame: frameOf(m),
+    },
+  };
+}
+
+/** imageSquareAd：图片宫格。 */
+function adaptShopImageSquareAd(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'ImageSquareAd',
+    module: {
+      picList: picList(m, 'picList'),
+      picType: m.picType,
+      title: m.title,
+      frame: frameOf(m),
+    },
+  };
+}
+
+/** imageHotarea：热区图（图片上叠加可点击热区）。 */
+function adaptShopImageHotarea(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'ImageHotarea',
+    module: {
+      picList: picList(m, 'picList'),
+      title: m.title,
+      frame: frameOf(m),
+    },
+  };
+}
+
+/** whiteBlank：空白间隔。 */
+function adaptShopWhiteBlank(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'Spacer',
+    module: {
+      blankHeight: m.blankHeight ?? m.frame?.itemHeight ?? 20,
+      frame: frameOf(m),
+    },
+  };
+}
+
+/** whiteLine：分割线。 */
+function adaptShopWhiteLine(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'Divider',
+    module: {
+      lineType: m.lineType,
+      lineStyle: m.lineStyle,
+      frame: m.frame,
+    },
+  };
+}
+
+/** titleAd：标题条。 */
+function adaptShopTitleAd(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'TitleAd',
+    module: {
+      title: m.title || {},
+      titleText: m.titleText,
+      frame: frameOf(m),
+    },
+  };
+}
+
+/** coupon：店铺优惠券（展示 + 领取）。 */
+function adaptShopCoupon(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'Coupon',
+    module: {
+      title: toTitle(m.title),
+      frame: frameOf(m),
+      ...m,
+    },
+  };
+}
+
+/** product：店铺商品楼层（7 种 picType 版式）。 */
+function adaptShopProduct(item: DecorateModule): ContractRenderPlan {
+  const m = (item.module || {}) as AnyRecord;
+  return {
+    component: 'Product',
+    module: {
+      style: m.style,
+      goodsPadding: m.goodsPadding,
+      products: m.products || {
+        productSelectType: m.productSelectType ?? 2,
+        productCategoryId: m.categoryId ?? 0,
+        productNumber: m.productNumber ?? 8,
+        picType: m.picType,
+      },
+      title: toTitle(m.title),
       frame: frameOf(m),
     },
   };
@@ -430,4 +655,16 @@ export const CONTRACT_ADAPTERS: Record<string, ContractAdapter> = {
   pcCategoryNav3: adaptPcCategoryNav3,
   pcCatWide: adaptPcCatWide,
   pcGroupon: adaptPcGroupon,
+  // ---- 店铺装修（旧版 pages/shop/src/ShopHomepage.vue）----
+  shopInfo: adaptShopInfo,
+  notice: adaptShopNotice,
+  coupon: adaptShopCoupon,
+  imageAd: adaptShopImageAd,
+  imageNav: adaptShopImageNav,
+  imageSquareAd: adaptShopImageSquareAd,
+  imageHotarea: adaptShopImageHotarea,
+  whiteBlank: adaptShopWhiteBlank,
+  whiteLine: adaptShopWhiteLine,
+  titleAd: adaptShopTitleAd,
+  product: adaptShopProduct,
 };

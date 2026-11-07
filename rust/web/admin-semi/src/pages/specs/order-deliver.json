@@ -21,6 +21,6 @@
     "筛选项（自定义卡片页，不经 ListPage，故 filters 留空记录于此）：keyword 订单号/收货人/商品名称、outTradeNo 交易单号、address 详细地址、email、mobile 手机号、mark 订单标记(全部标记/标记1-5)、addStartTime~addEndTime 下单时间区间。",
     "卡片式列表：订单头（编号/交易单号/下单时间/标记/积分兑换/来源标签）+ 商品明细 + 金额(含运费/税费)/会员/收货人(脱敏)/物流支付/状态(售后中) 六列。",
     "操作：查看详情(复用 OrderDetailModal)、标记(单条/批量 setAdminNote {id|ids,mark,adminNote})、去发货(deliver {id,deliverData:[{itemId,toDeliveryQuantity}],shippingMethod,logisticsId,trackingNo,billRemark})、批量发货(选中订单统一物流信息,逐单 POST deliver)、Excel批量发货(batchDeliverImport 上传 + downloadDeliverTemplate 模板下载)、取消订单/删除订单/确认收货(Modal 确认后调 cancelOrder/delOrder/confirmReceipt)。",
-    "与旧版差异：①批量发货为统一物流信息（旧版可逐单编辑，简化记录在案）；②批量打印按钮依赖未迁移的打印模块，当前渲染但提示待开放；③筛选未含\"选择店铺\"（平台后台无商家角色限定）；④排序按钮简化为固定 orderId desc；⑤备货按钮（isStore 角色分支）平台后台不展示，与旧版角色条件一致。"
+    "与旧版差异：①批量发货支持逐单编辑物流信息（对齐旧版 BatchShip，另有统一物流信息+一键应用到全部）；②批量打印按钮依赖未迁移的打印模块，当前渲染但提示待开放；③筛选未含\"选择店铺\"（平台后台无商家角色限定）；④排序按钮简化为固定 orderId desc；⑤备货按钮（isStore 角色分支）平台后台不展示，与旧版角色条件一致。"
   ]
 }

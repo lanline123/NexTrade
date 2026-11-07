@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ShopCategoryMenu from '@/components/ShopCategoryMenu';
+import { PC_MODULE_REGISTRY, CONTRACT_COMPONENTS } from '@/decorate/components/modules';
+import { CONTRACT_ADAPTERS } from '@/decorate/components/contract';
 import type { ShopDetail, ShopDecorateData } from '@/lib/api';
 
 import { useTranslation } from 'react-i18next';
@@ -180,41 +182,62 @@ export default function ShopHomepageClient({ shopId, shop, data }: { shopId: num
     return () => { cancelled = true; };
   }, [shopId]);
 
+  /**
+   * 店铺装修模块渲染。
+   *
+   * 旧版 pages/shop/src/ShopHomepage.vue 按 item.type 渲染 components/shop/** 的 11 个组件，
+   * 并区分 item.module.isFluxWidth（0=容器内 / 1=通栏）与 item.isShow（显隐）。
+   * 新版此前自建 switch，modules.tsx 里已写好的 ImageAd / ImageHotarea / ImageNav /
+   * ImageSquareAd / TitleAd / Notice / Coupon / Product / Divider / Spacer 全闲置 → 店铺装修整体降级。
+   *
+   * 现改为复用统一渲染器 PC_MODULE_REGISTRY + CONTRACT_ADAPTERS：
+   * - camelCase type（shopInfo/notice/coupon/imageAd/...）经 contract.ts 适配到现有组件；
+   * - isShow=false 的模块跳过；
+   * - isFluxWidth=1 的模块通栏渲染，其余在容器内。
+   */
   const renderModule = (item: NonNullable<ShopDecorateData['moduleList']>[number], index: number) => {
     const module = item.module || {};
-    switch (item.type) {
-      case 'shopInfo': return <ShopInfoBlock key={index} shop={shop} module={module} />;
-      case 'notice':
-      case 'pcNotice': return <ShopNoticeBlock key={index} module={module} />;
-      case 'imageSquareAd':
-      case 'imageNav':
-      case 'pcImageSquareAd':
-      case 'pcImageNav': return <ShopGalleryBlock key={index} module={module} type="grid" />;
-      case 'imageAd':
-      case 'pcImageAd': return <ShopGalleryBlock key={index} module={module} type="ad" />;
-      case 'imageHotarea':
-      case 'pcImageHotarea': return <ShopGalleryBlock key={index} module={module} type="hotarea" />;
-      case 'whiteBlank':
-      case 'pcWhiteBlank':
-      case 'pcSpacer': return <div key={index} style={{ height: `${Number(module.blankHeight) || 20}px` }} />;
-      case 'whiteLine':
-      case 'pcWhiteLine':
-      case 'pcDivider': return <div key={index} className="shop-decoration__line" style={moduleFrame(module)} />;
-      case 'titleAd':
-      case 'pcTitleAd':
-      case 'pcTitle': return <div key={index} className="shop-decoration__title" style={moduleFrame(module)}>{module.title?.titleText || module.titleText || ''}</div>;
-      /* 源码 pcProduct / PcProductGroup / pcProductGrouping：统一按商品模块渲染 */
-      case 'product':
-      case 'pcProduct':
-      case 'pcProductGroup':
-      case 'pcProductGrouping':
-      case 'pc-product-group':
-      case 'productGroup':
-      case 'productGrouping': return <ShopProductBlock key={index} shopId={shopId} module={module} />;
-      case 'coupon':
-      case 'pcCoupon': return <ShopFallbackBlock key={index} shopId={shopId} module={module} label="优惠券" />;
-      default: return <ShopFallbackBlock key={index} shopId={shopId} module={module} />;
+    // shopInfo 由 ShopRefHeaderBlock 独立承担（消费整个 shopInfo 对象），避免重复渲染
+    if (item.type === 'shopInfo') return null;
+    if (item.isShow === false) return null;
+
+    const registryKey = item.type;
+    let Component: ((props: { module: Record<string, any> }) => JSX.Element | null) | undefined =
+      PC_MODULE_REGISTRY[registryKey];
+    let moduleProps: Record<string, any> = { ...module, label: item.label, frame: module?.frame };
+
+    if (!Component) {
+      const adapter = CONTRACT_ADAPTERS[item.type];
+      if (adapter) {
+        const plan = adapter(item as any);
+        const contractComponent = CONTRACT_COMPONENTS[plan.component];
+        if (contractComponent) {
+          Component = contractComponent as any;
+          moduleProps = plan.module;
+        }
+      }
     }
+
+    if (!Component) {
+      return <ShopFallbackBlock key={index} shopId={shopId} module={module} />;
+    }
+
+    // 通栏（isFluxWidth=1）→ 突破容器宽度；其余在容器内
+    const isFluxWidth = Number((module as any).isFluxWidth) === 1;
+    const body = <Component module={moduleProps} />;
+
+    if (isFluxWidth) {
+      return (
+        <div key={index} className="shop-decoration__flux">
+          {body}
+        </div>
+      );
+    }
+    return (
+      <div key={index} className="shop-decoration__module">
+        {body}
+      </div>
+    );
   };
 
   return (

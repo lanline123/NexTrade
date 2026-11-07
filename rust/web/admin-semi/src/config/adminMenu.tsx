@@ -103,6 +103,10 @@ export const navGroups: NavGroup[] = [
           {
             "key": "posReceiptPrint",
             "label": "小票打印"
+          },
+          {
+            "key": "printDesignerManage",
+            "label": "打印设计器"
           }
         ]
       },
@@ -197,6 +201,22 @@ export const navGroups: NavGroup[] = [
           {
             "key": "shopTipManage",
             "label": "标签管理"
+          },
+          {
+            "key": "ShopInfoManage",
+            "label": "店铺信息"
+          },
+          {
+            "key": "ShopTeamManage",
+            "label": "团队管理"
+          },
+          {
+            "key": "EmployeeManagement",
+            "label": "商家员工"
+          },
+          {
+            "key": "EmployeeLogManagement",
+            "label": "员工日志"
           }
         ]
       },
@@ -219,6 +239,14 @@ export const navGroups: NavGroup[] = [
           {
             "key": "vendorSettingManage",
             "label": "供应商设置"
+          },
+          {
+            "key": "vendorUserManage",
+            "label": "供应商员工"
+          },
+          {
+            "key": "bindShopManager",
+            "label": "绑定店铺"
           }
         ]
       },
@@ -1416,6 +1444,7 @@ export const pageTitles: Record<string, string> = {
   "posOrderSetting": "收银设置",
   "posCashierDeviceList": "设备管理",
   "posReceiptPrint": "小票打印",
+  "printDesignerManage": "打印设计器",
   "posCashierList": "收银员列表",
   "dashboard": "概览",
   "statisticsOrder": "销售概览",
@@ -1561,7 +1590,13 @@ export const pageTitles: Record<string, string> = {
   "profitSharingSettlementManage": "分账结算",
   "statementDownload": "对账单下载",
   "statementDetails": "对账单明细",
-  "shopAccountManage": "资金概览",
+    "ShopInfoManage": "店铺信息",
+  "ShopTeamManage": "团队管理",
+  "EmployeeManagement": "商家员工",
+  "EmployeeLogManagement": "员工日志",
+  "vendorUserManage": "供应商员工",
+  "bindShopManager": "绑定店铺",
+"shopAccountManage": "资金概览",
   "shopFundsManage": "店铺资金",
   "financialLogManage": "资金日志",
   "licensed": "授权信息",

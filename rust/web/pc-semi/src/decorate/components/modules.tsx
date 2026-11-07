@@ -3242,7 +3242,7 @@ function BuyIconCartCircle() {
 /* ======================= 10. 契约渲染（原版 camelCase type） ======================= */
 
 /** 契约渲染计划的目标组件表：键与 contract.ts 的 ContractRenderPlan.component 对应。 */
-const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Element | null> = {
+export const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Element | null> = {
   GroupBanner,
   Product,
   RecommendProduct,
@@ -3254,6 +3254,14 @@ const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Element | 
   ContractCatProduct,
   ContractCategoryHot,
   ContractCustomAd,
+  // ---- 店铺装修（旧版 pages/shop/src/ShopHomepage.vue 的 camelCase type）----
+  ImageNav,
+  ImageSquareAd,
+  ImageHotarea,
+  TitleAd,
+  Notice,
+  Divider,
+  Spacer,
 };
 
 /** pcBanner bannerStyle=1：picList 首图主图 + picList2 小图列 + picList3 图标行（原版轮播降级为静态图）。 */

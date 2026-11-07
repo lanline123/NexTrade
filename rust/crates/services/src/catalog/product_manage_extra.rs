@@ -165,6 +165,23 @@ impl ProductManageExtraService {
                     .set_product_flags(&ids, Some(0), Some(1), None)
                     .await?;
             }
+            // 回收站还原：清软删除标记（Java `batch type=restore`）。
+            "restore" => {
+                self.repo()
+                    .set_product_flags(&ids, None, Some(0), None)
+                    .await?;
+            }
+            // 批量审核通过（Java `batch type=audit`：通过后直接上架）。
+            "audit" => {
+                for id in ids {
+                    self.audit(&ProductAuditDTO {
+                        id,
+                        check_status: CHECK_STATUS_APPROVED,
+                        check_reason: None,
+                    })
+                    .await?;
+                }
+            }
             _ => return Err(Error::Validation(MSG_BATCH_TYPE_INVALID.into())),
         }
         Ok(())

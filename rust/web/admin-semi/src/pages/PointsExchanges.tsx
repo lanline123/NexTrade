@@ -3,7 +3,7 @@ import { Button, Modal, Space, Switch, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
-import ProductPicker from '../components/ProductPicker';
+import SkuPicker, { type SkuPick } from '../components/SkuPicker';
 import type { ColumnConfig } from '../framework/types';
 
 interface PointsExchangeRow {
@@ -178,13 +178,17 @@ export default function PointsExchanges() {
                 type: 'custom',
                 render: ({ formApi, values }) => (
                   <div>
-                    <ProductPicker
-                      value={Array.isArray(values.productId)
-                        ? (values.productId as number[])
+                    <SkuPicker
+                      value={Array.isArray(values.skuPick)
+                        ? (values.skuPick as SkuPick[])
                         : values.productId
-                          ? [Number(values.productId)]
+                          ? ([{ productId: Number(values.productId), skuId: Number(values.skuId || 0) }] as SkuPick[])
                           : []}
-                      onChange={(ids) => formApi?.setValue('productId', ids)}
+                      onChange={(picks) => {
+                        formApi?.setValue('skuPick', picks);
+                        formApi?.setValue('productId', picks[0]?.productId);
+                        formApi?.setValue('skuId', picks[0]?.skuId ?? 0);
+                      }}
                       max={1}
                     />
                   </div>
@@ -194,17 +198,22 @@ export default function PointsExchanges() {
           },
         ],
         toPayload: (values) => {
-          const productIds = Array.isArray(values.productId)
-            ? values.productId
-            : values.productId
-              ? [Number(values.productId)]
-              : [];
+          const picks = (values.skuPick as SkuPick[]) || [];
+          const productIds = picks.length
+            ? picks.map((item) => item.productId)
+            : Array.isArray(values.productId)
+              ? values.productId
+              : values.productId
+                ? [Number(values.productId)]
+                : [];
           if (!productIds.length) {
             throw new Error(t('请选择商品!'));
           }
           return {
             ...values,
             productId: productIds[0],
+            // SKU 级选择（对齐旧版 SelectProduct isSku）：skuId=0 表示商品级
+            skuId: picks[0]?.skuId ?? Number(values.skuId || 0),
             exchangeIntegral: Number(values.exchangeIntegral ?? 0),
             pointsDeductedAmount: Number(values.pointsDeductedAmount ?? 0),
             isEnabled: Number(values.isEnabled ?? 1),

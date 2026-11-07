@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Avatar,
   Button,
+  Dropdown,
   Form,
   InputNumber,
   Modal,
@@ -15,6 +16,16 @@ import {
 } from '@douyinfe/semi-ui';
 import { apiGet, apiPost, isDemo } from '../api';
 import { useI18n } from '../i18n';
+import {
+  DeliveryPhotoSection,
+  EditConsigneeModal,
+  EditProductModal,
+  EditShippingModal,
+  LogisticsTraceModal,
+  OperationLogModal,
+  PaymentLogModal,
+  SubOrderModal,
+} from './OrderExtraDialogs';
 
 const { Text } = Typography;
 
@@ -84,6 +95,14 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
   const [noteOpen, setNoteOpen] = useState(false);
   const [moneyOpen, setMoneyOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [consigneeOpen, setConsigneeOpen] = useState(false);
+  const [shippingOpen, setShippingOpen] = useState(false);
+  const [productOpen, setProductOpen] = useState(false);
+  const [subOrderOpen, setSubOrderOpen] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
+  const [payLogOpen, setPayLogOpen] = useState(false);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -130,6 +149,23 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
           <Space>
             <Button onClick={() => setNoteOpen(true)}>{t('备注')}</Button>
             {canModifyMoney && <Button onClick={() => setMoneyOpen(true)}>{t('改价')}</Button>}
+            <Button onClick={() => setConsigneeOpen(true)}>{t('修改收货人')}</Button>
+            <Button onClick={() => setShippingOpen(true)}>{t('修改物流')}</Button>
+            <Button onClick={() => setProductOpen(true)}>{t('修改商品')}</Button>
+            <Dropdown
+              trigger="click"
+              position="topRight"
+              render={
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => { setMoreOpen(false); setSubOrderOpen(true); }}>{t('子订单')}</Dropdown.Item>
+                  <Dropdown.Item onClick={() => { setMoreOpen(false); setLogOpen(true); }}>{t('操作日志')}</Dropdown.Item>
+                  <Dropdown.Item onClick={() => { setMoreOpen(false); setPayLogOpen(true); }}>{t('支付记录')}</Dropdown.Item>
+                  <Dropdown.Item onClick={() => { setMoreOpen(false); setTraceOpen(true); }}>{t('物流跟踪')}</Dropdown.Item>
+                </Dropdown.Menu>
+              }
+            >
+              <Button onClick={() => setMoreOpen((open) => !open)}>{t('更多')}</Button>
+            </Dropdown>
             {canCancel && (
               <Button type="danger" theme="borderless" onClick={() => setCancelOpen(true)}>
                 {t('取消订单')}
@@ -268,9 +304,47 @@ export default function OrderDetailModal({ visible, orderId, onCancel, onChanged
                 <b>{detail.adminNote || '-'}</b>
               </div>
             </div>
+
+            <DeliveryPhotoSection detail={detail} />
           </div>
         )}
       </SideSheet>
+
+      <EditConsigneeModal
+        visible={consigneeOpen}
+        detail={detail}
+        onCancel={() => setConsigneeOpen(false)}
+        onSuccess={() => {
+          setConsigneeOpen(false);
+          refresh();
+        }}
+      />
+
+      <EditShippingModal
+        visible={shippingOpen}
+        detail={detail}
+        logistics={logistics}
+        onCancel={() => setShippingOpen(false)}
+        onSuccess={() => {
+          setShippingOpen(false);
+          refresh();
+        }}
+      />
+
+      <EditProductModal
+        visible={productOpen}
+        detail={detail}
+        onCancel={() => setProductOpen(false)}
+        onSuccess={() => {
+          setProductOpen(false);
+          refresh();
+        }}
+      />
+
+      <SubOrderModal visible={subOrderOpen} detail={detail} onCancel={() => setSubOrderOpen(false)} />
+      <OperationLogModal visible={logOpen} detail={detail} onCancel={() => setLogOpen(false)} />
+      <PaymentLogModal visible={payLogOpen} detail={detail} onCancel={() => setPayLogOpen(false)} />
+      <LogisticsTraceModal visible={traceOpen} detail={detail} onCancel={() => setTraceOpen(false)} />
 
       <DeliverModal
         visible={deliverOpen}

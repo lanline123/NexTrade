@@ -108,7 +108,32 @@ import {
 } from './pages/OverseasExtraPages';
 import { ShopAccountOverview, ShopFundsManage, ShopFinancialLogManage } from './pages/ShopFundsPages';
 import LicensedPage from './pages/LicensedPage';
+import { KefuWorkbench, KefuHistory } from './pages/KefuWorkbench';
+import {
+  ShopInfoDashboard,
+  ShopStaffManage,
+  ShopTeamSettings,
+  VendorBindShopManage,
+  VendorStaffManage,
+} from './pages/MerchantVendorExtras';
 import PcDecorateEditor from './pages/PcDecorateEditor';
+import {
+  ShopDashboardManage,
+  ShopBalanceManage,
+  ShopAccountListManage,
+  ShopWithdrawManage,
+  ShopDepositManage,
+  ShopFinancialLogSelfManage,
+  ShopProductCategoryManage,
+  VendorDashboardManage,
+  VendorBalanceManage,
+  VendorAccountListManage,
+  VendorWithdrawManage,
+  VendorDepositManage,
+  VendorInfoManage,
+  VendorProductStockManage,
+  VendorStockLogManage,
+} from './pages/selfService';
 import MobileDecorateEditor from './pages/MobileDecorateEditor';
 import H5DecorateEditor from './pages/decorateEditorH5';
 import {
@@ -132,6 +157,7 @@ import {
 } from './pages/PromotionExtraPages';
 import Lottery from './pages/Lottery';
 import GiftCards from './pages/GiftCards';
+import PrintDesigner from './pages/PrintDesigner';
 import {
   ThemeStyle,
   MobileDecoratePages,
@@ -816,7 +842,10 @@ Object.entries(configPages).forEach(([key, page]) => {
   page.actions = configActions[key];
 });
 
-const knownPages = new Set(['dashboard', 'pcDecorateEditor', 'mobileDecorateEditor', 'h5DecorateEditor', 'shopGroupManage', 'shopTipManage', 'offlinePaymentClaimManage', 'imageSearchManage', 'vendorAccountManage', 'vendorFundsManage', 'vendorFinancialLogManage', 'products', 'brandManage', 'categoryManage', 'productGroupManage', 'productServicesManage', 'commentManage', 'productAttributesTplManage', 'friendLinksManage', 'regionManage', 'logisticsCompanyManage', 'appVersionManage', 'adminLogManage', 'adminUserManage', 'adminRoleManage', 'serviceAgreement', 'privacyAgreement', 'afterSaleService', 'accountManage', 'taxRateManage', 'shippingTypeManage', 'logisticsManage', 'logisticsCompanyConfigManage', 'payLogManage', 'refundLogManage', 'userBalanceLogManage', 'staffFundWalletLogManage', 'buyerShowManage', 'integralLogManage', 'refundApplyManage', 'userWithdrawApplyManage', 'userRechargeOrderManage', 'userInvoiceManage', 'orderInvoiceManage', 'depositRuleManage', 'depositPayeeAccountManage', 'depositAccountManage', 'depositPaymentAuditManage', 'depositLogManage', 'categoryFeeRuleManage', 'merchantApplicationManage', 'subMerchantManage', 'profitSharingSettlementManage', 'statementDownload', 'pos0', 'posOrderSetting', 'posCashierDeviceList', 'posReceiptPrint', 'posCashierList', 'baseBasicManage', 'baseProductManage', 'baseShoppingManage', 'baseOrderManage', 'kefuSetting', 'globalSetting', 'loginSetting', 'storeAmapSetting', 'personalizedManage', 'baseNoticeManage', 'paymentSetting', 'withdrawalSettingManage', 'profitsharingSettingManage', 'depositSettingManage', 'shopSettingsManage', 'adminMerchantSettingsManage', 'deliveryFundSettingsManage', 'serverFundSettingsManage', 'deliverManage', 'aftersalesManage', 'orderExportManage', 'exchangeOrderManage', 'cycleBuyManage', 'proxyShoppingManage', 'couponManage', 'rechargeSettingManage', 'pointsExchangeManage', 'productGiftManage', 'seckillManage', 'limitdiscountManage', 'fullReductionManage', 'grouponPromotionManage', 'inventoryQueryManage', 'productInventoryLogManage', 'inventoryAdjustmentManage', 'inventoryGoodsArePutIntoStorageManage', 'inventoryGoodsArePutOutOfStorageManage', 'storeInventoryTransferManage', 'enquiryManage', 'stockWarningManage', 'productBatchExportManage', 'productBatchAddManage', 'productBatchEditManage', 'storeInventoryCalendarManage', 'memberTagManage', 'feedbackManage', 'messageLogManage', 'levelManageManage', 'shopMemberSettingManage', 'userCertificationManage', 'userAuthenticationManage', 'userLevelProManage', 'articleCategoryManage', 'kefuManageList', 'kefuAccessSetting', 'kefuQuickReply', 'kefuAccountInfo', 'wechatLive', 'wechatLiveProduct', 'videoNumber', 'baseReceiptManage', 'authorityManage', 'materialCenter', 'termOrderManage', 'termPayManage', 'termMemberManage', 'shopManage', 'applyManage', 'adminMerchantManage', 'investmentManage', 'vendorListManage', 'vendorProductManage', 'vendorOrderManage', 'vendorSettingManage', 'storeSettingsManage', 'storeTipManage', 'storeAreaManage', 'storeListManage', 'storeSelfPackListManage', 'deliverymanList', 'servicemanList', 'statementDetails', 'shopWithdrawApplyManage', 'vendorWithdrawApplyManage', 'vendorStatementDownload', 'vendorWithdrawApplySummary', 'deliveryStaffWithdrawManage', 'serverStaffWithdrawManage', 'wholesalerManage', 'wholesalerGradeManage', 'wholesaleSettingManage', 'wholesaleProductManage', 'storePickupSettingManage', 'storeAppointmentTplManage', 'storeEntryRuleSetting', 'wechatLiveMiniAppSetting', 'shippingTplManage', 'messageTypeManage', 'consumerRanking', 'saleTargets', 'statisticsGoods', 'statisticsUser', 'newMembers', 'statisticsAccess', 'statisticsOrder', 'statisticsSale', 'salesman0', 'overviewManage', 'AnalysisTableManage', 'analysisTable', 'RankingTableManage', 'rankingTable', 'subgroupManage', 'subgroup', 'salesmanNoticeManage', 'salesmanNotice', 'materialCategoryManage', 'materialCategory', 'materialManage', 'material', 'salesmanDetailedManage', 'salesmanDetailed', 'customerTransactionsManage', 'customerTransactions', 'performanceSettlementSettingManage', 'performanceSettlementSetting', 'performanceSettlementManage', 'performanceSettlement', 'promoteModeManage', 'promoteMode', 'salesmanProductManage', 'salesmanProduct', 'promoterManage', 'promoter', 'languagesList', 'currencyManagement', 'translationContent', 'verbalAssociation', 'areaCode', 'aiImageSetting', 'intraCityDeliveryManage', 'intraCityDelivery', 'homeServiceManage', 'homeService', 'premiumMemberManage', 'premiumMember', 'premiumMemberRightManage', 'premiumMemberRight', 'supplierManage', 'supplierCategoryManage', 'supplierProductManage', 'purchaseSettingManage', 'purchaseOrderManage', 'purchaseInboundManage', 'purchaseReturnManage', 'purchaseReconciliationManage', 'analysisTableManage', 'rankingTableManage', 'languagesListManage', 'aiImageSettingManage', 'translationContentManage', 'currencyManagementManage', 'areaCodeManage', 'verbalAssociationManage', 'videoNumber', 'selfVendorManage', 'selfVendorCategoryManage', 'selfVendorProductManage', 'purchaseReceiptManage', 'accountPanelManage', 'distributionCommissionManage', 'shopWithdrawApplySummary', 'vendorStatementDetails', 'shopAccountManage', 'shopFundsManage', 'financialLogManage', 'licensed', 'copyright', 'staffFundWalletManage', 'wechatMenu', 'wechatKeywordReply', 'wechatAutoReply', 'voiceBroadcastManage', 'promotion0', 'promotion2', 'rewardGiftManage', 'signInSettingManage', 'eCardManage', 'giftCardManage', 'lotteryManage', 'decorate0', 'mobileDecorateManage', 'mobileSplashAdManage', 'mobileSplashAdManage2', 'mobileuserUserOverseasManage', 'mobileSearchStyleManage', 'mobileNavManage', 'classifyManage', 'mobileUserManage', 'mobileCatNavManage', 'pcDecorateManage', 'pcNavigationManage', 'pcCatFloorManage', 'pcDecorateCustomManage', 'pcProductStyleManage','pcSearchStyleManage','pcDecorateOtherManage', 'pcSearchDecorateManage', 'pcLoginDecorateManage', 'customerService0', 'kefuHistoryList', 'afterSalesServiceManage', 'orders', 'members', 'content', 'decorate', 'decorate1', 'decorate2', 'pcDecorate', 'pcDecorateEdit', 'pcCustomPage']);
+const knownPages = new Set(['dashboard', 'pcDecorateEditor', 'mobileDecorateEditor', 'h5DecorateEditor', 'shopGroupManage', 'shopTipManage', 'offlinePaymentClaimManage', 'imageSearchManage', 'vendorAccountManage', 'vendorFundsManage', 'vendorFinancialLogManage', 'products', 'brandManage', 'categoryManage', 'productGroupManage', 'productServicesManage', 'commentManage', 'productAttributesTplManage', 'friendLinksManage', 'regionManage', 'logisticsCompanyManage', 'appVersionManage', 'adminLogManage', 'adminUserManage', 'adminRoleManage', 'serviceAgreement', 'privacyAgreement', 'afterSaleService', 'accountManage', 'taxRateManage', 'shippingTypeManage', 'logisticsManage', 'logisticsCompanyConfigManage', 'payLogManage', 'refundLogManage', 'userBalanceLogManage', 'staffFundWalletLogManage', 'buyerShowManage', 'integralLogManage', 'refundApplyManage', 'userWithdrawApplyManage', 'userRechargeOrderManage', 'userInvoiceManage', 'orderInvoiceManage', 'depositRuleManage', 'depositPayeeAccountManage', 'depositAccountManage', 'depositPaymentAuditManage', 'depositLogManage', 'categoryFeeRuleManage', 'merchantApplicationManage', 'subMerchantManage', 'profitSharingSettlementManage', 'statementDownload', 'pos0', 'posOrderSetting', 'posCashierDeviceList', 'posReceiptPrint', 'posCashierList', 'baseBasicManage', 'baseProductManage', 'baseShoppingManage', 'baseOrderManage', 'kefuSetting', 'globalSetting', 'loginSetting', 'storeAmapSetting', 'personalizedManage', 'baseNoticeManage', 'paymentSetting', 'withdrawalSettingManage', 'profitsharingSettingManage', 'depositSettingManage', 'shopSettingsManage', 'adminMerchantSettingsManage', 'deliveryFundSettingsManage', 'serverFundSettingsManage', 'deliverManage', 'aftersalesManage', 'orderExportManage', 'exchangeOrderManage', 'cycleBuyManage', 'proxyShoppingManage', 'couponManage', 'rechargeSettingManage', 'pointsExchangeManage', 'productGiftManage', 'seckillManage', 'limitdiscountManage', 'fullReductionManage', 'grouponPromotionManage', 'inventoryQueryManage', 'productInventoryLogManage', 'inventoryAdjustmentManage', 'inventoryGoodsArePutIntoStorageManage', 'inventoryGoodsArePutOutOfStorageManage', 'storeInventoryTransferManage', 'enquiryManage', 'stockWarningManage', 'productBatchExportManage', 'productBatchAddManage', 'productBatchEditManage', 'storeInventoryCalendarManage', 'memberTagManage', 'feedbackManage', 'messageLogManage', 'levelManageManage', 'shopMemberSettingManage', 'userCertificationManage', 'userAuthenticationManage', 'userLevelProManage', 'articleCategoryManage', 'kefuManageList', 'kefuAccessSetting', 'kefuQuickReply', 'kefuAccountInfo', 'wechatLive', 'wechatLiveProduct', 'videoNumber', 'baseReceiptManage', 'authorityManage', 'materialCenter', 'termOrderManage', 'termPayManage', 'termMemberManage', 'shopManage', 'applyManage', 'adminMerchantManage', 'investmentManage', 'vendorListManage', 'vendorProductManage', 'vendorOrderManage', 'vendorSettingManage', 'storeSettingsManage', 'storeTipManage', 'storeAreaManage', 'storeListManage', 'storeSelfPackListManage', 'deliverymanList', 'servicemanList', 'statementDetails', 'shopWithdrawApplyManage', 'vendorWithdrawApplyManage', 'vendorStatementDownload', 'vendorWithdrawApplySummary', 'deliveryStaffWithdrawManage', 'serverStaffWithdrawManage', 'wholesalerManage', 'wholesalerGradeManage', 'wholesaleSettingManage', 'wholesaleProductManage', 'storePickupSettingManage', 'storeAppointmentTplManage', 'storeEntryRuleSetting', 'wechatLiveMiniAppSetting', 'shippingTplManage', 'messageTypeManage', 'consumerRanking', 'saleTargets', 'statisticsGoods', 'statisticsUser', 'newMembers', 'statisticsAccess', 'statisticsOrder', 'statisticsSale', 'salesman0', 'overviewManage', 'AnalysisTableManage', 'analysisTable', 'RankingTableManage', 'rankingTable', 'subgroupManage', 'subgroup', 'salesmanNoticeManage', 'salesmanNotice', 'materialCategoryManage', 'materialCategory', 'materialManage', 'material', 'salesmanDetailedManage', 'salesmanDetailed', 'customerTransactionsManage', 'customerTransactions', 'performanceSettlementSettingManage', 'performanceSettlementSetting', 'performanceSettlementManage', 'performanceSettlement', 'promoteModeManage', 'promoteMode', 'salesmanProductManage', 'salesmanProduct', 'promoterManage', 'promoter', 'languagesList', 'currencyManagement', 'translationContent', 'verbalAssociation', 'areaCode', 'aiImageSetting', 'intraCityDeliveryManage', 'intraCityDelivery', 'homeServiceManage', 'homeService', 'premiumMemberManage', 'premiumMember', 'premiumMemberRightManage', 'premiumMemberRight', 'supplierManage', 'supplierCategoryManage', 'supplierProductManage', 'purchaseSettingManage', 'purchaseOrderManage', 'purchaseInboundManage', 'purchaseReturnManage', 'purchaseReconciliationManage', 'analysisTableManage', 'rankingTableManage', 'languagesListManage', 'aiImageSettingManage', 'translationContentManage', 'currencyManagementManage', 'areaCodeManage', 'verbalAssociationManage', 'videoNumber', 'selfVendorManage', 'selfVendorCategoryManage', 'selfVendorProductManage', 'purchaseReceiptManage', 'accountPanelManage', 'distributionCommissionManage', 'shopWithdrawApplySummary', 'vendorStatementDetails', 'shopAccountManage', 'shopFundsManage', 'financialLogManage', 'licensed', 'copyright',
+  // 角色自助页面集（商户端/供应商端，selfServiceMenu.tsx）
+  'dashboardManage', 'balanceManage', 'withdrawManage', 'accountListManage', 'shopDepositManage', 'vendorDepositManage', 'merchantApplyManage', 'shopProductCategoryManage', 'vendorInfoManage', 'vendorEmployeeManage', 'vendorProductStockManage', 'vendorStockLogManage', 'printDesignerManage',
+'EmployeeManagement', 'vendorUserManage', 'bindShopManager', 'ShopTeamManage', 'ShopInfoManage', 'EmployeeLogManagement', 'mobileShopDecorate', 'staffFundWalletManage', 'wechatMenu', 'wechatKeywordReply', 'wechatAutoReply', 'voiceBroadcastManage', 'promotion0', 'promotion2', 'rewardGiftManage', 'signInSettingManage', 'eCardManage', 'giftCardManage', 'lotteryManage', 'decorate0', 'mobileDecorateManage', 'mobileSplashAdManage', 'mobileSplashAdManage2', 'mobileuserUserOverseasManage', 'mobileSearchStyleManage', 'mobileNavManage', 'classifyManage', 'mobileUserManage', 'mobileCatNavManage', 'pcDecorateManage', 'pcNavigationManage', 'pcCatFloorManage', 'pcDecorateCustomManage', 'pcProductStyleManage','pcSearchStyleManage','pcDecorateOtherManage', 'pcSearchDecorateManage', 'pcLoginDecorateManage', 'customerService0', 'kefuHistoryList', 'afterSalesServiceManage', 'orders', 'members', 'content', 'decorate', 'decorate1', 'decorate2', 'pcDecorate', 'pcDecorateEdit', 'pcCustomPage']);
 
 if (new URLSearchParams(window.location.search).get('demo') === '1') {
   enterDemo();
@@ -836,6 +865,7 @@ function normalizePageKey(key: string | null): PageKey {
     pcDecorateEdit: 'pcDecorateManage',
     pcCustomPage: 'pcDecorateCustomManage',
     pcCustomPageDecorateEdit: 'pcDecorateCustomManage',
+    mobileShopDecorate: 'mobileDecorateManage',
   };
   if (aliasMap[key]) return aliasMap[key];
   return pageTitles[key] ? key : 'dashboard';
@@ -894,6 +924,20 @@ export default function App() {
     url.searchParams.set('page', target);
     window.history.replaceState(null, '', url);
   };
+
+  // 跨页跳转事件（列表页携带筛选参数跳转，如库存预警 → 商品列表）
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ page: string; params?: Record<string, string> }>).detail;
+      if (!detail?.page) return;
+      const url = new URL(window.location.href);
+      Object.entries(detail.params || {}).forEach(([key, value]) => url.searchParams.set(key, value));
+      window.history.replaceState(null, '', url);
+      changePage(detail.page);
+    };
+    window.addEventListener('admin-navigate', handler);
+    return () => window.removeEventListener('admin-navigate', handler);
+  }, []);
 
   if (!authed) {
     return <Login onSuccess={() => setAuthed(true)} />;
@@ -1048,16 +1092,12 @@ export default function App() {
       {page === 'pcDecorateOtherManage' && <PcDecorateOther />}
       {page === 'pcSearchDecorateManage' && <PcSearchDecorate />}
       {page === 'pcLoginDecorateManage' && <PcLoginDecorate />}
-      {(page === 'customerService0' || page === 'kefuHistoryList' || page === 'afterSalesServiceManage') && (
+      {page === 'customerService0' && <KefuWorkbench />}
+      {page === 'kefuHistoryList' && <KefuHistory />}
+      {page === 'afterSalesServiceManage' && (
         <div style={{ padding: 40, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>
-            {page === 'afterSalesServiceManage' ? '商品售后服务管理' : page === 'customerService0' ? '客服工作台' : '历史会话列表'}
-          </div>
-          <div style={{ color: '#888' }}>
-            {page === 'afterSalesServiceManage'
-              ? '该模块能力已由统一商品服务管理 (productServicesManage) 全面覆盖。'
-              : '当前客服后台依赖的独立 WebSocket/IM 历史会话接口对接中，请关注后续服务升级。'}
-          </div>
+          <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>商品售后服务管理</div>
+          <div style={{ color: '#888' }}>该模块能力已由统一商品服务管理 (productServicesManage) 全面覆盖。</div>
         </div>
       )}
       {page === 'shopWithdrawApplyManage' && <ShopWithdrawApplies />}
@@ -1160,8 +1200,30 @@ export default function App() {
       {page === 'vendorFinancialLogManage' && <VendorFinancialLogManage />}
       {page === 'shopAccountManage' && <ShopAccountOverview />}
       {page === 'shopFundsManage' && <ShopFundsManage />}
-      {page === 'financialLogManage' && <ShopFinancialLogManage />}
+      {/* financialLogManage 分支已移至下方「角色自助页面集」，按 adminType 分流 */}
       {(page === 'licensed' || page === 'copyright') && <LicensedPage />}
+      {page === 'EmployeeManagement' && <ShopStaffManage />}
+      {page === 'vendorUserManage' && <VendorStaffManage />}
+      {page === 'bindShopManager' && <VendorBindShopManage />}
+      {page === 'ShopTeamManage' && <ShopTeamSettings />}
+      {page === 'ShopInfoManage' && <ShopInfoDashboard />}
+      {/* ===== 角色自助页面集（商户端/供应商端，报告 §5 孤儿域）=====
+       * dashboardManage / balanceManage / withdrawManage / accountListManage
+       * 两端共用 key，按 adminType 分流到对应端点组件。 */}
+      {page === 'dashboardManage' && (localStorage.getItem('adminType') === 'vendor' ? <VendorDashboardManage /> : <ShopDashboardManage />)}
+      {page === 'balanceManage' && (localStorage.getItem('adminType') === 'vendor' ? <VendorBalanceManage /> : <ShopBalanceManage />)}
+      {page === 'withdrawManage' && (localStorage.getItem('adminType') === 'vendor' ? <VendorWithdrawManage /> : <ShopWithdrawManage />)}
+      {page === 'accountListManage' && (localStorage.getItem('adminType') === 'vendor' ? <VendorAccountListManage /> : <ShopAccountListManage />)}
+      {page === 'shopDepositManage' && <ShopDepositManage />}
+      {page === 'vendorDepositManage' && <VendorDepositManage />}
+      {page === 'financialLogManage' && (localStorage.getItem('adminType') === 'vendor' ? <VendorFinancialLogManage /> : <ShopFinancialLogSelfManage />)}
+      {page === 'merchantApplyManage' && <MerchantApplies />}
+      {page === 'shopProductCategoryManage' && <ShopProductCategoryManage />}
+      {page === 'vendorInfoManage' && <VendorInfoManage />}
+      {page === 'vendorProductStockManage' && <VendorProductStockManage />}
+      {page === 'vendorStockLogManage' && <VendorStockLogManage />}
+      {page === 'printDesignerManage' && <PrintDesigner />}
+      {page === 'EmployeeLogManagement' && <AdminLogs />}
       {page === 'offlinePaymentClaimManage' && <OfflinePaymentClaimManage />}
       {page === 'imageSearchManage' && <ImageSearchManage />}
       {page === 'shopGroupManage' && <ShopGroupManage />}

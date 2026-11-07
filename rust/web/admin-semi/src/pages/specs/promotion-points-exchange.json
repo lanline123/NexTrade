@@ -18,6 +18,6 @@
   "interactionChecks": ["rust/web/admin-semi/scripts/verify-engine.cjs"],
   "notes": [
     "积分商品：接口 /promotion/pointsExchange/*（list/create/update/del/batch/updateField/detail）。",
-    "选择商品用 ProductPicker（单选）；旧版为 SKU 级选择（SelectProduct isSku，含 skuId），新版暂为商品级，skuId 字段保留透传，SKU 级选择待办。"
+    "选择商品用 SkuPicker（SKU 级选择，对齐旧版 SelectProduct isSku）：搜索商品→选择规格（GET /product/product/skuList）→返回 productId+skuId；无规格商品可选整件（skuId=0）。"
   ]
 }

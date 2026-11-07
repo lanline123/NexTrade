@@ -3,10 +3,14 @@ import {
   Button,
   Card,
   DatePicker,
+  Empty,
   Input,
   Modal,
+  Radio,
+  RadioGroup,
   Select,
   Space,
+  Spin,
   Table,
   Tabs,
   Tag,
@@ -19,6 +23,7 @@ import { useI18n } from '../i18n';
 import { mockOrderPage } from '../mock';
 import type { OrderRow, PageResult } from '../types';
 import OrderDetailModal from '../components/OrderDetailModal';
+import { WriteOffModal } from '../components/OrderExtraDialogs';
 
 const { Text } = Typography;
 
@@ -61,6 +66,14 @@ const emptyFilters: OrderFilters = {
   addTime: [],
 };
 
+/** 会员标签筛选状态（对齐旧版「按会员标签筛选订单」弹窗）。 */
+type MemberTagFilter = {
+  memberTagIds: number[];
+  memberTagMatchMode: number; // 0 任一 / 1 全部
+};
+
+const emptyMemberTagFilter: MemberTagFilter = { memberTagIds: [], memberTagMatchMode: 0 };
+
 export default function Orders({ onNavigate }: { onNavigate?: (page: string) => void } = {}) {
   const { t } = useI18n();
   const [rows, setRows] = useState<OrderRow[]>(isDemo() ? mockOrderPage.records : []);
@@ -73,6 +86,13 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
   const [reloadKey, setReloadKey] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | undefined>(undefined);
+  const [writeOffOpen, setWriteOffOpen] = useState(false);
+  // 按会员标签筛选
+  const [memberTagFilter, setMemberTagFilter] = useState<MemberTagFilter>(emptyMemberTagFilter);
+  const [appliedMemberTagFilter, setAppliedMemberTagFilter] = useState<MemberTagFilter>(emptyMemberTagFilter);
+  const [memberTagDialogOpen, setMemberTagDialogOpen] = useState(false);
+  const [tagGroups, setTagGroups] = useState<Array<{ groupId: number; groupName: string; tags: Array<{ id: number; tagName: string }> }>>([]);
+  const [tagLoading, setTagLoading] = useState(false);
 
   useEffect(() => {
     if (isDemo()) return;
@@ -91,6 +111,8 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
       shippingStatus: applied.shippingStatus,
       addStartTime: applied.addTime?.[0] || undefined,
       addEndTime: applied.addTime?.[1] || undefined,
+      memberTagIds: appliedMemberTagFilter.memberTagIds.length ? appliedMemberTagFilter.memberTagIds : undefined,
+      memberTagMatchMode: appliedMemberTagFilter.memberTagIds.length ? appliedMemberTagFilter.memberTagMatchMode : undefined,
     })
       .then((result) => {
         if (!alive) return;
@@ -102,7 +124,7 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
     return () => {
       alive = false;
     };
-  }, [page, status, applied, reloadKey]);
+  }, [page, status, applied, appliedMemberTagFilter, reloadKey]);
 
   const search = () => {
     setPage(1);
@@ -116,6 +138,33 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
   };
 
   const reload = () => setReloadKey((key) => key + 1);
+
+  const openMemberTagDialog = () => {
+    setMemberTagDialogOpen(true);
+    if (tagGroups.length > 0) return;
+    setTagLoading(true);
+    apiGet<any>('/user/memberTagGroup/list', { page: 1, size: 100 })
+      .then((result) =>
+        setTagGroups(
+          (result?.records || []).map((group: any) => ({
+            groupId: group.groupId ?? group.id,
+            groupName: group.groupName || '',
+            tags: (group.tags || []).map((tag: any) => ({ id: tag.id, tagName: tag.tagName })),
+          })),
+        ),
+      )
+      .catch((error) => Toast.error({ content: error?.message || t('加载会员标签失败') }))
+      .finally(() => setTagLoading(false));
+  };
+
+  const toggleMemberTag = (tagId: number) => {
+    setMemberTagFilter((current) => ({
+      ...current,
+      memberTagIds: current.memberTagIds.includes(tagId)
+        ? current.memberTagIds.filter((id) => id !== tagId)
+        : [...current.memberTagIds, tagId],
+    }));
+  };
 
   const remindDeliver = (row: OrderRow) => {
     Modal.confirm({
@@ -244,11 +293,18 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
               {t('搜索')}
             </Button>
             <Button onClick={reset}>{t('重置')}</Button>
+            <Button onClick={openMemberTagDialog}>
+              {t('按会员标签筛选')}
+              {appliedMemberTagFilter.memberTagIds.length > 0
+                ? ` (${appliedMemberTagFilter.memberTagIds.length})`
+                : ''}
+            </Button>
           </Space>
           <Space>
             <Button icon={<IconRefresh />} onClick={reload}>
               {t('刷新')}
             </Button>
+            <Button onClick={() => setWriteOffOpen(true)}>{t('核销')}</Button>
             <Button
               onClick={() => {
                 if (onNavigate) onNavigate('orderExportManage');
@@ -345,6 +401,90 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
         onCancel={() => setDetailOpen(false)}
         onChanged={reload}
       />
+
+      <WriteOffModal
+        visible={writeOffOpen}
+        onCancel={() => setWriteOffOpen(false)}
+        onSuccess={() => {
+          setWriteOffOpen(false);
+          reload();
+        }}
+      />
+
+      <Modal
+        title={t('按会员标签筛选订单')}
+        visible={memberTagDialogOpen}
+        width={720}
+        footer={
+          <Space>
+            <Button
+              onClick={() => {
+                setMemberTagFilter(emptyMemberTagFilter);
+                setAppliedMemberTagFilter(emptyMemberTagFilter);
+                setMemberTagDialogOpen(false);
+                setPage(1);
+              }}
+            >
+              {t('清除筛选')}
+            </Button>
+            <Button
+              onClick={() => {
+                setMemberTagDialogOpen(false);
+                setPage(1);
+              }}
+            >
+              {t('取消')}
+            </Button>
+            <Button
+              theme="solid"
+              type="primary"
+              onClick={() => {
+                setAppliedMemberTagFilter(memberTagFilter);
+                setMemberTagDialogOpen(false);
+                setPage(1);
+              }}
+            >
+              {t('确定')}
+            </Button>
+          </Space>
+        }
+      >
+        <Spin spinning={tagLoading}>
+          <RadioGroup
+            value={memberTagFilter.memberTagMatchMode}
+            onChange={(event) =>
+              setMemberTagFilter((current) => ({
+                ...current,
+                memberTagMatchMode: Number(event.target.value),
+              }))
+            }
+            style={{ marginBottom: 12 }}
+          >
+            <Radio value={0}>{t('匹配任一标签')}</Radio>
+            <Radio value={1}>{t('匹配全部标签')}</Radio>
+          </RadioGroup>
+          <div style={{ maxHeight: 380, overflowY: 'auto' }}>
+            {tagGroups.map((group) => (
+              <div key={group.groupId} style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 500, marginBottom: 6 }}>{group.groupName}</div>
+                <Space wrap>
+                  {group.tags.map((tag) => (
+                    <Tag
+                      key={tag.id}
+                      color={memberTagFilter.memberTagIds.includes(tag.id) ? 'blue' : 'white'}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => toggleMemberTag(tag.id)}
+                    >
+                      {tag.tagName}
+                    </Tag>
+                  ))}
+                </Space>
+              </div>
+            ))}
+            {!tagLoading && tagGroups.length === 0 && <Empty description={t('暂无标签')} />}
+          </div>
+        </Spin>
+      </Modal>
     </>
   );
 }

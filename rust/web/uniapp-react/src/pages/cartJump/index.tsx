@@ -1,7 +1,9 @@
 import { useReducer, useRef, useState } from "react";
 import { View, Text, Image } from "@tarojs/components";
 import Taro, { useDidShow, useDidHide, useUnload } from "@tarojs/taro";
-import { Swipe } from "@nutui/nutui-react-taro";
+
+import CartSwipe from "../cart/src/CartSwipe";
+import TigButton2 from "@/components/tig/tig-button2/TigButton2";
 
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import FormatPrice from "@/components/format-price/FormatPrice";
@@ -28,7 +30,7 @@ import ToLogin from "../cart/src/ToLogin";
 import Detail from "../cart/src/Detail";
 import DiscountInfo from "@/components/product/DiscountInfo/DiscountInfo";
 import DeliveryProductPop from "../cart/src/DeliveryProductPop";
-import Recommend from "../cart/src/Recommend";
+import Recommend from "@/components/recommend";
 
 import "./index.scss";
 import { usePageGuards } from "@/utils/pageMixin";
@@ -758,10 +760,10 @@ export default function CartJump() {
                                                     {item.carts.map((goods: any) => (
                                                         /* 旧 :key="goods.productId" */
                                                         <View className="cart_item" key={goods.productId}>
-                                                            {/* 旧 uni-swipe-action / uni-swipe-action-item(:threshold="0" auto-close) → NutUI Swipe
-                                                                （threshold 0 与自动收起语义由点击后手动 close 等价实现） */}
-                                                            <Swipe
+                                                            {/* 旧 uni-swipe-action-item(:threshold="0" auto-close) → CartSwipe（threshold=0，任意滑动即开） */}
+                                                            <CartSwipe
                                                                 rightAction={renderSwipeActions(goods)}
+                                                                threshold={0}
                                                                 name={goods.cartId}
                                                                 ref={(el: any) => {
                                                                     if (el) {
@@ -926,7 +928,7 @@ export default function CartJump() {
                                                                         )}
                                                                     </View>
                                                                 </View>
-                                                            </Swipe>
+                                                            </CartSwipe>
                                                         </View>
                                                     ))}
                                                 </View>
@@ -1046,14 +1048,16 @@ export default function CartJump() {
                                                             </View>
                                                         </View>
                                                     </View>
-                                                    {/* TODO(MIGRATION)：旧 tig-button2 以 .cart-footer-btn 样式 View 等价重写（主题色实底 + 白字加粗） */}
-                                                    <View
-                                                        className={`cart-footer-btn ${total.checkedCount == 0 ? "is-disabled" : ""}`}
+                                                    {/* 旧 tig-button2 theme :disabled（已收敛到 TigButton2） */}
+                                                    <TigButton2
+                                                        theme
+                                                        disabled={total.checkedCount == 0}
+                                                        className="cart-footer-btn"
                                                         style={{ height: "72rpx", margin: "0" } as any}
                                                         onClick={handleCheckout}
                                                     >
                                                         <Text className="cart-footer-btn-text">{t("去结算")}</Text>
-                                                    </View>
+                                                    </TigButton2>
                                                 </View>
                                             </View>
                                         )}

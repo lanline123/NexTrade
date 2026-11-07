@@ -16,6 +16,7 @@ import {
 // 避免把整包 2000+ 图标的入口一起拉进依赖图，打包体积更可控。
 import Translate from '@icon-park/react/es/icons/Translate';
 import { navGroups, pageTitles } from '../config/adminMenu';
+import { navGroupsForRole } from '../config/selfServiceMenu';
 import MenuSearch from '../components/MenuSearch';
 import AdminMessageCenter from '../components/AdminMessageCenter';
 import LicensedBadge from '../components/LicensedBadge';
@@ -175,10 +176,18 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
     orderedRef.current = orderedKeys;
   }, [orderedKeys]);
 
-  const groups = useMemo(
-    () => orderedKeys.map((key) => navGroups.find((group) => group.key === key)).filter(Boolean) as typeof navGroups,
-    [orderedKeys],
-  );
+  /** 全量菜单（含角色专属组）：商户端/供应商端登录后在平台组后追加自己的自助页面组。 */
+  const roleNavGroups = useMemo(() => navGroupsForRole(localStorage.getItem('adminType')), []);
+
+  const groups = useMemo(() => {
+    const ordered = orderedKeys
+      .map((key) => roleNavGroups.find((group) => group.key === key))
+      .filter(Boolean) as typeof navGroups;
+    // 角色专属组（shopCapital 等）不在 localStorage 排序里，追加到末尾，
+    // 否则会被 loadNavOrder 的平台组 key 过滤掉而永远不显示。
+    const extra = roleNavGroups.filter((group) => !orderedKeys.includes(group.key));
+    return [...ordered, ...extra];
+  }, [orderedKeys, roleNavGroups]);
 
   const activeGroup =
     groups.find((group) =>

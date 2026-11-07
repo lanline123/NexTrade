@@ -25,10 +25,14 @@ import ProductFormDrawer from '../components/ProductFormDrawer';
 
 const { Text } = Typography;
 
+/** 列表页签（对齐旧版 List.vue：出售中/下架/待审核/审核失败/回收站）。 */
 const buildStatusOptions = (t: (key: string) => string) => [
   { label: t('全部状态'), value: '' },
   { label: t('在售'), value: '1' },
   { label: t('下架'), value: '0' },
+  { label: t('待审核'), value: 'check:0' },
+  { label: t('审核失败'), value: 'check:2' },
+  { label: t('回收站'), value: 'recycle' },
 ];
 
 interface Option {
@@ -230,6 +234,16 @@ export default function Products() {
   const [editingId, setEditingId] = useState<number | undefined>(undefined);
   /** 在售状态切换中的商品（防重复点击） */
   const [salePendingId, setSalePendingId] = useState<number | undefined>(undefined);
+  /** 批量选择（对齐旧版批量操作栏） */
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  /** URL 携带的商品 ID 过滤（如库存预警「相关商品」跳转） */
+  const [urlProductIds, setUrlProductIds] = useState<number[]>(() => {
+    const raw = new URLSearchParams(window.location.search).get('productIds') || '';
+    return raw
+      .split(',')
+      .map((item) => Number(item.trim()))
+      .filter((item) => Number.isFinite(item) && item > 0);
+  });
 
   useEffect(() => {
     if (isDemo()) return;
@@ -256,7 +270,14 @@ export default function Products() {
       page,
       pageSize: 10,
       keyword: keyword || undefined,
-      productStatus: status || undefined,
+      // 页签映射（对齐旧版 onTabChange）：
+      // check:N → checkStatus=N；recycle → isDelete=1；其余 → productStatus
+      ...(status.startsWith('check:')
+        ? { checkStatus: Number(status.split(':')[1]), isDelete: 0 }
+        : status === 'recycle'
+          ? { isDelete: 1 }
+          : { productStatus: status || undefined, isDelete: 0 }),
+      productIds: urlProductIds.length ? urlProductIds : undefined,
     })
       .then((result) => {
         if (!alive) return;
@@ -268,7 +289,7 @@ export default function Products() {
     return () => {
       alive = false;
     };
-  }, [page, status, reloadKey]);
+  }, [page, status, reloadKey, urlProductIds]);
 
   const search = () => {
     setPage(1);
@@ -330,6 +351,76 @@ export default function Products() {
     }
   };
 
+  /** 复制商品（对齐旧版 List.vue「复制」：POST /product/product/copy {id}）。 */
+  const copyProduct = async (record: ProductRow) => {
+    if (isDemo()) {
+      Toast.warning({ content: t('演示模式不支持操作') });
+      return;
+    }
+    try {
+      await apiPost('/product/product/copy', { id: record.productId });
+      Toast.success({ content: t('商品已复制') });
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('复制失败') });
+    }
+  };
+
+  /** 单商品批量操作（行内「移入回收站 / 还原」）。 */
+  const submitRowBatch = async (type: 'recycle' | 'restore', record: ProductRow) => {
+    if (isDemo()) {
+      Toast.warning({ content: t('演示模式不支持操作') });
+      return;
+    }
+    try {
+      await apiPost('/product/product/batch', { ids: [record.productId], type });
+      Toast.success({ content: type === 'recycle' ? t('商品已移入回收站') : t('商品已还原') });
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
+  /** 行内排序编辑（对齐旧版 PopForm 排序：updateField field=sortOrder）。 */
+  const updateSort = async (record: ProductRow, value: number) => {
+    try {
+      await apiPost('/product/product/updateField', {
+        id: record.productId,
+        field: 'sortOrder',
+        val: Number(value || 0),
+      });
+      Toast.success({ content: t('排序已更新') });
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
+  /** 批量操作（对齐旧版 onBatchSubmit：up/down/recycle/restore/audit/del）。 */
+  const batchSubmit = async (type: 'up' | 'down' | 'recycle' | 'restore' | 'audit' | 'del') => {
+    if (isDemo()) {
+      Toast.warning({ content: t('演示模式不支持操作') });
+      return;
+    }
+    if (selectedIds.length === 0) return;
+    const successText: Record<string, string> = {
+      up: t('商品已上架'),
+      down: t('商品已下架'),
+      recycle: t('商品已移入回收站'),
+      restore: t('商品已还原'),
+      audit: t('批量审核通过'),
+      del: t('商品已删除'),
+    };
+    try {
+      await apiPost('/product/product/batch', { ids: selectedIds, type });
+      Toast.success({ content: successText[type] });
+      setSelectedIds([]);
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
   return (
     <>
       <Card className="table-card" shadows="hover">
@@ -374,10 +465,51 @@ export default function Products() {
           </Space>
         </div>
 
+        {selectedIds.length > 0 && (
+          <div className="batch-floating-bar">
+            <span>
+              {t('已选择 {count} 项', { count: selectedIds.length })}
+            </span>
+            <Space spacing={4} wrap>
+              <Popconfirm title={t('您确认要批量上架吗？')} onConfirm={() => batchSubmit('up')}>
+                <Button size="small">{t('批量上架')}</Button>
+              </Popconfirm>
+              <Popconfirm title={t('您确认要批量下架吗？')} onConfirm={() => batchSubmit('down')}>
+                <Button size="small">{t('批量下架')}</Button>
+              </Popconfirm>
+              {status !== 'recycle' && (
+                <Popconfirm title={t('您确认要批量移入回收站吗？')} onConfirm={() => batchSubmit('recycle')}>
+                  <Button size="small">{t('批量移入回收站')}</Button>
+                </Popconfirm>
+              )}
+              {status === 'recycle' && (
+                <Popconfirm title={t('您确认要批量还原吗？')} onConfirm={() => batchSubmit('restore')}>
+                  <Button size="small">{t('批量还原')}</Button>
+                </Popconfirm>
+              )}
+              {status === 'check:0' && (
+                <Popconfirm title={t('您确认要批量通过审核吗？')} onConfirm={() => batchSubmit('audit')}>
+                  <Button size="small">{t('批量通过审核')}</Button>
+                </Popconfirm>
+              )}
+              <Popconfirm title={t('您确认要批量删除吗？')} onConfirm={() => batchSubmit('del')}>
+                <Button size="small" type="danger">{t('批量删除')}</Button>
+              </Popconfirm>
+            </Space>
+            <Button theme="borderless" size="small" onClick={() => setSelectedIds([])}>
+              {t('取消选择')}
+            </Button>
+          </div>
+        )}
+
         <Table
           loading={loading}
           dataSource={rows}
           rowKey="productId"
+          rowSelection={{
+            selectedRowKeys: selectedIds,
+            onChange: (keys) => setSelectedIds((keys || []).map((key) => Number(key))),
+          }}
           pagination={{
             currentPage: page,
             pageSize: 10,
@@ -464,8 +596,25 @@ export default function Products() {
               },
             },
             {
+              title: t('排序'),
+              dataIndex: 'sortOrder',
+              width: 90,
+              render: (value: number, record: ProductRow) => (
+                <InputNumber
+                  size="small"
+                  style={{ width: 70 }}
+                  precision={0}
+                  defaultValue={Number(value || 0)}
+                  onBlur={(event) => {
+                    const next = Number((event.target as HTMLInputElement)?.value || 0);
+                    if (next !== Number(value || 0)) updateSort(record, next);
+                  }}
+                />
+              ),
+            },
+            {
               title: t('操作'),
-              width: 230,
+              width: 300,
               render: (_: unknown, record: ProductRow) => (
                 <Space spacing={4}>
                   <Button
@@ -478,9 +627,21 @@ export default function Products() {
                   >
                     {t('编辑')}
                   </Button>
+                  <Button theme="borderless" size="small" onClick={() => copyProduct(record)}>
+                    {t('复制')}
+                  </Button>
                   <Button theme="borderless" size="small" onClick={() => toggleStatus(record)}>
                     {record.productStatus === 1 ? t('下架') : t('上架')}
                   </Button>
+                  {status !== 'recycle' ? (
+                    <Popconfirm title={t('确定把该商品移入回收站吗？')} onConfirm={() => submitRowBatch('recycle', record)}>
+                      <Button theme="borderless" size="small">{t('移入回收站')}</Button>
+                    </Popconfirm>
+                  ) : (
+                    <Popconfirm title={t('确定将该商品还原吗？')} onConfirm={() => submitRowBatch('restore', record)}>
+                      <Button theme="borderless" size="small">{t('还原')}</Button>
+                    </Popconfirm>
+                  )}
                   <Popconfirm title={t('确定删除该商品？')} onConfirm={() => remove(record)}>
                     <Button theme="borderless" type="danger" size="small">
                       {t('删除')}

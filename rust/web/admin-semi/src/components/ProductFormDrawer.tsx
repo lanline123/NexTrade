@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button, Checkbox, Input, InputNumber, RadioGroup, Select, Toast } from '@douyinfe/semi-ui';
+import { Button, Checkbox, DatePicker, Input, InputNumber, Radio, RadioGroup, Select, Toast, Typography } from '@douyinfe/semi-ui';
+
+const { Text } = Typography;
 import { apiGet, apiPost, isDemo } from '../api';
 import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
@@ -217,6 +219,15 @@ export default function ProductFormDrawer({
   const [shippingTpls, setShippingTpls] = useState<ShippingTpl[]>([]);
   const [services, setServices] = useState<Array<{ productServiceId: number; productServiceName: string }>>([]);
   const [loading, setLoading] = useState(false);
+  /** 店铺商品分类（对应旧版 BasicInfo 店铺商品分类下拉）。 */
+  const [shopCategories, setShopCategories] = useState<Array<{ categoryId: number; categoryName: string }>>([]);
+  /** 定时可售/禁售状态（GET/POST /product/product/saleStatus，仅编辑态）。 */
+  const [saleState, setSaleState] = useState<{
+    loaded: boolean;
+    manualSaleStatus: number;
+    saleBanTime: string;
+    saleRecoverTime: string;
+  }>({ loaded: false, manualSaleStatus: 1, saleBanTime: '', saleRecoverTime: '' });
 
   useEffect(() => {
     if (!visible) return;
@@ -280,7 +291,27 @@ export default function ProductFormDrawer({
           productServiceIds: detail.productServiceIds || [],
           productRelated: detail.productRelated || [],
           productArticleList: detail.productArticleList || [],
+          shopCategoryId: detail.shopCategoryId || undefined,
         });
+        // 读取当前定时可售状态
+        apiGet<any>('/product/product/saleStatus', { productId })
+          .then((state) => {
+            if (!alive) return;
+            const toLocal = (seconds: unknown) => {
+              const num = Number(seconds || 0);
+              if (!num) return '';
+              const date = new Date(num * 1000);
+              const pad = (n: number) => String(n).padStart(2, '0');
+              return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+            };
+            setSaleState({
+              loaded: true,
+              manualSaleStatus: Number(state?.manualSaleStatus ?? 1),
+              saleBanTime: toLocal(state?.saleBanTime),
+              saleRecoverTime: toLocal(state?.saleRecoverTime),
+            });
+          })
+          .catch(() => undefined);
       })
       .catch((error) => Toast.error({ content: error.message }))
       .finally(() => alive && setLoading(false));
@@ -293,6 +324,14 @@ export default function ProductFormDrawer({
     if (!visible) return;
     apiGet<ShippingTpl[]>('/product/product/shippingTplList')
       .then((result) => setShippingTpls(result || []))
+      .catch(() => undefined);
+    apiGet<any>('/merchant/shopProductCategory/list', { page: 1, size: 100 })
+      .then((result) => {
+        const records = Array.isArray(result) ? result : result?.records || [];
+        setShopCategories(
+          records.map((item: any) => ({ categoryId: item.categoryId, categoryName: item.categoryName || item.name || '' })),
+        );
+      })
       .catch(() => undefined);
     apiGet<{ records?: Array<any> }>('/product/productServices/list', { page: 1, size: 100 })
       .then((result) => {
@@ -319,6 +358,22 @@ export default function ProductFormDrawer({
       }
     }
     await apiPost(productId ? '/product/product/update' : '/product/product/create', payload);
+    // 定时可售/禁售走独立 saleStatus 端点（对齐旧版 SaleControl）。
+    if (productId && saleState.loaded) {
+      const toSeconds = (value: string | number | undefined) => {
+        if (value === undefined || value === null || value === '' || Number(value) === 0) return 0;
+        const date = new Date(value);
+        return Number.isFinite(date.getTime()) ? Math.floor(date.getTime() / 1000) : 0;
+      };
+      await apiPost('/product/product/saleStatus', {
+        productId,
+        saleStatus: Number(saleState.manualSaleStatus ?? 1),
+        saleBanTime: Number(saleState.manualSaleStatus) === 0 ? toSeconds(saleState.saleBanTime) : 0,
+        saleRecoverTime: Number(saleState.manualSaleStatus) === 1 ? toSeconds(saleState.saleRecoverTime) : 0,
+      }).catch((error) => {
+        Toast.warning({ content: error instanceof Error ? error.message : t('定时可售设置保存失败') });
+      });
+    }
     Toast.success({ content: productId ? t('商品已更新') : t('商品已创建') });
     onSaved();
     onCancel();
@@ -354,9 +409,12 @@ export default function ProductFormDrawer({
                 options: [
                   { label: t('普通商品'), value: 1 },
                   { label: t('虚拟商品'), value: 2 },
-                  { label: t('电子卡券'), value: 3 },
+                  { label: t('卡密商品'), value: 3 },
+                  { label: t('付费内容'), value: 4 },
                   { label: t('预约到店'), value: 5 },
                   { label: t('上门服务'), value: 6 },
+                  { label: t('实体礼品卡'), value: 7 },
+                  { label: t('电子礼品卡'), value: 8 },
                 ],
                 extraText: t('商品类型发布后不可修改。'),
               },
@@ -380,6 +438,13 @@ export default function ProductFormDrawer({
                 type: 'select',
                 placeholder: t('请选择商品品牌'),
                 options: brands.map((item) => ({ label: item.name, value: item.id })),
+              },
+              {
+                field: 'shopCategoryId',
+                label: t('店铺商品分类'),
+                type: 'select',
+                placeholder: t('请选择店铺商品分类'),
+                options: shopCategories.map((item) => ({ label: item.categoryName, value: item.categoryId })),
               },
               { field: 'productSn', label: t('商品编码'), placeholder: t('不填自动生成') },
               { field: 'productTsn', label: t('商品条码'), placeholder: t('如 69 开头的 13 位标准码') },
@@ -432,6 +497,69 @@ export default function ProductFormDrawer({
                 label: t('规格类型'),
                 type: 'custom',
                 render: ({ formApi, values }) => <SkuEditor formApi={formApi} values={values} />,
+              },
+              {
+                field: 'saleSchedule',
+                label: t('定时可售/禁售'),
+                type: 'custom',
+                render: () =>
+                  productId ? (
+                    <div className="product-sale-schedule">
+                      <RadioGroup
+                        value={saleState.manualSaleStatus}
+                        onChange={(event) =>
+                          setSaleState((current) => ({ ...current, manualSaleStatus: Number(event.target.value) }))
+                        }
+                      >
+                        <Radio value={1}>{t('可售')}</Radio>
+                        <Radio value={0}>{t('禁售')}</Radio>
+                      </RadioGroup>
+                      {Number(saleState.manualSaleStatus) === 0 && (
+                        <div style={{ marginTop: 6 }}>
+                          <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginBottom: 4 }}>
+                            {t('启用定时禁售')}
+                          </div>
+                          <DatePicker
+                            type="dateTime"
+                            format="yyyy-MM-dd HH:mm:ss"
+                            style={{ width: 240 }}
+                            placeholder={t('禁售开始时间')}
+                            value={saleState.saleBanTime || undefined}
+                            onChange={(next) =>
+                              setSaleState((current) => ({
+                                ...current,
+                                saleBanTime: next ? String(next) : '',
+                              }))
+                            }
+                          />
+                        </div>
+                      )}
+                      {Number(saleState.manualSaleStatus) === 1 && (
+                        <div style={{ marginTop: 6 }}>
+                          <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginBottom: 4 }}>
+                            {t('启用定时可售')}
+                          </div>
+                          <DatePicker
+                            type="dateTime"
+                            format="yyyy-MM-dd HH:mm:ss"
+                            style={{ width: 240 }}
+                            placeholder={t('恢复可售时间')}
+                            value={saleState.saleRecoverTime || undefined}
+                            onChange={(next) =>
+                              setSaleState((current) => ({
+                                ...current,
+                                saleRecoverTime: next ? String(next) : '',
+                              }))
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Text type="tertiary" size="small">
+                      {t('保存商品后可设置定时可售/禁售。')}
+                    </Text>
+                  ),
               },
             ],
           },

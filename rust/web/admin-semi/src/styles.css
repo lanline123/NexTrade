@@ -8262,3 +8262,282 @@ body {
   width: 32px;
   height: 32px;
 }
+
+/* ============================== 客服工作台 ============================== */
+
+.kefu-workbench {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 96px);
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
+
+.kefu-workbench-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 12px;
+}
+
+.kefu-status-label {
+  font-size: 14px;
+  color: var(--semi-color-text-2);
+}
+
+.kefu-workbench-body {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+}
+
+.kefu-conversation-panel {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--semi-color-bg-0);
+  border: 1px solid var(--semi-color-border);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.kefu-conversation-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.kefu-conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.kefu-conversation-item:hover {
+  background: var(--semi-color-fill-0);
+}
+
+.kefu-conversation-item.is-active {
+  background: var(--semi-color-primary-light-default);
+}
+
+.kefu-conversation-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.kefu-conversation-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.kefu-conversation-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kefu-conversation-time {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.kefu-conversation-preview {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.kefu-conversation-del {
+  visibility: hidden;
+  flex-shrink: 0;
+}
+
+.kefu-conversation-item:hover .kefu-conversation-del {
+  visibility: visible;
+}
+
+.kefu-message-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--semi-color-bg-0);
+  border: 1px solid var(--semi-color-border);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 0;
+}
+
+.kefu-message-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--semi-color-border);
+  font-weight: 500;
+}
+
+.kefu-message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 4px;
+  min-height: 200px;
+}
+
+.kefu-message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.kefu-message-row.is-mine {
+  flex-direction: row-reverse;
+}
+
+.kefu-message-bubble {
+  max-width: 68%;
+  background: var(--semi-color-fill-0);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.kefu-message-row.is-mine .kefu-message-bubble {
+  background: var(--semi-color-primary-light-default);
+}
+
+.kefu-message-time {
+  color: var(--semi-color-text-2);
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.kefu-send-box {
+  border-top: 1px solid var(--semi-color-border);
+  padding-top: 10px;
+}
+
+.kefu-product-card {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--semi-color-bg-0);
+  border: 1px solid var(--semi-color-border);
+  border-radius: 6px;
+  padding: 8px;
+  max-width: 260px;
+}
+
+/* ============================== 店铺设置/信息表单 ============================== */
+
+.shop-team-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shop-team-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.shop-team-row > label {
+  width: 120px;
+  flex-shrink: 0;
+  padding-top: 6px;
+  color: var(--semi-color-text-2);
+  font-size: 13px;
+  text-align: right;
+}
+
+.shop-team-row > span {
+  padding-top: 6px;
+  font-size: 13px;
+}
+
+/* ============================== 发送人群圈选 ============================== */
+
+.send-user-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.send-user-selector-body {
+  border: 1px solid var(--semi-color-border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.send-user-selector-note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--semi-color-text-2);
+}
+
+/* ============================== SKU 选择器 ============================== */
+
+.sku-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--semi-color-border);
+}
+
+.sku-picker-meta {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+/* ============================== 代客下单规格弹窗 / 拼团商品 ============================== */
+
+.proxy-spec-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--semi-color-border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.proxy-spec-row.is-active {
+  border-color: var(--semi-color-primary);
+  background: var(--semi-color-primary-light-default);
+}
+
+.proxy-spec-price {
+  color: var(--semi-color-danger);
+  font-weight: 500;
+}
+
+.proxy-spec-stock {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.groupon-product-row {
+  cursor: pointer;
+}
+
+.groupon-product-row.is-active {
+  background: var(--semi-color-primary-light-default);
+}

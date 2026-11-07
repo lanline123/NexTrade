@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { View, Text, Image } from "@tarojs/components";
 import Taro, { useDidShow, useDidHide, useUnload } from "@tarojs/taro";
-import { Swipe } from "@nutui/nutui-react-taro";
 
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import MainHeader from "@/components/mainHeader";
@@ -32,7 +31,9 @@ import Detail from "./src/Detail";
 // DiscountInfo 已上移到共享组件（订单确认页 totalCard 复用），本地文件保留一份过渡副本
 import DiscountInfo from "@/components/product/DiscountInfo/DiscountInfo";
 import DeliveryProductPop from "./src/DeliveryProductPop";
-import Recommend from "./src/Recommend";
+import Recommend from "@/components/recommend";
+import TigButton2 from "@/components/tig/tig-button2/TigButton2";
+import CartSwipe from "./src/CartSwipe";
 
 import "./index.scss";
 
@@ -850,8 +851,8 @@ export default function Cart() {
                                                 <View className="goods-list-cart">
                                                     {item.carts.map((goods: any) => (
                                                         <View className="cart_item" key={goods.cartId}>
-                                                            {/* 旧 up-swipe-action / up-swipe-action-item → NutUI Swipe（threshold 不支持，TODO(MIGRATION)） */}
-                                                            <Swipe
+                                                            {/* 旧 up-swipe-action-item(:threshold="20") → CartSwipe（NutUI Swipe 包装，触摸层补偿阈值） */}
+                                                            <CartSwipe
                                                                 rightAction={renderSwipeActions(goods)}
                                                                 name={goods.cartId}
                                                                 ref={(el: any) => {
@@ -1019,7 +1020,7 @@ export default function Cart() {
                                                                         )}
                                                                     </View>
                                                                 </View>
-                                                            </Swipe>
+                                                            </CartSwipe>
                                                         </View>
                                                     ))}
                                                 </View>
@@ -1139,14 +1140,16 @@ export default function Cart() {
                                                             </View>
                                                         </View>
                                                     </View>
-                                                    {/* TODO(MIGRATION)：旧 tig-button2 以 .cart-footer-btn 样式 View 等价重写（主题色实底 + 白字加粗） */}
-                                                    <View
-                                                        className={`cart-footer-btn ${total.checkedCount == 0 ? "is-disabled" : ""}`}
+                                                    {/* 旧 tig-button2 theme :disabled（已收敛到 TigButton2） */}
+                                                    <TigButton2
+                                                        theme
+                                                        disabled={total.checkedCount == 0}
+                                                        className="cart-footer-btn"
                                                         style={{ height: "72rpx", margin: "0" } as any}
                                                         onClick={handleCheckout}
                                                     >
                                                         <Text className="cart-footer-btn-text">{t("去结算")}</Text>
-                                                    </View>
+                                                    </TigButton2>
                                                 </View>
                                             </View>
                                         )}
@@ -1159,6 +1162,7 @@ export default function Cart() {
                                     <CartEmpty />
                                 </View>
                             )}
+                            {/* 旧 <recommend @callback="getCartList" />（已收敛到共享组件，含 Masonry 高度均衡瀑布流） */}
                             <Recommend onCallback={getCartList} />
                         </View>
                     )}

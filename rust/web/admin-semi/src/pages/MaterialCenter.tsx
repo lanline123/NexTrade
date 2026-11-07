@@ -1235,6 +1235,21 @@ export default function MaterialCenter() {
     }
   };
 
+  /** 分组排序（对齐旧版拖拽排序：POST /setting/gallery/sort {ids, type}，此处用上移/下移表达）。 */
+  const moveGroup = (node: GroupNode, direction: 'up' | 'down', siblings: GroupNode[]) => {
+    const index = siblings.findIndex((item) => item.id === node.id);
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= siblings.length) return;
+    const ids = siblings.map((item) => item.id);
+    [ids[index], ids[targetIndex]] = [ids[targetIndex], ids[index]];
+    apiPost('/setting/gallery/sort', { ids, type: tab === 'video' ? 2 : 1 })
+      .then(() => {
+        Toast.success({ content: t('排序成功') });
+        setReloadKey((key) => key + 1);
+      })
+      .catch((error) => Toast.error({ content: error instanceof Error ? error.message : t('排序失败') }));
+  };
+
   // ——— 渲染：分组树 ———
   const renderTreeNodes = (nodes: GroupNode[], depth: number): ReactNode =>
     nodes.map((node) => (
@@ -1263,6 +1278,8 @@ export default function MaterialCenter() {
             menu={[
               { node: 'item', name: t('添加子分组'), onClick: () => openAlbumForm('add', node.id) },
               { node: 'item', name: t('重命名'), onClick: () => openAlbumForm('rename', node.id, node.parentId || 0, node.name) },
+              { node: 'item', name: t('上移'), onClick: () => moveGroup(node, 'up', nodes) },
+              { node: 'item', name: t('下移'), onClick: () => moveGroup(node, 'down', nodes) },
               { node: 'item', name: t('删除'), onClick: () => openAlbumDelete(node) },
             ]}
           >

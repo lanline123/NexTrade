@@ -19,6 +19,4 @@
   "notes": [
     "代客下单：两步流程（选会员+选商品购物车 → 结算提交）。Rust 后端 /proxyShopping/* 全链路已就绪（user/product/cart/address/order.check）。",
     "已实现：会员搜索选择(user/list)、商品分页搜索(getProduct)、加购(addToCart)、购物车数量修改(updateItem)/移除(removeItem)、结算页(check/index：地址单选/配送方式/支付方式/备注/金额汇总)、提交订单(check/submit)。",
-    "与旧版 CheckPanel(3531行) 差异，待办记录：①SKU 规格弹窗 ProductSpecPop 未迁移（多规格商品加购需后端默认 sku 或后续补弹窗）；②优惠券选择(updateCoupon)、改价(changePrice)、积分/余额抵扣开关、到店自提点与自提联系人(pickupList/pickupContact)、O2O 配送方式抽屉、更多地址/编辑地址、未支付订单提醒(UnpaidOrderTipDialog)、POS 步骤条未迁移；③地址新增/编辑表单未迁移（仅选择已有地址）。"
-  ]
-}
+    "与旧版 CheckPanel 对齐已补齐：①SKU 规格弹窗（多规格加购先选规格/数量，GET /product/product/skuList + addToCart skuId）；②行改价（check/changePrice 一口价）；③优惠券选择（couponList.enableCoupons + check/updateCoupon）；④积分/余额抵扣开关（availablePoints/usePoint/useBalance → check/update）；⑤到店自提（check/pickupList 自提点选择 + 自提联系人）；⑥地址新增/编辑（address/create、address/update）。仍待办：O2O 配送方式抽屉、POS 步骤条、未支付订单提醒（UnpaidOrderTipDialog）。

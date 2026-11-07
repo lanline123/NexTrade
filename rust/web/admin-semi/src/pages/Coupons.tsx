@@ -26,6 +26,7 @@ import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 import ProductPicker from '../components/ProductPicker';
+import SendUserSelector from '../components/SendUserSelector';
 
 const { Text } = Typography;
 
@@ -92,6 +93,7 @@ const DEFAULT_FORM = {
   sendNum: 1000,
   limitNum: 0,
   limitUserRank: [] as number[],
+  sendUserTarget: { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 },
   sendRange: 0,
   sendRangeData: [] as number[],
   isShow: 1,
@@ -415,6 +417,17 @@ export default function Coupons() {
               ],
             },
             { field: 'couponDesc', label: t('券使用说明'), type: 'textarea' },
+            {
+              field: 'sendUserTarget',
+              label: t('领取人群'),
+              type: 'custom',
+              render: ({ formApi, values }) => (
+                <SendUserSelector
+                  value={values.sendUserTarget}
+                  onChange={(next) => formApi?.setValue('sendUserTarget', next)}
+                />
+              ),
+            },
           ],
         },
       ],
@@ -440,6 +453,10 @@ export default function Coupons() {
         sendRange: Number(payload.sendRange ?? 0),
         sendRangeData: Number(payload.sendRange) === 1 ? payload.sendRangeData || [] : [],
         limitUserRank: Number(payload.isNewUser) === 2 ? payload.limitUserRank || [] : [],
+        // 领取人群（对齐旧版 SendUserSelector → memberRange/memberMarks/sendUserTarget）
+        sendUserTarget: payload.sendUserTarget || { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 },
+        memberRange: payload.sendUserTarget?.scope === 1 ? 1 : 0,
+        memberMarks: payload.sendUserTarget?.scope === 1 ? payload.sendUserTarget?.tagIds || [] : [],
       };
       if (drawerMode === 'edit' && editingId) {
         await apiPost('/promotion/coupon/update', { ...body, couponId: editingId });

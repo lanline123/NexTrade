@@ -280,7 +280,7 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
         }
 
         // 二维码类渠道
-        // 旧版 pages/order/lakala.vue:90-93：拉卡拉微信 PC/H5 可能返回「聚合收银台跳转 URL」，
+        // 旧版 wechat.vue:90-93：拉卡拉微信 PC/H5 可能返回「聚合收银台跳转 URL」，
         // 此时必须直接跳转收银台，不能当成 codeUrl 渲染二维码（用户扫收银台 URL 付不了款）。
         const cashierUrl = typeof channel.url === 'string' ? channel.url : '';
         const rawCodeUrl = typeof channel.codeUrl === 'string' ? channel.codeUrl : '';
@@ -380,7 +380,7 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
                 </div>
               </div>
             </div>
-            {/* 源码 wechat.vue / yunpay.vue：二维码右侧 right-image 渠道示意图（按 brand 文案占位） */}
+            {/* 源码 yunpay.vue / yunpay.vue：二维码右侧 right-image 渠道示意图（按 brand 文案占位） */}
             <div className="right-image" style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
               <div className="image" style={{ width: 270, height: 270, border: '1px dashed #d9d9d9', borderRadius: 12, background: '#fafafa', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: '#8a919f' }}>
                 <span style={{ fontSize: 48 }}>▣</span>

@@ -795,7 +795,7 @@ export function KefuHistory() {
               { value: 'pc', label: 'pc' },
               { value: 'h5', label: 'h5' },
             ]}
-            onChange={(next) => setFilters((c) => ({ ...c, userFrom: next ?? '' }))}
+            onChange={(next) => setFilters((c) => ({ ...c, userFrom: next == null ? '' : String(next) }))}
           />
           <Select
             style={{ width: 130 }}
@@ -806,7 +806,7 @@ export function KefuHistory() {
               { value: '1', label: t('会话中') },
               { value: '2', label: t('已结束') },
             ]}
-            onChange={(next) => setFilters((c) => ({ ...c, status: next ?? '' }))}
+            onChange={(next) => setFilters((c) => ({ ...c, status: next == null ? '' : String(next) }))}
           />
           <Input
             style={{ width: 160 }}

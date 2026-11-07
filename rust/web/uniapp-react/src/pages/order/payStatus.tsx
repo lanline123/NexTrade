@@ -9,8 +9,8 @@ import { useThemeStore } from "@/store/theme";
 import { useConfigStore } from "@/store/config";
 import { checkPayStatus, getPayLog } from "@/api/order/pay";
 import Animation from "./src/Animation";
-// 旧 components/recommend 共享组件：目标工程暂随购物车页落地（B3-2a），跨页复用
-import Recommend from "@/pages/cart/src/Recommend";
+// 旧 components/recommend 共享组件（含 Masonry 瀑布流与 titleBg prop）
+import Recommend from "@/components/recommend";
 import { redirect } from "@/utils";
 import type { PayLogData } from "@/types/order/payStatus";
 import { resolvePayResult, type PayResultState } from "./src/payResult";
@@ -152,8 +152,8 @@ export default function PayStatus() {
                         <View className="recommend">
                             <View className="recommend-mask" />
                             <View className="recommend-content">
-                                {/* 旧 <recommend title-bg="#fff" />：cart 版 Recommend 无 titleBg prop，TODO(MIGRATION) 随共享 recommend 组件补齐 */}
-                                <Recommend />
+                                {/* 旧 <recommend title-bg="#fff" />（已收敛到共享组件） */}
+                                <Recommend titleBg="#fff" />
                             </View>
                         </View>
                     )}

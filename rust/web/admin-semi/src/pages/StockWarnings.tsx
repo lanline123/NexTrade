@@ -346,9 +346,26 @@ export default function StockWarnings() {
       title: t('相关商品'),
       dataIndex: 'relatedProductCount',
       width: 90,
-      render: (value: number) => (
-        <span title={t('相关商品数量')}>{Number(value) > 0 ? value : '-'}</span>
-      ),
+      render: (value: number, record: Record<string, any>) => {
+        const ids: number[] = record.relatedProductIds || [];
+        if (!(Number(value) > 0)) return <span>-</span>;
+        return (
+          <Button
+            theme="borderless"
+            size="small"
+            title={t('点击查看相关商品')}
+            onClick={() => {
+              window.dispatchEvent(
+                new CustomEvent('admin-navigate', {
+                  detail: { page: 'products', params: { productIds: ids.join(',') } },
+                }),
+              );
+            }}
+          >
+            {value}
+          </Button>
+        );
+      },
     },
     {
       title: t('实物库存'),

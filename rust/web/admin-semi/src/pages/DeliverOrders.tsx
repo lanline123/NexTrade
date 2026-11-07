@@ -162,6 +162,8 @@ export default function DeliverOrders({
     logisticsId: number | undefined;
     trackingNo: string;
   }>({ logisticsId: undefined, trackingNo: '' });
+  /** 逐单编辑的物流信息（orderId → {logisticsId, trackingNo}），对齐旧版 BatchShip 逐单编辑。 */
+  const [batchPerOrder, setBatchPerOrder] = useState<Record<number, { logisticsId?: number; trackingNo: string }>>({});
   const [excelOpen, setExcelOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -295,6 +297,7 @@ export default function DeliverOrders({
     setSaving(true);
     try {
       for (const row of rows.filter((item) => selectedIds.includes(item.orderId))) {
+        const perOrder = batchPerOrder[row.orderId] || {};
         await apiPost('/order/order/deliver', {
           id: row.orderId,
           deliverData: (row.items || []).map((item) => ({
@@ -302,12 +305,13 @@ export default function DeliverOrders({
             toDeliveryQuantity: item.quantity,
           })),
           shippingMethod: 1,
-          logisticsId: batchShipForm.logisticsId || 0,
-          trackingNo: batchShipForm.trackingNo,
+          logisticsId: perOrder.logisticsId || batchShipForm.logisticsId || 0,
+          trackingNo: perOrder.trackingNo || batchShipForm.trackingNo,
         });
       }
       Toast.success({ content: t('批量发货成功') });
       setBatchShipOpen(false);
+      setBatchPerOrder({});
       reload();
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : t('批量发货失败') });
@@ -810,10 +814,11 @@ export default function DeliverOrders({
         confirmLoading={saving}
         onOk={submitBatchShip}
         onCancel={() => setBatchShipOpen(false)}
+        width={680}
       >
         <div className="deliver-order-form">
-          <p className="deliver-order-muted">{t('所选 {count} 个订单将统一使用以下物流信息发货。', { count: selectedIds.length })}</p>
-          <label>{t('物流公司')}</label>
+          <p className="deliver-order-muted">{t('支持逐单编辑物流信息，也可先设置统一物流信息后一键应用到全部。', { count: selectedIds.length })}</p>
+          <label>{t('统一物流公司')}</label>
           <Select
             style={{ width: 300 }}
             value={batchShipForm.logisticsId}
@@ -824,12 +829,72 @@ export default function DeliverOrders({
             onChange={(next) => setBatchShipForm((c) => ({ ...c, logisticsId: Number(next) }))}
             placeholder={t('请选择物流公司')}
           />
-          <label>{t('运单号')}</label>
+          <label>{t('统一运单号')}</label>
           <Input
             value={batchShipForm.trackingNo}
             onChange={(next) => setBatchShipForm((c) => ({ ...c, trackingNo: next }))}
             placeholder={t('请输入运单号')}
           />
+          <Button
+            style={{ marginTop: 8 }}
+            onClick={() => {
+              setBatchPerOrder(() => {
+                const next: Record<number, { logisticsId?: number; trackingNo: string }> = {};
+                rows
+                  .filter((item) => selectedIds.includes(item.orderId))
+                  .forEach((item) => {
+                    next[item.orderId] = { logisticsId: batchShipForm.logisticsId, trackingNo: batchShipForm.trackingNo };
+                  });
+                return next;
+              });
+              Toast.success({ content: t('已应用到全部所选订单') });
+            }}
+          >
+            {t('应用到全部')}
+          </Button>
+
+          <div style={{ marginTop: 12 }}>
+            {rows
+              .filter((item) => selectedIds.includes(item.orderId))
+              .map((row) => {
+                const perOrder = batchPerOrder[row.orderId] || { logisticsId: batchShipForm.logisticsId, trackingNo: batchShipForm.trackingNo };
+                return (
+                  <div key={row.orderId} style={{ borderTop: '1px solid var(--semi-color-border)', padding: '10px 0' }}>
+                    <div style={{ fontWeight: 500, marginBottom: 6 }}>
+                      <span className="mono">{row.orderSn}</span>
+                    </div>
+                    <Space wrap>
+                      <Select
+                        style={{ width: 240 }}
+                        value={perOrder.logisticsId}
+                        optionList={logisticsOptions.map((item) => ({
+                          label: item.logisticsName || item.companyName || String(item.logisticsId),
+                          value: item.logisticsId,
+                        }))}
+                        onChange={(next) =>
+                          setBatchPerOrder((current) => ({
+                            ...current,
+                            [row.orderId]: { ...perOrder, logisticsId: Number(next) },
+                          }))
+                        }
+                        placeholder={t('请选择物流公司')}
+                      />
+                      <Input
+                        style={{ width: 240 }}
+                        value={perOrder.trackingNo}
+                        onChange={(next) =>
+                          setBatchPerOrder((current) => ({
+                            ...current,
+                            [row.orderId]: { ...perOrder, trackingNo: next },
+                          }))
+                        }
+                        placeholder={t('请输入运单号')}
+                      />
+                    </Space>
+                  </div>
+                );
+              })}
+          </div>
         </div>
       </Modal>
 

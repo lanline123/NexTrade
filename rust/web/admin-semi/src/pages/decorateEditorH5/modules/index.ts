@@ -89,3 +89,6 @@ import "./basic/article";
 // ==================== mobileLogin / mobileSearch ====================
 // import "./login/mobileLogin";
 // import "./search/mobileSearchResult";
+
+// ==================== 通用模块工厂（批量补齐缺失 type，诚实版） ====================
+import "./generic/simpleModules";

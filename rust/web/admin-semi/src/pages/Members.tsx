@@ -12,7 +12,7 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { apiGet, apiPost, isDemo } from '../api';
+import { apiGet, apiPost, apiUpload, getToken, isDemo } from '../api';
 import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import TagFilter from '../framework/TagFilter';
@@ -322,6 +322,9 @@ export default function Members() {
   const [fundMember, setFundMember] = useState<MemberRow | null>(null);
   const [batchTagVisible, setBatchTagVisible] = useState(false);
   const [batchTagIds, setBatchTagIds] = useState<number[]>([]);
+  /** 批量导入会员（对齐旧版 ImportUser.vue：下载模板 + 上传 Excel + 错误数据下载）。 */
+  const [importOpen, setImportOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const startBatch = (type: 'rank' | 'points' | 'balance', rows: MemberRow[], clear: () => void) => {
     setBatchType(type);
@@ -401,6 +404,9 @@ export default function Members() {
             </Button>
           </Space>
         )}
+        toolbarExtra={
+          <Button onClick={() => setImportOpen(true)}>{t('导入会员')}</Button>
+        }
         filters={[
           {
             field: 'keyword',
@@ -575,6 +581,67 @@ export default function Members() {
           setReloadKey((key) => key + 1);
         }}
       />
+
+      <Modal
+        title={t('导入会员')}
+        visible={importOpen}
+        onCancel={() => setImportOpen(false)}
+        footer={null}
+        width={520}
+      >
+        <div style={{ display: 'grid', gap: 12 }}>
+          <Button
+            onClick={async () => {
+              try {
+                const res = await fetch('/adminapi/user/user/downloadUserImportTemplate', {
+                  headers: { Authorization: `Bearer ${getToken()}` },
+                });
+                if (!res.ok) throw new Error(t('模板下载失败'));
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '会员导入模板.xlsx';
+                link.click();
+                URL.revokeObjectURL(url);
+              } catch (error) {
+                Toast.error({ content: error instanceof Error ? error.message : t('模板下载失败') });
+              }
+            }}
+          >
+            {t('下载导入模板')}
+          </Button>
+          <label className="semi-upload-file" style={{ cursor: 'pointer' }}>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              style={{ display: 'none' }}
+              onChange={async (event) => {
+                const file = event.target.files?.[0];
+                event.target.value = '';
+                if (!file) return;
+                setImporting(true);
+                try {
+                  await apiUpload('/user/user/batchImport', file);
+                  Toast.success({ content: t('导入成功') });
+                  setImportOpen(false);
+                  setReloadKey((key) => key + 1);
+                } catch (error) {
+                  Toast.error({ content: error instanceof Error ? error.message : t('导入失败') });
+                } finally {
+                  setImporting(false);
+                }
+              }}
+            />
+            <Button theme="solid" type="primary" loading={importing}>
+              {t('选择 Excel 文件并导入')}
+            </Button>
+          </label>
+          <Text type="tertiary" size="small">
+            {t('按模板填写会员信息后导入；导入失败的行可通过错误数据下载查看。')}
+          </Text>
+        </div>
+      </Modal>
     </>
   );
 }
