@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox,
   Dropdown,
+  Empty,
   Input,
   Modal,
   Pagination,
@@ -428,6 +429,26 @@ export default function MaterialCenter() {
   const [editOriginal, setEditOriginal] = useState<Record<string, any>>({});
   const [editSaving, setEditSaving] = useState(false);
   const editCoverInputRef = useRef<HTMLInputElement>(null);
+  /** 上传大小上限（读全局设置 imageUploadMaxSize / uploadMaxSize，MB；0 = 未配置） */
+  const [uploadLimits, setUploadLimits] = useState<{ imageMaxSize: number; videoMaxSize: number }>({
+    imageMaxSize: 0,
+    videoMaxSize: 0,
+  });
+  /** 视频封面图库选择器（对齐旧版 FormAddGallery） */
+  const [galleryCoverOpen, setGalleryCoverOpen] = useState(false);
+  const [galleryCoverLoading, setGalleryCoverLoading] = useState(false);
+  const [galleryCoverPics, setGalleryCoverPics] = useState<Array<{ picUrl?: string; picThumb?: string }>>([]);
+
+  useEffect(() => {
+    apiGet<any>('/setting/config/globalSettings')
+      .then((config) => {
+        setUploadLimits({
+          imageMaxSize: Number(config?.imageUploadMaxSize || 0),
+          videoMaxSize: Number(config?.uploadMaxSize || 0),
+        });
+      })
+      .catch(() => undefined);
+  }, []);
 
   const reload = () => setReloadKey((key) => key + 1);
 
@@ -960,6 +981,24 @@ export default function MaterialCenter() {
       Toast.warning({ content: t('请选择图片文件') });
       return;
     }
+    if (uploadLimits.imageMaxSize > 0) {
+      const limitBytes = uploadLimits.imageMaxSize * 1024 * 1024;
+      const oversized = images.filter((file) => file.size > limitBytes);
+      if (oversized.length) {
+        Toast.error({
+          content: t('{count} 张图片超过系统设置的 {size}MB 上限，已跳过', {
+            count: oversized.length,
+            size: uploadLimits.imageMaxSize,
+          }),
+        });
+      }
+      const accepted = images.filter((file) => file.size <= limitBytes);
+      if (!accepted.length) return;
+      setUploadFiles((current) =>
+        current.concat(accepted.map((file) => ({ file, url: URL.createObjectURL(file) }))),
+      );
+      return;
+    }
     setUploadFiles((current) =>
       current.concat(images.map((file) => ({ file, url: URL.createObjectURL(file) }))),
     );
@@ -1026,6 +1065,10 @@ export default function MaterialCenter() {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.mp4')) {
       Toast.error({ content: t('不支持该格式的视频文件，仅支持 .mp4') });
+      return;
+    }
+    if (uploadLimits.videoMaxSize > 0 && file.size > uploadLimits.videoMaxSize * 1024 * 1024) {
+      Toast.error({ content: t('视频大小超过系统设置的 {size}MB 上限', { size: uploadLimits.videoMaxSize }) });
       return;
     }
     if (!ensureNotDemo(t)) return;
@@ -1142,6 +1185,26 @@ export default function MaterialCenter() {
       setExtCoverUploading(false);
       if (extVideoCoverInputRef.current) extVideoCoverInputRef.current.value = '';
     }
+  };
+
+  /** 从图库选择视频封面（对齐旧版 FormAddGallery 图库选择器）。 */
+  const openGalleryCoverPicker = async () => {
+    setGalleryCoverLoading(true);
+    setGalleryCoverOpen(true);
+    try {
+      const result = await apiGet<any>('/setting/galleryPic/list', { page: 1, size: 60 });
+      setGalleryCoverPics(result?.records || result?.list || []);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('图库加载失败') });
+      setGalleryCoverPics([]);
+    } finally {
+      setGalleryCoverLoading(false);
+    }
+  };
+
+  const chooseGalleryCover = (picUrl: string) => {
+    setExtVideoForm((current) => ({ ...current, videoCover: picUrl }));
+    setGalleryCoverOpen(false);
   };
 
   const submitExtVideo = async () => {
@@ -1775,7 +1838,11 @@ export default function MaterialCenter() {
               ) : null}
               <div className="mc-upload-notice">
                 <div>{t('注意： 1. 图片上传支持bmp、png、jpeg、jpg、gif、svg、webp格式；')}</div>
-                <div style={{ paddingLeft: 42 }}>{t('2. 大小限制以系统存储设置为准。')}</div>
+                <div style={{ paddingLeft: 42 }}>
+                  {uploadLimits.imageMaxSize > 0
+                    ? t('2. 单张图片大小不超过 {size}MB（系统图片上传大小设置）。', { size: uploadLimits.imageMaxSize })
+                    : t('2. 大小限制以系统存储设置为准。')}
+                </div>
               </div>
             </div>
           </div>
@@ -1816,7 +1883,11 @@ export default function MaterialCenter() {
                   <div className="mc-upload-text">{videoUploading ? t('视频上传中...') : t('可拖拽文件上传')}</div>
                 </div>
               )}
-              <div className="mc-upload-notice">{t('视频大小不超过系统限制，时长5秒-5分钟以内，建议时长15-190秒，支持的视频文件类型 .mp4。')}</div>
+              <div className="mc-upload-notice">
+                {uploadLimits.videoMaxSize > 0
+                  ? t('视频大小不超过 {size}MB（系统视频上传大小设置），时长5秒-5分钟以内，建议时长15-190秒，支持的视频文件类型 .mp4。', { size: uploadLimits.videoMaxSize })
+                  : t('视频大小不超过系统限制，时长5秒-5分钟以内，建议时长15-190秒，支持的视频文件类型 .mp4。')}
+              </div>
             </div>
           </div>
           <div className="mc-form-row">
@@ -1991,10 +2062,38 @@ export default function MaterialCenter() {
                   {t('上传封面')}
                 </Button>
               )}
+              <Button onClick={openGalleryCoverPicker}>{t('从图库选择')}</Button>
               <div className="mc-upload-notice">{t('建议尺寸：800*800px，支持 jpg/gif/png 格式。')}</div>
             </div>
           </div>
         </div>
+      </Modal>
+
+      {/* 图库选择封面（对齐旧版 FormAddGallery 图库选择器） */}
+      <Modal
+        title={t('从图库选择封面')}
+        visible={galleryCoverOpen}
+        footer={null}
+        onCancel={() => setGalleryCoverOpen(false)}
+        width={760}
+      >
+        <Spin spinning={galleryCoverLoading}>
+          {galleryCoverPics.length ? (
+            <div className="mc-cover-grid">
+              {galleryCoverPics.map((pic, index) => (
+                <div
+                  key={index}
+                  className="mc-cover-item"
+                  onClick={() => chooseGalleryCover(pic.picUrl || pic.picThumb || '')}
+                >
+                  <img src={pic.picThumb || pic.picUrl || ''} alt="" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Empty description={t('图库暂无图片')} />
+          )}
+        </Spin>
       </Modal>
 
       {/* 素材预览 */}

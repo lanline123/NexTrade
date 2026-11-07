@@ -40,6 +40,6 @@
     "表单抽屉(FormDrawer width=580)对齐 Info.vue：权限名称(必填)、唯一编号(必填+仅英文字母校验)、上级分类(getAllAuthority 拍平缩进 Select，新增顶级时锁定为顶级目录，等价旧版 disabled=action=='add'&&parentId==0)、ICO编码(文本)、排序、权限所属系统(admin/shop radio 禁用)、是否显示(是/否)、细分权限(childAuth 动态行 authName+authSn，新增/删除)；create 载荷不传 authorityId，update 带 authorityId。",
     "批量删除：旧版已注释的批量 UI 按后端 batch {ids, type:'del'} 实现；删除单条走 /del {id}（后端校验存在子级时拒绝）。",
     "筛选（自绘页，不经 ListPage，filters 留空记录于此）：adminType Tabs + parentId 层级钻取 + isShow/sortOrder 服务端排序(sorter:true → sortField/sortOrder)；旧版 keyword 参数无 UI 输入，未迁移。",
-    "与旧版差异：①旧版权限图标列渲染 iconfont <em class>，新版未加载 ico 图标库，改为展示图标 class 文本；②ICO编码由 SelectIco 图标选择器简化为文本输入（图标库地址依赖全局设置）；③旧版点击名称钻取与 PopForm 点击并存，新版拆分为名称钻取+编辑图标；④旧版 el-table 懒加载树+钻取并存，新版两者保留但子级刷新策略为变更后整树重载（展开节点自动重新拉取）；⑤店铺后台 Tab 旧版仅商家角色可见(isMerchant)，新版平台后台固定展示两个 Tab；⑥路由地址(routeLink)列/表单项旧版已注释，保持隐藏（后端仍支持，代码注释与本 spec 记录）；⑦旧版保存后刷新左侧菜单(updateMenu)，新框架菜单为静态 adminMenu.tsx 无需刷新。"
+    "与旧版差异：①旧版权限图标列渲染 iconfont <em class>，新版未加载 ico 图标库，改为展示图标 class 文本；②ICO编码已补齐图标选择器（IcoPicker：读取全局设置 icoDefinedCss，拉取 CSS 解析 .icon-* 类名选择，仍支持手动输入）；③旧版点击名称钻取与 PopForm 点击并存，新版拆分为名称钻取+编辑图标；④旧版 el-table 懒加载树+钻取并存，新版两者保留但子级刷新策略为变更后整树重载（展开节点自动重新拉取）；⑤店铺后台 Tab 旧版仅商家角色可见(isMerchant)，新版平台后台固定展示两个 Tab；⑥路由地址(routeLink)列/表单项旧版已注释，保持隐藏（后端仍支持，代码注释与本 spec 记录）；⑦旧版保存后刷新左侧菜单(updateMenu)，新框架菜单为静态 adminMenu.tsx 无需刷新。"
   ]
 }

@@ -73,7 +73,4 @@
     "上传：图片 POST /setting/galleryPic/uploadImg?galleryId=N(multipart file，多张串行)；视频 POST /setting/galleryVideoInfo/uploadVideo 先传文件，再 POST /setting/galleryVideoInfo/create{videoName,galleryId:[n],duration,size,videoCover,source:upload}；外部图片 POST /setting/galleryPic/createFromExternal{picUrl,picThumb,picName,galleryId,source:external}；外部视频 POST /setting/galleryVideoInfo/create{videoUrl,galleryId:[n],source:external}；分组内支持拖拽整批上传。",
     "编辑：图片 updateField{field:picName} + 分组变更走 transfer；视频 galleryVideoInfo/update(全量回传 detail+galleryId:[n]+videoCover+description)。删除：单删 galleryPic/del、galleryVideoInfo/del；批删 galleryPic/batchDel{ids,type}。移动到：galleryPic/transfer{ids,targetGalleryId,type}。",
     "批量下载 POST /setting/galleryPic/batchDownload{ids,type} 返回 zip 二进制(fetch 流下载)；导出链接：旧版用 XLSX 生成 xlsx，新后台无 xlsx 依赖(package.json 禁改)，降级为带 BOM 的 CSV(列名与旧版一致)，差异已记录。",
-    "与旧版差异(降级清单)：①分组拖拽排序(sortGallery /setting/gallery/sort)未迁移，Semi 树无拖拽手柄，分组顺序由后端 gallerySort 决定；②上传图片/视频大小上限读取 configStore(imageUploadMaxSize/uploadMaxSize)未迁移，改为固定文案提示；③视频时长格式化格式与旧版 formatDuration 可能存在显示差异(M:SS)；④el-tree-select 降级为扁平 Select(全角空格缩进表达层级)；⑤视频封面选择复用旧 FormAddGallery 的图片上传端点 uploadImg?galleryId=0，未做图库选择器。",
-    "权限位 galleryPicManage/galleryPicModifyManage 按钮级显隐未迁移(Rust 侧权限矩阵尚未实现，与已迁移页面一致)。"
-  ]
-}
+    "降级清单已补齐：①分组排序改为上移/下移菜单项（POST /setting/gallery/sort，Rust 后端已有，Semi Tree 无拖拽手柄）；②上传大小上限改为读取全局设置 imageUploadMaxSize/uploadMaxSize（GET /setting/config/globalSettings）并在选文件时前置校验；③视频封面新增“从图库选择”（GET /setting/galleryPic/list 网格选择）。仍有差异：④视频时长格式化可能与旧版 formatDuration 存在显示差异(M:SS)；⑤el-tree-select 降级为扑平 Select。

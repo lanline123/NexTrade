@@ -18,6 +18,7 @@ import { IconDelete, IconEdit, IconPlus, IconRefresh } from '@douyinfe/semi-icon
 import { apiGet, apiPost, isDemo } from '../api';
 import { useI18n } from '../i18n';
 import FormDrawer from '../framework/FormDrawer';
+import IcoPicker from '../components/IcoPicker';
 import type { FormDrawerConfig } from '../framework/types';
 import './authorities.css';
 
@@ -556,8 +557,13 @@ export default function Authorities() {
             {
               field: 'authorityIco',
               label: t('ICO编码'),
-              type: 'input',
-              placeholder: t('图标 class，如 icon-home'),
+              type: 'custom',
+              render: ({ formApi, values }) => (
+                <IcoPicker
+                  value={values.authorityIco}
+                  onChange={(next) => formApi?.setValue('authorityIco', next)}
+                />
+              ),
               extraText: t('请先在本系统设置中的"全局设置"中设置"ico图标库地址"'),
             },
             { field: 'sortOrder', label: t('排序'), type: 'number', initValue: 0 },
