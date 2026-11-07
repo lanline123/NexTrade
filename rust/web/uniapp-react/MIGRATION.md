@@ -19,7 +19,7 @@
 | 装修渲染器（customPage 模块） | ✅ 完成 | 48/48 类全量注册 + 双首页装配（B1 ~ B6-4d） |
 | 业务页面 | ✅ Phase 1 完成 | 旧 120 页中 weapp/H5 范围内 119 页已注册；`imageSearch/capture` 为 `#ifdef APP-PLUS` 专属页随 App 批次（见 §5 R2 结论） |
 | websocket/IM | ✅ 完成 | im 3 页 + 5 组件，`utils/websocket.ts` 复用（B6-3） |
-| TODO(MIGRATION) 存量 | ⬜ 清理中 | 2026-11-05 审计：131 处 = A外部阻塞17 / B可补齐72 / C守卫型15 / D待核对27，修复分批方案见 §5-R3 |
+| TODO(MIGRATION) 存量 | ⬜ 清理中 | 2026-11-07 更新：93 处（基线 131）。已清：tig-select-lang、海外 mainHeader×5、公共 TigButton/TigCheckbox 收敛 20+ 处、cart/product 瀑布流、Swipe 阈值、App 桥接层（A 类大部分核销）。剩余 ≈ C 守卫型注释 + D 待真机/产品核对（canvas/动效/富文本/业务口径）+ App 壳工程原生侧任务 |
 | App 端（RN）/鸿蒙 | ⬜ 待定 | 见 §3 已知差异 #5 与 §5-R3 A 类清单 |
 
 ## 1. 运行
@@ -50,9 +50,9 @@ npm run typecheck       # tsc --noEmit
 2. **redirect() 双跳转缺陷修复**：旧 `utils/index.ts` 非法外链分支缺 `return`，MP 端会先开 webview 页再走 switch 二次跳转；已补 `return`。
 3. **i18n 框架同步层删除**：Taro 下 i18next 是唯一 locale 来源（无 uni.setLocale/Android 重启问题）；`syncFrameworkLocale` 等保留空实现兼容调用点。
 4. **tabBar**：Phase 1 不声明原生 tabBar，4 个 tab 页各自渲染 `components/CustomTabbar.tsx`（消费后台导航装修 + `useTabbarDerived`）；weapp 真机验证后再决定是否切原生 custom-tab-bar。
-5. **App 端**：`store/appVersion.ts` 依赖 5+ `plus.runtime`，Taro RN 端需接原生模块后重写；App 壳形态（RN / H5 壳）待定，阻塞 App 端批次。
+5. **App 端（2026-11-07 定案）**：App 壳形态采用 **H5 壳（WebView 壳）**——复用 build:h5 产物，原生壳仅做容器 + JSBridge（对齐旧 5+ runtime 角色）。桥层 `utils/nativeBridge.ts`（window.H5ShellBridge，注入式）：getAppVersion/getOsName/openUrl/saveImageToAlbum/downloadArchive/openFile/requestPermission/checkPermission/setStatusBarStyle/registerBackHandler/isNativePluginAvailable/installUpdate/restartApp；未注入时 isH5Shell()=false，所有调用点走 H5 兜底。已接线：appVersion store + checkAppUpdate + AppUpdatePop（热更弹层移植）、appPermission、rawImageNativeDownload.downloadAppArchive、MediaUpload 相册权限、cashier/mallAgreement 返回键拦截、search/image 状态栏、payment 第三方收银台、BuyerShowPoster 存相册。与旧 App 行为差异：H5 壳内 TARO_ENV=h5，旧 #ifdef H5 分支自动生效。
 6. **高德 H5**：旧方案注入 uni-h5 `__uniConfig`；Taro 无此配置点，`applyAmapH5Config` 改写 `window._AMapSecurityConfig`，地图装修模块迁移时实测。
-7. **store/region.ts 为 stub**：仅保留 urlFormat 读取的 3 个字段；O2O 定位/进店规则全量迁移时补全（旧 405 行）。
+7. **store/region.ts**：已于 B6-6b-1 全量移植（405 → 442 行），GPS/IP 双通道定位 + 进店规则 + currentSelected*/currentLocationInfo 全字段可用；散落的"region 为 stub"旧注释已核销。
 8. **自定义 tabBar 高亮色**当前用 `--nutui-brand-color` 默认值，接后台主题色时在 `theme.ts` 落地后写运行时变量。
 
 ## 4. 环境变量对照
@@ -134,8 +134,8 @@ npm run typecheck       # tsc --noEmit
 - [x] B6-4d：customPage 48/48 模块核验通过（registry 全量注册）+ index/src/PreviewTip 完成；**双首页装配已落地**：`index/index.tsx` 接 masonry（B4-2a 容器 + useProductStyle）、外贸风 mainHeader + spacer（B4-2c-1）、SplashAd、TigBackTop、useDidShow 滚动恢复、share 三件套、useUnload；`customPage/index.tsx` 补 masonry/backTop/useDidShow/share。旧 1220 行首页 scss 中的遗留死样式未平移
 - [x] B6-6a：SplashAd 开屏广告（`components/SplashAd` 新建 119 行 tsx + scss；image/video 双素材、加载完才起倒计时、跳过按钮、redirectType=1 跳转、video ended 关闭；旧端差异 close-btn--weapp/--h5）
 - [x] B6-6b-1：store/region 全量移植（405 → 442 行）：GPS/IP 双通道定位、进店规则三级优先级（推广店铺 / 同城配送最近门店 / 销售员气泡）、IP 仅首次兜底不降级 GPS、推广 shopId 从 URL·启动参数·扫码 scene 三处解析、最近门店预取、storage key 全部保持原值；配套 `utils/location.ts`（139 → 116 行，gcoord WGS84→GCJ02、权限检查三端收敛）
-- [ ] **B6-6b-2：App(RN)/鸿蒙端形态决策 —— 唯一剩余项，需用户拍板**（App 壳形态：RN 原生 vs H5 壳；阻塞 plus.runtime 系：appVersion/checkAppUpdate/appPermission；地图 mapProvider/tig-map 组件。其余全部批次已完成：367 页面 tsx / 78859 行，tsc 0 错误，双端构建全绿，TODO(MIGRATION) 131 处均为已标注的视觉/行为校准备忘）
-- [ ] tig-select-lang 真实现（**纠错 2026-11-05**：此前被误勾为"真实现 204 行"，实测 `components/tig/tig-select-lang/TigSelectLang.tsx` 仍为 8 行 null 占位 stub；旧源 tig-select-lang.vue 204 行待移植，弹层能力已登记 §5-R3 B5）
+- [x] **B6-6b-2：App 端形态决策 —— 已定案 H5 壳（2026-11-07，用户拍板）**。桥层 `utils/nativeBridge.ts` + checkAppUpdate/appPermission/rawImageNativeDownload/返回键拦截/状态栏/相册保存全部接线；AppUpdatePop 组件已移植挂载 TigLayout。**剩余为壳工程本身**（Android/iOS WebView 容器 + 按契约实现 H5ShellBridge），属原生开发任务，前端无阻塞项
+- [x] tig-select-lang 真实现（**2026-11-07 完成**：204 行弹层全量移植——语言单选即时切换 + reLaunch、货币 NutUI Picker、forwardRef handleclickLang、ConfigProvider 中英文按钮文案；banner 调用点 ref + showLangBtn=false 接线）
 
 ### B5 增值
 - [x] coupon（index/detail/search + Tag）seckill（list）groupon（list/mylist + 7 组件）exchange（list）giftCard（4 页 + 7 组件）lottery（index）全量完成

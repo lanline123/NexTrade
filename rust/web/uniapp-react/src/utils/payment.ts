@@ -1,5 +1,7 @@
 import Taro from "@tarojs/taro";
 
+import { getShellBridge } from "@/utils/nativeBridge";
+
 // 自旧 view/uniapp/src/utils/payment.ts 移植（B3 交易链路第四批）
 // 支付工具：第三方收银台 URL 打开分发
 
@@ -36,10 +38,8 @@ const redirectToTopLevel = (url: string): boolean => {
 
 /**
  * 按客户端能力打开第三方收银台。
- * - H5/公众号：顶层页面跳转
+ * - H5/公众号（含 H5 壳）：顶层页面跳转；壳内可经桥改走系统浏览器（对齐旧 APP-PLUS openURL 行为）
  * - 小程序：受控 web-view（pages/webviewPage）；目标域名仍需在对应平台配置业务域名
- * TODO(MIGRATION)：App 端分支（uni-app APP-PLUS plus.runtime.openURL / APP-HARMONY web-view）
- * 待 App 批次落地时补充，当前 App 端返回 false（页面会提示"无法打开支付页面"）。
  */
 export const openExternalPaymentUrl = (rawUrl: unknown, options: OpenExternalPaymentOptions): boolean => {
     const url = typeof rawUrl === "string" ? rawUrl.trim() : "";
@@ -48,6 +48,16 @@ export const openExternalPaymentUrl = (rawUrl: unknown, options: OpenExternalPay
     const { clientType, onFail } = options;
 
     if (clientType === "h5" || clientType === "wechat") {
+        // H5 壳内：旧 APP-PLUS 用 plus.runtime.openURL 跳系统浏览器，桥可用时对齐该行为
+        const bridge = getShellBridge();
+        if (bridge?.openUrl) {
+            try {
+                bridge.openUrl(url);
+                return true;
+            } catch {
+                // 桥调用失败回落页内跳转
+            }
+        }
         return redirectToTopLevel(url);
     }
 

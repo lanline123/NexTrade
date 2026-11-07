@@ -19,6 +19,7 @@ import { useUserStore } from "@/store/user";
 import type { attrsListData, Brand, filterSeleted } from "@/types/search/search";
 import { getCaptureLayout, getHeaderInsets } from "@/utils/imageSearchLayout";
 import { getSearchShopId, leaveImageSearch, takePendingSearchImage, type PickedSearchImage } from "@/utils/imageSearchPick";
+import { getShellBridge } from "@/utils/nativeBridge";
 import { t } from "@/utils/i18n";
 
 import FilterBar, { type FilterBarRef } from "./imageSearch/components/FilterBar";
@@ -430,7 +431,9 @@ export default function ImageSearchResult() {
 
     // 扫描页是黑底，结果页是浅色底，状态栏文字颜色跟着切换
     useEffect(() => {
-        // TODO(MIGRATION)：旧版 App 端 plus.navigator.setStatusBarStyle；Taro 端待 App 壳确定后接入
+        // 旧 plus.navigator.setStatusBarStyle → H5 壳桥 setStatusBarStyle；非壳环境无状态栏概念，跳过
+        const bridge = getShellBridge();
+        bridge?.setStatusBarStyle?.(phase === "scanning" ? "light" : "dark");
     }, [phase]);
 
     // H5 关掉本页的页面回弹：iOS 触底回弹会把吸顶的搜索和筛选区一起顶上去再落回

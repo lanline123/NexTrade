@@ -1,0 +1,124 @@
+/* 自旧 components/appUpdatePop/index.vue scoped 样式移植（去 scoped） */
+
+.hot-update-box {
+    width: 100vw;
+    box-sizing: border-box;
+    padding: 0 60rpx;
+
+    .box-bg {
+        border-radius: 38rpx;
+        background: rgba(255, 255, 255, 1);
+        position: relative;
+
+        .box-bg-img {
+            width: 100%;
+            height: 200rpx;
+            top: 0;
+            left: 0;
+            position: absolute;
+        }
+
+        .box-bg-ico {
+            width: 242rpx;
+            height: 228rpx;
+            top: -60rpx;
+            left: 50%;
+            transform: translateX(-50%);
+            position: absolute;
+        }
+
+        .close {
+            position: absolute;
+            top: 10rpx;
+            right: 10rpx;
+            z-index: 3;
+            color: #ffffff;
+            cursor: pointer;
+            padding: 20rpx;
+
+            .icon-chacha {
+                font-size: 36rpx;
+                font-weight: 600;
+            }
+        }
+    }
+
+    .hot-update {
+        padding-top: 191rpx;
+        position: relative;
+        z-index: 2;
+
+        .hot-update-title {
+            font-weight: 600;
+            font-size: 34rpx;
+            color: #013148;
+            line-height: 48rpx;
+            height: 48rpx;
+            text-align: center;
+        }
+
+        .hot-update-content {
+            padding: 34rpx 40rpx 0;
+
+            .hot-update-row {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 26rpx;
+                color: #013148;
+                padding-bottom: 20rpx;
+                font-weight: 400;
+            }
+        }
+
+        .hot-update-btn {
+            padding: 34rpx 40rpx 46rpx;
+            width: 100%;
+
+            .update-height {
+                height: 80rpx;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                .progress-box {
+                    width: 100%;
+                    height: 40rpx;
+                    border-radius: 40rpx;
+                    background: #f0f0f0;
+
+                    .progress {
+                        height: 100%;
+                        width: 0;
+                        border-radius: 40rpx;
+                        background: linear-gradient(270deg, #ff5f01 0%, #df0703 100%);
+                        position: relative;
+                        overflow: hidden;
+
+                        .progress-text {
+                            font-size: 24rpx;
+                            color: #ffffff;
+                            position: absolute;
+                            right: 0;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            padding-right: 10rpx;
+                        }
+                    }
+                }
+            }
+
+            .btn-box {
+                background: linear-gradient(270deg, #ff5f01 0%, #df0703 100%);
+                border-radius: 40rpx;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 34rpx;
+                color: #ffffff;
+            }
+        }
+    }
+}

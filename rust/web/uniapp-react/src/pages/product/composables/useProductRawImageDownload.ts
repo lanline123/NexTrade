@@ -133,7 +133,7 @@ export function useProductRawImageDownload(context: RawImageContext | null, relo
                 cancelTransferRef.current = miniTask.cancel;
                 native = await miniTask.promise;
             }
-            // 对应旧 #ifdef APP-PLUS：Taro 无 App 运行时，downloadAppArchive 内部直接拒绝（见该文件 TODO(MIGRATION)）
+            // 对应旧 #ifdef APP-PLUS：H5 壳形态下经 H5ShellBridge.downloadArchive/openFile（见 rawImageNativeDownload）
             if (process.env.TARO_ENV !== "h5" && process.env.TARO_ENV !== "weapp") {
                 const appTask = downloadAppArchive(url, headers, snapshot.id);
                 cancelTransferRef.current = appTask.cancel;

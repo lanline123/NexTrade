@@ -44,8 +44,7 @@ export const useImageSearchStore = create<ImageSearchState>((set, get) => {
         if (pending) return pending;
         pending = getImageSearchCapabilities()
             .then((res) => {
-                // TODO(MIGRATION)：旧版 App 端读 appEnabled；Taro 端先只支持 h5 / weapp。
-                // 后端没有小程序的端开关，微信小程序暂时跟随 H5 开关
+                // 旧版 App 端读 appEnabled；H5 壳形态下客户端即 h5，跟随 h5 开关（与小程序同口径）
                 set({
                     available: !!res?.h5Enabled,
                     shopEnabled: res?.shopEnabled !== false

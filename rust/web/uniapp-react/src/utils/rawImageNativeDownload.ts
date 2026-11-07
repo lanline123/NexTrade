@@ -1,12 +1,14 @@
 import Taro from "@tarojs/taro";
 
+import { getShellBridge } from "./nativeBridge";
 import { hasZipEnd, isZipHeader, parseRawImageError, rawImageFilename, RawImageDownloadError } from "./productRawImageDownload";
 
 /**
  * 原生（非浏览器）侧原图 ZIP 下载/导出工具
  * 自 uniapp src/utils/rawImageNativeDownload.ts 移植到 Taro：
  * - 小程序（weapp）分支改用 Taro.getFileSystemManager / Taro.downloadFile / Taro.shareFileMessage
- * - APP-PLUS（plus.*）在 Taro（h5 / weapp）无对应运行时，暂未平移，见 downloadAppArchive 内 TODO(MIGRATION)
+ * - App 端形态已定案为 H5 壳（B6-6b-2）：下载/导出经 H5ShellBridge.downloadArchive + openFile
+ *   （对齐旧 plus.downloader / plus.io / plus.runtime.openFile），非壳环境保持拒绝路径
  */
 
 export interface NativeArchive {
@@ -97,14 +99,52 @@ export function downloadMiniArchive(url: string, headers: Record<string, string>
 }
 
 export function downloadAppArchive(url: string, headers: Record<string, string>, id: number): NativeDownload {
-    void url;
     void headers;
-    void id;
     let cancel = () => {};
     const promise = new Promise<NativeArchive>((resolve, reject) => {
-        // TODO(MIGRATION)：uni-app 的 APP-PLUS 分支依赖 plus.downloader / plus.io / plus.runtime，
-        // Taro（h5 / weapp）没有对应运行时，App 端原生下载暂未平移，保持与旧 #ifndef APP-PLUS 相同的拒绝路径。
-        reject(new RawImageDownloadError("当前版本不支持文件导出，请升级客户端"));
+        // 旧 APP-PLUS 分支（plus.downloader / plus.io / plus.runtime.openFile）→ H5 壳桥
+        const bridge = getShellBridge();
+        if (!bridge?.downloadArchive || !bridge?.openFile) {
+            reject(new RawImageDownloadError("当前版本不支持文件导出，请升级客户端"));
+            return;
+        }
+        let cancelled = false;
+        let filePath = "";
+        void (async () => {
+            try {
+                const downloaded = await bridge.downloadArchive!(url, headers);
+                if (cancelled) return;
+                filePath = downloaded.path;
+                const filename = rawImageFilename(
+                    // 壳端若能回传 content-disposition 则优先；否则用商品 id 兜底命名
+                    (downloaded as { contentDisposition?: string }).contentDisposition || "",
+                    id
+                );
+                resolve({
+                    filename,
+                    cleanup: () => {
+                        // 文件清理由壳端生命周期管理（对齐旧 plus.io 的 TEMP 目录回收）
+                    },
+                    exportFile: () =>
+                        bridge
+                            .openFile!(filePath)
+                            .then(() => "opened" as const)
+                            .catch(() => {
+                                throw new RawImageDownloadError("文件导出失败，请重试");
+                            })
+                });
+            } catch (error) {
+                reject(
+                    error instanceof RawImageDownloadError
+                        ? error
+                        : new RawImageDownloadError("素材下载失败，请重试")
+                );
+            }
+        })();
+        cancel = () => {
+            cancelled = true;
+            reject(new RawImageDownloadError("已取消下载"));
+        };
     });
     return { promise, cancel: () => cancel() };
 }

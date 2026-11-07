@@ -169,9 +169,9 @@ export default function GroupBuying() {
     // 跳转店铺
     const handleToShop = () => {
         if (shopInfo.shopId) {
-            // TODO(MIGRATION)：store/region 当前为 stub，currentLocationInfo 待 region 全量迁移后补全，空值兜底。
-            const regionStore = useRegionStore.getState() as any;
-            const location = regionStore.currentLocationInfo || {};
+            // region store 已随 B6-6b-1 全量移植，currentLocationInfo 直接可用（空值兜底保留）
+            const regionStore = useRegionStore.getState();
+            const location = regionStore.currentLocationInfo;
             Taro.navigateTo({
                 url: `/pages/store/index?id=${shopInfo.shopId}&latitude=${location.latitude ?? ""}&longitude=${location.longitude ?? ""}`
             });

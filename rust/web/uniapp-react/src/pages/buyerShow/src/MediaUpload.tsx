@@ -4,6 +4,8 @@ import Taro from "@tarojs/taro";
 
 import { imageFormat } from "@/utils/format";
 import { t } from "@/utils/i18n";
+import { requestPhotosPermission } from "@/utils/appPermission";
+import { isH5Shell } from "@/utils/nativeBridge";
 import { baseUrl, getSecret } from "@/utils/request";
 
 import "./MediaUpload.scss";
@@ -44,8 +46,7 @@ interface Props {
  * - H5 走动态 input[type=file]，非 H5 走 Taro.chooseMedia（失败降级 chooseImage/chooseVideo）
  * - 上传接口与旧版一致：user/user/uploadImg、user/user/uploadVideo
  * - 视频数量上限、上传进度、上传中删除中止均保留
- *
- * TODO(MIGRATION)：旧组件里的 App 相册权限请求（requestPhotosPermission）随 App 批次补。
+ * - 旧 App 相册权限申请已接 H5 壳桥（utils/appPermission，requestPhotosPermission）
  */
 export default function MediaUpload({
     mediaList,
@@ -116,6 +117,20 @@ export default function MediaUpload({
         if (process.env.TARO_ENV === "h5") {
             createFileInput();
             return;
+        }
+        // 旧 #ifdef APP-PLUS：先申请相册权限（H5 壳桥实现；iOS 由系统在 chooseImage 时弹窗，桥端放行）
+        if (isH5Shell()) {
+            try {
+                const hasPhotosPermission = await requestPhotosPermission();
+                if (!hasPhotosPermission) {
+                    Taro.showToast({ title: t("需要相册权限才能选择图片"), icon: "none" });
+                    return;
+                }
+            } catch (error) {
+                console.error("权限请求失败:", error);
+                Taro.showToast({ title: t("权限请求失败"), icon: "none" });
+                return;
+            }
         }
         chooseMediaNative();
     };

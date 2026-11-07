@@ -43,9 +43,9 @@ export default function ProductShopInfo({ storeInfo, productId, shopId, formType
     const handleStoreList = () => {
         if (!productId) return;
 
-        // TODO(MIGRATION)：store/region 当前为 stub（仅保留 urlFormat 读取字段），
-        // currentRegion / currentLocationInfo 待 region 全量迁移后补全；此处按旧 URL 契约兜底空值。
-        const regionStore = useRegionStore.getState() as any;
+        // region store 已随 B6-6b-1 全量移植（currentRegion / currentLocationInfo 直接可用）；
+        // 此处按旧 URL 契约兜底空值。
+        const regionStore = useRegionStore.getState();
 
         // formType 为 true 时（通过带 shopId 的链接直接进入商详），用 redirectTo 替换当前商详页，
         // 让门店列表选店后重新打开商详；不直接操作 history.back，避免 PC iframe 套壳下退出整个 H5 应用导致跳转失效

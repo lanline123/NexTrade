@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Taro, { useRouter } from "@tarojs/taro";
 import { View, RichText } from "@tarojs/components";
 
@@ -7,6 +7,7 @@ import { getArticle } from "@/api/article/article";
 import type { ArticleFormState } from "@/types/article/article";
 import { useUserStore } from "@/store/user";
 import { t } from "@/utils/i18n";
+import { getShellBridge } from "@/utils/nativeBridge";
 import { usePageGuards } from "@/utils/pageMixin";
 
 import "./mallAgreement.scss";
@@ -23,6 +24,9 @@ export default function MallAgreement() {
     const router = useRouter();
 
     const [fromLoginPopup, setFromLoginPopup] = useState(false);
+    /** 镜像 ref：返回键 handler 在 mount 时注册，读取最新状态用 */
+    const fromLoginPopupRef = useRef(false);
+    fromLoginPopupRef.current = fromLoginPopup;
     const [articleSn, setArticleSn] = useState<"fwxy" | "ysxy">("fwxy");
     const [articleData, setArticleData] = useState<ArticleFormState>({
         content: ""
@@ -43,8 +47,23 @@ export default function MallAgreement() {
     }, []);
 
     // 处理返回逻辑
-    // TODO(MIGRATION)：旧 onBackPress（安卓物理返回键拦截，fromLoginPopup 时走 handleBack 并阻止默认返回）
-    // 在 Taro React 无对等钩子（onBackPress 仅原生小程序可用），待 App 端批次统一补齐
+    // 旧 onBackPress：安卓物理返回键拦截，fromLoginPopup 时走 handleBack 并阻止默认返回。
+    // H5 壳形态下壳拦截返回键回调此处注册的 handler；非壳环境无物理返回键，仅保留页内按钮。
+    useEffect(() => {
+        const bridge = getShellBridge();
+        if (!bridge?.registerBackHandler) return;
+        const handler = () => {
+            if (fromLoginPopupRef.current) {
+                handleBack();
+                return true;
+            }
+            return false;
+        };
+        bridge.registerBackHandler(handler);
+        return () => bridge.unregisterBackHandler?.(handler);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleBack = () => {
         if (fromLoginPopup) {
             // 跳转到我的页面并打开登录弹窗

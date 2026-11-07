@@ -122,9 +122,8 @@ export default function ProductShare({ modelValue, productId, productInfo, produ
     };
     const handleCopy = () => {
         setShow(false);
-        // 原 #ifdef H5 || APP-PLUS
+        // 原 #ifdef H5 || APP-PLUS：H5 壳形态下 TARO_ENV 即 "h5"，h5Copy 覆盖壳场景
         if (process.env.TARO_ENV === "h5") {
-            // TODO(MIGRATION)：APP-PLUS（原生 App）分支在 Taro React 下暂未启用，仅保留 H5
             h5Copy();
         }
     };
@@ -141,7 +140,7 @@ export default function ProductShare({ modelValue, productId, productInfo, produ
         if (process.env.TARO_ENV === "h5") {
             shareUrl = attachSalesman ? appendQueryParam(window.location.href, "salesmanId", salesmanId) : window.location.href;
         }
-        // 原 #ifdef APP-PLUS（TODO(MIGRATION)：Taro React 下对应 RN / 原生容器，暂未启用）
+        // 原 #ifdef APP-PLUS：H5 壳形态下走上方 H5 分支（TARO_ENV = "h5"），无独立原生分支
         return normalizeProductShareUrl(shareUrl, resolveProductShopId(productInfo.shopId, isO2o()));
     };
 

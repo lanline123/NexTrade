@@ -9,6 +9,7 @@ import { orderPayInfo, rechargeOrderPay } from "@/api/order/pay";
 import type { Order } from "@/types/order/pay";
 import { usePayment, PAYMENT_TEXT_MAP } from "@/hooks/usePayment";
 import { isOverseas, staticResource, redirect } from "@/utils";
+import { getShellBridge } from "@/utils/nativeBridge";
 import { t } from "@/utils/i18n";
 
 import AbandonPayDialog from "./src/AbandonPayDialog";
@@ -344,9 +345,19 @@ export default function Cashier() {
         setShowAbandon(true);
     };
 
-    // TODO(MIGRATION)：旧 onBackPress 拦截系统/硬件返回改弹挽留；Taro React 无对应
-    // 跨端 hook（H5 无法拦截浏览器返回，小程序需原生容器支持），随平台能力批次补充。
-    // const onBackPress = (e: any) => { ... }
+    // 旧 onBackPress：物理返回改弹挽留。H5 壳形态下壳拦截返回键回调此处注册的 handler
+    // （返回 true = 已消费）；非壳 H5 浏览器返回无法拦截，维持现状（页面内返回按钮行为一致）。
+    useEffect(() => {
+        const bridge = getShellBridge();
+        if (!bridge?.registerBackHandler) return;
+        const handler = () => {
+            onClickBack();
+            return true;
+        };
+        bridge.registerBackHandler(handler);
+        return () => bridge.unregisterBackHandler?.(handler);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /** 放弃支付 / 关闭挽留弹窗 */
     const confirmAbandon = () => {

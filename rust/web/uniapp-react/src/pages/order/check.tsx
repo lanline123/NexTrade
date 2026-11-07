@@ -109,9 +109,8 @@ export default function Check() {
     }
 
     // 当前结算表单数据（旧 reactive → 可变 ref + rerender；仅在 mount 时初始化一次）
-    // TODO(MIGRATION)：旧 regionStore.currentLocationInfo（定位经纬度）尚未随 region store stub 提供，
-    // region 全量迁移（O2O 批次）后就位后此处自动生效
-    const regionStateAny = useRegionStore.getState() as any;
+    // region store 已随 B6-6b-1 全量移植，currentLocationInfo 直接可用
+    const regionStateAny = useRegionStore.getState();
     const formStateRef = useRef<IformState>({
         shippingType: {},
         payTypeId: 0,
@@ -202,9 +201,8 @@ export default function Check() {
             if (result.records.length > 0) {
                 const records = result.records;
                 // 默认选中用户在地址/定位页切换的收货地址：优先按地址 id 精确匹配，其次坐标，再次地址文案，否则回退第一条
-                // TODO(MIGRATION)：旧 regionStore 的 currentSelectedName/currentSelectedAddressId/currentLocationInfo
-                // 尚未随 region store stub 提供，先按空值走回退分支，region 迁移后恢复
-                const regionAny = useRegionStore.getState() as any;
+                // region store 已随 B6-6b-1 全量移植，三个字段直接可用
+                const regionAny = useRegionStore.getState();
                 const selName = regionAny.currentSelectedName;
                 const selAddressId = Number(regionAny.currentSelectedAddressId) || 0;
                 const lat = Number(regionAny.currentLocationInfo?.latitude) || 0;

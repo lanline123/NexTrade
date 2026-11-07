@@ -6,6 +6,7 @@ import { Popup } from "@nutui/nutui-react-taro";
 import { getQrCode } from "@/api/common";
 import { useConfigStore } from "@/store/config";
 import { staticResource, getImageInfo } from "@/utils";
+import { getShellBridge } from "@/utils/nativeBridge";
 import { imageFormat } from "@/utils/format";
 import { t } from "@/utils/i18n";
 import { buildBuyerShowShareUrl } from "../utils/share";
@@ -96,7 +97,7 @@ const createH5Context = () => {
  * - 离屏 canvas 绘制封面、头像、正文、二维码
  * - 旧 tig-popup → NutUI Popup（center + 透明背景 + 无关闭按钮）
  *
- * TODO(MIGRATION)：H5 端 canvasToTempFilePath 由 canvas.toDataURL 兜底；App 端（plus）保存相册随 App 批次补。
+ * - H5 端 canvasToTempFilePath 由 canvas.toDataURL 兜底；H5 壳内保存相册经桥 saveImageToAlbum（对齐旧 APP-PLUS）
  */
 export default function BuyerShowPoster({ modelValue, buyerShowId, buyerName, buyerPhoto, content, cover, onModelValueChange }: Props) {
     const [qrImg, setQrImg] = useState("");
@@ -462,6 +463,24 @@ export default function BuyerShowPoster({ modelValue, buyerShowId, buyerName, bu
     };
 
     const handleSave = () => {
+        // H5 壳内：海报 dataUrl 经桥存相册（对齐旧 APP-PLUS plus.gallery.save）；非壳浏览器仅预览
+        if (process.env.TARO_ENV === "h5") {
+            const bridge = getShellBridge();
+            if (!bridge?.saveImageToAlbum || !img) {
+                Taro.showToast({ title: t("长按图片可保存海报"), icon: "none" });
+                return;
+            }
+            void bridge
+                .saveImageToAlbum(img)
+                .then(() => {
+                    Taro.showToast({ title: t("保存海报成功"), icon: "none", duration: 1500 });
+                    setTimeout(() => emitModelValue(false), 1500);
+                })
+                .catch(() => {
+                    Taro.showToast({ title: t("保存海报失败"), icon: "none", duration: 3000 });
+                });
+            return;
+        }
         if (process.env.TARO_ENV !== "weapp") return;
         Taro.saveImageToPhotosAlbum({
             filePath: img,

@@ -6,6 +6,7 @@ import ProductItem from "@/components/masonry/ProductItem";
 import LoadingBox from "@/components/loading-box";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import MainHeader from "@/components/mainHeader";
+import TigButton2 from "@/components/tig/tig-button2/TigButton2";
 import type { Brand, filterSeleted, ProductFilterParams, attrsData, attrsListData } from "@/types/search/search";
 import type { StoreSearchParams, StoreSearchRecord } from "@/types/search/storeSearch";
 import { getCategoryTree, getCategoryProductFilter, getCategoryProduct, getShopCategoryTree, getSearchEsFilter, getStoreProduct } from "@/api/search/search";
@@ -965,10 +966,10 @@ export default function SearchResult() {
                                 <View className="empty-container">
                                     <Image className="empty-image" src={staticResource("empty/emptyProduct.png")} mode="aspectFit" />
                                     <Text>{t("没有找到相关的门店")}</Text>
-                                    {/* TODO(MIGRATION)：旧 tig-button2 按钮以 .empty-btn 样式 View 等价重写 */}
-                                    <View className="empty-btn" onClick={toHomePage}>
+                                    {/* 旧 tig-button2 class="empty-btn"（已收敛到 TigButton2） */}
+                                    <TigButton2 className="empty-btn" onClick={toHomePage}>
                                         {t("返回首页")}
-                                    </View>
+                                    </TigButton2>
                                 </View>
                             )}
                         </View>
@@ -1000,10 +1001,10 @@ export default function SearchResult() {
                             <View className="empty-container">
                                 <Image className="empty-image" src={staticResource("empty/emptyProduct.png")} mode="aspectFit" />
                                 <Text>{t("没有找到相关的商品")}</Text>
-                                {/* TODO(MIGRATION)：旧 tig-button2 按钮以 .empty-btn 样式 View 等价重写 */}
-                                <View className="empty-btn" onClick={toHomePage}>
+                                {/* 旧 tig-button2 class="empty-btn"（已收敛到 TigButton2） */}
+                                <TigButton2 className="empty-btn" onClick={toHomePage}>
                                     {t("返回首页")}
-                                </View>
+                                </TigButton2>
                             </View>
                         )}
 

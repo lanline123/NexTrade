@@ -22,7 +22,7 @@ import ProductDescription from "./src/productDescription";
 import DescriptionCard from "./src/descriptionCard";
 import Animation from "./src/animation";
 import ErrorComp from "./src/error";
-import Recommend from "./src/recommend";
+import Recommend from "@/components/recommend";
 import ProductActionBar, { type ProductActionBarRef } from "./components/ProductActionBar";
 import TigLayout, { type TigLayoutRef } from "@/components/tig/tig-layout/TigLayout";
 import MainHeader from "@/components/mainHeader";

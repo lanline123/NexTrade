@@ -4,6 +4,8 @@ import Taro, { useDidShow, useReachBottom, useRouter } from "@tarojs/taro";
 import { Popup } from "@nutui/nutui-react-taro";
 
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import TigButton from "@/components/tig/tig-button/TigButton";
+import TigButton2 from "@/components/tig/tig-button2/TigButton2";
 import FormatPrice from "@/components/format-price/FormatPrice";
 import { addCoupon, getCouponList, getMyCouponList } from "@/api/coupon/coupon";
 import type { CouponData, CouponFilterParams, CouponFilterResult } from "@/types/coupon/coupon";
@@ -290,18 +292,18 @@ export default function CouponIndex() {
                                             </View>
                                             <View className="right-2">
                                                 <View>
-                                                    {/* TODO(MIGRATION)：通用 tig-button（uview up-button）未移植，暂以等价主题实底 View 替代 */}
-                                                    <View
-                                                        className={`coupon-receive-btn ${
+                                                    {/* 旧 tig-button plain-main-color :custom-style height 55rpx :disabled（已收敛到公共组件，plain 描边对齐旧版） */}
+                                                    <TigButton
+                                                        plain
+                                                        customStyle={{ height: "55rpx" }}
+                                                        disabled={
                                                             claimingSet.has(item.couponId) ||
                                                             couponStatus(item.isReceive, item.limitNum, item.receiveNum) === "已领取"
-                                                                ? "coupon-receive-btn--disabled"
-                                                                : ""
-                                                        }`}
+                                                        }
                                                         onClick={() => handleReceiveCouponClick(item)}
                                                     >
                                                         {t(couponStatus(item.isReceive, item.limitNum, item.receiveNum))}
-                                                    </View>
+                                                    </TigButton>
                                                 </View>
                                             </View>
                                         </View>
@@ -403,9 +405,9 @@ export default function CouponIndex() {
                     <View className="rule-popup-title">{t("使用规则")}</View>
                     <View className="rule-popup-content">{t(currentCouponDesc)}</View>
                     <View className="rule-popup-btn">
-                        {/* TODO(MIGRATION)：通用 tig-button2 未移植，暂以等价主题实底 View 替代 */}
-                        <View
-                            className="theme-btn"
+                        {/* 旧 tig-button2 theme（已收敛到 TigButton2） */}
+                        <TigButton2
+                            theme
                             style={{
                                 width: "100%",
                                 height: "88rpx",
@@ -416,7 +418,7 @@ export default function CouponIndex() {
                             onClick={() => setShowRulePopup(false)}
                         >
                             {t("我知道了")}
-                        </View>
+                        </TigButton2>
                     </View>
                 </View>
             </Popup>

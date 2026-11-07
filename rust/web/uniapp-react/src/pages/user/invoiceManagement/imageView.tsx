@@ -59,7 +59,7 @@ export default function ImageView() {
                 downloadImage(item.picUrl);
             });
         } else {
-            // TODO(MIGRATION)：旧 #ifdef APP-PLUS 分支随 App 端批次接入，当前按小程序逻辑兜底
+            // 旧 #ifdef APP-PLUS 分支：H5 壳形态下 TARO_ENV 即 "h5"，走上方单张下载分支，此处仅剩理论兜底
             fileList.forEach((item) => {
                 downloadImage(item.picUrl);
             });

@@ -24,6 +24,7 @@ import { staticResource, isOverseas, isDesktopBrowser, parseQueryString } from "
 import { setPageMeta } from "@/utils/seo";
 import { handleDecorateLoadError } from "@/utils/handleDecorateLoadError";
 import { usePageGuards } from "@/utils/pageMixin";
+import checkAppUpdate from "@/utils/checkAppUpdate";
 import { useScrollTop, useProductStyle } from "@/hooks";
 
 import "./index.scss";
@@ -39,7 +40,7 @@ import "./index.scss";
  * - 旧 `bottomLoading` 仅服务于 `!bottomLoading && commodityList.length === 0` 空态分支，
  *   而该分支外层已限定 `commodityList.length > 0`，条件恒假，不迁；
  * - 旧 onShow 末尾 `uni.hideTabBar()` 面向原生 tabBar，Phase 1 不声明（MIGRATION §3.4），跳过；
- * - 旧 `#ifdef APP-PLUS` 的 checkAppUpdate 属 App 端，随 App 壳形态决策后处理。
+ * - 旧 `#ifdef APP-PLUS` 的 checkAppUpdate 已随 H5 壳定案接线（utils/checkAppUpdate，壳桥读版本）。
  */
 export default function Index() {
     usePageGuards();
@@ -156,6 +157,9 @@ export default function Index() {
 
     useEffect(() => {
         const configStore = useConfigStore.getState();
+        // 旧 #ifdef APP-PLUS || APP-HARMONY 的 checkAppUpdate：H5 壳形态下经桥读版本，
+        // 非壳环境（浏览器/微信）getAppUpdateStatus 直接 reject 静默
+        checkAppUpdate();
         // MP-WEIXIN scene 参数解析
         if (process.env.TARO_ENV === "weapp" && router.params?.scene) {
             Object.assign(router.params, parseQueryString(decodeURIComponent(router.params.scene)));

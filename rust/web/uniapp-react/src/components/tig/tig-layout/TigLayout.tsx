@@ -11,6 +11,7 @@ import { useSaveTopBoxHeight } from "@/hooks";
 import TigNavbar from "@/components/tig/tig-navbar/TigNavbar";
 import TigTabbar from "@/components/tig/tig-tabbar/TigTabbar";
 import TigWechartLogin from "@/components/tig/tig-wechart-login/TigWechartLogin";
+import AppUpdatePop from "@/components/appUpdatePop/AppUpdatePop";
 import TigStatisticLog, { type TigStatisticLogRef } from "@/components/tig/tig-statistic-log/TigStatisticLog";
 
 import "./TigLayout.scss";
@@ -135,7 +136,8 @@ const TigLayout = forwardRef<TigLayoutRef, Props>(function TigLayout(
             {(clientType === "miniProgram" || clientType === "wechat") && openWechatRegister === 1 && (
                 <TigWechartLogin onLoginSuccess={onLoginSuccess} />
             )}
-            {/* TODO(MIGRATION)：App 更新弹层随 App 端批次移植 */}
+            {/* App 热更新弹层（旧 tig-layout.vue:34 <appUpdatePop /> 同款挂载点；非壳环境 store 恒 false 不渲染） */}
+            <AppUpdatePop />
             <TigStatisticLog ref={statisticLogRef} immediateLog={immediateLog} productId={productId} shopId={shopId} shopCategoryId={shopCategoryId} />
         </View>
     );
