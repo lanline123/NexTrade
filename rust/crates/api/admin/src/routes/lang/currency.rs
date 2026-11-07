@@ -10,8 +10,8 @@
 //! |--------|------|------|
 //! | `GET`  | `/lang/currency/config` | 读 `config` 表 `exchangeRateConfig`，缺省 `{}` |
 //! | `GET`  | `/lang/currency/exchangeRateConfig` | 同上 |
-//! | `POST` | `/lang/currency/saveExchangeRateConfig` | 写回 `config` 表同 code |
-//! | `POST` | `/lang/currency/syncExchangeRateNow` | 无汇率源凭据 → code:0 no-op |
+//! | `POST` | `/lang/currency/saveExchangeRateConfig` | 写回 `config` 表同 code（剔除 lastSyncTime） |
+//! | `POST` | `/lang/currency/syncExchangeRateNow` | 经 Open Exchange Rates 同步汇率，返回 `ExchangeRateSyncResult` |
 //! | `POST` | `/lang/currency/translation` | 机器翻译，无凭据原样返回 |
 
 use axum::{
@@ -25,6 +25,7 @@ use tigshop_core::models::lang::currency::{CurrencyDTO, CurrencyListQuery, Curre
 use tigshop_core::models::lang::translations::TranslationTextDTO;
 use tigshop_core::types::PageResult;
 use tigshop_security::web::{ok, ApiResult};
+use tigshop_services::lang::currency::ExchangeRateSyncResult;
 
 use crate::AdminState;
 
@@ -233,8 +234,11 @@ async fn save_exchange_rate_config(
 
 /// `POST /adminapi/lang/currency/syncExchangeRateNow`：立即同步汇率。
 ///
-/// 无汇率源凭据 → no-op，返回 `false`（HTTP 仍为 code:0 成功）。
-async fn sync_exchange_rate_now(State(state): State<AdminState>) -> ApiResult<bool> {
+/// 经 Open Exchange Rates 拉取最新汇率回写 `currency.rate`
+/// （对齐 Java `ExchangeRateSyncServiceImpl`），返回结构化结果
+/// `ExchangeRateSyncResultVO`（camelCase：success/updatedCount/skippedCount/
+/// message/lastSyncTime）；失败原因在 `message` 中。
+async fn sync_exchange_rate_now(State(state): State<AdminState>) -> ApiResult<ExchangeRateSyncResult> {
     ok(state.lang.currency().sync_exchange_rate_now().await?)
 }
 

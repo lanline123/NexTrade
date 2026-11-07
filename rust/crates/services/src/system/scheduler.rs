@@ -75,8 +75,38 @@ pub fn spawn_all(repos: Arc<Repositories>, order: OrderService) -> Vec<JoinHandl
         tokio::spawn(aftersales_auto_receive_loop(repos.clone())),
         tokio::spawn(deposit_due_check_loop(repos.clone())),
         tokio::spawn(wechat_live_order_sync_loop(repos.clone())),
-        tokio::spawn(profit_sharing_schedule_loop(repos)),
+        tokio::spawn(profit_sharing_schedule_loop(repos.clone())),
+        tokio::spawn(exchange_rate_sync_loop(repos)),
     ]
+}
+
+/// 汇率自动更新循环（Java `ExchangeRateSyncTask`，每小时触发）。
+///
+/// `sync(false)` 内部校验 `autoSync=1` 且距上次同步达 `syncIntervalHours`；
+/// 未配置 AppID / 未开启自动更新时静默跳过（debug 日志），对齐 Java 语义。
+/// `TIG_SCHEDULER__RATE_SECS` 可调节奏（默认 3600s）。
+async fn exchange_rate_sync_loop(repos: Arc<Repositories>) {
+    tokio::time::sleep(Duration::from_secs(
+        env_secs("TIG_SCHEDULER__DELAY_SECS", 30) + 45,
+    ))
+    .await;
+    let mut ticker = tokio::time::interval(Duration::from_secs(env_secs(
+        "TIG_SCHEDULER__RATE_SECS",
+        3600,
+    )));
+    loop {
+        ticker.tick().await;
+        let service = crate::lang::currency::CurrencyService::new(repos.clone());
+        match service.sync(false).await {
+            Ok(result) if result.success => {
+                tracing::info!("定时任务：汇率自动更新完成（{}）", result.message);
+            }
+            Ok(result) => {
+                tracing::debug!("定时任务：汇率自动更新跳过（{}）", result.message);
+            }
+            Err(e) => tracing::warn!("定时任务：汇率自动更新失败: {e}"),
+        }
+    }
 }
 
 /// 订单超时取消循环。
