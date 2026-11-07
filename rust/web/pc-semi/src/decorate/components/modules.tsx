@@ -729,10 +729,65 @@ interface ProductItem {
 /** PcProduct.vue：products.productSelectType(1 指定/2 分类/3 标签)、productIds、
  * productCategoryId/productNumber、productTag/productNumber、style(2=5 列，否则 4 列)、
  * goodsPadding、frame、showName/showBrief/showPrice、buyBtnStyle。 */
-function Product({ module }: ModuleProps) {
-    const { t } = useTranslation();
+/**
+ * 装修商品楼层共用取数（旧版 PcProduct.vue / pages/activity/pcProduct/index.vue 的
+ * paramsValueMap/paramsKeyMap 逻辑）：1 指定 ids / 2 分类 / 3 标签，附带 shopId 过滤。
+ */
+function useDecorateProductList(config: Record<string, any>, columns: number, shopId: unknown) {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    const productSelectType = Number(config.productSelectType || 0);
+    const params = new URLSearchParams({ page: '1' });
+    if (productSelectType === 1) {
+      const rawIds = config.productIds;
+      const ids = Array.isArray(rawIds)
+        ? rawIds
+        : typeof rawIds === 'string' && rawIds
+          ? rawIds.split(',').filter(Boolean)
+          : [];
+      if (ids.length) {
+        params.set('ids', ids.join(','));
+        params.set('size', String(ids.length));
+      } else {
+        params.set('size', '0');
+      }
+    } else if (productSelectType === 2) {
+      params.set('categoryId', String(config.productCategoryId ?? ''));
+      params.set('size', String(px(config.productNumber, columns * 2)));
+    } else if (productSelectType === 3) {
+      params.set('introType', String(config.productTag ?? ''));
+      params.set('size', String(px(config.productNumber, columns * 2)));
+    } else {
+      params.set('size', '0');
+    }
+    if (Number(shopId) > 0) params.set('shopId', String(shopId));
+    if (params.get('size') === '0') {
+      setProducts([]);
+      setLoading(false);
+      return undefined;
+    }
+    fetch(`/api/product/product/list?${params.toString()}`)
+      .then((response) => response.json())
+      .then((json) => {
+        if (cancelled) return;
+        const records = json?.data?.records || json?.data || json?.records || [];
+        setProducts(Array.isArray(records) ? records : []);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [JSON.stringify(config), columns, Number(shopId) > 0 ? String(shopId) : '']);
+  return { products, loading };
+}
+
+function Product({ module }: ModuleProps) {
+    const { t } = useTranslation();
   const config = module.products || {};
   /**
    * 店铺商品卡片版式（源码 components/shop/ShopProduct.vue:4-8，module.style 决定）：
@@ -769,54 +824,7 @@ function Product({ module }: ModuleProps) {
           : 'product-card-border-4';
   const goodsRadioStyle = Number(module.goodsRadioStyle ?? 0);
 
-  useEffect(() => {
-    let cancelled = false;
-    const productSelectType = Number(config.productSelectType || 0);
-    const params = new URLSearchParams({ page: '1' });
-    if (productSelectType === 1) {
-      const rawIds = config.productIds;
-      const ids = Array.isArray(rawIds)
-        ? rawIds
-        : typeof rawIds === 'string' && rawIds
-          ? rawIds.split(',').filter(Boolean)
-          : [];
-      if (ids.length) {
-        params.set('ids', ids.join(','));
-        params.set('size', String(ids.length));
-      } else {
-        params.set('size', '0');
-      }
-    } else if (productSelectType === 2) {
-      params.set('categoryId', String(config.productCategoryId ?? ''));
-      params.set('size', String(px(config.productNumber, columns * 2)));
-    } else if (productSelectType === 3) {
-      params.set('introType', String(config.productTag ?? ''));
-      params.set('size', String(px(config.productNumber, columns * 2)));
-    } else {
-      params.set('size', '0');
-    }
-    if (Number(module.shopId) > 0) params.set('shopId', String(module.shopId));
-    if (params.get('size') === '0') {
-      setProducts([]);
-      setLoading(false);
-      return undefined;
-    }
-    fetch(`/api/product/product/list?${params.toString()}`)
-      .then((response) => response.json())
-      .then((json) => {
-        if (cancelled) return;
-        const records = json?.data?.records || json?.data || json?.records || [];
-        setProducts(Array.isArray(records) ? records : []);
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(config), columns]);
+  const { products, loading } = useDecorateProductList(config, columns, module.shopId);
 
   /**
    * 生效商品样式（活动边框图 borderImage）。
@@ -924,6 +932,161 @@ function Product({ module }: ModuleProps) {
       </Container>
     </div>
   );
+}
+
+/* ======================= 2b. pc-product（旧链 1:1 版式） ======================= */
+
+/**
+ * 旧版 decorate/components/pc/PcProduct.vue 的 1:1 还原（新版装修链 pc-product 楼层）。
+ * 与店铺版 Product（ShopProductCard）的区别是卡片本体样式：
+ *   - 白底 + 1px rgba(50,50,51,.08) 细边框 + 6px 圆角（固定，不随 goodsStyle）；
+ *   - 图 1:1 cover；名称 13px 单行省略；简介 12px 单行；
+ *   - 价格 14px/600/var(--dec-price-color)；底行 price + buy 按钮 margin-top:auto；
+ *   - columns = style===2 ? 5 : 4；列表 gap 固定 12px；wrapper padding = goodsPadding(默认5)。
+ * 样式表在 modules-source.scss .dec-pc-product（此前已移植，本组件首次真正使用）。
+ */
+function PcProduct({ module }: ModuleProps) {
+  const config = module.products || {};
+  const style = Number(module.style);
+  const columns = style === 2 ? 5 : 4;
+  const { products, loading } = useDecorateProductList(config, columns, module.shopId);
+
+  const frame = module.frame || {};
+  const containerModule = {
+    boxPadding: frame.boxPadding ?? module.boxPadding ?? 10,
+    boxPaddingTop: frame.boxPaddingTop ?? module.boxPaddingTop ?? 5,
+    boxPaddingBottom: frame.boxPaddingBottom ?? module.boxPaddingBottom ?? 5,
+    boxRadius: frame.boxRadius ?? module.boxRadius ?? 0,
+    backgroundColor: frame.backgroundColor || module.backgroundColor || '#ffffff',
+    innerPadding: frame.innerPadding ?? module.innerPadding ?? 0,
+  };
+  const xPadding = frame.leftAndRightPadding ?? frame.innerPadding ?? module.innerPadding ?? 0;
+  const goodsPadding = Number(module.goodsPadding ?? 5);
+  const cssVars: Record<string, any> = {
+    '--dec-columns': String(columns),
+    '--dec-goods-padding': `${Number.isFinite(goodsPadding) ? goodsPadding : 5}px`,
+  };
+
+  // 旧版：Settings 未暴露开关时，运行态默认展示名称/描述/价格
+  const showName = module.showName !== false && module.showName !== 0;
+  const showBrief = module.showBrief !== false && module.showBrief !== 0;
+  const showPrice = module.showPrice !== false && module.showPrice !== 0;
+  const buyBtnConfig = normalizeBuyBtnStyle(module.buyBtnStyle);
+  const priceFontStyle: Record<string, any> = {
+    color: 'var(--dec-price-color, #e60012)',
+    fontSize: '14px',
+    fontWeight: 600,
+  };
+
+  // 旧版 ProductBuy 的替代：多规格/预约型跳详情页，其余直接加购（isQuick）
+  const needsDetail = (item: ProductItem) => Number((item as any).productType ?? 1) !== 1;
+  const [addingId, setAddingId] = useState<number | null>(null);
+  const addToCart = async (item: ProductItem) => {
+    if (addingId || !item.productId) return;
+    setAddingId(Number(item.productId));
+    try {
+      await apiPost('cart/cart/addToCart', { id: Number(item.productId), number: 1 });
+      Toast.success({ content: '已加入购物车' });
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : '加入购物车失败' });
+    } finally {
+      setAddingId(null);
+    }
+  };
+
+  // 旧版首屏无数据时整块不渲染（TotalContainer v-if productList.length）
+  if (!loading && !products.length) return null;
+
+  return (
+    <div className="dec-pc-product" style={cssVars}>
+      <Container module={containerModule}>
+        {/* 内容容器：左右内边距同时作用于标题与商品列表（旧版 innerWrapStyle） */}
+        <div className="dec-pc-product__content" style={{ paddingLeft: px(xPadding), paddingRight: px(xPadding) }}>
+          <ShopTitle title={module.title} />
+          {!loading ? (
+            <div className="dec-pc-product__wrapper">
+              <div className="dec-pc-product__list">
+                {products.map((item, index) => {
+                  const href = item.seoLink || `/product/${item.productSn || item.productId || ''}`;
+                  return (
+                    <div className="dec-pc-product__item" key={item.productId ?? item.productSn ?? index}>
+                      <Link target="_blank" href={href} className="dec-pc-product__card">
+                        <div className="dec-pc-product__photo">
+                          <img
+                            className="dec-pc-product__img"
+                            src={item.picUrl || item.picThumb || ''}
+                            alt={item.productName || ''}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="dec-pc-product__info">
+                          {showName ? <div className="dec-pc-product__name">{item.productName}</div> : null}
+                          {showBrief ? <div className="dec-pc-product__brief">{item.productBrief || item.brief}</div> : null}
+                          <div className="dec-pc-product__bottom">
+                            {showPrice ? (
+                              <div className="dec-pc-product__price" style={priceFontStyle}>
+                                {formatPrice(item.productPrice)}
+                              </div>
+                            ) : null}
+                            {buyBtnConfig.show ? (
+                              <div
+                                className="dec-pc-product__buy"
+                                onClick={(event) => {
+                                  // 整卡是链接：按钮区拦截跳转（旧版 @click.prevent.stop）
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                }}
+                              >
+                                {needsDetail(item) ? (
+                                  <Link target="_blank" href={href} className={`dec-buy-btn dec-buy-btn--${buyBtnConfig.style}`}>
+                                    <BuyIcon buyBtnStyle={buyBtnConfig.style} />
+                                  </Link>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className={`dec-buy-btn dec-buy-btn--${buyBtnConfig.style}`}
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      void addToCart(item);
+                                    }}
+                                    disabled={addingId === Number(item.productId)}
+                                  >
+                                    <BuyIcon buyBtnStyle={buyBtnConfig.style} />
+                                  </button>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Container>
+    </div>
+  );
+}
+
+/** 旧版 ProductButton.vue 图标/文案（1/2 购物车、3/4 加号、5/6 购买、7/8 马上抢）。 */
+function BuyIcon({ buyBtnStyle }: { buyBtnStyle: number }) {
+  if (buyBtnStyle <= 4) {
+    return (
+      <i className="dec-buy-btn__icon">
+        <span
+          className={`dec-buy-btn__ico dec-buy-btn__ico--${buyBtnStyle <= 2 ? 'cart' : 'plus'}${
+            buyBtnStyle === 1 || buyBtnStyle === 3 ? ' is-outline' : ''
+          }`}
+          aria-hidden="true"
+        />
+      </i>
+    );
+  }
+  return <span className="dec-buy-btn__text">{buyBtnStyle >= 7 ? '马上抢' : '购买'}</span>;
 }
 
 /* ======================= 3. pc-home-quick-nav ======================= */
@@ -3652,7 +3815,7 @@ export const PC_MODULE_REGISTRY: Record<string, (props: ModuleProps) => JSX.Elem
   'pc-home-quick-nav': QuickNav,
   'pc-category-nav': CategoryNav,
   'pc-home-hero': HomeHero,
-  'pc-product': Product,
+  'pc-product': PcProduct,
   'pc-recommend-product': RecommendProduct,
   'pc-product-group': ProductGroup,
   'pc-home-coupon': Coupon,
