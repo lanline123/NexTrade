@@ -15,6 +15,11 @@
  * - GET  /im/servant/servant/getStatus                   客服状态（1 在线 / 2 忙 / 3 离开）
  * - POST /im/servant/servant/modifyStatus                修改客服状态
  * - GET  /im/conversation/conversation/consultHistory    历史会话列表
+ * - POST /im/conversation/conversation/updateField       结束会话（field=status，val=2）
+ *
+ * 旧版补齐（2026-11-07）：结束会话、表情面板（Emoji.vue）、新消息提示音
+ * （promptTone.vue，WebAudio 合成）、会员最近订单侧栏（OrderImList，复用
+ * /order/order/list?userId=）。
  *
  * 实时性：Rust 后端未迁移 WebSocket 推送，本页以 5s 轮询兜底，
  * 同时尝试连接 /ws（老版独立 IM 服务），连接成功后收到消息即时刷新。
@@ -44,6 +49,14 @@ import { useI18n } from '../i18n';
 import type { ColumnConfig } from '../framework/types';
 
 /* ============================== 类型 ============================== */
+
+/** 常用表情（旧版 Emoji.vue 面板的精简集，插入即随文本消息发送）。 */
+const EMOJI_LIST = [
+  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜', '🤔', '😐',
+  '😴', '🙄', '😔', '😭', '😡', '🥳', '😱', '🤗', '🙏', '👍',
+  '👎', '👌', '✌️', '🤝', '💪', '❤️', '💔', '🌹', '🎉', '🎁',
+  '💰', '🛒', '📦', '🚚', '⭐', '🔥', '❓', '❗', '✅', '❌',
+];
 
 interface ImUserVO {
   userId?: number;
@@ -236,6 +249,35 @@ export function KefuWorkbench() {
   const pollRef = useRef<number | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  // 新消息提示音（旧版 promptTone.vue：收到新客户消息时短提示）
+  const lastMsgIdRef = useRef<number | null>(null);
+  const lastMsgCountRef = useRef(0);
+  // 表情面板 + 会员订单侧栏
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [userOrders, setUserOrders] = useState<Array<Record<string, any>>>([]);
+
+  /** 收到新客户消息时播放短提示音（WebAudio 合成，无需音频资源）。 */
+  const playMessageTone = useCallback(() => {
+    try {
+      const AudioCtor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtor) return;
+      const ctx = new AudioCtor();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.25);
+      setTimeout(() => void ctx.close(), 400);
+    } catch {
+      /* 无音频设备/被浏览器策略拦截时静默 */
+    }
+  }, []);
 
   const loadServantStatus = useCallback(() => {
     apiGet<any>('/im/servant/servant/getStatus')
@@ -282,7 +324,20 @@ export function KefuWorkbench() {
         sortField: 'sendTime',
         sortOrder: 'asc',
       })
-        .then((result) => setMessages(result?.records || []))
+        .then((result) => {
+          const rows: MessageRow[] = result?.records || [];
+          // 静默轮询发现「新的客户消息」（非自己发送）时播放提示音
+          if (silent) {
+            const latestId = rows.length ? Number(rows[rows.length - 1].id ?? 0) : 0;
+            const grew = rows.length > lastMsgCountRef.current;
+            const hasNewFromUser =
+              grew && rows.some((msg) => Number(msg.type) !== 2 && Number(msg.id ?? 0) > (lastMsgIdRef.current ?? 0));
+            if (hasNewFromUser) playMessageTone();
+            lastMsgIdRef.current = Math.max(latestId, lastMsgIdRef.current ?? 0);
+            lastMsgCountRef.current = rows.length;
+          }
+          setMessages(rows);
+        })
         .catch((error) => {
           if (!silent) Toast.error({ content: error?.message || t('加载消息失败') });
         })
@@ -290,7 +345,7 @@ export function KefuWorkbench() {
           if (!silent) setMsgLoading(false);
         });
     },
-    [t],
+    [t, playMessageTone],
   );
 
   const markRead = useCallback((conversationId: number) => {
@@ -361,6 +416,42 @@ export function KefuWorkbench() {
   const openConversation = (row: ConversationRow) => {
     setActiveId(row.conversationId ?? row.id);
   };
+
+  /** 结束会话（对齐旧版 Message.vue _updateFieldConversation：status→2）。 */
+  const endConversation = async () => {
+    if (!activeId) return;
+    try {
+      await apiPost('/im/conversation/conversation/updateField', { id: activeId, field: 'status', val: 2 });
+      Toast.success({ content: t('会话已结束') });
+      setActiveId(undefined);
+      loadConversations(true);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
+    }
+  };
+
+  /** 会话客户的最近订单（旧版 OrderImList：工作台内查会员订单）。 */
+  useEffect(() => {
+    if (!activeId) {
+      setUserOrders([]);
+      return;
+    }
+    const userId = conversations.find((row) => (row.conversationId ?? row.id) === activeId)?.userId;
+    if (!userId) {
+      setUserOrders([]);
+      return;
+    }
+    let alive = true;
+    apiGet<{ records?: Array<Record<string, any>> }>('/order/order/list', { userId, page: 1, size: 5 })
+      .then((result) => {
+        if (!alive) return;
+        setUserOrders(result?.records || []);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [activeId, conversations]);
 
   const removeConversation = async (row: ConversationRow) => {
     try {
@@ -557,6 +648,14 @@ export function KefuWorkbench() {
                 {activeConversation?.userFrom ? (
                   <Tag size="small">{activeConversation.userFrom}</Tag>
                 ) : null}
+                {/* 结束会话（旧版 Message.vue「结束」） */}
+                {Number(convTab) === 1 && (
+                  <Popconfirm title={t('确认结束该会话?')} onConfirm={() => void endConversation()}>
+                    <Button theme="borderless" type="danger" size="small" style={{ marginLeft: 'auto' }}>
+                      {t('结束会话')}
+                    </Button>
+                  </Popconfirm>
+                )}
               </div>
               <Spin spinning={msgLoading}>
                 <div className="kefu-message-list">
@@ -584,6 +683,31 @@ export function KefuWorkbench() {
                 </div>
               </Spin>
               <div className="kefu-send-box">
+                {emojiOpen && (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(10, 1fr)',
+                      gap: 4,
+                      padding: 8,
+                      border: '1px solid var(--semi-color-border)',
+                      borderRadius: 6,
+                      marginBottom: 8,
+                      maxHeight: 132,
+                      overflowY: 'auto',
+                    }}
+                  >
+                    {EMOJI_LIST.map((emoji) => (
+                      <span
+                        key={emoji}
+                        style={{ cursor: 'pointer', fontSize: 18, textAlign: 'center' }}
+                        onClick={() => setDraft((prev) => prev + emoji)}
+                      >
+                        {emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <TextArea
                   rows={3}
                   value={draft}
@@ -591,11 +715,43 @@ export function KefuWorkbench() {
                   placeholder={t('请输入消息内容，Enter 发送')}
                   onEnterPress={() => sendMessage()}
                 />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                  <Button
+                    theme="borderless"
+                    onClick={() => setEmojiOpen((open) => !open)}
+                    style={{ fontSize: 18 }}
+                  >
+                    😊
+                  </Button>
                   <Button theme="solid" type="primary" loading={sending} disabled={!draft.trim()} onClick={sendMessage}>
                     {t('发送')}
                   </Button>
                 </div>
+                {/* 会员最近订单（旧版 OrderImList） */}
+                {userOrders.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      border: '1px solid var(--semi-color-border)',
+                      borderRadius: 6,
+                      padding: 8,
+                      maxHeight: 150,
+                      overflowY: 'auto',
+                    }}
+                  >
+                    <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginBottom: 6 }}>{t('客户最近订单')}</div>
+                    {userOrders.map((order) => (
+                      <div
+                        key={order.orderId}
+                        style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, lineHeight: '22px' }}
+                      >
+                        <span className="mono">{order.orderSn}</span>
+                        <span>¥ {Number(order.totalAmount || 0).toFixed(2)}</span>
+                        <Tag size="small">{order.orderStatusName || '-'}</Tag>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           )}
