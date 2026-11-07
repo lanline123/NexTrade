@@ -1,0 +1,11 @@
+/* 图片橱窗 预览样式（移植自 view/admin imageShowcase/Preview.vue scoped less） */
+.module-image_showcase .image-showcase-list.is-fixed {
+    display: grid;
+}
+.module-image_showcase .image-showcase-list.is-scroll {
+    display: flex;
+    overflow-x: auto;
+}
+.module-image_showcase .image-showcase-item .item-image-box {
+    width: 100%;
+}

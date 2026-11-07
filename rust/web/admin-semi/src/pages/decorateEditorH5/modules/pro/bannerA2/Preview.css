@@ -1,0 +1,80 @@
+/* 首焦轮播A2 预览样式（移植自 view/admin bannerA2/Preview.vue scoped less） */
+.module-ad-con.ad-pic_type__2 {
+    position: relative;
+    overflow: hidden;
+}
+.module-ad-con .banner-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+.module-ad-con .banner-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.4);
+    filter: blur(14px);
+}
+.module-ad-con .bg-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.92) 78%);
+}
+.module-ad-con .bar {
+    position: relative;
+}
+.module-ad-con .search-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 14px;
+}
+.module-ad-con .area-select-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.module-ad-con .search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+}
+.module-ad-con .search-input {
+    font-size: 13px;
+}
+.module-ad-con .image-ad-warp {
+    padding: 6px 12px 14px;
+}
+.module-ad-con .image-ad-con {
+    position: relative;
+}
+.module-ad-con .image-ad-item img {
+    width: 100%;
+    display: block;
+}
+.module-ad-con .banner-a2-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+.module-ad-con .banner-a2-dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    transition: width 0.2s;
+}
+.module-ad-con .pagination-bullet2 .banner-a2-dots i {
+    width: 12px;
+    height: 2px;
+    border-radius: 0;
+}

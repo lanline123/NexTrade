@@ -1,0 +1,27 @@
+/* 分类推荐 预览样式（移植自 view/admin categoryRec/Preview.vue scoped less） */
+.category-rec .ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.category-rec .li {
+    flex-shrink: 0;
+}
+.category-rec .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.category-rec .item .img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+}
+.category-rec .item .tit {
+    white-space: nowrap;
+}

@@ -291,3 +291,40 @@ export function FrameSettingsField({ data, onChange, field = "frame", label = "�
         </SettingGroup>
     );
 }
+
+// ---------------- 颜色对列表（colorA~colorB，tagNav 标签配色等） ----------------
+
+export function ColorPairListField({
+    data,
+    onChange,
+    field,
+    label,
+    defaults,
+}: FieldProps & { field: string; label: string; defaults: Array<{ colorA: string; colorB: string }> }) {
+    const list: Array<{ colorA?: string; colorB?: string }> = data?.[field] || [];
+    const setItem = (index: number, key: "colorA" | "colorB", value: string) => {
+        const next = list.map((item, i) => (i === index ? { ...item, [key]: value } : item));
+        onChange({ [field]: next });
+    };
+    const addOne = () => onChange({ [field]: [...list, { ...defaults[list.length % defaults.length] }] });
+    const removeOne = (index: number) => onChange({ [field]: list.filter((_, i) => i !== index) });
+    return (
+        <SettingGroup title={label}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {list.map((item, index) => (
+                    <div key={index} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <input type="color" value={item.colorA || "#cccccc"} onChange={(e) => setItem(index, "colorA", e.target.value)} style={{ width: 32, height: 26, border: 0, background: "transparent" }} />
+                        <span style={{ color: "#98a2b3", fontSize: 12 }}>→</span>
+                        <input type="color" value={item.colorB || item.colorA || "#cccccc"} onChange={(e) => setItem(index, "colorB", e.target.value)} style={{ width: 32, height: 26, border: 0, background: "transparent" }} />
+                        <button type="button" onClick={() => removeOne(index)} style={{ marginLeft: "auto", fontSize: 12, color: "var(--semi-color-danger)", background: "transparent", border: 0, cursor: "pointer" }}>
+                            删除
+                        </button>
+                    </div>
+                ))}
+                <button type="button" onClick={addOne} style={{ height: 26, fontSize: 12, border: "1px solid var(--semi-color-border)", borderRadius: 4, background: "transparent", cursor: "pointer" }}>
+                    + 添加配色
+                </button>
+            </div>
+        </SettingGroup>
+    );
+}

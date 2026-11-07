@@ -31,6 +31,18 @@ import "./basic/article";
 // import "./promotion/live";
 // import "./promotion/videoNumber";
 
+// ==================== mobilePro 高级（精确移植批次二，2026-11-07） ====================
+import "./pro/imageTextComponent";
+import "./pro/imageShowcase";
+import "./pro/tagNav";
+import "./pro/noticeA2";
+import "./pro/noticeA3";
+import "./pro/categoryNav";
+import "./pro/categoryRec";
+import "./pro/mixedNotice";
+import "./pro/bannerA2";
+import "./pro/customProduct";
+
 // ==================== mobilePro 高级 ====================
 // import "./pro/imageTextComponent";
 // import "./pro/imageShowcase";

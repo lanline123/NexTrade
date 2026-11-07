@@ -1,0 +1,74 @@
+/* 商城公告3 预览样式（移植自 view/admin noticeA3/Preview.vue scoped less） */
+.module-notice-a3 {
+    min-height: auto !important;
+}
+.module-notice-a3 .module-ad-content {
+    overflow: hidden;
+}
+.module-notice-a3 .notice-a3-empty {
+    padding: 20px 0;
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+}
+.module-notice-a3 .notice-a3-wrap {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+.module-notice-a3 .notice-a3-header {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.module-notice-a3 .notice-a3-header img {
+    display: block;
+}
+.module-notice-a3 .notice-a3-divider {
+    width: 1px;
+    height: 16px;
+    background: #eee;
+    margin: 0 8px;
+    flex-shrink: 0;
+}
+.module-notice-a3 .notice-a3-body {
+    flex: 1;
+    min-width: 0;
+}
+.module-notice-a3 .notice-a3-scroll {
+    overflow: hidden;
+    height: 22px;
+    line-height: 22px;
+}
+.module-notice-a3 .notice-a3-item {
+    animation: notice-a3-slide 0.4s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.module-notice-a3 .notice-a3-prefix {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: #ff5050;
+    border: 1px solid #ff5050;
+    border-radius: 3px;
+    padding: 0 4px;
+    line-height: 16px;
+}
+.module-notice-a3 .notice-a3-text {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@keyframes notice-a3-slide {
+    from {
+        transform: translateY(60%);
+        opacity: 0.3;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

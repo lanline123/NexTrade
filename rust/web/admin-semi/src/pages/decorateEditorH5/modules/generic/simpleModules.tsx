@@ -61,25 +61,16 @@ reg('videoNumber', '视频号', '🎬', 'mobilePromotion', 'banner', { title: '�
 
 /* ==================== mobilePro 高级 ==================== */
 reg('banner', '轮播Banner', '🖼️', 'mobilePro', 'hero', { title: '', pic: '', showCount: 1 }, [F.pic, F.pics, F.title], 40);
-reg('bannerA2', '轮播Banner(样式2)', '🖼️', 'mobilePro', 'hero', { title: '', pic: '' }, [F.pic, F.title], 41);
-reg('categoryNav', '分类导航', '🧭', 'mobilePro', 'banner', { title: '分类导航', showCount: 4 }, [F.title, F.pics, F.count()], 42);
 reg('categoryNavA1', '分类导航(样式1)', '🧭', 'mobilePro', 'banner', { title: '分类导航', showCount: 4 }, [F.title, F.pics], 43);
 reg('categoryNavA2', '分类导航(样式2)', '🧭', 'mobilePro', 'banner', { title: '分类导航', showCount: 5 }, [F.title, F.pics], 44);
 reg('categoryNavA3', '分类导航(样式3)', '🧭', 'mobilePro', 'banner', { title: '分类导航', showCount: 8 }, [F.title, F.pics], 45);
-reg('categoryRec', '分类推荐', '🗂️', 'mobilePro', 'grid', { title: '分类推荐', showCount: 6 }, [F.title, F.count()], 46);
 reg('categoryRecA1', '分类推荐(样式1)', '🗂️', 'mobilePro', 'grid', { title: '分类推荐', showCount: 4 }, [F.title, F.count()], 47);
 reg('comboSuggestions', '组合建议', '💡', 'mobilePro', 'grid', { title: '组合推荐', showCount: 3, productTitle: '组合商品' }, [F.title, F.count(), F.productTitle, F.price], 48);
 reg('countdown', '倒计时', '⏰', 'mobilePro', 'hero', { title: '限时活动', description: '距活动结束还有', backgroundColor: '#df4544' }, [F.title, F.desc, F.color, F.pic], 49);
-reg('customProduct', '自定义商品', '🛍️', 'mobilePro', 'grid', { title: '', showCount: 6, productTitle: '商品', price: 99 }, [F.title, F.count(), F.productTitle, F.price], 50);
 reg('groupSliding', '分组滑动', '滑动分组', 'mobilePro', 'banner', { title: '分组推荐', showCount: 4 }, [F.title, F.count()], 51);
-reg('imageShowcase', '图片展示', '🏞️', 'mobilePro', 'hero', { title: '', pic: '' }, [F.pic, F.pics], 52);
-reg('imageTextComponent', '图文组件', '📝', 'mobilePro', 'list', { title: '图文详情', showCount: 2, itemTitle: '图文条目' }, [F.title, F.count(), F.pic], 53);
 reg('limitedSpecial', '限量特惠', '🔥', 'mobilePro', 'grid', { title: '限量特惠', showCount: 4, productTitle: '特惠商品', price: 59 }, [F.title, F.count(), F.productTitle, F.price], 54);
-reg('mixedNotice', '混合公告', '📢', 'mobilePro', 'list', { title: '公告', showCount: 3, itemTitle: '公告条目' }, [F.title, F.count()], 55);
 reg('mixedProductDisplay', '混合商品展示', '🧩', 'mobilePro', 'grid', { title: '商品推荐', showCount: 6, productTitle: '商品' }, [F.title, F.count(), F.productTitle, F.price], 56);
 reg('newcomerCombo', '新人专享', '🎁', 'mobilePro', 'grid', { title: '新人专享礼包', showCount: 3, productTitle: '专享商品', price: 9.9 }, [F.title, F.count(), F.productTitle, F.price], 57);
-reg('noticeA2', '公告(样式2)', '📢', 'mobilePro', 'text', { text: '公告内容', backgroundColor: '#fff7e6' }, [F.text, F.color], 58);
-reg('noticeA3', '公告(样式3)', '📢', 'mobilePro', 'text', { text: '公告内容' }, [F.text, F.color], 59);
 reg('productA1', '商品(样式A1)', '🛒', 'mobilePro', 'grid', { title: '热销推荐', showCount: 6, productTitle: '商品', price: 128 }, [F.title, F.count(), F.productTitle, F.price, F.pic], 60);
 reg('productCarousel', '商品轮播', '🎠', 'mobilePro', 'banner', { title: '商品轮播', showCount: 4, productTitle: '商品', price: 88 }, [F.title, F.count(), F.productTitle, F.price], 61);
 reg('productGrouping', '商品分组', '🗃️', 'mobilePro', 'grid', { title: '商品分组', showCount: 6, productTitle: '商品' }, [F.title, F.count()], 62);
@@ -90,7 +81,6 @@ reg('slidingImage', '图片滑动', '🎞️', 'mobilePro', 'banner', { title: '
 reg('specialOffer', '特价专区', '💰', 'mobilePro', 'grid', { title: '特价专区', showCount: 4, productTitle: '特价商品', price: 39 }, [F.title, F.count(), F.productTitle, F.price], 67);
 reg('storeNav', '店铺导航', '🧭', 'mobilePro', 'banner', { title: '店铺导航', showCount: 4 }, [F.title, F.pics], 68);
 reg('storeOrderCard', '店铺订单卡', '🧾', 'mobilePro', 'list', { title: '我的订单', showCount: 3, itemTitle: '待付款订单' }, [F.title, F.count()], 69);
-reg('tagNav', '标签导航', '🏷️', 'mobilePro', 'banner', { title: '标签导航', showCount: 5 }, [F.title, F.count()], 70);
 
 /* ==================== mobileMember 会员页 ==================== */
 reg('userInfo', '会员信息', '👤', 'mobileMember', 'user', { nickname: '会员昵称', description: '欢迎回来', showCount: 4 }, [F.nickname, F.desc, F.pic], 80);

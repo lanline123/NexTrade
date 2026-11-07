@@ -1,0 +1,41 @@
+/* 类目导航 预览样式（移植自 view/admin categoryNav/Preview.vue scoped less） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.decorate-slide-box::-webkit-scrollbar {
+    display: none;
+    height: 0;
+}
+.category-nav.list {
+    display: flex;
+    flex-wrap: wrap;
+}
+.category-nav.slide {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+.category-nav .category-nav-item {
+    box-sizing: border-box;
+}
+.category-nav .category-nav-item .item-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.category-nav .category-nav-item-img {
+    background-repeat: no-repeat;
+    background-position: center center;
+    max-width: 100%;
+}
+.category-nav .category-nav-item-text {
+    margin: 6px 0 0;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
