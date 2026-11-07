@@ -107,19 +107,4 @@ export const configHelp: Record<string, Record<string, string>> = {
     "searchSelfStore": "示例",
     "indexSearchShop": "示例"
   },
-  "baseNoticeManage": {
-    "smsKeyId": "您所申请的短信服务用户名，不填则表示不开通",
-    "smsKeySecret": "您所申请的短信服务密码，编辑完成后，点击下方提交按钮确认修改，请确保填写正确的短信帐户密码",
-    "smsSignName": "阿里短信这里填短信签名，其它的根据具体短信接口填写",
-    "smsShopMobile": "用于接收会员订单等信息",
-    "mailService": "如果您选择了采用服务器内置的 Mail 服务，您不需要填写下面的内容。",
-    "smtpSsl": "SMTP一般要求加密",
-    "smtpHost": "邮件服务器主机地址。如果本机可以发送邮件则设置为localhost",
-    "smtpUser": "发送邮件所需的认证帐号，如果没有就为空着",
-    "serviceEmail": "该客服邮件地址可用于接收下面所设置的通知",
-    "sendConfirmEmail": "订单提交后发送（未支付），建议选“否”",
-    "orderPayEmail": "会员支付订单成功时，是否给会员发送邮件",
-    "sendServiceEmail": "提示：此处为发送给客服，商城信息中的客服邮件地址不为空时，该选项有效",
-    "sendShipEmail": "提示：该邮件是发给客户"
-  }
 };

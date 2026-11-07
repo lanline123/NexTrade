@@ -42,6 +42,7 @@ import { PosWorkbench, CashierDevices } from './pages/PosPages';
 import PosCashierList from './pages/PosCashierList';
 import ReceiptPrintersPage from './pages/ReceiptPrinters';
 import PaymentSettings from './pages/PaymentSettings';
+import NoticeSettings from './pages/NoticeSettings';
 import WithdrawalSettings from './pages/WithdrawalSettings';
 import ProfitSharingSettings from './pages/ProfitSharingSettings';
 import DepositSettings from './pages/DepositSettings';
@@ -819,21 +820,6 @@ const configPages: Record<string, ConfigPageDef> = {
   },
   storeAmapSetting: { title: '地图设置', getApi: '/setting/config/mapSettings', saveApi: '/setting/config/saveMapSettings' },
   personalizedManage: { title: '个性化设置', getApi: '/setting/config/getPersonalizedSetting', saveApi: '/setting/config/savePersonalizedSetting' },
-  baseNoticeManage: {
-    title: '通知设置',
-    getApi: '/setting/config/notifySettings',
-    saveApi: '/setting/config/saveNotify',
-    controls: { mailService: 'radio' },
-    options: {
-      mailService: [
-        { label: '本地邮件服务器', value: 0 },
-        { label: 'SMTP服务', value: 1 },
-      ],
-    },
-    fieldHelp: {
-      mailService: '如果您选择了采用服务器内置的 Mail 服务，您不需要填写下面的 SMTP 内容。',
-    },
-  },
 };
 
 Object.entries(configPages).forEach(([key, page]) => {
@@ -1243,6 +1229,8 @@ export default function App() {
       {page === 'purchaseSettingManage' && <PurchaseSetting />}
       {page === 'authorityManage' && <Authorities />}
       {page === 'materialCenter' && <MaterialCenter />}
+      {/* baseNoticeManage 旧版是四 Tab 页（短信/邮件/钉钉/企业微信各走独立接口），不走通用配置页 */}
+      {page === 'baseNoticeManage' && <NoticeSettings />}
       {page === 'termOrderManage' && <CreditOrders />}
       {page === 'termPayManage' && <CreditSettlements />}
       {page === 'termMemberManage' && <CreditUsers />}

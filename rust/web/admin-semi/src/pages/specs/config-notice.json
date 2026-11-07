@@ -1,13 +1,19 @@
 {
-  "page": "setting/config/base/src/NoticeSettings.vue",
-  "info": "setting/config/base/src/NoticeSettings.vue",
-  "component": "rust/web/admin-semi/src/pages/AutoConfigPage.tsx",
+  "page": "setting/config/base/NoticeSettings/Index.vue",
+  "info": "setting/config/base/NoticeSettings/Index.vue 四 Tab：短信/邮件/钉钉/企业微信",
+  "component": "rust/web/admin-semi/src/pages/NoticeSettings.tsx",
   "drawer": null,
   "filters": [],
   "columns": [],
   "actions": [],
   "batch": [],
   "notes": [
-    "通知设置：通用配置页，字段按真实接口返回渲染。"
+    "通知设置：专用页面 NoticeSettings.tsx，四个 Tab 对齐旧版 Index.vue + Msg/Email/Ding/WxWork。",
+    "Tab1 短信通知设置：/setting/config/notifySettings + saveNotify；服务商单选(阿里云1/腾讯云2/华为云3/火山引擎4)按 provider 条件显示各平台字段；跨境版服务商通道复选(+86国内通道/其他海外通道, 逗号串存储)，勾选海外通道时国际短信SenderID 必显必填；保存前按旧版 validateCurrent 校验（密文字段含 * 视为已填）。",
+    "Tab2 邮件通知设置：/setting/config/mailSettings + saveMail（旧版独立接口，不再并入 notifySettings）；邮件服务/SSL/编码单选 + SMTP 参数 + 测试邮件地址与发送测试邮件 action（POST /setting/config/sendTestEmail?testMailAddress=）。",
+    "Tab3 钉钉通知设置：/setting/config/getDingConfig + saveDingConfig；钉钉群机器人token、钉钉appsecret（含查看示例弹层 ding.png）。",
+    "Tab4 企业微信通知设置：/setting/config/getWXWorkConfig + saveWXWorkConfig；企业微信群消息机器人（含查看示例弹层 wxwork.png）。",
+    "notifySettings 返回的 serviceEmail/sendConfirmEmail/orderPayEmail/sendServiceEmail/sendShipEmail 旧版 UI 不渲染，hiddenFields 隐藏但随 payload 原样带回。",
+    "AutoConfigPage 新增 ConfigWhen.includes 操作符（逗号分隔列表包含），用于 SenderID 联动显示。"
   ]
 }

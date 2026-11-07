@@ -1023,16 +1023,17 @@ export function VerbalAssociation() {
 
 /* ==================================================================
    5. 区号管理 (AreaCode / areaCode)
+   契约对齐 Rust system::area_code / Java AreaCodeController：
+   字段为 name / code / isDefault / isAvailable（camelCase），
+   updateField 白名单 {code, name, isAvailable, isDefault}，del 按单个 id。
 ================================================================== */
 interface AreaCodeItem {
   id: number;
-  areaCode: string;
-  areaName: string;
-  englishName?: string;
-  twoLetterCode?: string;
-  threeLetterCode?: string;
-  sortOrder?: number;
-  status?: number;
+  name: string;
+  code: string;
+  isDefault?: number;
+  isAvailable?: number;
+  label?: string;
 }
 
 export function AreaCode() {
@@ -1042,45 +1043,35 @@ export function AreaCode() {
   const [formLoading, setFormLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formState, setFormState] = useState({
-    areaCode: '',
-    areaName: '',
-    englishName: '',
-    twoLetterCode: '',
-    threeLetterCode: '',
-    sortOrder: 50,
-    status: 1,
+    name: '',
+    code: '',
+    isDefault: 0,
+    isAvailable: 1,
   });
 
   const openForm = (record?: AreaCodeItem) => {
     if (record) {
       setEditingId(record.id);
       setFormState({
-        areaCode: record.areaCode,
-        areaName: record.areaName,
-        englishName: record.englishName || '',
-        twoLetterCode: record.twoLetterCode || '',
-        threeLetterCode: record.threeLetterCode || '',
-        sortOrder: record.sortOrder ?? 50,
-        status: record.status ?? 1,
+        name: record.name || '',
+        code: record.code || '',
+        isDefault: record.isDefault ?? 0,
+        isAvailable: record.isAvailable ?? 1,
       });
     } else {
       setEditingId(null);
-      setFormState({
-        areaCode: '',
-        areaName: '',
-        englishName: '',
-        twoLetterCode: '',
-        threeLetterCode: '',
-        sortOrder: 50,
-        status: 1,
-      });
+      setFormState({ name: '', code: '', isDefault: 0, isAvailable: 1 });
     }
     setFormVisible(true);
   };
 
   const handleFormSubmit = async () => {
-    if (!formState.areaCode.trim() || !formState.areaName.trim()) {
-      Toast.error(t('区号和地区名称不能为空'));
+    if (!formState.name.trim()) {
+      Toast.error(t('区号地区不能为空'));
+      return;
+    }
+    if (!formState.code.trim()) {
+      Toast.error(t('区号不能为空'));
       return;
     }
     setFormLoading(true);
@@ -1101,7 +1092,22 @@ export function AreaCode() {
     }
   };
 
-  const handleDelete = async (ids: number[]) => {
+  const handleFieldUpdate = async (row: AreaCodeItem, field: 'isDefault' | 'isAvailable', val: number) => {
+    // updateField 白名单：code / name / isAvailable / isDefault
+    await apiPost('/setting/areaCode/updateField', { id: row.id, field, val });
+    Toast.success(t('操作成功'));
+    setReloadKey((k) => k + 1);
+  };
+
+  const handleDelete = async (id: number) => {
+    // 旧版 DeleteRecord → /setting/areaCode/del {id}（OperateDTO 单主键）
+    await apiPost('/setting/areaCode/del', { id });
+    Toast.success(t('删除成功'));
+    setReloadKey((k) => k + 1);
+  };
+
+  const handleBatchDelete = async (ids: number[]) => {
+    // batch 仅支持 del：{ids, type: 'del'}
     await apiPost('/setting/areaCode/batch', { type: 'del', ids });
     Toast.success(t('删除成功'));
     setReloadKey((k) => k + 1);
@@ -1109,56 +1115,40 @@ export function AreaCode() {
 
   const columns: ColumnConfig<AreaCodeItem>[] = [
     {
+      title: '区号地区',
+      dataIndex: 'name',
+      width: 150,
+      render: (val: any, row: AreaCodeItem) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {row.isDefault === 1 && <Tag color="blue">{t('默认')}</Tag>}
+          <span>{val || '--'}</span>
+        </div>
+      ),
+    },
+    {
       title: '区号',
-      dataIndex: 'areaCode',
-      width: 120,
-      render: (val: any) => <span style={{ fontWeight: 600 }}>{val}</span>,
+      dataIndex: 'code',
+      width: 200,
     },
     {
-      title: '国家/地区名称',
-      dataIndex: 'areaName',
-      width: 180,
-    },
-    {
-      title: '英文名称',
-      dataIndex: 'englishName',
-      width: 180,
-      render: (val: any) => val || '--',
-    },
-    {
-      title: '二字码',
-      dataIndex: 'twoLetterCode',
-      width: 100,
-      render: (val: any) => val || '--',
-    },
-    {
-      title: '三字码',
-      dataIndex: 'threeLetterCode',
-      width: 100,
-      render: (val: any) => val || '--',
-    },
-    {
-      title: '排序',
-      dataIndex: 'sortOrder',
-      width: 90,
-      render: (val: any) => val ?? 50,
-    },
-    {
-      title: '是否启用',
-      dataIndex: 'status',
+      title: '是否默认',
+      dataIndex: 'isDefault',
       width: 100,
       render: (val: any, row: AreaCodeItem) => (
         <Switch
           checked={val === 1}
-          onChange={async (c) => {
-            await apiPost('/setting/areaCode/updateField', {
-              id: row.id,
-              field: 'status',
-              val: c ? 1 : 0,
-            });
-            Toast.success(t('状态更新成功'));
-            setReloadKey((k) => k + 1);
-          }}
+          onChange={(c) => handleFieldUpdate(row, 'isDefault', c ? 1 : 0)}
+        />
+      ),
+    },
+    {
+      title: '是否启用',
+      dataIndex: 'isAvailable',
+      width: 100,
+      render: (val: any, row: AreaCodeItem) => (
+        <Switch
+          checked={val === 1}
+          onChange={(c) => handleFieldUpdate(row, 'isAvailable', c ? 1 : 0)}
         />
       ),
     },
@@ -1178,7 +1168,7 @@ export function AreaCode() {
           <Popconfirm
             title={t('您确认要删除所选数据吗？')}
             okType="danger"
-            onConfirm={() => handleDelete([record.id])}
+            onConfirm={() => handleDelete(record.id)}
           >
             <Button theme="borderless" type="danger" size="small">
               {t('删除')}
@@ -1202,7 +1192,7 @@ export function AreaCode() {
             title={t('您确认要批量删除所选数据吗？')}
             okType="danger"
             onConfirm={async () => {
-              await handleDelete(rows.map((r) => r.id));
+              await handleBatchDelete(rows.map((r) => r.id));
               clear();
             }}
           >
@@ -1218,9 +1208,9 @@ export function AreaCode() {
         }
         filters={[
           {
-            field: 'keyword',
-            label: '区号/地区',
-            placeholder: '输入区号或国家名称',
+            field: 'name',
+            label: '区号地区',
+            placeholder: '请输入区号地区名称',
             type: 'input',
           },
         ]}
@@ -1232,42 +1222,46 @@ export function AreaCode() {
         onCancel={() => setFormVisible(false)}
         onOk={handleFormSubmit}
         confirmLoading={formLoading}
-        width={580}
+        width={600}
         okText={t('确定')}
         cancelText={t('取消')}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('区号地区')}</div>
+            <Input
+              maxLength={60}
+              value={formState.name}
+              onChange={(val) => setFormState({ ...formState, name: val })}
+            />
+          </div>
+          <div>
             <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('区号')}</div>
             <Input
-              placeholder={t('如：+86')}
-              value={formState.areaCode}
-              onChange={(val) => setFormState({ ...formState, areaCode: val })}
+              maxLength={60}
+              value={formState.code}
+              onChange={(val) => setFormState({ ...formState, code: val })}
             />
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('国家/地区名称')}</div>
-            <Input
-              placeholder={t('如：中国')}
-              value={formState.areaName}
-              onChange={(val) => setFormState({ ...formState, areaName: val })}
-            />
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('是否默认')}</div>
+            <RadioGroup
+              value={formState.isDefault}
+              onChange={(e) => setFormState({ ...formState, isDefault: Number(e.target.value) })}
+            >
+              <Radio value={1}>{t('是')}</Radio>
+              <Radio value={0}>{t('否')}</Radio>
+            </RadioGroup>
           </div>
           <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('英文名称')}</div>
-            <Input
-              placeholder={t('如：China')}
-              value={formState.englishName}
-              onChange={(val) => setFormState({ ...formState, englishName: val })}
-            />
-          </div>
-          <div>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('二字码')}</div>
-            <Input
-              placeholder={t('如：CN')}
-              value={formState.twoLetterCode}
-              onChange={(val) => setFormState({ ...formState, twoLetterCode: val })}
-            />
+            <div style={{ marginBottom: 6, fontWeight: 500 }}>{t('是否启用')}</div>
+            <RadioGroup
+              value={formState.isAvailable}
+              onChange={(e) => setFormState({ ...formState, isAvailable: Number(e.target.value) })}
+            >
+              <Radio value={1}>{t('是')}</Radio>
+              <Radio value={0}>{t('否')}</Radio>
+            </RadioGroup>
           </div>
         </div>
       </Modal>

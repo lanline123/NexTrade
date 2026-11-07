@@ -101,6 +101,8 @@ export interface ConfigWhen {
   equals?: unknown;
   notEquals?: unknown;
   in?: unknown[];
+  /** 逗号分隔列表包含（如 smsAliyunChannel "1,2" 包含 "2"）。 */
+  includes?: unknown;
   any?: ConfigWhen[];
   all?: ConfigWhen[];
 }
@@ -393,6 +395,12 @@ function matchesCondition(condition: ConfigWhen | undefined, values: Record<stri
   if ('equals' in condition) return String(current) === String(condition.equals);
   if ('notEquals' in condition) return String(current) !== String(condition.notEquals);
   if (condition.in) return condition.in.some((item) => String(item) === String(current));
+  if ('includes' in condition && condition.includes !== undefined) {
+    return String(current ?? '')
+      .split(',')
+      .map((item) => item.trim())
+      .includes(String(condition.includes));
+  }
   return true;
 }
 

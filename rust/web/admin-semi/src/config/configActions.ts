@@ -96,20 +96,4 @@ export const configActions: Record<string, ConfigAction[]> = {
     },
   ],
 
-  baseNoticeManage: [
-    {
-      label: '发送测试邮件',
-      section: '邮件通知',
-      prompt: {
-        label: '发送测试邮件',
-        placeholder: '请输入接收测试邮件的邮箱地址',
-      },
-      success: '测试邮件已发送',
-      run: async ({ apiPost, input, values }) => {
-        const address = input || String(values.testMailAddress || '').trim();
-        if (!address) throw new Error('请输入接收测试邮件的邮箱地址');
-        await apiPost(`/setting/config/sendTestEmail?testMailAddress=${encodeURIComponent(address)}`);
-      },
-    },
-  ],
 };
