@@ -198,8 +198,7 @@ export default function Banner({ module, index }: Props) {
         };padding: 0 16rpx;border-radius: 40rpx;font-weight: ${module.bannerStyle?.navFontBold};`;
     }, [module.bannerStyle]);
 
-    // TODO(MIGRATION)：旧版通过 selectLangRef 调用 tig-select-lang 的 handleclickLang 打开语言弹层；
-    // React 版 TigSelectLang 尚未移植弹层能力（渲染 null 占位），点击暂无动作
+    // 旧版通过 selectLangRef 调用 tig-select-lang 的 handleclickLang 打开语言弹层（show-lang-btn=false 隐藏内置触发器）
     const selectLangRef = useRef<any>(null);
     const handleclickLang = () => {
         selectLangRef.current && selectLangRef.current.handleclickLang && selectLangRef.current.handleclickLang();
@@ -305,7 +304,7 @@ export default function Banner({ module, index }: Props) {
                 </View>
             )}
             {isOverseas() && (
-                // 旧版点击 globe 调 selectLangRef.handleclickLang；React 版 TigSelectLang 无 imperative 句柄
+                // 旧版点击 globe 调 selectLangRef.handleclickLang（tig-select-lang 已移植 imperative 句柄）
                 <View onClick={handleclickLang}>
                     <View className="lang-icon-box">
                         <View className="iconfont-h5 icon-diqiu">
@@ -425,7 +424,8 @@ export default function Banner({ module, index }: Props) {
                     {renderSwiper()}
                 </View>
             </View>
-            {isOverseas() && <TigSelectLang />}
+            {/* 旧 <tig-select-lang ref="selectLangRef" :show-lang-btn="false" />：弹层挂载，内置触发器隐藏 */}
+            {isOverseas() && <TigSelectLang ref={selectLangRef} showLangBtn={false} />}
         </View>
     );
 }

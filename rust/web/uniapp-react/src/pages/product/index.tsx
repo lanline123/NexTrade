@@ -25,6 +25,7 @@ import ErrorComp from "./src/error";
 import Recommend from "./src/recommend";
 import ProductActionBar, { type ProductActionBarRef } from "./components/ProductActionBar";
 import TigLayout, { type TigLayoutRef } from "@/components/tig/tig-layout/TigLayout";
+import MainHeader from "@/components/mainHeader";
 import TigImage from "@/components/tig/tig-image/TigImage";
 import TigBackTop from "@/components/tig/tig-back-top";
 import TigLoadingPage from "@/components/tig/tig-loadingpage";
@@ -121,7 +122,6 @@ export default function ProductIndex() {
     const configStoreShowSelledCount = useConfigStore((s) => s.showSelledCount);
     const configStoreProductCommentEnabled = useConfigStore((s) => s.productCommentEnabled);
     const configStoreSafeBottom = useConfigStore((s) => s.safeAreaInsets.bottom);
-    const configStoreCommonHeaderHeight = useConfigStore((s) => s.commonHeaderHeight);
     const userToken = useUserStore((s) => s.token);
     const userServiceConfigShow = useUserStore((s) => s.serviceConfig.show);
     const setCartCount = useCartStore((s) => s.setCartCount);
@@ -872,10 +872,9 @@ export default function ProductIndex() {
             <TigLayout ref={layoutRef} immediateLog={false} overflow={!isOverseasStyle} productId={productId} shopId={product.shopId}>
                 {!failLoad ? (
                     <View style={{ display: !loadEndStatus ? undefined : "none" }}>
-                        {/* TODO(MIGRATION)(B6)：外贸风 mainHeader（overseas 皮肤头部）随特殊批次移植，
-                            对应旧 <mainHeader position="sticky" background="var(--product-content-bg)" />；
-                            先以同高占位撑起 productNav 的吸附偏移（与搜索结果页同口径） */}
-                        {showMainHeader && <View style={{ height: `${configStoreCommonHeaderHeight || 0}px`, background: "var(--product-content-bg, #fff)" }} />}
+                        {/* 旧 <mainHeader v-if="showMainHeader" position="sticky" background="var(--product-content-bg, #fff)" />
+                            （B6 批次已移植，实挂；sticky 保持在文档流内，无需额外占位） */}
+                        {showMainHeader && <MainHeader position="sticky" background="var(--product-content-bg, #fff)" />}
                         <ProductNav
                             modelValue={scrollTop}
                             activeModule={activeModule}

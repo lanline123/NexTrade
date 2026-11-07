@@ -1,16 +1,8 @@
 /*
  * 自旧 pages/productCate/src/topHeader.vue <style lang="scss" scoped> 原样拷出（去 scoped）。
- * 旧版搜索栏位于 mainHeader（fixed）内部；mainHeader 未移植（TODO B6），
- * 这里补 .cate-top-header 最小定位壳（fixed + 白底 + 顶层），视觉与旧 common-header-box 对齐。
+ * 旧版搜索栏位于 mainHeader（fixed）的 navbar 插槽内；现 TopHeader 已实挂 MainHeader 承载，
+ * 定位/安全区/菜单抽屉样式由 MainHeader.scss 提供，这里仅保留搜索栏自身样式。
  */
-.cate-top-header {
-    left: 0;
-    right: 0;
-    top: 0;
-    z-index: 990;
-    background: #fff;
-}
-
 .search-bar-box {
     display: flex;
     align-items: center;

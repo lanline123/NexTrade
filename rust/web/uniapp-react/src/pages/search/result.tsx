@@ -5,6 +5,7 @@ import Taro, { useRouter } from "@tarojs/taro";
 import ProductItem from "@/components/masonry/ProductItem";
 import LoadingBox from "@/components/loading-box";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import MainHeader from "@/components/mainHeader";
 import type { Brand, filterSeleted, ProductFilterParams, attrsData, attrsListData } from "@/types/search/search";
 import type { StoreSearchParams, StoreSearchRecord } from "@/types/search/storeSearch";
 import { getCategoryTree, getCategoryProductFilter, getCategoryProduct, getShopCategoryTree, getSearchEsFilter, getStoreProduct } from "@/api/search/search";
@@ -817,7 +818,8 @@ export default function SearchResult() {
 
     return (
         <TigLayout title={layoutStyle === 2 ? "" : navbarTitle} shopId={filterParams.shopId} shopCategoryId={filterParams.shopCategoryId}>
-            {/* TODO(B6)：外贸风 mainHeader（overseas 皮肤头部）随特殊批次移植，对应旧 <mainHeader class="main-header" position="fixed" /> */}
+            {/* 旧 <mainHeader v-if="layoutStyle === 2" class="main-header" position="fixed" />（B6 批次已移植，实挂） */}
+            {layoutStyle === 2 && <MainHeader position="fixed" />}
             {layoutStyle === 2 && <View className="main-header-spacer" style={mainHeaderSpacerStyle as any} />}
             <View className="pageMain productSort" style={themeVars as any}>
                 {/* 装修配置到达前不渲染头部：否则会先按默认的国内版画一遍，拿到海外版配置后整块跳变 */}

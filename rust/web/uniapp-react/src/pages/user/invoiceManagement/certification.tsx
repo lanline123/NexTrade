@@ -61,7 +61,8 @@ export default function Certification() {
     const [showEdit, setShowEdit] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // 旧 isConfirm：模板中已注释的协议勾选，保留状态占位
+    // 旧 isConfirm：旧版模板中协议勾选整块被注释（certification.vue:82-83 <!-- <view class="agreement-box"> -->），
+    // 属旧端有意停用的死代码，按 parity 原则不渲染，仅保留状态占位
     const [isConfirm] = useState(false);
     void isConfirm;
 
@@ -239,7 +240,7 @@ export default function Certification() {
                             <FormItem label={t("银行账户")} required error={errors.companyAccount}>
                                 <Input className="form-input" placeholder={t("请输入银行账户")} {...inputProps("companyAccount")} />
                             </FormItem>
-                            {/* 旧注释保留：agreement-box（协议勾选） */}
+                            {/* 旧注释保留：agreement-box（协议勾选，旧版已注释停用，非遗漏） */}
                         </View>
                     ) : formState.status === 0 ? (
                         <View className="empty-text">{t("暂无增票资质信息")}!</View>

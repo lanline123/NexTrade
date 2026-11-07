@@ -3,6 +3,7 @@ import { View, Text, Input, Image } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import MainHeader from "@/components/mainHeader";
 import ImageSearchEntry from "@/components/imageSearchEntry";
 import { redirect, isOverseas } from "@/utils";
 import { useSearchDecorateStore } from "@/store/searchDecorate";
@@ -167,7 +168,8 @@ export default function SearchIndex() {
 
     return (
         <TigLayout title={navbarTitle} customBack onBack={handleBack}>
-            {/* TODO(B6)：外贸风 mainHeader（overseas 皮肤头部）随特殊批次移植，对应旧 <mainHeader position="sticky" no-safe-top /> */}
+            {/* 旧 <mainHeader v-if="isOverseasSkin" position="sticky" no-safe-top />（B6 批次已移植，实挂） */}
+            {isOverseasSkin && <MainHeader position="sticky" noSafeTop />}
             <View className={`searchGood ${layoutStyle === 2 ? "searchGood--overseas" : ""}`}>
                 {/* 国内版：灰底圆角框 + 框外「搜索」文字（无放大镜）；海外版：黑描边 + 框内 icon-neirongsousuo */}
                 {layoutStyle === 1 ? (

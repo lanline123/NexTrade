@@ -4,6 +4,7 @@ import Taro, { useDidShow, useDidHide, useUnload } from "@tarojs/taro";
 import { Swipe } from "@nutui/nutui-react-taro";
 
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import MainHeader from "@/components/mainHeader";
 import FormatPrice from "@/components/format-price/FormatPrice";
 import ActivityCard from "@/components/masonry/ActivityCard";
 import { getCart, updateCartItemData, updateCartCheck, removeCartItemData } from "@/api/cart/cart";
@@ -808,7 +809,8 @@ export default function Cart() {
         <TigLayout onLoginSuccess={loginSuccess}>
             {!showLogin && (
                 <>
-                    {/* TODO(B6)：外贸风 mainHeader（overseas 皮肤头部）随特殊批次移植，对应旧 <mainHeader position="fixed" />；占位 spacer 先行保留 */}
+                    {/* 旧 <mainHeader v-if="isOverseasSkin" position="fixed" />（B6 批次已移植，实挂） */}
+                    {isOverseasSkin && <MainHeader position="fixed" />}
                     {isOverseasSkin && <View className="main-header-spacer" style={mainHeaderSpacerStyle as any} />}
                     <CartHeard
                         showEditButton={cartList.length > 0}

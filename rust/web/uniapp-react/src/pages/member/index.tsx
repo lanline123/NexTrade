@@ -6,6 +6,7 @@ import MainHeader, { type MainHeaderRef } from "@/components/mainHeader";
 import Recommend from "@/components/recommend";
 import TigAuthBadge from "@/components/tig/tig-auth-badge/TigAuthBadge";
 import TigBackTop from "@/components/tig/tig-back-top";
+import TigCopyright from "@/components/tig/tig-copyright/TigCopyright";
 import TigImage from "@/components/tig/tig-image/TigImage";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import TigNavbar from "@/components/tig/tig-navbar/TigNavbar";
@@ -18,6 +19,7 @@ import MyService from "@/pages/member/components/decorate/myService";
 import TermPayCard from "@/pages/member/components/termPay/termPayCard";
 import { useScrollTop } from "@/hooks";
 import { useConfigStore } from "@/store/config";
+import { useI18nStore } from "@/store/i18n";
 import { useUserStore } from "@/store/user";
 import type { MemberDecorateModule } from "@/types/decorate/member-decorate";
 import { isMerchant, isO2o, isOverseas, isPro, staticResource } from "@/utils";
@@ -141,6 +143,14 @@ export default function Member() {
 
     const layoutRef = useRef<MainHeaderRef | null>(null);
     const isOverseasSkin = isOverseas();
+
+    /** 旧 tig-layout isZh：海外构建按当前语言判断，国内恒为中文 */
+    const langCode = useI18nStore((s) => s.langCode);
+    const isZh = isOverseasSkin
+        ? langCode
+            ? langCode.includes("zh")
+            : (Taro.getSystemInfoSync().language || "zh").includes("zh")
+        : true;
 
     const [previewId, setPreviewId] = useState<string | number>("");
     const [modules, setModules] = useState<MemberDecorateModule[]>([]);
@@ -459,7 +469,7 @@ export default function Member() {
                                                 </View>
                                             </View>
                                         ) : null}
-                                        {productCommentEnabled === 1 ? (
+                                        {isZh && productCommentEnabled === 1 ? (
                                             <View className="item" onClick={() => goPages("/pages/user/comment/list")}>
                                                 <View className="tit">
                                                     {t("待评价")}
@@ -612,7 +622,8 @@ export default function Member() {
                 ) : null}
 
                 <Recommend />
-                {/* 旧 tig-copyright：项目内尚无对应组件，保留 TODO(MIGRATION) */}
+                {/* 旧 <tig-copyright />（版权/技术支持图，B6 已移植组件，接线） */}
+                <TigCopyright />
                 <TigBackTop scrollTop={scrollTop} />
             </View>
         </TigLayout>
