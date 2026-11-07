@@ -1803,7 +1803,7 @@ function Seckill({ module }: ModuleProps) {
   return (
     <div className="module-seckill-goods_ad-wrapper">
       <div
-        className={`module-ad-con module-goods_ad module-seckill-goods_ad ad-style__${style} ad-buy_btn_style__${px(module.buyBtnStyle, 3)} ad-text_align__${module.textAlign ?? 1} ad-text_weight__${module.textWeight} ad-goods_name_padding__${module.goodsNamePadding}`}
+        className={`module-ad-con module-goods_ad module-seckill-goods_ad ad-style__${style} ad-buy_btn_style__${px(module.buyBtnStyle, 3)} ad-goods_style__${module.goodsStyle ?? 1} ad-goods_radio_style__${module.goodsRadioStyle ?? 1} ad-goods_name_row__${module.goodsNameRow ?? 1} ad-text_align__${module.textAlign ?? 1} ad-text_weight__${module.textWeight} ad-goods_name_padding__${module.goodsNamePadding} ad-goods-title_style__${title.titleStyle}`}
         style={frameStyle}
       >
         <div className="module-ad-content">
@@ -2028,7 +2028,7 @@ function Groupon({ module }: ModuleProps) {
 
   return (
     <div className="module-groupon-goods_ad-wrapper">
-      <div className={`module-ad-con module-goods_ad module-groupon-goods_ad ad-style__${style} ad-buy_btn_style__${px(module.buyBtnStyle)}`} style={shellStyle}>
+      <div className={`module-ad-con module-goods_ad module-groupon-goods_ad ad-style__${style} ad-buy_btn_style__${px(module.buyBtnStyle)} ad-goods_style__${module.goodsStyle ?? 1} ad-goods_radio_style__${module.goodsRadioStyle ?? 1} ad-goods_name_row__${module.goodsNameRow ?? 1} ad-goods_name_padding__${module.goodsNamePadding} ad-text_align__${module.textAlign ?? 1} ad-text_weight__${module.textWeight} ad-goods-title_style__${title.titleStyle}`} style={shellStyle}>
         <div className="module-ad-content">
           <div className="mod_groupon">
             {showTitle ? (
@@ -3292,6 +3292,7 @@ export const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Ele
   ContractCatProduct,
   ContractCategoryHot,
   ContractCustomAd,
+  ContractCustomAd1,
   CategoryNav3,
   Banner2,
   // ---- 店铺装修（旧版 pages/shop/src/ShopHomepage.vue 的 camelCase type）----
@@ -3344,12 +3345,20 @@ function ContractBanner({ module }: ModuleProps) {
   );
 }
 
-/** pcCatProductNormal / pcCatProductWide / pcCatProductSimple 共用：标题 + 关键词链接行 + 可选图片条 + 商品网格。 */
+/** pcCatProductNormal / pcCatProductWide / pcCatProductSimple 共用：标题 + 关键词链接行 + 可选图片条 + 商品网格。
+ *  原版视觉字段（CatProductNormal.vue / CatProductWide.vue）：
+ *  - color/color2 → 标题栏 `linear-gradient(30deg, color, color2)` 白字渐变条；
+ *  - enTitle（Wide）→ 渐变栏内的英文副标题；
+ *  - picList2 → 促销卡列（Normal 前 4 张 / Wide 前 6 张），副标题用 color 着色。 */
 function ContractCatProduct({ module }: ModuleProps) {
     const { t } = useTranslation();
   const links: Array<{ link: string; text: string }> = module.links || [];
   const moreHref = linkHref(module.moreLink);
   const bannerPics: any[] = module.banner?.picList || [];
+  const promoPics: any[] = module.picList2 || [];
+  const color = typeof module.color === 'string' ? module.color : '';
+  const color2 = typeof module.color2 === 'string' ? module.color2 : '';
+  const enTitle = typeof module.enTitle === 'string' ? module.enTitle : '';
   /**
    * 旧版分类商品模块有两种形态，宽度语义不同，不能混用：
    * - pcCatProductNormal（CatProductNormal.vue:169-171）：楼层块固定 608px 宽，
@@ -3365,10 +3374,51 @@ function ContractCatProduct({ module }: ModuleProps) {
    */
   const isSimpleLeftLayout = Number(module.baseStyle) === 2 && bannerPics.length > 0;
   const leftPic = isSimpleLeftLayout ? bannerPics[0] : null;
+  // 旧版 floor_tit 渐变条（CatProductNormal.vue:124 / CatProductWide.vue:118-119）
+  const titGradient = color || color2
+    ? `linear-gradient(30deg, ${color || color2} 0%, ${color2 || color} 100%)`
+    : undefined;
+  const promoCount = module.layoutWidth === 608 ? 4 : 6;
+  const promoCards = (promoPics.length ? (
+    <div className="dec-cat-promo">
+      {promoPics.slice(0, promoCount).map((pic: any, index: number) => (
+        <a
+          key={index}
+          className="dec-cat-promo__card"
+          href={navHref(pic.picLink) || '#'}
+          target="_blank"
+          rel="noreferrer"
+          title={pic.picTitle || ''}
+        >
+          <p className="dec-cat-promo__tit">{pic.picTitle || ''}</p>
+          <p className="dec-cat-promo__sub" style={color ? { color } : undefined}>{pic.picDesc || ''}</p>
+          <span className="dec-cat-promo__img">
+            <img src={picSrc(pic)} alt={pic.picTitle || ''} loading="lazy" />
+          </span>
+        </a>
+      ))}
+    </div>
+  ) : null);
   return (
     <Container module={FLAT_FRAME} className="dec-cat-product" style={columnWidth ? { width: `${columnWidth}px` } : undefined}>
-      <ShopTitle title={module.title} />
-      {links.length || moreHref ? (
+      {titGradient ? (
+        <div className="dec-cat-product__tit" style={{ background: titGradient }}>
+          <div className="dec-cat-product__tit-row">
+            <h4>{module.title?.titleText || module.title || ''}<i className="iconfont-pc icon-yuanjiaojiantouyou" /></h4>
+            {enTitle ? <p className="dec-cat-product__tit-en">{enTitle}</p> : null}
+          </div>
+          {links.length ? (
+            <div className="dec-cat-product__tit-links">
+              {links.map((item, index) => (
+                <a key={index} href={navHref(item.link) || '#'}>{item.text}{index < links.length - 1 ? ' |' : ''}</a>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <ShopTitle title={module.title} />
+      )}
+      {!titGradient && (links.length || moreHref) ? (
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, margin: '4px 0 10px', fontSize: 13, color: '#666' }}>
           {links.map((item, index) => (
             <a key={index} href={navHref(item.link) || '#'}>{item.text}</a>
@@ -3395,7 +3445,11 @@ function ContractCatProduct({ module }: ModuleProps) {
         </div>
       ) : (
         <>
-          {bannerPics.length ? <ImageAd module={{ picList: bannerPics, frame: FLAT_FRAME }} /> : null}
+          {/* 原版：左侧 picList 轮播/图条 + 右侧 picList2 促销卡（CatProductNormal.vue:22-48） */}
+          <div className={promoCards ? 'dec-cat-product__row' : undefined}>
+            {bannerPics.length ? <ImageAd module={{ picList: bannerPics, frame: FLAT_FRAME }} /> : null}
+            {promoCards}
+          </div>
           <Product module={{ products: module.product || {}, frame: FLAT_FRAME }} />
         </>
       )}
@@ -3468,6 +3522,106 @@ function ContractCustomAd({ module }: ModuleProps) {
         </div>
       ) : null}
       {groups.map((group, index) => (group.length ? <ImageAd key={index} module={{ picList: group, frame: FLAT_FRAME }} /> : null))}
+    </Container>
+  );
+}
+
+/** pcCustomAd1 专用：CustomAd1.vue 固定三列编辑版式 ——
+ *  左大图(picList[0] 270x400) + 中「每日推荐」(picList2：banner + 行卡) + 右「热销精品」
+ *  (picList3：banner + 两行卡 + 底部两张 GO >> 图)，标题条金色 #dfa747 / 橙色 #f39156。 */
+function ContractCustomAd1({ module }: ModuleProps) {
+  const { t } = useTranslation();
+  const left: any[] = module.picList || [];
+  const rec: any[] = module.picList2 || [];
+  const hot: any[] = module.picList3 || [];
+  if (!left.length && !rec.length && !hot.length) return null;
+  const pic = (item: any) => item?.picUrl || item?.picThumb || '';
+  const href = (item: any) => navHref(item?.picLink) || '#';
+  const SectionTit = ({ text, icon, tone }: { text: string; icon: string; tone: string }) => (
+    <h4 className="dec-ad1__tit">
+      <em style={{ background: tone, borderTopColor: tone }}>
+        <u className="dec-ad1__tri-l" style={{ borderBottomColor: tone }} />
+        <u className="dec-ad1__tri-r" style={{ borderBottomColor: tone }} />
+        <i className={`iconfont-pc ${icon}`} />
+        <span>{text}</span>
+      </em>
+    </h4>
+  );
+  return (
+    <Container module={FLAT_FRAME}>
+      <div className="dec-ad1">
+        {/* 左：大图 270x400 */}
+        <div className="dec-ad1__left">
+          {left[0] ? (
+            <a href={href(left[0])} target="_blank" rel="noreferrer" title={left[0]?.picTitle || ''}>
+              <img className="dec-ad1__left-img" src={pic(left[0])} alt={left[0]?.picTitle || ''} />
+            </a>
+          ) : null}
+        </div>
+        {/* 中：每日推荐（picList2[0] 竖图 + picList2[1..] 行卡） */}
+        {rec.length ? (
+          <div className="dec-ad1__panel dec-ad1__mr10">
+            <SectionTit text={t('每日推荐')} icon="icon-jingpin" tone="#dfa747" />
+            <div className="dec-ad1__panel-body">
+              {rec[0] ? (
+                <a className="dec-ad1__banner" href={href(rec[0])} target="_blank" rel="noreferrer" title={rec[0]?.picTitle || ''}>
+                  <img className="dec-ad1__banner-img" src={pic(rec[0])} alt={rec[0]?.picTitle || ''} />
+                </a>
+              ) : null}
+              <div className="dec-ad1__rows">
+                <ul>
+                  {rec.slice(1).map((item, index) => (
+                    <li key={index}>
+                      <a href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
+                        <p className="dec-ad1__row-tit">{item?.picTitle || ''}</p>
+                        <p className="dec-ad1__row-sub">{item?.picDesc || ''}</p>
+                        <img className="dec-ad1__row-img" src={pic(item)} alt={item?.picTitle || ''} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        {/* 右：热销精品（picList3[0] banner + [1]/[2] 行卡 + [3]/[4] GO >> 图） */}
+        {hot.length ? (
+          <div className="dec-ad1__panel">
+            <SectionTit text={t('热销精品')} icon="icon-jingpintuijian" tone="#f39156" />
+            <div className="dec-ad1__panel-body dec-ad1__panel-body--hot">
+              {hot[0] ? (
+                <a className="dec-ad1__banner dec-ad1__banner--hot" href={href(hot[0])} target="_blank" rel="noreferrer" title={hot[0]?.picTitle || ''}>
+                  <img className="dec-ad1__banner-img" src={pic(hot[0])} alt={hot[0]?.picTitle || ''} />
+                  <p className="dec-ad1__row-tit">{hot[0]?.picTitle || ''}</p>
+                  <p className="dec-ad1__row-sub">{hot[0]?.picDesc || ''}</p>
+                </a>
+              ) : null}
+              <div className="dec-ad1__rows">
+                <ul>
+                  {hot.slice(1, 3).map((item, index) => (
+                    <li key={index}>
+                      <a href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
+                        <p className="dec-ad1__row-tit">{item?.picTitle || ''}</p>
+                        <p className="dec-ad1__row-sub">{item?.picDesc || ''}</p>
+                        <img className="dec-ad1__row-img" src={pic(item)} alt={item?.picTitle || ''} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="dec-ad1__life">
+              {hot.slice(3, 5).map((item, index) => (
+                <a key={index} className="dec-ad1__life-item" href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
+                  <img className="dec-ad1__life-img" src={pic(item)} alt={item?.picTitle || ''} />
+                  <p className="dec-ad1__life-tit">{item?.picTitle || ''}</p>
+                  <p className="dec-ad1__life-go">GO<em> &gt;&gt;</em></p>
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </Container>
   );
 }

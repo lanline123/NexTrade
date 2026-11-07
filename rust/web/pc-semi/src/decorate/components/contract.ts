@@ -190,12 +190,30 @@ function adaptPcGroupBanner(item: DecorateModule): ContractRenderPlan {
 // 营销系（pcSeckill / pcCoupon / pcGroupon）
 // ---------------------------------------------------------------------------
 
-/** pcSeckill：{seckillTitle}；商品列表由营销数据决定，C 端 Seckill 自行请求 /api/home/home/getSeckill。 */
+/** pcSeckill：{seckillTitle, style, goodsStyle, goodsRadioStyle, goodsNameRow, ...}；
+ * 商品列表由营销数据决定，C 端 Seckill 自行请求 /api/home/home/getSeckill。
+ * 卡片视觉字段对齐 PcSeckillLegacy.vue 的 class 钩子（ad-goods_style__ / ad-goods_radio_style__ /
+ * ad-goods_name_row__ / ad-text_align__ / ad-text_weight__ / ad-goods_name_padding__）。 */
 function adaptPcSeckill(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   return {
     component: 'Seckill',
-    module: { title: toTitle(m.seckillTitle ?? m.title), frame: frameOf(m) },
+    module: {
+      title: toTitle(m.seckillTitle ?? m.title),
+      frame: frameOf(m),
+      style: m.style,
+      goodsStyle: m.goodsStyle,
+      goodsRadioStyle: m.goodsRadioStyle,
+      goodsNameRow: m.goodsNameRow,
+      goodsNamePadding: m.goodsNamePadding,
+      goodsPadding: m.goodsPadding,
+      textAlign: m.textAlign,
+      textWeight: m.textWeight,
+      buyBtnStyle: m.buyBtnStyle,
+      showName: m.showName,
+      showPrice: m.showPrice,
+      cardStyle: m.cardStyle,
+    },
   };
 }
 
@@ -273,7 +291,12 @@ function adaptPcCatProductNormal(item: DecorateModule): ContractRenderPlan {
       buyBtnStyle: m.buyBtnStyle,
       showName: m.showName,
       showPrice: m.showPrice,
-      // color/color2/logo/enTitle/shortTitle/picList2 为原版专属视觉字段，降级省略
+      // 原版楼层视觉字段（CatProductNormal.vue）：
+      // color/color2 → 标题栏 30° 渐变 + 促销卡副标题色；picList2 → 右侧 2x2 促销卡。
+      // logo / enTitle / shortTitle 在 CatProductNormal.vue 中无消费点（仅接口声明）。
+      color: m.color,
+      color2: m.color2,
+      picList2: picList(m, 'picList2'),
     },
   };
 }
@@ -281,6 +304,8 @@ function adaptPcCatProductNormal(item: DecorateModule): ContractRenderPlan {
 /**
  * pcCatProductWide：{categoryId(可数组), title, productIds, linkList, picList, picList2, ...}。
  * productIds 优先按 ids 拉取，否则按 categoryId；linkList 渲染为关键词链接行。
+ * 原版 CatProductWide.vue：color/color2 → 左栏 30° 渐变、enTitle → 左栏英文副标题、
+ * picList2 → 中栏 6 张促销卡。
  */
 function adaptPcCatProductWide(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
@@ -297,7 +322,10 @@ function adaptPcCatProductWide(item: DecorateModule): ContractRenderPlan {
       links: [...toLinks(m.linkList), ...toCategoryLinks(m.childCategoryList)],
       frame: frameOf(m),
       baseStyle: m.baseStyle,
-      // color/color2/logo/enTitle/shortTitle/picList2（原版右侧促销卡）降级省略
+      color: m.color,
+      color2: m.color2,
+      enTitle: m.enTitle,
+      picList2: picList(m, 'picList2'),
     },
   };
 }
@@ -388,13 +416,17 @@ function adaptPcImageAd(item: DecorateModule): ContractRenderPlan {
   };
 }
 
-/** pcCustomAd1：{picList, picList2, picList3} → ContractCustomAd 三组图顺次平铺（原版为固定编辑版式，降级）。 */
+/** pcCustomAd1：{picList, picList2, picList3} → ContractCustomAd1
+ *  原版 CustomAd1.vue 固定三列编辑版式：左大图(270x400) + 中「每日推荐」 + 右「热销精品」
+ *  （含固定标题文案与 GO >> 角标），不是三组图平铺。 */
 function adaptPcCustomAd1(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   return {
-    component: 'ContractCustomAd',
+    component: 'ContractCustomAd1',
     module: {
-      groups: [picList(m, 'picList'), picList(m, 'picList2'), picList(m, 'picList3')],
+      picList: picList(m, 'picList'),
+      picList2: picList(m, 'picList2'),
+      picList3: picList(m, 'picList3'),
       frame: frameOf(m),
     },
   };

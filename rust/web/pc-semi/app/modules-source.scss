@@ -3935,3 +3935,594 @@ img {
 .dec-pc-home-hero__channel-card {
   background: var(--dec-panel-bg, #f5f6fa);
 }
+
+/* ============================================================
+   附加样式字段（对照 PcSeckillLegacy.vue / PcGrouponLegacy.vue 移植）
+   goodsStyle 1 标准 / 2 投影 / 3 描边 / 4 透明；
+   goodsRadioStyle 2 圆角；goodsNameRow 1 单行 / 2 两行。
+   旧版 class 挂在 .module-ad-con 根节点，此处按模块域限定。
+   ============================================================ */
+
+/* ---- goodsStyle 2：投影（SeckillLegacy:1786 / GrouponLegacy:1897） ---- */
+.module-seckill-goods_ad.ad-goods_style__2,
+.module-groupon-goods_ad.ad-goods_style__2 {
+  .goods-ad-warp .goods-ad-con .goods-ad-item {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+
+    .item-con {
+      box-shadow: none;
+    }
+  }
+
+  .mod_seckill .seckill_list .proditem,
+  .mod_groupon .groupon_list .proditem {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  }
+}
+
+/* ---- goodsStyle 3：描边（SeckillLegacy:1799 / GrouponLegacy:1908） ---- */
+.module-seckill-goods_ad.ad-goods_style__3,
+.module-groupon-goods_ad.ad-goods_style__3 {
+  .goods-ad-warp .goods-ad-con .goods-ad-item {
+    border: 1px solid rgba(50, 50, 51, 0.1) !important;
+
+    .item-con {
+      border: none;
+    }
+  }
+
+  .mod_seckill .seckill_list .proditem,
+  .mod_groupon .groupon_list .proditem {
+    border: 1px solid rgba(50, 50, 51, 0.1) !important;
+  }
+}
+
+/* ---- goodsStyle 4：透明（SeckillLegacy:1812 / GrouponLegacy:1920） ---- */
+.module-seckill-goods_ad.ad-goods_style__4 {
+  .mod_seckill .seckill_list .seckill-item__name,
+  .mod_seckill .seckill_list .price-container {
+    padding: 0 !important;
+  }
+
+  .goods-ad-warp .goods-ad-item {
+    background: transparent !important;
+
+    .item-content,
+    .item-con,
+    .item-info,
+    .item-photo,
+    .item-photo.seckill-item-image {
+      background: transparent !important;
+    }
+
+    .seckill-item-discount {
+      margin: 5px 0 !important;
+    }
+
+    .item-info {
+      padding: 0 !important;
+    }
+  }
+
+  .proditem {
+    background: transparent !important;
+
+    .item-content,
+    .item-con,
+    .item-info,
+    .item-photo,
+    .item-photo.seckill-item-image {
+      background: #f0f0f0 !important;
+    }
+
+    .seckill-item-discount {
+      margin: 5px 0 !important;
+    }
+
+    .item-info {
+      padding: 0 !important;
+    }
+  }
+}
+
+.module-groupon-goods_ad.ad-goods_style__4 {
+  .mod_groupon .groupon_list .groupon-item__name,
+  .mod_groupon .groupon_list .groupon-item__price {
+    padding: 0 !important;
+  }
+
+  .goods-ad-warp .goods-ad-item {
+    background: transparent !important;
+
+    .item-content,
+    .item-con {
+      background: transparent !important;
+    }
+
+    .groupon-item-image-wrapper {
+      background: transparent !important;
+    }
+
+    .groupon-item__name,
+    .groupon-item__price,
+    .price-origin {
+      background: transparent !important;
+    }
+  }
+
+  .mod_groupon .groupon_list .proditem {
+    background: transparent !important;
+
+    .groupon-item-image-wrapper {
+      background: transparent !important;
+    }
+
+    .groupon-item__name,
+    .groupon-item__price,
+    .price-origin {
+      background: transparent !important;
+    }
+  }
+
+  &.ad-goods_radio_style__2 {
+    .goods-ad-warp .goods-ad-con .goods-ad-item {
+      background: transparent !important;
+
+      .groupon-item__name,
+      .groupon-item__price,
+      .price-origin {
+        background: transparent !important;
+      }
+    }
+  }
+}
+
+/* ---- goodsRadioStyle 2：卡片圆角（SeckillLegacy:1855 / GrouponLegacy:1271） ---- */
+.module-seckill-goods_ad.ad-goods_radio_style__2,
+.module-groupon-goods_ad.ad-goods_radio_style__2 {
+  .goods-ad-item {
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .goods-ad-warp .goods-ad-con .goods-ad-item {
+    .item-con {
+      border-radius: 6px;
+
+      .item-photo {
+        border-radius: 6px 6px 0 0;
+        overflow: hidden;
+      }
+    }
+  }
+}
+
+/* ---- goodsNameRow：名称行数（SeckillLegacy:1474/1941、GrouponLegacy:1067） ---- */
+.module-seckill-goods_ad.ad-goods_name_row__1 {
+  .goods-ad-warp .goods-ad-item .item-info .item-name {
+    line-height: 20px;
+    height: 20px;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    display: -moz-box;
+    -webkit-line-clamp: 1;
+    -moz-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+.module-seckill-goods_ad.ad-goods_name_row__2 {
+  .goods-ad-warp .goods-ad-item .item-info .item-name {
+    height: 40px;
+    white-space: normal;
+    display: -webkit-box;
+    display: -moz-box;
+    -webkit-line-clamp: 2;
+    -moz-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    line-height: 20px;
+    overflow: hidden;
+  }
+}
+
+.module-groupon-goods_ad.ad-goods_name_row__2 {
+  .mod_groupon .groupon-item__name .product-name-text,
+  .titleBox .title.product-name-text {
+    white-space: normal;
+    display: -webkit-box;
+    display: -moz-box;
+    -webkit-line-clamp: 2;
+    -moz-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    line-height: 28px;
+    height: 56px;
+    min-height: 56px;
+    overflow: hidden;
+  }
+}
+
+/* ============================================================
+   分类商品楼层视觉字段（对照 CatProductNormal.vue / CatProductWide.vue）
+   color/color2 渐变标题条 + picList2 促销卡列
+   ============================================================ */
+
+.dec-cat-product__tit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 10px 12px 18px;
+  border-radius: 4px 4px 0 0;
+  color: #fff;
+
+  .dec-cat-product__tit-row h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    line-height: 25px;
+  }
+
+  .dec-cat-product__tit-en {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+
+  .dec-cat-product__tit-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 13px;
+
+    a {
+      color: #fff;
+      padding: 0 6px;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.dec-cat-product__row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.dec-cat-promo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dec-cat-promo__card {
+  position: relative;
+  box-sizing: border-box;
+  display: block;
+  height: 190px;
+  padding-top: 20px;
+  border-bottom: 1px solid #f5f5f5;
+  border-left: 1px solid #f5f5f5;
+  background: #fff;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  .dec-cat-promo__tit {
+    margin: 0 0 2px 20px;
+    height: 24px;
+    max-width: 100px;
+    overflow: hidden;
+    color: #333;
+    font-size: 14px;
+    line-height: 24px;
+  }
+
+  .dec-cat-promo__sub {
+    margin: 0 0 0 20px;
+    height: 24px;
+    max-width: 100px;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 24px;
+  }
+
+  .dec-cat-promo__img {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: block;
+    width: 105px;
+    height: 105px;
+
+    img {
+      width: 105px;
+      height: 105px;
+      object-fit: contain;
+    }
+  }
+}
+
+/* ============================================================
+   pcCustomAd1 三列编辑版式（对照 CustomAd1.vue .mod_on_new 移植）
+   左大图 270x400 + 「每日推荐」#dfa747 + 「热销精品」#f39156
+   ============================================================ */
+
+.dec-ad1 {
+  display: flex;
+  flex-direction: row;
+  margin-top: 30px;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .dec-ad1__left {
+    overflow: hidden;
+    margin-right: 10px;
+    width: 270px;
+    height: 400px;
+    flex-shrink: 0;
+
+    .dec-ad1__left-img {
+      width: 270px;
+      height: 400px;
+      object-fit: cover;
+      background: #eee;
+    }
+  }
+
+  .dec-ad1__mr10 {
+    margin-right: 10px;
+  }
+
+  .dec-ad1__panel {
+    width: 450px;
+    height: 400px;
+    background: #fff;
+  }
+
+  .dec-ad1__tit {
+    margin-bottom: 7px;
+    height: 32px;
+    color: #fff;
+    text-align: center;
+    font-weight: 400;
+    line-height: 32px;
+    border-top: 1px solid transparent;
+
+    em {
+      position: relative;
+      top: -3px;
+      display: inline-block;
+      margin-top: -3px;
+      width: 140px;
+      height: 32px;
+      font-size: 18px;
+      font-style: normal;
+      border-top: 1px solid;
+    }
+
+    em i {
+      margin-right: 8px;
+      font-size: 20px;
+    }
+
+    .dec-ad1__tri-l {
+      position: absolute;
+      top: 0;
+      left: -4px;
+      width: 0;
+      height: 0;
+      border-bottom: 4px solid;
+      border-left: 4px solid transparent;
+      font-size: 0;
+      line-height: 0;
+    }
+
+    .dec-ad1__tri-r {
+      position: absolute;
+      top: 0;
+      right: -4px;
+      width: 0;
+      height: 0;
+      border-right: 4px solid transparent;
+      border-bottom: 4px solid;
+      font-size: 0;
+      line-height: 0;
+    }
+  }
+
+  .dec-ad1__panel-body {
+    display: flex;
+
+    .dec-ad1__banner {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      width: 225px;
+      height: 360px;
+      border-right: 1px solid #f0f0f0;
+      flex-shrink: 0;
+
+      .dec-ad1__banner-img {
+        width: 225px;
+        height: 360px;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+      }
+
+      &:hover .dec-ad1__banner-img {
+        transform: translate3d(-5px, 0, 0);
+      }
+    }
+
+    .dec-ad1__rows {
+      overflow: hidden;
+      margin-top: 1px;
+      padding: 0 15px;
+      width: 225px;
+      height: 360px;
+      font-size: 14px;
+      line-height: 24px;
+
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      li {
+        position: relative;
+        margin-bottom: 10px;
+        padding: 10px 5px;
+        height: 110px;
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child {
+          margin-bottom: 0;
+          border-bottom: 0;
+        }
+
+        a {
+          display: block;
+          height: 90px;
+        }
+
+        .dec-ad1__row-img {
+          position: absolute;
+          right: 5px;
+          bottom: 10px;
+          width: 90px;
+          height: 90px;
+          object-fit: cover;
+          transition: transform 0.4s ease;
+        }
+
+        a:hover .dec-ad1__row-img {
+          transform: translate3d(-5px, 0, 0);
+        }
+      }
+
+      .dec-ad1__row-tit {
+        overflow: hidden;
+        width: 95px;
+        height: 24px;
+        color: #333;
+        line-height: 24px;
+      }
+
+      .dec-ad1__row-sub {
+        overflow: hidden;
+        height: 24px;
+        color: #999;
+      }
+    }
+
+    /* 右栏「热销精品」：banner 205x210 + 行卡 230px + 底部 GO 图 */
+    &.dec-ad1__panel-body--hot {
+      .dec-ad1__banner--hot {
+        margin-left: 20px;
+        padding-top: 8px;
+        width: 205px;
+        height: 230px;
+
+        .dec-ad1__banner-img {
+          position: absolute;
+          right: -5px;
+          bottom: 0;
+          width: 210px;
+          height: 210px;
+        }
+
+        .dec-ad1__row-tit {
+          position: relative;
+          z-index: 105;
+          margin-top: 8px;
+          width: auto;
+          max-width: 85px;
+          color: #333;
+          font-size: 16px;
+        }
+
+        .dec-ad1__row-sub {
+          margin-top: 5px;
+          width: 85px;
+          height: 40px;
+          font-size: 14px;
+          line-height: 20px;
+        }
+      }
+
+      .dec-ad1__rows {
+        height: 230px;
+        width: 225px;
+      }
+    }
+  }
+
+  .dec-ad1__life {
+    display: flex;
+    padding: 10px 10px 13px 14px;
+
+    .dec-ad1__life-item {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      padding: 10px 0 0 12px;
+      width: 205px;
+      height: 105px;
+
+      &:first-child {
+        margin-right: 12px;
+      }
+
+      &:hover .dec-ad1__life-img {
+        transform: translate3d(-5px, 0, 0);
+      }
+    }
+
+    .dec-ad1__life-img {
+      position: absolute;
+      top: 0;
+      right: -5px;
+      width: 210px;
+      height: 105px;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .dec-ad1__life-tit {
+      position: relative;
+      z-index: 105;
+      height: 20px;
+      color: #fb6233;
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .dec-ad1__life-go {
+      position: relative;
+      z-index: 105;
+      height: 20px;
+      color: #fb6233;
+      font-size: 12px;
+      line-height: 20px;
+    }
+  }
+}
