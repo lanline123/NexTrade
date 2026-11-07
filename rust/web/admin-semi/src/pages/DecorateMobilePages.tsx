@@ -245,7 +245,25 @@ export function ThemeStyle() {
                 <Space>
                   <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>{t('9折')}</span>
                   <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>{t('满100-10')}</span>
+                  <span style={{ ...viceStyle, padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>{t('满300-40')}</span>
                 </Space>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
+                  <span style={{ ...priceStyle, fontSize: 13 }}>{t('商品介绍')}</span>
+                  <span
+                    style={{
+                      ...mainStyle,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 12,
+                    }}
+                  >
+                    3
+                  </span>
+                </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
                   <span style={{ ...viceStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>{t('加入购物车')}</span>
                   <span style={{ ...mainStyle, flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 4 }}>{t('立即购买')}</span>

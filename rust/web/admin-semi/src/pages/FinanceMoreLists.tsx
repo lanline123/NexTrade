@@ -31,6 +31,7 @@ import ListPage from '../framework/ListPage';
 import type { ColumnConfig, FilterConfig } from '../framework/types';
 import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
+import { unixToTimeShort as unixToDateTime } from '../utils/format';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
@@ -187,14 +188,7 @@ const dateTimeToUnix = (text: string): number => {
   return Number.isFinite(ms) ? Math.floor(ms / 1000) : 0;
 };
 
-const unixToDateTime = (value: unknown): string => {
-  const sec = Number(value || 0);
-  if (!Number.isFinite(sec) || sec <= 0) return '';
-  const d = new Date(sec * 1000);
-  if (Number.isNaN(d.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
+/** unixToDateTime 现由 utils/format 提供（本页原语义：非法值留白、仅到分钟）。 */
 
 /** 保证金规则：旧版有筛选 / 添加 / 编辑 / 删除 / 启停 / 类目选择 / 生效时间两种模式。 */
 export function DepositRules() {

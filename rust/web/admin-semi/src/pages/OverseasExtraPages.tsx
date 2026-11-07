@@ -47,6 +47,7 @@ import { useI18n } from '../i18n';
 import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import type { ColumnConfig, FormDrawerConfig, OptionItem } from '../framework/types';
+import { dateTimeValue } from '../utils/format';
 
 const { Text } = Typography;
 
@@ -58,13 +59,8 @@ const money = (value: unknown) => `¥${Number(value || 0).toFixed(2)}`;
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-/** 秒/毫秒级时间戳转 yyyy-MM-dd HH:mm:ss（原版 utils/time.formatTimestamp 以秒处理）。 */
-const formatTimestamp = (value: unknown) => {
-  const num = Number(value);
-  if (!value || !Number.isFinite(num) || num <= 0) return '--';
-  const date = new Date(num < 1e12 ? num * 1000 : num);
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
-};
+/** 秒/毫秒级时间戳转 yyyy-MM-dd HH:mm:ss（现由 utils/format.dateTimeValue 提供）。 */
+const formatTimestamp = (value: unknown) => dateTimeValue(value);
 
 /** 转账/申请时间：可能是时间戳，也可能已是字符串，按需格式化。 */
 const formatTimeValue = (value: unknown) => {

@@ -18,18 +18,11 @@ import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { useI18n } from '../i18n';
 import ImageUploader from '../components/ImageUploader';
+import { unixToDateTime } from '../utils/format';
 
 interface FinanceRow extends Record<string, any> {
   id?: number;
 }
-
-const unixToDateTime = (value: unknown): string => {
-  const num = Number(value);
-  if (!Number.isFinite(num) || num <= 0) return '--';
-  const date = new Date(num * 1000);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-};
 
 const amountText = (value: unknown): string => {
   const num = Number(value);
