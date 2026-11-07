@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Table } from '@douyinfe/semi-ui';
+import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -7,6 +6,8 @@ import {
   Modal,
   Radio,
   RadioGroup,
+  Select,
+  Table,
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
@@ -27,6 +28,34 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
   const { t } = useI18n();
   const [dealRange, setDealRange] = useState(0);
   const [rangeIds, setRangeIds] = useState<number[]>([]);
+  /** 分类/品牌选项（指定分类/品牌导出范围） */
+  const [categoryOptions, setCategoryOptions] = useState<Array<{ categoryId: number; categoryName: string }>>([]);
+  const [brandOptions, setBrandOptions] = useState<Array<{ brandId: number; brandName: string }>>([]);
+
+  useEffect(() => {
+    apiGet<any>('/product/category/getAllCategory')
+      .then((result) => {
+        const flat: Array<{ categoryId: number; categoryName: string }> = [];
+        const walk = (nodes: any[], prefix: string) =>
+          (Array.isArray(nodes) ? nodes : []).forEach((node) => {
+            flat.push({ categoryId: node.categoryId, categoryName: `${prefix}${node.categoryName || ''}` });
+            if (Array.isArray(node.children)) walk(node.children, `${prefix}　`);
+          });
+        walk(result?.records || result || [], '');
+        setCategoryOptions(flat);
+      })
+      .catch(() => undefined);
+    apiGet<any>('/product/brand/list', { page: 1, size: 200 })
+      .then((result) =>
+        setBrandOptions(
+          (result?.records || result?.list || []).map((item: any) => ({
+            brandId: item.brandId,
+            brandName: item.brandName || '',
+          })),
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
   const [exporting, setExporting] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isAutoCat, setIsAutoCat] = useState(0);
@@ -42,7 +71,7 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
     try {
       const params = new URLSearchParams();
       params.set('dealRange', String(dealRange));
-      if (dealRange === 3 || dealRange === 4) {
+      if (dealRange >= 1 && dealRange <= 4) {
         params.set('rangeIds', rangeIds.join(','));
       }
       const res = await fetch(`/adminapi/product/productBatch/productBatchDeal?${params.toString()}`, {
@@ -153,10 +182,27 @@ export default function ProductBatch({ mode }: ProductBatchPageProps) {
               onChange={(event) => setDealRange(Number(event.target.value))}
             >
               <Radio value={0}>{t('全部商品')}</Radio>
+              <Radio value={1}>{t('指定分类')}</Radio>
+              <Radio value={2}>{t('指定品牌')}</Radio>
               <Radio value={3}>{t('指定商品')}</Radio>
               <Radio value={4}>{t('不包含以下商品')}</Radio>
             </RadioGroup>
           </div>
+          {dealRange === 1 || dealRange === 2 ? (
+            <div className="batch-form-row">
+              <Select
+                style={{ width: 320 }}
+                multiple
+                filter
+                placeholder={dealRange === 1 ? t('选择分类') : t('选择品牌')}
+                value={rangeIds}
+                optionList={dealRange === 1
+                  ? categoryOptions.map((item) => ({ label: item.categoryName, value: item.categoryId }))
+                  : brandOptions.map((item) => ({ label: item.brandName, value: item.brandId }))}
+                onChange={(next: any) => setRangeIds(((next as any[]) || []).map(Number))}
+              />
+            </div>
+          ) : null}
           {dealRange === 3 || dealRange === 4 ? (
             <div className="batch-form-row">
               <ProductPicker value={rangeIds} onChange={setRangeIds} max={500} />

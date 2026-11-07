@@ -85,6 +85,16 @@ export interface OrderRow {
   /** 自提订单不展示确认收货入口。 */
   isPickup?: boolean;
   items?: Array<{ productName?: string; productNum?: number; productImage?: string }>;
+  /** 行级「取消订单/取消发货」入口（旧版 isChangeOrderStatus，1 展示）。 */
+  isChangeOrderStatus?: number;
+  /** 取消目标状态：3 取消订单 / 1 取消发货（旧版 ChangeStatus preOrderStatus）。 */
+  preOrderStatus?: number;
+  availableActions?: {
+    deliver?: boolean;
+    confirmReceipt?: boolean;
+    cancelOrder?: boolean;
+    [key: string]: boolean | undefined;
+  };
 }
 
 export interface MemberRow {

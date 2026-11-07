@@ -9,6 +9,6 @@
   "batch": [],
   "interactionChecks": ["rust/web/admin-semi/scripts/verify-engine.cjs"],
   "notes": [
-    "授信客户:/credit/user/*(list/create/update/delete/updateField/detail)。状态开关 updateField;actions 留空:新增/编辑授信表单待补(旧版跳转独立编辑页,字段含授信额度/结算账期,无 FormDrawer)。"
+    "授信客户:/credit/user/*(list/create/update/delete/updateField/detail)。状态开关 updateField;actions 留空:新增/编辑授信表单已补齐（Modal：会员搜索选择 + 授信额度 + 结算账期 月结/季结 + 状态，走 credit/user/create|update）。"
   ]
 }

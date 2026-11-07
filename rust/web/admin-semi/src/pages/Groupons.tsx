@@ -23,6 +23,7 @@ import ListPage from '../framework/ListPage';
 import FormDrawer from '../framework/FormDrawer';
 import ImageUploader from '../components/ImageUploader';
 import MultilingualField from '../components/MultilingualField';
+import SendUserSelector, { type SendUserTarget } from '../components/SendUserSelector';
 import type { ColumnConfig, FormDrawerConfig } from '../framework/types';
 
 const { Text } = Typography;
@@ -52,6 +53,7 @@ const DEFAULT_FORM = {
   grouponImage: '',
   shareImage: '',
   grouponExplain: '',
+  sendUserTarget: { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 } as SendUserTarget,
 };
 
 /** 拼团活动：对应旧版 promotion/groupon/List.vue + Info.vue + item/* + record/*。
@@ -136,7 +138,16 @@ export default function Groupons() {
         grouponImage: payload.grouponImage || '',
         shareImage: payload.shareImage || '',
         grouponExplain: payload.grouponExplain || '',
-        memberRange: 0,
+        // 参与人群（对齐旧版 SendUserSelector → memberRange/memberMarks/sendUserTarget）
+        sendUserTarget:
+          (payload.sendUserTarget as SendUserTarget) ||
+          { scope: 0, userIds: [], users: [], rankIds: [], tagIds: [], tagMatchMode: 0 },
+        memberRange:
+          (payload.sendUserTarget as SendUserTarget | undefined)?.scope === 1 ? 1 : 0,
+        memberMarks:
+          (payload.sendUserTarget as SendUserTarget | undefined)?.scope === 1
+            ? (payload.sendUserTarget as SendUserTarget).tagIds || []
+            : [],
       };
       if (drawerMode === 'edit' && editingId) {
         await apiPost('/promotion/groupon/update', { ...body, grouponPromotionId: editingId });
@@ -440,6 +451,24 @@ export default function Groupons() {
                   {t('拼团有效期需在15分钟至30天之间，若设置1日，用户开团后，需要在1日内成团，超时则拼团失败')}
                 </p>
               </div>
+            ),
+          },
+        ],
+      },
+      {
+        key: 'audience',
+        title: '参与人群',
+        fields: [
+          {
+            field: 'sendUserTarget',
+            label: t('参与人群'),
+            type: 'custom',
+            span: 24,
+            render: ({ formApi, values }) => (
+              <SendUserSelector
+                value={values.sendUserTarget as SendUserTarget}
+                onChange={(next) => formApi?.setValue('sendUserTarget', next)}
+              />
             ),
           },
         ],

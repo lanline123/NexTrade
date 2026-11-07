@@ -24,6 +24,12 @@ import { mockOrderPage } from '../mock';
 import type { OrderRow, PageResult } from '../types';
 import OrderDetailModal from '../components/OrderDetailModal';
 import { WriteOffModal } from '../components/OrderExtraDialogs';
+import {
+  BatchDeliverImportModal,
+  BatchShipModal,
+  BatchSignModal,
+  ChangeStatusModal,
+} from '../components/OrderBatchDialogs';
 
 const { Text } = Typography;
 
@@ -53,6 +59,7 @@ type OrderFilters = {
   payStatus: number | undefined;
   shippingStatus: number | undefined;
   addTime: string[];
+  mark: number; // -1 不限（旧版「订单标记」筛选）
 };
 
 const emptyFilters: OrderFilters = {
@@ -64,6 +71,7 @@ const emptyFilters: OrderFilters = {
   payStatus: undefined,
   shippingStatus: undefined,
   addTime: [],
+  mark: -1,
 };
 
 /** 会员标签筛选状态（对齐旧版「按会员标签筛选订单」弹窗）。 */
@@ -87,12 +95,28 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | undefined>(undefined);
   const [writeOffOpen, setWriteOffOpen] = useState(false);
+  // 批量操作（对齐旧版：添加标记 / 订单批量发货 / Excel批量发货）
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [batchSignOpen, setBatchSignOpen] = useState(false);
+  const [batchShipOpen, setBatchShipOpen] = useState(false);
+  const [batchImportOpen, setBatchImportOpen] = useState(false);
+  const [logistics, setLogistics] = useState<Array<{ id: number; name: string }>>([]);
+  // 行级取消订单 / 取消发货（旧版 ChangeStatus，preOrderStatus 3/1）
+  const [changeStatus, setChangeStatus] = useState<{ orderId: number; preOrderStatus: number; title: string } | null>(null);
   // 按会员标签筛选
   const [memberTagFilter, setMemberTagFilter] = useState<MemberTagFilter>(emptyMemberTagFilter);
   const [appliedMemberTagFilter, setAppliedMemberTagFilter] = useState<MemberTagFilter>(emptyMemberTagFilter);
   const [memberTagDialogOpen, setMemberTagDialogOpen] = useState(false);
   const [tagGroups, setTagGroups] = useState<Array<{ groupId: number; groupName: string; tags: Array<{ id: number; tagName: string }> }>>([]);
   const [tagLoading, setTagLoading] = useState(false);
+
+  useEffect(() => {
+    if (isDemo()) return;
+    // 物流公司（批量发货弹窗用）
+    apiGet<{ records: Array<{ logisticsId: number; logisticsName: string }> }>('/setting/logisticsCompany/list', { page: 1, size: 100 })
+      .then((result) => setLogistics((result.records || []).map((item) => ({ id: item.logisticsId, name: item.logisticsName }))))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (isDemo()) return;
@@ -108,6 +132,7 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
       email: applied.email || undefined,
       mobile: applied.mobile || undefined,
       payStatus: applied.payStatus,
+      mark: applied.mark !== -1 ? applied.mark : undefined,
       shippingStatus: applied.shippingStatus,
       addStartTime: applied.addTime?.[0] || undefined,
       addEndTime: applied.addTime?.[1] || undefined,
@@ -265,6 +290,23 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
               style={{ width: 130 }}
             />
             <Select
+              placeholder={t('订单标记：')}
+              value={filters.mark}
+              showClear
+              optionList={[
+                { label: t('全部订单'), value: -1 },
+                { label: <span style={{ color: '#ff5050' }}>●</span>, value: 1 },
+                { label: <span style={{ color: '#ffba1f' }}>●</span>, value: 2 },
+                { label: <span style={{ color: '#2ecf92' }}>●</span>, value: 3 },
+                { label: <span style={{ color: '#16afff' }}>●</span>, value: 4 },
+                { label: <span style={{ color: '#792dff' }}>●</span>, value: 5 },
+              ]}
+              onChange={(next) =>
+                setFilters((current) => ({ ...current, mark: Number(next ?? -1) }))
+              }
+              style={{ width: 120 }}
+            />
+            <Select
               placeholder={t('发货状态')}
               value={filters.shippingStatus}
               optionList={[
@@ -305,6 +347,15 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
               {t('刷新')}
             </Button>
             <Button onClick={() => setWriteOffOpen(true)}>{t('核销')}</Button>
+            <Button disabled={selectedIds.length === 0} onClick={() => setBatchShipOpen(true)}>
+              {t('订单批量发货')}
+              {selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
+            </Button>
+            <Button onClick={() => setBatchImportOpen(true)}>{t('Excel批量发货')}</Button>
+            <Button disabled={selectedIds.length === 0} onClick={() => setBatchSignOpen(true)}>
+              {t('添加标记')}
+              {selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
+            </Button>
             <Button
               onClick={() => {
                 if (onNavigate) onNavigate('orderExportManage');
@@ -320,6 +371,10 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
           loading={loading}
           dataSource={rows}
           rowKey="orderId"
+          rowSelection={{
+            selectedRowKeys: selectedIds,
+            onChange: (keys: any) => setSelectedIds((keys as Array<string | number>).map(String)),
+          }}
           pagination={{
             currentPage: page,
             pageSize: 10,
@@ -388,6 +443,39 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
                       {record.shippingTypeId === 3 ? t('完成配送') : t('确认收货')}
                     </Button>
                   )}
+                  {/* 取消订单 / 取消发货（旧版 ChangeStatus：isChangeOrderStatus 时展示） */}
+                  {Number(record.isChangeOrderStatus) === 1 && record.availableActions?.deliver && (
+                    <Button
+                      theme="borderless"
+                      size="small"
+                      type="primary"
+                      onClick={() =>
+                        setChangeStatus({
+                          orderId: record.orderId,
+                          preOrderStatus: Number(record.preOrderStatus ?? 3),
+                          title: t('取消订单'),
+                        })
+                      }
+                    >
+                      {t('取消订单')}
+                    </Button>
+                  )}
+                  {Number(record.isChangeOrderStatus) === 1 && record.availableActions?.confirmReceipt && (
+                    <Button
+                      theme="borderless"
+                      size="small"
+                      type="primary"
+                      onClick={() =>
+                        setChangeStatus({
+                          orderId: record.orderId,
+                          preOrderStatus: Number(record.preOrderStatus ?? 1),
+                          title: t('取消发货'),
+                        })
+                      }
+                    >
+                      {t('取消发货')}
+                    </Button>
+                  )}
                 </Space>
               ),
             },
@@ -407,6 +495,47 @@ export default function Orders({ onNavigate }: { onNavigate?: (page: string) => 
         onCancel={() => setWriteOffOpen(false)}
         onSuccess={() => {
           setWriteOffOpen(false);
+          reload();
+        }}
+      />
+
+      <BatchSignModal
+        visible={batchSignOpen}
+        ids={selectedIds.map(Number)}
+        onCancel={() => setBatchSignOpen(false)}
+        onSuccess={() => {
+          setBatchSignOpen(false);
+          setSelectedIds([]);
+          reload();
+        }}
+      />
+
+      <BatchShipModal
+        visible={batchShipOpen}
+        ids={selectedIds.map(Number)}
+        logistics={logistics}
+        onCancel={() => setBatchShipOpen(false)}
+        onSuccess={() => {
+          setBatchShipOpen(false);
+          setSelectedIds([]);
+          reload();
+        }}
+      />
+
+      <BatchDeliverImportModal
+        visible={batchImportOpen}
+        onCancel={() => setBatchImportOpen(false)}
+        onSuccess={reload}
+      />
+
+      <ChangeStatusModal
+        visible={Boolean(changeStatus)}
+        orderId={changeStatus?.orderId ?? 0}
+        preOrderStatus={changeStatus?.preOrderStatus ?? 3}
+        title={changeStatus?.title ?? ''}
+        onCancel={() => setChangeStatus(null)}
+        onSuccess={() => {
+          setChangeStatus(null);
           reload();
         }}
       />

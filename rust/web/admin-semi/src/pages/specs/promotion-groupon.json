@@ -20,4 +20,4 @@
     "拼团活动：接口 /promotion/groupon/*（list/create/update/del/detail/finish）+ item/list、record/openJoinList。",
     "表单：活动名称/活动时间/拼团类型(普通团/阶梯团)/成团有效时间(日时分,校验15分钟至30天)/PC与H5活动图片/专题页分享图(ImageUploader)/活动规则。",
     "行操作：编辑活动、管理商品(弹窗列表)、参与记录(弹窗)、立即结束(status≠2)/删除(status=2)。",
-    "已补齐：①推广海报弹窗（GET /promotion/groupon/item/post）；②拼团商品完整管理（item/create、item/update、item/del，SKU 明细 isJoin/limitNum/阶梯拼团价 groupNums，虚拟成团 isAutoGroup）；③参与记录（openJoinList+查看团员 groupMemberList+手动成团 manualGroup+批量成团 batchGroup+订单记录 orderList）；④阶梯团人数/价格多档配置。多语言活动名已补齐（MultilingualField dataType=4）；SendUserSelector 参与人群仍待办。
+    "已补齐：①推广海报弹窗（GET /promotion/groupon/item/post）；②拼团商品完整管理（item/create、item/update、item/del，SKU 明细 isJoin/limitNum/阶梯拼团价 groupNums，虚拟成团 isAutoGroup）；③参与记录（openJoinList+查看团员 groupMemberList+手动成团 manualGroup+批量成团 batchGroup+订单记录 orderList）；④阶梯团人数/价格多档配置。多语言活动名已补齐（MultilingualField dataType=4）；参与人群 SendUserSelector 已接入（后端 create/update 均支持 memberRange/memberMarks）。

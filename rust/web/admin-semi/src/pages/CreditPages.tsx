@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import {
   Button,
+  Input,
+  InputNumber,
   Modal,
+  Radio,
+  RadioGroup,
   Space,
   Spin,
   Switch,
@@ -36,6 +40,7 @@ interface CreditUserRow {
   availableAmount?: number | string;
   usedAmount?: number | string;
   settlementTypeText?: string;
+  settlementType?: number;
   status?: number;
   remainDays?: number;
   adviceText?: string;
@@ -110,12 +115,97 @@ export function CreditOrders() {
   );
 }
 
-/** 授信客户：对应旧版 order/termPay/termMember/List.vue，接口 /credit/user/*。 */
+/** 授信客户：对应旧版 order/termPay/termMember/List.vue，接口 /credit/user/*。
+ * 已补齐新增/编辑表单（旧版跳转独立编辑页：会员/授信额度/结算账期/状态）。 */
 export function CreditUsers() {
   const { t } = useI18n();
   const [reloadKey, setReloadKey] = useState(0);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editMode, setEditMode] = useState<'create' | 'edit'>('create');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<{
+    username: string;
+    userId?: number;
+    creditLimit: number;
+    settlementType: number;
+    status: number;
+  }>({ username: '', creditLimit: 0, settlementType: 1, status: 1 });
+  const [userRows, setUserRows] = useState<Array<{ userId: number; username?: string; nickname?: string; mobile?: string }>>([]);
+  const [userKeyword, setUserKeyword] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const reload = () => setReloadKey((key) => key + 1);
+
+  const openCreate = () => {
+    setEditMode('create');
+    setEditingId(null);
+    setEditForm({ username: '', creditLimit: 0, settlementType: 1, status: 1 });
+    setUserRows([]);
+    setUserKeyword('');
+    setEditOpen(true);
+  };
+
+  const openEdit = async (row: CreditUserRow) => {
+    setEditMode('edit');
+    setEditingId(row.id ?? null);
+    try {
+      const detail = await apiGet<any>('/credit/user/detail', { id: row.id });
+      setEditForm({
+        username: detail?.username || row.username || '',
+        userId: Number(detail?.userId ?? row.userId ?? 0),
+        creditLimit: Number(detail?.creditAmount ?? detail?.creditLimit ?? 0),
+        settlementType: Number(detail?.settlementType ?? 1),
+        status: Number(detail?.status ?? 1),
+      });
+    } catch {
+      setEditForm({
+        username: row.username || '',
+        userId: Number(row.userId ?? 0),
+        creditLimit: Number(row.creditAmount ?? 0),
+        settlementType: Number(row.settlementType ?? 1),
+        status: Number(row.status ?? 1),
+      });
+    }
+    setEditOpen(true);
+  };
+
+  const searchUsers = (keyword = '') => {
+    apiGet<any>('/proxyShopping/user/list', { page: 1, size: 20, keyword })
+      .then((result) => setUserRows(result.records || result.list || []))
+      .catch((error) => Toast.error({ content: error?.message || t('加载会员失败') }));
+  };
+
+  const save = async () => {
+    if (editMode === 'create' && !editForm.userId) {
+      Toast.warning({ content: t('请选择会员') });
+      return;
+    }
+    if (Number(editForm.creditLimit) <= 0) {
+      Toast.warning({ content: t('授信额度必须大于0') });
+      return;
+    }
+    setSaving(true);
+    try {
+      const body = {
+        userId: editForm.userId,
+        creditLimit: Number(editForm.creditLimit),
+        settlementType: Number(editForm.settlementType),
+        status: Number(editForm.status),
+      };
+      if (editMode === 'edit' && editingId) {
+        await apiPost('/credit/user/update', { ...body, creditUserId: editingId, id: editingId });
+      } else {
+        await apiPost('/credit/user/create', body);
+      }
+      Toast.success({ content: editMode === 'edit' ? t('更新成功') : t('创建成功') });
+      setEditOpen(false);
+      reload();
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const toggleStatus = async (row: CreditUserRow, next: number) => {
     try {
@@ -183,24 +273,116 @@ export function CreditUsers() {
     },
     {
       title: '操作',
-      width: 120,
+      width: 160,
       render: (_: unknown, row: CreditUserRow) => (
-        <Button theme="borderless" type="danger" size="small" onClick={() => deleteCreditUser(row)}>
-          {t('删除')}
-        </Button>
+        <Space spacing={2}>
+          <Button theme="borderless" size="small" onClick={() => openEdit(row)}>
+            {t('编辑')}
+          </Button>
+          <Button theme="borderless" type="danger" size="small" onClick={() => deleteCreditUser(row)}>
+            {t('删除')}
+          </Button>
+        </Space>
       ),
     },
   ];
 
   return (
-    <ListPage<CreditUserRow>
-      key={reloadKey}
-      api="/credit/user/list"
-      rowKey={(row?: CreditUserRow) => String(row?.id ?? Math.random())}
-      pageSize={10}
-      actionWidth={160}
-      columns={columns}
-    />
+    <>
+      <ListPage<CreditUserRow>
+        key={reloadKey}
+        api="/credit/user/list"
+        rowKey={(row?: CreditUserRow) => String(row?.id ?? Math.random())}
+        pageSize={10}
+        actionWidth={160}
+        columns={columns}
+        toolbarExtra={
+          <Button theme="solid" type="primary" onClick={openCreate}>
+            {t('添加授信客户')}
+          </Button>
+        }
+      />
+
+      <Modal
+        title={editMode === 'create' ? t('添加授信客户') : t('编辑授信客户')}
+        visible={editOpen}
+        onCancel={() => setEditOpen(false)}
+        onOk={save}
+        okButtonProps={{ loading: saving }}
+        okText={t('保存')}
+        cancelText={t('取消')}
+        width={560}
+      >
+        <div style={{ display: 'grid', gap: 12 }}>
+          {editMode === 'create' ? (
+            <>
+              <span>{t('会员')}</span>
+              <Space wrap>
+                <Input
+                  style={{ width: 200 }}
+                  placeholder={t('会员名称/手机号')}
+                  value={userKeyword}
+                  onChange={setUserKeyword}
+                  onEnterPress={() => searchUsers(userKeyword)}
+                />
+                <Button onClick={() => searchUsers(userKeyword)}>{t('搜索')}</Button>
+              </Space>
+              <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid var(--semi-color-border)', borderRadius: 6 }}>
+                {userRows.map((item) => (
+                  <div
+                    key={item.userId}
+                    style={{
+                      padding: '8px 12px',
+                      cursor: 'pointer',
+                      background: editForm.userId === item.userId ? 'var(--semi-color-primary-light-default)' : undefined,
+                    }}
+                    onClick={() => {
+                      setEditForm((current) => ({ ...current, userId: item.userId, username: item.nickname || item.username || '' }));
+                    }}
+                  >
+                    {item.nickname || item.username || `#${item.userId}`}
+                    {item.mobile ? ` · ${item.mobile}` : ''}
+                  </div>
+                ))}
+                {!userRows.length && (
+                  <div style={{ padding: 12 }}>
+                    <Text type="tertiary" size="small">{t('搜索并选择会员')}</Text>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <span>
+              {t('会员')}：{editForm.username || editForm.userId || '-'}
+            </span>
+          )}
+          <span>{t('授信额度')}</span>
+          <InputNumber
+            style={{ width: 220 }}
+            min={0.01}
+            precision={2}
+            value={editForm.creditLimit}
+            onChange={(next: any) => setEditForm((c) => ({ ...c, creditLimit: Number(next ?? 0) }))}
+          />
+          <span>{t('结算账期')}</span>
+          <RadioGroup
+            value={editForm.settlementType}
+            onChange={(event) => setEditForm((c) => ({ ...c, settlementType: Number(event.target.value) }))}
+          >
+            <Radio value={1}>{t('月结')}</Radio>
+            <Radio value={2}>{t('季结')}</Radio>
+          </RadioGroup>
+          <span>{t('状态')}</span>
+          <RadioGroup
+            value={editForm.status}
+            onChange={(event) => setEditForm((c) => ({ ...c, status: Number(event.target.value) }))}
+          >
+            <Radio value={1}>{t('启用')}</Radio>
+            <Radio value={0}>{t('禁用')}</Radio>
+          </RadioGroup>
+        </div>
+      </Modal>
+    </>
   );
 }
 

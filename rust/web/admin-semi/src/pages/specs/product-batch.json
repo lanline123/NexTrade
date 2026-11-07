@@ -18,7 +18,7 @@
   "interactionChecks": ["rust/web/admin-semi/scripts/verify-engine.cjs"],
   "notes": [
     "商品批量导出/上传/修改：导出 GET product/productBatch/productBatchDeal?dealRange&rangeIds(CSV Blob)；上传 POST productBatchDeal(FormData file+isAutoCat/isAutoBrand/isChangePic/isUpload)；修改 POST productBatchModify。",
-    "处理范围：全部商品 0/指定商品 3/不包含商品 4（对齐 Rust ProductBatchDealQuery）；旧版另支持指定分类(1)/品牌(2)，需分类/品牌选择器，待办。",
+    "处理范围：全部商品 0/指定商品 3/不包含商品 4（对齐 Rust ProductBatchDealQuery）；指定分类(1)/品牌(2)已补齐（分类树拍平/品牌下拉多选，rangeIds 逗号拼接）。",
     "上传说明文案为旧版节选（完整时间线含规格图细则，详见旧 add/List.vue）。"
   ]
 }
