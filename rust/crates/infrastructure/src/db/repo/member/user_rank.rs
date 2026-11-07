@@ -81,7 +81,7 @@ macro_rules! push_assign {
         if let Some(v) = $field.as_ref() {
             $sep.push($column);
             $sep.push_unseparated(" = ");
-            $sep.push_bind(v);
+            $sep.push_bind_unseparated(v);
         }
     };
 }
@@ -638,7 +638,7 @@ async fn update_row(
     if let Some(v) = w.rank_level.as_ref() {
         sep.push("rank_level");
         sep.push_unseparated(" = ");
-        sep.push_bind(v.to_string());
+        sep.push_bind_unseparated(v.to_string());
     }
     drop(sep);
     qb.push(" WHERE rank_id = ");

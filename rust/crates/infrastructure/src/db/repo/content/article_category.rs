@@ -48,25 +48,25 @@ impl ArticleCategoryRepository {
         qb.push_bind(id);
         let mut sep = qb.separated(", ");
         if let Some(v) = &patch.article_category_name {
-            sep.push("article_category_name = ").push_bind(v.clone());
+            sep.push("article_category_name = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = &patch.category_sn {
-            sep.push("category_sn = ").push_bind(v.clone());
+            sep.push("category_sn = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = patch.category_type {
-            sep.push("category_type = ").push_bind(v);
+            sep.push("category_type = ").push_bind_unseparated(v);
         }
         if let Some(v) = &patch.keywords {
-            sep.push("keywords = ").push_bind(v.clone());
+            sep.push("keywords = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = &patch.description {
-            sep.push("description = ").push_bind(v.clone());
+            sep.push("description = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = patch.sort_order {
-            sep.push("sort_order = ").push_bind(v);
+            sep.push("sort_order = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.parent_id {
-            sep.push("parent_id = ").push_bind(v);
+            sep.push("parent_id = ").push_bind_unseparated(v);
         }
         drop(sep);
         qb.push(" WHERE article_category_id = ").push_bind(id);

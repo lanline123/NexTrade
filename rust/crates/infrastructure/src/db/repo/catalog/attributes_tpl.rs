@@ -50,7 +50,7 @@ macro_rules! push_assign {
         if let Some(Some(v)) = $field.as_ref() {
             $sep.push($column);
             $sep.push_unseparated(" = ");
-            $sep.push_bind(v);
+            $sep.push_bind_unseparated(v);
         }
     };
 }

@@ -38,7 +38,7 @@ macro_rules! push_assign_opt {
         if let Some(v) = $field.as_ref() {
             $sep.push($column);
             $sep.push_unseparated(" = ");
-            $sep.push_bind(v);
+            $sep.push_bind_unseparated(v);
         }
     };
 }
@@ -230,7 +230,7 @@ impl ProductGroupRepository {
         // Java `setProductIds(...)` 必然非 null ⇒ 总是写该列
         sep.push("product_ids");
         sep.push_unseparated(" = ");
-        sep.push_bind(&patch.product_ids);
+        sep.push_bind_unseparated(&patch.product_ids);
         drop(sep);
         qb.push(" WHERE product_group_id = ");
         qb.push_bind(id);

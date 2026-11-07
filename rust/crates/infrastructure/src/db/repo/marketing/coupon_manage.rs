@@ -173,85 +173,85 @@ impl CouponManageRepository {
         qb.push_bind(id);
         let mut sep = qb.separated(", ");
         if let Some(v) = &patch.coupon_name {
-            sep.push("coupon_name = ").push_bind(v.clone());
+            sep.push("coupon_name = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = patch.coupon_money {
-            sep.push("coupon_money = ").push_bind(v);
+            sep.push("coupon_money = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.coupon_discount {
-            sep.push("coupon_discount = ").push_bind(v);
+            sep.push("coupon_discount = ").push_bind_unseparated(v);
         }
         if let Some(v) = &patch.coupon_desc {
-            sep.push("coupon_desc = ").push_bind(v.clone());
+            sep.push("coupon_desc = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = patch.coupon_type {
-            sep.push("coupon_type = ").push_bind(v);
+            sep.push("coupon_type = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.send_range {
-            sep.push("send_range = ").push_bind(v);
+            sep.push("send_range = ").push_bind_unseparated(v);
         }
         if let Some(v) = &patch.send_range_data {
-            sep.push("send_range_data = ").push_bind(v.clone());
+            sep.push("send_range_data = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = patch.min_order_amount {
-            sep.push("min_order_amount = ").push_bind(v);
+            sep.push("min_order_amount = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.send_start_date {
-            sep.push("send_start_date = ").push_bind(v);
+            sep.push("send_start_date = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.send_end_date {
-            sep.push("send_end_date = ").push_bind(v);
+            sep.push("send_end_date = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.send_type {
-            sep.push("send_type = ").push_bind(v);
+            sep.push("send_type = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.use_day {
-            sep.push("use_day = ").push_bind(v);
+            sep.push("use_day = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.use_start_date {
-            sep.push("use_start_date = ").push_bind(v);
+            sep.push("use_start_date = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.use_end_date {
-            sep.push("use_end_date = ").push_bind(v);
+            sep.push("use_end_date = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.is_show {
-            sep.push("is_show = ").push_bind(v);
+            sep.push("is_show = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.is_global {
-            sep.push("is_global = ").push_bind(v);
+            sep.push("is_global = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.is_new_user {
-            sep.push("is_new_user = ").push_bind(v);
+            sep.push("is_new_user = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.enabled_click_get {
-            sep.push("enabled_click_get = ").push_bind(v);
+            sep.push("enabled_click_get = ").push_bind_unseparated(v);
         }
         if let Some(v) = &patch.limit_user_rank {
-            sep.push("limit_user_rank = ").push_bind(v.clone());
+            sep.push("limit_user_rank = ").push_bind_unseparated(v.clone());
         }
         if let Some(v) = patch.is_delete {
-            sep.push("is_delete = ").push_bind(v);
+            sep.push("is_delete = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.limit_num {
-            sep.push("limit_num = ").push_bind(v);
+            sep.push("limit_num = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.delay_day {
-            sep.push("delay_day = ").push_bind(v);
+            sep.push("delay_day = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.send_num {
-            sep.push("send_num = ").push_bind(v);
+            sep.push("send_num = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.max_order_amount {
-            sep.push("max_order_amount = ").push_bind(v);
+            sep.push("max_order_amount = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.coupon_unit {
-            sep.push("coupon_unit = ").push_bind(v);
+            sep.push("coupon_unit = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.reduce_type {
-            sep.push("reduce_type = ").push_bind(v);
+            sep.push("reduce_type = ").push_bind_unseparated(v);
         }
         if let Some(v) = patch.shop_id {
-            sep.push("shop_id = ").push_bind(v);
+            sep.push("shop_id = ").push_bind_unseparated(v);
         }
         drop(sep);
         qb.push(" WHERE coupon_id = ").push_bind(id);
