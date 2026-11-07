@@ -2,7 +2,7 @@
 
 /**
  * 发票详情 / 重新申请
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/orderInvoice/Info.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/orderinvoice/Info.vue
  *   type=info     只读展示（发票类型/抬头/企业信息/银行/发票内容/收票人/发票图片）
  *   type=reapply  重新申请表单（审核驳回后）
  * 接口：GET  /api/user/orderInvoice/detail?id=
@@ -97,7 +97,7 @@ export default function InvoiceDetailClient({ invoiceId, mode }: { invoiceId: st
         companyAccount: String(form.companyAccount || '').trim(),
       });
       Toast.success({ content: '已重新提交，请等待审核' });
-      window.location.href = '/member/orderInvoice';
+      window.location.href = '/member/orderinvoice';
     } catch (error) {
       Toast.error({ content: error instanceof Error ? error.message : '提交失败' });
     } finally {
@@ -153,9 +153,9 @@ export default function InvoiceDetailClient({ invoiceId, mode }: { invoiceId: st
         ) : null}
 
         <div className="invoice-detail__actions">
-          <Link href="/member/orderInvoice"><Button>{t('返回发票列表')}</Button></Link>
+          <Link href="/member/orderinvoice"><Button>{t('返回发票列表')}</Button></Link>
           {status === 2 ? (
-            <Link href={`/member/orderInvoice/info?type=reapply&id=${invoiceId}`}>
+            <Link href={`/member/orderinvoice/info?type=reapply&id=${invoiceId}`}>
               <Button theme="solid" type="primary">{t('重新申请')}</Button>
             </Link>
           ) : null}

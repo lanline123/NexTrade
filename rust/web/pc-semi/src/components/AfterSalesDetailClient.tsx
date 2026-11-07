@@ -256,7 +256,7 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
     return (
       <Card className="cart-state">
         <h2>{t('登录后查看售后详情')}</h2>
-        <Link href={`/login?redirect=/member/return/logInfo?id=${id}`}><Button theme="solid" type="primary">{t('去登录')}</Button></Link>
+        <Link href={`/login?redirect=/member/return/loginfo?id=${id}`}><Button theme="solid" type="primary">{t('去登录')}</Button></Link>
       </Card>
     );
   }

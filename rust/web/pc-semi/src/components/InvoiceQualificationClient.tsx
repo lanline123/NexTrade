@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * 增票资质（对照旧版 `pc/pages/member/userInvoice/Info.vue`）。
+ * 增票资质（对照旧版 `pc/pages/member/userinvoice/Info.vue`）。
  *
  * 旧版能力：顶部页签（发票申请 / 增票资质）+ 温馨提示 + 资质状态 + 只读资质信息 + 编辑表单。
  * 状态语义（UserInvoiceVO.status）：0 未申请专用发票 / 1 审核通过 / 2 已申请，待审核 / 3 审核未通过。
@@ -141,8 +141,8 @@ export default function InvoiceQualificationClient() {
       {/* 旧版 MemberTopMenu：发票申请 / 增票资质 —— 收进卡片顶栏，与下方内容同属一块 */}
       <div className="invq-head">
         <nav className="invq-tabs">
-          <Link href="/member/orderInvoice/list" className="invq-tabs__item">{t('发票申请')}</Link>
-          <Link href="/member/userInvoice/info" className="invq-tabs__item is-active">{t('增票资质')}</Link>
+          <Link href="/member/orderinvoice/list" className="invq-tabs__item">{t('发票申请')}</Link>
+          <Link href="/member/userinvoice/info" className="invq-tabs__item is-active">{t('增票资质')}</Link>
         </nav>
       </div>
 
@@ -246,7 +246,7 @@ export default function InvoiceQualificationClient() {
               </div>
               <div className="invq-agree">
                 <Checkbox checked={agreed} onChange={(event) => setAgreed(Boolean(event.target.checked))}>{t('我已阅读并同意')}</Checkbox>
-                <Link href="/member/userInvoice/confirmInfo" target="_blank" className="invq-agree__link">{t('《增票资质确认书》')}</Link>
+                <Link href="/member/userinvoice/confirmInfo" target="_blank" className="invq-agree__link">{t('《增票资质确认书》')}</Link>
               </div>
               <div className="invq-actions">
                 <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('确认')}</Button>

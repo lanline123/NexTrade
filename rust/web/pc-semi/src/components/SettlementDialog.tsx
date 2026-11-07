@@ -2,7 +2,7 @@
 
 /**
  * 结算账号弹窗
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/termPay/src/SettlementDialog.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/termpay/src/SettlementDialog.vue
  * - 读取 order/pay/index 的 offlinePaymentList，按后台开启的汇款方式分 Tab
  * - 展示对应汇款账户说明（HTML 富文本）
  */

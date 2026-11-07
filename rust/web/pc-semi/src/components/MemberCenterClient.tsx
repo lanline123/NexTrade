@@ -203,7 +203,7 @@ export default function MemberCenterClient() {
             {info.rankIco ? <img className="mc-user__rank" src={info.rankIco} alt="" /> : null}
             {showAuthBadge ? (
               <Link
-                href="/member/userCertification/info"
+                href="/member/usercertification/info"
                 className={`mc-user__auth${verified ? ' is-verified' : ''}`}
                 title={verified ? t('已认证') : '未认证'}
               >
@@ -262,14 +262,14 @@ export default function MemberCenterClient() {
           </div>
           <div className="mc-cards__sub">{t('查看优惠券')}</div>
         </Link>
-        <Link href="/member/collectProduct/list" className="mc-cards__item">
+        <Link href="/member/collectproduct/list" className="mc-cards__item">
           <div className="mc-cards__top">
             <span className="mc-cards__label"><Heart size={20} />{t('心愿单')}</span>
             <Right size={14} />
           </div>
           <div className="mc-cards__sub">{t('查看心愿单')}</div>
         </Link>
-        <Link href="/member/browsingHistory/list" className="mc-cards__item">
+        <Link href="/member/browsinghistory/list" className="mc-cards__item">
           <div className="mc-cards__top">
             <span className="mc-cards__label"><History size={20} />{t('浏览记录')}</span>
             <Right size={14} />

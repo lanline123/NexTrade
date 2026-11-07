@@ -83,7 +83,7 @@ const requiredDisallow = [
   '/install',
   '/preview',
   '/oauth',
-  '/pcMobile',
+  '/pcmobile',
   '/search?',
 ];
 for (const item of requiredDisallow) {

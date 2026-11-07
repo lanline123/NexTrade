@@ -147,7 +147,7 @@ export default function WithdrawClient() {
         <div style={{ display: 'flex', gap: 10 }}>
           <Button theme="solid" type="primary" disabled={!accounts.length || !withdrawalEnabled} loading={submitting} onClick={() => void submit()}>{t('提交提现申请')}</Button>
           <Button onClick={() => setAmount(balance > 0 ? balance.toFixed(2) : '')}>{t('全部提现')}</Button>
-          <Button onClick={() => { window.location.href = '/member/account/cardManagement'; }}>{t('管理提现账户')}</Button>
+          <Button onClick={() => { window.location.href = '/member/account/cardmanagement'; }}>{t('管理提现账户')}</Button>
         </div>
       </div>
     </Card>

@@ -3,7 +3,7 @@
 /**
  * 发票申请列表（会员中心右侧内容区）
  *
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/orderInvoice/List.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/orderinvoice/List.vue
  * 弹窗对照：java-b2b2c-overseas-v5.8.61/view/pc/components/invoice/InvoiceDialog.vue
  * 菜单对照：java-b2b2c-overseas-v5.8.61/view/pc/components/member/TopMenu.vue
  *
@@ -337,8 +337,8 @@ export default function OrderInvoiceClient() {
     <>
       {/* 原版 MemberTopMenu：发票申请 / 增票资质 */}
       <nav className="invq-tabs">
-        <Link href="/member/orderInvoice/list" className="invq-tabs__item is-active">{t('发票申请')}</Link>
-        <Link href="/member/userInvoice/info" className="invq-tabs__item">{t('增票资质')}</Link>
+        <Link href="/member/orderinvoice/list" className="invq-tabs__item is-active">{t('发票申请')}</Link>
+        <Link href="/member/userinvoice/info" className="invq-tabs__item">{t('增票资质')}</Link>
       </nav>
 
       {/* 不用 Card 的 loading：Semi 会把整个 children 换成骨架屏，导致原版常驻的
@@ -473,7 +473,7 @@ export default function OrderInvoiceClient() {
                 <button type="button" className={form.invoiceType === 2 ? 'is-active' : ''} onClick={() => update('invoiceType', 2)}>{t('增值税专用发票')}</button>
               </div>
               {form.invoiceType === 2 && !invoiceStatus ? (
-                <div className="invoice-error">{t('您还未通过增票资质申请，暂时无法开具增值税专用发票，')}<Link href="/member/userInvoice/info">{t('点击这里')}</Link>{t('去申请增票资质。')}</div>
+                <div className="invoice-error">{t('您还未通过增票资质申请，暂时无法开具增值税专用发票，')}<Link href="/member/userinvoice/info">{t('点击这里')}</Link>{t('去申请增票资质。')}</div>
               ) : (
                 <p className="inv-dialog__hint">{t('所有发票由商品供货商开具')}</p>
               )}

@@ -104,16 +104,16 @@ export default function MemberNav() {
           // D1146：评价功能关闭时隐藏该入口
           { name: '评价晒单', url: '/member/comment/list', show: true, badge: 'awaitComment' },
           { name: '我的购物车', url: '/cart', show: true },
-          { name: '发票申请', url: '/member/orderInvoice/list', show: canInvoice },
-          { name: '增票资质', url: '/member/userInvoice/info', show: canInvoice && Number(config.invoiceAdded ?? 0) === 1 },
+          { name: '发票申请', url: '/member/orderinvoice/list', show: canInvoice },
+          { name: '增票资质', url: '/member/userinvoice/info', show: canInvoice && Number(config.invoiceAdded ?? 0) === 1 },
         ],
       },
       {
         tit: '关注中心',
         list: [
-          { name: '心愿单', url: '/member/collectProduct/list', show: true },
-          { name: '收藏的店铺', url: '/member/collectShop/list', show: true },
-          { name: '浏览历史', url: '/member/browsingHistory/list', show: true },
+          { name: '心愿单', url: '/member/collectproduct/list', show: true },
+          { name: '收藏的店铺', url: '/member/collectshop/list', show: true },
+          { name: '浏览历史', url: '/member/browsinghistory/list', show: true },
         ],
       },
       {
@@ -121,10 +121,10 @@ export default function MemberNav() {
         list: [
           { name: '我的优惠券', url: '/member/coupon/list', show: true },
           // 账期支付：B2B 且开通信用支付（跨境 B2C 隐藏）
-          { name: '账期支付', url: '/member/termPay/list', show: false },
+          { name: '账期支付', url: '/member/termpay/list', show: false },
           { name: '账户信息', url: '/member/account/detail', show: true },
           { name: `${config.integralName || t('积分')}明细`, url: '/member/point/list', show: true },
-          { name: '礼品卡兑换', url: '/member/giftCard/exchange', show: true },
+          { name: '礼品卡兑换', url: '/member/giftcard/exchange', show: true },
         ],
       },
       {
@@ -141,7 +141,7 @@ export default function MemberNav() {
         list: [
           { name: '账户安全', url: '/member/security/info', show: true },
           // 会员实名认证：B2B 且开关开启（跨境 B2C 隐藏）
-          { name: '会员实名认证', url: '/member/userCertification/info', show: false },
+          { name: '会员实名认证', url: '/member/usercertification/info', show: false },
           { name: '地址', url: '/member/address/list', show: true },
         ],
       },

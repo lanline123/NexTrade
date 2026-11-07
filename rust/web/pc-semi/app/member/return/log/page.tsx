@@ -43,7 +43,7 @@ export default async function ReturnLogPage({ searchParams }: { searchParams?: {
                 </div>
               ))}
             </div>
-            {item.aftersalesId ? <Link className="return-log-card__action" href={`/member/return/logInfo?id=${item.aftersalesId}`}>{t('查看详情')}</Link> : null}
+            {item.aftersalesId ? <Link className="return-log-card__action" href={`/member/return/loginfo?id=${item.aftersalesId}`}>{t('查看详情')}</Link> : null}
           </div>
         </article>
       )) : <div className="comment-empty">{t('暂无退款申请记录')}</div>}

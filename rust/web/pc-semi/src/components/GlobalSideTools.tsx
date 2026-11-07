@@ -44,7 +44,7 @@ interface CustomerServiceConfig {
 /** 这些页面不显示购物车入口（对齐旧版 GlobalSideTools showCartEntry） */
 const HIDDEN_CART_ROUTES = ['/cart', '/member/login', '/member/register'];
 /** 这些页面整个悬浮栏不挂（对齐旧版 app.vue showSideTools） */
-const EXCLUDED_ROUTES = ['/chat', '/pcMobile', '/install'];
+const EXCLUDED_ROUTES = ['/chat', '/pcmobile', '/install'];
 
 function isUnder(path: string, prefix: string) {
   return path === prefix || path.startsWith(`${prefix}/`);

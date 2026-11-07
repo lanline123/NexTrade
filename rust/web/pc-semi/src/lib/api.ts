@@ -515,7 +515,7 @@ export async function getShopProducts(params: {
   keyword?: string;
   sortField?: string;
   sortOrder?: 'asc' | 'desc';
-  /** 价格区间（旧版 shopCategory/ShopFilter 价格筛选） */
+  /** 价格区间（旧版 shopcategory/ShopFilter 价格筛选） */
   minPrice?: number | string;
   maxPrice?: number | string;
 }): Promise<ProductListResponse> {

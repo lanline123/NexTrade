@@ -130,7 +130,7 @@ function ShopRefHeaderBlock({ shop, shopId }: { shop: ShopDetail | null; shopId:
       </div>
       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         <Link href={`/chat?shopId=${shopId}`} style={{ fontSize: 14, color: '#333', border: '1px solid #e2e4e6', borderRadius: 8, padding: '8px 14px', textDecoration: 'none' }}>{t('客服')}</Link>
-        <Link href="/member/collectShop" style={{ fontSize: 14, color: '#fff', background: 'var(--pc-primary, #e01222)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none' }}>
+        <Link href="/member/collectshop" style={{ fontSize: 14, color: '#fff', background: 'var(--pc-primary, #e01222)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none' }}>
           {(shop as any)?.collectShop ? t('已关注') : '+ 关注'}
         </Link>
       </div>

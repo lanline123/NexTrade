@@ -15,8 +15,8 @@ const HOST = (() => {
  * 不参与索引的路径：
  * - `/api`、`/adminapi`：Next rewrite 到后端的代理路径，绝不能被抓取；
  * - `/member`、`/order`、`/cart`、`/chat`、`/login`、`/register`：私有/交易/账户操作页；
- * - `/install`、`/preview`、`/oauth`、`/pcMobile`：安装向导、装修内部预览、OAuth 回调、移动端回归页；
- * - `/join/intro`、`/joining/groupByInvited`：邀请/内部流程页（旧版即已屏蔽，保留）；
+ * - `/install`、`/preview`、`/oauth`、`/pcmobile`：安装向导、装修内部预览、OAuth 回调、移动端回归页；
+ * - `/join/intro`、`/joining/groupbyinvited`：邀请/内部流程页（旧版即已屏蔽，保留）；
  * - `/search?*`：站内搜索结果页（低价值、易重复）；`/search` 落地页本身仍允许抓取。
  */
 const DISALLOW_PATHS = [
@@ -31,9 +31,9 @@ const DISALLOW_PATHS = [
   '/install',
   '/preview',
   '/oauth',
-  '/pcMobile',
+  '/pcmobile',
   '/join/intro',
-  '/joining/groupByInvited',
+  '/joining/groupbyinvited',
   '/search?',
 ];
 

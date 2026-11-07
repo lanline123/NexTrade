@@ -2,7 +2,7 @@
 
 /**
  * 站内消息中心
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/userMessage/List.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/usermessage/List.vue
  * - 左侧「消息中心 / 账户信息」导航
  * - 工具栏：只看未读、全部标记为已读
  * - 消息卡：系统通知 + 未读圆点 + 日期 + 标题 + 正文 + 删除

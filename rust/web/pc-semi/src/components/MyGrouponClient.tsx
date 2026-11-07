@@ -118,7 +118,7 @@ export default function MyGrouponClient() {
   const pages = Math.max(1, Math.ceil(total / size));
 
   const openInvite = (recordId: number) => {
-    setInviteLink(`${window.location.origin}/joining/groupByInvited?id=${recordId}`);
+    setInviteLink(`${window.location.origin}/joining/groupbyinvited?id=${recordId}`);
   };
 
   const copyInvite = async () => {

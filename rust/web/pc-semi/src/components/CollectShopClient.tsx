@@ -2,7 +2,7 @@
 
 /**
  * 我的收藏店铺
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/collectShop/List.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/collectshop/List.vue
  * - 左卡：店铺 logo/名称、进入店铺、联系客服、取消收藏
  * - 右卡：热销 / 新品 / 精品 三组商品 Tab（源码 itemBar 切换，超 5 条翻页）
  * 接口：GET  /api/user/user/collectionShop

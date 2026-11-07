@@ -129,9 +129,9 @@ import {
   RewardGift,
   SignInSetting,
   ECard,
-  GiftCard,
 } from './pages/PromotionExtraPages';
 import Lottery from './pages/Lottery';
+import GiftCards from './pages/GiftCards';
 import {
   ThemeStyle,
   MobileDecoratePages,
@@ -1028,7 +1028,7 @@ export default function App() {
       {page === 'rewardGiftManage' && <RewardGift />}
       {page === 'signInSettingManage' && <SignInSetting />}
       {page === 'eCardManage' && <ECard />}
-      {page === 'giftCardManage' && <GiftCard />}
+      {page === 'giftCardManage' && <GiftCards />}
       {page === 'lotteryManage' && <Lottery />}
       {(page === 'decorate0' || page === 'decorate') && <ThemeStyle />}
       {(page === 'mobileDecorateManage' || page === 'decorate1' || page === 'mobileDecorate') && <MobileDecoratePages />}

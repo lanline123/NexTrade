@@ -153,9 +153,9 @@ export default function PcMine({
             {commentEnabled === 1 ? (
               <Link href="/member/comment/list" className="item-wrap">{t('我的评价')}</Link>
             ) : null}
-            <Link href="/member/collectProduct/list" className="item-wrap">{t('心愿单')}</Link>
+            <Link href="/member/collectproduct/list" className="item-wrap">{t('心愿单')}</Link>
             <Link href="/member/address/list" className="item-wrap">{t('收货地址')}</Link>
-            <Link href="/member/browsingHistory/list" className="item-wrap">{t('浏览记录')}</Link>
+            <Link href="/member/browsinghistory/list" className="item-wrap">{t('浏览记录')}</Link>
             <a className="item-wrap logout" onClick={logout}>{t('退出登录')}</a>
           </div>
         </div>

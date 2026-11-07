@@ -228,7 +228,7 @@ export default function PcHeaderTopBar({
       if (mapped.length) return mapped;
     }
     return [
-      { title: t('我的足迹'), link: '/member/browsingHistory/list' },
+      { title: t('我的足迹'), link: '/member/browsinghistory/list' },
       { title: t('我的优惠券'), link: '/member/coupon/list' },
     ];
   }, [config.memberCenterItems, t]);
@@ -353,7 +353,7 @@ export default function PcHeaderTopBar({
 
               {/* 企业认证标识（对齐旧版 TopBar：isB2B() && closeAuth===1 时显示，点击去认证页） */}
               {IS_B2B_AUTH && closeAuth === 1 ? (
-                <Link className="top-auth-item" href="/member/userCertification/info">
+                <Link className="top-auth-item" href="/member/usercertification/info">
                   <AuthBadge verified={Number(user?.isCompanyAuth) > 0} height={17} />
                 </Link>
               ) : null}
@@ -492,7 +492,7 @@ export default function PcHeaderTopBar({
               {showTopUserLinks ? (
                 <div className="top-links">
                   {showTopMessage ? (
-                    <Link className="top-link top-link--icon" href="/member/userMessage/list/">
+                    <Link className="top-link top-link--icon" href="/member/usermessage/list/">
                       <span className="iconfont-pc icon-xiaoxi">
                         <Message size={15} />
                       </span>

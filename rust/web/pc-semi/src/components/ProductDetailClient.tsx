@@ -295,11 +295,11 @@ export default function ProductDetailClient({
   useEffect(() => {
     if (!productId) return;
     let alive = true;
-    // 旧版 Product.vue:841：周期购商品跳 pcMobile（H5 承载）
+    // 旧版 Product.vue:841：周期购商品跳 pcmobile（H5 承载）
     if (Number((detail as any).deliveryMode) === 2) {
       const target = new URLSearchParams({ path: '/pages/product/index', id: String(productId) });
       if (shopId) target.set('shopId', String(shopId));
-      window.location.href = `/pcMobile?${target.toString()}`;
+      window.location.href = `/pcmobile?${target.toString()}`;
       return;
     }
     // 旧版 ProductRelevanceArticle：详情区「相关文章」区块

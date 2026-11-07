@@ -222,7 +222,7 @@ export default async function ShopSearchRedirect({
         <div className="shop-search-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: '#fff', padding: '10px 16px', borderRadius: 12, marginBottom: 16 }}>
           <Link href={`/shop/${shopId}`} style={{ fontSize: 13, color: '#333', textDecoration: 'none' }}>{t('店铺首页')}</Link>
           <Link href={`/chat?shopId=${shopId}`} style={{ fontSize: 13, color: '#333', textDecoration: 'none' }}>{t('客服')}</Link>
-          <Link href="/member/collectShop" style={{ fontSize: 13, color: 'var(--pc-primary, #e01222)', textDecoration: 'none' }}>{shopInfo.collectShop ? t('已关注') : '+ 关注'}</Link>
+          <Link href="/member/collectshop" style={{ fontSize: 13, color: 'var(--pc-primary, #e01222)', textDecoration: 'none' }}>{shopInfo.collectShop ? t('已关注') : '+ 关注'}</Link>
           <form action={`/shop/search/${shopId}`} method="get" style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
             {isClassic ? <input type="hidden" name="ui" value="old" /> : null}
             {cat ? <input type="hidden" name="cat" value={cat} /> : null}

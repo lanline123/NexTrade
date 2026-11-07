@@ -658,7 +658,7 @@
 .join-status__remark { color: #d4380d; font-size: 13px; }
 .join-status__tip { color: #666; font-size: 13px; }
 
-/* 拼团邀请页倒计时与团长标记（joining/groupByInvited.vue） */
+/* 拼团邀请页倒计时与团长标记（joining/groupbyinvited.vue） */
 .invite-countdown { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 14px; }
 .invite-countdown__label { color: #8c8c8c; }
 .invite-countdown__time { padding: 2px 8px; border-radius: 4px; background: #1a1a1a; color: #fff; font-variant-numeric: tabular-nums; }
@@ -897,7 +897,7 @@
 .article-related a { display: block; margin-bottom: 6px; color: var(--pc-primary, #165dff); font-size: 13px; text-decoration: none; }
 .article-related a:hover { text-decoration: underline; }
 
-/* 实名认证分节（member/userCertification/Info.vue） */
+/* 实名认证分节（member/usercertification/Info.vue） */
 .cert-section { margin: 18px 0 10px; padding-left: 10px; border-left: 3px solid var(--pc-primary, #165dff); color: #1a1a1a; font-size: 15px; font-weight: 600; }
 .cert-field-tip { margin: 4px 0 8px; color: #8c8c8c; font-size: 12px; line-height: 1.6; }
 .cert-readonly__title { margin: 0 0 6px; font-size: 16px; }
@@ -931,12 +931,12 @@
 .pin-empty { text-align: center; }
 .pin-empty__title { margin: 0 0 8px; color: #1a1a1a; font-size: 16px; font-weight: 700; }
 
-/* 开票申请提示（member/orderInvoice/Info.vue） */
+/* 开票申请提示（member/orderinvoice/Info.vue） */
 .invoice-hint { margin: 2px 0; color: #8c8c8c; font-size: 12px; line-height: 1.7; }
 .invoice-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; }
 .invoice-actions a { color: var(--pc-primary, #165dff); font-size: 13px; text-decoration: none; }
 
-/* 增票资质页（member/userInvoice/Info.vue） */
+/* 增票资质页（member/userinvoice/Info.vue） */
 .invoice-title { margin: 0 0 8px; font-size: 16px; }
 .invoice-hint--strong { color: #333; font-weight: 500; }
 
@@ -949,7 +949,7 @@
 .pc-checkout__seckill { margin-left: 8px; color: var(--pc-primary); font-size: 12px; }
 .pc-checkout__no-shipping { color: #8c8c8c; font-size: 12px; font-style: normal; }
 
-/* 站内消息中心（member/userMessage/List.vue） */
+/* 站内消息中心（member/usermessage/List.vue） */
 .msg-center { display: flex; gap: 20px; align-items: flex-start; }
 .msg-center__side { flex: 0 0 200px; padding: 16px; border-radius: 8px; background: #f7f8fa; }
 .msg-center__side-title { display: block; margin-bottom: 12px; color: #1a1a1a; font-size: 15px; }
@@ -1822,7 +1822,7 @@
 }
 
 /* ---------------- 心愿单 / 收藏商品 ----------------
-   源码对照：view/pc/pages/member/collectProduct/List.vue (+ assets/css/member/member.less)
+   源码对照：view/pc/pages/member/collectproduct/List.vue (+ assets/css/member/member.less)
    以及 components/product/ProductCard.vue 的卡片结构。
    左侧 MemberNav / TopJumpBar 由 .pc-member-shell 承担，这里只还原右侧 info-row。 */
 .collect-product {

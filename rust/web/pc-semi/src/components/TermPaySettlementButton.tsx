@@ -2,7 +2,7 @@
 
 /**
  * 账期支付 - 结算账号按钮
- * 源码对照：member/termPay/list.vue「结算账号」按钮 + src/SettlementDialog.vue
+ * 源码对照：member/termpay/list.vue「结算账号」按钮 + src/SettlementDialog.vue
  */
 import { useState } from 'react';
 import { Button } from '@douyinfe/semi-ui';

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * 会员实名认证（对照旧版 `member/userCertification/Info.vue` + `src/step.vue`）。
+ * 会员实名认证（对照旧版 `member/usercertification/Info.vue` + `src/step.vue`）。
  *
  * 旧版能力：展示当前认证状态 / 审核驳回原因，支持个人与企业两类资质提交；
  * 后端接口（本仓库 Rust）：

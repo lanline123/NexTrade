@@ -280,20 +280,31 @@ export default function PayChannelClient({ brand }: { brand: Brand }) {
         }
 
         // 二维码类渠道
+        // 旧版 pages/order/lakala.vue:90-93：拉卡拉微信 PC/H5 可能返回「聚合收银台跳转 URL」，
+        // 此时必须直接跳转收银台，不能当成 codeUrl 渲染二维码（用户扫收银台 URL 付不了款）。
         const cashierUrl = typeof channel.url === 'string' ? channel.url : '';
-        const codeUrl = typeof channel.codeUrl === 'string' && channel.codeUrl ? channel.codeUrl : cashierUrl;
+        const rawCodeUrl = typeof channel.codeUrl === 'string' ? channel.codeUrl : '';
+        // yeepay 保留收银台链接 + 二维码双通道
         if (brand === 'yeepay') {
           if (cashierUrl) setPayUrl(cashierUrl);
-          if (codeUrl) {
+          if (rawCodeUrl) {
             const QRCode = (await import('qrcode')).default;
-            setQr(await QRCode.toDataURL(codeUrl, { width: 220, margin: 1 }));
+            setQr(await QRCode.toDataURL(rawCodeUrl, { width: 220, margin: 1 }));
+          } else if (cashierUrl) {
+            // 无直连主扫码时直接跳聚合收银台
+            window.location.href = cashierUrl;
+            return;
           } else {
             setError('获取支付二维码失败，请刷新重试');
             return;
           }
-        } else if (codeUrl) {
+        } else if (rawCodeUrl) {
           const QRCode = (await import('qrcode')).default;
-          setQr(await QRCode.toDataURL(codeUrl, { width: 220, margin: 1 }));
+          setQr(await QRCode.toDataURL(rawCodeUrl, { width: 220, margin: 1 }));
+        } else if (cashierUrl) {
+          // 只有收银台 URL（聚合支付），直接跳转
+          window.location.href = cashierUrl;
+          return;
         } else {
           setError('获取支付二维码失败，请刷新重试');
           return;

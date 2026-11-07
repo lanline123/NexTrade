@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * 礼品卡兑换（对照旧版 `member/giftCard/exchange.vue`）。
+ * 礼品卡兑换（对照旧版 `member/giftcard/exchange.vue`）。
  *
  * - 输入卡号、卡密兑换；储值卡兑换后自动充值到余额，兑换卡返回 flowType 后进入订单结算；
  * - 兑换成功后：有 `exchangeProductToCart.flowType` → `/order/check?flowType=...`，

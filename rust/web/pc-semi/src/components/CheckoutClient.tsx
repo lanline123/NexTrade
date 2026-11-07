@@ -215,6 +215,8 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [needLogin, setNeedLogin] = useState(false);
+  /** 账户维度余额/积分（user/user/memberCenter），旧版取 userStore.userInfo.balance/points */
+  const [memberCenter, setMemberCenter] = useState<{ balance?: number; points?: number }>({});
 
   const loadAddresses = async (preferredId?: number) => {
     const result = await apiGet<{ records?: Address[] }>('user/address/list', { page: 1, size: 99 }).catch(() => ({ records: [] }));
@@ -234,18 +236,25 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     }
     (async () => {
       try {
-        const [addressResult, checkResult, paymentResult, shippingResult, invoiceStatus] = await Promise.all([
+        const [addressResult, checkResult, paymentResult, shippingResult, invoiceStatus, memberCenter] = await Promise.all([
           apiGet<{ records?: Address[] }>('user/address/list', { page: 1, size: 99 }),
           apiPost<CheckoutData>('order/check/index', { flowType }),
           apiGet<PaymentType[]>('order/check/getAvailablePaymentType', { flowType }).catch(() => []),
           apiGet<Record<string, ShippingTypeOption[]>>('order/check/getStoreShippingType', { flowType }).catch(() => ({})),
           apiGet<{ item?: boolean }>('user/invoice/getStatus').catch(() => ({ item: false })),
+          // 账户维度余额/积分（旧版 pages/order/check.vue:226,266 取 userStore.userInfo.balance/points）
+          // 注意：total.balance 是「本单余额抵扣额」，不是账户余额，两者不能混用
+          apiGet<{ balance?: number; points?: number }>('user/user/memberCenter').catch(() => ({ balance: 0, points: 0 })),
         ]);
         if (cancelled) return;
         const addressList = addressResult.records || [];
         setAddresses(addressList);
         setAddressId(Number(checkResult.item?.addressId || addressList.find((item) => item.isSelected)?.addressId || addressList[0]?.addressId || 0));
         setData(checkResult);
+        setMemberCenter({
+          balance: Number(memberCenter?.balance ?? 0),
+          points: Number(memberCenter?.points ?? 0),
+        });
         setShippingType((checkResult.item?.shippingType as Record<string, unknown>) || {});
         setShippingData((shippingResult || {}) as Record<string, ShippingTypeOption[]>);
         setCouponIds(Array.isArray(checkResult.useCouponIds) ? checkResult.useCouponIds.map(Number) : []);
@@ -283,8 +292,13 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const selectedAddress = addresses.find((item) => item.addressId === addressId);
   const coupons = data?.couponList?.enableCoupons || [];
   const disableCoupons = data?.couponList?.disableCoupons || [];
+  // 本单最多可用积分（输入框上限 / 提示文案），语义同旧版 availablePoints
   const availablePoints = Number(data?.availablePoints || total.exchangePoints || 0);
-  const availableBalance = Number(total.balance || 0);
+  // 账户维度余额（可抵扣上限）取 user/user/memberCenter 的 balance；
+  // total.balance 是「本单余额抵扣额」，二者语义不同，不能互相替代。
+  const availableBalance = Number(memberCenter.balance ?? 0);
+  // 账户总积分（旧版 pages/order/check.vue:226 显示 userStore.userInfo.points）
+  const accountPoints = Number(memberCenter.points ?? 0);
   const creditInfo = data?.creditPaymentInfo || null;
   const canUseCredit = Boolean(creditInfo?.canUseCredit) && flowType === 1;
   const giftCardMode = flowType === 12;
@@ -882,7 +896,7 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
           <section className="pc-co-card">
             <div className="pc-co-card__head">
               <h2>{t('使用积分')}</h2>
-              <span className="pc-co-card__sub">{t('当前账户共')}<b>{availablePoints}</b>{t('积分')}</span>
+              <span className="pc-co-card__sub">{t('当前账户共')}<b>{accountPoints}</b>{t('积分')}</span>
             </div>
             <div className="pc-co-points">
               <InputNumber

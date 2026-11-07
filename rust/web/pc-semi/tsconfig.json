@@ -43,7 +43,8 @@
     ".next-routetest2/types/**/*.ts",
     ".next-routetest3/types/**/*.ts",
     ".next-routetest4/types/**/*.ts",
-    ".next-routetest5/types/**/*.ts"
+    ".next-routetest5/types/**/*.ts",
+    ".next-build/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

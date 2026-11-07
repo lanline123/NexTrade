@@ -190,9 +190,9 @@ export default function GiftCardClaimClient({ giftCardSn, isExchange, status }: 
       const link = typeof result === 'string'
         ? result
         : String(result?.receiptLink || result?.link || result?.url || result?.data || '');
-      setTransferLink(link || `${window.location.origin}/giftCard/transfer/${giftCardSn}`);
+      setTransferLink(link || `${window.location.origin}/giftcard/transfer/${giftCardSn}`);
     } catch {
-      setTransferLink(`${window.location.origin}/giftCard/transfer/${giftCardSn}`);
+      setTransferLink(`${window.location.origin}/giftcard/transfer/${giftCardSn}`);
       Toast.error({ content: '转赠链接生成失败，已为您提供当前领取链接' });
     } finally {
       setTransferVisible(true);

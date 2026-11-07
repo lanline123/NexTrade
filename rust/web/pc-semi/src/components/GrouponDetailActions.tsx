@@ -62,7 +62,7 @@ export default function GrouponDetailActions({
 
   const openInvite = () => {
     if (typeof window === 'undefined') return;
-    const link = `${window.location.origin}/joining/groupByInvited?id=${recordId}`;
+    const link = `${window.location.origin}/joining/groupbyinvited?id=${recordId}`;
     setInviteLink(link);
     setInviteOpen(true);
   };

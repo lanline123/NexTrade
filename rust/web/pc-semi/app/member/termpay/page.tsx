@@ -40,8 +40,8 @@ export default async function TermPayPage({ searchParams }: PageProps) {
     ) : <div className="comment-empty">{t('暂无账期支付资格')}</div>}
 
     <div className="term-tabs">
-      <Link href="/member/termPay" className={tab === 'pending' ? 'is-active' : ''}>未结算 ({detail?.pendingOrders?.length || 0})</Link>
-      <Link href="/member/termPay?tab=settled" className={tab === 'settled' ? 'is-active' : ''}>已结算 ({detail?.settledOrders?.length || 0})</Link>
+      <Link href="/member/termpay" className={tab === 'pending' ? 'is-active' : ''}>未结算 ({detail?.pendingOrders?.length || 0})</Link>
+      <Link href="/member/termpay?tab=settled" className={tab === 'settled' ? 'is-active' : ''}>已结算 ({detail?.settledOrders?.length || 0})</Link>
     </div>
 
     {orders.length ? (

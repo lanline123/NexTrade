@@ -5955,7 +5955,7 @@ img {
 .pc-error-actions button.is-primary { border-color: var(--pc-primary); background: var(--pc-primary); color: #fff; }
 
 
-/* ===== 礼品卡兑换 /giftCard/transfer/[id] ===== */
+/* ===== 礼品卡兑换 /giftcard/transfer/[id] ===== */
 .giftcard-page { background: #fbf7ef; }
 .giftcard-main { padding: 30px 0 60px; }
 .giftcard-container { width: var(--pc-container-width, 1200px); max-width: calc(100% - 40px); margin: 0 auto; }
@@ -6141,7 +6141,7 @@ img {
 .invoice-agreement { display: flex; align-items: center; gap: 8px; color: #666 !important; }
 
 
-/* 发票申请列表（对齐 Java pages/member/orderInvoice/List.vue）
+/* 发票申请列表（对齐 Java pages/member/orderinvoice/List.vue）
    结构：MemberTopMenu -> .table-head 三列表头 -> 每单一张 custom-table */
 .inv-list__content { background: #fff; border: 0; }
 .inv-list__head {

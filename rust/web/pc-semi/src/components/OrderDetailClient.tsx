@@ -382,11 +382,11 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
               <Button type="danger" onClick={() => { setCancelReason(''); setCancelVisible(true); }}>{t('取消订单')}</Button>
             ) : null}
             {actionEnabled(actions, 'offlinePaymentClaimDetail') && !offlineClaimRejected ? (
-              <Link href={`/member/order/claimInfo?orderId=${detail.orderId || orderId}`}><Button>{t('认款详情')}</Button></Link>
+              <Link href={`/member/order/claiminfo?orderId=${detail.orderId || orderId}`}><Button>{t('认款详情')}</Button></Link>
             ) : null}
             {actionEnabled(actions, 'toPay') ? (
               offlineClaimRejected ? (
-                <Link href={`/member/order/claimInfo?orderId=${detail.orderId || orderId}`}><Button theme="solid" type="primary">{t('修改申请')}</Button></Link>
+                <Link href={`/member/order/claiminfo?orderId=${detail.orderId || orderId}`}><Button theme="solid" type="primary">{t('修改申请')}</Button></Link>
               ) : (
                 <Link href={`/order/pay?id=${detail.orderId || orderId}`}><Button theme="solid" type="primary">{t('付款')}</Button></Link>
               )
@@ -490,7 +490,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                           <Button size="small">{t('申请售后')}</Button>
                         </Link>
                       ) : item.aftersalesItem ? (
-                        <Link href={`/member/return/logInfo?id=${item.aftersalesItem.aftersaleId || ''}`}>
+                        <Link href={`/member/return/loginfo?id=${item.aftersalesItem.aftersaleId || ''}`}>
                           <Button size="small">{t('售后详情')}</Button>
                         </Link>
                       ) : null}
@@ -580,7 +580,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
       ) : null}
 
       <div className="member-order-detail__links">
-        <Link href={`/member/feedback/askList?orderId=${detail.orderId || orderId}&orderSn=${detail.orderSn || ''}`}>订单留言/咨询</Link>
+        <Link href={`/member/feedback/asklist?orderId=${detail.orderId || orderId}&orderSn=${detail.orderSn || ''}`}>订单留言/咨询</Link>
         <Link href="/member/order/list" className="member-order-detail__back">{t('返回订单列表')}</Link>
       </div>
 

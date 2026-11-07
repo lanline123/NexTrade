@@ -1521,7 +1521,7 @@ function HomeHero({ module }: ModuleProps) {
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--order" />
                 <span>{t('我的订单')}</span>
               </Link>
-              <Link className="dec-pc-home-hero__action-item" href="/member/browsingHistory">
+              <Link className="dec-pc-home-hero__action-item" href="/member/browsinghistory">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--history" />
                 <span>{t('浏览记录')}</span>
               </Link>
@@ -1529,7 +1529,7 @@ function HomeHero({ module }: ModuleProps) {
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--wish" />
                 <span>{t('心愿单')}</span>
               </Link>
-              <Link className="dec-pc-home-hero__action-item" href="/member/collectShop">
+              <Link className="dec-pc-home-hero__action-item" href="/member/collectshop">
                 <i className="dec-pc-home-hero__action-icon dec-pc-home-hero__action-icon--shop" />
                 <span>{t('关注店铺')}</span>
               </Link>

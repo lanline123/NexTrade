@@ -65,7 +65,7 @@ export default function BrowsingHistoryClient() {
     return (
       <Card className="cart-state">
         <h2>{t('登录后查看浏览历史')}</h2>
-        <Link href="/login?redirect=/member/browsingHistory"><button className="pc-login-native__submit">{t('去登录')}</button></Link>
+        <Link href="/login?redirect=/member/browsinghistory"><button className="pc-login-native__submit">{t('去登录')}</button></Link>
       </Card>
     );
   }

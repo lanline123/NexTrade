@@ -2,7 +2,7 @@
 
 /**
  * 拼团结束倒计时
- * 源码对照：joining/groupByInvited.vue 的 CountdownNew（countdown-type="specifyTime"）
+ * 源码对照：joining/groupbyinvited.vue 的 CountdownNew（countdown-type="specifyTime"）
  */
 import { useEffect, useMemo, useState } from 'react';
 

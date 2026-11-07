@@ -5,7 +5,7 @@
  *
  * 注意：这个页面与 /member/aftersales（已申请售后记录）不是同一件事。
  * 原版字段：订单编号 / 订单商品 / 发货时间，商品行按 aftersaleFlag 判断
- * 「申请」（跳 /member/return/Info?orderId=&itemId=）或「详情」（跳 /member/return/logInfo?id=）。
+ * 「申请」（跳 /member/return/Info?orderId=&itemId=）或「详情」（跳 /member/return/loginfo?id=）。
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -101,7 +101,7 @@ export default function ReturnApplyListClient() {
                           {Number(item.aftersaleFlag) === 1 && item.toAftersalses ? (
                             <Link className="return-apply-btn is-primary" href={`/member/return/info?orderId=${row.orderId || ''}&itemId=${item.itemId || ''}`}>{t('申请')}</Link>
                           ) : Number(item.aftersaleFlag) !== 1 && item.aftersalesItem?.aftersaleId ? (
-                            <Link className="return-apply-btn" href={`/member/return/logInfo?id=${item.aftersalesItem.aftersaleId}`}>{t('详情')}</Link>
+                            <Link className="return-apply-btn" href={`/member/return/loginfo?id=${item.aftersalesItem.aftersaleId}`}>{t('详情')}</Link>
                           ) : null}
                         </div>
                       ))}

@@ -469,13 +469,13 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
                     ) : null}
                     {canShowToPay(order) ? (
                       Number(order.offlinePaymentClaimStatus) === 2 ? (
-                        <Link href={`/member/order/claimInfo?orderId=${order.orderId}`}><Button size="small" theme="solid" type="primary">{t('修改申请')}</Button></Link>
+                        <Link href={`/member/order/claiminfo?orderId=${order.orderId}`}><Button size="small" theme="solid" type="primary">{t('修改申请')}</Button></Link>
                       ) : (
                         <Link href={`/order/pay?id=${order.orderId}`}><Button size="small" theme="solid" type="primary">{t('去支付')}</Button></Link>
                       )
                     ) : null}
                     {Boolean(actions.offlinePaymentClaimDetail) && Number(order.offlinePaymentClaimStatus) !== 2 ? (
-                      <Link href={`/member/order/claimInfo?orderId=${order.orderId}`}><Button size="small">{t('认款详情')}</Button></Link>
+                      <Link href={`/member/order/claiminfo?orderId=${order.orderId}`}><Button size="small">{t('认款详情')}</Button></Link>
                     ) : null}
                     {actions.cancelOrder ? <Button size="small" onClick={() => void onCancelOrder(order.orderId)}>{t('取消订单')}</Button> : null}
                     {actions.delOrder ? <Button size="small" onClick={() => onDelOrder(order.orderId)}>{t('删除订单')}</Button> : null}
@@ -486,7 +486,7 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
                       <Link href={`/member/return/info?orderId=${order.orderId}`}><Button size="small">{t('申请售后')}</Button></Link>
                     ) : null}
                     {order.items && order.items[0]?.aftersalesItem && !isGiftCardAftersalesBlocked(order) && !isOrderType14(order) && !isCycleInfo(order) ? (
-                      <Link href={`/member/return/logInfo?id=${aftersalesItem?.aftersaleId || ''}`}><Button size="small">{t('售后详情')}</Button></Link>
+                      <Link href={`/member/return/loginfo?id=${aftersalesItem?.aftersaleId || ''}`}><Button size="small">{t('售后详情')}</Button></Link>
                     ) : null}
                     {actions.rebuy && !isSubCardOrder(order) ? (
                       <Button size="small" theme="solid" type="primary" onClick={() => void onReBuy(order)}>{t('再次购买')}</Button>

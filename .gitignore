@@ -47,3 +47,18 @@ docs/
 .skills/
 AGENTS.md
 .mcp.json
+
+# Craft Anything session artifacts & local-only captures (2026-11-07)
+craft.json
+feed.json
+transcript.json
+usage.json
+build-activity.log
+capture/
+inbox/
+investigation.cany/
+rust/web/admin-semi/dist-backup-*/
+rust/web/admin-semi/shot-*.png
+
+# electron/electron-builder noise logs
+debug.log

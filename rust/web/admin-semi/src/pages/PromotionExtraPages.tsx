@@ -505,65 +505,8 @@ export function ECard() {
   );
 }
 
-/* =========================================================================
- * 6. GiftCard (giftCardManage 礼品卡)
- * 契约对齐: java/view/admin/src/views/promotion/giftCard/List.vue
- * labels: 礼品卡名称, 状态, 备注, 卡类型, 创建时间, 操作
- * props: cardGroupName, status, remark, groupTypeName, addTime
- * ========================================================================= */
-export function GiftCard() {
-  const { t } = useI18n();
-  const columns: ColumnConfig<any>[] = [
-    { title: '礼品卡名称', dataIndex: 'cardGroupName', width: 180 },
-    {
-      title: '卡类型',
-      dataIndex: 'groupTypeName',
-      width: 130,
-      render: (v: any) => v || '--',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 110,
-      render: (s: any) => <Tag color={s === 1 ? 'green' : 'grey'}>{s === 1 ? t('正常') : t('已停用')}</Tag>,
-    },
-    { title: '备注', dataIndex: 'remark', width: 180, render: (v: any) => v || '--' },
-    { title: '创建时间', dataIndex: 'addTime', width: 170 },
-    // 编辑/删除由 ListPage 的 drawer（createApi / deleteApi）渲染，
-    // 这里不再放无 onClick 的假按钮，避免同表格出现两个「操作」列。
-  ];
-
-  return (
-    <div>
-      <ListPage
-        api="/promotion/giftCardGroups/list"
-        rowKey="cardGroupId"
-        columns={columns}
-        filters={[
-          { field: 'cardGroupName', label: '礼品卡名称', type: 'input' },
-        ]}
-        drawer={{
-          title: '礼品卡配置',
-          addText: '添加礼品卡',
-          width: 600,
-          createApi: '/promotion/giftCardGroups/create',
-          updateApi: '/promotion/giftCardGroups/update',
-          deleteApi: '/promotion/giftCardGroups/delete',
-          sections: [
-            {
-              key: 'basic',
-              title: '基础配置',
-              fields: [
-                { field: 'cardGroupName', label: t('礼品卡名称'), type: 'input', required: true },
-                { field: 'remark', label: t('备注'), type: 'textarea' },
-              ],
-            },
-          ],
-        }}
-      />
-    </div>
-  );
-}
+/* GiftCard 已迁移至独立页面 pages/GiftCards.tsx（储值卡/兑换卡分流 + 卡列表 +
+ * 绑定商品，对齐旧版 promotion/giftCard 的 List/Info），此处不再保留简化版。 */
 
 /* Lottery 已迁移至独立页面 pages/Lottery.tsx（三步表单 + 九宫格 + 用户管理，
  * 对齐旧版 promotion/lottery 的 Info/List/UserManage），此处不再保留简化版。 */

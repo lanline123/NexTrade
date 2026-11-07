@@ -248,7 +248,7 @@ body { color: var(--ui-text); -webkit-font-smoothing: antialiased; }
 .pc-service-float, .service-float, [class*="service-fixed"] { border-radius: 999px !important; box-shadow: var(--ui-shadow-3) !important; }
 
 /* =============================================================================
- * 增票资质（member/userInvoice/info）
+ * 增票资质（member/userinvoice/info）
  * 结构：卡内顶栏页签（发票申请 / 增票资质）→ 头卡（状态徽标）→ 温馨提示
  *       → 驳回原因 → 资质信息 / 编辑表单
  * 圆角策略：统一小圆角（卡片 8 / 区块 8 / 表单控件 6），不使用 16~24px 大圆角与胶囊形

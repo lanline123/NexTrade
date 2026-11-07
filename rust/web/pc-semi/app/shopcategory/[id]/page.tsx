@@ -8,7 +8,7 @@ import { getPcHeader, getShopCategories, getShopDetail, getShopProducts, type Sh
 
 import { getServerT } from '@/i18n/server';
 /**
- * 店铺分类页（源码 java.../view/pc/pages/shopCategory/[id].vue +
+ * 店铺分类页（源码 java.../view/pc/pages/shopcategory/[id].vue +
  * src/ShopCategory.vue + src/ShopFilter.vue）。
  * 旧实现 re-export 到 /shop/[id]（店铺主页），导致 shopCategoryId、左侧分类树、
  * 价格区间筛选与独立 canonical 全部丢失，这里恢复为独立页面。
@@ -50,7 +50,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   return {
     title: `${shop?.shopTitle || t('店铺商品')} · 店铺分类 · 万物新生`,
     description: shop?.description || t('店铺商品分类'),
-    alternates: { canonical: `${SITE_URL}/shopCategory/${params.id}${query}` },
+    alternates: { canonical: `${SITE_URL}/shopcategory/${params.id}${query}` },
   };
 }
 
@@ -92,7 +92,7 @@ export default async function ShopCategoryPage({ params, searchParams }: PagePro
     if (maxPrice) query.set('maxPrice', maxPrice);
     if (nextPage > 1) query.set('page', String(nextPage));
     const suffix = query.toString();
-    return suffix ? `/shopCategory/${shopId}?${suffix}` : `/shopCategory/${shopId}`;
+    return suffix ? `/shopcategory/${shopId}?${suffix}` : `/shopcategory/${shopId}`;
   };
 
   return (
@@ -152,7 +152,7 @@ export default async function ShopCategoryPage({ params, searchParams }: PagePro
                   );
                 })}
               </div>
-              <form className="priceform" action={`/shopCategory/${shopId}`} method="get">
+              <form className="priceform" action={`/shopcategory/${shopId}`} method="get">
                 {categoryId ? <input type="hidden" name="categoryId" value={categoryId} /> : null}
                 {sort ? <input type="hidden" name="sort" value={sort} /> : null}
                 <input type="text" name="minPrice" defaultValue={minPrice} placeholder={t('最低价')} />

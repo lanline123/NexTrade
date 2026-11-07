@@ -38,8 +38,8 @@ export default async function GroupInvitePage({ searchParams }: { searchParams?:
         joinNumCount: item.joinNumCount,
         countdownText: '',
       }));
-  // 通过链接邀请（旧版 JoiningOrderList：location.origin + /joining/groupByInvited?id=xxx）
-  const invitePath = `/joining/groupByInvited?id=${recordId}`;
+  // 通过链接邀请（旧版 JoiningOrderList：location.origin + /joining/groupbyinvited?id=xxx）
+  const invitePath = `/joining/groupbyinvited?id=${recordId}`;
 
   return (
     <MemberAuthGuard>

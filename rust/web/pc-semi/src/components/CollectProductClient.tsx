@@ -3,7 +3,7 @@
 /**
  * 心愿单（收藏商品）列表 —— PC 会员中心
  *
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/collectProduct/List.vue
+ * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/collectproduct/List.vue
  *  - CommonPageContainer flex（左 MemberNav + 右内容）由外层 MemberShell 承担
  *  - title-or-tabs > card-title「心愿单」；page-body > collect-list-content 商品卡网格
  *  - useResponsiveGridColumns({ minCardWidth: 240, gap: 8, minColumns: 4, maxColumns: 6 })
@@ -265,7 +265,7 @@ export default function CollectProductClient() {
           <div className="empty">
             <img className="empty-img" src="/assets/images/empty-box.png" alt="" />
             <div className="empty-text">{t('登录后查看心愿单')}</div>
-            <Link className="collect-product__login" href="/login?redirect=/member/collectProduct/list">{t('去登录')}</Link>
+            <Link className="collect-product__login" href="/login?redirect=/member/collectproduct/list">{t('去登录')}</Link>
           </div>
         </div>
       </div>
