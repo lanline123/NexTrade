@@ -4,6 +4,7 @@ import Taro, { useRouter } from "@tarojs/taro";
 
 // TODO(MIGRATION)：跳转目标 /pages/user/order/list、/pages/user/account/index 属用户中心/订单列表后续批次，当前未注册，跳转失败时由 redirect fail 兜底（保持旧路径不臆改）
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import FormatPrice from "@/components/format-price/FormatPrice";
 import { orderPayInfo, creatPay, checkPayStatus, rechargeOrderPay, rechargeOrderCreate, checkRechargePayStatus, createDepositPayment } from "@/api/order/pay";
 import type { Order, OfflinePaymentList } from "@/types/order/pay";
@@ -673,17 +674,15 @@ export default function Pay() {
                     )}
 
                     {Number(order.payTypeId) !== 3 ? (
-                        // 旧 tig-fixed-placeholder + tig-button → 固定底栏 View（TODO(MIGRATION)： TigButton 待通用按钮组件批次移植）
+                        // 旧 tig-fixed-placeholder + tig-button（已收敛到公共组件）
                         <View className="btn-box pay-fixed-footer">
-                            <View className={`pay-submit-btn ${paymentDisabled ? "is-disabled" : ""}`} onClick={handlePay}>
+                            <TigButton disabled={paymentDisabled} onClick={handlePay}>
                                 {t("立即支付")}
-                            </View>
+                            </TigButton>
                         </View>
                     ) : (
                         <View className="offline-pay-footer pay-fixed-footer">
-                            <View className="offline-pay-btn" onClick={goOfflinePaymentConfirm}>
-                                {t("付款完成")}
-                            </View>
+                            <TigButton onClick={goOfflinePaymentConfirm}>{t("付款完成")}</TigButton>
                         </View>
                     )}
                 </View>

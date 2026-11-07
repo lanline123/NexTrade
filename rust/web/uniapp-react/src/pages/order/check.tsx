@@ -3,6 +3,7 @@ import { View, Text } from "@tarojs/components";
 import Taro, { useDidShow, useRouter } from "@tarojs/taro";
 
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import FormatPrice from "@/components/format-price/FormatPrice";
 import { getOrderCheckData, updateOrderCheckData, orderSubmit, updateCouponData, getPaymentType, getShippingType, getStockCalendar } from "@/api/order/check";
 import { orderPaymentList } from "@/api/order/pay";
@@ -1608,13 +1609,16 @@ export default function Check() {
                         />
                     </View>
                     <View>
-                        {/* 旧 tig-button（disabled/loading/loading-text）→ 样式等价 View，TODO(MIGRATION)：随公共 tig-button 统一替换 */}
-                        <View
-                            className={`btn ${submitDisabled() || submitLoading ? "btn--disabled" : ""}`}
+                        {/* 旧 tig-button（disabled/loading/loading-text）（已收敛到公共组件） */}
+                        <TigButton
+                            className="btn"
+                            disabled={submitDisabled() || submitLoading}
+                            loading={submitLoading}
+                            loadingText={t("提交中...")}
                             onClick={submit}
                         >
-                            {submitLoading ? t("提交中...") : t(submitBtnText())}
-                        </View>
+                            {t(submitBtnText())}
+                        </TigButton>
                     </View>
 
                     {isBeyondDelivery() && (

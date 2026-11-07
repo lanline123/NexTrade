@@ -2,6 +2,7 @@ import { useState } from "react";
 import Taro from "@tarojs/taro";
 import { Input, View } from "@tarojs/components";
 
+import TigButton from "@/components/tig/tig-button/TigButton";
 import { forgetPassword } from "@/api/reset/reset";
 import { t } from "@/utils/i18n";
 
@@ -146,16 +147,18 @@ export default function StepTow({ onStepChange, mobileKey, onMobileKeyChange }: 
             </View>
 
             <View className="btn2-css3">
-                {/* 旧 tig-button :loading-text :loading :disabled → 按视觉等价 View（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                <View
-                    className={`btn2-css3__inner${isDisabled ? " is-disabled" : ""}`}
+                {/* 旧 tig-button :loading-text :loading :disabled（已收敛到公共组件） */}
+                <TigButton
+                    loading={isLoading}
+                    loadingText={t("确 认")}
+                    disabled={isDisabled}
                     onClick={() => {
                         if (isDisabled) return;
                         void handleResetPassword();
                     }}
                 >
                     {t("确 认")}
-                </View>
+                </TigButton>
             </View>
             <View className="login-text" onClick={handleToLogin}>
                 {t("立即登录")}

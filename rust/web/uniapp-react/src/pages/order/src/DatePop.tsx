@@ -3,6 +3,7 @@ import { Popup } from "@nutui/nutui-react-taro";
 import { View, Text } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 
+import TigButton from "@/components/tig/tig-button/TigButton";
 import { t } from "@/utils/i18n";
 
 import "./DatePop.scss";
@@ -185,10 +186,10 @@ export default function DatePop({ multiple = false, maxSelect = 1, defaultSelect
                 {/* 旧 tig-fixed-placeholder（background #fff）→ 固定底栏，安全区由 .fixed-placeholder 让出 */}
                 <View className="fixed-placeholder">
                     <View className="btns">
-                        {/* 旧 tig-button → 样式等价 View，TODO(MIGRATION)：随公共 tig-button 统一替换 */}
-                        <View className="theme-btn btn" onClick={handleConfirm}>
+                        {/* 旧 tig-button（已收敛到公共组件） */}
+                        <TigButton className="btn" onClick={handleConfirm}>
                             {t("确认")}
-                        </View>
+                        </TigButton>
                     </View>
                 </View>
             </View>

@@ -62,26 +62,5 @@
     }
 }
 
-/* 旧 tig-checkbox（圆形）→ 自绘等价勾选 */
-.agreement-check {
-    width: 32rpx;
-    height: 32rpx;
-    border: 2rpx solid #c8c9cc;
-    border-radius: 50%;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 8rpx;
-    background-color: #fff;
-
-    &.checked {
-        background-color: var(--general);
-        border-color: var(--general);
-    }
-    .agreement-check-icon {
-        color: #fff;
-        font-size: 20rpx;
-        line-height: 1;
-    }
-}
+/* 旧 tig-checkbox 自绘等价块已删除：协议勾选已收敛到公共组件 TigCheckbox
+   （components/tig/tig-checkbox，iconSize=32rpx 对齐旧圆盒视觉） */

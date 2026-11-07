@@ -1,6 +1,7 @@
 import { Popup } from "@nutui/nutui-react-taro";
 import { View } from "@tarojs/components";
 
+import TigButton from "@/components/tig/tig-button/TigButton";
 import { t } from "@/utils/i18n";
 
 import "./AddressPop.scss";
@@ -30,14 +31,14 @@ export default function AddressPop({ show = false, onShowChange, onLink }: Props
             <View className="address-pop">
                 <View className="pop-center">{t("您的地址未关联具体定位信息，请重新修改地址信息")}</View>
                 <View className="pop-btns">
-                    {/* 旧 tig-button plain → 描边按钮；tig-button → 主题色实底按钮（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                    <View className="btn btn--plain" onClick={() => onShowChange?.(false)}>
+                    {/* 旧 tig-button plain / tig-button（已收敛到公共组件） */}
+                    <TigButton plain className="btn" onClick={() => onShowChange?.(false)}>
                         {t("取消")}
-                    </View>
-                    <View className="btn" onClick={() => onLink?.()}>
+                    </TigButton>
+                    <TigButton className="btn" onClick={() => onLink?.()}>
                         {" "}
                         {t("去修改")}{" "}
-                    </View>
+                    </TigButton>
                 </View>
             </View>
         </Popup>

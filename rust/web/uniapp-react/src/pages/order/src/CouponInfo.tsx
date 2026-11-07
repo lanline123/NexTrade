@@ -3,6 +3,8 @@ import { View, Text, ScrollView } from "@tarojs/components";
 import { Popup } from "@nutui/nutui-react-taro";
 
 import FormatPrice from "@/components/format-price/FormatPrice";
+import TigButton2 from "@/components/tig/tig-button2/TigButton2";
+import TigCheckbox from "@/components/tig/tig-checkbox/TigCheckbox";
 import type { CouponList } from "@/types/order/check";
 import { useConfigStore } from "@/store/config";
 import { useCurrencyStore } from "@/store/currency";
@@ -27,7 +29,7 @@ interface Props {
  * 优惠券选择组件（自旧 pages/order/src/couponInfo.vue 移植）
  * - 显示可用/不可用优惠券列表，支持选择/取消选择
  * - 积分/余额/账期抵扣已拆分为 pointsCard / balanceCard / creditCard
- * - 旧 tig-checkbox（v-model:checked）→ 展示型选中圆点（TODO(MIGRATION)：随公共 tig-checkbox 统一替换）
+ * - 旧 tig-checkbox（v-model:checked）→ 公共组件 TigCheckbox（选中翻转由行点击 handleCheck 处理）
  */
 export default function CouponInfo({
     couponList = { enableCoupons: [], disableCoupons: [] } as any,
@@ -251,9 +253,8 @@ export default function CouponInfo({
                                                 )}
                                             </View>
                                             <View className="right-2">
-                                                <View className={`tig-check ${item.selected ? "tig-check--checked" : ""}`}>
-                                                    {item.selected && <Text className="tig-check-icon">✓</Text>}
-                                                </View>
+                                                {/* 旧 tig-checkbox（已收敛到公共组件；选中翻转由行点击 handleCheck 处理） */}
+                                                <TigCheckbox checked={item.selected} />
                                             </View>
                                         </View>
                                         <View className="dotted-line" />
@@ -293,7 +294,8 @@ export default function CouponInfo({
                                                 )}
                                             </View>
                                             <View className="right-2">
-                                                <View className="tig-check tig-check--disabled">{item.selected && <Text className="tig-check-icon">✓</Text>}</View>
+                                                {/* 旧 tig-checkbox（已收敛到公共组件，不可用券禁用态） */}
+                                                <TigCheckbox checked={item.selected} disabled />
                                             </View>
                                         </View>
                                         <View className="dotted-line" />
@@ -306,10 +308,10 @@ export default function CouponInfo({
                     {/* 旧 tig-fixed-placeholder → 固定底栏（安全区由 --safe-bottom 提供） */}
                     <View className="fixed-placeholder">
                         <View className="btn-box">
-                            {/* 旧 tig-button2 theme → 主题色实底按钮（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                            <View className="theme-btn" style={{ height: "70rpx" }} onClick={handlecConfirm}>
+                            {/* 旧 tig-button2 theme（已收敛到 TigButton2） */}
+                            <TigButton2 theme style={{ height: "70rpx" }} onClick={handlecConfirm}>
                                 {t("确定")}
-                            </View>
+                            </TigButton2>
                         </View>
                     </View>
                 </ScrollView>

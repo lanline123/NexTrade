@@ -7,6 +7,7 @@ import FormatPrice from "@/components/format-price/FormatPrice";
 import TigButton2 from "@/components/tig/tig-button2/TigButton2";
 import TigImage from "@/components/tig/tig-image/TigImage";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
+import TigCheckbox from "@/components/tig/tig-checkbox/TigCheckbox";
 import TigUpload from "@/components/tig/tig-upload/TigUpload";
 import { getCommentData, updateCommentData } from "@/api/user/comment";
 import { useConfigStore } from "@/store/config";
@@ -466,15 +467,16 @@ export default function CommentInfo() {
                                         {/* 未评价条目可按配置选择匿名评价 */}
                                         {anonymousEnabled && !item.isCommentInfo && (
                                             <View className="anonymous-row flex align-center">
-                                                <View
-                                                    className={`tig-checkbox${item.isAnonymous ? " checked" : ""}`}
-                                                    onClick={() => {
+                                                {/* 旧 <tig-checkbox v-model:checked="item.isAnonymous" size="20" />（已收敛到公共组件；iconSize 保旧版 20px 盒） */}
+                                                <TigCheckbox
+                                                    checked={item.isAnonymous}
+                                                    size="20"
+                                                    iconSize="20px"
+                                                    onUpdateChecked={() => {
                                                         item.isAnonymous = !item.isAnonymous;
                                                         forceUpdate();
                                                     }}
-                                                >
-                                                    {item.isAnonymous && <Text className="tig-checkbox-icon">✓</Text>}
-                                                </View>
+                                                />
                                                 <Text
                                                     className="anonymous-text"
                                                     onClick={() => {

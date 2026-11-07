@@ -184,10 +184,11 @@ export default function SearchResult() {
         }
     });
 
-    // TODO(MIGRATION)：region store 的 currentLocationInfo（定位信息）尚未随 O2O 批次移植，
-    // 当前恒为空 → currentLocationParams 恒为 {}、hasLocation 恒 false，与旧版未定位时行为一致。
+    // O2O 定位参数：region store 已随 B6-6b-1 全量移植 currentLocationInfo
+    // （GPS/IP 双通道定位 + storage 持久化），此处直接消费；未定位/零坐标时返回空对象，
+    // 与旧版未定位行为一致（旧 result.vue:520-531 同一校验链）。
     const getCurrentLocationParams = () => {
-        const locationInfo = (useRegionStore.getState() as any).currentLocationInfo;
+        const locationInfo = useRegionStore.getState().currentLocationInfo;
         const longitude = Number(locationInfo?.longitude);
         const latitude = Number(locationInfo?.latitude);
         const isValidLocation =

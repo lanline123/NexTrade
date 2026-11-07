@@ -6,6 +6,7 @@ import Taro from "@tarojs/taro";
 import { getMyMerchant } from "@/api/user/merchantEnter";
 import FixedPlaceholder from "@/components/tig/tig-fixed-placeholder/FixedPlaceholder";
 import TigButton2 from "@/components/tig/tig-button2/TigButton2";
+import TigCheckbox from "@/components/tig/tig-checkbox/TigCheckbox";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import { useConfigStore } from "@/store/config";
 import { t } from "@/utils/i18n";
@@ -121,13 +122,8 @@ export default function MerchantPrincipalType() {
                                 {t("确认")}{" "}
                             </TigButton2>
                             <View className="agreement">
-                                {/* 旧 tig-checkbox v-model:checked → 自绘圆形勾选 */}
-                                <View
-                                    className={`agreement-check${isChecked ? " checked" : ""}`}
-                                    onClick={() => setIsChecked((prev) => !prev)}
-                                >
-                                    <Text className="agreement-check-icon">{isChecked ? "✓" : ""}</Text>
-                                </View>
+                                {/* 旧 tig-checkbox v-model:checked（已收敛到公共组件；iconSize 对齐旧 32rpx 圆盒视觉） */}
+                                <TigCheckbox checked={isChecked} iconSize="32rpx" onUpdateChecked={() => setIsChecked((prev) => !prev)} />
                                 <Text className="agreement-text" onClick={() => setIsChecked((prev) => !prev)}>
                                     {t("我已阅读并同意")}
                                 </Text>

@@ -1,0 +1,47 @@
+/* 自旧 tig-checkbox.vue 样式移植（u-checkbox 视觉） */
+
+.tig-checkbox {
+    display: flex;
+    align-items: center;
+
+    &--disabled {
+        opacity: 0.6;
+    }
+}
+
+/* 类名沿用 u-checkbox，保旧页面局部覆盖（如购物车描边加粗）继续生效 */
+.u-checkbox__icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    border: 1px solid #c8c9cc;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &--circle {
+        border-radius: 50%;
+    }
+
+    &--square {
+        border-radius: 4rpx;
+    }
+
+    &--checked {
+        .u-checkbox__icon {
+            display: block;
+        }
+    }
+
+    .u-checkbox__icon {
+        display: none;
+        color: #fff;
+        font-size: 0.6em;
+        line-height: 1;
+    }
+}
+
+.u-checkbox__label {
+    margin-left: 10rpx;
+    color: #323233;
+}

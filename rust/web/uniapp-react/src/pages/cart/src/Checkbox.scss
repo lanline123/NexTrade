@@ -3,7 +3,9 @@
     display: flex;
     align-items: center;
 
-    &.check--disabled {
+    /* 旧 check--disabled / 公共组件 tig-checkbox--disabled 均覆盖 */
+    &.check--disabled,
+    &.tig-checkbox--disabled {
         opacity: 0.5;
     }
 }

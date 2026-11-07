@@ -8,6 +8,7 @@ import Verify from "@/components/verifition/Verify";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import { Divider, Popup } from "@nutui/nutui-react-taro";
 import TigNavbar from "@/components/tig/tig-navbar/TigNavbar";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import Checkbox from "@/pages/cart/src/Checkbox";
 import TigMobileAreacode from "@/components/tig/tig-mobile-areacode/TigMobileAreacode";
 import { sendMobileCode, setMiniProgramOpenid, userSignin, csrfCreate, getOauth } from "@/api/login/login";
@@ -504,17 +505,20 @@ export default function BaseLogin({ loginType, onLoginTypeChange, csrfToken, onC
                             )}
                         </View>
                         <View className="btn2-css3">
-                            {/* 原 tig-button :loading :disabled :type :color → 按视觉等价 View（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                            <View
-                                className={`login-btn ${isloginDisabled ? "is-disabled" : ""}`}
-                                style={{ background: isloginDisabled ? "#c8c9cc" : buttonColorFinal }}
+                            {/* 旧 tig-button :loading :disabled :color size=normal（已收敛到公共组件；禁用态灰色对齐旧 type="info"） */}
+                            <TigButton
+                                loading={loginLoading}
+                                loadingText={t("登录中")}
+                                disabled={isloginDisabled}
+                                color={isloginDisabled ? "#c8c9cc" : buttonColorFinal}
+                                className="login-btn"
                                 onClick={() => {
                                     if (loginLoading || isloginDisabled) return;
                                     mobileLogin();
                                 }}
                             >
-                                {loginLoading ? t("登录中") : t("登录")}
-                            </View>
+                                {t("登录")}
+                            </TigButton>
                         </View>
                         {loginType === "password" && (
                             <View className="other-row">

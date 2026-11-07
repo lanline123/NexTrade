@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Popup } from "@nutui/nutui-react-taro";
 import { View, Text, Textarea } from "@tarojs/components";
 
+import TigButton from "@/components/tig/tig-button/TigButton";
 import { t } from "@/utils/i18n";
 
 import "./Remark.scss";
@@ -56,9 +57,11 @@ export default function Remark({ value = "", onValueChange }: Props) {
                     </View>
                     {/* 旧 tig-fixed-placeholder → 固定底栏（安全区由 --safe-bottom 提供） */}
                     <View className="fixed-placeholder">
-                        <View className="footer" style={{ padding: "15rpx 30rpx" }} onClick={() => setShowPopup(false)}>
-                            {/* 旧 tig-button（height 70rpx，theme）→ 主题色实底按钮（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                            <Text className="submit-btn-text">{t("确定")}</Text>
+                        <View className="footer" style={{ padding: "15rpx 30rpx" }}>
+                            {/* 旧 tig-button（height 70rpx）（已收敛到公共组件；旧 theme 属性非 tig-button prop，实际为默认主题色实底） */}
+                            <TigButton style={{ height: "70rpx" }} onClick={() => setShowPopup(false)}>
+                                <Text className="submit-btn-text">{t("确定")}</Text>
+                            </TigButton>
                         </View>
                     </View>
                 </View>

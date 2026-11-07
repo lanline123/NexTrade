@@ -3,6 +3,7 @@ import Taro from "@tarojs/taro";
 import { Input, View } from "@tarojs/components";
 
 import TigMobileAreacode from "@/components/tig/tig-mobile-areacode/TigMobileAreacode";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import VerificationCode from "@/components/verificationCode/VerificationCode";
 import { checkEmail, checkMobile, sendEmailCode, sendMobileCode } from "@/api/login/login";
 import { useConfigStore } from "@/store/config";
@@ -219,16 +220,17 @@ export default function StepOne({ onStepChange, onMobileKeyChange }: Props) {
             )}
 
             <View className="btn2-css3">
-                {/* 旧 tig-button :loading-text :loading → 按视觉等价 View（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                <View
-                    className={`btn2-css3__inner${isLoading ? " is-loading" : ""}`}
+                {/* 旧 tig-button :loading-text :loading（已收敛到公共组件） */}
+                <TigButton
+                    loading={isLoading}
+                    loadingText={t("下 一 步")}
                     onClick={() => {
                         if (isLoading) return;
                         void handleNext();
                     }}
                 >
                     {t("下 一 步")}
-                </View>
+                </TigButton>
             </View>
 
             <View className={`bottom-bar${configStore.openEmailRegister !== 1 ? " bottom-bar-single" : ""}`}>

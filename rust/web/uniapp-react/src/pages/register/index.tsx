@@ -5,6 +5,7 @@ import { View, Text, Input } from "@tarojs/components";
 import TigLayout from "@/components/tig/tig-layout/TigLayout";
 import TigMobileAreacode from "@/components/tig/tig-mobile-areacode/TigMobileAreacode";
 import VerificationCode, { type VerificationCodeRef } from "@/components/verificationCode/VerificationCode";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import Checkbox from "@/pages/cart/src/Checkbox";
 import { sendMobileCode, sendEmailCode } from "@/api/login/login";
 import { userRegist } from "@/api/user/regist";
@@ -320,16 +321,18 @@ export default function Register() {
                     </View>
                 </View>
                 <View className="form-con">
-                    {/* 原 tig-button :disabled :loading class="btn2-css3" → 按视觉等价 View（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                    <View
-                        className={`btn2-css3 ${isRegisterDisabled || loginLoading ? "is-disabled" : ""}`}
+                    {/* 旧 tig-button :disabled :loading class="btn2-css3"（已收敛到公共组件） */}
+                    <TigButton
+                        className="btn2-css3"
+                        disabled={isRegisterDisabled}
+                        loading={loginLoading}
                         onClick={() => {
                             if (isRegisterDisabled || loginLoading) return;
                             onRegister();
                         }}
                     >
                         {t("注 册")}
-                    </View>
+                    </TigButton>
                 </View>
                 <View className="agreement-btn">
                     <Checkbox checked={isChecked} onChange={() => setIsChecked(!isChecked)} />

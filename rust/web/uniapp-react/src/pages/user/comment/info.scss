@@ -206,30 +206,8 @@
     }
 }
 
-/* 旧 tig-checkbox（up-checkbox，size=20）自绘复刻：圆形勾选框 */
-.tig-checkbox {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 1px solid #c8c9cc;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    background-color: #fff;
-
-    &.checked {
-        background-color: var(--general);
-        border-color: var(--general);
-    }
-
-    .tig-checkbox-icon {
-        color: #fff;
-        font-size: 12px;
-        line-height: 1;
-    }
-}
+/* 旧 tig-checkbox 自绘复刻块已删除：匿名勾选已收敛到公共组件 TigCheckbox
+   （components/tig/tig-checkbox），视觉由组件自身样式提供 */
 
 /* 旧 App.vue 全局 .sku-card（新工程未提供，随页面补齐并限定在 .comment-info 内） */
 .comment-info .sku-card {

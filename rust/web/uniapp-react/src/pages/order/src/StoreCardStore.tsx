@@ -4,6 +4,7 @@ import { View, Text, Image } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 
 import TigImage from "@/components/tig/tig-image/TigImage";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import FormatPrice from "@/components/format-price/FormatPrice";
 import ActivityCard from "@/components/masonry/ActivityCard";
 import { staticResource, redirect, getSkuText, hasSkuText, isOverseas } from "@/utils";
@@ -600,11 +601,11 @@ export default function StoreCardStore({
                     {/* 旧 tig-fixed-placeholder（background #fff）→ 固定底栏，安全区由 .fixed-placeholder 让出 */}
                     <View className="fixed-placeholder">
                         <View className="btn-box">
-                            {/* 旧 tig-button → 样式等价 View，TODO(MIGRATION)：随公共 tig-button 统一替换 */}
-                            <View className="theme-btn" onClick={handlecConfirm}>
+                            {/* 旧 tig-button（已收敛到公共组件） */}
+                            <TigButton onClick={handlecConfirm}>
                                 {" "}
                                 {t("提交")}
-                            </View>
+                            </TigButton>
                         </View>
                     </View>
                 </View>
@@ -644,11 +645,11 @@ export default function StoreCardStore({
                         <View className="attribute-btn">
                             <View className="desc">{isOverseas() ? t("已选择{0}种", { 0: checkedAttrs.length }) : `已选择${checkedAttrs.length}种`}</View>
                             <View className="">
-                                {/* 旧 tig-button（width 400rpx height 80rpx）→ 样式等价 View，TODO(MIGRATION)：随公共 tig-button 统一替换 */}
-                                <View className="theme-btn attr-btn" onClick={handleAttribute}>
+                                {/* 旧 tig-button（width 400rpx height 80rpx）（已收敛到公共组件） */}
+                                <TigButton style={{ width: "400rpx", height: "80rpx" }} onClick={handleAttribute}>
                                     {" "}
                                     {t("确定")}
-                                </View>
+                                </TigButton>
                             </View>
                         </View>
                     </View>

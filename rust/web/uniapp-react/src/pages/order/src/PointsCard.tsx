@@ -3,6 +3,7 @@ import { View, Text, Input } from "@tarojs/components";
 import { Popup } from "@nutui/nutui-react-taro";
 import Taro from "@tarojs/taro";
 
+import TigButton2 from "@/components/tig/tig-button2/TigButton2";
 import { useConfigStore } from "@/store/config";
 import { useCurrencyStore } from "@/store/currency";
 import { isOverseas, moneyFormat } from "@/utils";
@@ -134,10 +135,10 @@ export default function PointsCard({ points, availablePoints, pointsAmount, useP
                     {/* 旧 tig-fixed-placeholder → 固定底栏（安全区由 --safe-bottom 提供） */}
                     <View className="fixed-placeholder">
                         <View className="btn-box">
-                            {/* 旧 tig-button2 theme → 主题色实底按钮（TODO(MIGRATION)：随公共 tig-button 统一替换） */}
-                            <View className="theme-btn" style={{ height: "70rpx" }} onClick={onSubmit}>
+                            {/* 旧 tig-button2 theme（已收敛到 TigButton2） */}
+                            <TigButton2 theme style={{ height: "70rpx" }} onClick={onSubmit}>
                                 {t("确定")}
-                            </View>
+                            </TigButton2>
                         </View>
                     </View>
                 </View>

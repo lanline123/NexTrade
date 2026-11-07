@@ -3,6 +3,7 @@ import { View, Text } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 
 import Verify from "@/components/verifition/Verify";
+import TigButton from "@/components/tig/tig-button/TigButton";
 import { useConfigStore } from "@/store/config";
 import { isOverseas } from "@/utils";
 import { t } from "@/utils/i18n";
@@ -230,11 +231,11 @@ const VerificationCode = forwardRef<VerificationCodeRef, Props>(function Verific
     return (
         <View className="box verify-shell-MjI4Mmxqb2U">
             {btnType === "button" && (
-                // 原 tig-button plain :disabled → 按视觉等价 View（TODO(MIGRATION)：随公共 tig-button 统一替换）
-                <View className={`btn-verify ${btnDisabled ? "is-disabled" : ""}`} onClick={handBtn}>
+                // 旧 <tig-button plain :disabled @click>（已收敛到公共组件）
+                <TigButton plain disabled={btnDisabled} className="btn-verify" onClick={handBtn}>
                     {" "}
                     {btnText}{" "}
-                </View>
+                </TigButton>
             )}
             {btnType === "text" && (
                 <View className={`verify-btn ${btnDisabled ? "is-disabled" : ""}`} onClick={handBtn}>

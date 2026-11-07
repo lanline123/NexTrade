@@ -1,0 +1,76 @@
+/* 自旧 tig-button.vue 样式移植（up-button 视觉 + 旧 scoped 覆盖） */
+
+.tig-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 24rpx;
+    margin: 0;
+    border-width: 1px;
+    border-style: solid;
+    line-height: 1;
+    /* 重置 Taro Button 默认样式（对齐工程内 reset-button 惯例） */
+    background-color: transparent;
+
+    &::after {
+        border: none;
+    }
+
+    &--normal {
+        height: 80rpx;
+        font-size: 24rpx;
+    }
+
+    &--large {
+        height: 100rpx;
+        font-size: 28rpx;
+    }
+
+    &--small {
+        height: 60rpx;
+        font-size: 24rpx;
+    }
+
+    &--circle {
+        border-radius: 100rpx;
+    }
+
+    &--square {
+        border-radius: 8rpx;
+    }
+
+    &--disabled {
+        opacity: 0.5;
+    }
+
+    &__content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__spinner {
+        width: 28rpx;
+        height: 28rpx;
+        margin-right: 10rpx;
+        border: 3rpx solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: tig-button-spin 0.8s linear infinite;
+    }
+
+    &__text {
+        line-height: inherit;
+    }
+}
+
+@keyframes tig-button-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
