@@ -575,7 +575,8 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
         </header>
 
         <main className="page-content">
-          <VoiceBroadcastTip />
+          {/* 语音播报引导条只在首页显示（用户要求） */}
+          {page === 'dashboard' && <VoiceBroadcastTip />}
           <div className="page-inner">
             <div className="page-heading">
               <div>

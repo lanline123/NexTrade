@@ -4554,12 +4554,14 @@ body {
   margin-top: 16px;
 }
 
-/* 语音播报首次引导条（对齐跨境版 VoiceBroadcastTip） */
+/* 语音播报首次引导条（对齐跨境版 VoiceBroadcastTip）；
+   margin 与上下内容保持间距（用户要求：只在首页显示，且与上下保持距离） */
 .voice-broadcast-tip {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 24px;
+  margin: 8px 0 16px;
   background: #fffbe6;
   border-bottom: 1px solid #ffe7a3;
   font-size: 13px;
@@ -4752,6 +4754,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 0 24px;
+  margin: 8px 0 16px;
   background: #fffbe6;
   border-bottom: 1px solid #ffe7a3;
   font-size: 13px;
