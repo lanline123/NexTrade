@@ -3351,11 +3351,20 @@ function ContractCatProduct({ module }: ModuleProps) {
   const moreHref = linkHref(module.moreLink);
   const bannerPics: any[] = module.banner?.picList || [];
   /**
-   * 旧版分类楼层块固定 608px（components/home/CatProductNormal.vue:170
-   * `.mod_columns_wrap .mod_columns_floor { width: 608px; height: 430px }`），
-   * 在旧链首页 .home-warp 的 flex 两列里占一列。baseStyle=2 为「左图右商品」布局。
+   * 旧版分类商品模块有两种形态，宽度语义不同，不能混用：
+   * - pcCatProductNormal（CatProductNormal.vue:169-171）：楼层块固定 608px 宽，
+   *   在旧链首页 .home-warp 的 flex 两列里占一列；
+   * - pcCatProductSimple（CatProductSimple.vue:97-120）：baseStyle==2 为
+   *   「左图 230px + 右商品 950px」的左右结构，整块仍是通栏。
    */
-  const columnWidth = Number(module.baseStyle) === 2 ? 608 : undefined;
+  const columnWidth = module.layoutWidth === 608 ? 608 : undefined;
+  /**
+   * pcCatProductSimple 的 baseStyle==2：左图 + 右侧商品网格
+   * （旧版 components/home/CatProductSimple.vue:16-21，
+   *  左图取 picList[0]，左 230px / 右 950px 的 flex 布局）。
+   */
+  const isSimpleLeftLayout = Number(module.baseStyle) === 2 && bannerPics.length > 0;
+  const leftPic = isSimpleLeftLayout ? bannerPics[0] : null;
   return (
     <Container module={FLAT_FRAME} className="dec-cat-product" style={columnWidth ? { width: `${columnWidth}px` } : undefined}>
       <ShopTitle title={module.title} />
@@ -3367,8 +3376,29 @@ function ContractCatProduct({ module }: ModuleProps) {
           {moreHref ? <a href={moreHref} style={{ marginLeft: 'auto', color: 'var(--pc-primary)' }}>{t('查看更多 ›')}</a> : null}
         </div>
       ) : null}
-      {bannerPics.length ? <ImageAd module={{ picList: bannerPics, frame: FLAT_FRAME }} /> : null}
-      <Product module={{ products: module.product || {}, frame: FLAT_FRAME }} />
+      {isSimpleLeftLayout ? (
+        <div className="dec-cat-product__simple">
+          {/* 左侧固定图（picList[0]） */}
+          <div className="dec-cat-product__simple-left">
+            {leftPic?.picLink ? (
+              <a href={navHref(leftPic.picLink) || '#'} target="_blank" rel="noreferrer">
+                <img src={leftPic.picUrl || leftPic.picThumb || ''} alt={module.title?.titleText || ''} />
+              </a>
+            ) : (
+              <img src={leftPic?.picUrl || leftPic?.picThumb || ''} alt={module.title?.titleText || ''} />
+            )}
+          </div>
+          {/* 右侧商品网格 */}
+          <div className="dec-cat-product__simple-right">
+            <Product module={{ products: module.product || {}, frame: FLAT_FRAME }} />
+          </div>
+        </div>
+      ) : (
+        <>
+          {bannerPics.length ? <ImageAd module={{ picList: bannerPics, frame: FLAT_FRAME }} /> : null}
+          <Product module={{ products: module.product || {}, frame: FLAT_FRAME }} />
+        </>
+      )}
     </Container>
   );
 }

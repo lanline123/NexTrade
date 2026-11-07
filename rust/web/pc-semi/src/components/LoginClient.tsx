@@ -90,9 +90,12 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
   /**
    * 滑块行为验证码（源码 BaseLogin.vue / OverseasLogin.vue 的 Verify 组件）。
    * 登录接口返回 code=1002 时弹出；验证成功拿到 verifyToken 后重试登录。
+   *
+   * verifyToken 不入 state：后端 verify_captcha_verification 成功后 token 即失效（防重放），
+   * 复用会失败；且 React 18 批处理 setState，回调里直接读 state 拿到的是旧值。
+   * 改为通过 submit 的参数传入。
    */
   const [verifyOpen, setVerifyOpen] = useState(false);
-  const [verifyToken, setVerifyToken] = useState('');
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -136,7 +139,12 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     }
   };
 
-  const submit = async (event?: React.FormEvent) => {
+  /**
+   * 登录提交。
+   * @param event 表单事件（可选，滑块验证回调重试时无事件）
+   * @param verifyTokenOverride 滑块验证得到的 verifyToken（显式传入，避免读到批处理前的旧 state）
+   */
+  const submit = async (event?: React.FormEvent, verifyTokenOverride?: string) => {
     event?.preventDefault();
     if (!agreed) return setError('请先阅读并同意服务协议与隐私协议');
     if (tab === 'normal') {
@@ -146,19 +154,21 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     }
     setLoading(true);
     setError('');
+    /** 滑块验证得到的 verifyToken（仅重试时传入，首次登录为空）。 */
+    const effectiveVerifyToken = verifyTokenOverride ?? '';
     try {
       const csrf = await getCsrf();
       const result: any = await postJson(
         'user/login/signin',
         tab === 'normal'
-          ? { loginType: 'password', username: username.trim(), password, mobile: '', mobileCode: '', verifyToken }
-          : { loginType: 'mobile', username: '', password: '', mobile: mobile.trim(), mobileCode: mobileCode.trim(), areaCode, verifyToken },
+          ? { loginType: 'password', username: username.trim(), password, mobile: '', mobileCode: '', verifyToken: effectiveVerifyToken }
+          : { loginType: 'mobile', username: '', password: '', mobile: mobile.trim(), mobileCode: mobileCode.trim(), areaCode, verifyToken: effectiveVerifyToken },
         { 'X-CSRF-Token': csrf },
       );
-      const token = result?.token || result?.accessToken;
-      if (!token) throw new Error('登录接口未返回 token');
-      localStorage.setItem('accessToken', token);
-      document.cookie = `accessToken=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      const authToken = result?.token || result?.accessToken;
+      if (!authToken) throw new Error('登录接口未返回 token');
+      localStorage.setItem('accessToken', authToken);
+      document.cookie = `accessToken=${encodeURIComponent(authToken)}; path=/; max-age=604800; SameSite=Lax`;
       Toast.success({ content: '登录成功' });
       redirectAfterLogin();
     } catch (reason) {
@@ -172,7 +182,6 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
       setLoading(false);
     }
   };
-
   /** 源码 showWechatLogin：微信扫码登录 */
   const openWechat = async () => {
     setWechatMode(true);
@@ -302,10 +311,13 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
         open={verifyOpen}
         onClose={() => setVerifyOpen(false)}
         onSuccess={(token) => {
-          setVerifyToken(token);
+          // 后端 verify_captcha_verification 成功后 token 即失效（防重放），
+          // 所以不写入 state 复用；重试时通过参数传入本次的 token。
           setVerifyOpen(false);
-          // 验证通过后带 verifyToken 重试登录（源码 BaseLogin.vue okCallback）
-          void submit();
+          // 验证通过后带 verifyToken 重试登录（源码 BaseLogin.vue okCallback）。
+          // 必须把 token 作为参数传入：React 18 会批处理 setState，此处直接读
+          // verifyToken state 拿到的仍是旧值（空串），会导致后端二次校验失败。
+          void submit(undefined, token);
         }}
       />
     </div>

@@ -3721,6 +3721,30 @@ button.view_detail {
   }
 }
 
+/* ---- 分类商品模块（pcCatProduct 系列）---- */
+
+/* pcCatProductSimple 的 baseStyle=2：左图 230px + 右侧商品网格
+   （旧版 components/home/CatProductSimple.vue:97-120） */
+.dec-cat-product__simple {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+.dec-cat-product__simple-left {
+  width: 230px;
+  flex-shrink: 0;
+  overflow: hidden;
+  img {
+    display: block;
+    width: 100%;
+    border-radius: 6px;
+  }
+}
+.dec-cat-product__simple-right {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Hero：付费会员入口存在时给用户信息行让出空间 */
 .dec-pc-home-hero__user-top.has-premium-member {
   padding-top: 10px;

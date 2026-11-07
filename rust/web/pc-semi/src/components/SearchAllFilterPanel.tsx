@@ -149,14 +149,21 @@ export default function SearchAllFilterPanel({
       const next = current.includes(optionKey)
         ? current.filter((item) => item !== optionKey)
         : [...current, optionKey];
-      // 重建全部 attr 参数（同名属性多值用 | 连接），清空的属性不保留
+      // 重建全部 attr 参数；清空的属性不保留
       const merged = Object.entries(selectedAttrs).map(([name, values]) =>
         name === section.attrName ? [name, next] as const : [name, values] as const,
       );
       params.delete('attr');
+      /**
+       * 属性参数格式必须与页面既有序列化一致（app/search/page.tsx serializeSelectedAttrs）：
+       * 每个值一个 `attr=名称::值` 参数，同名属性的多个值追加多个参数。
+       * 不能写成 `attr=名称::值1|值2` —— 后端按 `::` 分割后 `|` 会被当作值的一部分。
+       */
       merged
         .filter(([, values]) => (values || []).length > 0)
-        .forEach(([name, values]) => params.append('attr', `${name}::${values.join('|')}`));
+        .forEach(([name, values]) => {
+          (values || []).forEach((value) => params.append('attr', `${name}::${value}`));
+        });
     }
     params.delete('page');
     const query = params.toString();

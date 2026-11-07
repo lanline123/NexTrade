@@ -52,13 +52,37 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
   const [moveLeft, setMoveLeft] = useState(0);
   const [status, setStatus] = useState<'idle' | 'moving' | 'success' | 'fail'>('idle');
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const draggingRef = useRef(false);
+
+  /**
+   * 拖动位置同时存 state（渲染）与 ref（校验时读取最新值）。
+   *
+   * 旧版 VerifySlide.vue 用 window 级 mousemove/mouseup 监听：拖出滑块轨道后
+   * 仍能继续拖动，且 mouseup 一定触发。纯 React 的 onMouseMove 只在元素内生效，
+   * 拖到边缘会「卡住」，故这里用 window 监听对齐旧版行为。
+   *
+   * 用 ref 而非 state 是因为 mouseup 时 setState 尚未生效，闭包里的 moveLeft
+   * 是上一次渲染的旧值，会导致校验坐标错误。
+   */
+  const moveLeftRef = useRef(0);
   const startXRef = useRef(0);
+  const draggingRef = useRef(false);
+  const statusRef = useRef<'idle' | 'moving' | 'success' | 'fail'>('idle');
+
+  const setMove = (value: number) => {
+    moveLeftRef.current = value;
+    setMoveLeft(value);
+  };
+
+  /** 状态变更同时同步 ref（拖动判定读 ref，不读 state） */
+  const setStatusBoth = (next: 'idle' | 'moving' | 'success' | 'fail') => {
+    statusRef.current = next;
+    setStatus(next);
+  };
 
   const loadCaptcha = useCallback(async () => {
     setLoading(true);
-    setStatus('idle');
-    setMoveLeft(0);
+    setStatusBoth('idle');
+    setMove(0);
     try {
       const response = await fetch('/api/common/verification/captcha', { credentials: 'include' });
       const json = await response.json();
@@ -76,22 +100,79 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
     if (open) void loadCaptcha();
   }, [open, loadCaptcha]);
 
+  /** 按下开始拖动 */
+  const startDrag = (clientX: number) => {
+    if (statusRef.current === 'success' || statusRef.current === 'fail' || checking) return;
+    draggingRef.current = true;
+    startXRef.current = clientX - moveLeftRef.current;
+  };
+
+  /** 拖动中更新位置 */
+  const moveDrag = (clientX: number) => {
+    if (!draggingRef.current) return;
+    const track = trackRef.current;
+    if (!track) return;
+    const max = Math.max(0, track.clientWidth - 48);
+    const next = Math.max(0, Math.min(max, clientX - startXRef.current));
+    setMove(next);
+    setStatusBoth('moving');
+  };
+
+  /**
+   * 松开触发校验。
+   *
+   * 旧版 VerifySlide.vue 在 window 上挂 mousemove/mouseup/touchmove/touchend：
+   * 拖出滑块轨道后仍能继续拖动，且松开一定触发校验。
+   * 这里同样在 window 监听（见下方 useEffect），元素上的 onMouseMove 只是兜底。
+   */
+  const endDrag = () => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    if (statusRef.current !== 'moving') return;
+    void verify(moveLeftRef.current);
+  };
+
+  /**
+   * window 级拖动监听（对齐旧版 VerifySlide.vue:206-217）。
+   *
+   * 旧版在 mousedown 时 addEventListener、mouseup 时 removeEventListener。
+   * 这里改为面板打开期间常驻监听、处理器内部用 draggingRef 判定 —— 避免
+   * 拖动过程中每次 setState 触发 effect 重挂监听（性能浪费 + 事件可能漏挂）。
+   */
+  useEffect(() => {
+    if (!open) return undefined;
+    const onWinMove = (event: MouseEvent) => moveDrag(event.clientX);
+    const onWinUp = () => endDrag();
+    const onTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (touch) moveDrag(touch.clientX);
+    };
+    const onTouchEnd = () => endDrag();
+    window.addEventListener('mousemove', onWinMove);
+    window.addEventListener('mouseup', onWinUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    return () => {
+      window.removeEventListener('mousemove', onWinMove);
+      window.removeEventListener('mouseup', onWinUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [open]);
+
   /** 鼠标按下 */
   const onMouseDown = (event: React.MouseEvent) => {
-    if (status === 'success' || status === 'fail' || checking) return;
-    draggingRef.current = true;
-    startXRef.current = event.clientX - moveLeft;
+    startDrag(event.clientX);
   };
 
   /** 鼠标移动 */
   const onMouseMove = (event: React.MouseEvent) => {
-    if (!draggingRef.current) return;
-    const track = trackRef.current;
-    if (!track) return;
-    const max = track.clientWidth - 48;
-    const next = Math.max(0, Math.min(max, event.clientX - startXRef.current));
-    setMoveLeft(next);
-    setStatus('moving');
+    moveDrag(event.clientX);
+  };
+
+  /** 鼠标松开 */
+  const onMouseUp = () => {
+    endDrag();
   };
 
   /** 校验 */
@@ -118,7 +199,7 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
         if (json?.code !== undefined && json.code !== 0) {
           throw new Error(json?.msg || json?.message || '验证失败');
         }
-        setStatus('success');
+        setStatusBoth('success');
         const verification = secretKey
           ? aesEncrypt(`${token}---${point}`, secretKey)
           : `${token}---${point}`;
@@ -127,7 +208,7 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
           onClose();
         }, 400);
       } catch (error) {
-        setStatus('fail');
+        setStatusBoth('fail');
         Toast.error({ content: error instanceof Error ? error.message : t('验证失败，请拖动滑块对齐拼图') });
         onError?.();
         setTimeout(() => {
@@ -140,14 +221,6 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
     },
     [captcha, loadCaptcha, onClose, onError, onSuccess, t],
   );
-
-  /** 鼠标松开 */
-  const onMouseUp = () => {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
-    if (status !== 'moving') return;
-    void verify(moveLeft);
-  };
 
   if (!open) return null;
 
@@ -172,6 +245,12 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
                 onMouseLeave={onMouseUp}
+                onTouchStart={(event) => startDrag(event.touches[0]?.clientX ?? 0)}
+                onTouchMove={(event) => {
+                  const touch = event.touches[0];
+                  if (touch) moveDrag(touch.clientX);
+                }}
+                onTouchEnd={endDrag}
               >
                 {captcha?.originalImageBase64 ? (
                   <img
@@ -203,6 +282,8 @@ export default function VerifySlide({ onSuccess, onError, open, onClose }: Verif
                   onMouseDown={onMouseDown}
                   onMouseMove={onMouseMove}
                   onMouseUp={onMouseUp}
+                  onTouchStart={(event) => startDrag(event.touches[0]?.clientX ?? 0)}
+                  onTouchEnd={endDrag}
                 >
                   {status === 'success' ? '✓' : status === 'fail' ? '✕' : '⇢'}
                 </div>

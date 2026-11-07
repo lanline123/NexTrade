@@ -287,9 +287,13 @@ impl CartService {
              * `cart.setActivityInfo(product.getActivityInfo())`），用于前台展示活动标签。
              * Rust 侧此前恒为空数组 → 购物车不显示「秒杀/拼团/满减」标签。
              *
-             * 这里复用与商品详情（catalog/product_manage_client.rs:455）相同的口径：
-             * 取当前进行中且范围命中该商品的营销活动。金额计算（parsePrice）未迁移，
-             * 与 Java 购物车一致——购物车阶段的优惠金额字段本就全为 0。
+             * 匹配口径对齐 Java `ProductServiceImpl.getProductsPromotionByProductShop`
+             * （第 5863-5866 行注释）：**活动按「活动店铺 == 商品店铺」匹配**，
+             * 而不是「活动范围命中商品」这一条。故此处按商品的 shop_id 过滤活动，
+             * 避免把别的店铺的活动挂到本行商品上。
+             *
+             * 金额计算（parsePrice）未迁移，与 Java 购物车一致——购物车阶段的
+             * 优惠金额字段本就全为 0。
              */
             let available_promotions = self
                 .repos
@@ -364,9 +368,17 @@ impl CartService {
                 let has_sku = c.sku_id.map(|id| id > 0).unwrap_or(false)
                     || sku_data.as_array().is_some_and(|a| !a.is_empty());
 
-                // 该商品命中的营销活动（用于购物车活动标签）
+                /**
+                 * 该商品命中的营销活动（用于购物车活动标签）。
+                 *
+                 * 两条过滤（对齐 Java `getProductsPromotionByProductShop`）：
+                 * 1. 活动店铺 == 商品店铺（`pr.shop_id == product.shop_id`）；
+                 * 2. 活动范围命中该商品（`promotion_covers_product`）。
+                 */
+                let product_shop_id = product.as_ref().map(|p| p.shop_id).unwrap_or(c.shop_id);
                 let activity_info: Vec<serde_json::Value> = available_promotions
                     .iter()
+                    .filter(|pr| pr.shop_id == product_shop_id)
                     .filter(|pr| crate::catalog::product_manage_client::promotion_covers_product(pr, pid))
                     .map(|pr| {
                         serde_json::json!({

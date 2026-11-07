@@ -113,8 +113,8 @@ export function ClassicLayout({ blocks }: LayoutProps) {
             {blocks.price}
             {blocks.attrs}
             {blocks.b2bTab}
-            {blocks.extraAttrBlock}
             {blocks.sku}
+            {blocks.extraAttrBlock}
             {blocks.wholesale}
             {blocks.qty}
             {blocks.actions}
@@ -167,8 +167,8 @@ export function ModernLayout({ blocks }: LayoutProps) {
                 {blocks.price}
                 {blocks.attrs}
                 {blocks.b2bTab}
-                {blocks.extraAttrBlock}
                 {blocks.sku}
+                {blocks.extraAttrBlock}
                 {blocks.wholesale}
                 {blocks.qty}
                 {blocks.tips}
@@ -235,8 +235,8 @@ export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: Overseas
                 {blocks.price}
                 {blocks.attrs}
                 {blocks.b2bTab}
-                {blocks.extraAttrBlock}
                 {blocks.sku}
+                {blocks.extraAttrBlock}
                 {blocks.wholesale}
                 {blocks.qty}
                 {blocks.tips}

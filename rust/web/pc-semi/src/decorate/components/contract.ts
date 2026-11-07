@@ -256,6 +256,10 @@ function adaptPcCatProductNormal(item: DecorateModule): ContractRenderPlan {
   return {
     component: 'ContractCatProduct',
     module: {
+      // 旧版分类楼层块固定 608px（CatProductNormal.vue:169-171
+      // `.mod_columns_wrap .mod_columns_floor { width: 608px }`），在旧链首页
+      // .home-warp 的 flex 两列里占一列。
+      layoutWidth: 608,
       title: toTitle(m.title),
       product: { productSelectType: 2, productCategoryId: toNumber(m.categoryId, 0), productNumber: 8 },
       banner: { picList: picList(m, 'picList') },
@@ -316,7 +320,7 @@ function adaptPcCatProductSimple(item: DecorateModule): ContractRenderPlan {
       },
       banner: { picList: picList(m, 'picList') },
       frame: frameOf(m),
-      // baseStyle=2 → 左图右商品布局（旧版 CatProductNormal.vue 的 .mod_columns_floor 608px 宽块）
+      // baseStyle=2 → 左图 + 右侧商品网格（旧版 components/home/CatProductSimple.vue:16-21）
       baseStyle: m.baseStyle,
       // moreLink 由 ContractCatProduct 渲染为“查看更多”
     },
