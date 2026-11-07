@@ -1,64 +1,89 @@
-/* 首焦轮播A2 预览样式（移植自 view/admin bannerA2/Preview.vue scoped less） */
+/* 首焦轮播A2 预览样式（逐条移植自 view/admin bannerA2/Preview.vue scoped less） */
 .module-ad-con.ad-pic_type__2 {
     position: relative;
     overflow: hidden;
 }
-.module-ad-con .banner-bg {
+.banner-bg {
     position: absolute;
-    inset: 0;
-    overflow: hidden;
-}
-.module-ad-con .banner-bg img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    top: 0;
+    z-index: 0;
+    filter: blur(0);
+    overflow: hidden;
+}
+.banner-bg img {
+    width: 100%;
+    height: 100%;
+    filter: blur(17px);
     transform: scale(1.4);
-    filter: blur(14px);
 }
-.module-ad-con .bg-gradient {
+.bg-gradient {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.92) 78%);
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-image: linear-gradient(rgba(248, 248, 248, 0) 0%, rgba(248, 248, 248, 0) 50%, rgb(248, 248, 248) 100%);
 }
-.module-ad-con .bar {
+.bar {
     position: relative;
+    overflow: hidden;
+    margin: 0 3px 10px;
 }
-.module-ad-con .search-top {
+.search-top {
     display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    position: relative;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    color: #fff;
+    column-gap: 10px;
+}
+.search-top .area-select-box {
+    font-weight: 600;
     font-size: 14px;
-}
-.module-ad-con .area-select-box {
     display: flex;
     align-items: center;
-    gap: 4px;
+    column-gap: 5px;
     color: #fff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
-.module-ad-con .search {
+.search-top .search {
     flex: 1;
     display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     align-items: center;
-    gap: 6px;
-    padding: 0 12px;
+    column-gap: 4px;
+    z-index: 2;
+    overflow: hidden;
 }
-.module-ad-con .search-input {
+.search-top .search .search-icon {
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
     font-size: 13px;
 }
-.module-ad-con .image-ad-warp {
-    padding: 6px 12px 14px;
+.search-top .search .search-input {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.module-ad-con .image-ad-con {
+.image-ad-warp {
+    padding: 0 3px;
+    position: relative;
+    z-index: 1;
+}
+.image-ad-con {
     position: relative;
 }
-.module-ad-con .image-ad-item img {
+.image-ad-item img {
     width: 100%;
     display: block;
 }
-.module-ad-con .banner-a2-dots {
+.banner-a2-dots {
     position: absolute;
     bottom: 8px;
     left: 0;
@@ -67,14 +92,16 @@
     justify-content: center;
     gap: 5px;
 }
-.module-ad-con .banner-a2-dots i {
+.banner-a2-dots i {
     width: 6px;
     height: 6px;
-    border-radius: 3px;
+    border-radius: 50%;
+    opacity: 1;
     transition: width 0.2s;
 }
-.module-ad-con .pagination-bullet2 .banner-a2-dots i {
-    width: 12px;
-    height: 2px;
-    border-radius: 0;
+.pagination-bullet2 .banner-a2-dots i {
+    border-radius: 5px;
+}
+.pagination-bullet2 .banner-a2-dots i.on {
+    width: 14px;
 }

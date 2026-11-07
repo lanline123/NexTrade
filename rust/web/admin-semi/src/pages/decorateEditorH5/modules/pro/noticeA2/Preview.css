@@ -1,54 +1,70 @@
-/* 商城公告2 预览样式（移植自 view/admin noticeA2/Preview.vue scoped less） */
-.module-ad-con .main {
+/* 商城公告2 预览样式（逐条移植自 view/admin noticeA2/Preview.vue scoped less） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
+.main {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     padding: 0;
+    border: none;
+    border-radius: 0;
     background-color: transparent;
+    overflow: hidden;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
 }
-.module-ad-con .headlines {
+.headlines {
     display: flex;
     align-items: center;
     height: 30px;
 }
-.module-ad-con .headlines-icon {
+.headlines-icon {
     height: 30px;
     font-size: 18px;
     text-align: center;
     line-height: 30px;
     flex-shrink: 0;
 }
-.module-ad-con .headlines-iconImg {
+.headlines-iconImg {
     height: 30px;
     display: block;
+    margin-right: 5px;
 }
-.module-ad-con .headlines-container {
+.headlines-container {
+    height: 30px;
     flex: 1;
+    line-height: 30px;
     overflow: hidden;
-    margin-left: 6px;
-}
-.module-ad-con .headlines-text {
     font-size: 14px;
+    font-weight: 400;
+}
+.headlines-text {
+    position: relative;
     display: flex;
-    align-items: center;
-    white-space: nowrap;
 }
-.module-ad-con .headlines-text.is-scroll {
-    animation: notice-a2-marquee 13s linear infinite;
+.headlines-text.is-scroll {
+    animation: notice-a2-left 13s linear infinite running;
 }
-.module-ad-con .headlines-item {
-    padding-right: 60px;
-    white-space: nowrap;
-}
-.module-ad-con .cross {
+.headlines-item {
     flex-shrink: 0;
-    padding: 0 8px;
-    font-size: 14px;
+    white-space: nowrap;
+    padding-right: 20px;
 }
-@keyframes notice-a2-marquee {
+.cross {
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+@keyframes notice-a2-left {
     0% {
-        transform: translateX(100%);
+        left: -100%;
     }
     100% {
-        transform: translateX(-100%);
+        left: -200%;
     }
 }

@@ -1,22 +1,41 @@
-/* 标签导航 预览样式（移植自 view/admin tagNav/Preview.vue scoped less） */
-.module-tag_nav .tag-nav-scroll {
-    display: flex;
-    align-items: center;
-    overflow-x: auto;
-    padding: 4px 2px;
+/* 标签导航 预览样式（逐条移植自 view/admin tagNav/Preview.vue scoped less） */
+.module-tag_nav {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
 }
-.module-tag_nav .tag-nav-item {
+.tag-nav-scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.tag-nav-scroll::-webkit-scrollbar {
+    display: none;
+    height: 0;
+}
+.tag-nav-item {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    position: relative;
+    box-sizing: border-box;
 }
-.module-tag_nav .tag-nav-text {
-    font-size: 13px;
-    text-align: center;
+.tag-nav-item:last-child {
+    margin-right: 0 !important;
+}
+.tag-nav-text {
+    font-size: 16px;
+    line-height: 1.2;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 90%;
+}
+.module-tag_nav .module-ad-empty {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7f8fa;
+    color: #969799;
+    font-size: 13px;
 }

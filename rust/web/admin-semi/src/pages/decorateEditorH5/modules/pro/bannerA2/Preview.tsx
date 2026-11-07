@@ -25,10 +25,12 @@ export default function BannerA2Preview({ data }: { data: Record<string, any> })
     const bgUrl = picList[realIndex]?.picUrl || picList[0]?.picUrl || "";
 
     const searchStyle: React.CSSProperties = {
-        background: bannerStyle.searchBackgroundColor || "#fff",
-        color: bannerStyle.searchFontColor || "#999",
-        height: `${bannerStyle.searchHeight ?? 34}px`,
+        background: bannerStyle.searchBackgroundColor || "#ffffffcc",
+        color: bannerStyle.searchFontColor || "#969799",
+        height: `${bannerStyle.searchHeight ?? 36}px`,
         borderRadius: `${bannerStyle.searchRadius ?? 20}px`,
+        border: "1.5px solid rgba(26, 26, 26, 1)",
+        boxSizing: "border-box",
     };
 
     return (
@@ -94,6 +96,7 @@ export default function BannerA2Preview({ data }: { data: Record<string, any> })
                                         {picList.map((_, i) => (
                                             <i
                                                 key={i}
+                                                className={i === realIndex ? "on" : ""}
                                                 style={{
                                                     background: i === realIndex ? bannerContent.swiperPageColor || "#fff" : bannerContent.indicatorColor || "rgba(255,255,255,0.5)",
                                                 }}

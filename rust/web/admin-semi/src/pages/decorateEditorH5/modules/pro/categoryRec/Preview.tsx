@@ -32,8 +32,8 @@ export default function CategoryRecPreview({ data }: { data: Record<string, any>
                 className="module-ad-content"
                 style={cssText(commonStyle.moduleContentStyle.backgroundImage, commonStyle.moduleContentStyle.backgroundSize, commonStyle.moduleContentStyle.boxRadius, commonStyle.moduleContentStyle.boxShadow, commonStyle.moduleContentStyle.innerPadding)}
             >
-                <div className="category-rec">
-                    <div className="ul">
+                <div className="categoryrec">
+                    <div className="item-box">
                         {categoryList.map((item, index) => (
                             <div
                                 className="li"

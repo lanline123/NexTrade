@@ -1,71 +1,91 @@
-/* 商城公告3 预览样式（移植自 view/admin noticeA3/Preview.vue scoped less） */
+/* 商城公告3 预览样式（逐条移植自 view/admin noticeA3/Preview.vue scoped less） */
 .module-notice-a3 {
     min-height: auto !important;
 }
 .module-notice-a3 .module-ad-content {
     overflow: hidden;
 }
-.module-notice-a3 .notice-a3-empty {
+.notice-a3-empty {
     padding: 20px 0;
     text-align: center;
     color: #999;
     font-size: 14px;
 }
-.module-notice-a3 .notice-a3-wrap {
+.notice-a3-wrap {
     display: flex;
     align-items: center;
     overflow: hidden;
 }
-.module-notice-a3 .notice-a3-header {
+.notice-a3-header {
     display: flex;
     align-items: center;
+    margin-right: 8px;
+    max-height: 20px;
+    overflow: hidden;
     flex-shrink: 0;
 }
-.module-notice-a3 .notice-a3-header img {
+.notice-a3-header img {
+    height: auto;
     display: block;
+    object-fit: cover;
 }
-.module-notice-a3 .notice-a3-divider {
+.notice-a3-divider {
     width: 1px;
-    height: 16px;
-    background: #eee;
-    margin: 0 8px;
+    height: 12px;
+    background-color: #e2e8f0;
+    margin-left: 8px;
+    margin-right: 2px;
     flex-shrink: 0;
 }
-.module-notice-a3 .notice-a3-body {
+.notice-a3-body {
     flex: 1;
-    min-width: 0;
-}
-.module-notice-a3 .notice-a3-scroll {
     overflow: hidden;
-    height: 22px;
-    line-height: 22px;
 }
-.module-notice-a3 .notice-a3-item {
-    animation: notice-a3-slide 0.4s ease;
+.notice-a3-scroll {
+    overflow: hidden;
+    position: relative;
+    height: 30px;
+}
+.notice-a3-item {
     display: flex;
     align-items: center;
-    gap: 6px;
     white-space: nowrap;
     overflow: hidden;
-}
-.module-notice-a3 .notice-a3-prefix {
-    flex-shrink: 0;
-    font-size: 11px;
-    color: #ff5050;
-    border: 1px solid #ff5050;
-    border-radius: 3px;
-    padding: 0 4px;
-    line-height: 16px;
-}
-.module-notice-a3 .notice-a3-text {
+    text-overflow: ellipsis;
     font-size: 13px;
+    flex-shrink: 0;
+    height: 30px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    animation: notice-a3-slide 0.5s ease;
+}
+.notice-a3-prefix {
+    display: inline-block;
+    border: 1px solid #de872a;
+    border-radius: 2px;
+    font-size: 12px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    font-weight: 500;
+    width: 36px;
+    height: 20px;
+    line-height: 18px;
+    text-align: center;
+    overflow: hidden;
+    background-color: #fff0cf;
+    color: #de872a;
+}
+.notice-a3-text {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 @keyframes notice-a3-slide {
     from {
-        transform: translateY(60%);
-        opacity: 0.3;
+        transform: translateY(100%);
+        opacity: 0.4;
     }
     to {
         transform: translateY(0);

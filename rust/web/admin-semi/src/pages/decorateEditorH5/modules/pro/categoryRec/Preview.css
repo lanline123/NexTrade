@@ -1,27 +1,38 @@
-/* 分类推荐 预览样式（移植自 view/admin categoryRec/Preview.vue scoped less） */
-.category-rec .ul {
+/* 分类推荐 预览样式（逐条移植自 view/admin categoryRec/Preview.vue scoped less） */
+.categoryrec {
+    overflow: hidden;
+}
+.categoryrec .item-box {
+    width: calc(100% + 10px);
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
     list-style: none;
 }
-.category-rec .li {
-    flex-shrink: 0;
+.categoryrec .item-box .li {
+    margin: 5px 10px 5px 0;
 }
-.category-rec .item {
+.categoryrec .item-box .li .item {
+    height: 30px;
     display: flex;
+    text-align: center;
+    overflow: hidden;
     align-items: center;
-    gap: 8px;
+    box-sizing: content-box;
 }
-.category-rec .item .img {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    border-radius: 6px;
-    display: block;
-}
-.category-rec .item .tit {
+.categoryrec .item-box .li .item .tit {
+    height: 24px;
+    line-height: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
+}
+.categoryrec .item-box .li .item .img {
+    margin-right: 5px;
+    height: 100%;
+    width: auto;
+    display: block;
 }

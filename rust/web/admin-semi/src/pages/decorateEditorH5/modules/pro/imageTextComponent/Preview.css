@@ -1,4 +1,10 @@
-/* 图文介绍 预览样式（移植自 view/admin imageTextComponent/Preview.vue scoped less） */
+/* 图文介绍 预览样式（逐条移植自 view/admin imageTextComponent/Preview.vue scoped less） */
+.module-ad-con {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+    position: relative;
+}
 .imagetext .image-box {
     overflow: hidden;
 }
