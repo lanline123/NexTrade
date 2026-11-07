@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -19,7 +19,7 @@ import {
   Toast,
   Typography,
 } from '@douyinfe/semi-ui';
-import { IconPlus, IconRefresh } from '@douyinfe/semi-icons';
+import { IconPlus } from '@douyinfe/semi-icons';
 import ListPage from '../framework/ListPage';
 import type { ColumnConfig } from '../framework/types';
 import { apiGet, apiPost } from '../api';
@@ -358,20 +358,85 @@ export function CurrencyManagement() {
   const [rateConfig, setRateConfig] = useState<any>({
     autoSync: 0,
     appId: '',
-    syncIntervalHours: 24,
+    syncIntervalHours: 1,
     lastSyncTime: '',
   });
+  // 汇率配置自动保存的脏检查快照（对齐旧版 savedSnapshot）
+  const savedSnapshotRef = useRef('');
+  const [syncing, setSyncing] = useState(false);
+  const [tipVisible, setTipVisible] = useState(true);
 
   // 国际通用代号数据源：后端币种字典（原版 getCurrencyDictionary），失败时回退为手输
   const [dictionary, setDictionary] = useState<CurrencyDictionaryItem[]>([]);
   const [dictFailed, setDictFailed] = useState(false);
 
+  const snapshotOf = (cfg: { autoSync: unknown; appId: unknown; syncIntervalHours: unknown }) =>
+    `${cfg.autoSync}|${cfg.appId}|${cfg.syncIntervalHours}`;
+
   const loadRateConfig = async () => {
     try {
       const res = await apiGet<any>('/lang/currency/exchangeRateConfig');
-      if (res) setRateConfig(res);
+      if (res) {
+        setRateConfig({
+          autoSync: Number(res.autoSync) === 1 ? 1 : 0,
+          appId: res.appId || '',
+          syncIntervalHours: Number(res.syncIntervalHours) > 0 ? Number(res.syncIntervalHours) : 1,
+          lastSyncTime: res.lastSyncTime || '',
+        });
+        savedSnapshotRef.current = snapshotOf({
+          autoSync: Number(res.autoSync) === 1 ? 1 : 0,
+          appId: res.appId || '',
+          syncIntervalHours: Number(res.syncIntervalHours) > 0 ? Number(res.syncIntervalHours) : 1,
+        });
+      }
     } catch {
       // keep
+    }
+  };
+
+  // 汇率配置自动保存（对齐旧版 autoSaveConfig）：
+  // 切换更新方式、AppID 失焦、修改更新周期时即时持久化；
+  // 开启自动更新但未填 AppID 时不写坏状态；无变化时跳过保存与提示
+  const autoSaveConfig = async (next: typeof rateConfig) => {
+    setRateConfig(next);
+    if (Number(next.autoSync) === 1 && !String(next.appId || '').trim()) {
+      Toast.warning(t('请先填写 AppID 以启用汇率自动更新'));
+      return;
+    }
+    if (snapshotOf(next) === savedSnapshotRef.current) {
+      return;
+    }
+    try {
+      await apiPost('/lang/currency/saveExchangeRateConfig', {
+        autoSync: next.autoSync,
+        appId: next.appId,
+        syncIntervalHours: next.syncIntervalHours,
+      });
+      savedSnapshotRef.current = snapshotOf(next);
+      Toast.success(t('配置已保存'));
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : t('保存失败'));
+    }
+  };
+
+  // 立即更新汇率（旧版 onSyncNow；Rust 端返回 bool，旧版返回 {success, message}，两者兼容）
+  const onSyncNow = async () => {
+    setSyncing(true);
+    try {
+      const result = await apiPost<any>('/lang/currency/syncExchangeRateNow', {});
+      const success = result !== null && typeof result === 'object' ? !!result.success : !!result;
+      const msg = result !== null && typeof result === 'object' ? result.message : '';
+      if (success) {
+        Toast.success(t(msg || '汇率更新成功'));
+      } else {
+        Toast.error(t(msg || '汇率更新失败'));
+      }
+      await loadRateConfig();
+      setReloadKey((k) => k + 1);
+    } catch (error) {
+      Toast.error(error instanceof Error ? error.message : t('汇率更新失败'));
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -525,36 +590,127 @@ export function CurrencyManagement() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Card
-        title={t('汇率自动同步设置')}
-        headerExtraContent={
-          <Button
-            icon={<IconRefresh />}
-            size="small"
-            onClick={async () => {
-              await apiPost('/lang/currency/syncExchangeRateNow', {});
-              Toast.success(t('汇率拉取已触发'));
-              setReloadKey((k) => k + 1);
-            }}
-          >
-            {t('立即更新汇率')}
-          </Button>
-        }
-      >
-        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+      {/* 顶部默认货币风险提醒（旧版 currency-default-tip） */}
+      {tipVisible && (
+        <div
+          style={{
+            border: '1px solid #ffe6d7',
+            backgroundColor: '#ffefe6',
+            padding: '10px 20px',
+            lineHeight: '24px',
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <span>{t('自动同步：')}</span>
-            <Switch
-              checked={rateConfig.autoSync === 1}
-              onChange={async (c) => {
-                const next = { ...rateConfig, autoSync: c ? 1 : 0 };
-                setRateConfig(next);
-                await apiPost('/lang/currency/saveExchangeRateConfig', next);
-                Toast.success(t('配置已保存'));
-              }}
-            />
+            <div>【重要提醒】</div>
+            <div>
+              1、默认货币是全平台计价基准，设置完成后禁止频繁切换；修改可能会破坏历史汇率换算逻辑，造成商品标价、订单实付、用户账户余额前后金额不匹配等问题，引发客诉与财务对账误差。
+            </div>
+            <div>
+              2、默认货币为用户端展示基准币种，修改后务必同步调整后台商品计价货币，防止商品标价与前端展示出现数值偏差，引发误解。
+              <a
+                style={{ color: 'var(--semi-color-primary)', cursor: 'pointer', marginLeft: 4 }}
+                onClick={() => {
+                  window.location.href = `${window.location.origin}/?page=baseProductManage`;
+                }}
+              >
+                {t('去设置')}
+              </a>
+            </div>
           </div>
-          <div>{t('上次同步时间')}: {rateConfig.lastSyncTime || t('尚未同步')}</div>
+          <div style={{ cursor: 'pointer', color: '#909399' }} onClick={() => setTipVisible(false)}>
+            ×
+          </div>
+        </div>
+      )}
+
+      {/* 汇率更新面板（对齐旧版 exchange-rate-panel：自动/手动 + AppID + 更新周期 + 立即更新） */}
+      <Card title={t('汇率自动同步设置')}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '4px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ width: 110, flexShrink: 0 }}>{t('汇率更新：')}</span>
+            <RadioGroup
+              value={Number(rateConfig.autoSync) === 1 ? 1 : 0}
+              onChange={(e) =>
+                autoSaveConfig({ ...rateConfig, autoSync: Number(e.target.value) })
+              }
+            >
+              <Radio value={1}>{t('自动更新')}</Radio>
+              <Radio value={0}>{t('手动维护')}</Radio>
+            </RadioGroup>
+          </div>
+          {Number(rateConfig.autoSync) === 1 && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <span style={{ width: 110, flexShrink: 0, lineHeight: '32px' }}>{t('AppID：')}</span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Input
+                    style={{ width: 420 }}
+                    placeholder={t('请输入appid')}
+                    value={rateConfig.appId || ''}
+                    onChange={(val) => setRateConfig({ ...rateConfig, appId: val })}
+                    onBlur={() => autoSaveConfig(rateConfig)}
+                  />
+                  <div style={{ marginTop: 4, color: '#909399', fontSize: 12, lineHeight: '20px' }}>
+                    {t(
+                      '客户切换展示货币后，商品会以切换后的货币展示价格，仅供参考。本数据由Open Exchange Rate提供支持，如需配置请前往官网获取 appid。',
+                    )}
+                    <a
+                      href="https://openexchangerates.org"
+                      target="_blank"
+                      rel="noopener"
+                      style={{ color: 'var(--semi-color-primary)', marginLeft: 4 }}
+                    >
+                      {t('去获取')}&gt;
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <span style={{ width: 110, flexShrink: 0, lineHeight: '32px' }}>{t('更新周期：')}</span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: 8 }}>{t('每')}</span>
+                    <InputNumber
+                      style={{ width: 90 }}
+                      min={1}
+                      max={720}
+                      hideButtons
+                      value={Number(rateConfig.syncIntervalHours) > 0 ? Number(rateConfig.syncIntervalHours) : 1}
+                      onChange={(v) =>
+                        autoSaveConfig({
+                          ...rateConfig,
+                          syncIntervalHours: Math.min(720, Math.max(1, Math.round(Number(v) || 1))),
+                        })
+                      }
+                    />
+                    <span style={{ margin: '0 12px 0 6px', color: '#909399' }}>{t('小时')}</span>
+                    <span>{t('自动更新汇率')}</span>
+                  </div>
+                  <div style={{ marginTop: 4, color: '#909399', fontSize: 12, lineHeight: '20px' }}>
+                    {t('因Open Exchange Rate免费版每月更新次数为 1000 次，请合理分配更新周期。')}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ width: 110, flexShrink: 0 }}>{t('上次更新时间：')}</span>
+            <span style={{ marginRight: 12 }}>{rateConfig.lastSyncTime || t('尚未同步')}</span>
+            {syncing ? (
+              <span style={{ color: '#a0cfff' }}>{t('更新中…')}</span>
+            ) : (
+              <Popconfirm
+                title={t('确认立即拉取最新汇率并更新各币种？（默认币种不参与）')}
+                onConfirm={onSyncNow}
+              >
+                <a style={{ color: 'var(--semi-color-primary)', cursor: 'pointer' }}>{t('更新汇率')}</a>
+              </Popconfirm>
+            )}
+          </div>
         </div>
       </Card>
 
@@ -1085,8 +1241,9 @@ export function AreaCode() {
       }
       setFormVisible(false);
       setReloadKey((k) => k + 1);
-    } catch {
-      // handled
+    } catch (error) {
+      // 明确报错，不再静默吞掉（否则接口失败时弹窗看起来像「点不动」）
+      Toast.error(error instanceof Error ? error.message : t('保存失败'));
     } finally {
       setFormLoading(false);
     }
