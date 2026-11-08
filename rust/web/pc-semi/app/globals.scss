@@ -1208,6 +1208,22 @@ img {
   font-size: 13px;
 }
 
+/* 上一页/下一页在首页/末页渲染为 span.is-disabled，同样要有按钮观感 */
+.pc-pagination span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid #f0f1f4;
+  border-radius: 8px;
+  background: #fff;
+  color: #c2c7d0;
+  font-size: 13px;
+  cursor: not-allowed;
+}
+
 .pc-pagination a.is-active {
   border-color: var(--pc-primary);
   background: var(--pc-primary);

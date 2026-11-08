@@ -58,6 +58,8 @@ interface SearchFilterBrand {
   name?: string;
   firstWord?: string;
   first_word?: string;
+  brandLogo?: string;
+  logo?: string;
 }
 
 interface SearchFilterEnvelope {
@@ -282,14 +284,15 @@ function brandInitial(name: string): string {
   return /^[A-Z]$/.test(first) ? first : '';
 }
 
-function normalizeBrands(filter?: SearchFilterEnvelope['filter']): Array<{ id: string; name: string; firstWord: string }> {
+function normalizeBrands(filter?: SearchFilterEnvelope['filter']): Array<{ id: string; name: string; firstWord: string; logo: string }> {
   const list = (Array.isArray(filter?.brand) && filter?.brand) || (Array.isArray(filter?.brands) && filter?.brands) || [];
   return list
     .map((item) => {
       const name = String(item?.brandName ?? item?.name ?? '');
       const firstWordRaw = String(item?.firstWord ?? item?.first_word ?? '').trim().toUpperCase();
       const firstWord = /^[A-Z]$/.test(firstWordRaw) ? firstWordRaw : brandInitial(name);
-      return { id: String(item?.id ?? item?.brandId ?? ''), name, firstWord };
+      const logo = String(item?.brandLogo ?? item?.logo ?? '');
+      return { id: String(item?.id ?? item?.brandId ?? ''), name, firstWord, logo };
     })
     .filter((item) => item.id && item.name);
 }
@@ -438,6 +441,8 @@ export default async function SearchPage(props: PageProps) {
   const searchConfig = normalizePcSearchConfig(resolvePcSearchModule(searchDecorate));
   /** 装修预览：与详情页 ?uiStyle= 同性质，?filterStyle=1|2 可本地强制切换侧栏版/顶部筛选版。 */
   const filterStylePreview = Number(readParam(searchParams?.filterStyle));
+  /** ?ui=new|old 版式预览（buildQuery 也要保留它，故先于 buildQuery 定义） */
+  const uiParam = readParam(searchParams?.ui);
   if (filterStylePreview === 1 || filterStylePreview === 2) searchConfig.filterStyle = filterStylePreview;
 
   const [esAttrResult, productResult] = await Promise.all([
@@ -484,6 +489,8 @@ export default async function SearchPage(props: PageProps) {
     if (previewId) params.set('previewId', previewId);
     // 预览态在筛选/排序/分页之间保持，避免点一次筛选就退回后台默认版式
     if (filterStylePreview === 1 || filterStylePreview === 2) params.set('filterStyle', String(filterStylePreview));
+    // ?ui=new|old 版式预览参数同样全程保持
+    if (uiParam) params.set('ui', uiParam);
     if (tab === 'shop') params.set('tab', 'shop');
     if (shopSortKey === 'shopStar') params.set('shopSort', 'shopStar');
     // 已选属性（名称::值）在筛选/排序/分页之间保留
@@ -599,7 +606,6 @@ export default async function SearchPage(props: PageProps) {
    * - /search.v1 路由固定经典版（旧版入口硬编码 ui-version="old"）；
    * - ?ui=new|old 仅作本地预览强制，与详情页 ?uiStyle= 同性质。
    */
-  const uiParam = readParam(searchParams?.ui);
   const effectiveVariant: 'classic' | 'modern' =
     uiParam === 'new'
       ? 'modern'
@@ -639,6 +645,62 @@ export default async function SearchPage(props: PageProps) {
     serializeSelectedAttrs,
   };
 
+  /** 旧版 CatGoodsList.vue：.goods-list__box > .goods-list-c > .wrap + Element Plus 分页。
+      顶部版与侧栏版共用同一份商品列表（原版两者都渲染 CatGoodsList）。
+      生成样式 .mp-search-goods 是外层包裹（后代选择器），这里补齐包裹结构。 */
+  const goodsListNode = (
+    <div className="mp-search-goods">
+      <div className="goods-list-wrap">
+        <div
+          className={`goods-list__box${goodsLoading ? ' goods-list__box--loading' : ''}${records.length ? '' : ' goods-list__box--empty'}`}
+        >
+          <div className="goods-list-c">
+            <ProductGrid
+              products={records}
+              showSales={Boolean(searchConfig?.showSales)}
+              showShopTag={Boolean(searchConfig?.showShopTag)}
+              gridClassName="wrap mp-search-card"
+              fixedNameTwoLines
+            />
+          </div>
+        </div>
+        {/* 旧版 CatGoodsList.vue 底部：Element Plus 分页 */}
+        {pages > 1 ? (
+          <div className="pagination">
+            <nav className="el-pagination">
+              {page > 1 ? (
+                <Link href={`${listPath}${buildQuery({}, page - 1)}`} className="btn-prev">
+                  {t('上一页')}
+                </Link>
+              ) : (
+                <span className="btn-prev disabled">{t('上一页')}</span>
+              )}
+              <ul className="el-pager">
+                {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
+                  const next = index + 1;
+                  return (
+                    <li key={next}>
+                      <Link href={`${listPath}${buildQuery({}, next)}`} className={`number${next === page ? ' active' : ''}`}>
+                        {next}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              {page < pages ? (
+                <Link href={`${listPath}${buildQuery({}, page + 1)}`} className="btn-next">
+                  {t('下一页')}
+                </Link>
+              ) : (
+                <span className="btn-next disabled">{t('下一页')}</span>
+              )}
+            </nav>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <PcHeader config={header as any} />
@@ -658,13 +720,16 @@ export default async function SearchPage(props: PageProps) {
         <div className="page-body">
           <div className="container">
             <div className="top-filter-wrap">
-              {/* 旧版 Filter.vue：一条分类横条 .filter-container--top */}
-              <div className="filter-container filter-container--top mp-search-filter">
-                <div className="filter-top">
-                  <div className="filter-top-body">
-                    <div className="list">
-                      <div className="attr-box">
-                        <SearchCategoryStrip items={categoryStripItems} />
+              {/* 旧版 Filter.vue：一条分类横条 .filter-container--top。
+                  生成样式 .mp-search-filter 是外层包裹（后代选择器），这里补齐包裹结构 */}
+              <div className="mp-search-filter">
+                <div className="filter-container filter-container--top">
+                  <div className="filter-top">
+                    <div className="filter-top-body">
+                      <div className="list">
+                        <div className="attr-box">
+                          <SearchCategoryStrip items={categoryStripItems} />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -756,70 +821,14 @@ export default async function SearchPage(props: PageProps) {
                     }
                   />
 
-                  {/* 旧版 CatGoodsList.vue：.goods-list__box > .goods-list-c > .wrap */}
-                  <div className="goods-list-wrap">
-                    <div
-                      className={`goods-list__box mp-search-goods${goodsLoading ? ' goods-list__box--loading' : ''}${records.length ? '' : ' goods-list__box--empty'}`}
-                    >
-                      <div className="goods-list-c">
-                        <ProductGrid
-                          products={records}
-                          showSales={Boolean(searchConfig?.showSales)}
-                          showShopTag={Boolean(searchConfig?.showShopTag)}
-                          gridClassName="wrap mp-search-card"
-                          fixedNameTwoLines
-                        />
-                      </div>
-                    </div>
-                    {/* 旧版 CatGoodsList.vue 底部：Element Plus 分页 */}
-                    {pages > 1 ? (
-                      <div className="pagination">
-                        <nav className="el-pagination">
-                          {page > 1 ? (
-                            <Link
-                              href={`${listPath}${buildQuery({}, page - 1)}`}
-                              className="btn-prev"
-                            >
-                              {t('上一页')}
-                            </Link>
-                          ) : (
-                            <span className="btn-prev disabled">{t('上一页')}</span>
-                          )}
-                          <ul className="el-pager">
-                            {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
-                              const next = index + 1;
-                              return (
-                                <li key={next}>
-                                  <Link
-                                    href={`${listPath}${buildQuery({}, next)}`}
-                                    className={`number${next === page ? ' active' : ''}`}
-                                  >
-                                    {next}
-                                  </Link>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                          {page < pages ? (
-                            <Link
-                              href={`${listPath}${buildQuery({}, page + 1)}`}
-                              className="btn-next"
-                            >
-                              {t('下一页')}
-                            </Link>
-                          ) : (
-                            <span className="btn-next disabled">{t('下一页')}</span>
-                          )}
-                        </nav>
-                      </div>
-                    ) : null}
-                  </div>
+                  {goodsListNode}
                 </>
               ) : (
                 /* 旧版 SearchShopList.vue：.search-shop-panel > .shop-sort-tabs + .shop-list-container/.shop-row
                    （.pg-catalog-search-shop-list 是旧版该 .vue 的 <style> 作用域替身） */
                 <div className="pg-catalog-search-shop-list">
-                <div className="search-shop-panel mp-search-shop">
+                <div className="mp-search-shop">
+                <div className="search-shop-panel">
                   <div className="shop-sort-tabs">
                     <Link
                       href={`${listPath}${buildQuery({ tab: 'shop', shopSort: undefined }, 1)}`}
@@ -839,8 +848,10 @@ export default async function SearchPage(props: PageProps) {
                     <div className="shop-list-container">
                       {shops.map((shop, index) => (
                         <div className="shop-row" key={String(shop.shopId ?? index)}>
-                          {/* 旧版 components/product/overseas/ShopInfo.vue */}
-                          <div className="shop-info-wrap mp-search-shopinfo">
+                          {/* 旧版 components/product/overseas/ShopInfo.vue。
+                              生成样式 .mp-search-shopinfo 是外层包裹（后代选择器） */}
+                          <div className="mp-search-shopinfo">
+                          <div className="shop-info-wrap">
                             <div className="shop-logo">
                               <Link href={`/shop/${shop.shopId}`} className="shop-link">
                                 <img
@@ -865,6 +876,7 @@ export default async function SearchPage(props: PageProps) {
                                 </Link>
                               </div>
                             </div>
+                          </div>
                           </div>
                         </div>
                       ))}
@@ -910,6 +922,7 @@ export default async function SearchPage(props: PageProps) {
                       </nav>
                     </div>
                   ) : null}
+                </div>
                 </div>
                 </div>
               )}

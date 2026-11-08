@@ -85,7 +85,10 @@ export default function SearchSortBar({
   const [brandOpen, setBrandOpen] = useState(false);
 
   return (
-    <div className="sort-filter-wrap mp-search-sort">
+    /* 生成样式 .mp-search-sort 是外层包裹（后代选择器 .mp-search-sort .sort-filter-wrap），
+       这里补齐包裹结构，避免两个类同节点导致整套排序条样式空转 */
+    <div className="mp-search-sort">
+      <div className="sort-filter-wrap">
       <div className="sort-filter-left">
         <Link href={defaultHref} className={`sort-item${defaultActive ? ' active' : ''}`}>
           <div className="sort-name">{t('默认排序')}</div>
@@ -211,6 +214,7 @@ export default function SearchSortBar({
       </div>
 
       <div className="sort-filter-right">{filterPanel}</div>
+      </div>
     </div>
   );
 }
