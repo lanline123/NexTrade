@@ -9,9 +9,19 @@ export interface LoginResult {
  * 根级契约路径（IM 客服域 `/im/**`）：原 Java 控制器 `@RequestMapping`
  * 不带 `/adminapi` 前缀，后端同样注册在根级（见 admin lib.rs 根级路由注释），
  * 生产 nginx 按 `X-Client-Type: admin` 头把 `/im` 分流到管理端 8080。
+ *
+ * 例外：管理域控制器 `AdminShopKefuConfigController`（客服接入规则）、
+ * `AdminUserKefuController`（客服列表）原 Java `@RequestMapping` 挂
+ * `/adminapi/im/**`（本地 Rust routes/im 同样挂在 /adminapi 下），
+ * 必须走常规 `/adminapi` 通道，根级访问会 404。
  */
+const ADMINAPI_IM_PREFIXES = ['/im/shopKefuConfig', '/im/adminUserKefu'];
+
 function isRootContractPath(path: string): boolean {
-  return path === '/im' || path.startsWith('/im/');
+  if (path !== '/im' && !path.startsWith('/im/')) return false;
+  return !ADMINAPI_IM_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+  );
 }
 
 function resolveBase(path: string): string {
