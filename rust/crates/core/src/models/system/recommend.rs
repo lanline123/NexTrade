@@ -83,6 +83,8 @@ pub struct RecommendProductVO {
     pub shop_id: i32,
     /// 商品类型
     pub product_type: Option<i32>,
+    /// 库存（原版 `ProductListResDTO.productStock`，前端据此判售罄）
+    pub product_stock: i32,
     /// 销量（虚拟销量）
     pub virtual_sales: i32,
 }

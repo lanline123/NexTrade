@@ -28,6 +28,8 @@ pub struct RecommendProductRow {
     pub shop_id: i32,
     /// 商品类型
     pub product_type: Option<i32>,
+    /// 库存
+    pub product_stock: Option<i32>,
     /// 虚拟销量
     pub virtual_sales: Option<i32>,
 }
@@ -90,7 +92,7 @@ impl RecommendRepository {
         };
         let sql = format!(
             "SELECT product_id, product_name, product_sn, product_price, pic_url, pic_thumb, \
-             shop_id, product_type, virtual_sales FROM product{where_sql}{order_sql} LIMIT ? OFFSET ?"
+             shop_id, product_type, product_stock, virtual_sales FROM product{where_sql}{order_sql} LIMIT ? OFFSET ?"
         );
         let mut rq = sqlx::query_as::<_, RecommendProductRow>(&sql);
         for b in &binds {

@@ -53,6 +53,7 @@ impl RecommendService {
                 pic_thumb: r.pic_thumb,
                 shop_id: r.shop_id,
                 product_type: r.product_type,
+                product_stock: r.product_stock.unwrap_or(0),
                 virtual_sales: r.virtual_sales.unwrap_or(0),
             })
             .collect())

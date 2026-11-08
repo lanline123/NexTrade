@@ -94,13 +94,17 @@ function productLink(product: ProductCardItem): string {
   return `/product/${product.productId || ''}`;
 }
 
-/** 原版 isSoldOut：普通商品看 productStock，秒杀商品看 seckillStock */
+/**
+ * 原版 isSoldOut 用宽松相等 `== 0`：undefined / null 均不成立，
+ * 即字段缺失（如推荐位精简数据）不算售罄，仅明确的 0 / "0" 才算。
+ */
 function isSoldOut(product: ProductCardItem): boolean {
-  const stock = Number(product.productStock ?? 0);
-  const seckillStock = Number(product.seckillStock ?? 0);
+  const zero = (value: unknown) => value !== undefined && value !== null && Number(value) === 0;
   const seckill = product.isSeckill;
-  if (seckill === undefined || seckill === null || Number(seckill) === 0) return stock === 0;
-  return Number(seckill) === 1 ? seckillStock === 0 : stock === 0;
+  if (seckill === undefined || seckill === null || Number(seckill) === 0) {
+    return zero(product.productStock);
+  }
+  return Number(seckill) === 1 ? zero(product.seckillStock) : false;
 }
 
 /** 原版 isPresale：兼容 productSaleMode / saleMode / presaleInfo.saleMode */
@@ -133,7 +137,8 @@ export default function ProductCard({
   const [moreOpen, setMoreOpen] = useState(false);
   const soldOut = isSoldOut(product);
   const href = productLink(product);
-  const image = product.picThumb || product.picUrl || '';
+  // 原版 pickPic：picUrl > picThumb（picThumb 是 200px 缩略图，卡片 240px 放大会发虚）
+  const image = product.picUrl || product.picThumb || '';
   const price = splitPrice(product.productPrice ?? product.price);
   const shopTitle = product.shop?.shopTitle || t('官方自营');
 
