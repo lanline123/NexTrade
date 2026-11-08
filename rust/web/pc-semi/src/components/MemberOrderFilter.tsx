@@ -43,29 +43,46 @@ export default function MemberOrderFilter({
   const [value, setValue] = useState(keyword);
 
   return (
-    <div className="member-order-filter">
-      <div className="member-order-filter__tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            className={tab.key === activeKey ? 'is-active' : ''}
-            onClick={() => onTabChange(tab.key)}
-          >
-            {tab.label}
-            {Number(tab.num || 0) > 0 ? <span className="member-order-filter__num">{formatOrderCount(Number(tab.num))}</span> : null}
-          </button>
-        ))}
+    <>
+      {/* 旧版 MemberOrderList.vue:2-8 —— 标题 + 搜索（height 40 / width 260 / radius 4；按钮 76×40） */}
+      <div className="title-or-tabs">
+        <span>{t('我的订单')}</span>
+        <div className="input">
+          <Input
+            value={value}
+            onChange={setValue}
+            placeholder={t('收货人名称或订单号')}
+            onEnterPress={() => onSearch(value)}
+            style={{ height: 40, width: 260, borderRadius: 4 }}
+          />
+          <Button className="ml10" onClick={() => onSearch(value)} style={{ height: 40, width: 76, borderRadius: 4 }}>
+            {t('搜索')}
+          </Button>
+        </div>
       </div>
-      <div className="member-order-filter__search">
-        <Input
-          value={value}
-          onChange={setValue}
-          placeholder={t('收货人名称或订单号')}
-          onEnterPress={() => onSearch(value)}
-        />
-        <Button onClick={() => onSearch(value)}>{t('搜索')}</Button>
+      {/* 旧版 MemberOrderList.vue:10-19 —— 状态 Tab（.tab > p > span 数量） */}
+      <div className="tag-and-input">
+        <div className="tig-tabs">
+          {tabs.map((tab) => (
+            <div
+              key={tab.key}
+              className={`tab${tab.key === activeKey ? ' activeert' : ''}`}
+              role="tab"
+              aria-selected={tab.key === activeKey}
+              tabIndex={0}
+              onClick={() => onTabChange(tab.key)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') onTabChange(tab.key);
+              }}
+            >
+              <p>
+                {tab.label}
+                {Number(tab.num || 0) > 0 ? <span>{formatOrderCount(Number(tab.num))}</span> : null}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

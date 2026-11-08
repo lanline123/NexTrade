@@ -1,33 +1,39 @@
 'use client';
 
 /**
- * 我的订单列表（PC 会员中心）
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/components/member/order/MemberOrderList.vue
- *   + CancelOrderReasonDialog.vue / LogisticsTracking.vue / utils/orderPayment.ts / utils/giftCard.ts
+ * 我的订单列表（PC 会员中心）—— Semi Design 现代化版
  *
- * 对齐点：
+ * 功能对照（与旧版 MemberOrderList.vue 1:1，行为不删减）：
  * - 5 个 Tab + orderNum 角标；D1146 评价关闭时隐藏「待评价」，?type=awaitComment 回落全部
- * - 卡片：状态栏(含取消原因) / 订单号+共N件 / 商品行(预售·拼团角标、规格、单价×数量) / 操作栏
- * - 定金预售(saleMode=2)：首个商品行显示「总额/应付」
- * - 操作按钮 10 种 + availableActions 驱动 + o2o/礼品卡/周期购/自提守卫（数据缺失时自然不生效）
- * - 取消订单走 reasonConfig 原因弹窗（关闭时回落确认框）；删除/确认收货二次确认
- * - 查看物流弹窗 shippingInfo；再次购买 buyAgain → /order/check；认款详情 → claimInfo 页
+ * - 关键词搜索（收货人/订单号）；分页（Semi Pagination，自带省略号）
+ * - 卡片：订单号+下单时间+状态 Tag / 商品行(预售·拼团角标、规格、单价×数量) / 取消原因 / 合计+操作栏
+ * - 定金预售(saleMode=2)：合计区显示「总额/应付」两行
+ * - 操作按钮 10 种 + availableActions 驱动 + o2o/礼品卡/周期购/自提守卫
+ * - 取消订单走 reasonConfig 原因弹窗；删除/确认收货二次确认；物流/认款弹窗
+ *
+ * 2026-11 修复（人工排查项）：
+ * - 搜索首击失效：load() 改为接受 overrides，搜索时显式传入 keyword/page（旧实现闭包捕获旧值）
+ * - 分页平铺全部页码 → Semi Pagination（自带省略号）
+ * - Modal/Toast 文案接 i18n
+ * - <a> 内嵌 <button> 的无效 HTML → 按钮统一 router.push
  *
  * 已知后端缺口（前端守卫下自动隐藏，不报错）：
- * - Rust 订单列表 availableActions 未下发 offlinePaymentClaimDetail；items[].aftersalesItem 为 null
- * - 订单 VO 无 offlinePaymentClaimStatus / payTypeId / logisticsName 字段
+ * - Rust 订单列表 availableActions 未下发 offlinePaymentClaimDetail；VO 无 offlinePaymentClaimStatus/payTypeId 字段
+ * - orderNum 无 all 字段，「全部」角标恒 0
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Card, Modal, Spin, Toast } from '@douyinfe/semi-ui';
+import { Button, Empty, Input, Modal, Pagination, Skeleton, Tabs, Tag, Toast } from '@douyinfe/semi-ui';
+import { IconSearch } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '@/lib/client-api';
 import MemberCancelOrderDialog from '@/components/MemberCancelOrderDialog';
 import MemberLogisticsDialog from '@/components/MemberLogisticsDialog';
 import MemberOfflineClaimDialog from '@/components/MemberOfflineClaimDialog';
-import MemberOrderFilter from '@/components/MemberOrderFilter';
 
 import { useTranslation } from 'react-i18next';
+
 type TabKey = 'all' | 'awaitPay' | 'awaitShipping' | 'awaitReceived' | 'awaitComment';
 
 interface OrderItem {
@@ -91,6 +97,22 @@ function money(value: unknown): string {
   return Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+/** 订单状态 → Semi Tag 颜色 */
+const STATUS_TAG_COLOR: Record<number, string> = {
+  0: 'orange',
+  1: 'blue',
+  2: 'cyan',
+  3: 'grey',
+  4: 'grey',
+  5: 'green',
+  40: 'grey',
+  50: 'grey',
+};
+
+function statusTagColor(order: OrderRow): 'amber' | 'green' | 'grey' | 'red' | 'blue' | 'cyan' | 'violet' {
+  return (STATUS_TAG_COLOR[Number(order.orderStatus)] || 'grey') as 'grey';
+}
+
 function skuText(sku: OrderItem['skuData']): string {
   if (!sku) return '';
   if (typeof sku === 'string') {
@@ -145,7 +167,9 @@ interface NumMap {
 }
 
 export default function MemberOrderList({ initialType }: { initialType?: string }) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
+  const router = useRouter();
+  const go = (href: string) => router.push(href);
   const initial = TABS.some((item) => item.key === initialType) ? (initialType as TabKey) : 'all';
   const [tab, setTab] = useState<TabKey>(initial);
   const [keyword, setKeyword] = useState('');
@@ -191,15 +215,21 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
       .catch(() => setNums({}));
   };
 
-  const load = () => {
-    const current = TABS.find((item) => item.key === tab) || TABS[0];
+  /**
+   * 拉取订单列表。
+   * overrides 用于「状态尚未落到 state 就要发请求」的场景（如点击搜索：
+   * setKeyword 是异步的，闭包里的 keyword 还是旧值，必须显式传入）。
+   */
+  const load = (overrides?: { page?: number; keyword?: string; tab?: TabKey }) => {
+    const currentTab = overrides?.tab ?? tab;
+    const current = TABS.find((item) => item.key === currentTab) || TABS[0];
     setLoading(true);
     apiGet<{ records?: OrderRow[]; total?: number }>('user/order/list', {
-      page,
+      page: overrides?.page ?? page,
       size,
       sortField: 'addTime',
       sortOrder: 'desc',
-      keyword,
+      keyword: overrides?.keyword ?? keyword,
       payStatus: -1,
       orderStatus: current.orderStatus,
       commentStatus: current.commentStatus,
@@ -239,16 +269,16 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
   // —— 操作：确认收货（二次确认，对齐原版 onConfirmReceipt）——
   const onConfirmReceipt = (orderId: number) => {
     Modal.confirm({
-      title: '确认要收货吗',
-      okText: '确定',
-      cancelText: '取消',
+      title: t('确认要收货吗'),
+      okText: t('确定'),
+      cancelText: t('取消'),
       onOk: async () => {
         try {
           await apiPost('user/order/confirmReceipt', { id: orderId });
-          Toast.success({ content: '确认收货成功' });
+          Toast.success({ content: t('确认收货成功') });
           afterAction();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '操作失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('操作失败') });
         }
       },
     });
@@ -257,16 +287,16 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
   // —— 操作：删除订单（对齐原版 onDelOrder）——
   const onDelOrder = (orderId: number) => {
     Modal.confirm({
-      title: '确认要删除该订单吗',
-      okText: '确定',
-      cancelText: '取消',
+      title: t('确认要删除该订单吗'),
+      okText: t('确定'),
+      cancelText: t('取消'),
       onOk: async () => {
         try {
           await apiPost('user/order/delOrder', { id: orderId });
-          Toast.success({ content: '删除成功' });
+          Toast.success({ content: t('删除成功') });
           afterAction();
         } catch (error) {
-          Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
+          Toast.error({ content: error instanceof Error ? error.message : t('删除失败') });
         }
       },
     });
@@ -282,12 +312,12 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
   const onReBuy = async (order: OrderRow) => {
     try {
       await apiPost('user/order/buyAgain', { id: order.orderId });
-      Toast.success({ content: '正在跳转中，请稍后~' });
+      Toast.success({ content: t('正在跳转中，请稍后~') });
       setTimeout(() => {
         window.location.href = '/order/check';
       }, 1500);
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '再次购买失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('再次购买失败') });
     }
   };
 
@@ -319,156 +349,221 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
 
   if (needLogin) {
     return (
-      <Card className="cart-state">
-        <h2>{t('登录后查看订单')}</h2>
-        <p>{t('登录后可查看订单状态、物流和售后。')}</p>
-        <Link href="/login?redirect=/member/order/list">
-          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
-        </Link>
-      </Card>
+      <div className="mol mol--state">
+        <Empty title={t('登录后查看订单')} description={t('登录后可查看订单状态、物流和售后。')} />
+        <Button theme="solid" type="primary" size="large" onClick={() => go('/login?redirect=/member/order/list')}>
+          {t('去登录')}
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="member-orders">
-      <div className="pc-order-panel">
-        <div className="pc-order-panel__head">
-          <MemberOrderFilter
-            tabs={visibleTabs.map((item) => ({ key: item.key, label: item.label, num: Number(nums[item.key] || 0) }))}
-            activeKey={tab}
-            keyword={keyword}
-            onTabChange={(key) => {
-              setPage(1);
-              setTab(key as TabKey);
-            }}
-            onSearch={(value) => {
-              setKeyword(value);
-              setPage(1);
-              load();
-            }}
-          />
-        </div>
+    <div className="mol">
+      {/* 工具条：状态 Tab（带角标） + 关键词搜索 */}
+      <div className="mol-toolbar">
+        <Tabs
+          type="button"
+          activeKey={tab}
+          onChange={(key) => {
+            setPage(1);
+            setTab(key as TabKey);
+          }}
+        >
+          {visibleTabs.map((item) => (
+            <Tabs.TabPane
+              key={item.key}
+              itemKey={item.key}
+              tab={
+                <span className="mol-tab">
+                  {t(item.label)}
+                  {Number(nums[item.key] || 0) > 0 ? <span className="mol-tab__num">{nums[item.key]}</span> : null}
+                </span>
+              }
+            />
+          ))}
+        </Tabs>
+        <Input
+          className="mol-search"
+          style={{ width: 280 }}
+          prefix={<IconSearch />}
+          placeholder={t('收货人名称或订单号')}
+          value={keyword}
+          showClear
+          onChange={(value) => setKeyword(value)}
+          onEnterPress={() => {
+            setPage(1);
+            load({ page: 1, keyword });
+          }}
+          suffix={
+            <Button
+              theme="borderless"
+              icon={<IconSearch />}
+              aria-label={t('搜索')}
+              onClick={() => {
+                setPage(1);
+                load({ page: 1, keyword });
+              }}
+            />
+          }
+        />
+      </div>
 
-        <div className="pc-order-panel__body">
-          {loading ? (
-            <div className="member-orders__loading"><Spin size="large" /></div>
-          ) : rows.length ? (
-            <div className="member-orders__list">
-              {rows.map((order) => {
-            const actions = order.availableActions || {};
-            const totalCount = (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-            const canAftersales =
-              actions.toAftersales &&
-              order.orderSource !== 'pos' &&
-              order.cycleCardInfo?.statusName !== '已过期' &&
-              !isGiftCardAftersalesBlocked(order) &&
-              !isOrderType14(order) &&
-              !isCycleInfo(order) &&
-              !isPickupCompleted(order);
-            const aftersalesItem = (order.items || [])[0]?.aftersalesItem;
-            return (
-              <article key={order.orderId} className="member-order">
-                <header className="member-order__head">
-                  <span className={`member-order__status is-s${order.orderStatus ?? -1}`}>{order.orderStatusName || t('订单')}</span>
-                  <span className="member-order__sn">{order.orderSn}</span>
-                  <span className="member-order__time">{order.addTime}</span>
-                  <Link className="member-order__detail" href={`/member/order/info?id=${order.orderId}`} target="_blank">{t('订单详情')}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </Link>
-                </header>
-                {String(order.cancelRemark ?? '').trim() ? <div className="member-order__remark">取消原因：{order.cancelRemark}</div> : null}
-                {(order.items || []).map((item, index) => (
-                  <div key={index} className="member-order__shop">
-                    <Link href={productHref(item, order.shopId)} target="_blank" className="member-order__shop-main">
-                      <img src={item.productPicThumb || item.picThumb || ''} alt={item.productName || ''} />
-                      <div className="member-order__shop-text">
-                        <div className="member-order__shop-name">
-                          {Number(order.isPresale) === 1 || order.isPresale === true ? <span className="member-order__tag-presale">{t('预售')}</span> : null}
-                          {Number(order.joinStatus) === 1 ? <span className="member-order__tag-joining">{t('拼团')}</span> : null}
-                          {item.productName}
+      <div className="mol-body">
+        {loading ? (
+          <div className="mol-skeleton">
+            {[0, 1, 2].map((index) => (
+              <div key={index} className="mol-skeleton__card">
+                <Skeleton active loading placeholder={<Skeleton.Paragraph rows={3} style={{ padding: '16px 16px 8px' }} />} />
+              </div>
+            ))}
+          </div>
+        ) : rows.length ? (
+          <>
+            {rows.map((order) => {
+              const actions = order.availableActions || {};
+              const totalCount = (order.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+              const canAftersales =
+                actions.toAftersales &&
+                order.orderSource !== 'pos' &&
+                order.cycleCardInfo?.statusName !== '已过期' &&
+                !isGiftCardAftersalesBlocked(order) &&
+                !isOrderType14(order) &&
+                !isCycleInfo(order) &&
+                !isPickupCompleted(order);
+              const aftersalesItem = (order.items || [])[0]?.aftersalesItem;
+              return (
+                <div key={order.orderId} className="mol-card">
+                  {/* 头：订单号 + 下单时间 + 状态 */}
+                  <div className="mol-card__head">
+                    <div className="mol-card__head-left">
+                      <Link className="mol-card__sn" href={`/member/order/info?id=${order.orderId}`} target="_blank" title={order.orderSn}>
+                        {order.orderSn}
+                      </Link>
+                      {order.addTime ? <span className="mol-card__time">{order.addTime}</span> : null}
+                    </div>
+                    <Tag color={statusTagColor(order)}>{order.orderStatusName}</Tag>
+                  </div>
+
+                  {/* 商品行 */}
+                  <div className="mol-card__items">
+                    {(order.items || []).map((item, index) => (
+                      <div key={index} className="mol-item">
+                        <Link title={item.productName} href={productHref(item, order.shopId)} className="mol-item__picwrap" target="_blank">
+                          <img className="mol-item__pic" src={item.productPicThumb || item.picThumb || ''} alt={item.productName || ''} loading="lazy" />
+                        </Link>
+                        <div className="mol-item__main">
+                          <Link title={item.productName} href={productHref(item, order.shopId)} className="mol-item__name" target="_blank">
+                            {Number(order.isPresale) === 1 || order.isPresale === true ? <Tag size="small" color="orange" className="mol-item__tag">{t('预售')}</Tag> : null}
+                            {Number(order.joinStatus) === 1 ? <Tag size="small" color="red" className="mol-item__tag">{t('拼团')}</Tag> : null}
+                            <span className="mol-item__name-text">{item.productName}</span>
+                          </Link>
+                          {skuText(item.skuData) ? <div className="mol-item__sku">{skuText(item.skuData)}</div> : null}
                         </div>
-                        {skuText(item.skuData) ? <div className="member-order__shop-sku">{skuText(item.skuData)}</div> : null}
+                        <div className="mol-item__right">
+                          {isDepositPresaleOrder(order) && index === 0 ? null : (
+                            <>
+                              <Link title={item.productName} href={productHref(item)} target="_blank">
+                                <span className="mol-item__price">¥{money(item.price)}</span>
+                              </Link>
+                              <Link title={item.productName} href={productHref(item)} target="_blank">
+                                <span className="mol-item__qty">×{item.quantity}</span>
+                              </Link>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </Link>
-                    <div className="member-order__shop-price">
-                      {isDepositPresaleOrder(order) && index === 0 ? (
-                        <div className="member-order__presale-amount">
-                          <div><span>{t('总额')}</span><b>¥ {money(order.totalAmount)}</b></div>
-                          <div><span>{t('应付')}</span><b>¥ {money(order.unpaidAmount)}</b></div>
+                    ))}
+                  </div>
+
+                  {/* 取消原因 */}
+                  {String(order.cancelRemark ?? '').trim() ? (
+                    <div className="mol-card__note">
+                      {t('取消原因')}：{order.cancelRemark}
+                    </div>
+                  ) : null}
+
+                  {/* 底：合计 + 操作 */}
+                  <div className="mol-card__foot">
+                    <div className="mol-card__total">
+                      {isDepositPresaleOrder(order) ? (
+                        <div className="mol-presale">
+                          <div className="mol-presale__row">
+                            <span>{t('总额')}</span>
+                            <b>¥{money(order.totalAmount)}</b>
+                          </div>
+                          <div className="mol-presale__row mol-presale__row--due">
+                            <span>{t('应付')}</span>
+                            <b>¥{money(order.unpaidAmount)}</b>
+                          </div>
                         </div>
                       ) : (
-                        <Link href={productHref(item)} target="_blank">¥ {money(item.price)}</Link>
+                        <>
+                          <span className="mol-card__count">{t('共{{count}}件', { count: totalCount })}</span>
+                          <span className="mol-card__sum">
+                            {t('合计')}：<b>¥{money(order.totalAmount)}</b>
+                          </span>
+                        </>
                       )}
-                      <Link href={productHref(item)} target="_blank"><span className="member-order__qty">×{item.quantity}</span></Link>
+                    </div>
+                    <div className="mol-card__actions">
+                      <Button theme="borderless" onClick={() => go(`/member/order/info?id=${order.orderId}`)}>{t('订单详情')}</Button>
+                      {actions.confirmReceipt && !isCardSecretOrder(order) ? (
+                        <Button theme="borderless" onClick={() => viewLogistics(order)}>{t('查看物流')}</Button>
+                      ) : null}
+                      {canShowToPay(order) ? (
+                        Number(order.offlinePaymentClaimStatus) === 2 ? (
+                          <Button theme="solid" type="primary" onClick={() => openClaimEdit(order.orderId)}>{t('修改申请')}</Button>
+                        ) : (
+                          <Button theme="solid" type="primary" onClick={() => go(`/order/pay?id=${order.orderId}`)}>{t('去支付')}</Button>
+                        )
+                      ) : null}
+                      {Boolean(actions.offlinePaymentClaimDetail) && Number(order.offlinePaymentClaimStatus) !== 2 ? (
+                        <Button theme="light" onClick={() => openClaimDetail(order.orderId)}>{t('认款详情')}</Button>
+                      ) : null}
+                      {actions.cancelOrder ? (
+                        <Button theme="light" onClick={() => onCancelOrder(order.orderId)}>{t('取消订单')}</Button>
+                      ) : null}
+                      {actions.delOrder ? (
+                        <Button theme="light" type="danger" onClick={() => onDelOrder(order.orderId)}>{t('删除订单')}</Button>
+                      ) : null}
+                      {actions.confirmReceipt && Number(order.orderType) !== 9 && Number(order.orderType) !== 10 ? (
+                        <Button theme="solid" type="primary" onClick={() => onConfirmReceipt(order.orderId)}>{t('确认收货')}</Button>
+                      ) : null}
+                      {canAftersales ? (
+                        <Button theme="light" onClick={() => go(`/member/return/info?orderId=${order.orderId}`)}>{t('申请售后')}</Button>
+                      ) : null}
+                      {order.items && order.items[0]?.aftersalesItem && !isGiftCardAftersalesBlocked(order) && !isOrderType14(order) && !isCycleInfo(order) ? (
+                        <Button theme="borderless" onClick={() => go(`/member/return/loginfo?id=${aftersalesItem?.aftersaleId || ''}`)}>{t('售后详情')}</Button>
+                      ) : null}
+                      {actions.rebuy && !isSubCardOrder(order) ? (
+                        <Button theme="solid" type="primary" onClick={() => void onReBuy(order)}>{t('再次购买')}</Button>
+                      ) : null}
+                      {actions.toComment && commentEnabled === 1 ? (
+                        <Button theme="light" onClick={() => go(`/member/comment/info?id=${order.orderId}`)}>{t('去评价')}</Button>
+                      ) : null}
+                      {Number(order.joinStatus) === 1 && order.grouponPromotionRecordId ? (
+                        <Button theme="light" onClick={() => go(`/member/group/info?id=${order.grouponPromotionRecordId}`)}>{t('拼团详情')}</Button>
+                      ) : null}
                     </div>
                   </div>
-                ))}
-                <footer className="member-order__foot">
-                  <div className="member-order__total">
-                    <span>共 {totalCount} 件</span>
-                    <span className="member-order__total-label">{t('合计')}</span>
-                    <b>¥ {money(order.totalAmount)}</b>
-                  </div>
-                  <div className="member-order__bot-actions">
-                    {actions.confirmReceipt && !isCardSecretOrder(order) ? (
-                      <Button size="small" onClick={() => viewLogistics(order)}>{t('查看物流')}</Button>
-                    ) : null}
-                    {canShowToPay(order) ? (
-                      Number(order.offlinePaymentClaimStatus) === 2 ? (
-                        <Button size="small" theme="solid" type="primary" onClick={() => openClaimEdit(order.orderId)}>{t('修改申请')}</Button>
-                      ) : (
-                        <Link href={`/order/pay?id=${order.orderId}`}><Button size="small" theme="solid" type="primary">{t('去支付')}</Button></Link>
-                      )
-                    ) : null}
-                    {Boolean(actions.offlinePaymentClaimDetail) && Number(order.offlinePaymentClaimStatus) !== 2 ? (
-                      <Button size="small" onClick={() => openClaimDetail(order.orderId)}>{t('认款详情')}</Button>
-                    ) : null}
-                    {actions.cancelOrder ? <Button size="small" onClick={() => onCancelOrder(order.orderId)}>{t('取消订单')}</Button> : null}
-                    {actions.delOrder ? <Button size="small" onClick={() => onDelOrder(order.orderId)}>{t('删除订单')}</Button> : null}
-                    {actions.confirmReceipt && Number(order.orderType) !== 9 && Number(order.orderType) !== 10 ? (
-                      <Button size="small" theme="solid" type="primary" onClick={() => onConfirmReceipt(order.orderId)}>{t('确认收货')}</Button>
-                    ) : null}
-                    {canAftersales ? (
-                      <Link href={`/member/return/info?orderId=${order.orderId}`}><Button size="small">{t('申请售后')}</Button></Link>
-                    ) : null}
-                    {order.items && order.items[0]?.aftersalesItem && !isGiftCardAftersalesBlocked(order) && !isOrderType14(order) && !isCycleInfo(order) ? (
-                      <Link href={`/member/return/loginfo?id=${aftersalesItem?.aftersaleId || ''}`}><Button size="small">{t('售后详情')}</Button></Link>
-                    ) : null}
-                    {actions.rebuy && !isSubCardOrder(order) ? (
-                      <Button size="small" theme="solid" type="primary" onClick={() => void onReBuy(order)}>{t('再次购买')}</Button>
-                    ) : null}
-                    {actions.toComment && commentEnabled === 1 ? (
-                      <Link href={`/member/comment/info?id=${order.orderId}`}><Button size="small">{t('去评价')}</Button></Link>
-                    ) : null}
-                    {Number(order.joinStatus) === 1 && order.grouponPromotionRecordId ? (
-                      <Link href={`/member/group/info?id=${order.grouponPromotionRecordId}`} target="_blank"><Button size="small">{t('拼团详情')}</Button></Link>
-                    ) : null}
-                  </div>
-                </footer>
-              </article>
-            );
-          })}
-            </div>
-          ) : (
-            <div className="member-orders__empty">
-              <p className="member-orders__empty-title">{t('当前筛选下还没有任何订单哦!')}</p>
-              <p className="member-orders__empty-sub">{t('现在就去：')}<Link href="/">{t('选购商品')}</Link>
-              </p>
-            </div>
-          )}
-        </div>
-
-        {total > size ? (
-          <div className="pc-order-panel__foot">
-            <div className="pc-pagination">
-              {Array.from({ length: Math.ceil(total / size) }).map((_, index) => (
-                <button key={index} type="button" className={index + 1 === page ? 'is-active' : ''} onClick={() => setPage(index + 1)}>
-                  {index + 1}
-                </button>
-              ))}
-            </div>
+                </div>
+              );
+            })}
+          </>
+        ) : (
+          <div className="mol mol--state">
+            <Empty title={t('当前筛选下还没有任何订单')} description={t('去看看有什么心仪的商品吧')} />
+            <Button theme="solid" type="primary" onClick={() => go('/')}>{t('去选购')}</Button>
           </div>
-        ) : null}
+        )}
       </div>
+
+      {total > size ? (
+        <div className="mol-pager">
+          <Pagination total={total} pageSize={size} currentPage={page} onPageChange={(next) => setPage(next)} />
+        </div>
+      ) : null}
 
       {/* 取消订单原因弹窗（CancelOrderReasonDialog 对照） */}
       <MemberCancelOrderDialog

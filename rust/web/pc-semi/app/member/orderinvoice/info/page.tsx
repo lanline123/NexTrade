@@ -19,7 +19,12 @@ export default async function OrderInvoiceInfoPage({ searchParams }: { searchPar
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('申请发票')}>
-    <InvoiceApplyClient orderId={orderId} />
+          {/* 旧版 orderInvoice/Info.vue（弹窗版）的 form-body 结构 */}
+          <div className="mp-orderinvoice-info">
+            <div className="info-row">
+              <InvoiceApplyClient orderId={orderId} />
+            </div>
+          </div>
         </MemberShell>
       </main>
       <PcFooter />

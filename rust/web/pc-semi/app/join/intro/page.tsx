@@ -1,25 +1,31 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
+import JoinNav from '@/components/JoinNav';
 import JoinIntroClient from '@/components/JoinIntroClient';
 import MemberAuthGuard from '@/components/MemberAuthGuard';
 import { getPcHeader } from '@/lib/api';
 
-import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '入驻申请 · 万物新生' };
 
+/**
+ * 商户入驻申请。
+ * 源码对照：view/pc/pages/join/intro.vue
+ * 样式：app/join-page.scss → .pg-join-intro
+ *
+ * 旧版外层：CommonHeader + CommonPageHeader，流程 2 起是
+ *   .page-info > .card.container > step + .form-info > el-form.form-body
+ */
 export default async function JoinIntroPage() {
-    const t = getServerT();
   const header = await getPcHeader().catch(() => null);
   return (
     <MemberAuthGuard>
-      <div className="join-page">
+      <div className="pg-join-intro">
         <PcHeader config={header as any} />
-        <main className="join-intro-main">
-          <div className="join-container">
-            <nav className="pc-breadcrumb"><Link href="/">{t('首页')}</Link><span>/</span><Link href="/join">{t('招商入驻')}</Link><span>/</span><span>{t('入驻申请')}</span></nav>
+        <JoinNav active="intro" siteLogo={(header as any)?.siteLogo} />
+        <main className="page-info">
+          <div className="card container">
             <JoinIntroClient />
           </div>
         </main>

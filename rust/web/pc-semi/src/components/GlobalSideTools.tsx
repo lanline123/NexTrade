@@ -4,20 +4,31 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import ShoppingCart from '@icon-park/react/es/icons/ShoppingCart';
+import Scan from '@icon-park/react/es/icons/Scan';
+import HeadsetOne from '@icon-park/react/es/icons/HeadsetOne';
+import ArrowUp from '@icon-park/react/es/icons/ArrowUp';
+import AlarmClock from '@icon-park/react/es/icons/AlarmClock';
+import Message from '@icon-park/react/es/icons/Message';
 
 /**
- * GlobalSideTools：全站右下角悬浮工具栏。
+ * GlobalSideTools：全站右下角悬浮工具栏（现代化毛玻璃 Dock 改版）。
  *
- * 对齐旧版 view/pc 的四处逻辑：
- * - 首页 ElevatorList（fixed bottom:100px right:0 贴边白卡列，width 60px）：
- *   购物车(flat) + sidebarNav 后台侧边导航项 + 客服(配置开关) + 回到顶部(滚动≥630)
- * - 商品详情页 ElevatorProduct.vue（fixed right:2vw bottom:100px，68×68 白卡列）：
- *   购物车(card) + 扫一扫(当前 URL 二维码弹层) + 顶部(滚动≥630，带「顶部」文字)
- * - 其他页 GlobalSideTools.vue（fixed right:2vw bottom:100px，68×68 白卡列）：
- *   购物车(card) + 回到顶部(滚动>400)
+ * 对齐旧版 view/pc 的四处逻辑（条目与显隐规则不变，只换视觉）：
+ * - 首页 ElevatorList：购物车(flat) + sidebarNav 后台侧边导航项 + 客服(配置开关) + 回到顶部(滚动≥630)
+ * - 商品详情页 ElevatorProduct.vue：购物车(card) + 扫一扫(当前 URL 二维码弹层) + 顶部(滚动≥630)
+ * - 其他页 GlobalSideTools.vue：购物车(card) + 回到顶部(滚动>400)
  * - 客服点击 Service.vue#handelToService：serviceType=0 不动作；
  *   4=站内 IM（未登录去登录，已登录 window.open /chat?shopId=0，1200×800）；
  *   其他=外部 url（openType=1 → 500×700 弹窗，否则新标签）
+ *
+ * 视觉（app/globals.scss .gst-*）：
+ * 毛玻璃竖向 Dock（半透明白 + backdrop blur + 全圆角），条目为圆形图标位，
+ * 悬停时圆位填充主题色、左侧滑出文字标签；购物车带红色数量角标；
+ * 回到顶部滚动过阈值后渐入。
+ * 图标统一走 @icon-park/react（描边风格与全站一致，随 currentColor 变色）；
+ * 后台导航装修的 iconfont 类名不再使用——已知标题映射 NAV_ITEM_ICONS，
+ * 未匹配的标题回退展示首字符。
  *
  * 数据：
  * - sidebarNav：GET /api/common/pc/getNav（type=4 侧边导航，后台「导航装修」配置）
@@ -61,6 +72,17 @@ function navHref(item: SideNavItem): string {
   if (isExternalUrl(raw)) return raw;
   return raw.startsWith('/') ? raw : `/${raw}`;
 }
+
+/**
+ * 后台侧边导航（type=4）的 icon-park 图标映射。
+ * 后台「导航装修」的 icon 字段为 iconfont 类名且可能为空（如「限时秒杀」icon=""），
+ * Dock 统一走 icon-park：已知标题按此映射取语义正确的图标，
+ * 未匹配到的标题回退为标题首字符展示。
+ */
+const NAV_ITEM_ICONS: Record<string, React.ComponentType<{ size?: number | string }>> = {
+  限时秒杀: AlarmClock,
+  反馈: Message,
+};
 
 export default function GlobalSideTools() {
   const { t } = useTranslation();
@@ -131,7 +153,7 @@ export default function GlobalSideTools() {
   // sidebarNav 项：首页 + 搜索/列表/分类页展示（对齐旧版 ElevatorList 挂载范围）
   const navItems = showSidebarNav ? sideNav : [];
 
-  // 客服项显隐：配置 show 为真且 serviceType ≠ 0（旧版 showBtn 语义）
+  // 客服项显隐：配置 show 为真且 serviceType ≠ 0（对齐旧版 showBtn 语义，后台开了才显示）
   const serviceType = Number(service?.serviceType ?? 0);
   const serviceVisible = Boolean(service) && Number(service?.show ?? 0) === 1 && serviceType !== 0;
 
@@ -161,38 +183,31 @@ export default function GlobalSideTools() {
   const renderNavItem = (item: SideNavItem, index: number) => {
     const href = navHref(item);
     if (!href) return null;
-    const content = (
-      <>
-        {item.icon ? (
-          <>
-            <i className={item.icon} />
-            <br />
-          </>
-        ) : null}
-        <span className="gst__label">{item.title}</span>
-      </>
-    );
+    // 图标：标题映射到 icon-park；未匹配的标题回退首字符（配置的 iconfont 类名不再使用）
+    const NavIcon = NAV_ITEM_ICONS[item.title || ''];
     if (isExternalUrl(href)) {
       return (
         <a
           key={item.id ?? index}
-          className="gst__card"
+          className="gst__item"
           href={href}
           target={Number(item.isBlank) === 1 ? '_blank' : '_self'}
           rel="noopener noreferrer"
         >
-          {content}
+          {NavIcon ? <NavIcon size={22} /> : <span className="gst__item-char">{(item.title || '').slice(0, 1)}</span>}
+          <span className="gst__tip">{item.title}</span>
         </a>
       );
     }
     return (
       <Link
         key={item.id ?? index}
-        className="gst__card"
+        className="gst__item"
         href={href}
         target={Number(item.isBlank) === 1 ? '_blank' : '_self'}
       >
-        {content}
+        {NavIcon ? <NavIcon size={22} /> : <span className="gst__item-char">{(item.title || '').slice(0, 1)}</span>}
+        <span className="gst__tip">{item.title}</span>
       </Link>
     );
   };
@@ -200,12 +215,10 @@ export default function GlobalSideTools() {
   return (
     <div className={`gst${isHome ? ' gst--home' : ''}`}>
       {showCart ? (
-        <Link className="gst__card" href="/cart">
-          <span className="gst__icon-wrap">
-            <i className="iconfont-pc icon-shiwu-gouwuche" />
-            {cartCount > 0 ? <span className="gst__badge">{cartCount > 99 ? '99+' : cartCount}</span> : null}
-          </span>
-          <span className="gst__label">{t('购物车')}</span>
+        <Link className="gst__item" href="/cart" aria-label={t('购物车')}>
+          <ShoppingCart size={22} />
+          {cartCount > 0 ? <span className="gst__badge">{cartCount > 99 ? '99+' : cartCount}</span> : null}
+          <span className="gst__tip">{t('购物车')}</span>
         </Link>
       ) : null}
 
@@ -226,32 +239,31 @@ export default function GlobalSideTools() {
           ) : null}
           <button
             type="button"
-            className={`gst__card${qrOpen ? ' gst__card--active' : ''}`}
+            className={`gst__item${qrOpen ? ' is-active' : ''}`}
             onClick={() => setQrOpen((open) => !open)}
           >
-            <i className="iconfont-pc icon-saoyisao" />
-            <span className="gst__label">{t('扫一扫')}</span>
+            <Scan size={22} />
+            <span className="gst__tip">{t('扫一扫')}</span>
           </button>
         </div>
       ) : null}
 
       {serviceVisible ? (
-        <button type="button" className="gst__card" onClick={openService}>
-          <i className="iconfont-pc icon-kefu" />
-          <span className="gst__label">{t('客服')}</span>
+        <button type="button" className="gst__item" onClick={openService}>
+          <HeadsetOne size={22} />
+          <span className="gst__tip">{t('客服')}</span>
         </button>
       ) : null}
 
       {backTopVisible ? (
         <button
           type="button"
-          className="gst__card gst__card--notail"
+          className="gst__item gst__item--top"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label={t('回到顶部')}
         >
-          <i className="iconfont-pc icon-shangjiantou" />
-          {/* 商品详情页回顶带「顶部」文字（对齐旧版 ElevatorProduct） */}
-          {isItem ? <span className="gst__label">{t('顶部')}</span> : null}
+          <ArrowUp size={22} />
+          <span className="gst__tip">{t('回到顶部')}</span>
         </button>
       ) : null}
     </div>

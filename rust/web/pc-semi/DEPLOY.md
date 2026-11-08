@@ -65,8 +65,14 @@ location ^~ /pcMobile { try_files $uri $uri/ /pc/index.html; }
 
 ```bash
 cd rust/web/pc-semi
-npm run build
+npm run build:next      # 只要 .next 产物（部署用，最快）
+# 或
+npm run build           # .next + out/ 静态预览快照（多花几分钟，预览/检查用）
 ```
+
+`npm run build` 会在 `.next` 之后额外跑 `scripts/static-snapshot.mjs`：临时把应用起在
+127.0.0.1 的环回端口，逐条路由抓渲染好的 HTML 写进 `out/`，再把 `.next/static`、`public/`
+拷过去，最后关掉进程。它只用于本地预览/自动化检查，**不要上传 `out/`**，线上仍是 server.js 常驻。
 
 打包内容：
 

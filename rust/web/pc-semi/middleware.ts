@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 会员中心服务端登录守卫（对应旧版 Nuxt middleware: auth）。
+ * 中间件做两件事（顺序很重要）：
  *
- * 背景：token 登录后同时写入 localStorage 与 accessToken cookie（LoginClient / oauth callback）。
- * 以前 /member/* 只在客户端守卫（MemberAuthGuard），每次刷新先渲染「正在校验登录状态...」再出内容。
- * 现在改在服务端读 cookie：无 token 或 JWT 已过期 → 307 到 /login?redirect=<原路径+query>；
- * 有效 → 直接 SSR 页面内容，无闪烁。
+ * 1) 旧驼峰 URL → 全小写 URL（308）。
+ *    背景：2026-11-07 起 PC 路由目录统一为全小写，旧站（vue-router 大小写不敏感）对外暴露的
+ *    驼峰链接需要 301/308 到新路径。**这一步必须放在中间件里**，不能写成 next.config 的
+ *    redirects：Next 的 redirects 规则匹配是大小写不敏感的，`/member/coupon/List` 这条规则
+ *    会连 `/member/coupon/list` 一起命中，于是把页面 308 到它自己，浏览器报
+ *    ERR_TOO_MANY_REDIRECTS（实测过：/member/coupon/list、/article/news/list 等都打不开）。
+ *    这里用 JS 比较 pathname 与 pathname.toLowerCase()，只有真的含大写字母才跳，不会自指。
  *
- * 注意：cookie 缺失但 localStorage 仍有 token 的窗口（例如登录超过 7 天）会被要求重新登录，
- * 由客户端 MemberAuthGuard 负责把 cookie 同步回 localStorage，尽量减少该窗口。
+ * 2) 会员中心服务端登录守卫（对应旧版 Nuxt middleware: auth）。
+ *    token 登录后同时写入 localStorage 与 accessToken cookie（LoginClient / oauth callback）。
+ *    无 token 或 JWT 已过期 → 307 到 /login?redirect=<原路径+query>；有效 → 直接 SSR。
+ *    注意：cookie 缺失但 localStorage 仍有 token 的窗口（例如登录超过 7 天）会被要求重新登录，
+ *    由客户端 MemberAuthGuard 负责把 cookie 同步回 localStorage，尽量减少该窗口。
  */
 
 function isExpiredToken(token: string): boolean {
@@ -27,21 +33,37 @@ function isExpiredToken(token: string): boolean {
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  // 登录/注册页本身放行（/member/login、/member/register 是 /login、/register 的历史别名）
-  if (/\/member\/(login|register)\/?$/.test(pathname)) {
-    return NextResponse.next();
-  }
-  const token = request.cookies.get('accessToken')?.value;
-  if (!token || isExpiredToken(token)) {
+
+  // 1) 大小写归一化：只在实际存在大写字母时跳，目标就是小写路径本身，绝不会自指。
+  const lowerPath = pathname.toLowerCase();
+  if (pathname !== lowerPath) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.search = '';
-    url.searchParams.set('redirect', `${pathname}${search}`);
-    return NextResponse.redirect(url);
+    url.pathname = lowerPath;
+    return NextResponse.redirect(url, 308);
   }
+
+  // 2) 会员中心登录守卫（/login、/register 及其历史别名直接放行）
+  if (pathname === '/member' || pathname.startsWith('/member/')) {
+    if (/^\/member\/(login|register)\/?$/.test(pathname)) {
+      return NextResponse.next();
+    }
+    const token = request.cookies.get('accessToken')?.value;
+    if (!token || isExpiredToken(token)) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      url.search = '';
+      url.searchParams.set('redirect', `${pathname}${search}`);
+      return NextResponse.redirect(url);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/member/:path*'],
+  /**
+   * 除了静态资源与接口转发，其余路径都要过一遍大小写归一化。
+   * /api、/adminapi、/static 由 next.config 的 rewrites 直接转后端，不能在这里改写大小写。
+   */
+  matcher: ['/((?!api|adminapi|static|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)'],
 };

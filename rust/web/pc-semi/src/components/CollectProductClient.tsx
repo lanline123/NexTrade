@@ -275,7 +275,7 @@ export default function CollectProductClient() {
   const gridStyle = { '--collect-columns': columns } as CSSProperties;
 
   return (
-    <div className="collect-product">
+    <div className="info-row collect-product mp-collect-product">
       <div className="title-or-tabs">
         <span className="card-title">{t('心愿单')}</span>
         {total > 0 ? <span className="collect-product__count">共 {total} 件商品</span> : null}
@@ -380,19 +380,25 @@ export default function CollectProductClient() {
           ) : null}
 
           {total > PAGE_SIZE && !loading ? (
-            <div className="pc-pagination collect-product__pagination">
-              <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>{t('上一页')}</button>
-              {pageNumbers.map((number) => (
-                <button
-                  type="button"
-                  key={number}
-                  className={number === page ? 'is-active' : ''}
-                  onClick={() => setPage(number)}
-                >
-                  {number}
+            <div className="el-page">
+              <div className="pagination">
+                <button type="button" disabled={page <= 1} aria-label={t('上一页')} onClick={() => setPage((value) => value - 1)}>
+                  {'<'}
                 </button>
-              ))}
-              <button type="button" disabled={page >= pages} onClick={() => setPage((value) => value + 1)}>{t('下一页')}</button>
+                {pageNumbers.map((number) => (
+                  <button
+                    type="button"
+                    key={number}
+                    className={number === page ? 'is-active' : ''}
+                    onClick={() => setPage(number)}
+                  >
+                    {number}
+                  </button>
+                ))}
+                <button type="button" disabled={page >= pages} aria-label={t('下一页')} onClick={() => setPage((value) => value + 1)}>
+                  {'>'}
+                </button>
+              </div>
             </div>
           ) : null}
 

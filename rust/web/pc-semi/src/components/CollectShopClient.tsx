@@ -10,8 +10,9 @@
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card, Toast } from '@douyinfe/semi-ui';
+import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import FormatPrice from '@/components/FormatPrice';
 
 import { useTranslation } from 'react-i18next';
 interface ShopProduct { productId?: number; productName?: string; productPrice?: string | number; picThumb?: string; }
@@ -92,81 +93,122 @@ export default function CollectShopClient() {
   const pages = Math.max(1, Math.ceil(total / size));
 
   return (
-    <Card className="member-card collect-shop" loading={loading}>
+    <div className="info-row collect-product mp-collect-shop">
       {/* 源码 collectshop/List.vue：cardTitle（门店版为「收藏门店」） */}
-      <div className="collect-shop__title">{cardTitle}</div>
-      {rows.length ? (
-        <div className="collect-shop__list">
-          {rows.map((item) => {
-            const key = String(item.id ?? item.collectId ?? item.shop.shopId ?? '');
-            const tab = tabs[key] || 'hot';
-            const offset = offsets[key] || 0;
-            const all = productsOf(item.shop, tab);
-            const visible = all.slice(offset, offset + PAGE_SIZE);
-            const canPrev = offset > 0;
-            const canNext = offset + PAGE_SIZE < all.length;
-            const shopHref = `/shop/${item.shop.shopId || ''}`;
-            return (
-              <article className="collect-shop__item" key={key}>
-                <div className="collect-shop__left">
-                  <Link href={shopHref} className="collect-shop__logo">
-                    <img src={item.shop.shopLogo || ''} alt={item.shop.shopTitle || ''} />
-                  </Link>
-                  <Link href={shopHref} className="collect-shop__name">{item.shop.shopTitle || t('店铺')}</Link>
-                  <div className="collect-shop__ops">
-                    <Link href={shopHref} target="_blank" className="collect-shop__btn">{enterLabel}</Link>
-                    {item.shop.kefuLink ? (
-                      <a href={String(item.shop.kefuLink)} target="_blank" rel="noreferrer" className="collect-shop__btn">{t('联系客服')}</a>
-                    ) : null}
-                    <button type="button" className="collect-shop__btn collect-shop__cancel" onClick={() => void cancel(item)}>{t('取消收藏')}</button>
-                  </div>
-                </div>
-
-                <div className="collect-shop__right">
-                  <div className="collect-shop__tabs">
-                    <div className="collect-shop__tabs-left">
-                      {(Object.keys(TAB_LABEL) as ProductTab[]).map((name) => (
-                        <button
-                          key={name}
-                          type="button"
-                          className={tab === name ? 'is-active' : ''}
-                          onClick={() => setTabs((current) => ({ ...current, [key]: name }))}
-                        >
-                          {TAB_LABEL[name]}
-                        </button>
-                      ))}
-                    </div>
-                    {all.length > PAGE_SIZE ? (
-                      <div className="collect-shop__tabs-right">
-                        <button type="button" disabled={!canPrev} onClick={() => setOffsets((c) => ({ ...c, [key]: Math.max(0, offset - PAGE_SIZE) }))}>‹</button>
-                        <button type="button" disabled={!canNext} onClick={() => setOffsets((c) => ({ ...c, [key]: offset + PAGE_SIZE }))}>›</button>
+      <div className="title-or-tabs">
+        <span className="card-title">{cardTitle}</span>
+      </div>
+      <div className="page-info-body">
+        <div className="collect-list-content">
+          {rows.length ? (
+            <>
+              {rows.map((item) => {
+                const key = String(item.id ?? item.collectId ?? item.shop.shopId ?? '');
+                const tab = tabs[key] || 'hot';
+                const offset = offsets[key] || 0;
+                const all = productsOf(item.shop, tab);
+                const visible = all.slice(offset, offset + PAGE_SIZE);
+                const canPrev = offset > 0;
+                const canNext = offset + PAGE_SIZE < all.length;
+                const shopHref = `/shop/${item.shop.shopId || ''}`;
+                return (
+                  <div className="card" key={key}>
+                    <div className="left-card">
+                      <div className="inner-div" onClick={() => void cancel(item)}>{t('取消收藏')}</div>
+                      <div className="logo">
+                        <img className="image" src={item.shop.shopLogo || ''} alt={item.shop.shopTitle || ''} />
                       </div>
-                    ) : null}
-                  </div>
+                      <div className="title">{item.shop.shopTitle || t('店铺')}</div>
+                      <div className="operation-card">
+                        <Link href={shopHref} target="_blank" className="butt butt1">
+                          <i className="iconfont-pc icon-guanli font-color" />{enterLabel}
+                        </Link>
+                        {item.shop.kefuLink ? (
+                          <a href={String(item.shop.kefuLink)} target="_blank" rel="noreferrer" className="butt">
+                            <i className="iconfont-pc icon-kefu font-color" />{t('联系客服')}
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
 
-                  <div className="collect-shop__products">
-                    {visible.map((product) => (
-                      <Link className="collect-shop__product" key={product.productId} href={`/product/${product.productId || ''}`} target="_blank">
-                        <img src={product.picThumb || ''} alt={product.productName || ''} />
-                        <span className="collect-shop__product-name">{product.productName || ''}</span>
-                        <b>¥ {Number(product.productPrice || 0).toFixed(2)}</b>
-                      </Link>
+                    <div className="right-card">
+                      <div className="top-bar">
+                        <div className="left-bar">
+                          {(Object.keys(TAB_LABEL) as ProductTab[]).map((name) => (
+                            <div
+                              key={name}
+                              className={`inner-div${tab === name ? ' inner-div-hover' : ''}`}
+                              onClick={() => setTabs((current) => ({ ...current, [key]: name }))}
+                            >
+                              {TAB_LABEL[name]}
+                            </div>
+                          ))}
+                        </div>
+                        {all.length > PAGE_SIZE ? (
+                          <div className="right-bar">
+                            <div className="inner-div" onClick={() => setOffsets((c) => ({ ...c, [key]: Math.max(0, offset - PAGE_SIZE) }))}>
+                              <span className="iconfont-pc icon-jiantou_zuo" />
+                            </div>
+                            <div className="inner-div" onClick={() => setOffsets((c) => ({ ...c, [key]: offset + PAGE_SIZE }))}>
+                              <span className="iconfont-pc icon-jiantou_you" />
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className="product-list">
+                        {visible.length ? (
+                          visible.map((product) => (
+                            <Link className="product-card" key={product.productId} href={`/product/${product.productId || ''}`} target="_blank">
+                              <div className="product-img-wrap">
+                                <img className="image" src={product.picThumb || ''} alt={product.productName || ''} />
+                              </div>
+                              <div className="product_price">
+                                <FormatPrice value={product.productPrice} fontSize="14px" fontWeight={400} />
+                              </div>
+                            </Link>
+                          ))
+                        ) : (
+                          <div className="no-data">{loading ? null : <span>{t('暂无商品')}</span>}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {pages > 1 ? (
+                <div className="el-page">
+                  <div className="pagination">
+                    <button type="button" disabled={page <= 1} aria-label={t('上一页')} onClick={() => setPage((n) => n - 1)}>
+                      {'<'}
+                    </button>
+                    {Array.from({ length: pages }, (_, index) => index + 1).map((number) => (
+                      <button
+                        type="button"
+                        key={number}
+                        className={number === page ? 'is-active' : ''}
+                        onClick={() => setPage(number)}
+                      >
+                        {number}
+                      </button>
                     ))}
-                    {!visible.length ? <span className="collect-shop__empty">{t('暂无商品')}</span> : null}
+                    <button type="button" disabled={page >= pages} aria-label={t('下一页')} onClick={() => setPage((n) => n + 1)}>
+                      {'>'}
+                    </button>
                   </div>
                 </div>
-              </article>
-            );
-          })}
+              ) : null}
+            </>
+          ) : (
+            <div className="no-result">
+              <div className="empty">
+                <img className="empty-img" src="/assets/images/empty-box.png" alt="" />
+                <div className="empty-text">{emptyText}</div>
+              </div>
+            </div>
+          )}
         </div>
-      ) : <div className="comment-empty">{emptyText}</div>}
-      {pages > 1 ? (
-        <div className="comment-pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>{t('上一页')}</button>
-          <span>{page} / {pages}</span>
-          <button type="button" disabled={page >= pages} onClick={() => setPage((n) => n + 1)}>{t('下一页')}</button>
-        </div>
-      ) : null}
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -1,41 +1,12 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import PcHeader from '@/components/PcHeaderWithData';
-import { getPcHeader } from '@/lib/api';
-import PcFooter from '@/components/PcFooter';
+import { redirect } from 'next/navigation';
 
-import { getServerT } from '@/i18n/server';
+/**
+ * /help 是旧版没有的路由（旧版帮助中心就是 /article/issue）。
+ * 之前这里是 4 条硬编码 FAQ 的占位页，与旧站内容对不上；
+ * 现在统一跳到真正的帮助中心，避免出现第二套内容。
+ */
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: '帮助中心 · 万物新生' };
 
-const FAQS = [
-  { q: '如何下单购买？', a: '登录后选择商品加入购物车，进入结算页选择收货地址和支付方式，提交订单后完成支付。' },
-  { q: '支持哪些支付方式？', a: '支付方式由平台配置，结算页会展示当前可用的支付方式。' },
-  { q: '如何查看物流？', a: '进入“会员中心 - 我的订单”，打开订单详情即可查看物流信息。' },
-  { q: '如何申请售后？', a: '订单详情中可发起售后，售后记录在会员中心查看。' },
-];
-
-export default async function HelpPage() {
-    const t = getServerT();
-  const header = await getPcHeader().catch(() => null);
-  return (
-    <>
-      <PcHeader config={header as any} />
-      <main className="pc-static-page">
-        <div className="pc-container">
-          <nav className="pc-breadcrumb"><Link href="/">{t('首页')}</Link><span>/</span><span>{t('帮助中心')}</span></nav>
-          <h1 className="pc-cart-title">{t('帮助中心')}</h1>
-          <div className="pc-faq-list">
-            {FAQS.map((item) => (
-              <div key={item.q} className="pc-faq-item">
-                <b>{item.q}</b>
-                <p>{item.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-      <PcFooter />
-    </>
-  );
+export default function HelpRedirectPage(): never {
+  redirect('/article/issue');
 }

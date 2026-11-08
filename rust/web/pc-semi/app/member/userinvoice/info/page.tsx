@@ -17,7 +17,7 @@ export default async function UserInvoicePage() {
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('增票资质')}>
-    <InvoiceQualificationClient />
+          <InvoiceQualificationClient />
         </MemberShell>
       </main>
       <PcFooter />

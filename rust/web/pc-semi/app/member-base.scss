@@ -1,0 +1,393 @@
+/**
+ * 会员中心公共样式 —— 由 scripts/gen-member-base-scss.mjs 从旧版
+ * view/pc/assets/css/member/member.less 生成，请勿手改（改生成器再跑）。
+ *
+ * 旧版每个会员页面 <style scoped> 都 @import 这份文件，所以它是每页都有的公共件。
+ * 每条选择器加 .pc-member-shell__main 前缀，代替旧版 scoped 的 data-v 属性；声明值一个都没改。
+ */
+.pc-member-shell__main .info-row {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: fit-content;
+  padding: 0 32px 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.pc-member-shell__main .info-row a {
+  cursor: pointer;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0px;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs .tag-and-input {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs .tag-and-input .tig-font-style {
+  font-size: 14px;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs .input {
+  display: flex;
+  align-items: center;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs .input .el-input__inner {
+  font-size: 14px !important;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs>span {
+  color: #000;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0;
+  display: inline-block;
+}
+
+.pc-member-shell__main .info-row .title-or-tabs .collection-list-tag {
+  border: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  line-height: 32px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.pc-member-shell__main .info-row .page-info-body {
+  font-size: 14px;
+  background: #fff;
+  border: 0;
+  box-sizing: border-box;
+}
+
+.pc-member-shell__main .info-row .page-info-body .order-title {
+  margin: 10px 0;
+  background: #f5f6fa;
+  height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.pc-member-shell__main .info-row .page-info-body .order-title>.ul {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 42px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.pc-member-shell__main .info-row .img-border {
+  border: 1px solid #e8e8e8;
+  padding: 1px;
+  box-sizing: border-box;
+}
+
+.pc-member-shell__main .tig-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.pc-member-shell__main .tig-tabs .tab {
+  margin-right: 24px;
+  position: relative;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  height: 32px;
+  min-width: 60px;
+  color: #505259;
+  font-weight: 600;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.pc-member-shell__main .tig-tabs .tab p {
+  font-size: 18px;
+}
+
+.pc-member-shell__main .tig-tabs .tab p>span {
+  color: #cc0c1c;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.pc-member-shell__main .tig-tabs .tab .sub {
+  position: absolute;
+  background-color: var(--general);
+  color: white;
+  font-size: 10px;
+  height: 16px;
+  line-height: 16px;
+  min-width: 12px;
+  padding: 0 3px;
+  border-radius: 12px;
+  text-align: center;
+  top: -5px;
+  right: -18px;
+}
+
+.pc-member-shell__main .tig-tabs .tab:hover {
+  color: var(--general);
+  transition: transform 0.3s;
+}
+
+.pc-member-shell__main .active {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.pc-member-shell__main .active a {
+  color: #1a1a1a !important;
+}
+
+.pc-member-shell__main .active::before {
+  content: "";
+  position: absolute;
+  width: 36px;
+  height: 4px;
+  left: 23%;
+  bottom: 0;
+  background: #1a1a1a;
+}
+
+.pc-member-shell__main .tig-steps {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  padding: 50px;
+  box-sizing: border-box;
+}
+
+.pc-member-shell__main .tig-steps .steps-card {
+  height: 18px;
+  width: 18px;
+  position: relative;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pc-member-shell__main .tig-steps .steps-line {
+  flex: 1;
+  height: 4px;
+}
+
+.pc-member-shell__main .tig-steps .card-text {
+  color: #2abf5c;
+  position: absolute;
+  width: 200px;
+  height: 50px;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.pc-member-shell__main .extra {
+  display: flex;
+  color: #999999;
+  width: 100%;
+  font-size: 12px;
+}
+
+.pc-member-shell__main .no-result {
+  height: 300px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  gap: 10px;
+}
+
+.pc-member-shell__main .no-result .empty-img {
+  width: 120px;
+  height: 120px;
+}
+
+.pc-member-shell__main .no-result .empty-text {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: center;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+  color: #c2c4cc;
+}
+
+.pc-member-shell__main .no-result .sign {
+  background: #fff url("/assets/images/signs.png") no-repeat scroll 0 -150px;
+  display: inline-block;
+  height: 40px;
+  width: 41px;
+}
+
+.pc-member-shell__main .no-result .tip-message {
+  margin-left: 10px;
+  line-height: 2;
+}
+
+.pc-member-shell__main .el-page {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pc-member-shell__main .el-pagination.is-background .btn-next {
+  background-color: #fff !important;
+  border: 1px solid #dbdce1;
+  border-radius: 4px;
+}
+
+.pc-member-shell__main .el-pagination.is-background .btn-prev {
+  background-color: #fff !important;
+  border: 1px solid #dbdce1;
+  border-radius: 4px;
+}
+
+.pc-member-shell__main .el-pagination.is-background .el-pager .number {
+  background-color: #fff;
+  color: #1a1a1a;
+  border-radius: 4px;
+}
+
+.pc-member-shell__main .el-pagination.is-background .el-pager .is-active {
+  background-color: #eeeff2;
+}
+
+.pc-member-shell__main .big-button {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  line-height: 42px;
+  width: 218px;
+  height: 42px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.pc-member-shell__main .ml10 {
+  margin-left: 10px;
+}
+
+.pc-member-shell__main .font-color {
+  color: var(--general);
+}
+.pc-member-shell__main .tig-input {
+  display: inline-block;
+  vertical-align: middle;
+  border: none;
+}
+
+.pc-member-shell__main .tig-input[type="text"],
+.pc-member-shell__main .tig-input[type="password"],
+.pc-member-shell__main .tig-input[type="number"],
+.pc-member-shell__main .tig-input {
+  background-color: #ffffff;
+  background-image: none;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  color: #3a3f51;
+  display: inline-block;
+  transition: all 0.3s;
+  font-size: 12px;
+  height: 22px;
+  line-height: 22px;
+  padding: 4px 10px;
+  vertical-align: middle;
+  box-sizing: initial;
+  margin: 0;
+}
+
+.pc-member-shell__main .tig-input[type="text"],
+.pc-member-shell__main .tig-input[type="password"] {
+  width: 15em;
+}
+
+.pc-member-shell__main .tig-input:hover,
+.pc-member-shell__main .tig-input[type="text"]:hover,
+.pc-member-shell__main .tig-input[type="password"]:hover,
+.pc-member-shell__main .tig-input[type="number"]:hover,
+.pc-member-shell__main .tig-input:hover,
+.pc-member-shell__main .tig-input.text:hover {
+  border-color: #1890ff;
+}
+
+.pc-member-shell__main .tig-input:focus,
+.pc-member-shell__main .tig-input[type="text"]:focus,
+.pc-member-shell__main .tig-input[type="password"]:focus,
+.pc-member-shell__main .tig-input[type="number"]:focus,
+.pc-member-shell__main .tig-input:focus,
+.pc-member-shell__main .tig-input.text:focus {
+  border-color: #1890ff;
+  border-right-width: 1px !important;
+  outline: 0;
+  box-shadow: 0 0 0 2px #1890ff33;
+}
+
+.pc-member-shell__main .tig-input,
+.pc-member-shell__main .tig-input {
+  cursor: pointer;
+}
+
+.pc-member-shell__main .tig-input[type="text"],
+.pc-member-shell__main .tig-input[type="password"] {
+  cursor: text;
+}
+
+.pc-member-shell__main .tig-button {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  color: #666;
+  display: inline-block;
+  border-radius: 2px;
+  cursor: pointer;
+  height: 20px;
+  line-height: 20px;
+  padding: 3px 12px;
+  text-align: center;
+  transition: background-color 0.3s, color 0.3s;
+  text-decoration: none;
+}
+
+.pc-member-shell__main .theme-button {
+  background-color: var(--general);
+  border: 1px solid var(--general);
+  color: var(--main-text);
+}
+
+.pc-member-shell__main .theme-button:hover {
+  background-color: var(--primary-light-3);
+  border-color: var(--primary-light-3);
+  color: #fff;
+}

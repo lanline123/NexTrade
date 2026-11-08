@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
+import FormatPrice from '@/components/FormatPrice';
 import { getPcHeader, getRechargeOrders } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
+import MemberAccountTabs from '@/components/MemberAccountTabs';
 
 import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
@@ -27,30 +29,58 @@ export default async function RechargeLogPage({ searchParams }: PageProps) {
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('充值记录')}>
-              <section className="account-table-wrap">
-      <table className="account-table">
-        <thead><tr><th>{t('充值时间')}</th><th>{t('充值金额')}</th><th>{t('类型')}</th><th>{t('备注')}</th><th>{t('状态')}</th></tr></thead>
-        <tbody>
-          {data.records.map((item, index) => (
-            <tr key={index}>
-              <td>{item.addTime || '-'}</td>
-              <td className="is-income">¥ {Number(item.amount || 0).toFixed(2)}</td>
-              <td>{item.type || '-'}</td>
-              <td>{item.postscript || '-'}</td>
-              <td>{item.statusType || '-'}</td>
-            </tr>
-          ))}
-          {!data.records.length ? <tr><td colSpan={5} className="account-empty">{t('暂无充值记录')}</td></tr> : null}
-        </tbody>
-      </table>
-      {pages > 1 ? (
-        <nav className="account-pagination">
-          {page > 1 ? <Link href={hrefFor(page - 1)}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
-          <span>{page} / {pages}</span>
-          {page < pages ? <Link href={hrefFor(page + 1)}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
-        </nav>
-      ) : null}
-    </section>
+          {/* 源码 member/account/Log.vue：.info-row > .title-or-tabs(.tag-and-input>.tig-tabs>MemberTopMenu) + .account-detail-content > .table */}
+          <div className="info-row mp-account-log">
+            <MemberAccountTabs />
+            <div className="account-detail-content">
+              <div className="table">
+                {data.records.length ? (
+                  <>
+                    <table>
+                      <thead className="table-header">
+                        <tr>
+                          <th className="header-cell">{t('充值时间')}</th>
+                          <th className="header-cell">{t('充值金额')}</th>
+                          <th className="header-cell">{t('类型')}</th>
+                          <th className="header-cell">{t('备注')}</th>
+                          <th className="header-cell">{t('状态')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.records.map((item, index) => (
+                          <tr key={index} className="body-tr">
+                            <td>{item.addTime || '-'}</td>
+                            <td className="price">
+                              <FormatPrice value={item.amount} fontSize="14px" />
+                            </td>
+                            <td>{item.type || '-'}</td>
+                            <td>{item.postscript || '-'}</td>
+                            <td className="last">{item.statusType || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {pages > 1 ? (
+                      <div className="el-page">
+                        <div className="pagination">
+                          {page > 1 ? <a href={hrefFor(page - 1)}>{'<'}</a> : <span className="is-disabled">{'<'}</span>}
+                          <span className="is-active">{page}</span>
+                          <span className="total">/ {pages}</span>
+                          {page < pages ? <a href={hrefFor(page + 1)}>{'>'}</a> : <span className="is-disabled">{'>'}</span>}
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="no-result">
+                    <div>
+                      <span>{t('暂无充值记录')}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </MemberShell>
       </main>
       <PcFooter />

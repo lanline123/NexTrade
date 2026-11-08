@@ -3,6 +3,8 @@ import Link from 'next/link';
 import PcHeader from '@/components/PcHeader';
 import PcFooter from '@/components/PcFooter';
 import { getArticleNewsDetail, getProductDetail, getArticleNewsList, getPcHeader } from '@/lib/api';
+import ArticleSideNav from '@/components/ArticleSideNav';
+import type { SideNavArticle } from '@/components/ArticleSideNav';
 
 import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
@@ -22,54 +24,6 @@ function readParam(value: string | string[] | undefined): string {
  * 原版 left_more 是点击展开子文章列表的交互控件；SSR 页面不能挂客户端 hook，
  * 这里改为静态展开的文章列表（min-list）+ 指向分类页的 left_more 更多链接兜底。
  */
-const NAV_ITEMS = [
-  { key: 'bzzx', label: '帮助中心', href: '/article/issue' },
-  { key: 'zxzx', label: '资讯中心', href: '/article/news/list?categoryId=zxzx' },
-  { key: 'bzgg', label: '本站公告', href: '/article/news/list?categoryId=bzgg' },
-  { key: 'kfzx', label: '客服中心', href: '/article/news/list?categoryId=kfzx' },
-];
-
-type NavArticle = { articleId: number; articleTitle?: string };
-
-function ArticleSideNav({ navLists }: { navLists: Record<string, NavArticle[]> }) {
-    const t = getServerT();
-  return (
-    <aside className="article-side" style={{ background: '#fff', padding: '20px 24px', boxSizing: 'border-box' }}>
-      <div className="title" style={{ color: '#333', fontSize: 14, fontWeight: 700, height: 24, lineHeight: '24px' }}>{t('文章分类')}</div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {NAV_ITEMS.map((item) => {
-          const list = navLists[item.key] || [];
-          return (
-            <li key={item.key} style={{ lineHeight: '30px', color: '#888', fontSize: 14 }}>
-              <div className="min-title" style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Link href={item.href} className="orange" style={{ color: '#888', textDecoration: 'none' }}>- {item.label}</Link>
-                <Link href={item.href} className="left_more" style={{ fontSize: 12, color: 'var(--pc-primary, #e01222)', textDecoration: 'none' }}>{t('更多 ›')}</Link>
-              </div>
-              {list.length ? (
-                <div className="min-list" style={{ marginLeft: 10 }}>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                    {list.map((article) => (
-                      <li key={article.articleId}>
-                        <Link
-                          href={`/article/news/list?articleId=${article.articleId}`}
-                          className="orange"
-                          style={{ color: '#bbb', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', maxWidth: 214, lineHeight: 2, textDecoration: 'none' }}
-                        >
-                          {article.articleTitle}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-    </aside>
-  );
-}
-
 export default async function ArticleNewsPage({ searchParams }: PageProps) {
     const t = getServerT();
   const articleId = Number(readParam(searchParams?.articleId)) || 0;
@@ -83,9 +37,9 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
     getArticleNewsList({ page: 1, size: 10, categorySn: 'bzgg' }).catch(() => ({ records: [], total: 0 })),
     getArticleNewsList({ page: 1, size: 10, categorySn: 'kfzx' }).catch(() => ({ records: [], total: 0 })),
   ]);
-  const toNav = (data: { records: Array<{ articleId: number; articleTitle?: string }> }): NavArticle[] =>
+  const toNav = (data: { records: Array<{ articleId: number; articleTitle?: string }> }): SideNavArticle[] =>
     data.records.map((item) => ({ articleId: item.articleId, articleTitle: item.articleTitle }));
-  const navLists: Record<string, NavArticle[]> = {
+  const navLists: Record<string, SideNavArticle[]> = {
     bzzx: [],
     zxzx: toNav(zxzxNav),
     bzgg: toNav(bzggNav),

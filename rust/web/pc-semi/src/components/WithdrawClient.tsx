@@ -1,10 +1,30 @@
 'use client';
 
+/**
+ * 余额提现（/member/account/raplytocard）
+ *
+ * 源码对照：view/pc/pages/member/account/Raplytocard.vue
+ * 类名逐条照抄旧版模板，全部落在 `.mp-account-raplyto` 包裹层下（本页 <style scoped> 已被
+ * scripts/gen-member-pages-scss.mjs 抽进 app/member-pages.scss）。
+ *
+ *   .info-row.mp-account-raplyto
+ *     > .title-or-tabs > .tag-and-input > .tig-tabs（MemberTopMenu 五项）
+ *     > .account-raplytocard-content > .form-container > .el-form.form-body
+ *         .el-form-item × N：可用余额 / 提现方式(.card.selected) / 提现至(el-select) /
+ *         InfoCard 的 .tips / 提现姓名 / 银行卡详情 / 提现金额 / 提现说明(.withdraw-desc) / 提交
+ *
+ * 请求层保持原样（config/base、memberCenter、withdrawApply/list、withdrawApply/apply 都未改）。
+ */
+
 import { useEffect, useState } from 'react';
-import { Button, Card, Toast } from '@douyinfe/semi-ui';
+import Link from 'next/link';
+import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import FormatPrice from './FormatPrice';
+import MemberAccountTabs from './MemberAccountTabs';
 
 import { useTranslation } from 'react-i18next';
+
 interface AccountItem {
   accountId: number;
   accountType: number;
@@ -25,7 +45,7 @@ function mask(value?: string): string {
 }
 
 export default function WithdrawClient() {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
   const [type, setType] = useState(1);
   const [accounts, setAccounts] = useState<AccountItem[]>([]);
   const [selected, setSelected] = useState<AccountItem | null>(null);
@@ -87,20 +107,20 @@ export default function WithdrawClient() {
   }, [type]);
 
   const submit = async () => {
-    if (!selected) return Toast.error({ content: '请先添加并选择提现账户' });
+    if (!selected) return Toast.error({ content: t('请先添加并选择提现账户') });
     // 旧版 Raplytocard.vue amountRules：必填 + 0-12300 两位小数 + 不高于可用余额
     const amountText = amount.trim();
-    if (!amountText) return Toast.error({ content: '请输入提现金额' });
+    if (!amountText) return Toast.error({ content: t('请输入提现金额') });
     if (!/^(0|\d{0,9})(\.\d{1,2})?$/.test(amountText)) {
-      return Toast.error({ content: '提现金额必须大于0，且最多保留两位小数' });
+      return Toast.error({ content: t('提现金额必须大于0，且最多保留两位小数') });
     }
     const amountValue = Number(amountText);
-    if (amountValue <= 0) return Toast.error({ content: '提现金额必须大于0，且最多保留两位小数' });
+    if (amountValue <= 0) return Toast.error({ content: t('提现金额必须大于0，且最多保留两位小数') });
     if (amountValue > MAX_WITHDRAW_AMOUNT) {
-      return Toast.error({ content: '提现金额不能高于可用余额' });
+      return Toast.error({ content: t('提现金额不能高于可用余额') });
     }
     if (amountValue > Number(balance || 0)) {
-      return Toast.error({ content: '提现金额不能高于可用余额' });
+      return Toast.error({ content: t('提现金额不能高于可用余额') });
     }
     setSubmitting(true);
     try {
@@ -113,64 +133,161 @@ export default function WithdrawClient() {
         },
         amount: amountValue,
       });
-      Toast.success({ content: '提现申请已提交' });
+      Toast.success({ content: t('提现申请已提交') });
       setAmount('');
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '提现申请失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('提现申请失败') });
     } finally {
       setSubmitting(false);
     }
   };
 
+  const accountPlaceholder = TYPE_LABELS[type] || t('提现');
+
   return (
-    <Card className="member-card withdraw-card" loading={loading}>
-      {!withdrawalEnabled ? (
-        <div className="withdraw-disabled">
-          <p>{t('会员余额提现功能已关闭。')}</p>
-          <a href="/member/account/detail">{t('返回账户余额')}</a>
-        </div>
-      ) : null}
-      <div className="withdraw-balance" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: '#fff' }}>
-        <span>{t('可提现余额')}</span>
-        <b style={{ color: 'var(--price)', fontSize: 20 }}>¥ {balance.toFixed(2)}</b>
-      </div>
-      <div className="withdraw-types">
-        {methods.map((value) => (
-          <button key={value} type="button" className={type === value ? 'is-active' : ''} onClick={() => setType(value)}>{TYPE_LABELS[value]}</button>
-        ))}
-      </div>
+    <div className="info-row mp-account-raplyto">
+      <MemberAccountTabs current="/member/account/raplytocard" />
 
-      {accounts.length ? (
-        <div className="withdraw-accounts">
-          {accounts.map((account) => (
-            <button
-              key={account.accountId}
-              type="button"
-              className={`withdraw-account${selected?.accountId === account.accountId ? ' is-active' : ''}`}
-              onClick={() => setSelected(account)}
-            >
-              <b>{account.accountName || TYPE_LABELS[account.accountType]}</b>
-              <span>{mask(account.accountNo)}</span>
-              {account.bankName ? <small>{account.bankName}</small> : null}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="withdraw-empty">暂无{TYPE_LABELS[type]}账户，请先在卡管理中绑定。</div>
-      )}
+      <div className="account-raplytocard-content">
+        <div className="form-container">
+          {!withdrawalEnabled ? (
+            <div className="empty-method">
+              {t('会员余额提现功能已关闭')}
+              <Link className="font-color ml10" href="/member/account/detail">{t('返回账户明细')}</Link>
+            </div>
+          ) : (
+            <div className="el-form form-body">
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('可用余额')}：</label>
+                <div className="el-form-item__content">
+                  <FormatPrice value={balance} fontSize="16px" className="mp-withdraw-balance" />
+                </div>
+              </div>
 
-      <div className="security-form withdraw-form">
-        <label>{t('提现金额')}</label>
-        <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder={t('请输入提现金额')} inputMode="decimal" />
-        {description ? (
-          <div className="withdraw-desc" dangerouslySetInnerHTML={{ __html: description }} />
-        ) : null}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <Button theme="solid" type="primary" disabled={!accounts.length || !withdrawalEnabled} loading={submitting} onClick={() => void submit()}>{t('提交提现申请')}</Button>
-          <Button onClick={() => setAmount(balance > 0 ? balance.toFixed(2) : '')}>{t('全部提现')}</Button>
-          <Button onClick={() => { window.location.href = '/member/account/cardmanagement'; }}>{t('管理提现账户')}</Button>
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('提现方式')}：</label>
+                <div className="el-form-item__content">
+                  {methods.length ? (
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {methods.map((value) => (
+                        <div
+                          key={value}
+                          className={`card${type === value ? ' selected' : ''}`}
+                          onClick={() => setType(value)}
+                        >
+                          <div>{t(TYPE_LABELS[value] || '提现')}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-method">{t('暂无可用提现方式，请联系客服')}</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('提现至')}：</label>
+                <div className="el-form-item__content">
+                  <div className="el-select">
+                    <select
+                      className="el-select__wrapper"
+                      value={selected?.accountNo || ''}
+                      onChange={(event) => {
+                        const next = accounts.find((item) => item.accountNo === event.target.value) || null;
+                        setSelected(next);
+                      }}
+                      aria-label={`${t('请选择')}${accountPlaceholder}${t('账号')}`}
+                    >
+                      <option value="">{`${t('请选择')}${accountPlaceholder}${t('账号')}`}</option>
+                      {accounts.map((item) => (
+                        <option key={item.accountId} value={item.accountNo || ''}>
+                          {mask(item.accountNo)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="el-form-item">
+                <label className="el-form-item__label" />
+                <div className="el-form-item__content">
+                  <div className="tips">
+                    {`${t('当前')}${accountPlaceholder}${t('账号已不用')}`}？
+                    <Link className="font-color" href="/member/account/cardmanagement" style={{ cursor: 'pointer' }}>
+                      {t('点击这里，去添加新的')}
+                    </Link>
+                    {accountPlaceholder}{t('账号')}。
+                  </div>
+                </div>
+              </div>
+
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('提现姓名')}：</label>
+                <div className="el-form-item__content">
+                  <input
+                    className="el-input__inner"
+                    value={selected?.accountName || ''}
+                    readOnly
+                    placeholder={`${t('请选择')}${accountPlaceholder}${t('账号')}`}
+                  />
+                </div>
+              </div>
+
+              {type === 1 ? (
+                <div className="el-form-item">
+                  <label className="el-form-item__label">{t('银行卡详情')}：</label>
+                  <div className="el-form-item__content">
+                    <textarea
+                      className="el-textarea__inner"
+                      value={selected?.bankName || ''}
+                      readOnly
+                      rows={4}
+                      placeholder={t('银行卡详情')}
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('提现金额')}：</label>
+                <div className="el-form-item__content">
+                  <input
+                    className="el-input__inner"
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value)}
+                    placeholder={t('提现金额')}
+                    inputMode="decimal"
+                  />
+                </div>
+              </div>
+
+              {description ? (
+                <div className="el-form-item withdraw-desc-item">
+                  <label className="el-form-item__label">{t('提现说明')}：</label>
+                  <div className="el-form-item__content">
+                    <div className="withdraw-desc" dangerouslySetInnerHTML={{ __html: description }} />
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="el-form-item">
+                <label className="el-form-item__label" />
+                <div className="el-form-item__content">
+                  <button
+                    type="button"
+                    className="mp-el-button mp-el-button--primary mp-el-button--large"
+                    disabled={!accounts.length || submitting || loading}
+                    onClick={() => void submit()}
+                  >
+                    {t('提交')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

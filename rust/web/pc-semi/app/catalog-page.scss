@@ -1,0 +1,311 @@
+/* 第 30 轮：catalog-page —— 旧版 .vue <style> 原样搬运（生成文件，勿手改；改 scripts/gen-page-groups-scss.mjs） */
+/* catalog-search-shop-list — 源码对照 pages/search/components/SearchShopList.vue */
+.pg-catalog-search-shop-list {
+
+    .search-shop-panel {
+        width: 100%;
+        margin-top: 12px;
+    }
+
+    .shop-sort-tabs {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+
+
+        .tab-item {
+            position: relative;
+            padding: 8px 0;
+            font-size: 16px;
+            line-height: 20px;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+
+            &:hover,
+            &.active {
+                color: var(--general);
+                font-weight: 700;
+            }
+
+
+
+
+
+
+
+
+
+
+        }
+    }
+
+    .shop-list-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 200px;
+        position: relative;
+    }
+
+    .shop-row {
+        display: flex;
+        align-items: stretch;
+
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 24px;
+
+        &:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+    }
+
+    .el-page {
+        display: flex;
+        justify-content: flex-end;
+        padding: 20px 0;
+    }
+
+    .search-shop-panel__loading {
+        min-height: 320px;
+    }
+}
+
+/* catalog-search-skeleton — 源码对照 pages/search/components/SearchSkeleton.vue */
+.pg-catalog-search-skeleton {
+
+    .search-page-skeleton__category-row,
+    .search-page-skeleton__tabs-row,
+    .search-page-skeleton__sort-row,
+    .search-page-skeleton__goods-grid {
+        display: grid;
+    }
+
+    .search-page-skeleton__category-row {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+        padding: 16px 0 24px;
+    }
+
+    .search-page-skeleton__category-card,
+    .search-page-skeleton__tab,
+    .search-page-skeleton__pager,
+    .search-page-skeleton__sort-chip,
+    .search-page-skeleton__goods-card,
+    .search-page-skeleton__category-image,
+    .search-page-skeleton__category-text,
+    .search-page-skeleton__goods-image,
+    .search-page-skeleton__goods-line,
+    .search-page-skeleton__price,
+    .search-page-skeleton__button {
+        position: relative;
+        overflow: hidden;
+        background: #f3f4f6;
+    }
+
+    .search-page-skeleton__category-card,
+    .search-page-skeleton__goods-card {
+        background: #fff;
+        border: 1px solid #f0f0f0;
+        border-radius: 12px;
+    }
+
+    .search-page-skeleton__category-card::after,
+    .search-page-skeleton__tab::after,
+    .search-page-skeleton__pager::after,
+    .search-page-skeleton__sort-chip::after,
+    .search-page-skeleton__goods-card::after,
+    .search-page-skeleton__category-image::after,
+    .search-page-skeleton__category-text::after,
+    .search-page-skeleton__goods-image::after,
+    .search-page-skeleton__goods-line::after,
+    .search-page-skeleton__price::after,
+    .search-page-skeleton__button::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.72) 50%, rgba(255, 255, 255, 0) 100%);
+        animation: search-page-skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    .search-page-skeleton__category-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 48px;
+        padding: 4px 12px 4px 4px;
+    }
+
+    .search-page-skeleton__category-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .search-page-skeleton__category-text {
+        width: 70%;
+        height: 14px;
+        border-radius: 999px;
+    }
+
+    .search-page-skeleton__tabs-row {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 24px;
+        padding-bottom: 20px;
+    }
+
+    .search-page-skeleton__tabs-left {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .search-page-skeleton__tab {
+        width: 92px;
+        height: 24px;
+        border-radius: 999px;
+    }
+
+    .search-page-skeleton__tab--short {
+        width: 64px;
+    }
+
+    .search-page-skeleton__pager {
+        width: 110px;
+        height: 24px;
+        border-radius: 999px;
+    }
+
+    .search-page-skeleton__sort-row {
+        grid-template-columns: repeat(6, 112px);
+        gap: 10px;
+        padding-bottom: 24px;
+    }
+
+    .search-page-skeleton__sort-chip {
+        height: 32px;
+        border-radius: 8px;
+    }
+
+    .search-page-skeleton__goods-grid {
+        grid-template-columns: repeat(var(--search-grid-columns, 5), minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .search-page-skeleton__goods-card {
+        padding: 12px;
+        border-radius: var(--search-item-radius, 12px);
+    }
+
+    .search-page-skeleton__goods-image {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: inherit;
+    }
+
+    .search-page-skeleton__goods-line {
+        height: 14px;
+        border-radius: 999px;
+        margin-top: 12px;
+    }
+
+    .search-page-skeleton__goods-line--title {
+        width: 82%;
+        margin-top: 16px;
+    }
+
+    .search-page-skeleton__goods-line--short {
+        width: 56%;
+    }
+
+    .search-page-skeleton__goods-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .search-page-skeleton__price {
+        width: 88px;
+        height: 20px;
+        border-radius: 999px;
+    }
+
+    .search-page-skeleton__button {
+        width: 72px;
+        height: 32px;
+        border-radius: 999px;
+    }
+
+    @keyframes search-page-skeleton-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+}
+
+/* catalog-search-tag — 源码对照 pages/search/components/Tag.vue */
+.pg-catalog-search-tag {
+
+    .tag {
+        width: fit-content;
+        max-width: 214px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: #f7f8fc;
+        padding: 8px 12px;
+        font-size: 14px;
+        border-radius: 4px;
+        color: #505259;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        border: 1px solid #f7f8fc;
+        &.active {
+            border: 0.5px solid var(--main-bg);
+            background-color: var(--primary-light-9);
+            color: var(--main-bg);
+        }
+        &:hover {
+            color: var(--main-bg);
+            border: 1px solid #f7f8fc;
+        }
+    }
+}
+
+/* catalog-search-side — 源码对照 pages/search/components/SearchLayoutSide.vue */
+.pg-catalog-search-side {
+
+    .container {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        max-width: var(--pc-home-max-width, 1600px);
+        min-width: var(--pc-home-min-width, 1264px);
+        padding: 0 var(--pc-home-padding-x, 38px);
+        box-sizing: border-box;
+        margin-top: 30px;
+
+        .left-wrap {
+            flex-shrink: 0;
+            width: 240px;
+        }
+
+        .right-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .goods-list-wrap {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+}
+

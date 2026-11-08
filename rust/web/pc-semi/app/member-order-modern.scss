@@ -1,0 +1,313 @@
+/**
+ * 我的订单 · Semi Design 现代化样式（.mol 命名空间）
+ *
+ * 设计语言：Semi Design 令牌（--semi-color-*），卡片化订单分组，
+ * 白卡 + 8~10px 圆角 + 1px 浅描边 + hover 阴影，状态用 Semi Tag 语义色。
+ * 与旧版 100% 移植样式（app/member-order.scss 的 .memberOrder 四段式）并存：
+ * 本页组件已切换到本文件；旧类名保留用于回滚。
+ */
+
+.mol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- 状态态（未登录 / 空态） ---------- */
+.mol--state {
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 320px;
+  background: var(--semi-color-bg-2, #fff);
+  border-radius: 10px;
+}
+
+/* ---------- 工具条 ---------- */
+.mol-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding: 16px 0 0;
+
+  /* Semi button 型 Tab 自带的分段底色/内边距在本工具条里去掉，保持一行紧凑 */
+  .semi-tabs .semi-tabs-bar {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .semi-tabs-bar-button .semi-tabs-tab {
+    margin: 0;
+  }
+
+  .mol-search .semi-input-wrapper {
+    border-radius: 8px;
+  }
+}
+
+.mol-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mol-tab__num {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--semi-color-fill-2);
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  font-weight: 400;
+}
+
+.semi-tabs-tab-active .mol-tab__num {
+  background: var(--semi-color-primary);
+  color: #fff;
+}
+
+/* ---------- 卡片列表（垂直间距在这里统一控制） ---------- */
+.mol-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- 骨架屏 ---------- */
+.mol-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mol-skeleton__card {
+  background: var(--semi-color-bg-2, #fff);
+  border: 1px solid var(--semi-color-border, #e8e8e8);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ---------- 订单卡片 ---------- */
+.mol-card {
+  background: var(--semi-color-bg-2, #fff);
+  border: 1px solid #eef0f3;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(15, 18, 34, 0.06);
+  }
+}
+
+/* 商品行末行与卡片底部留出呼吸感 */
+.mol-card__items .mol-item:last-child {
+  padding-bottom: 16px;
+}
+
+.mol-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fafbfc;
+  border-bottom: 1px solid #f2f3f5;
+}
+
+.mol-card__head-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.mol-card__sn {
+  color: var(--semi-color-text-0);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    color: var(--semi-color-primary);
+  }
+}
+
+.mol-card__time {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ---------- 商品行 ---------- */
+.mol-card__items {
+  display: flex;
+  flex-direction: column;
+}
+
+.mol-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+
+  & + .mol-item {
+    border-top: 1px dashed #f2f3f5;
+  }
+}
+
+.mol-item__picwrap {
+  flex: none;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #f2f3f5;
+}
+
+.mol-item__pic {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  background: var(--semi-color-fill-0);
+}
+
+.mol-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mol-item__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--semi-color-text-0);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+
+  &:hover .mol-item__name-text {
+    color: var(--semi-color-primary);
+  }
+}
+
+.mol-item__name-text {
+  transition: color 0.15s ease;
+}
+
+.mol-item__tag {
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+.mol-item__sku {
+  margin-top: 4px;
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.mol-item__right {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+}
+
+.mol-item__price {
+  color: var(--semi-color-text-0);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mol-item__qty {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+}
+
+/* ---------- 取消原因 ---------- */
+.mol-card__note {
+  margin: 0 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--semi-color-fill-0);
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+/* ---------- 底部：合计 + 操作 ---------- */
+.mol-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  border-top: 1px solid #f2f3f5;
+}
+
+.mol-card__total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--semi-color-text-1);
+  font-size: 13px;
+}
+
+.mol-card__count {
+  color: var(--semi-color-text-2);
+}
+
+.mol-card__sum b,
+.mol-presale__row b {
+  color: var(--semi-color-text-0);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mol-presale {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mol-presale__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+}
+
+.mol-presale__row--due b {
+  color: var(--semi-color-danger);
+}
+
+.mol-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- 分页 ---------- */
+.mol-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 0 8px;
+}

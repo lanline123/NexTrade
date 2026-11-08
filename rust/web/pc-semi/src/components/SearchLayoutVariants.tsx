@@ -189,7 +189,7 @@ export function SearchSideLayout({ ctx }: { ctx: SearchLayoutContext }) {
     return `${ctx.listPath}${ctx.buildQuery({ brand: next.join(',') || undefined }, 1)}`;
   };
   return (
-    <div className="pc-search-side-layout">
+    <div className="pg-catalog-search-side pc-search-side-layout">
       <aside className="pc-search-side-filter">
         <div className="pc-search-side-filter__head">
           <h3>{t('筛选')}</h3>
@@ -306,9 +306,11 @@ export function SearchClassicLayout({ ctx }: { ctx: SearchLayoutContext }) {
           {ctx.esAttrs.map((attr) => (
             <div key={String(attr.name)} className="pc-search-filter-row">
               <span className="pc-search-filter-row__label">{attr.name}：</span>
-              <div className="pc-search-filter-row__values">
+              {/* 旧版 pages/search/components/Tag.vue：<div class="tag" :class="{active}">；
+                  .pg-catalog-search-tag 是该 .vue 的 <style> 作用域替身 */}
+              <div className="pg-catalog-search-tag pc-search-filter-row__values">
                 {(attr.values || []).map((option) => (
-                  <Link key={String(option.value)} href={ctx.toggleAttr(String(attr.name), String(option.value))} className={ctx.attrSelected(String(attr.name), String(option.value)) ? 'is-active' : ''}>
+                  <Link key={String(option.value)} href={ctx.toggleAttr(String(attr.name), String(option.value))} className={`tag${ctx.attrSelected(String(attr.name), String(option.value)) ? ' active' : ''}`}>
                     {option.value}
                   </Link>
                 ))}

@@ -40,6 +40,8 @@ export interface ProductBlocks {
   shopCard: ReactNode;
   /** 商品画廊（主图 + 缩略图） */
   gallery: ReactNode;
+  /** 跨境版专用：主图右上角的收藏心形（源码 overseas/Thumb.vue:39 .collection） */
+  collectButton?: ReactNode;
   /** 画廊下方：商品编号 / 收藏 / 素材下载（经典版） */
   galleryMeta: ReactNode;
   /** 标签 / 商品名 / 卖点 */
@@ -93,39 +95,56 @@ interface OverseasLayoutProps extends LayoutProps {
 
 /**
  * 经典版（源码 .container，第 357-500 行）
- * CommonCategoryNavigation → product_details 左右两栏 → detail_main 左侧栏 + ProductDetailTabs。
+ *
+ * 逐行对照 Product.vue：358 `.container` → 360 CommonCategoryNavigation（crumb）→ 377 `.shop-info`
+ * → 380 `.product_details.flex.justify-between`
+ *      → 381 `.extra_details` → 382 `.thumb`（ProductThumb）+ 385 `.share_wish.flex`
+ *          （386 `.product-number` / 388 `.product-tools` → 390 `.iconfont-pc.collect.ico-color`）
+ *      → 400 `.details` → 415 `<div>` → 416 `.product_name` + 428 ProductInfo(`.product_info`)
+ * → 454 `.detail_main.flex` → 456 `.lyecs_side`（竞品/相关文章）+ 489 ProductDetailTabs
+ *
+ * 注意：`.shop-box` / `.btn-box` / `.shareWidth` / `.shareTitle` / `.shareGold` 在旧版里是
+ * 被注释掉的模板块（457-477、361-376、387 行），所以这里不渲染。
  */
 export function ClassicLayout({ blocks }: LayoutProps) {
   return (
-    <div className="pdp-style pdp-style-old">
-      <div className="pds-container pds-container--old container">
+    <div className="pdp-style pdp-style-old mp-item">
+      <div className="container">
         {blocks.crumb}
         {blocks.shopCard}
 
-        <div className="pds-old__product">
-          <div className="pds-old__extra">
-            {blocks.gallery}
+        <div className="product_details flex justify-between">
+          <div className="extra_details">
+            <div className="thumb">{blocks.gallery}</div>
             {blocks.galleryMeta}
           </div>
-          <div className="pds-old__details">
-            {blocks.heading}
-            {blocks.promos}
-            {blocks.price}
-            {blocks.attrs}
-            {blocks.b2bTab}
-            {blocks.sku}
-            {blocks.extraAttrBlock}
-            {blocks.wholesale}
-            {blocks.qty}
-            {blocks.actions}
-            {blocks.tips}
-            {blocks.services}
+          <div className="details">
+            <div className="mp-product-info">
+              {blocks.heading}
+              <div className="product_info">
+                {blocks.promos}
+                {blocks.price}
+                {blocks.b2bTab}
+                {/* 旧版 ProductInfo 的 .actions 包裹规格/数量/属性/购买按钮，
+                    生成样式（.number-box/.add_cart/.buy-btn）都嵌在 .actions 下 */}
+                <div className="actions">
+                  {blocks.sku}
+                  {blocks.extraAttrBlock}
+                  {blocks.attrs}
+                  {blocks.wholesale}
+                  {blocks.qty}
+                  {blocks.actions}
+                </div>
+                {blocks.tips}
+                {blocks.services}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="pds-old__main">
-          <aside className="pds-old__side">{blocks.sideRail}</aside>
-          <div className="pds-old__tabs">{blocks.tabs}</div>
+        <div className="detail_main flex">
+          <div className="lyecs_side">{blocks.sideRail}</div>
+          {blocks.tabs}
         </div>
 
         {blocks.recommend}
@@ -161,18 +180,27 @@ export function ModernLayout({ blocks }: LayoutProps) {
           </div>
           <div className="pds-new__right">
             <div className="pds-new__scroll">
-              <div className="pds-new__details">
-                {blocks.heading}
-                {blocks.promos}
-                {blocks.price}
-                {blocks.attrs}
-                {blocks.b2bTab}
-                {blocks.sku}
-                {blocks.extraAttrBlock}
-                {blocks.wholesale}
-                {blocks.qty}
-                {blocks.tips}
-                {blocks.services}
+              {/* 旧版 container-new 的信息区是 .product_info.new-ui（ProductInfo.vue 根），
+                  生成样式挂在 .mp-product-info 下，这里对齐同样的包裹结构 */}
+              <div className="pds-new__details mp-product-info">
+                <div className="product_info new-ui">
+                  {blocks.heading}
+                  {blocks.promos}
+                  {blocks.price}
+                  {/* 原版 ProductInfo.vue 的 .actions 包裹层（规格 / 数量 / 属性 / 服务），
+                      core-pages.scss 中 .actions .number-box / .actions .product-sku 等规则
+                      都依赖这一层；缺了它数量行会竖排、SKU 与属性间距全丢。 */}
+                  <div className="actions">
+                    {blocks.attrs}
+                    {blocks.b2bTab}
+                    {blocks.sku}
+                    {blocks.extraAttrBlock}
+                    {blocks.wholesale}
+                    {blocks.qty}
+                    {blocks.tips}
+                    {blocks.services}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="pds-new__actions" id="float-buy-bar">{blocks.actions}</div>
@@ -204,7 +232,12 @@ export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: Overseas
 
         <div className="pds-os__product">
           <div className="pds-os__left">
-            {blocks.gallery}
+            {/* 源码 overseas/Thumb.vue .flex.image_wid：左侧竖排缩略图 + 624px 主图，
+                收藏心形浮在主图右上角，故画廊外层需要定位上下文 */}
+            <div className="pds-os__gallery-wrap">
+              {blocks.gallery}
+              {blocks.collectButton}
+            </div>
 
             <nav className="pds-os__anchors" aria-label={t('商品详情锚点')}>
               {blocks.sections.map((section) => (
@@ -229,18 +262,27 @@ export function OverseasLayout({ blocks, activeAnchor, onAnchorClick }: Overseas
 
           <div className="pds-os__right">
             <div className="pds-os__scroll">
-              <div className="pds-os__details">
-                {blocks.heading}
-                {blocks.promos}
-                {blocks.price}
-                {blocks.attrs}
-                {blocks.b2bTab}
-                {blocks.sku}
-                {blocks.extraAttrBlock}
-                {blocks.wholesale}
-                {blocks.qty}
-                {blocks.tips}
-                {blocks.services}
+              {/* 旧版 container-overseas 的信息区是独立组件 overseas/ProductInfo.vue（根 .product_info），
+                  其样式已由 gen-core-pages 生成到 .mp-product-info-overseas 下，这里对齐包裹结构 */}
+              <div className="pds-os__details mp-product-info-overseas">
+                <div className="product_info">
+                  {blocks.heading}
+                  {blocks.promos}
+                  {blocks.price}
+                  {/* 对齐原版 overseas/ProductInfo.vue 第 258 行 .actions 包裹层：
+                      core-pages.scss 的 .actions .number-box{display:flex} 等规则依赖它，
+                      缺了会让「数量」标题与步进器上下堆叠。 */}
+                  <div className="actions">
+                    {blocks.attrs}
+                    {blocks.b2bTab}
+                    {blocks.sku}
+                    {blocks.extraAttrBlock}
+                    {blocks.wholesale}
+                    {blocks.qty}
+                    {blocks.tips}
+                    {blocks.services}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="pds-os__actions" id="overseas-product-buy-actions">{blocks.actions}</div>

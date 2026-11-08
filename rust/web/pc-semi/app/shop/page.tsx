@@ -2,17 +2,39 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeaderWithData';
 import PcFooter from '@/components/PcFooter';
+import ShopInfoCard from '@/components/ShopInfoCard';
+import ShopProductList from '@/components/ShopProductList';
 import { getPcHeader, getShopList, type ShopListItem } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
+/**
+ * 店铺街 /shop（兼容路由 /shop/list）。
+ * 源码对照：view/pc/pages/shop/List.vue
+ * 样式：app/shop-page.scss → .pg-shop-list-page
+ *
+ * 旧版结构（List.vue <template>）：
+ *   .shop-list-page
+ *     > 页头（CommonPageHeader defaultSearchType="shop" + CommonHeader "店铺街"）
+ *     > CommonPageContainer > .container
+ *         > .filter-tabs > .tab-item(.active) 综合 / 评分
+ *         > .shop-list-wrapper
+ *             > .shop-list-container > .shop-row × N
+ *                 > ShopInfo（.shop-info-card）+ ShopList（.shop-product-list）
+ *             > .el-page > 分页
+ *             > el-empty（暂无店铺数据）
+ *     > 页脚
+ *
+ * 与旧版唯一保留的差异：旧版店铺搜索框由页头 defaultSearchType="shop" 承担，
+ * 我们的 PcHeader 目前没有把该开关透传下去，所以页内保留一个纯表单搜索（不加自造类名）。
+ */
 export async function generateMetadata(): Promise<Metadata> {
   const t = getServerT();
   return {
-  title: t('店铺街 · 万物新生'),
-  description: t('平台入驻店铺列表，查看店铺热销商品。'),
-};
+    title: t('店铺街 · 万物新生'),
+    description: t('平台入驻店铺列表，查看店铺热销商品。'),
+  };
 }
 
 interface PageProps {
@@ -23,17 +45,12 @@ function readParam(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] || '' : value || '';
 }
 
-function formatFans(count?: number): string {
-  const n = Number(count || 0);
-  return n > 999999 ? `${Math.floor(n / 100) / 100}w` : String(n);
-}
-
 function shopHref(shop: ShopListItem): string {
   return `/shop/${shop.shopId}`;
 }
 
 export default async function ShopListPage({ searchParams }: PageProps) {
-    const t = getServerT();
+  const t = getServerT();
   const page = Math.max(1, Number(readParam(searchParams?.page)) || 1);
   const size = 10;
   const keyword = readParam(searchParams?.keyword);
@@ -52,67 +69,77 @@ export default async function ShopListPage({ searchParams }: PageProps) {
   };
 
   return (
-    <div className="shop-list-page">
-      <PcHeader config={header as any} />
-      <main className="shop-list-main">
-        <div className="shop-list-container">
-          <div className="shop-list-toolbar">
-            <div className="shop-list-tabs">
-              <Link href={hrefFor(1, '')} className={!sort ? 'is-active' : ''}>{t('综合')}</Link>
-              <Link href={hrefFor(1, 'shopStar')} className={sort === 'shopStar' ? 'is-active' : ''}>{t('评分')}</Link>
-            </div>
-            <form action="/shop" method="get" className="shop-list-search">
+    <div className="pg-shop-list-page">
+      <div className="shop-list-page">
+        <PcHeader config={header as any} />
+        <main className="container">
+          <div className="filter-tabs">
+            <Link href={hrefFor(1, '')} className={`tab-item${!sort ? ' active' : ''}`}>
+              {t('综合')}
+            </Link>
+            <Link href={hrefFor(1, 'shopStar')} className={`tab-item${sort === 'shopStar' ? ' active' : ''}`}>
+              {t('评分')}
+            </Link>
+            <form action="/shop" method="get">
               <input name="keyword" defaultValue={keyword} placeholder={t('搜索店铺')} />
               {sort ? <input type="hidden" name="sort" value={sort} /> : null}
               <button type="submit">{t('搜索')}</button>
             </form>
           </div>
 
-          {data.records.length ? (
-            <div className="shop-rows">
-              {data.records.map((shop) => (
-                <article className="shop-row" key={shop.shopId}>
-                  <div className="shop-info-card">
-                    <Link href={shopHref(shop)} className="shop-logo" target="_blank">
-                      <img src={shop.shopLogo || ''} alt={shop.shopTitle || ''} loading="lazy" />
-                    </Link>
-                    <div className="shop-content">
-                      <Link href={shopHref(shop)} target="_blank" className="shop-name">{shop.shopTitle || t('未命名店铺')}</Link>
-                      <div className="shop-rating-row">
-                        <span>{shop.shopStar ? `${Number(shop.shopStar).toFixed(1)} 分` : '暂无评分'}</span>
-                        <span>{formatFans(shop.collectCount)} 粉丝</span>
-                      </div>
-                      <Link href={shopHref(shop)} target="_blank" className="enter-shop-btn">{t('进入店铺')}</Link>
+          <div className="shop-list-wrapper">
+            {data.records.length ? (
+              <>
+                <div className="shop-list-container">
+                  {data.records.map((shop) => (
+                    <div className="shop-row" key={shop.shopId}>
+                      <ShopInfoCard item={shop} />
+                      <ShopProductList products={shop.listingProduct || []} />
                     </div>
-                  </div>
-                  <div className="shop-product-list">
-                    {(shop.listingProduct || []).slice(0, 6).map((product) => (
-                      <Link className="shop-product-item" key={`${shop.shopId}-${product.productId}`} href={`/product/${product.productId || ''}`} target="_blank">
-                        <div className="shop-product-img">
-                          <img src={product.picThumb || product.picUrl || ''} alt={product.productName || ''} loading="lazy" />
-                        </div>
-                        <div className="shop-product-price">¥ {Number(product.productPrice || 0).toFixed(2)}</div>
-                      </Link>
-                    ))}
-                    {!(shop.listingProduct || []).length ? <div className="shop-product-empty">{t('暂无商品')}</div> : null}
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="shop-list-empty">{t('暂无店铺数据')}</div>
-          )}
+                  ))}
+                </div>
 
-          {data.records.length > 0 && pages > 1 ? (
-            <nav className="shop-pagination">
-              {page > 1 ? <Link href={hrefFor(page - 1)}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
-              <span>{page} / {pages}</span>
-              {page < pages ? <Link href={hrefFor(page + 1)}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
-            </nav>
-          ) : null}
-        </div>
-      </main>
-      <PcFooter />
+                {pages > 1 ? (
+                  <div className="el-page">
+                    <nav className="el-pagination">
+                      {page > 1 ? (
+                        <a href={hrefFor(page - 1)} className="btn-prev">
+                          {'<'}
+                        </a>
+                      ) : (
+                        <span className="btn-prev disabled">{'<'}</span>
+                      )}
+                      {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
+                        const next = index + 1;
+                        return next === page ? (
+                          <span className="number active" key={next}>
+                            {next}
+                          </span>
+                        ) : (
+                          <a href={hrefFor(next)} className="number" key={next}>
+                            {next}
+                          </a>
+                        );
+                      })}
+                      {pages > 8 ? <span className="more">…</span> : null}
+                      {page < pages ? (
+                        <a href={hrefFor(page + 1)} className="btn-next">
+                          {'>'}
+                        </a>
+                      ) : (
+                        <span className="btn-next disabled">{'>'}</span>
+                      )}
+                    </nav>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <div className="el-empty">{t('暂无店铺数据')}</div>
+            )}
+          </div>
+        </main>
+        <PcFooter />
+      </div>
     </div>
   );
 }

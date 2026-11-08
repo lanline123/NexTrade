@@ -67,6 +67,9 @@ export default function SearchAllFilterPanel({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  /* 旧版 SortFilter.vue：filterPanelTabsRef + showPanelTabsLeftArrow / showPanelTabsRightArrow */
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const [tabArrow, setTabArrow] = useState({ left: false, right: false });
 
   const selectedBrandSet = useMemo(() => new Set(selectedBrands.filter(Boolean)), [selectedBrands]);
 
@@ -134,6 +137,32 @@ export default function SearchAllFilterPanel({
     }
   };
 
+  /** 旧版 SortFilter.vue 的 updatePanelTabsArrows：标签条能不能左右滚 */
+  const measureTabs = () => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const left = el.scrollLeft > 1;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setTabArrow((current) => (current.left === left && current.right === right ? current : { left, right }));
+  };
+
+  /** 旧版 scrollPanelTabs：点箭头左右滚一段 */
+  const scrollTabs = (direction: number) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * Math.max(160, el.clientWidth * 0.6), behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (!visible) return undefined;
+    const id = window.setTimeout(measureTabs, 0);
+    window.addEventListener('resize', measureTabs);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener('resize', measureTabs);
+    };
+  }, [visible, sections]);
+
   /** 生成品牌 / 属性的切换链接 */
   const buildToggleHref = (section: PanelSection, optionKey: string) => {
     const params = new URLSearchParams(baseQuery);
@@ -182,57 +211,94 @@ export default function SearchAllFilterPanel({
 
   return (
     <>
-      <div className="pc-search-filter-trigger-wrap">
-        <button
-          type="button"
-          className={`pc-search-filter-trigger${visible || selectedCount > 0 ? ' is-active' : ''}`}
-          onClick={() => setVisible((current) => !current)}
-        >
+      <div
+        role="button"
+        tabIndex={0}
+        className={`sort-item sort-filter__trigger${visible || selectedCount > 0 ? ' active' : ''}`}
+        onClick={() => setVisible((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') setVisible((current) => !current);
+        }}
+      >
+        <div className="sort-name">
+          <span className="sort-filter__trigger-icon" aria-hidden />
           <span>{t('筛选')}</span>
-          {selectedCount > 0 ? <span className="pc-search-filter-trigger__badge">{selectedCount}</span> : null}
-        </button>
+        </div>
+        {selectedCount > 0 ? <span className="sort-filter__badge">{selectedCount}</span> : null}
       </div>
 
-      {visible ? <div className="pc-search-filter-panel__mask" onClick={() => setVisible(false)} /> : null}
+      {visible ? <div className="sort-filter-panel-mask" onClick={() => setVisible(false)} /> : null}
 
       {visible ? (
-        <div className="pc-search-filter-panel" ref={panelRef}>
-          <div className="pc-search-filter-panel__header">
-            <div className="pc-search-filter-panel__title">{t('全部筛选')}</div>
-            <button type="button" className="pc-search-filter-panel__close" onClick={() => setVisible(false)} aria-label={t('关闭')}>
+        <div className="sort-filter-panel" ref={panelRef}>
+          <div className="sort-filter-panel__header">
+            <div className="sort-filter-panel__title">{t('全部筛选')}</div>
+            <button type="button" className="sort-filter-panel__close" onClick={() => setVisible(false)} aria-label={t('关闭')}>
               ×
             </button>
           </div>
 
           {sections.length ? (
-            <div className="pc-search-filter-panel__tabs">
-              {sections.map((section) => (
-                <button
-                  key={section.key}
-                  type="button"
-                  data-tab-key={section.key}
-                  className={`pc-search-filter-panel__tab${activeTab === section.key ? ' is-active' : ''}`}
-                  onClick={() => scrollToSection(section.key)}
+            <div className="sort-filter-panel__tabs-wrapper">
+              {tabArrow.left ? (
+                <div
+                  className="filter-category__arrow filter-category__arrow--left"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => scrollTabs(-1)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') scrollTabs(-1);
+                  }}
                 >
-                  {section.title}
-                </button>
-              ))}
+                  <span className="filter-category__arrow-btn">
+                    <span className="tig-icon filter-category__arrow-icon filter-category__arrow-icon--flip" />
+                  </span>
+                </div>
+              ) : null}
+              <div className="sort-filter-panel__tabs" ref={tabsRef} onScroll={measureTabs}>
+                {sections.map((section) => (
+                  <button
+                    key={section.key}
+                    type="button"
+                    data-tab-key={section.key}
+                    className={`sort-filter-panel__tab${activeTab === section.key ? ' active' : ''}`}
+                    onClick={() => scrollToSection(section.key)}
+                  >
+                    <span>{section.title}</span>
+                  </button>
+                ))}
+              </div>
+              {tabArrow.right ? (
+                <div
+                  className="filter-category__arrow filter-category__arrow--right"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => scrollTabs(1)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') scrollTabs(1);
+                  }}
+                >
+                  <span className="filter-category__arrow-btn">
+                    <span className="tig-icon filter-category__arrow-icon" />
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
-          <div className="pc-search-filter-panel__body" ref={bodyRef}>
+          <div className="sort-filter-panel__body" ref={bodyRef}>
             {sections.map((section) => {
               const isExpanded = expanded[section.key];
               const visibleOptions = isExpanded ? section.options : section.options.slice(0, collapsedCount);
               return (
-                <section className="pc-search-filter-panel__section" key={section.key} data-section-key={section.key}>
-                  <div className="pc-search-filter-panel__section-title">{section.title}</div>
-                  <div className="pc-search-filter-panel__options">
+                <section className="sort-filter-panel__section" key={section.key} data-section-key={section.key}>
+                  <div className="sort-filter-panel__section-title">{section.title}</div>
+                  <div className="sort-filter-panel__options">
                     {visibleOptions.map((option) => (
                       <Link
                         key={option.key}
                         href={buildToggleHref(section, option.key)}
-                        className={`pc-search-filter-panel__option${option.active ? ' is-active' : ''}`}
+                        className={`sort-filter-panel__option${option.active ? ' active' : ''}`}
                       >
                         {option.label}
                       </Link>
@@ -241,22 +307,25 @@ export default function SearchAllFilterPanel({
                   {section.options.length > collapsedCount ? (
                     <button
                       type="button"
-                      className="pc-search-filter-panel__toggle"
+                      className="sort-filter-panel__toggle"
                       onClick={() => setExpanded((current) => ({ ...current, [section.key]: !current[section.key] }))}
                     >
                       {isExpanded ? t('收起') : t('展开全部')}
+                      <span
+                        className={`tig-icon sort-filter-panel__toggle-arrow${isExpanded ? ' sort-filter-panel__toggle-arrow--open' : ''}`}
+                      />
                     </button>
                   ) : null}
                 </section>
               );
             })}
-            {!sections.length ? <div className="pc-search-filter-panel__empty">{t('暂无筛选项')}</div> : null}
+            {!sections.length ? <div className="sort-filter-panel__empty">{t('暂无筛选项')}</div> : null}
           </div>
 
-          <div className="pc-search-filter-panel__footer">
+          <div className="sort-filter-panel__footer">
             <Link
               href={resetHref}
-              className={`pc-search-filter-panel__reset${selectedCount === 0 ? ' is-disabled' : ''}`}
+              className={`sort-filter-panel__reset${selectedCount === 0 ? ' is-disabled' : ''}`}
               aria-disabled={selectedCount === 0}
             >
               {t('重置筛选')}

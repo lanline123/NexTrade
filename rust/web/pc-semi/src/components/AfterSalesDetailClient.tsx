@@ -171,7 +171,6 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
 
   const status = Number(detail?.status ?? -1);
   const statusSubText = showCountdown ? '' : String(detail?.statusDesc || '').trim() || fallbackSubText(status);
-  const canFeedback = !!detail && status !== 6 && status !== 7;
 
   const cancel = () => {
     if (!id) return;
@@ -251,7 +250,7 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
     }
   };
 
-  if (loading) return <Card className="cart-state">{t('售后详情加载中...')}</Card>;
+  if (loading) return <div className="log-return-content"></div>;
   if (needLogin) {
     return (
       <Card className="cart-state">
@@ -268,87 +267,113 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
   const refund = detail.refund;
 
   return (
-    <div className="member-return-loginfo">
-      {detail.returnGoodsTip ? <div className="return-goods-tip">{detail.returnGoodsTip}</div> : null}
-
+    <>
+      {/* LogInfo.vue:20-24 —— 提示条是 .info-row 下的第二个 .title-or-tabs，不在 .log-return-content 里 */}
+      {detail.returnGoodsTip ? <div className="title-or-tabs"><div>{detail.returnGoodsTip}</div></div> : null}
+      <div className="log-return-content">
       <div className="return-status-header">
-        <div className="return-status-title">{detail.statusName || ''}</div>
+        <div className="status-title">{detail.statusName || ''}</div>
         {detail.canCancel ? (
-          <div className="return-status-actions">
-            <Button size="small" onClick={cancel}>{t('撤销')}</Button>
+          <div className="header-actions">
+            <Button className="cancel-button" onClick={cancel}>{t('撤销')}</Button>
           </div>
         ) : null}
         {showCountdown ? (
-          <div className="return-status-sub">{t('订单将在')}<span className="return-countdown">{countdownText}</span>{t('后自动同意您的退款申请')}</div>
+          <div className="status-sub">{t('订单将在')} <span className="countdown-text">{countdownText}</span> {t('后自动同意您的退款申请')}</div>
         ) : statusSubText ? (
-          <div className="return-status-sub">{statusSubText}</div>
+          <div className="status-sub">{statusSubText}</div>
         ) : null}
       </div>
 
-      {canFeedback ? (
-        <section className="return-form-card">
-          <div className="return-form-field">
-            <label>{t('问题补充')}</label>
-            <textarea value={logInfo} onChange={(e) => setLogInfo(e.target.value)} rows={4} placeholder={t('请输入问题补充')} />
-          </div>
-          {status === 4 ? (
-            <>
-              <div className="return-form-field">
-                <label>{t('回寄地址')}</label>
-                <textarea value={returnAddress} readOnly rows={3} />
+      {/* LogInfo.vue:44-67 —— status != 6 才有 .file-card；status != 7 才有表单 */}
+      {status !== 6 ? (
+        <div className="file-card">
+          {status !== 7 ? (
+            <form className="el-form form-body" onSubmit={(event) => event.preventDefault()}>
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('问题补充')}：</label>
+                <div className="el-form-item__content">
+                  <textarea className="el-textarea__inner" rows={4} value={logInfo} onChange={(e) => setLogInfo(e.target.value)} placeholder={t('请输入问题补充')} />
+                </div>
               </div>
-              <div className="return-form-field">
-                <label>{t('快递公司')}<i className="required">*</i></label>
-                <input value={logisticsName} onChange={(e) => setLogisticsName(e.target.value)} placeholder={t('请输入快递公司')} />
-              </div>
-              <div className="return-form-field">
-                <label>{t('快递单号')}<i className="required">*</i></label>
-                <input value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} placeholder={t('请输入快递单号')} />
-              </div>
-            </>
-          ) : null}
-          <div className="return-form-field">
-            <label>{t('上传凭证')}</label>
-            <div className="return-upload">
-              <input type="file" accept="image/jpeg,image/png" multiple disabled={uploading || returnPic.length >= 5} onChange={(e) => void upload(e.target.files)} />
-              {uploading ? <span>{t('上传中...')}</span> : null}
-              <div className="return-upload-list">
-                {returnPic.map((url, index) => (
-                  <div className="return-upload-item" key={`${url}-${index}`}>
-                    <img src={url} alt="" onClick={() => setPreviewUrl(url)} />
-                    <button type="button" onClick={() => setReturnPic((current) => current.filter((_, i) => i !== index))}>{t('删除')}</button>
+              {status === 4 ? (
+                <>
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">{t('回寄地址')}：</label>
+                    <div className="el-form-item__content">
+                      <textarea className="el-textarea__inner" rows={3} value={returnAddress} readOnly />
+                    </div>
                   </div>
-                ))}
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">*{t('快递公司')}：</label>
+                    <div className="el-form-item__content">
+                      <input className="el-input__inner" value={logisticsName} onChange={(e) => setLogisticsName(e.target.value)} placeholder={t('请输入快递公司')} />
+                    </div>
+                  </div>
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">*{t('快递单号')}：</label>
+                    <div className="el-form-item__content">
+                      <textarea className="el-textarea__inner" rows={2} value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} placeholder={t('请输入快递单号')} />
+                    </div>
+                  </div>
+                </>
+              ) : null}
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('上传凭证')}：</label>
+                <div className="el-form-item__content">
+                  <div className="el-upload el-upload--picture-card">
+                    <div className="el-upload-list el-upload-list--picture-card">
+                      {returnPic.map((url, index) => (
+                        <div className="el-upload-list__item" key={`${url}-${index}`}>
+                          <img className="el-upload-list__item-thumbnail" src={url} alt="" onClick={() => setPreviewUrl(url)} />
+                          <span className="el-upload-list__item-actions">
+                            <span className="el-upload-list__item-preview" onClick={() => setPreviewUrl(url)}>{t('预览')}</span>
+                            <span className="el-upload-list__item-delete" onClick={() => setReturnPic((current) => current.filter((_, i) => i !== index))}>{t('删除')}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="el-upload__trigger">
+                      <input type="file" accept="image/jpeg,image/png" multiple disabled={uploading || returnPic.length >= 5} onChange={(e) => void upload(e.target.files)} />
+                      {uploading ? <span>{t('上传中...')}</span> : null}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="return-form-actions">
-            <Button type="primary" loading={submitting} onClick={() => void submitFeedback()}>{t('提交')}</Button>
-          </div>
-        </section>
+              <div className="el-form-item">
+                <label className="el-form-item__label"></label>
+                <div className="el-form-item__content">
+                  <Button type="primary" loading={submitting} onClick={() => void submitFeedback()}>{t('提交')}</Button>
+                </div>
+              </div>
+            </form>
+          ) : null}
+        </div>
       ) : null}
 
-      <section className="return-info-card">
-        <table className="return-table">
-          <thead>
+      <div className="info-card">
+        <table>
+          <thead className="table-header">
             <tr>
-              <th>{t('商品名称')}</th>
-              <th style={{ width: 80 }}>{t('商品价格')}</th>
-              <th style={{ width: 80 }}>{t('购买数量')}</th>
-              <th style={{ width: 80 }}>{t('小计')}</th>
-              <th style={{ width: 80 }}>{t('售后数量')}</th>
+              <th className="header-cell">{t('商品名称')}</th>
+              <th className="header-cell" style={{ width: 60 }}>{t('商品价格')}</th>
+              <th className="header-cell" style={{ width: 60 }}>{t('购买数量')}</th>
+              <th className="header-cell" style={{ width: 60 }}>{t('小计')}</th>
+              <th className="header-cell" style={{ width: 60 }}>{t('售后数量')}</th>
             </tr>
           </thead>
           <tbody>
             {items.length ? items.map((item, index) => (
               <tr key={item.aftersalesItemId || item.orderItemId || index}>
                 <td>
-                  <Link href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank" className="return-product">
-                    <img src={item.picThumb || ''} alt={item.productName || ''} />
-                    <div>
-                      <div className="return-product__sn">货号：{item.productSn || '-'}</div>
-                      <div className="return-product__name">{item.productName || '-'}</div>
-                      {item.skuValue ? <div className="return-product__sku">{item.skuValue}</div> : null}
+                  <Link href={item.productId ? `/product/${item.productId}` : '/search'} target="_blank" className="nuxt" title={item.productName || ''}>
+                    <img className="pro_pic" src={item.picThumb || ''} alt={item.productName || ''} loading="lazy" />
+                    <div className="product-info">
+                      <ul>
+                        <li>{t('货号')}：{item.productSn || '-'}</li>
+                        <li className="product-name">{item.productName || '-'}</li>
+                      </ul>
+                      {item.skuValue ? <div className="sku">{item.skuValue}</div> : null}
                     </div>
                   </Link>
                 </td>
@@ -358,24 +383,24 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
                 <td>{item.number ?? 0}</td>
               </tr>
             )) : (
-              <tr><td colSpan={5} className="return-empty">{t('暂无售后商品')}</td></tr>
+              <tr><td colSpan={5}>{t('暂无售后商品')}</td></tr>
             )}
           </tbody>
         </table>
-      </section>
+      </div>
 
-      <section className="return-info-card">
-        <table className="return-table return-table--detail">
+      <div className="info-card">
+        <table>
           <tbody>
-            <tr><td>{t('买家问题描述')}</td><td>{detail.description || '-'}</td></tr>
-            <tr><td>{t('售后类型')}</td><td>{detail.aftersalesTypeName || '-'}</td></tr>
-            <tr><td>{t('退款金额')}</td><td>¥{money(detail.refundAmount)}</td></tr>
-            <tr><td>{t('售后原因')}</td><td>{detail.aftersaleReason || '-'}</td></tr>
-            {status === 4 ? <tr><td>{t('退货地址')}</td><td>{detail.returnAddress || '-'}</td></tr> : null}
+            <tr><td>{t('买家问题描述')}:</td><td>{detail.description || '-'}</td></tr>
+            <tr><td>{t('售后类型')}:</td><td>{detail.aftersalesTypeName || '-'}</td></tr>
+            <tr><td>{t('退款金额')}:</td><td>¥{money(detail.refundAmount)}</td></tr>
+            <tr><td>{t('售后原因')}:</td><td>{detail.aftersaleReason || '-'}</td></tr>
+            {status === 4 ? <tr><td>{t('退货地址')}:</td><td>{detail.returnAddress || '-'}</td></tr> : null}
             <tr>
-              <td>{t('上传凭证')}</td>
+              <td>{t('上传凭证')}:</td>
               <td>
-                <div className="return-pics">
+                <div className="application-picture">
                   {pics.length ? pics.map((pic, index) => (
                     <img
                       key={index}
@@ -388,23 +413,23 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
                 </div>
               </td>
             </tr>
-            {refund && Number(refund.isOnline) > 0 ? <tr><td>{t('线上退款金额')}</td><td>¥{money(refund.onlineBalance)}</td></tr> : null}
-            {refund && Number(refund.isOffline) > 0 ? <tr><td>{t('线下退款金额')}</td><td>¥{money(refund.offlineBalance)}</td></tr> : null}
-            {refund && Number(refund.isReceive) > 0 ? <tr><td>{t('余额退款金额')}</td><td>¥{money(refund.refundBalance)}</td></tr> : null}
-            <tr><td>{t('售后单号')}</td><td>{detail.aftersalesSn || '-'}</td></tr>
-            <tr><td>{t('关联订单')}</td><td>{detail.orderSn || '-'}</td></tr>
-            <tr><td>{t('申请时间')}</td><td>{detail.addTime || '-'}</td></tr>
+            {refund && Number(refund.isOnline) > 0 ? <tr><td>{t('线上退款金额')}:</td><td>¥{money(refund.onlineBalance)}</td></tr> : null}
+            {refund && Number(refund.isOffline) > 0 ? <tr><td>{t('线下退款金额')}:</td><td>¥{money(refund.offlineBalance)}</td></tr> : null}
+            {refund && Number(refund.isReceive) > 0 ? <tr><td>{t('余额退款金额')}:</td><td>¥{money(refund.refundBalance)}</td></tr> : null}
+            <tr><td>{t('售后单号')}:</td><td>{detail.aftersalesSn || '-'}</td></tr>
+            <tr><td>{t('关联订单')}:</td><td>{detail.orderSn || '-'}</td></tr>
+            <tr><td>{t('申请时间')}:</td><td>{detail.addTime || '-'}</td></tr>
           </tbody>
         </table>
-      </section>
+      </div>
 
-      <section className="return-info-card">
-        <table className="return-table">
-          <thead>
+      <div className="info-card">
+        <table>
+          <thead className="table-header">
             <tr>
-              <th style={{ width: 120 }}>{t('发言人')}</th>
-              <th style={{ width: 180 }}>{t('时间')}</th>
-              <th>{t('信息')}</th>
+              <th className="header-cell" style={{ width: 120 }}>{t('发言人')}</th>
+              <th className="header-cell" style={{ width: 160 }}>{t('时间')}</th>
+              <th className="header-cell">{t('信息')}</th>
             </tr>
           </thead>
           <tbody>
@@ -413,44 +438,35 @@ export default function AfterSalesDetailClient({ id }: { id: number }) {
                 <td>{log.userName || log.adminName || '-'}</td>
                 <td>{log.addTime || '-'}</td>
                 <td>
-                  <div className="return-log-message">
+                  <div className="bt-image">
                     <div>{log.logInfo || ''}</div>
-                    <div className="return-pics">
-                      {(log.returnPic || []).map((pic, picIndex) => (
-                        <img
-                          key={picIndex}
-                          src={imageUrl(pic)}
-                          alt=""
-                          style={{ width: 80, height: 80, objectFit: 'cover', cursor: 'zoom-in' }}
-                          onClick={() => setPreviewUrl(imageUrl(pic))}
-                        />
-                      ))}
-                    </div>
+                    {(log.returnPic || []).map((pic, picIndex) => (
+                      <img
+                        key={picIndex}
+                        className="bt-img"
+                        src={imageUrl(pic)}
+                        alt=""
+                        loading="lazy"
+                        style={{ objectFit: 'cover' }}
+                        onClick={() => setPreviewUrl(imageUrl(pic))}
+                      />
+                    ))}
                   </div>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan={3} className="return-empty">{t('暂无协商记录')}</td></tr>
+              <tr><td colSpan={3}>{t('暂无协商记录')}</td></tr>
             )}
           </tbody>
         </table>
-      </section>
-
-      <div className="return-loginfo-links">
-        <Link href="/member/aftersales">{t('售后申请')}</Link>
-        <Link href="/member/return/log">{t('申请记录')}</Link>
-        {detail.orderId ? <Link href={`/member/order/detail?id=${detail.orderId}`}>{t('查看订单')}</Link> : null}
       </div>
-
-      <Modal
-        visible={!!previewUrl}
-        footer={null}
-        title={t('查看图片')}
-        onCancel={() => setPreviewUrl('')}
-        width={640}
-      >
-        {previewUrl ? <img src={previewUrl} alt="" style={{ width: '100%', display: 'block' }} /> : null}
+      </div>
+      {/* LogInfo.vue:219-223 —— 图片预览 <el-dialog><div class="image"><el-image/></div></el-dialog> */}
+      <Modal visible={!!previewUrl} footer={null} onCancel={() => setPreviewUrl('')} width={640}>
+        <div className="image">
+          {previewUrl ? <img src={previewUrl} alt="" style={{ width: '100%', display: 'block' }} /> : null}
+        </div>
       </Modal>
-    </div>
+    </>
   );
 }

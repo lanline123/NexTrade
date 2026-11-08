@@ -268,35 +268,24 @@ function adaptPcGroupon(item: DecorateModule): ContractRenderPlan {
 // 商品楼层系（pcCatProductNormal / Wide / Simple / pcRecommendProduct）
 // ---------------------------------------------------------------------------
 
-/** pcCatProductNormal：{categoryId, title, color, color2, logo, picList, picList2} → 按 categoryId 拉商品。 */
+/** pcCatProductNormal：{categoryId, seoLink, title, color, color2, picList, picList2, childCategoryList}
+ *  → ContractCatProductNormal（旧版该模块不渲染商品列表，所以不下发 product 取数配置）。 */
 function adaptPcCatProductNormal(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   return {
-    component: 'ContractCatProduct',
+    component: 'ContractCatProductNormal',
     module: {
-      // 旧版分类楼层块固定 608px（CatProductNormal.vue:169-171
-      // `.mod_columns_wrap .mod_columns_floor { width: 608px }`），在旧链首页
-      // .home-warp 的 flex 两列里占一列。
-      layoutWidth: 608,
       title: toTitle(m.title),
-      product: { productSelectType: 2, productCategoryId: toNumber(m.categoryId, 0), productNumber: 8 },
-      banner: { picList: picList(m, 'picList') },
+      seoLink: m.seoLink,
+      categoryId: toNumber(m.categoryId, 0),
+      // 旧版 CatProductNormal.vue:15 取 childCategoryList.slice(0, 6) 渲染关键词行
+      childCategoryList: Array.isArray(m.childCategoryList) ? m.childCategoryList : [],
+      picList: picList(m, 'picList'),
+      picList2: picList(m, 'picList2'),
       links: toCategoryLinks(m.childCategoryList),
       frame: frameOf(m),
-      baseStyle: m.baseStyle,
-      // 商品卡片视觉字段（后台配置，需落到渲染层才生效）
-      goodsStyle: m.goodsStyle,
-      goodsRadioStyle: m.goodsRadioStyle,
-      goodsPadding: m.goodsPadding,
-      buyBtnStyle: m.buyBtnStyle,
-      showName: m.showName,
-      showPrice: m.showPrice,
-      // 原版楼层视觉字段（CatProductNormal.vue）：
-      // color/color2 → 标题栏 30° 渐变 + 促销卡副标题色；picList2 → 右侧 2x2 促销卡。
-      // logo / enTitle / shortTitle 在 CatProductNormal.vue 中无消费点（仅接口声明）。
       color: m.color,
       color2: m.color2,
-      picList2: picList(m, 'picList2'),
     },
   };
 }
@@ -312,9 +301,14 @@ function adaptPcCatProductWide(item: DecorateModule): ContractRenderPlan {
   const productIds = idList(m.productIds);
   const categoryId = toNumber(Array.isArray(m.categoryId) ? m.categoryId[0] : m.categoryId, 0);
   return {
-    component: 'ContractCatProduct',
+    component: 'ContractCatProductWide',
     module: {
       title: toTitle(m.title),
+      seoLink: m.seoLink,
+      categoryId,
+      productIds,
+      linkList: Array.isArray(m.linkList) ? m.linkList : [],
+      childCategoryList: Array.isArray(m.childCategoryList) ? m.childCategoryList : [],
       product: productIds.length
         ? { productSelectType: 1, productIds, productNumber: productIds.length }
         : { productSelectType: 2, productCategoryId: categoryId, productNumber: 8 },
@@ -335,10 +329,11 @@ function adaptPcCatProductSimple(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   const p = (m.products || {}) as AnyRecord;
   return {
-    component: 'ContractCatProduct',
+    component: 'ContractCatProductSimple',
     module: {
       title: toTitle(m.title),
       moreLink: m.moreLink,
+      // 旧版 CatProductSimple.vue:63-64 `useComProParams(modelValue.products)`
       product: {
         productSelectType: toNumber(p.productSelectType, 1),
         productCategoryId: toNumber(p.productCategoryId, 0),
@@ -346,11 +341,10 @@ function adaptPcCatProductSimple(item: DecorateModule): ContractRenderPlan {
         productIds: idList(p.productIds),
         productTag: p.productTag,
       },
-      banner: { picList: picList(m, 'picList') },
-      frame: frameOf(m),
-      // baseStyle=2 → 左图 + 右侧商品网格（旧版 components/home/CatProductSimple.vue:16-21）
+      // baseStyle=2 → .contnt.product-small__wrap + 左侧大图（旧版 CatProductSimple.vue:16-21）
       baseStyle: m.baseStyle,
-      // moreLink 由 ContractCatProduct 渲染为“查看更多”
+      picList: picList(m, 'picList'),
+      frame: frameOf(m),
     },
   };
 }
@@ -364,32 +358,16 @@ function adaptPcCatProductSimple(item: DecorateModule): ContractRenderPlan {
 function adaptPcRecommendProduct(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
   const p = (m.products || {}) as AnyRecord;
-  const productIds = idList(p.productIds);
-  if (productIds.length) {
-    return {
-      component: 'Product',
-      module: {
-        title: toTitle(m.titleName ?? m.title),
-        products: { productSelectType: 1, productIds, productNumber: productIds.length },
-        frame: frameOf(m),
-      // 商品卡片视觉字段（后台配置，需落到渲染层才生效）
-      goodsStyle: m.goodsStyle,
-      goodsRadioStyle: m.goodsRadioStyle,
-      goodsPadding: m.goodsPadding,
-      buyBtnStyle: m.buyBtnStyle,
-      showName: m.showName,
-      showPrice: m.showPrice,
-      },
-    };
-  }
   const rawTitle = m.titleName ?? m.title;
+  // 旧版 components/home/RecommendProduct.vue 只有一套结构（.mod_you_like）：
+  // selectType 1 → ids、2 → categoryId、3 → introType；不再按「有没有 ids」分流到别的组件。
   return {
-    component: 'RecommendProduct',
+    component: 'ContractRecommendProduct',
     module: {
       titleName: typeof rawTitle === 'string' ? rawTitle : toTitle(rawTitle).titleText || '',
       products: {
         productSelectType: toNumber(p.productSelectType, 0),
-        productIds,
+        productIds: idList(p.productIds),
         productCategoryId: toNumber(p.productCategoryId, 0),
         productTag: p.productTag,
         productNumber: toNumber(p.productNumber, 50),
@@ -403,14 +381,29 @@ function adaptPcRecommendProduct(item: DecorateModule): ContractRenderPlan {
 // 图片广告系（pcImageAd / pcCustomAd1 / pcCustomAd2）
 // ---------------------------------------------------------------------------
 
-/** pcImageAd：{picList, boxPaddingTop, boxPaddingBottom, picType?} → ImageAd，padding 字段并入 frame。 */
+/** pcImageAd（老链）：{picList, boxPaddingTop, boxPaddingBottom} → ContractImageAd。
+ *  旧版 components/home/ImageAd.vue 只有「一列图顺序铺开」+ 上下内边距，
+ *  与新版注册表的 ImageAd（kebab pc-image-ad，七种栅格/轮播）不是同一个组件，
+ *  所以老链单独走 ContractImageAd，新版 pc-image-ad 一行不动。
+ *  兼容：数据里带 `picType`（新链栅格/轮播字段，旧版 ImageAd.vue 从不消费）时仍走新组件，
+ *  这样活动页等历史 camelCase 数据不会被换掉外观。 */
 function adaptPcImageAd(item: DecorateModule): ContractRenderPlan {
   const m = (item.module || {}) as AnyRecord;
+  const isLegacyShaped = m.picType === undefined || m.picType === null;
+  if (!isLegacyShaped) {
+    return {
+      component: 'ImageAd',
+      module: {
+        picList: picList(m, 'picList'),
+        picType: m.picType,
+        frame: m.frame || { boxPaddingTop: m.boxPaddingTop, boxPaddingBottom: m.boxPaddingBottom },
+      },
+    };
+  }
   return {
-    component: 'ImageAd',
+    component: 'ContractImageAd',
     module: {
       picList: picList(m, 'picList'),
-      picType: m.picType,
       frame: m.frame || { boxPaddingTop: m.boxPaddingTop, boxPaddingBottom: m.boxPaddingBottom },
     },
   };
@@ -438,6 +431,10 @@ function adaptPcCustomAd2(item: DecorateModule): ContractRenderPlan {
   return {
     component: 'ContractCustomAd',
     module: {
+      // CustomAd2.vue 按 picList2[0..4] / picList3 下标逐格取图，必须给原始数组
+      picList: picList(m, 'picList'),
+      picList2: picList(m, 'picList2'),
+      picList3: picList(m, 'picList3'),
       groups: [picList(m, 'picList'), picList(m, 'picList2'), picList(m, 'picList3')],
       links: toLinks(m.linkList),
       frame: frameOf(m),

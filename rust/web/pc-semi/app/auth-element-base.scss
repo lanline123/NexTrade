@@ -1,0 +1,166 @@
+/* =====================================================================
+ * 登录/注册卡片 Element Plus 基础样式移植（手工维护，非生成文件）
+ *
+ * 旧版 BaseLogin.vue / RegisterClient 依赖 Nuxt 全局挂载的 Element Plus
+ * 样式（el-input / el-checkbox / el-button / el-select）；gen-page-groups
+ * 生成器只搬 .vue 的 <style> 块，EP 基础库不在其中。这里按新版 DOM
+ * （LoginClient.tsx：.el-input 直接作盒子，无 .el-input__wrapper）补齐
+ * 登录卡片用到的最小集合。
+ *
+ * 另含两块页壳样式：
+ *  - .login-warp：源码 pages/member/Login.vue 页面根 div（Vue scoped 只
+ *    作用于页面自己的节点，BaseLogin 内部嵌套规则属死代码，生成器不搬）；
+ *  - min-height: 620px：源码 usePcLoginDecorate.warpStyle —— 跨境版
+ *    （VITE_IS_OVERSEAS=1）恒定下发 minHeight（下限 620，warpHeight 默认 620）。
+ * ===================================================================== */
+
+.pg-auth-login {
+    /* ---- 页面壳 .login-warp（源码 pages/member/Login.vue <style> 根层） ---- */
+    .login-warp {
+        width: 100%;
+        min-width: var(--pc-home-min-width, 1264px);
+        min-height: 620px;
+        padding: 40px 0;
+        align-items: center;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #fff;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ---- Element Plus：el-input（BaseLogin .login-input 内的登录输入框） ---- */
+    .login-input {
+        .el-input {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 36px;
+            padding: 0 12px;
+            box-sizing: border-box;
+            background-color: #fff;
+            border: 1px solid #dcdfe6;
+            border-radius: 2px;
+            transition: border-color 0.2s;
+
+            &:focus-within {
+                border-color: var(--general);
+            }
+        }
+
+        .el-input__prefix {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .el-input__inner {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            padding: 0;
+            border: 0;
+            outline: none;
+            background: transparent;
+            font-size: 14px;
+            color: #333;
+
+            &::placeholder {
+                color: #a8abb2;
+            }
+        }
+
+        select.el-input__inner {
+            cursor: pointer;
+        }
+
+        .el-input__suffix {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        /* 获取验证码按钮（源码 MobileCode 组件 .code-btn） */
+        .el-input__suffix .el-button {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--general);
+            font-size: 12px;
+            cursor: pointer;
+
+            &:disabled {
+                color: #a8abb2;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    /* ---- Element Plus：el-checkbox（协议勾选，14px 方框 + 主题色选中态） ---- */
+    .agreement-box .el-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+    }
+
+    .agreement-box input[type='checkbox'] {
+        appearance: none;
+        -webkit-appearance: none;
+        position: relative;
+        flex: none;
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        border: 1px solid #dcdfe6;
+        border-radius: 2px;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s, background-color 0.2s;
+
+        &:checked {
+            border-color: var(--general);
+            background-color: var(--general);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='%23fff' d='M406.6 781.2 128 502.6l60.2-60.2L406.6 660.8l429.2-429.2 60.2 60.2z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 10px 10px;
+        }
+    }
+
+    /* ---- Element Plus：el-button（微信扫码弹层「刷新二维码/返回」） ---- */
+    .wechat-main .el-button {
+        min-width: 140px;
+        height: 32px;
+        padding: 8px 15px;
+        border: 1px solid #dcdfe6;
+        border-radius: 4px;
+        background: #fff;
+        color: #606266;
+        font-size: 14px;
+        cursor: pointer;
+
+        &:first-child {
+            border-color: var(--general);
+            background: var(--general);
+            color: var(--main-text);
+        }
+    }
+
+    /* 登录按钮禁用态（源码 .login_btn.is-disabled，新版走原生 disabled 属性） */
+    .login_last .login_btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .hand-pointer {
+        cursor: pointer;
+    }
+}

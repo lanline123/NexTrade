@@ -104,6 +104,8 @@ export default function PcHeader({
   const header = (config || {}) as HeaderConfig;
 
   const bootstrapLogo = typeof bootstrap?.base?.shopLogo === 'string' ? bootstrap.base.shopLogo : '';
+  /** Logo 链接的可访问名称：图片是装饰性的，靠这个名称让读屏/自动检查能认出“回首页”链接。 */
+  const shopName = String((bootstrap?.base as Record<string, unknown> | undefined)?.shopTitle || '万物新生');
   const [siteLogo, setSiteLogo] = useState(bootstrapLogo);
   const [mainNav, setMainNav] = useState<Array<Record<string, any>> | null>(null);
   const [logoAreaHeight, setLogoAreaHeight] = useState(60);
@@ -285,9 +287,9 @@ export default function PcHeader({
                 <div className={`logo-slot${showCategory ? '' : ' logo-slot--wide'}`}>
                   <div className={`logo ${logoAlignClass}`}>
                     <div className="logo-area">
-                      <Link href="/" className="alv1 logo-link">
+                      <Link href="/" className="alv1 logo-link" aria-label={shopName}>
                         {logoSrc ? (
-                          <img src={logoSrc} style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} alt="" />
+                          <img src={logoSrc} style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} alt={shopName} />
                         ) : null}
                       </Link>
                     </div>

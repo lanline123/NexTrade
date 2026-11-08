@@ -813,3 +813,401 @@
   pointer-events: none;
   object-fit: fill;
 }
+
+/* =====================================================================
+ * 购买按钮组皮肤（按风格分治）
+ * 旧版 .buy-btn 是 Element Plus el-button（颜色由 EP 注入，Semi 版是原生按钮）：
+ *  - 经典版：按钮仍在信息区内，尺寸/圆角/间距由 core-pages 生成规则负责，
+ *    这里只补 EP 观感（默认白底灰边、立即购买主题色实底）；
+ *  - 国内标准版 / 跨境简约版：按钮移出信息包裹层（pds-*__actions 底部区），
+ *    通栏大按钮，主题色实底立即购买。
+ * 本文件在 globals 尾部最后引入。
+ * ===================================================================== */
+
+/* 经典版：EP el-button 观感（默认 / primary） */
+.pdp-style-old .add_cart .buy-btn {
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  color: #606266;
+
+  &.buynow {
+    background: var(--general);
+    border-color: var(--general);
+    color: #fff;
+  }
+}
+
+/* 国内标准版 / 跨境简约版：底部购买区通栏按钮 */
+.pdp-style-new .pds-new__actions .add_cart,
+.pdp-style-overseas .pds-os__actions .add_cart {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  .buy {
+    flex: 1;
+    cursor: pointer;
+  }
+
+  .buy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 44px;
+    padding: 0 24px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid #dcdfe6;
+    background: #fff;
+    color: #606266;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s, filter 0.2s;
+
+    &:hover:not(:disabled) {
+      opacity: 0.88;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.buynow {
+      background: var(--general);
+      border-color: var(--general);
+      color: #fff;
+    }
+  }
+}
+
+/* 经典版细节对齐：.buy 的 auto margin 在 flex 下把两个按钮撑开（旧版 el-button 是紧挨排列） */
+.pdp-style-old .add_cart .buy {
+  margin-left: 0;
+}
+
+/* 旧站 global.less 全局 reset 了 ul 列表符。原实现只覆盖 .pdp-style-old，
+   导致国内标准版 / 跨境简约版的 Tab 页签冒出「•」，这里三套统一。 */
+.pdp-style ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* =====================================================================
+ * 原版公共结构补齐（迁移缺口，三套风格共用）
+ *
+ * 新版 ProductDetailClient 直接输出旧版 FormatPrice / ProductInfo 的 DOM 类名，
+ * 但原版这些类名依赖两处「组件局部样式」，core-pages.scss 只搬了三个大页的
+ * <style>，没搬这两处，于是三套风格的价格 / 数量 / 列表全部退化：
+ *   1. view/pc/components/format/Price.vue  .price { display:inline-flex }
+ *      —— 缺了它「¥」与金额上下分行；
+ *   2. ProductInfo.vue 通过 :font-style 传入的本站价字号（36px / 24px 粗体）
+ *      —— 新版是静态 DOM，没有内联样式，字号回落到 14px；
+ *   3. 数量行 / 服务说明的横向 flex —— 见 ProductLayouts.tsx 的 .actions 包裹层。
+ * 这里按 view/pc 原版数值补齐，选择器限定在 .pdp-style 内，不影响其它页面。
+ * ===================================================================== */
+.pdp-style {
+  .price {
+    display: inline-flex;
+    align-items: stretch;
+    vertical-align: baseline;
+
+    .util { flex: 0 0 auto; margin-right: 2px; }
+    .num { flex: 0 0 auto; }
+  }
+
+  /* 跨境简约版本站价：源码 overseas/ProductInfo.vue:207-211 由调用方传入
+     currencyStyle 24px / fontStyle 36px。经典版与国内标准版沿用
+     core-pages.scss 里各自的 26/28px，不在这里统一覆盖，保持三套差异。 */
+  &.pdp-style-overseas .basic .item .price1 .price {
+    /* core-pages 里 .product_info .num 的通用灰字会盖住价格，原版是深色粗体 */
+    color: #1a1a1a;
+    .util { color: #1a1a1a; font-size: 24px; font-weight: 700; line-height: 1; }
+    .num { color: #1a1a1a; font-size: 36px; font-weight: 700; line-height: 1; }
+  }
+  .basic .item .market_price .price {
+    .util { font-size: 12px; font-weight: 400; }
+    .num { font-size: 14px; font-weight: 400; }
+  }
+
+  /* 数量行不在这里兜底：补上 .actions 包裹层后，core-pages.scss 的
+     .actions .number-box 已按三套风格各自生效（经典版 / 跨境版横排，
+     国内标准版 .new-ui 竖排），在这里统一写 row 会覆盖掉国内标准版原版设计。 */
+
+  /* 服务说明：新版把原版 el-collapse 手风琴简化成 4 个 .item，
+     没有旧 CSS 可命中，这里补成横排服务条（避免 4 行竖排占满右栏） */
+  .serviceAction .goods_desc.shouhou {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+
+    .item { display: flex; align-items: center; }
+  }
+}
+
+/* =====================================================================
+ * 跨境简约版：结构级还原（基准 java-b2b2c-overseas-v5.8.61/view/pc）
+ *
+ *   pages/item/src/Product.vue:149-355            .container-overseas 两栏
+ *   components/product/overseas/Thumb.vue:1-43   左侧竖排缩略图 + 624 主图 + 收藏心形
+ *   components/product/overseas/Thumb.vue:134-234 112px 缩略列 / 104px 缩略图数值
+ *   components/product/overseas/ProductInfo.vue   商品名 / 价格 / 购买按钮
+ *
+ * 说明：core-pages.scss 里逐字搬运的 `.container-overseas` 规则挂在 `.mp-item`
+ * 之下，且依赖一整套旧 DOM 类名（.product_details / .extra_details /
+ * .overseas-right-wrap）。新版 OverseasLayout 根节点没有 .mp-item，整套原版
+ * 布局 CSS 空转；直接补 .mp-item 会同时激活大量不匹配规则，风险高于收益。
+ * 这里按原版数值显式还原，选择器全部限定在 .pdp-style-overseas 内。
+ * ===================================================================== */
+.pdp-style-overseas {
+  /* ---- 画廊：左 112px 竖排缩略图 + 右 624px 主图（112 + 16 + 624 = 752 左栏） ---- */
+  .pds-os__gallery-wrap { position: relative; }
+
+  .pds-gallery {
+    display: flex;
+    flex-direction: row-reverse; // DOM 顺序是 main → thumbs，反转让缩略列在左
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .pds-gallery__main {
+    flex: 0 0 624px;
+    width: 624px;
+    height: 624px;
+    max-width: none;
+    aspect-ratio: auto;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+  }
+  .pds-gallery__thumbs {
+    flex: 0 0 112px;
+    width: 112px;
+    height: 624px;
+    margin-top: 0;
+    flex-direction: column;
+    gap: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    button {
+      width: 108px;
+      height: 108px;
+      border: 2px solid transparent;
+      border-radius: 4px;
+
+      img { width: 104px; height: 104px; object-fit: contain; }
+      &.is-active { border-color: #1a1a1a; }
+    }
+  }
+
+  /* 收藏心形：40x40 白底浮层，对齐主图右上角（源码 .collection） */
+  .pds-os__collect {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+
+    &:hover { color: var(--pds-primary); }
+    &.is-collected { color: #ff4040; }
+  }
+
+  /* ---- 右栏信息：商品名 18px 粗体、价格区去掉「本站价：」标签 ---- */
+  .pds-os__details {
+    .product_name {
+      .name {
+        padding-bottom: 12px;
+        color: #000;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+      .desc { padding: 4px 0 8px; color: #ff4040; font-size: 12px; }
+    }
+    .basic {
+      margin: 0 0 12px;
+      padding: 0;
+      background: transparent;
+
+      .item { margin: 0; padding: 0; }
+      /* 原版跨境版是 .item.main-price-box > .price1，没有「本站价：」前缀 */
+      .item > .tit { display: none; }
+    }
+    /* 原版「已售 107 件」是小灰字单行；新版 .basic-info 默认块级会拆成两行 */
+    .basic-info .item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #888b94;
+      font-size: 12px;
+    }
+  }
+
+  /* ---- 锚点 Tab：主题色下划线细字（源码 .tab-main .tab .font-style） ---- */
+  .pds-os__anchors {
+    gap: 24px;
+
+    button {
+      padding: 12px 0;
+      color: #666;
+      font-size: 13px;
+
+      &.is-active {
+        color: var(--pds-primary);
+        font-weight: 600;
+        border-bottom-color: var(--pds-primary);
+      }
+    }
+  }
+
+  /* ---- 详情区块：轻标题 + 细分隔线 ---- */
+  .pds-os__section { padding: 20px 0 28px; border-bottom: 1px solid #f0f0f0; }
+  .pds-os__section-title { margin-bottom: 12px; font-size: 15px; }
+
+  /* ---- 购买按钮：立即购买（主题色）在左 + 加入购物车（黑）在右，48px 通栏 ---- */
+  .pds-os__actions .add_cart {
+    flex-direction: row-reverse; // DOM 是 加购 → 立即购买，反转让立即购买在左
+    gap: 10px;
+
+    .buy { flex: 1 1 0; min-width: 0; }
+    .buy-btn {
+      height: 48px;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .buy-btn:not(.buynow) {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+      color: #fff;
+    }
+    .buy-btn.buynow {
+      background: var(--general, var(--pds-primary));
+      border-color: var(--general, var(--pds-primary));
+      color: #fff;
+    }
+  }
+}
+
+/* =====================================================================
+ * 规格 / SKU 按钮
+ * 基准：view/pc/components/product/ProductSku.vue 跨境分支（模板 1-25 行）
+ *   .product-sku-info-overseas > .sku-item.flex.align-start
+ *     > .tit + .sku-tag.flex-wrap > .tag(.checked/.disabled)
+ *     > div > img + p.attrWidth
+ *
+ * 旧实现把 .sku-tag 当成「按钮」、.tag 完全没输出，导致 core-pages.scss
+ * 里 .sku-tag .tag{border / 80px 规格图} 一条都不命中，带图规格散成
+ * 「一排图 + 一排字」（商品 1562 有 3 个带图规格时暴露）。
+ * DOM 已按原版重排，这里补一套不依赖 .mp-* 作用域的兜底皮肤。
+ * ===================================================================== */
+.pdp-style {
+  .product-sku-info,
+  .product-sku-info-overseas {
+    padding: 15px 1px 0 0;
+
+    .sku-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+
+      > .tit {
+        flex: 0 0 auto;
+        min-width: 44px;
+        padding-right: 10px;
+        color: #999;
+        font-size: 13px;
+        line-height: 32px;
+      }
+    }
+
+    .sku-tag {
+      display: flex;
+      flex: 1 1 auto;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-width: 0;
+
+      > .tag {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        min-width: 48px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid #e7e7e7;
+        border-radius: 2px;
+        background: #fff;
+        color: #333;
+        font-size: 13px;
+        line-height: 30px;
+        text-align: center;
+        cursor: pointer;
+
+        p { margin: 0; line-height: 30px; }
+        .sku-tag__pic { display: flex; flex-direction: column; align-items: center; }
+        img { width: 20px; height: 20px; margin-right: 4px; object-fit: cover; }
+
+        &.checked { border-color: var(--general, #1456f0); color: var(--general, #1456f0); }
+        &.disabled { border-style: dashed; color: #c5c5c5; cursor: not-allowed; }
+        .outstock { color: #c5c5c5; font-size: 12px; }
+        .icon-gou { position: absolute; right: -1px; bottom: -1px; font-size: 12px; }
+      }
+    }
+  }
+}
+
+/* 跨境版：带图规格是 80px 大图 + 下方文字（原版 ProductSku.vue 跨境分支）。
+   core-pages.scss 的 `.mp-product-sku .product-sku-info .sku-item .sku-tag .tag img`
+   是 5 层选择器，会把上面 4 层的 20px 小图规则压过来，故这里拉高特异性。 */
+.pdp-style-overseas .mp-product-sku .product-sku-info-overseas .sku-item .sku-tag > .tag {
+  // core-pages.scss:1918 的经典版通用规则 .tag{height:30px} 是 5 层选择器，
+  // 会把跨境版 80px 规格图压成 30px 高、内整块溢出，必须显式还原为自适应高度。
+  height: auto;
+  min-height: 0;
+  line-height: normal;
+  min-width: 88px;
+  padding: 2px;
+
+  .sku-tag__pic {
+    width: 100%;
+  }
+
+  .sku-tag__pic img {
+    width: 80px;
+    height: 80px;
+    margin: 0;
+    padding: 2px;
+    object-fit: cover;
+  }
+  p.attrWidth {
+    width: 100%;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 26px;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}

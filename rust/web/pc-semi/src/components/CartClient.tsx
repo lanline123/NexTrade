@@ -166,15 +166,17 @@ function Price({
   value,
   currencyStyle,
   fontStyle,
+  className,
 }: {
   value: unknown;
   currencyStyle?: React.CSSProperties;
   fontStyle?: React.CSSProperties;
+  className?: string;
 }) {
   const { integer, decimals } = splitPrice(value);
   const hasCurrencyStyle = currencyStyle && Object.keys(currencyStyle).length > 0;
   return (
-    <div className="price align-bottom">
+    <div className={className ? `price align-bottom ${className}` : 'price align-bottom'}>
       <div className="util align-bottom" style={hasCurrencyStyle ? currencyStyle : fontStyle}>
         ￥
       </div>
@@ -950,7 +952,7 @@ export default function CartClient() {
                           >
                             <div className="gift-content-item">
                               <div className="gift-item-left">
-                                <img src={gift.picThumb || gift.picUrl || ''} alt={gift.productName || ''} />
+                                <img className="gift-img" src={gift.picThumb || gift.picUrl || ''} alt={gift.productName || ''} />
                               </div>
                               <div className="gift-item-right">
                                 <div className="gift-item-name">{gift.productName}</div>
@@ -1121,7 +1123,7 @@ export default function CartClient() {
                           <span className="final-label">合计:</span>
                           <div className="final-right">
                             {/* 字号/字重/配色统一由 .settle-final .price 控制 */}
-                            <Price value={total.discountAfter ?? productAmount} />
+                            <Price className="final-price" value={total.discountAfter ?? productAmount} />
                           </div>
                         </div>
 

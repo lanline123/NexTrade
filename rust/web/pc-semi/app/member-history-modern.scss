@@ -1,0 +1,195 @@
+/**
+ * 浏览历史 · Semi Design 现代化样式 v2（.mbh 命名空间，大胆版）
+ *
+ * 与 .mol/.miq/.mgl/.mcc/.mcl 同族设计语言，本页更强调"商品陈列"感：
+ * 大图卡、悬浮删除、hover 上浮。旧版复刻样式（member-pages.scss 的
+ * .mp-browsing-list/.history-grid 块）保留未删，用于回滚。
+ */
+
+.mbh {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- 状态块（空态/未登录，独立类不嵌套） ---------- */
+.mbh-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 360px;
+  background: var(--semi-color-bg-2, #fff);
+  border-radius: 12px;
+}
+
+/* ---------- 工具条 ---------- */
+.mbh-toolbar {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 20px 0 0;
+}
+
+.mbh-toolbar__count {
+  color: var(--semi-color-text-0);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mbh-toolbar__hint {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+}
+
+/* ---------- 商品卡栅格 ---------- */
+.mbh-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  min-height: 300px;
+  align-content: start;
+}
+
+.mbh-card {
+  position: relative;
+  background: var(--semi-color-bg-2, #fff);
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+
+  &:hover {
+    border-color: rgba(15, 18, 34, 0.08);
+    box-shadow: 0 10px 28px rgba(15, 18, 34, 0.1);
+    transform: translateY(-3px);
+
+    .mbh-card__pic {
+      transform: scale(1.05);
+    }
+
+    .mbh-card__del {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+/* 图区：固定比例 + 圆角裁切，整卡可点 */
+.mbh-card__picwrap {
+  display: block;
+  overflow: hidden;
+}
+
+.mbh-card__pic {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--semi-color-fill-0);
+  transition: transform 0.35s ease;
+}
+
+/* 悬浮删除钮：图右上角，hover 卡片时显现（触屏设备常显，见媒体查询） */
+.mbh-card__del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* 触屏设备：删除钮常显 */
+@media (hover: none) {
+  .mbh-card__del {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.mbh-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  flex: 1;
+}
+
+.mbh-card__name {
+  color: var(--semi-color-text-0);
+  font-size: 13px;
+  line-height: 19px;
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  &:hover {
+    color: var(--semi-color-primary);
+  }
+}
+
+.mbh-card__foot {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+}
+
+/* ---------- 骨架屏（自定义比例块，不用 Skeleton.Image 硬拉宽度） ---------- */
+.mbh-skel-pic {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(90deg, var(--semi-color-fill-0) 25%, var(--semi-color-fill-1) 37%, var(--semi-color-fill-0) 63%);
+  background-size: 400% 100%;
+  animation: mbh-shimmer 1.4s ease infinite;
+}
+
+@keyframes mbh-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* ---------- 分页 ---------- */
+.mbh-pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 0 8px;
+}
+
+/* ================= 忠实迁移版补充（.mp-browsing-list 复用 .mp-collect-product 作用域） ================= */
+
+.mp-browsing-list .collect-product__count {
+  color: var(--semi-color-text-2);
+  font-size: 13px;
+  font-weight: 400;
+  margin-left: 12px;
+}
+
+.mp-browsing-list .mp-browsing-list__login {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 28px;
+  border-radius: 4px;
+  background: var(--semi-color-primary, #1c1f23);
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* ================= 名称固定两行高（对齐旧版搜索页 fixed-name-two-lines） =================
+ * 短名称一行、长名称两行会导致下方已售/价格/店铺行错位；
+ * 与旧版 SearchProductCard.vue 的 --fixed-two-lines 同法：min-height 44px。 */
+.mp-browsing-list .collect-card__name {
+  min-height: calc(22px * 2);
+}

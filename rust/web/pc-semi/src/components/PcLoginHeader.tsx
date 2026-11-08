@@ -17,6 +17,7 @@ export default async function PcLoginHeader({
   type = 'login',
 }: {
   decorate?: {
+    loginMode?: number | string;
     headerHeight?: number | string;
     logoWidth?: number | string;
     logoHeight?: number | string;
@@ -37,9 +38,14 @@ export default async function PcLoginHeader({
   const logoHeight = Number(decorate?.logoHeight ?? 40) || 40;
   const shadow = Number(decorate?.headerShadow ?? 1) === 1;
   const showWelcome = Number(decorate?.showWelcome ?? 1) === 1;
+  /** 源码 LoginHeader.vue classic prop：loginMode=1 经典版 → 1px 底边框 + 内容限宽 1190px */
+  const classic = Number(decorate?.loginMode ?? 2) === 1;
 
   return (
-    <div className="pc-login-header" style={{ height, boxShadow: shadow ? HEADER_SHADOW : 'none' }}>
+    <div
+      className={`pc-login-header${classic ? ' pc-login-header--classic' : ''}`}
+      style={{ height, boxShadow: shadow ? HEADER_SHADOW : 'none', borderBottom: classic ? '1px solid #ddd' : 'none' }}
+    >
       <div className="pc-login-header__inner">
         <Link href="/" className="pc-login-header__logo">
           {shopLogo ? <img src={imageFormat(shopLogo)} alt={shopName} style={{ maxWidth: logoWidth, maxHeight: logoHeight, objectFit: 'contain' }} /> : <span className="pc-login-header__logo-text">{shopName}</span>}

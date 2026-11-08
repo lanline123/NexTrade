@@ -1,0 +1,720 @@
+/* 第 30 轮：exchange-page —— 旧版 .vue <style> 原样搬运（生成文件，勿手改；改 scripts/gen-page-groups-scss.mjs） */
+/* exchange-list — 源码对照 pages/exchange/List.vue */
+.pg-exchange-list {
+
+    .el-page {
+        display: flex;
+        justify-content: flex-end;
+        padding: 20px 0;
+    }
+    .exchange-tit {
+        text-align: center;
+        padding-top: 20px;
+        img {
+            width: 80%;
+        }
+    }
+    .exchange-list {
+        padding: 20px 0;
+        .goods-list-c {
+            .tab-box {
+                background-color: #fff;
+                padding: 15px;
+                border: 2px solid rgba(0, 0, 0, 0);
+                margin: 0 13px 14px 0;
+                transition: all 0.5s;
+                &:hover {
+                    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.2);
+                }
+                .g-item-warp {
+                    .pic {
+                        margin-bottom: 5px;
+                    }
+                    .exchange-list__pic {
+                        position: relative;
+                        display: inline-block;
+                        vertical-align: top;
+                    }
+                    .product-style-border {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: 5;
+                        pointer-events: none;
+                        object-fit: fill;
+                    }
+                    .info {
+                        .name {
+                            width: 250px;
+                            margin-bottom: 5px;
+                        }
+                        .market_price {
+                            margin-bottom: 5px;
+                            .price {
+                                text-decoration: line-through;
+                            }
+                        }
+                        .exchange_price {
+                            margin-bottom: 5px;
+                            .price {
+                                color: var(--general);
+                                font-size: 20px;
+                                line-height: 16px;
+                                font-weight: bold;
+                                .util {
+                                    font-weight: bold;
+                                    line-height: 20px;
+                                }
+                            }
+                            span {
+                                color: var(--general);
+                                font-weight: bold;
+                            }
+                        }
+                        .exchange_btn {
+                            display: block;
+                            width: 188px;
+                            height: 28px;
+                            color: var(--main-text);
+                            font-size: 14px;
+                            text-align: center;
+                            line-height: 28px;
+                            margin: 16px auto 0px;
+                            border-width: 1px;
+                            border-style: solid;
+                            border-color: var(--main-bg);
+                            border-image: initial;
+                            background: var(--main-bg);
+                            border-radius: 28px;
+                            cursor: pointer;
+                        }
+                        .exchange_btn:hover {
+                            background: var(--main-bg);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .search-empty {
+        margin-bottom: 10px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 200px;
+    }
+
+    .search-empty .bd {
+        background: url("/assets/images/common/empty.gif") no-repeat scroll 56px 0px;
+        padding: 45px 50px 45px 200px;
+    }
+
+    .search-empty h4 {
+        font-size: 14px;
+    }
+}
+
+/* giftcard-card — 源码对照 pages/giftcard/src/giftCard.vue */
+.pg-giftcard-card {
+
+    .gift-card-box {
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        padding: 0 12.5px;
+        overflow: hidden;
+        position: relative;
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: v-bind(cardBackgroundImg);
+            background-size: cover;
+            border-radius: 11px;
+            z-index: 0;
+        }
+        .gift-card {
+            position: relative;
+            z-index: 2;
+            box-sizing: border-box;
+            color: #fff;
+            .gift-shop-info {
+                padding: 12px 0;
+                display: flex;
+                align-items: center;
+                .shop-img {
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: #fff;
+                    color: #000;
+                    font-weight: bold;
+                }
+                .shop-title {
+
+                    font-size: 16px;
+
+                    display: -webkit-box;
+                    -webkit-line-clamp: 1;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+            }
+            .gift-card-label {
+                white-space: nowrap;
+                font-size: 12px;
+                line-height: 12px;
+
+            }
+            .gift-card-no {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-top: 12px;
+                height: 20px;
+                .gift-card-no-box {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    line-height: 15px;
+                    .card-no-item {
+                        display: flex;
+                        align-items: center;
+                        font-size: 16px;
+                        line-height: 16px;
+                        font-weight: bold;
+                    }
+                }
+            }
+            .gift-card-pwd {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-top: 11px;
+                overflow: hidden;
+                height: 20px;
+                .card-no-item {
+                    font-size: 16px;
+                    line-height: 16px;
+
+                }
+            }
+            .gift-card-info {
+                margin-top: 18px;
+                .gift-card-name {
+                    font-size: 15px;
+                    line-height: 15px;
+                    display: block;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                }
+                .gift-card-date {
+                    position: relative;
+                    padding-top: 15px;
+                    .gift-card-date-text {
+                        line-height: 12px;
+                        font-size: 12px;
+                        line-height: 12px;
+                        opacity: 0.51;
+                    }
+                }
+            }
+            .gift-card-actions-box {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0;
+                margin-top: 15px;
+                background-color: rgba(0, 0, 0, 0.65);
+                border-radius: 10px;
+                padding: 10px;
+            }
+            .gift-card-copy-all,
+            .gift-card-show {
+                cursor: pointer;
+                font-size: 14px;
+                line-height: 14px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                flex: 1;
+                justify-content: center;
+                .iconfont-pc {
+                    padding-top: 1.75px;
+                    font-size: 14px;
+                }
+            }
+            .gift-card-divider {
+                width: 1px;
+                height: 14px;
+                background-color: rgba(255, 255, 255, 0.3);
+                margin: 0 12px;
+            }
+            .copy-btn {
+                font-size: 10px;
+                line-height: 10px;
+                background-color: #0000004d;
+                border: 1px solid rgb(255 255 255 / 20%);
+                border-radius: 10px;
+                padding: 2.5px 7px;
+                white-space: nowrap;
+                cursor: pointer;
+            }
+            .hide-info {
+                padding-top: 4px;
+            }
+        }
+        .gift-card-status {
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            overflow: hidden;
+            z-index: 2;
+            .gift-card-status-item {
+                font-size: 12px;
+                line-height: 12px;
+                background-color: #f8e0c8;
+                color: #996500;
+                padding: 5px 10px;
+                border-left: 1px solid #fff;
+                border-bottom: 1px solid #fff;
+                border-bottom-left-radius: 10px;
+            }
+        }
+        &.size-large {
+            padding: 0 15px;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            .gift-shop-info {
+                padding: 15px 0;
+                .shop-title {
+                    font-size: 20px;
+
+                }
+            }
+            .gift-card-label {
+                font-size: 14px;
+                line-height: 14px;
+            }
+            .gift-card-no {
+                margin-top: 10px;
+                gap: 12px;
+                .gift-card-no-box {
+                    gap: 16px;
+                    .card-no-item {
+                        font-size: 20px;
+                        line-height: 20px;
+                        font-weight: bold;
+                    }
+                }
+                .hide-info {
+                    padding-top: 6px;
+                }
+            }
+            .gift-card-pwd {
+                gap: 12px;
+                margin-top: 16px;
+                .card-no-item {
+                    font-size: 20px;
+                    line-height: 20px;
+
+                }
+            }
+            .gift-card-info {
+                margin-top: 18px;
+                .gift-card-name {
+                    font-size: 16px;
+                    line-height: 16px;
+                    display: block;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                }
+                .gift-card-date {
+                    font-size: 12px;
+                    line-height: 12px;
+
+                }
+            }
+            .gift-card-actions-box {
+                margin-top: 5px;
+            }
+            .gift-card-copy-all,
+            .gift-card-show {
+                font-size: 14px;
+                line-height: 14px;
+                .iconfont-pc {
+                    padding-top: 1.75px;
+                    font-size: 14px;
+                }
+            }
+            .copy-btn {
+                font-size: 13px;
+                line-height: 13px;
+            }
+        }
+    }
+}
+
+/* giftcard-actions — 源码对照 pages/giftcard/src/giftCardActions.vue */
+.pg-giftcard-actions {
+
+    .gift-card-item {
+        width: 300px;
+        height: 185px;
+    }
+
+    /* 添加以下样式使el-radio占据足够高度 */
+    .el-radio {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        height: auto;
+    }
+
+    .el-radio .el-radio__input {
+        margin-top: 8px;
+    }
+
+    .el-radio .el-radio__label {
+        flex: 1;
+        height: 100%;
+    }
+    .link-dialog-body {
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        justify-content: center;
+        .link-dialog-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tips {
+            color: #a4adb3;
+            font-size: 12px;
+
+        }
+    }
+}
+
+/* giftcard-product-item — 源码对照 pages/giftcard/src/productItem.vue */
+.pg-giftcard-product-item {
+
+    .product-item {
+        display: flex;
+        gap: 15px;
+        .product-img {
+            flex-shrink: 0;
+            border-radius: 4px;
+            width: 75px;
+            height: 75px;
+            overflow: hidden;
+            background: #f2f2f2;
+            position: relative;
+            .img {
+                text-align: center;
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
+            }
+
+            .product-style-border {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 5;
+                pointer-events: none;
+                object-fit: fill;
+            }
+        }
+        .product-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0;
+            .product-name {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 1;
+                font-size: 16px;
+                color: #262626;
+            }
+            .product-sku-box {
+                display: flex;
+                .product-sku {
+                    font-size: 12px;
+                    line-height: 12px;
+                    color: #8c8c8c;
+                    padding: 5px 16px;
+                    background: #f5f5f5;
+                    border-radius: 11px;
+                    overflow: hidden;
+                    flex-grow: 0;
+                    max-width: 80%;
+                }
+            }
+        }
+        .product-price {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            .product-num {
+                font-size: 14px;
+                color: #262626;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+/* giftcard-transfer — 源码对照 pages/giftcard/transfer/[id].vue */
+.pg-giftcard-transfer {
+
+    .container {
+
+
+    }
+    .gift-card-container {
+        padding: 0 30px 100px;
+        width: 550px;
+        margin: 0 auto;
+        background-color: #fbeede;
+        position: relative;
+        z-index: 1;
+        box-sizing: border-box;
+    }
+
+    .card-info {
+        padding: 40px 0;
+        display: flex;
+        justify-content: center;
+        border-bottom: 1px solid #a9781b;
+        .card-wrapper {
+            width: 400px;
+            height: 232px;
+            .gift-card-box {
+                box-shadow: 0px 12px 9px 0px rgba(0, 14, 43, 0.17);
+            }
+        }
+    }
+
+    .group {
+        .group-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            .group-title {
+                font-size: 20px;
+                color: #a9781b;
+            }
+            .line {
+                height: 2px;
+                width: 100px;
+                &.left {
+                    background: linear-gradient(90deg, #fbeede, #bd983d);
+                }
+                &.right {
+                    background: linear-gradient(90deg, #bd983d, #fbeede);
+                }
+            }
+        }
+        .group-sub-header {
+            color: #a9781b;
+            font-size: 16px;
+            padding-top: 15px;
+            text-align: center;
+        }
+    }
+
+    .use-step {
+        padding-top: 50px;
+        .use-step-content {
+            padding-top: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            .use-step-item {
+                display: flex;
+
+
+                box-sizing: border-box;
+                align-items: center;
+                gap: 8px;
+                border: 1px solid #a9781b;
+                background-color: #fff;
+                padding: 10px 7px;
+                border-radius: 12px;
+                width: 150px;
+                height: 66px;
+                .icon {
+                    width: 28px;
+                    height: 28px;
+                    flex-shrink: 0;
+                    .img {
+                        width: 100%;
+                        height: 100%;
+                    }
+                }
+                .text {
+                    font-size: 16px;
+                    color: #a9781b;
+                }
+            }
+            .next-icon {
+                .icon-a-gengduo20 {
+                    font-size: 16px;
+                    padding: 0 4px;
+                    color: #a9781b;
+                }
+            }
+        }
+    }
+
+    .products {
+        margin-top: 80px;
+        .product-box {
+            border: 1px solid #a9781b;
+            border-radius: 12px;
+            padding: 25px 16px;
+            background: #fff;
+            margin-top: 55px;
+            display: flex;
+            flex-direction: column;
+            row-gap: 30px;
+        }
+    }
+    .exchange-flow {
+        margin-top: 50px;
+        .flows {
+            margin-top: 30px;
+            .flow-title {
+                display: flex;
+                align-items: baseline;
+                gap: 15px;
+                .flow-no {
+                    font-size: 40px;
+                    width: 30px;
+                    color: #a9781b;
+                    font-weight: 400;
+                    font-family: DengXian;
+
+                    transform: skewX(-6deg);
+                }
+                .flow-title-text {
+                    color: #000000;
+                    font-size: 20px;
+                    font-weight: 400;
+                }
+            }
+            .flow-content {
+                padding-left: 44px;
+                .img {
+                    object-fit: contain;
+                }
+            }
+            .flow-tips {
+                color: #6a6a6a;
+                font-size: 16px;
+                font-weight: 400;
+                line-height: 36px;
+                margin-top: 10px;
+            }
+            .flow-second {
+                display: flex;
+                gap: 25px;
+                margin-top: 50px;
+            }
+            .flow-third {
+                display: flex;
+                gap: 25px;
+                margin-top: 26px;
+            }
+            .flow2 {
+                .flow-content {
+                    padding-left: 30px;
+                }
+                .img {
+                    width: 200px;
+
+                }
+            }
+            .flow3 {
+                .flow-content {
+                    padding-left: 30px;
+                }
+                .img {
+                    width: 180px;
+
+                }
+            }
+            .flow4 {
+                .flow-content {
+                    padding-left: 30px;
+                }
+                .img {
+                    width: 200px;
+
+                }
+            }
+        }
+    }
+    .order-info-btn {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        padding: 11px 25px;
+        .order-info-btn-box {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            .btn {
+                margin-right: 10px;
+                flex: 1;
+                height: 100%;
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+    .actions-container {
+        height: 80px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #fff;
+        z-index: 99;
+        .actions {
+            width: 550px;
+            .exchange-btn {
+                padding: 20px 30px;
+                font-size: 16px;
+            }
+        }
+    }
+}
+

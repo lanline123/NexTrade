@@ -17,7 +17,7 @@ export default async function UserMessagePage() {
     <>
       <PcHeader config={header as any} />
       <main className="pc-member-page">
-        <MemberShell title={t('站内信')}>
+        <MemberShell title={t('站内信')} noNav>
     <UserMessageCenter />
         </MemberShell>
       </main>

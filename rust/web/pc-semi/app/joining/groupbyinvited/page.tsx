@@ -1,181 +1,241 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import PcHeader from '@/components/PcHeader';
-import PcFooter from '@/components/PcFooter';
 import MemberAuthGuard from '@/components/MemberAuthGuard';
 import GrouponCountdown from '@/components/GrouponCountdown';
-import { getGrouponRecordDetail, getGrouponItems, getPcHeader, type GrouponListItem } from '@/lib/api';
+import { getGrouponRecordDetail, getShopDetail } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '邀请好友参团 · 万物新生' };
 
+/**
+ * 邀请好友参团。
+ * 源码对照：view/pc/pages/joining/groupByInvited.vue（<template> 类名逐条照抄）
+ * 样式：app/join-page.scss → .pg-joining-group-by-invited
+ *
+ *   .page
+ *     > .content
+ *         > .product-section.card-box > .product-info > .product-image + .product-details
+ *         > .group-status-section.card-box > .status-info(.remaining-members/.countdown)
+ *                                      + .group-content > .group-content-item × N（或 .empty-state）
+ *         > .process-section.card-box > h3.section-title + .group-steps > .group-steps-content
+ *         > .store-section.card-box > .store-info > .store-logo + .store-actions
+ *     > .bottom-nav > .nav-left > .nav-item × 2 + .nav-right > .el-button
+ *
+ * 旧版这一页没有站点页头页脚，只有底部操作条，所以这里不挂 PcHeader/PcFooter。
+ */
 export default async function GroupInvitePage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
-    const t = getServerT();
+  const t = getServerT();
   const raw = searchParams?.id;
   const recordId = Number(Array.isArray(raw) ? raw[0] : raw) || 0;
-  const [detail, header, grouponItems] = await Promise.all([
-    recordId ? getGrouponRecordDetail(recordId).catch(() => null) : Promise.resolve(null),
-    getPcHeader().catch(() => null),
-    // 加盟 / 拼团商品列表：接口失败时兜底为空列表，不影响主页面渲染
-    getGrouponItems({ size: 6 }).catch(() => ({ records: [] as GrouponListItem[], total: 0 })),
-  ]);
+  const detail = recordId ? await getGrouponRecordDetail(recordId).catch(() => null) : null;
+  const shop = detail?.shopId ? await getShopDetail(Number(detail.shopId)).catch(() => null) : null;
   const joinUsers = detail?.joinUsers || [];
   const joined = Number(detail?.joinNumCount || joinUsers.length || 0);
   const required = Number(detail?.minGroupNum || 0);
   const remain = Math.max(0, required - joined);
-  const grouponList = Array.isArray(grouponItems?.records) ? grouponItems.records : [];
-  // 邀请列表：优先详情里的邀请/拼团记录，缺失时用拼团商品列表兜底
-  const rawInvites = detail?.inviteRecords || detail?.recordList || detail?.joiningList;
-  const inviteRecords: Array<Record<string, unknown>> = Array.isArray(rawInvites) && rawInvites.length
-    ? (rawInvites as Array<Record<string, unknown>>)
-    : grouponList.slice(0, 2).map((item) => ({
-        grouponPromotionRecordId: item.grouponPromotionItemId,
-        productId: item.productId,
-        nickname: '匿名用户',
-        avatar: item.picThumb,
-        minGroupNum: item.minGroupNum,
-        joinNumCount: item.joinNumCount,
-        countdownText: '',
-      }));
-  // 通过链接邀请（旧版 JoiningOrderList：location.origin + /joining/groupbyinvited?id=xxx）
-  const invitePath = `/joining/groupbyinvited?id=${recordId}`;
+  const joinStatus = Number(detail?.joinStatus ?? 0);
+  const productHref = `/product/${detail?.productId || ''}?grouponPromotionRecordId=${recordId}`;
+
+  const placeholders = remain > 0 && joinStatus === 1 ? Array.from({ length: remain }) : [];
 
   return (
     <MemberAuthGuard>
-      <div className="invite-page">
-      <PcHeader config={header as any} />
-      <main className="invite-main">
-        <div className="invite-card">
-          {detail ? (
-            <>
-              <section className="invite-product">
-                <img src={detail.grouponImage || detail.picThumb || ''} alt={detail.productName || ''} />
-                <div>
-                  <h1>{detail.productName || t('拼团商品')}</h1>
-                  <div className="invite-tag">{required} 人团 · 已有 {joined} 人参团</div>
-                  <div className="invite-price">{t('拼团价：')}<b>¥ {Number(detail.minGrouponPrice || 0).toFixed(2)}</b> <s>¥ {Number(detail.productPrice || 0).toFixed(2)}</s></div>
-                  {detail.shopTitle ? <div className="invite-shop">店铺：{detail.shopTitle}</div> : null}
+      <div className="pg-joining-group-by-invited">
+        <div className="page">
+          <div className="content">
+            {/* 产品信息区域 */}
+            <div className="product-section card-box">
+              <div className="product-info">
+                <div className="product-image">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={detail?.grouponImage || detail?.picThumb || ''} alt={detail?.productName || ''} />
                 </div>
-              </section>
-
-              <section className="invite-status">
-                <div className="invite-status__text">
-                  {detail.joinStatusDesc || (Number(detail.joinStatus) === 1 ? t('拼团中') : '已成团')}
-                  {Number(detail.joinStatus) === 1 ? t('，还差 {n} 人成团', { n: remain }) : ''}
-                </div>
-                {Number(detail.joinStatus) === 1 && detail.endTime ? (
-                  <GrouponCountdown endTime={detail.endTime as string | number} />
-                ) : null}
-                {detail.endTime ? <div className="invite-status__time">结束时间：{detail.endTime}</div> : null}
-                <div className="invite-progress"><i style={{ width: `${Math.min(100, Math.round((joined / Math.max(1, required)) * 100))}%` }} /></div>
-              </section>
-
-              <section className="invite-users">
-                <h2>{t('拼团成员')}</h2>
-                <div className="invite-user-list">
-                  {joinUsers.length ? joinUsers.map((user, index) => (
-                    <div className={`invite-user${user.leader ? ' is-leader' : ''}`} key={`${user.userId || index}`}>
-                      <img src={user.avatar || ''} alt={user.nickname || ''} />
-                      {user.leader ? <span className="invite-user__badge">{t('团长')}</span> : null}
-                      <span>{user.nickname || t('匿名用户')}</span>
+                <div className="product-details">
+                  <div className="product-details-top">
+                    <h1 className="product-title">{detail?.productName || t('拼团商品')}</h1>
+                    <div className="group-tag">
+                      <span className="el-tag tag">
+                        {required}
+                        {t('人团')}
+                      </span>
+                      <span className="joined-count">
+                        {t('已有')}
+                        {joined}
+                        {t('人参团')}
+                      </span>
                     </div>
-                  )) : <span className="invite-empty">{t('暂无成员')}</span>}
-                  {remain > 0 && Number(detail.joinStatus) === 1 ? (
-                    <div className="invite-user is-placeholder">
-                      <div className="invite-user__placeholder">?</div>
-                      <span>{t('待加入')}</span>
-                    </div>
-                  ) : null}
-                </div>
-              </section>
-
-              <section className="invite-steps">
-                <h2>{t('拼团流程')}</h2>
-                <div className="invite-steps__row">
-                  <div><b>1</b><span>开团/参加</span></div>
-                  <i>→</i>
-                  <div><b>2</b><span>{t('邀友参团')}</span></div>
-                  <i>→</i>
-                  <div><b>3</b><span>{t('人满成团')}</span></div>
-                </div>
-              </section>
-
-              {/* 邀请列表：对照 ToJoiningList.vue「人在拼单，可直接参与」 */}
-              <section className="invite-invitees">
-                <h2>{inviteRecords.length} 人在拼单，可直接参与</h2>
-                {inviteRecords.length ? (
-                  <div className="invite-invitees__list">
-                    {inviteRecords.map((record, index) => {
-                      const lack = Math.max(0, Number(record.minGroupNum || 0) - Number(record.joinNumCount || 0));
-                      return (
-                        <div className="invite-invitee" key={index}>
-                          <img src={String(record.avatar || '')} alt={String(record.nickname || t('匿名用户'))} />
-                          <span className="invite-invitee__name">{String(record.nickname || record.username || t('匿名用户'))}</span>
-                          <span className="invite-invitee__lack">{t('还差')}<b>{lack}</b>{t('人')}</span>
-                          <span className="invite-invitee__time">{String(record.countdownText || '') ? t('剩余 {t} 结束', { t: String(record.countdownText) }) : t('已结束')}</span>
-                          <Link href={`/product/${String(record.productId || detail?.productId || '')}?grouponPromotionRecordId=${String(record.grouponPromotionRecordId || recordId)}`}>{t('去参团')}</Link>
-                        </div>
-                      );
-                    })}
                   </div>
-                ) : (
-                  <p className="invite-empty">{t('暂无可参与的拼团')}</p>
-                )}
-              </section>
-
-              {/* 门店信息：对照 groupByInvited.vue store-section */}
-              {detail.shopTitle ? (
-                <section className="invite-store">
-                  <span className="invite-store__name">{detail.shopTitle}</span>
-                  <Link href={`/shop/${detail.shopId || ''}`}>{t('进店逛逛')}</Link>
-                </section>
-              ) : null}
-
-              {/* 加盟 / 拼团商品列表：用现有 getGrouponItems，接口失败兜底为空 */}
-              <section className="invite-groupon-products">
-                <h2>{t('拼团商品')}</h2>
-                {grouponList.length ? (
-                  <div className="invite-groupon-products__grid">
-                    {grouponList.map((item, index) => (
-                      <Link key={item.grouponPromotionItemId || item.productId || index} href={`/product/${item.productId || ''}`} className="invite-groupon-product">
-                        <img src={item.picThumb || ''} alt={item.productName || ''} />
-                        <span>{item.productName || t('拼团商品')}</span>
-                        <b>¥ {Number(item.grouponPrice || 0).toFixed(2)}</b>
-                        <em>{Number(item.minGroupNum || 0)} 人团</em>
-                      </Link>
-                    ))}
+                  <div className="price-info">
+                    <span className="group-price">
+                      {t('拼团价')}:
+                      <span className="groupPriceCom">¥{Number(detail?.minGrouponPrice || 0).toFixed(2)}</span>
+                    </span>
+                    <span className="original-price">
+                      <span style={{ fontSize: 16, color: '#999', textDecoration: 'line-through' }}>
+                        ¥{Number(detail?.productPrice || 0).toFixed(2)}
+                      </span>
+                    </span>
                   </div>
-                ) : (
-                  <p className="invite-empty">{t('暂无拼团商品')}</p>
-                )}
-              </section>
-
-              {/* 邀请好友参团动作：对照 showInviteDialog.vue「通过链接邀请」 */}
-              <section className="invite-share">
-                <h2>{t('通过链接邀请')}</h2>
-                <p>{t('点击复制链接，发送给好友进行参团；复制失败，请手动复制。')}</p>
-                <input readOnly value={invitePath} className="invite-share__link" />
-                <div className="invite-share__actions">
-                  <Link href={invitePath} className="is-primary">{t('邀请好友参团')}</Link>
-                  <Link href={`/product/${detail.productId || ''}?grouponPromotionRecordId=${recordId}`}>{t('参与拼团')}</Link>
                 </div>
-              </section>
-
-              <div className="invite-actions">
-                {/* 旧版 groupByInvited.vue:296-309：带 grouponPromotionRecordId 进商详，商详据此参到指定的团 */}
-                <Link
-                  href={`/product/${detail.productId || ''}?grouponPromotionRecordId=${recordId}`}
-                  className="is-primary"
-                >{t('去参团')}</Link>
-                <Link href="/member/group">{t('我的拼团')}</Link>
-                {detail.shopId ? <Link href={`/shop/${detail.shopId}`}>{t('进店逛逛')}</Link> : null}
               </div>
-            </>
-          ) : <div className="comment-empty">{t('暂无拼团数据')}</div>}
+            </div>
+
+            {/* 拼团状态区域 */}
+            <div className="group-status-section card-box">
+              <div className="status-info">
+                <div className="remaining-members">
+                  <span className="remaining-text">
+                    <span>{detail?.joinStatusDesc || ''}</span>
+                    {joinStatus === 1 ? (
+                      <span>
+                        ,{t('还差')}
+                        <span style={{ color: 'var(--main-bg)' }}>{joined >= required ? 0 : required - joined}</span>
+                        {t('人成团')}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                {joinStatus === 1 && detail?.endTime ? (
+                  <div className="countdown">
+                    <span className="countdown-text">
+                      <GrouponCountdown endTime={detail.endTime as string | number} />
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+
+              {joinUsers.length > 0 || required > 0 ? (
+                <div className="group-content">
+                  {joinUsers.map((user, index) => (
+                    <div className="group-content-item" key={`${user.userId || index}`}>
+                      <div className="group-content-item-image">
+                        <div className="group-content-item-image-img">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={user.avatar || '/assets/images/common/avatar.png'} alt={user.nickname || ''} />
+                        </div>
+                        {user.leader ? <div className="group-content-item-image-mask">{t('团长')}</div> : null}
+                      </div>
+                      <div className="group-content-item-bottom">
+                        <span>{user.nickname || t('匿名用户')}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {placeholders.map((_, index) => (
+                    <div className="group-content-item" key={`placeholder-${index}`}>
+                      <div className="group-content-item-image">
+                        <div className="group-content-item-image-img" />
+                      </div>
+                      <div className="group-content-item-bottom">
+                        <span>{t('待加入')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <p>{t('暂无拼团数据')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* 拼团流程区域 */}
+            <div className="process-section card-box">
+              <h3 className="section-title">{t('拼团流程')}</h3>
+              <div className="group-steps">
+                <div className="group-steps-content">
+                  <div className="group-steps-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/assets/images/group/group_open.png" alt="" />
+                    <span>{t('1.开团/参加')}</span>
+                  </div>
+                  <span className="step-dots">
+                    <span className="dot" />
+                    <span className="dot" />
+                    <span className="dot" />
+                  </span>
+                  <div className="group-steps-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/assets/images/group/group_invite.png" alt="" />
+                    <span>{t('2.邀友参团')}</span>
+                  </div>
+                  <span className="step-dots">
+                    <span className="dot" />
+                    <span className="dot" />
+                    <span className="dot" />
+                  </span>
+                  <div className="group-steps-item">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/assets/images/group/group_done.png" alt="" />
+                    <span>{t('3.人满成团')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 门店信息区域（旧版 shopInfo.shopId !== 0 才出） */}
+            {detail?.shopId ? (
+              <div className="store-section card-box">
+                <div className="store-info">
+                  <div className="store-logo">
+                    <div className="img-box">
+                      {shop?.shopLogo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={shop.shopLogo} alt="" />
+                      ) : (
+                        <p>T</p>
+                      )}
+                    </div>
+                    <div className="store-name">{detail.shopTitle || shop?.shopTitle || '--'}</div>
+                  </div>
+                  <div className="store-actions">
+                    <Link href={`/shop/${detail.shopId}`} className="el-button action-btn">
+                      <span className="iconfont-pc icon-guanli" />
+                      <span>{t('进店逛逛')}</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {/* 底部导航栏 */}
+          <div className="bottom-nav">
+            <div className="nav-left">
+              <Link href="/member/joining/list" target="_blank">
+                <div className="nav-item">
+                  <div className="nav-item-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/assets/images/group/group_snap.png" alt="" />
+                  </div>
+                  <span>{t('我的拼团')}</span>
+                </div>
+              </Link>
+              {detail?.shopId ? (
+                <Link href={`/shop/${detail.shopId}`}>
+                  <div className="nav-item">
+                    <div className="nav-item-img">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/assets/images/group/group_store.png" alt="" />
+                    </div>
+                    <span>{t('门店')}</span>
+                  </div>
+                </Link>
+              ) : null}
+            </div>
+            <div className="nav-right">
+              {joinStatus === 1 ? (
+                <Link href={productHref} className="el-button el-button--primary" style={{ width: '100%' }}>
+                  {t('去参团')}
+                </Link>
+              ) : (
+                <span className="el-button el-button--primary is-disabled" style={{ width: '100%' }}>
+                  {t('去参团')}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-      </main>
-      <PcFooter />
       </div>
     </MemberAuthGuard>
   );

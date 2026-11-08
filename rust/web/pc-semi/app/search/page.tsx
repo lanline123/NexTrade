@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import PcHeader from '@/components/PcHeaderWithData';
 import ProductGrid from '@/components/ProductGrid';
-import SearchBrandFilter from '@/components/SearchBrandFilter';
 import SearchAllFilterPanel from '@/components/SearchAllFilterPanel';
-import { SearchSideLayout, SearchClassicLayout, SearchModernLayout, type SearchLayoutContext } from '@/components/SearchLayoutVariants';
-import { getPcHeader } from '@/lib/api';
+import SearchSortBar from '@/components/SearchSortBar';
+import SearchCategoryStrip from '@/components/SearchCategoryStrip';
+import { getPcHeader, getSearchStyle } from '@/lib/api';
 import type { ProductListItem } from '@/lib/api';
+import { SearchClassicLayout, type SearchLayoutContext } from '@/components/SearchLayoutVariants';
 import PcFooter from '@/components/PcFooter';
 
 import { getServerT } from '@/i18n/server';
@@ -420,7 +421,7 @@ export default async function SearchPage(props: PageProps) {
     searchToken: searchToken || undefined,
   };
 
-  const [header, searchDecorate, filterResult, shopResult] = await Promise.all([
+  const [header, searchDecorate, filterResult, shopResult, searchStyle] = await Promise.all([
     getPcHeader().catch(() => null),
     getApi<PcSearchEnvelope>('home/home/pcSearch', { previewId: previewId || undefined }).catch(() => null),
     postApi<SearchFilterEnvelope>('search/search/getFilter', basePayload),
@@ -432,6 +433,7 @@ export default async function SearchPage(props: PageProps) {
           sortField: SHOP_SORTS.find((item) => item.key === shopSortKey)?.sortField || undefined,
         })
       : Promise.resolve(null),
+    getSearchStyle(),
   ]);
   const searchConfig = normalizePcSearchConfig(resolvePcSearchModule(searchDecorate));
   /** 装修预览：与详情页 ?uiStyle= 同性质，?filterStyle=1|2 可本地强制切换侧栏版/顶部筛选版。 */
@@ -526,280 +528,397 @@ export default async function SearchPage(props: PageProps) {
 
   const tabHref = (next: 'goods' | 'shop') => `${listPath}${buildQuery({ tab: next === 'shop' ? 'shop' : undefined }, 1)}`;
 
-  const layoutCtx: SearchLayoutContext = {
-    listPath, keyword, cat, brand, min, max, page, total, pages, sortKey, priceRange,
-    categories, brands, esAttrs, selectedAttrs, records,
+
+  /* 旧版 SortFilter.vue 面板按「名称 → 值数组」取已选属性 */
+  const selectedAttrsMap: Record<string, string[]> = {};
+  for (const attr of selectedAttrs) selectedAttrsMap[attr.attrName] = attr.attrValue;
+
+  /* ---------- 旧版 SortFilter.vue / Filter.vue 需要的链接（服务端先算好） ---------- */
+  const sortDefaultHref = `${listPath}${buildQuery({ sort: undefined, order: undefined }, 1)}`;
+  const sortSaleHref = `${listPath}${buildQuery({ sort: 'sale', order: undefined }, 1)}`;
+  const sortTimeHref = `${listPath}${buildQuery({ sort: 'time', order: undefined }, 1)}`;
+  const sortPriceOptions = [
+    {
+      key: 'asc',
+      label: t('价格从低到高'),
+      href: `${listPath}${buildQuery({ sort: 'price', order: 'asc' }, 1)}`,
+      active: sortKey === 'price-asc',
+    },
+    {
+      key: 'desc',
+      label: t('价格从高到低'),
+      href: `${listPath}${buildQuery({ sort: 'price', order: 'desc' }, 1)}`,
+      active: sortKey === 'price-desc',
+    },
+  ];
+  /* 旧版「区间」下拉的预设：沿用页面既有的价格区间，每项各自带 min/max */
+  const intervalPresets = PRICE_RANGES.filter((item) => item.key !== 'all').map((item) => ({
+    key: item.label,
+    label: item.label,
+    href: `${listPath}${buildQuery({ min: item.min || undefined, max: item.max || undefined }, 1)}`,
+    active: priceRange === item.key,
+  }));
+  /* 区间表单要带上的其它条件（旧版是 submit 时在 JS 里拼查询串，这里用 GET 隐藏域） */
+  const intervalHidden = Array.from(
+    new URLSearchParams(
+      buildQuery({ min: undefined, max: undefined, page: undefined }, 1).replace(/^\?/, '')
+    ).entries()
+  ).map(([name, value]) => ({ name, value }));
+  const intervalResetHref = `${listPath}${buildQuery({ min: undefined, max: undefined }, 1)}`;
+  /* 旧版 Filter.vue 一级分类：第一项固定是「全部」 */
+  const categoryStripItems = [
+    { key: 'all', label: t('全部'), href: tabHref('goods'), active: !cat },
+    ...categories.map((item) => {
+      const id = String(item.id ?? '');
+      return {
+        key: id || String(item.name ?? ''),
+        label: String(item.name ?? ''),
+        href: `${listPath}${buildQuery({ cat: id }, 1)}`,
+        active: cat === id,
+      };
+    }),
+  ];
+
+  /* 旧版品牌下拉：点一项就切到该品牌，再点一次取消 */
+  const sortBrandOptions = brands.map((item) => {
+    const id = String(item.id ?? '');
+    return {
+      key: id,
+      label: String(item.name ?? ''),
+      href: `${listPath}${buildQuery({ brand: id === brand ? undefined : id }, 1)}`,
+      active: id === brand,
+    };
+  });
+  /* 旧版 CatGoodsList.vue：商品在加载中时给 .goods-list__box 加 --loading */
+  const goodsLoading = false;
+
+  /**
+   * 搜索页风格（旧版 pages/search.v1/src/search.vue：uiVersion 在新旧两套布局间切换）：
+   * - admin「搜索页风格」装修写入系统配置 searchStyleType（1=经典版 classic，2=新版 modern），
+   *   经 GET /common/config/searchStyle 读取，决定 /search 的默认版式；
+   * - /search.v1 路由固定经典版（旧版入口硬编码 ui-version="old"）；
+   * - ?ui=new|old 仅作本地预览强制，与详情页 ?uiStyle= 同性质。
+   */
+  const uiParam = readParam(searchParams?.ui);
+  const effectiveVariant: 'classic' | 'modern' =
+    uiParam === 'new'
+      ? 'modern'
+      : uiParam === 'old' || uiParam === 'classic'
+        ? 'classic'
+        : pageType === '/search.v1'
+          ? 'classic'
+          : searchStyle.searchStyleType === 2
+            ? 'modern'
+            : 'classic';
+
+  /** 经典版布局上下文（三套布局共用同一份取数结果，见 SearchLayoutVariants.tsx）。 */
+  const searchLayoutCtx: SearchLayoutContext = {
+    listPath,
+    keyword,
+    cat,
+    brand,
+    min,
+    max,
+    page,
+    total,
+    pages,
+    sortKey,
+    priceRange,
+    categories,
+    brands,
+    esAttrs,
+    selectedAttrs,
+    records,
     showSales: searchConfig.showSales,
     showShopTag: searchConfig.showShopTag,
     showPriceRange: searchConfig.showPriceRange,
     filterTemplate: searchConfig.filterTemplate,
-    buildQuery, toggleAttr, attrSelected, serializeSelectedAttrs,
+    buildQuery,
+    toggleAttr,
+    attrSelected,
+    serializeSelectedAttrs,
   };
 
   return (
     <>
       <PcHeader config={header as any} />
-      <main className={`pc-list-page ${pcSearchClassNames(searchConfig)}`} style={pcSearchStyleVars(searchConfig) as any}>
-        <div className="pc-container">
-          <nav className="pc-breadcrumb">
-            <Link href="/">{t('首页')}</Link>
-            <span>/</span>
-            <span>{keyword ? t('搜索：{kw}', { kw: keyword }) : cat ? t('分类商品') : t('全部商品')}</span>
-          </nav>
-          <div className="pc-list-head">
-            <h1>
-              {keyword ? t('“{kw}”的搜索结果', { kw: keyword }) : t('全部商品')}
-              {shopIdParam > 0 ? <span className="pc-search-shop-scope">（限店铺 #{shopIdParam}）</span> : null}
-            </h1>
-            <span>{tab === 'shop' ? t('共 {n} 家店铺', { n: shopTotal }) : t('共 {n} 件商品', { n: total })}</span>
+      {/* 旧版 pages/search/index.vue：.search-page > CommonHeader / Search / CommonFooter */}
+      <main
+        className={`search-page mp-search ${pcSearchClassNames(searchConfig)}`}
+        style={pcSearchStyleVars(searchConfig) as any}
+      >
+        {/* 旧版 search.v1/src/search.vue：uiVersion 在 SearchLayoutClassic / Modern（当前内联 DOM）间切换 */}
+        {effectiveVariant === 'classic' ? (
+          <div className="page-body">
+            <div className="container">
+              <SearchClassicLayout ctx={searchLayoutCtx} />
+            </div>
           </div>
-
-          {/* 旧版 search-tabs：全部商品 / 店铺 */}
-          <div className="pc-search-tabs" style={{ display: 'flex', gap: 24, margin: '8px 0 16px', borderBottom: '1px solid #eee' }}>
-            <Link
-              href={tabHref('goods')}
-              style={{
-                padding: '10px 2px',
-                color: tab === 'goods' ? '#1a1a1a' : '#666',
-                fontWeight: tab === 'goods' ? 600 : 400,
-                borderBottom: tab === 'goods' ? '2px solid #1a1a1a' : '2px solid transparent',
-              }}
-            >{t('全部商品')}</Link>
-            <Link
-              href={tabHref('shop')}
-              style={{
-                padding: '10px 2px',
-                color: tab === 'shop' ? '#1a1a1a' : '#666',
-                fontWeight: tab === 'shop' ? 600 : 400,
-                borderBottom: tab === 'shop' ? '2px solid #1a1a1a' : '2px solid transparent',
-              }}
-            >{t('店铺')}</Link>
-          </div>
-
-          {variant ? (
-            variant === 'modern' ? <SearchModernLayout ctx={layoutCtx} /> : <SearchClassicLayout ctx={layoutCtx} />
-          ) : tab === 'goods' && searchConfig.filterStyle === 1 ? (
-            <SearchSideLayout ctx={layoutCtx} />
-          ) : tab === 'goods' ? (
-            <>
-              {/* 分类筛选（旧版 Filter 顶部类目条） */}
-              {categories.length ? (
-                <div className="pc-search-filter-row">
-                  <span className="pc-search-filter-row__label">{t('分类：')}</span>
-                  <div className="pc-search-filter-row__values">
-                    <Link href={`${listPath}${buildQuery({ cat: undefined }, 1)}`} className={!cat ? 'is-active' : ''}>{t('全部')}</Link>
-                    {categories.map((item) => (
-                      <Link key={item.id} href={`${listPath}${buildQuery({ cat: item.id }, 1)}`} className={cat === item.id ? 'is-active' : ''}>
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* 品牌筛选（旧版 Filter：firstWord 首字母分组 + 更多/收起） */}
-              {brands.length ? (
-                <SearchBrandFilter
-                  brands={brands}
-                  selected={brand ? brand.split(',').filter(Boolean) : []}
-                  baseQuery={brandBaseQuery}
-                  maxVisible={8}
-                />
-              ) : null}
-
-              {/* ES 属性筛选（旧版 FilterSide：属性复选，提交 attrs: [{ attrName, attrValue }]） */}
-              {esAttrs.length ? (
-                <div className="pc-search-attrs">
-                  {esAttrs.map((attr) => (
-                    <div key={attr.name} className="pc-search-filter-row">
-                      <span className="pc-search-filter-row__label">{attr.name}：</span>
-                      <div className="pc-search-filter-row__values">
-                        {(attr.values || []).map((option) => (
-                          <Link
-                            key={`${attr.name}-${option.value}`}
-                            href={toggleAttr(String(attr.name), String(option.value))}
-                            className={attrSelected(String(attr.name), String(option.value)) ? 'is-active' : ''}
-                          >
-                            {option.value}
-                          </Link>
-                        ))}
+        ) : (
+        <div className="page-body">
+          <div className="container">
+            <div className="top-filter-wrap">
+              {/* 旧版 Filter.vue：一条分类横条 .filter-container--top */}
+              <div className="filter-container filter-container--top mp-search-filter">
+                <div className="filter-top">
+                  <div className="filter-top-body">
+                    <div className="list">
+                      <div className="attr-box">
+                        <SearchCategoryStrip items={categoryStripItems} />
                       </div>
                     </div>
-                  ))}
-                  {selectedAttrs.length ? (
-                    <div className="pc-search-filter-row">
-                      <span className="pc-search-filter-row__label">{t('已选：')}</span>
-                      <div className="pc-search-filter-row__values">
-                        <Link href={`${listPath}${buildQuery({ attr: [] }, 1)}`}>{t('清除全部属性')}</Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* 旧版 search.vue：.search-tabs（商品/店铺切换 + 右侧翻页） */}
+              <div className="search-tabs">
+                <div className="search-tabs__left">
+                  <div>
+                    <Link
+                      href={tabHref('goods')}
+                      className={`search-tabs__item${tab === 'goods' ? ' active' : ''}`}
+                    >
+                      {t('全部商品')}
+                    </Link>
+                    <Link
+                      href={tabHref('shop')}
+                      className={`search-tabs__item${tab === 'shop' ? ' active' : ''}`}
+                    >
+                      {t('店铺')}
+                    </Link>
+                  </div>
+                </div>
+                {tab === 'goods' && total > 0 ? (
+                  <div className="search-tabs__right">
+                    <div className="pageInfo">
+                      {page > 1 ? (
+                        <Link href={`${listPath}${buildQuery({}, page - 1)}`} className="noPage">
+                          <span className="page-arrow page-arrow--prev" />
+                        </Link>
+                      ) : (
+                        <span className="noPage disabled">
+                          <span className="page-arrow page-arrow--prev" />
+                        </span>
+                      )}
+                      <span className="page_number">
+                        <em className="page_current">{page}</em>
+                        <span className="page_separator">/</span>
+                        <span className="page_total">{pages}</span>
+                      </span>
+                      {page < pages ? (
+                        <Link href={`${listPath}${buildQuery({}, page + 1)}`} className="noPage">
+                          <span className="page-arrow" />
+                        </Link>
+                      ) : (
+                        <span className="noPage disabled">
+                          <span className="page-arrow" />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {/* 旧版 search.vue：.right-wrap 里放 SortFilter / CatGoodsList / SearchShopList */}
+            <div className="right-wrap">
+              {tab === 'goods' ? (
+                <>
+                  <SearchSortBar
+                    defaultHref={sortDefaultHref}
+                    defaultActive={sortKey === 'default'}
+                    saleHref={sortSaleHref}
+                    saleActive={sortKey === 'sale'}
+                    priceOptions={sortPriceOptions}
+                    priceActive={sortKey === 'price-asc' || sortKey === 'price-desc'}
+                    timeHref={sortTimeHref}
+                    timeActive={sortKey === 'time'}
+                    intervalPresets={intervalPresets}
+                    intervalActive={Boolean(min || max)}
+                    intervalAction={listPath}
+                    intervalHidden={intervalHidden}
+                    minValue={min}
+                    maxValue={max}
+                    resetHref={intervalResetHref}
+                    brandOptions={sortBrandOptions}
+                    brandActive={Boolean(brand)}
+                    filterPanel={
+                      <SearchAllFilterPanel
+                        brands={brands}
+                        attrs={esAttrs}
+                        selectedBrands={brand ? [brand] : []}
+                        selectedAttrs={selectedAttrsMap}
+                        baseQuery={brandBaseQuery}
+                        basePath={listPath}
+                        collapsedCount={8}
+                      />
+                    }
+                  />
+
+                  {/* 旧版 CatGoodsList.vue：.goods-list__box > .goods-list-c > .wrap */}
+                  <div className="goods-list-wrap">
+                    <div
+                      className={`goods-list__box mp-search-goods${goodsLoading ? ' goods-list__box--loading' : ''}${records.length ? '' : ' goods-list__box--empty'}`}
+                    >
+                      <div className="goods-list-c">
+                        <ProductGrid
+                          products={records}
+                          showSales={Boolean(searchConfig?.showSales)}
+                          showShopTag={Boolean(searchConfig?.showShopTag)}
+                          gridClassName="wrap mp-search-card"
+                          fixedNameTwoLines
+                        />
                       </div>
+                    </div>
+                    {/* 旧版 CatGoodsList.vue 底部：Element Plus 分页 */}
+                    {pages > 1 ? (
+                      <div className="pagination">
+                        <nav className="el-pagination">
+                          {page > 1 ? (
+                            <Link
+                              href={`${listPath}${buildQuery({}, page - 1)}`}
+                              className="btn-prev"
+                            >
+                              {t('上一页')}
+                            </Link>
+                          ) : (
+                            <span className="btn-prev disabled">{t('上一页')}</span>
+                          )}
+                          <ul className="el-pager">
+                            {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
+                              const next = index + 1;
+                              return (
+                                <li key={next}>
+                                  <Link
+                                    href={`${listPath}${buildQuery({}, next)}`}
+                                    className={`number${next === page ? ' active' : ''}`}
+                                  >
+                                    {next}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          {page < pages ? (
+                            <Link
+                              href={`${listPath}${buildQuery({}, page + 1)}`}
+                              className="btn-next"
+                            >
+                              {t('下一页')}
+                            </Link>
+                          ) : (
+                            <span className="btn-next disabled">{t('下一页')}</span>
+                          )}
+                        </nav>
+                      </div>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                /* 旧版 SearchShopList.vue：.search-shop-panel > .shop-sort-tabs + .shop-list-container/.shop-row
+                   （.pg-catalog-search-shop-list 是旧版该 .vue 的 <style> 作用域替身） */
+                <div className="pg-catalog-search-shop-list">
+                <div className="search-shop-panel mp-search-shop">
+                  <div className="shop-sort-tabs">
+                    <Link
+                      href={`${listPath}${buildQuery({ tab: 'shop', shopSort: undefined }, 1)}`}
+                      className={`tab-item${shopSortKey === 'comprehensive' ? ' active' : ''}`}
+                    >
+                      {t('综合排序')}
+                    </Link>
+                    <Link
+                      href={`${listPath}${buildQuery({ tab: 'shop', shopSort: 'shopStar' }, 1)}`}
+                      className={`tab-item${shopSortKey === 'shopStar' ? ' active' : ''}`}
+                    >
+                      {t('店铺评分')}
+                    </Link>
+                  </div>
+
+                  {shops.length ? (
+                    <div className="shop-list-container">
+                      {shops.map((shop, index) => (
+                        <div className="shop-row" key={String(shop.shopId ?? index)}>
+                          {/* 旧版 components/product/overseas/ShopInfo.vue */}
+                          <div className="shop-info-wrap mp-search-shopinfo">
+                            <div className="shop-logo">
+                              <Link href={`/shop/${shop.shopId}`} className="shop-link">
+                                <img
+                                  className="img"
+                                  src={shop.shopLogo || ''}
+                                  alt={shop.shopTitle || t('店铺')}
+                                />
+                              </Link>
+                            </div>
+                            <div className="shop-detail">
+                              <div className="name-warp">
+                                <Link href={`/shop/${shop.shopId}`} className="name-link">
+                                  <div className="name">{shop.shopTitle || t('店铺')}</div>
+                                </Link>
+                              </div>
+                              <div className="button-wrap">
+                                <Link
+                                  href={`/shop/${shop.shopId}`}
+                                  className="tig-button-no-ripple"
+                                >
+                                  <span className="button-content">{t('进入店铺')}</span>
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="search-empty">
+                      <span className="search-empty__text">{t('没有找到相关店铺')}</span>
+                    </div>
+                  )}
+
+                  {shopPages > 1 ? (
+                    <div className="el-page">
+                      <nav className="el-pagination">
+                        {page > 1 ? (
+                          <Link href={`${listPath}${buildQuery({}, page - 1)}`} className="btn-prev">
+                            {t('上一页')}
+                          </Link>
+                        ) : (
+                          <span className="btn-prev disabled">{t('上一页')}</span>
+                        )}
+                        <ul className="el-pager">
+                          {Array.from({ length: Math.min(shopPages, 8) }).map((_, index) => {
+                            const next = index + 1;
+                            return (
+                              <li key={next}>
+                                <Link
+                                  href={`${listPath}${buildQuery({}, next)}`}
+                                  className={`number${next === page ? ' active' : ''}`}
+                                >
+                                  {next}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        {page < shopPages ? (
+                          <Link href={`${listPath}${buildQuery({}, page + 1)}`} className="btn-next">
+                            {t('下一页')}
+                          </Link>
+                        ) : (
+                          <span className="btn-next disabled">{t('下一页')}</span>
+                        )}
+                      </nav>
                     </div>
                   ) : null}
                 </div>
-              ) : null}
-
-              {/* 排序（旧版 SortFilter：默认/销量/价格↑↓/最新） */}
-              <div className="pc-list-toolbar">
-                <div className="pc-list-sorts">
-                  {SORTS.map((item) => {
-                    const nextQuery =
-                      item.key === 'default'
-                        ? buildQuery({ sort: undefined, order: undefined }, 1)
-                        : item.key === 'sale'
-                          ? buildQuery({ sort: 'sale', order: 'desc' }, 1)
-                          : item.key === 'time'
-                            ? buildQuery({ sort: 'time', order: 'desc' }, 1)
-                            : buildQuery({ sort: 'price', order: item.key === 'price-asc' ? 'asc' : 'desc' }, 1);
-                    return (
-                      <Link key={item.key} href={`/search${nextQuery}`} className={sortKey === item.key ? 'is-active' : ''}>
-                        {item.label}
-                      </Link>
-                    );
-                  })}
                 </div>
-                {/* 「全部筛选」浮层面板（旧版 SortFilter.vue filterPanel 区块）：
-                    顶部筛选版右侧触发器 + 浮层（品牌 / ES 属性分区 tab、可展开收起、重置）。 */}
-                <SearchAllFilterPanel
-                  brands={brands}
-                  attrs={esAttrs}
-                  selectedBrands={brand ? brand.split(',').filter(Boolean) : []}
-                  selectedAttrs={Object.fromEntries(selectedAttrs.map((item) => [item.attrName, item.attrValue]))}
-                  baseQuery={brandBaseQuery}
-                  basePath={listPath}
-                />
-                <Link href="/search/image" className="pc-image-search-entry">{t('以图搜图')}</Link>
-              </div>
-
-              {/* 价格区间（旧版 SortFilter 区间：预设 + 自定义；装修 showPriceRange 可关闭） */}
-              {searchConfig.showPriceRange ? (
-              <div className="pc-list-toolbar">
-                <div className="pc-list-sorts">
-                  {PRICE_RANGES.map((item) => (
-                    <Link
-                      key={item.key}
-                      href={`${listPath}${buildQuery({ min: item.min || undefined, max: item.max || undefined }, 1)}`}
-                      className={priceRange === item.key ? 'is-active' : ''}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-                <form action={listPath} method="get" className="pc-search-price-form">
-                  {keyword ? <input type="hidden" name="keyword" value={keyword} /> : null}
-                  {cat ? <input type="hidden" name="cat" value={cat} /> : null}
-                  {brand ? <input type="hidden" name="brand" value={brand} /> : null}
-                  {sort ? <input type="hidden" name="sort" value={sort} /> : null}
-                  {order ? <input type="hidden" name="order" value={order} /> : null}
-                  {shopIdParam > 0 ? <input type="hidden" name="shopId" value={String(shopIdParam)} /> : null}
-                  {serializeSelectedAttrs(selectedAttrs).map((item) => (
-                    <input key={item} type="hidden" name="attr" value={item} />
-                  ))}
-                  <input type="text" name="min" placeholder={t('最低价')} defaultValue={min} className="pc-search-price-input" />
-                  <span>-</span>
-                  <input type="text" name="max" placeholder={t('最高价')} defaultValue={max} className="pc-search-price-input" />
-                  <button type="submit">{t('确定')}</button>
-                </form>
-              </div>
-              ) : null}
-
-              <ProductGrid
-                products={records}
-                showSales={searchConfig.showSales}
-                showShopTag={searchConfig.showShopTag}
-              />
-
-              {pages > 1 ? (
-                <nav className="pc-pagination">
-                  {page > 1 ? <Link href={`${listPath}${buildQuery({}, page - 1)}`}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
-                  {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
-                    const next = index + 1;
-                    return (
-                      <Link key={next} href={`${listPath}${buildQuery({}, next)}`} className={next === page ? 'is-active' : ''}>
-                        {next}
-                      </Link>
-                    );
-                  })}
-                  {page < pages ? <Link href={`${listPath}${buildQuery({}, page + 1)}`}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
-                </nav>
-              ) : null}
-            </>
-          ) : (
-            <>
-              {/* 旧版 SearchShopList：sortField=shopStar（综合/评分） */}
-              <div className="pc-search-shop-sorts" style={{ display: 'flex', gap: 24, margin: '4px 0 16px' }}>
-                {SHOP_SORTS.map((item) => (
-                  <Link
-                    key={item.key}
-                    href={`${listPath}${buildQuery({ shopSort: item.key === 'shopStar' ? 'shopStar' : undefined }, 1)}`}
-                    style={{
-                      color: shopSortKey === item.key ? '#1a1a1a' : '#666',
-                      fontWeight: shopSortKey === item.key ? 600 : 400,
-                      borderBottom: shopSortKey === item.key ? '2px solid #1a1a1a' : '2px solid transparent',
-                      paddingBottom: 4,
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-
-              {/* 旧版 SearchShopList：GET shop/shop/list（keyword/page/size/sortField） */}
-              {shops.length ? (
-                <div className="pc-search-shops" style={{ display: 'grid', gap: 12 }}>
-                  {shops.map((shop, index) => (
-                    <div
-                      key={String(shop.shopId ?? index)}
-                      className="pc-search-shop"
-                      style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', border: '1px solid #eee', borderRadius: 8 }}
-                    >
-                      <Link href={`/shop/${shop.shopId}`} className="pc-search-shop__logo" style={{ flex: '0 0 64px' }}>
-                        <img
-                          src={shop.shopLogo || ''}
-                          alt={shop.shopTitle || t('店铺')}
-                          style={{ width: 64, height: 64, objectFit: 'contain', border: '1px solid #f0f0f0', borderRadius: 6 }}
-                        />
-                      </Link>
-                      <div className="pc-search-shop__info" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
-                        <Link href={`/shop/${shop.shopId}`} style={{ fontWeight: 600 }}>
-                          {shop.shopTitle || t('店铺')}
-                        </Link>
-                        <span style={{ color: '#888', fontSize: 12 }}>
-                          商品 {Number(shop.productCount || 0)}
-                          {Number(shop.shopStar || 0) > 0 ? t('· 评分 {v} 星', { v: Number(shop.shopStar || 0) }) : ''}
-                        </span>
-                      </div>
-                      <Link href={`/shop/${shop.shopId}`} className="pc-search-shop__enter" style={{ color: '#1a1a1a' }}>{t('进入店铺')}</Link>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="pc-search-empty">{t('没有找到相关店铺')}</p>
               )}
-
-              {shopPages > 1 ? (
-                <nav className="pc-pagination">
-                  {page > 1 ? (
-                    <Link href={`${listPath}${buildQuery({}, page - 1)}`}>{t('上一页')}</Link>
-                  ) : (
-                    <span className="is-disabled">{t('上一页')}</span>
-                  )}
-                  {Array.from({ length: Math.min(shopPages, 8) }).map((_, index) => {
-                    const next = index + 1;
-                    return (
-                      <Link key={next} href={`${listPath}${buildQuery({}, next)}`} className={next === page ? 'is-active' : ''}>
-                        {next}
-                      </Link>
-                    );
-                  })}
-                  {page < shopPages ? (
-                    <Link href={`${listPath}${buildQuery({}, page + 1)}`}>{t('下一页')}</Link>
-                  ) : (
-                    <span className="is-disabled">{t('下一页')}</span>
-                  )}
-                </nav>
-              ) : null}
-            </>
-          )}
+            </div>
+          </div>
         </div>
+        )}
+        {/* 旧版 search.vue：底部占位 .search-footer-spacer */}
+        <div className="search-footer-spacer" />
       </main>
       <PcFooter />
     </>

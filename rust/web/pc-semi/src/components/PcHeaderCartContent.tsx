@@ -83,9 +83,9 @@ export default function PcHeaderCartContent({
         <div className="pc-header-cart__wrapper">
           <div className="pc-header-cart__left">
             <div className={`pc-header__logo ${logoAlignClass}`}>
-              <Link href="/" className="alv1 pc-header__logo-link">
+              <Link href="/" className="alv1 pc-header__logo-link" aria-label={t('万物新生')}>
                 {logoSrc ? (
-                  <img src={logoSrc} style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} alt="" />
+                  <img src={logoSrc} style={{ width: logoWidth, height: logoHeight, objectFit: 'contain' }} alt={t('万物新生')} />
                 ) : null}
               </Link>
             </div>

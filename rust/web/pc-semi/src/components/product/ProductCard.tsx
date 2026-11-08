@@ -22,8 +22,9 @@
  *         （本站在售为零售口径，价格统一取 productPrice）。
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Toast } from '@douyinfe/semi-ui';
 import Add from '@icon-park/react/es/icons/Add';
 import { apiPost } from '@/lib/client-api';
@@ -50,6 +51,8 @@ export interface ProductCardItem {
   productSaleMode?: number | string;
   saleMode?: number | string;
   presaleInfo?: { saleMode?: number | string };
+  /** 旧版活动信息：[{ type }]，搜索页用它渲染 .activity-tags */
+  activityInfo?: Array<{ type?: number | string }>;
 }
 
 interface ProductCardProps {
@@ -66,6 +69,17 @@ interface ProductCardProps {
   salesMode?: 'sales' | 'stock';
   /** 图片左上角店铺名角标（搜索页 showShopTag） */
   showShopTag?: boolean;
+  /**
+   * 旧版 SearchProductCard.vue 的 fixed-name-two-lines：
+   * 名称固定两行高度并用 -webkit-line-clamp 截断（搜索页传 true）。
+   */
+  fixedNameTwoLines?: boolean;
+  /**
+   * 旧版 SearchProductCard.vue 的 activityInfo：[{ type }]，按 1 秒杀 / 3 满减 /
+   * 4 折扣 / 5 满赠 / 6 限时折扣 / 7 拼团 映射成 .activity-tags > .activity-tag。
+   * type 为 2（优惠券）时不显示，与旧版一致。
+   */
+  activityInfo?: Array<{ type?: number | string }>;
 }
 
 /** 复刻 components/format/Price.vue 的 ￥ / 整数 / 小数 三段结构 */
@@ -109,9 +123,14 @@ export default function ProductCard({
   onDelete,
   salesMode = 'sales',
   showShopTag = false,
+  fixedNameTwoLines = false,
+  activityInfo,
 }: ProductCardProps) {
     const { t } = useTranslation();
+  const router = useRouter();
   const [adding, setAdding] = useState(false);
+  /** 旧版 el-popover：more 三点按钮弹出「删除」气泡 */
+  const [moreOpen, setMoreOpen] = useState(false);
   const soldOut = isSoldOut(product);
   const href = productLink(product);
   const image = product.picThumb || product.picUrl || '';
@@ -135,16 +154,51 @@ export default function ProductCard({
   }
 
   const addButton = (
-    <div className={`view_detail${soldOut ? ' disabled' : ''}`} aria-label={t('加入购物车')}>
+    <div className={`view_detail buy-btn${soldOut ? ' disabled' : ''}`} aria-label={t('加入购物车')}>
       <Add size={26} />
     </div>
   );
 
+  // 点击卡片外收起 more 气泡
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest('[data-card-more]')) setMoreOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [moreOpen]);
+
+  /* 旧版 SearchProductCard.vue 第 195-213 行：活动类型文字映射，type 2（优惠券）不显示 */
+  const ACTIVITY_TYPE_TEXT: Record<number, string> = {
+    1: '秒杀',
+    3: '满减',
+    4: '折扣',
+    5: '满赠',
+    6: '限时折扣',
+    7: '拼团',
+  };
+  const activityTags = Array.isArray(activityInfo)
+    ? activityInfo
+        .filter((item) => {
+          const type = Number(item?.type);
+          return type !== 2 && Boolean(ACTIVITY_TYPE_TEXT[type]);
+        })
+        .map((item) => ACTIVITY_TYPE_TEXT[Number(item.type)])
+    : [];
+
   return (
-    <div className="product-card-container">
+    <div
+      className="product-card-container"
+      onClick={() => {
+        // 旧版容器 @click="toProduct"：整卡可点（more/加购内部各自 stopPropagation）
+        router.push(href);
+      }}
+    >
       <div className="top-wrap">
         <div className="pro_pic">
-          <Link href={href} target="_blank">
+          <Link href={href} target="_blank" onClick={(event) => event.stopPropagation()}>
             <img
               className={`img${soldOut ? ' sold-out' : ''}`}
               src={image}
@@ -157,23 +211,46 @@ export default function ProductCard({
           ) : null}
         </div>
         {isMore ? (
-          <button
-            type="button"
-            className="more"
-            aria-label={t('删除')}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onDelete?.(product);
-            }}
-          >
-            ×
-          </button>
+          <div className="more" data-card-more onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className="more__btn"
+              aria-label={t('更多操作')}
+              aria-expanded={moreOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setMoreOpen((current) => !current);
+              }}
+            >
+              {/* 旧版 SvgIcon name="more"：横向三圆点 */}
+              <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                <circle cx="4" cy="10" r="1.6" fill="currentColor" />
+                <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+                <circle cx="16" cy="10" r="1.6" fill="currentColor" />
+              </svg>
+            </button>
+            {moreOpen ? (
+              <div className="more__pop">
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setMoreOpen(false);
+                    onDelete?.(product);
+                  }}
+                >
+                  {t('删除')}
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
       <div className="center-wrap">
-        <div className="pro_name">
+        <div className={`pro_name${fixedNameTwoLines ? ' pro_name--fixed-two-lines' : ''}`}>
           {isPresale(product) ? <span className="presale-text">{t('预售')}</span> : null}
           {product.productName || ''}
         </div>
@@ -189,6 +266,17 @@ export default function ProductCard({
                 : t('已售 {n}', { n: Number(product.virtualSales ?? 0) })}
           </div>
         </div>
+
+        {/* 旧版 SearchProductCard.vue：活动标签行（.center-wrap > .activity-tags > .activity-tag） */}
+        {activityTags.length > 0 ? (
+          <div className="activity-tags">
+            {activityTags.map((tag, index) => (
+              <span className="activity-tag" key={`${tag}-${index}`}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         {/* 原版此处是 groupData.type === 7 的拼团 tag，否则占位 24px；推荐位恒为占位 */}
         <div className="price-slot" />

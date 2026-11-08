@@ -1,31 +1,39 @@
 'use client';
 
 /**
- * 卡管理（提现账户）
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/account/CardManagement.vue
- * 卡片弹窗：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/account/src/InfoCard.vue
+ * 卡管理（提现账户）（/member/account/cardmanagement）
  *
- * 旧版字段与交互：
- * - 卡类型 tab（银行卡 / 支付宝 / 微信）；列表列：真实姓名 / 身份证号码 / 账户号码 / 银行卡详情 / 操作；
- * - 新增 / 编辑卡片弹窗（InfoCard.vue）：卡类型、真实姓名（必填）、身份证号（必填 + 正则校验）、
- *   账户号码（必填 + 银行卡号 ≥6 位正则）、银行卡详情（仅银行卡类型）；
- * - 删除走 DeleteRecord.vue 二次确认。
+ * 源码对照：
+ * - 列表：view/pc/pages/member/account/CardManagement.vue
+ * - 弹窗：view/pc/pages/member/account/src/InfoCard.vue
  *
- * 本次补齐的字段（旧版有、新版缺）：
- * - 编辑已绑定的卡（旧版 act="edit" 走 accountDetail 回显 + updateAccount 提交；
- *   Rust 后端 `user/withdrawApply/accountDetail` 与 `user/withdrawApply/updateAccount` 均已实现）。
+ * 类名逐条照抄旧版模板，列表落在 `.mp-account-card` 下、弹窗落在 `.mp-account-infocard` 下
+ * （两层样式都由 scripts/gen-member-pages-scss.mjs 从旧版 <style scoped> 抽取，见 app/member-pages.scss）。
  *
- * 后端契约：
- * - GET  /user/withdrawApply/list?accountType=  列表
- * - GET  /user/withdrawApply/accountDetail?accountId=  编辑回显
- * - POST /user/withdrawApply/createAccount  新增
- * - POST /user/withdrawApply/updateAccount  修改（必带 accountId）
- * - POST /user/withdrawApply/delAccount    删除
+ *   .info-row.mp-account-card
+ *     > .title-or-tabs > .tag-and-input > .tig-tabs
+ *     > .account-detail-content
+ *         > .flex.justify-between.mb10
+ *             > .el-radio-group(.el-radio-button > .el-radio-button__inner ×3)
+ *             > .info-card > .cu > button.mp-el-button--primary
+ *         > .table > table > thead.table-header > th.header-cell … tbody > tr.body-tr
+ *             > td > .flex.justify-center.align-center > span.font-color(编辑) ｜ span.font-color(删除)
+ *         > .no-result > span（空态）
+ *
+ *   .info-card.mp-account-infocard
+ *     > .cu（触发区）
+ *     > Modal = el-dialog：「新增卡片 / 编辑卡片」 > el-form.form-body(label-suffix="：" label-width="auto")
+ *         el-form-item：卡类型(.el-radio-group) / 真实姓名 / 身份证号 / 账号 / 银行卡详情(textarea)
+ *         footer：.dialog-footer > 保存
+ *
+ * 请求层保持原样（list / accountDetail / createAccount / updateAccount / delAccount 全未改）。
  */
+
 import { useEffect, useState } from 'react';
-import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
+import { Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 import MemberDeleteConfirm from '@/components/MemberDeleteConfirm';
+import MemberAccountTabs from '@/components/MemberAccountTabs';
 
 import { useTranslation } from 'react-i18next';
 interface AccountCard {
@@ -58,7 +66,7 @@ export default function CardManagementClient() {
     /** 卡片弹窗：0 = 关闭；>0 = 编辑该卡；-1 = 新增 */
     const [dialog, setDialog] = useState<0 | number | -1>(0);
     const [editingId, setEditingId] = useState(0);
-    const [form, setForm] = useState({ accountName: '', accountNo: '', bankName: '', identity: '' });
+    const [form, setForm] = useState({ accountType: 1, accountName: '', accountNo: '', bankName: '', identity: '' });
     const [saving, setSaving] = useState(false);
     /** 待删除的卡 id */
     const [deleteId, setDeleteId] = useState(0);
@@ -75,9 +83,10 @@ export default function CardManagementClient() {
         load();
     }, [type]);
 
+    /** 旧版 InfoCard.vue act="add"：卡类型默认为当前列表的类型 */
     const openCreate = () => {
         setEditingId(0);
-        setForm({ accountName: '', accountNo: '', bankName: '', identity: '' });
+        setForm({ accountType: type, accountName: '', accountNo: '', bankName: '', identity: '' });
         setDialog(-1);
     };
 
@@ -88,6 +97,7 @@ export default function CardManagementClient() {
         const detail = await apiGet<AccountCard>('user/withdrawApply/accountDetail', { accountId: item.accountId }).catch(() => null);
         const current = detail || item;
         setForm({
+            accountType: current.accountType || 1,
             accountName: current.accountName || '',
             accountNo: current.accountNo || '',
             bankName: current.bankName || '',
@@ -99,20 +109,21 @@ export default function CardManagementClient() {
         const accountName = form.accountName.trim();
         const accountNo = form.accountNo.trim();
         const identity = form.identity.trim();
+        const formType = editingId ? form.accountType : type;
         if (!accountName) return Toast.error({ content: t('请输入真实姓名') });
         if (!identity) return Toast.error({ content: t('请输入身份证号') });
         if (!IDENTITY_REGEXP.test(identity)) return Toast.error({ content: t('请输入正确的身份证号码') });
-        if (!accountNo) return Toast.error({ content: t('请输入{type}账号', { type: t(TYPE_LABELS[type]) }) });
-        if (type === 1 && !ACCOUNT_NO_REGEXP.test(accountNo)) return Toast.error({ content: t('请输入正确的银行卡号') });
+        if (!accountNo) return Toast.error({ content: t('请输入{type}号', { type: t(TYPE_LABELS[formType]) }) });
+        if (formType === 1 && !ACCOUNT_NO_REGEXP.test(accountNo)) return Toast.error({ content: t('请输入正确的银行卡号') });
 
         setSaving(true);
         try {
             const payload = {
-                accountType: type,
+                accountType: formType,
                 accountName,
                 accountNo,
                 identity,
-                bankName: type === 1 ? form.bankName.trim() : '',
+                bankName: formType === 1 ? form.bankName.trim() : '',
             };
             if (editingId) {
                 await apiPost('user/withdrawApply/updateAccount', { accountId: editingId, ...payload });
@@ -121,7 +132,7 @@ export default function CardManagementClient() {
             }
             Toast.success({ content: t('操作成功') });
             setDialog(0);
-            setForm({ accountName: '', accountNo: '', bankName: '', identity: '' });
+            setForm({ accountType: 1, accountName: '', accountNo: '', bankName: '', identity: '' });
             load();
         } catch (error) {
             Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
@@ -142,74 +153,144 @@ export default function CardManagementClient() {
         }
     };
 
-    return (
-        <Card className="member-card" loading={loading}>
-            <div className="card-tabs">
-                {[1, 2, 3].map((value) => (
-                    <button key={value} type="button" className={type === value ? 'is-active' : ''} onClick={() => setType(value)}>{t(TYPE_LABELS[value])}</button>
-                ))}
-                <Button theme="solid" type="primary" onClick={openCreate}>{t('添加新卡')}</Button>
-            </div>
-            <table className="account-table">
-                <thead><tr><th>{t('真实姓名')}</th><th>{t('身份证号码')}</th><th>{t('账户号码')}</th>{type === 1 ? <th>{t('银行卡详情')}</th> : null}<th>{t('操作')}</th></tr></thead>
-                <tbody>
-                    {rows.map((item) => (
-                        <tr key={item.accountId}>
-                            <td>{item.accountName || '-'}</td>
-                            <td>{mask(item.identity)}</td>
-                            <td>{mask(item.accountNo)}</td>
-                            {type === 1 ? <td>{item.bankName || '-'}</td> : null}
-                            <td>
-                                {/* 旧版 InfoCard.vue act="edit"：编辑已绑定的卡 */}
-                                <button type="button" className="link-primary" onClick={() => void openEdit(item)}>{t('编辑')}</button>
-                                <button type="button" className="link-danger" onClick={() => setDeleteId(item.accountId)}>{t('删除')}</button>
-                            </td>
-                        </tr>
-                    ))}
-                    {!rows.length ? <tr><td colSpan={type === 1 ? 5 : 4} className="account-empty">{t('暂无卡片')}</td></tr> : null}
-                </tbody>
-            </table>
+    const accountPlaceholder = t(TYPE_LABELS[editingId ? form.accountType : type] || '银行卡');
 
-            {/* 新增 / 编辑卡片（InfoCard.vue 对照） */}
+    return (
+        <div className="info-row mp-account-card">
+            <MemberAccountTabs current="/member/account/cardmanagement" />
+
+            <div className="account-detail-content">
+                <div className="flex justify-between mb10">
+                    <div className="el-radio-group">
+                        {[1, 2, 3].map((value) => (
+                            <div key={value} className="el-radio-button">
+                                <button
+                                    type="button"
+                                    className={`el-radio-button__inner${type === value ? ' is-active' : ''}`}
+                                    onClick={() => setType(value)}
+                                >
+                                    {t(TYPE_LABELS[value])}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="info-card mp-account-infocard">
+                        <span className="cu">
+                            <button type="button" className="mp-el-button mp-el-button--primary" onClick={openCreate}>
+                                {t('添加新卡')}
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <div className="table">
+                    {rows.length > 0 ? (
+                        <table>
+                            <thead className="table-header">
+                                <tr>
+                                    <th className="header-cell">{t('真实姓名')}</th>
+                                    <th className="header-cell">{t('身份证号码')}</th>
+                                    <th className="header-cell">{t('账户号码')}</th>
+                                    {type === 1 ? <th className="header-cell">{t('银行卡详情')}</th> : null}
+                                    <th className="header-cell" style={{ width: 130 }}>{t('操作')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((item) => (
+                                    <tr key={item.accountId} className="body-tr">
+                                        <td>{item.accountName}</td>
+                                        <td>{item.identity}</td>
+                                        <td>{mask(item.accountNo)}</td>
+                                        {type === 1 ? <td>{item.bankName || '--'}</td> : null}
+                                        <td>
+                                            <div className="flex justify-center align-center">
+                                                <div className="info-card mp-account-infocard">
+                                                    <span className="cu" onClick={() => void openEdit(item)}>
+                                                        <span className="font-color">{t('编辑')}</span>
+                                                    </span>
+                                                </div>
+                                                ｜
+                                                <span className="font-color" style={{ cursor: 'pointer' }} onClick={() => setDeleteId(item.accountId)}>
+                                                    {t('删除')}
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="no-result">
+                            {loading ? null : <span>{t('暂无卡片')}</span>}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 新增 / 编辑卡片（InfoCard.vue 对照：el-dialog + el-form.form-body） */}
             <Modal
                 title={editingId ? t('编辑卡片') : t('新增卡片')}
                 visible={dialog !== 0}
                 onCancel={() => setDialog(0)}
-                onOk={() => void submit()}
-                confirmLoading={saving}
-                okText={t('保存')}
+                footer={(
+                    <div className="dialog-footer">
+                        <button type="button" className="mp-el-button mp-el-button--primary" disabled={saving} onClick={() => void submit()}>
+                            {t('保存')}
+                        </button>
+                    </div>
+                )}
                 width={600}
             >
-                <div className="security-form">
-                    {!editingId ? (
-                        <>
-                            <label>{t('卡类型')}</label>
-                            <div className="card-type-group">
-                                {[1, 2, 3].map((value) => (
-                                    <button
-                                        key={value}
-                                        type="button"
-                                        className={type === value ? 'is-active' : ''}
-                                        onClick={() => setType(value)}
-                                    >
-                                        {t(TYPE_LABELS[value])}
-                                    </button>
-                                ))}
+                <div className="info-card mp-account-infocard">
+                    <div className="el-form form-body mp-el-form--auto">
+                        <div className="el-form-item">
+                            <label className="el-form-item__label">{t('卡类型')}：</label>
+                            <div className="el-form-item__content">
+                                <div className="el-radio-group">
+                                    {[1, 2, 3].map((value) => (
+                                        <div key={value} className="el-radio-button">
+                                            <button
+                                                type="button"
+                                                className={`el-radio-button__inner${(editingId ? form.accountType : type) === value ? ' is-active' : ''}`}
+                                                onClick={() => {
+                                                    if (editingId) setForm({ ...form, accountType: value, accountName: '', accountNo: '', bankName: '', identity: '' });
+                                                    else setType(value);
+                                                }}
+                                            >
+                                                {t(TYPE_LABELS[value])}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </>
-                    ) : null}
-                    <label>{t('真实姓名')}</label>
-                    <input value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} placeholder={t('请输入真实姓名')} />
-                    <label>{t('身份证号')}</label>
-                    <input value={form.identity} maxLength={18} onChange={(event) => setForm({ ...form, identity: event.target.value })} placeholder={t('请输入身份证号')} />
-                    <label>{t(TYPE_LABELS[type])}{t('号')}</label>
-                    <input value={form.accountNo} onChange={(event) => setForm({ ...form, accountNo: event.target.value })} placeholder={t('请输入{type}账号', { type: t(TYPE_LABELS[type]) })} />
-                    {type === 1 ? (
-                        <>
-                            <label>{t('银行卡详情')}</label>
-                            <input value={form.bankName} onChange={(event) => setForm({ ...form, bankName: event.target.value })} placeholder={t('请输入银行卡详情')} />
-                        </>
-                    ) : null}
+                        </div>
+                        <div className="el-form-item">
+                            <label className="el-form-item__label">{t('真实姓名')}：</label>
+                            <div className="el-form-item__content">
+                                <input className="el-input__inner" value={form.accountName} onChange={(event) => setForm({ ...form, accountName: event.target.value })} placeholder={t('请输入真实姓名')} />
+                            </div>
+                        </div>
+                        <div className="el-form-item">
+                            <label className="el-form-item__label">{t('身份证号')}：</label>
+                            <div className="el-form-item__content">
+                                <input className="el-input__inner" value={form.identity} maxLength={18} onChange={(event) => setForm({ ...form, identity: event.target.value })} placeholder={t('请输入身份证号')} />
+                            </div>
+                        </div>
+                        <div className="el-form-item">
+                            <label className="el-form-item__label">{`${accountPlaceholder}${t('号')}`}：</label>
+                            <div className="el-form-item__content">
+                                <input className="el-input__inner" value={form.accountNo} onChange={(event) => setForm({ ...form, accountNo: event.target.value })} placeholder={`${t('请输入')}${accountPlaceholder}`} />
+                            </div>
+                        </div>
+                        {(editingId ? form.accountType : type) === 1 ? (
+                            <div className="el-form-item">
+                                <label className="el-form-item__label">{t('银行卡详情')}：</label>
+                                <div className="el-form-item__content">
+                                    <textarea className="el-textarea__inner" rows={4} value={form.bankName} onChange={(event) => setForm({ ...form, bankName: event.target.value })} placeholder={t('请输入银行卡详情')} />
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             </Modal>
 
@@ -220,6 +301,6 @@ export default function CardManagementClient() {
                 onCancel={() => setDeleteId(0)}
                 onConfirm={remove}
             />
-        </Card>
+        </div>
     );
 }

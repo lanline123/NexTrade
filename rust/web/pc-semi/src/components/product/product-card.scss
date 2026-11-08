@@ -79,26 +79,59 @@
     }
 
     .more {
-      display: flex;
-      align-items: center;
-      justify-content: center;
       position: absolute;
       top: 2px;
       right: 5px;
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      border: none;
-      border-radius: 50%;
-      background: transparent;
-      color: #1a1a1a;
-      font-size: 18px;
-      line-height: 1;
-      cursor: pointer;
+      z-index: 6;
 
-      &:hover {
-        background: rgba(0, 0, 0, 0.04);
-        color: var(--primary-dark-2, #519d88);
+      .more__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: #1a1a1a;
+        cursor: pointer;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.04);
+          color: var(--primary-dark-2, #519d88);
+        }
+      }
+
+      /* 旧版 el-popover（popper-class="del-pop"）：白底小气泡 + 「删除」 */
+      .more__pop {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        z-index: 10;
+        min-width: 72px;
+        padding: 6px;
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(15, 18, 34, 0.14);
+
+        button {
+          display: block;
+          width: 100%;
+          padding: 6px 10px;
+          border: none;
+          border-radius: 4px;
+          background: transparent;
+          color: var(--semi-color-text-1, #1c1f23);
+          font-size: 13px;
+          text-align: center;
+          cursor: pointer;
+
+          &:hover {
+            background: var(--semi-color-fill-0, #f2f3f5);
+            color: var(--semi-color-danger, #f93920);
+          }
+        }
       }
     }
   }

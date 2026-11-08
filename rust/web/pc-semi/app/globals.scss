@@ -34,11 +34,12 @@
   --pc-radius: 12px;
 
   /* 头部与首页模块的统一宽度口径：1920 视口下内容区 = 198~1722（1524px）。
-     显式定义在 :root，避免各层只靠 fallback 而出现口径漂移；
-     min-width 归零，窄视口下头部不再被撑到比首页模块更宽。 */
+     显式定义在 :root，避免各层只靠 fallback 而出现口径漂移。
+     min-width 照抄旧版 assets/css/global.less:250 的 `--pc-home-min-width, 1264px`：
+     旧版是纯 PC 站，容器最窄 1264px、窄视口横向滚动，没有任何响应式收缩。 */
   --pc-home-max-width: 1600px;
   --pc-home-padding-x: 38px;
-  --pc-home-min-width: 0px;
+  --pc-home-min-width: 1264px;
 }
 
 * {
@@ -50,9 +51,32 @@ body {
   margin: 0;
   padding: 0;
   background: var(--pc-bg);
-  color: var(--pc-text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  /* 基础排版逐条对齐旧版 assets/css/global.less:1-17（html 规则），
+     不再用新版自己的 #101828 / 浏览器默认 16px：
+       color: #666; font-size: 12px;
+       font-family: PingFang SC, Microsoft Yahei, Avenir, Segoe UI, Hiragino Sans GB,
+                    STHeiti, "Microsoft Sans Serif", WenQuanYi Micro Hei, sans-serif;
+       text-align: left; word-break: normal; -webkit-font-smoothing: antialiased;
+     各组件仍各自覆盖字号/颜色；这里只还原旧版的继承基线。 */
+  color: #666;
+  font-size: 12px;
+  font-family: PingFang SC, Microsoft Yahei, Avenir, Segoe UI, Hiragino Sans GB, STHeiti, 'Microsoft Sans Serif', WenQuanYi Micro Hei, sans-serif;
+  text-align: left;
+  word-break: normal;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Semi 自带的 app/semi.css 里 `body { font-family: "Inter", -apple-system, ... }`
+   与上面的 `html, body` 同为 (0,0,1)，胜负取决于打包后的 CSS 顺序（dev 实测 Semi 赢，
+   body 计算值是 Inter 栈）。这里用 `html body`(0,0,2) 提高特异性，无论顺序如何都还原
+   旧版 global.less:1-17 的字体栈，不再依赖加载顺序。 */
+html body,
+html body .semi-always-light {
+  color: #666;
+  font-size: 12px;
+  font-family: PingFang SC, Microsoft Yahei, Avenir, Segoe UI, Hiragino Sans GB, STHeiti, 'Microsoft Sans Serif', WenQuanYi Micro Hei, sans-serif;
+  text-align: left;
+  word-break: normal;
 }
 
 a {
@@ -65,10 +89,38 @@ img {
   max-width: 100%;
 }
 
+/* 全站内容容器：逐条照抄旧版 assets/css/global.less:247-255 的 `.container`
+   （nuxt.config.ts:112 引的是 global.less，不是 global.css 里那份 1190px 的旧产物）。
+
+     width: 100%;
+     max-width: var(--pc-home-max-width, 1600px);
+     min-width: var(--pc-home-min-width, 1264px);
+     margin: 0 auto;
+     padding: 0 var(--pc-home-padding-x, 38px);
+     box-sizing: border-box;
+     clear: both;
+*/
 .pc-container {
-  width: min(1600px, 100%);
+  width: 100%;
+  max-width: var(--pc-home-max-width, 1600px);
+  min-width: var(--pc-home-min-width, 1264px);
   margin: 0 auto;
-  padding: 0 38px;
+  padding: 0 var(--pc-home-padding-x, 38px);
+  box-sizing: border-box;
+  clear: both;
+}
+
+/* 旧版 .container（assets/css/global.less:247-255）的同名实现。
+   首页老链的 pcBanner 根节点自带 `banner container`（components/home/Banner.vue:5），
+   类名照抄旧版，宽度口径与 .pc-container 完全一致。 */
+.pc-home .container {
+  width: 100%;
+  max-width: var(--pc-home-max-width, 1600px);
+  min-width: var(--pc-home-min-width, 1264px);
+  margin: 0 auto;
+  padding: 0 var(--pc-home-padding-x, 38px);
+  box-sizing: border-box;
+  clear: both;
 }
 
 /* 首页容器：对齐旧版 pages/index.vue 的 `.home-new-warp`（max 1600 / 两侧 38px），
@@ -83,12 +135,8 @@ img {
   padding-right: 38px;
 }
 
-@media (max-width: 900px) {
-  .pc-home > .pc-container {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-}
+/* 旧版 global.less 没有任何 @media 断点（实测 0 条），容器左右内边距始终 38px。
+   新版此前在 ≤900px 把它压到 16px，属于自造近似，已移除。 */
 
 /* 首页通栏区：旧版 pages/index.vue 把 pcBanner / pcBanner2 渲染在容器外（通栏），
    其余模块在 .container 内的 .home-warp。通栏区自身不加左右内边距，
@@ -756,10 +804,6 @@ img {
 }
 
 @media (max-width: 1200px) {
-  .pc-container {
-    padding: 0 20px;
-  }
-
   .pc-header__main {
     gap: 18px;
   }
@@ -2184,6 +2228,21 @@ img {
     &:hover {
       opacity: 0.8;
     }
+  }
+}
+
+/* 经典版（loginMode=1）头部：内容限宽 1190px 居中、左右收窄（对齐旧版 LoginHeader.vue .is-classic）；
+   1px 底边框由组件内联 style 按装修下发 */
+.pc-login-header--classic {
+  .pc-login-header__inner {
+    max-width: 1190px;
+    padding: 15px 10px;
+  }
+
+  .pc-login-header__info {
+    gap: 10px;
+    min-width: 300px;
+    justify-content: flex-end;
   }
 }
 
@@ -6044,7 +6103,7 @@ img {
 .article-side h3 { margin: 0 0 14px; color: #1a1a1a; font-size: 16px; }
 .article-side a { display: block; padding: 9px 0; color: #666; font-size: 13px; }
 .article-side a:hover { color: var(--pc-primary); }
-.article-detail { flex: 1; min-width: 0; padding: 28px; background: #fff; }
+.article-detail { flex: 1; min-width: 0; padding: 30px; background: #fff; }
 .article-detail h1 { margin: 14px 0 10px; color: #1a1a1a; font-size: 28px; }
 .article-meta { margin-bottom: 20px; color: #999; font-size: 12px; }
 .article-cover { max-width: 100%; margin-bottom: 20px; }
@@ -6813,6 +6872,9 @@ img {
 .pc-header-runtime .top-search .search-input { flex: 1; height: 26px; padding: 6px 10px; border: 0; border-radius: 8px; background: #fff; color: #bbbbbb; font-size: 14px; line-height: 26px; outline: none; }
 .pc-header-runtime .top-search .search-input::placeholder { color: #9ca3af; font-size: 14px; }
 .pc-header-runtime .top-search .search-submit { display: flex; align-items: center; justify-content: center; width: 58px; height: 32px; margin-right: 3px; border: 0; border-radius: 4px; background: var(--pc-header-search-accent, #1a1a1a); color: #fff; cursor: pointer; font-size: 22px; }
+/* 搜索按钮由 <div role="button"> 改成真正的 <button>：清掉浏览器默认边框内边距，外观保持不变 */
+button.search-submit { padding: 0; border: 0; font: inherit; cursor: pointer; }
+button.search-submit svg { display: block; }
 
 /* 按 LanguageChangeNew.vue 重建语言切换 */
 .pc-header-runtime .lang-change { position: relative; }
@@ -6931,6 +6993,9 @@ img {
 
 @import './header-source.scss';
 @import './modules-source.scss';
+// 装修模块样式：上面那份是手写对齐版，下面这份是旧版 <style> 逐字搬运
+// （gen-decorate-scss.mjs 生成），放后面让它覆盖手写值，缺的选择器也由它补齐。
+@import './decorate-source.scss';
 @import './pages-source.scss';
 @import './modern.scss';
 // 购物车页：结构沿用原版 cart/index.vue，视觉层换成 Semi Design 现代主题
@@ -6938,402 +7003,6 @@ img {
 @import './cart-modern.scss';
 // 商品详情页三套风格（结构级布局，须置于最后以覆盖旧 .pdp / .pc-product-detail 规则）
 @import './product-detail-styles.scss';
-
-/* ===== 确认订单（对齐 view/pc/pages/order/check.vue 两栏布局） ===== */
-.pc-co {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin: 16px 0 40px;
-}
-
-.pc-co__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.pc-co-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px 24px;
-}
-
-.pc-co-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-
-  h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a1a;
-    line-height: 24px;
-  }
-}
-
-.pc-co-card__extra {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.pc-co-card__sub {
-  font-size: 12px;
-  color: #999;
-
-  b {
-    color: #ff4d4f;
-    font-weight: 600;
-  }
-}
-
-.pc-co-link {
-  border: 0;
-  background: none;
-  padding: 0;
-  font-size: 14px;
-  color: #1a1a1a;
-  cursor: pointer;
-
-  &:hover {
-    color: #1478ff;
-  }
-}
-
-.pc-co-caret {
-  font-size: 16px;
-  margin-left: 2px;
-}
-
-.pc-co-hint {
-  margin: 10px 0 0;
-  font-size: 12px;
-  color: #999;
-  line-height: 20px;
-}
-
-/* 地址 */
-.pc-co-address {
-  border: 1px solid #ebebeb;
-  border-radius: 6px;
-  padding: 14px 16px;
-  background: #fafafa;
-
-  p {
-    margin: 6px 0 0;
-    color: #333;
-    font-size: 14px;
-  }
-
-  small {
-    display: block;
-    margin-top: 4px;
-    color: #999;
-  }
-
-  &--empty {
-    color: #999;
-  }
-}
-
-.pc-co-address__line {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-
-  b {
-    font-size: 16px;
-    color: #1a1a1a;
-  }
-
-  span {
-    color: #666;
-  }
-}
-
-.pc-co-invalid {
-  font-style: normal;
-  font-size: 12px;
-  color: #ff4d4f;
-  border: 1px solid #ffbcb8;
-  border-radius: 2px;
-  padding: 0 4px;
-}
-
-/* 支付方式 */
-.pc-co-pay {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.pc-co-pay__item {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 150px;
-  padding: 10px 16px;
-  border: 1px solid #e6e6e6;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 14px;
-  color: #333;
-
-  img {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-  }
-
-  &.is-active {
-    border-color: #1a1a1a;
-    box-shadow: inset 0 0 0 1px #1a1a1a;
-  }
-}
-
-/* 店铺与配送 */
-.pc-co-shop {
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.pc-co-ship {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 14px;
-  font-size: 13px;
-}
-
-.pc-co-ship__label {
-  color: #999;
-}
-
-.pc-co-ship__tab {
-  border: 1px solid #e6e6e6;
-  background: #fff;
-  border-radius: 2px;
-  padding: 5px 14px;
-  font-size: 13px;
-  color: #333;
-  cursor: pointer;
-
-  &.is-active {
-    border-color: #1a1a1a;
-    color: #1a1a1a;
-    font-weight: 600;
-  }
-}
-
-.pc-co-ship__error {
-  font-style: normal;
-  color: #ff4d4f;
-}
-
-/* 商品行 */
-.pc-co-goods {
-  display: flex;
-  flex-direction: column;
-}
-
-.pc-co-goods__row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 12px 0;
-
-  & + & {
-    border-top: 1px dashed #f0f0f0;
-  }
-}
-
-.pc-co-goods__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  gap: 12px;
-
-  img {
-    width: 80px;
-    height: 80px;
-    border-radius: 4px;
-    object-fit: cover;
-    background: #f7f8fc;
-    flex: none;
-  }
-}
-
-.pc-co-goods__info {
-  min-width: 0;
-  color: #333;
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.pc-co-goods__name {
-  color: #1a1a1a;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.pc-co-badge {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 0 4px;
-  font-style: normal;
-  font-size: 12px;
-  line-height: 18px;
-  color: #fff;
-  background: #ff4d4f;
-  border-radius: 2px;
-}
-
-.pc-co-goods__sku {
-  margin-top: 6px;
-  color: #999;
-  font-size: 12px;
-}
-
-.pc-co-goods__extra {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #666;
-
-  div {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  i {
-    flex: 1;
-    border-bottom: 1px dashed #e6e6e6;
-  }
-
-  em {
-    font-style: normal;
-    color: #1a1a1a;
-  }
-}
-
-.pc-co-goods__promo {
-  margin-top: 6px;
-  display: flex;
-  gap: 6px;
-
-  span {
-    font-size: 12px;
-    color: #ff4d4f;
-    border: 1px solid #ffbcb8;
-    border-radius: 2px;
-    padding: 0 4px;
-    line-height: 18px;
-  }
-}
-
-.pc-co-goods__price {
-  width: 110px;
-  text-align: right;
-  font-size: 16px;
-  color: #1a1a1a;
-  font-weight: 600;
-}
-
-.pc-co-goods__qty {
-  width: 50px;
-  text-align: right;
-  color: #999;
-  font-size: 13px;
-}
-
-/* 赠品 */
-.pc-co-gift {
-  margin-top: 8px;
-  padding: 12px;
-  background: #fafafa;
-  border-radius: 4px;
-}
-
-.pc-co-gift__title {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.pc-co-gift__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.pc-co-gift__item {
-  display: flex;
-  gap: 8px;
-  width: 260px;
-
-  img {
-    width: 56px;
-    height: 56px;
-    border-radius: 4px;
-    object-fit: cover;
-    background: #fff;
-  }
-
-  p {
-    margin: 0;
-    font-size: 13px;
-    color: #1a1a1a;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-
-  small {
-    display: block;
-    color: #999;
-  }
-
-  em {
-    font-style: normal;
-    color: #999;
-    font-size: 12px;
-  }
-}
-
-/* 预售 */
-.pc-co-presale {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-
-  div {
-    display: flex;
-    gap: 8px;
-    font-size: 14px;
-    color: #666;
-  }
-
-  b {
-    color: #1a1a1a;
-  }
-}
 
 /* 预售步骤条（源码 pages/order/src/presaleSteps.vue） */
 .pc-presale-steps {
@@ -7372,531 +7041,148 @@ img {
 .pc-presale-rule__section { margin-bottom: 10px; &:last-child { margin-bottom: 0; } }
 .pc-presale-rule__title { margin-bottom: 4px; color: #101828; font-weight: 600; }
 .pc-presale-rule__item { display: flex; gap: 4px; }
-
-/* 备注 */
-.pc-co-note {
-  position: relative;
-
-  textarea {
-    width: 100%;
-    min-height: 64px;
-    padding: 10px 12px 22px;
-    border: 1px solid #e6e6e6;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #333;
-    resize: vertical;
-    outline: none;
-
-    &:focus {
-      border-color: #1a1a1a;
-    }
-  }
-
-  span {
-    position: absolute;
-    right: 10px;
-    bottom: 6px;
-    font-size: 12px;
-    color: #bbb;
-  }
-}
-
-/* 优惠券（对齐 CouponInfo.vue：可用/不可用切换 + 卡片） */
-.pc-co-tabs {
-  display: flex;
-  gap: 4px;
-
-  button {
-    border: 0;
-    background: none;
-    padding: 4px 12px;
-    border-radius: 2px;
-    font-size: 13px;
-    color: #666;
-    cursor: pointer;
-
-    em {
-      font-style: normal;
-      margin-left: 2px;
-      color: #999;
-    }
-
-    &.is-active {
-      background: #f2f3f5;
-      color: #1a1a1a;
-      font-weight: 600;
-
-      em {
-        color: #1a1a1a;
-      }
-    }
-  }
-}
-
-.pc-co-coupon-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.pc-co-coupon {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
-
-  &.is-active {
-    border-color: var(--general);
-    background: rgba(var(--general-rgb), 0.04);
-  }
-
-  &.is-disabled {
-    cursor: default;
-    opacity: 0.55;
-  }
-}
-
-.pc-co-coupon__amount {
-  flex: none;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  min-width: 84px;
-  padding-right: 12px;
-  margin-right: 2px;
-  border-right: 1px dashed #eee;
-  color: var(--general);
-
-  b {
-    font-size: 24px;
-    font-weight: 400;
-    line-height: 28px;
-  }
-
-  small {
-    font-size: 12px;
-  }
-}
-
-.pc-co-coupon__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  b {
-    font-size: 13px;
-    color: #1a1a1a;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  em {
-    font-style: normal;
-    font-size: 12px;
-    color: #999;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.pc-co-coupon__time {
-  font-size: 12px;
-  color: #999;
-}
-
-.pc-co-coupons__empty {
-  padding: 28px 0;
-  border-radius: 4px;
-  background: #fafafa;
-  text-align: center;
-  font-size: 13px;
-  color: #bbb;
-}
-
-/* 积分 / 余额 / 账期 */
-.pc-co-points {
-  .semi-input-number {
-    width: 180px;
-  }
-}
-
-.pc-co-points__tips {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  font-size: 12px;
-  color: #999;
-}
-
-.pc-co-check {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-}
-
-.pc-co-invoice {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  color: #333;
-
-  em {
-    font-style: normal;
-    color: #999;
-  }
-}
-
-/* 右栏 */
-.pc-co__summary {
-  flex: 0 0 368px;
-  width: 368px;
-  position: sticky;
-  top: 16px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.pc-co-summary__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 24px;
-  color: #000;
-}
-
-.pc-co-summary__list {
-  margin: 16px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e6e6e6;
-  font-size: 12px;
-  line-height: 28px;
-  color: #1a1a1a;
-}
-
-.pc-co-line {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-
-  b {
-    color: #1a1a1a;
-    font-weight: 400;
-  }
-
-  .is-deduct {
-    color: var(--general);
-  }
-
-  .is-free {
-    margin-left: 10px;
-    color: #269636;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  &--label {
-    font-size: 14px;
-    font-weight: 700;
-
-    b {
-      font-weight: 700;
-    }
-  }
-
-  &--group {
-    display: block;
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-}
-
-.pc-co-summary__hint {
-  margin: 0 0 8px;
-  font-size: 12px;
-  color: #999;
-  line-height: 18px;
-
-  span + span::before {
-    content: ' / ';
-  }
-}
-
-.pc-co-summary__point {
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: #999;
-}
-
-.pc-co-summary__total {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: 14px;
-  color: #1a1a1a;
-
-  b {
-    font-size: 24px;
-    font-weight: 700;
-    color: #ff4d4f;
-  }
-}
-
-.pc-co-summary__exchange {
-  color: #ff4d4f;
-  font-weight: 600;
-
-  small {
-    font-size: 12px;
-  }
-}
-
-.pc-co-submit {
-  margin-top: 14px;
-}
-
-/* 地址弹窗 */
-.pc-co-address-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  max-height: 420px;
-  overflow: auto;
-}
-
-.pc-co-address-card {
-  position: relative;
-  text-align: left;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 12px 14px;
-  background: #fff;
-  cursor: pointer;
-
-  p {
-    margin: 6px 0;
-    font-size: 13px;
-    color: #333;
-  }
-
-  small {
-    color: #999;
-  }
-
-  &.is-active {
-    border-color: #1a1a1a;
-    background: #fafafa;
-  }
-}
-
-.pc-co-default {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  font-style: normal;
-  font-size: 12px;
-  color: #ff4d4f;
-}
-
-.pc-co-address-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.pc-co-state {
-  background: #fff;
-  border-radius: 8px;
-  padding: 48px 24px;
-  text-align: center;
-  color: #666;
-
-  h2 {
-    margin: 0 0 8px;
-    color: #1a1a1a;
-  }
-}
-
-@media (max-width: 1100px) {
-  .pc-co {
-    display: block;
-  }
-
-  .pc-co__summary {
-    width: auto;
-    flex: none;
-    position: static;
-    margin-top: 16px;
-  }
-
-  .pc-co-address-list {
-    grid-template-columns: 1fr;
-  }
-
-  .pc-co-coupon-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .pc-co-goods__row {
-    flex-wrap: wrap;
-  }
-
-  .pc-co-goods__price,
-  .pc-co-goods__qty {
-    width: auto;
-    margin-left: auto;
-  }
-}
-
-/* ============ 全站右下角悬浮工具栏 GlobalSideTools ============ */
-/* 对齐旧版 view/pc：首页 ElevatorList（贴边 60px 白卡列）+ 其他页 GlobalSideTools（浮动 68 卡） */
+/* ============ 全站右下角悬浮工具栏 GlobalSideTools（现代化毛玻璃 Dock） ============ */
+/* 组件：src/components/GlobalSideTools.tsx —— 条目与显隐规则对齐旧版，只换视觉：
+   毛玻璃竖向 Dock + 圆形图标位 + 悬停左侧滑出标签 + 主题色填充 + 回顶渐入 */
 .gst {
   position: fixed;
-  right: 2vw;
+  right: 24px;
   bottom: 100px;
   z-index: 1100;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 10px;
   box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  box-shadow: 0 12px 32px rgba(31, 35, 41, 0.14);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
-/* 首页形态：贴右边缘、圆角只留左侧、无间隙白卡列 */
-.gst--home {
-  right: 0;
-  bottom: 100px;
-  width: 60px;
-  gap: 0;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.059);
-  border-right: none;
-  border-radius: 8px 0 0 8px;
-  overflow: hidden;
-}
-
-.gst__card {
+/* 单个条目：圆形图标位；悬停填充主题色 + 左侧滑出标签 */
+.gst__item {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  width: 68px;
-  height: 68px;
-  padding: 10px 6px;
-  box-sizing: border-box;
-  border: none;
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.08);
-  font-size: 12px;
-  color: #666;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #4e5969;
   text-decoration: none;
   cursor: pointer;
   font-family: inherit;
-  transition: color 0.3s;
-
-  &:hover {
-    color: var(--general, #155bd4);
-  }
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
 
   i {
-    font-size: 24px;
+    font-size: 22px;
     line-height: 1;
   }
+
+  &:hover {
+    background: var(--general);
+    color: #fff;
+    transform: translateY(-2px);
+
+    .gst__tip {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-6px, -50%);
+    }
+  }
+
+  &.is-active {
+    background: var(--general);
+    color: #fff;
+  }
 }
 
-/* 首页形态：卡片拼成整列，去掉独立投影与圆角，卡片间渐变分割线 */
-.gst--home .gst__card {
-  width: 100%;
-  height: auto;
-  padding: 10px;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
+/* 导航装修条目无图标时的回退：标题首字符 */
+.gst__item-char {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* 回到顶部：过阈值挂载时渐入 */
+.gst__item--top {
+  animation: gst-pop 0.28s ease-out;
+}
+
+@keyframes gst-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 悬停标签：左侧滑出的深色小胶囊 */
+.gst__tip {
+  position: absolute;
+  right: calc(100% + 16px);
+  top: 50%;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(31, 35, 41, 0.9);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(6px, -50%);
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
 
   &::after {
-    content: "";
+    content: '';
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 0.5px;
-    background: linear-gradient(to right, transparent, #c4c4c4, transparent);
-  }
-
-  &:last-child::after {
-    display: none;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-left-color: rgba(31, 35, 41, 0.9);
   }
 }
 
-/* 中文两字标题竖排换行（对齐旧版 .two-char-wrap） */
-.gst__label {
-  max-width: 2em;
-  display: inline-block;
-  word-break: break-all;
-  line-height: 1.4;
-}
-
-.gst__icon-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/* 购物车数量角标 */
 .gst__badge {
   position: absolute;
-  top: -8px;
-  right: -12px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+  top: 1px;
+  right: 1px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
   box-sizing: border-box;
-  line-height: 16px;
+  line-height: 18px;
   text-align: center;
   font-size: 11px;
+  font-weight: 600;
   color: #fff;
-  background-color: #ff4400;
+  background-color: #ff5c5c;
+  border: 2px solid #fff;
   border-radius: 9px;
 }
 
-/* 回到顶部：无标题，居中大箭头 */
-.gst__card--notail {
-  justify-content: center;
-
-  i {
-    font-size: 24px;
-  }
-}
-
-/* 商品详情页「扫一扫」二维码弹层（对齐旧版 ElevatorProduct 的 el-popover） */
+/* 商品详情页「扫一扫」二维码弹层（现代圆角卡） */
 .gst__qr-anchor {
   position: relative;
 }
 
 .gst__qr-panel {
   position: absolute;
-  top: 0;
-  right: 78px;
+  top: 50%;
+  right: calc(100% + 16px);
+  transform: translateY(-50%);
   width: 174px;
   padding: 12px;
   box-sizing: border-box;
@@ -7905,9 +7191,18 @@ img {
   align-items: center;
   gap: 8px;
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 14px 40px rgba(31, 35, 41, 0.18);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: #fff;
+  }
 }
 
 .gst__qr-img {
@@ -7927,9 +7222,22 @@ img {
   text-align: center;
 }
 
-/* 扫一扫展开态高亮（对齐旧版 check-item） */
-.gst__card--active {
-  color: var(--general, #155bd4);
+/* 窄屏：贴边更近、略缩小 */
+@media (max-width: 760px) {
+  .gst {
+    right: 12px;
+    bottom: 84px;
+    padding: 8px;
+  }
+
+  .gst__item {
+    width: 40px;
+    height: 40px;
+
+    i {
+      font-size: 19px;
+    }
+  }
 }
 
 /* ============ 头部购物车 hover 下拉（对齐旧版 ShoppingCartList.vue） ============ */

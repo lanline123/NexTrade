@@ -7,7 +7,9 @@
     "predev": "node scripts/copy-semi-css.mjs",
     "dev": "node scripts/run-next.mjs dev -p 3004",
     "prebuild": "node scripts/copy-semi-css.mjs",
-    "build": "node scripts/run-next.mjs build",
+    "build": "node scripts/run-next.mjs build && node scripts/static-snapshot.mjs",
+    "build:next": "node scripts/run-next.mjs build",
+    "snapshot": "node scripts/static-snapshot.mjs",
     "start": "node scripts/run-next.mjs start -p 3004",
     "typecheck": "tsc --noEmit",
     "audit:pc": "node scripts/audit-pc-coverage.mjs",
@@ -32,7 +34,7 @@
   "devDependencies": {
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react-dom": "^18.3.12",
     "typescript": "^5.6.3"
   }
 }

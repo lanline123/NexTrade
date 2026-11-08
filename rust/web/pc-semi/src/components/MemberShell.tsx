@@ -14,8 +14,8 @@ import { useTranslation } from 'react-i18next';
  * 用法：<MemberShell title={t('我的订单')}><页面内容/></MemberShell>
  */
 
-export default function MemberShell({ title, children }: { title: string; children: ReactNode }) {
-    const { t } = useTranslation();
+export default function MemberShell({ title, children, noNav = false }: { title: string; children: ReactNode; noNav?: boolean }) {
+  const { t } = useTranslation();
   return (
     <>
       {/* TopJumpBar：我的 / 当前页标题 */}
@@ -24,11 +24,16 @@ export default function MemberShell({ title, children }: { title: string; childr
         <span className="pc-member-topbar__sep">/</span>
         <b className="pc-member-topbar__title">{title}</b>
       </div>
-      {/* CommonPageContainer flex：左导航 + 右内容 */}
-      <div className="pc-container pc-member-shell">
-        <MemberNav />
-        <div className="pc-member-shell__main">{children}</div>
-      </div>
+      {/* CommonPageContainer flex：左导航 + 右内容。
+          noNav 用于旧版本来就没有 MemberNav 的页（如 userMessage/List.vue 自带 .mc_side_bar 侧栏）。 */}
+      {noNav ? (
+        <div className="pc-container">{children}</div>
+      ) : (
+        <div className="pc-container pc-member-shell">
+          <MemberNav />
+          <div className="pc-member-shell__main">{children}</div>
+        </div>
+      )}
     </>
   );
 }

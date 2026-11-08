@@ -1,0 +1,1054 @@
+/* 第 30 轮：auth-page —— 旧版 .vue <style> 原样搬运（生成文件，勿手改；改 scripts/gen-page-groups-scss.mjs） */
+/* auth-login — 源码对照 components/member/login/BaseLogin.vue */
+.pg-auth-login {
+
+    .agreement-box {
+        padding: 10px 0 0px;
+
+        .agreement-link {
+            color: var(--general);
+            cursor: pointer;
+        }
+
+        .el-checkbox__inner {
+            &::after {
+                border-width: 1.5px;
+            }
+        }
+    }
+
+    .wechat-expired {
+        margin-top: 8px;
+        color: #999;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .login-center {
+        width: 100%;
+        max-width: 1230px;
+        padding: 0 20px;
+        box-sizing: border-box;
+
+        .forget-text {
+            padding: 15px 0 0;
+            text-align: center;
+
+            a {
+                color: #666;
+            }
+        }
+
+        .login_border {
+            position: relative;
+
+            .login-main {
+                background: #ffffff;
+                min-height: 280px;
+                padding-bottom: 5px;
+                position: relative;
+                min-width: 380px;
+                padding: 20px 0 40px;
+                border-radius: 8px;
+                overflow: hidden;
+
+                .login-title-box {
+                    display: flex;
+                    padding: 0 25px;
+                    align-items: center;
+
+                    .login-title {
+                        font-size: 20px;
+                        font-weight: bold;
+                        color: #333;
+                        flex: 1;
+                    }
+
+                    .register-box {
+                        .register-main-text {
+                            color: var(--general);
+                        }
+                    }
+                }
+
+                .login-top {
+                    height: 46px;
+                    padding: 10px 25px 0;
+
+                    .login-tab {
+                        width: 100%;
+                        border-bottom: 1px solid #e7e7e7;
+
+                        .login_mode {
+                            height: 46px;
+                            line-height: 46px;
+                            text-align: center;
+                            font-size: 14px;
+                            color: #333;
+                            flex: 1;
+                            font-weight: bold;
+                        }
+
+                        .login-on {
+                            color: var(--general);
+                            position: relative;
+
+                            &::after {
+                                content: "";
+                                position: absolute;
+                                left: 0;
+                                right: 0;
+                                bottom: 0px;
+                                height: 2px;
+                                background-color: var(--general);
+                            }
+                        }
+                    }
+                }
+
+                .login-body {
+                    overflow: visible;
+                    padding: 30px 25px 0;
+
+                    .login-mode-normal {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+
+                        .login-input {
+                            width: 100%;
+                            border-radius: 3px;
+
+                            .el-select__wrapper {
+                                box-shadow: none;
+                            }
+
+                            img {
+                                width: 20px;
+                                height: 20px;
+                                margin-right: 8px;
+                            }
+
+                            .el-input {
+                                height: 36px;
+                                border-radius: 2px;
+                            }
+
+                            .el-input__suffix-inner > :first-child {
+                                margin-left: 0;
+                            }
+                        }
+                    }
+
+                    .sendMobileMsg {
+                        margin-top: 20px;
+
+                        .input-box {
+                            width: 60%;
+                            border: 1px solid #d6d6d6;
+                            border-radius: 3px;
+                            padding: 5px 8px;
+                            height: 24px;
+                            line-height: 24px;
+
+                            img {
+                                width: 22px;
+                                height: 22px;
+                                margin-right: 8px;
+                            }
+
+                            input {
+                                width: 80%;
+                                height: 24px;
+                            }
+                        }
+
+                        .btn {
+                            background: #f0f0f0 none repeat scroll 0 0;
+                            border: 1px solid #d6d6d6;
+                            border-radius: 3px;
+                            cursor: pointer;
+                            height: 34px;
+                            margin-left: 4px;
+                            width: 90px;
+                            display: inline-block;
+                            text-align: center;
+                            line-height: 34px;
+                            vertical-align: middle;
+                        }
+                    }
+
+                    .error-notice {
+                        color: rgba(250, 44, 25, 1);
+                        padding-top: 10px;
+                    }
+
+                    .login-forgot {
+                        margin-top: 10px;
+
+                        .forgot-txt {
+                            &:hover {
+                                color: var(--general) !important;
+                            }
+                        }
+                    }
+
+                    .login_last {
+                        margin-top: 16px;
+
+                        .login_btn {
+                            width: 100%;
+                            background: var(--general) none repeat scroll 0 0;
+                            border: 0 none;
+                            border-radius: 3px;
+                            color: var(--main-text);
+                            cursor: pointer;
+                            font-size: 16px;
+                            height: 40px;
+                        }
+
+                        .login_btn.is-disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+                    }
+
+                    .login_bottom {
+                        margin-top: 14px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        color: #666;
+
+                        .tit {
+                            display: flex;
+                            justify-content: center;
+                            width: 100%;
+                            align-items: center;
+                            column-gap: 12px;
+
+                            &::before {
+                                content: "";
+                                height: 1px;
+                                flex: 1;
+                                background-color: #e5e5e5;
+                            }
+
+                            &::after {
+                                content: "";
+                                height: 1px;
+                                flex: 1;
+                                background-color: #e5e5e5;
+                            }
+                        }
+
+                        .other-login {
+                            margin-top: 15px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            column-gap: 20px;
+                        }
+                    }
+
+                    .send-valicode {
+                        margin-left: 10px;
+                        height: 36px;
+                    }
+
+                    .mobile-code-text .code-btn {
+                        color: var(--general);
+                        font-size: 12px;
+                    }
+                }
+
+                .qiehuan1 {
+                    background: url("/assets/images/user/login/login-code.png") no-repeat scroll right top;
+                    bottom: 0px;
+                    cursor: pointer;
+                    height: 60px;
+                    position: absolute;
+                    right: 0px;
+                    width: 60px;
+                }
+
+                .qiehuan {
+                    background: url("/assets/images/user/login/login-code.png") no-repeat scroll left bottom;
+                    bottom: 0px;
+                    cursor: pointer;
+                    height: 60px;
+                    position: absolute;
+                    right: 0px;
+                    width: 60px;
+                }
+            }
+
+            .wechat-main {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                gap: 18px;
+
+                .tow-title {
+                    font-size: 16px;
+                    line-height: 20px;
+                    color: #858585;
+                    height: 20px;
+                    font-weight: bold;
+                }
+
+                .two-image {
+                    width: 140px;
+                    height: 140px;
+                    border: 1px solid #d5d5d5;
+                    border-radius: 2px;
+
+                    .image-text {
+                        align-items: center;
+                        color: #a8a8a8;
+                        display: flex;
+                        font-size: 14px;
+                        height: 100%;
+                        justify-content: center;
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* auth-register — 源码对照 pages/member/register.vue */
+.pg-auth-register {
+
+    .full-height-div {
+        display: flex;
+        min-height: calc(100vh - 170px - 104px); /* 设置 div 的高度为视口的 100% */
+        background-color: white;
+        justify-content: center;
+
+        .register-info {
+            margin: 50px 0;
+            min-width: 420px;
+
+            .title {
+                font-size: 24px;
+                font-weight: bold;
+                text-align: center;
+            }
+
+            .register-menu {
+                .menu {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 40px;
+                    gap: 25px;
+                    .menu-item {
+                        position: relative;
+                        height: 40px;
+                        cursor: pointer;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
+                        transition: font-size 0.1s;
+                        font-size: 16px;
+
+                        &.active {
+                            color: #1a1a1a;
+                        }
+                        @keyframes growWidth {
+                            from {
+                                width: 0px;
+                            }
+                            to {
+                                width: 30px; /* 这里的宽度可以根据实际需要调整 */
+                            }
+                        }
+                        .line {
+                            height: 3px;
+                            background-color: #1a1a1a;
+                            border-radius: 10px;
+                            position: absolute;
+                            bottom: -10px;
+                            left: calc(50% - 15px);
+                            transition:
+                                left 0.3s,
+                                width 0.3s; /* 添加过渡效果，使平移动画更平滑 */
+                            animation: growWidth 0.3s forwards; /* 添加动画效果 */
+                        }
+                    }
+                }
+            }
+
+            .content {
+                padding: 0 20px;
+                font-size: 14px;
+
+                .form-box {
+                    .form-item {
+                        display: flex;
+                        width: 100%;
+                        flex-direction: column;
+                        row-gap: 10px;
+                        margin-top: 20px;
+
+                        .el-input__wrapper {
+                            padding: 14px 15px;
+                            border-radius: 4px;
+                            box-shadow: none;
+                            border: 1px solid #c2c4cc;
+                            transition: border-color 0.3s;
+                            &:hover {
+                                border-color: currentcolor;
+                            }
+                            &:focus-within {
+                                border-color: currentcolor;
+                            }
+                        }
+                        .el-input__inner {
+                            font-size: 15px !important;
+                            color: #333;
+                            &::placeholder {
+                                color: currentcolor;
+                            }
+                        }
+
+                        .form-item-label {
+                            font-weight: 600;
+                            padding-left: 2px;
+                            color: #1a1a1a;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            .special {
+                                font-weight: 500;
+                                color: var(--general);
+                                cursor: pointer;
+                            }
+                        }
+                        .form-item-input {
+                            position: relative;
+                            margin-bottom: 10px;
+                            .error-notice {
+                                position: absolute;
+                                top: 43px;
+                                color: rgba(250, 44, 25, 1);
+                                padding-top: 10px;
+                            }
+                        }
+                    }
+                }
+            }
+            .btn-box {
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                row-gap: 15px;
+
+                .extra {
+                    width: 100%;
+                }
+
+                .login-btn {
+                    width: 100%;
+                    background: var(--general) none repeat scroll 0 0;
+                    border: 0 none;
+                    border-radius: 3px;
+                    color: var(--main-text);
+                    font-size: 16px;
+                    height: 50px;
+
+                    &.is-disabled {
+                        opacity: 0.6;
+                        cursor: not-allowed;
+                    }
+                }
+
+                .text {
+                    width: 100%;
+                    font-size: 14px;
+                    color: #888b94;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    margin-top: 30px;
+                    .line {
+                        width: 22px;
+                        height: 1px;
+                        background-color: #c2c4cc;
+                    }
+                }
+
+                .other-login-btn {
+                    border: 1px solid #828192;
+                    height: 40px;
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: #f5f5f5;
+                    }
+
+                    &:active {
+                        background-color: #e7e7e7;
+                    }
+
+                    .login-img {
+                        width: 20px;
+                        padding-right: 5px;
+                        position: relative;
+                        bottom: -1px;
+                    }
+
+                    .btn-text {
+                        font-weight: 600;
+                        font-size: 12px;
+                    }
+                }
+            }
+            .login-box {
+                text-align: center;
+            }
+        }
+
+        .wechat-main {
+            position: relative;
+
+            .wechat-main-back {
+                position: absolute;
+                top: 0;
+                left: 25px;
+                color: var(--general);
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                column-gap: 4px;
+
+                .icon-shangjiantou {
+                    transform: rotate(-90deg) translateX(-1px);
+                    font-weight: 600;
+                }
+            }
+
+            .tow-title {
+                font-size: 24px;
+                font-weight: 600;
+                color: #000;
+                padding: 80px 0 20px;
+                text-align: center;
+            }
+
+            .wechat-desc {
+                font-size: 16px;
+                color: #858585;
+                text-align: center;
+                padding-bottom: 20px;
+            }
+
+            .two-image-box {
+                margin: 0 auto;
+                width: 220px;
+                height: 220px;
+                position: relative;
+
+                .refresh-con {
+                    align-items: center;
+                    background: #ffffffe6;
+                    bottom: 0;
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    left: 0;
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    width: 100%;
+                    z-index: 1;
+
+                    .refresh-text {
+                        font-size: 16px;
+                    }
+                }
+
+                .two-image {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 2px;
+                }
+            }
+
+            .refresh-qecode {
+                color: var(--general);
+                font-size: 16px;
+                padding-top: 20px;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                column-gap: 5px;
+            }
+        }
+    }
+
+    .input-border-style {
+        height: 50px;
+    }
+
+    .area-code-select {
+        width: 60px;
+        padding: 10px 0;
+        .el-select__wrapper {
+            box-shadow: none !important;
+        }
+    }
+
+    .label {
+        position: absolute;
+        left: -117px;
+        width: 100px;
+        text-align: right;
+        color: #666;
+    }
+    .submit-button {
+        height: 50px;
+    }
+
+    .slide-fade-enter-active {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .slide-fade-leave-active {
+        transition: none;
+    }
+
+    .slide-fade-enter-from,
+    .slide-fade-leave-to {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+
+    .slide-fade2-enter-active {
+        transition: all 0.35s ease-in-out;
+    }
+
+    .slide-fade2-leave-active {
+        transition: none;
+    }
+
+    .slide-fade2-enter-from,
+    .slide-fade2-leave-to {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    .other-login-img {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 60px;
+        margin-top: 10px;
+
+        .login-img {
+
+            position: relative;
+            bottom: -1px;
+            text-align: center;
+            cursor: pointer;
+            img {
+                width: 25px;
+            }
+            p {
+                font-size: 14px;
+                line-height: 18px;
+                margin: 12px 0;
+                color: #1a1a1a;
+            }
+        }
+    }
+    .area-code-input {
+        .el-input__inner {
+            margin-left: 10px;
+        }
+    }
+    .el-input__inner {
+        &::placeholder {
+            color: #505259 !important;
+        }
+        .code-btn {
+            font-size: 15px !important;
+        }
+    }
+    .el-select__wrapper {
+        font-size: 15px;
+    }
+}
+
+/* auth-reset — 源码对照 pages/member/reset/index.vue */
+.pg-auth-reset {
+
+
+    .fadex-leave-active {
+        transition: all 0.5s ease;
+        transform: translateX(50px);
+    }
+    .fadex-leave-to {
+        opacity: 0;
+    }
+
+    .fadey-enter-from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    .fadey-enter-active {
+        transition: all 0.5s ease;
+        transition-delay: 0.5s;
+    }
+    .fadey-leave-to {
+        opacity: 0;
+        transform: translateY(0px);
+    }
+
+    .full-height-div {
+        display: flex;
+        min-height: 600px;
+        background-color: white;
+        justify-content: center;
+
+        .register-info {
+            margin: 50px 0;
+
+            .title {
+                font-size: 22px;
+                font-weight: bold;
+                text-align: center;
+                margin-bottom: 50px;
+            }
+        }
+    }
+
+    .input-border-style {
+        height: 50px;
+        width: 330px;
+    }
+    .area-code-input {
+        .el-input__inner {
+            margin-left: 10px;
+        }
+    }
+
+    .area-code-select {
+        width: 60px;
+        padding: 10px 0;
+        .el-select__wrapper {
+            box-shadow: none !important;
+        }
+    }
+
+    .label {
+        position: absolute;
+        left: -117px;
+        width: 100px;
+        text-align: right;
+        color: #666;
+    }
+    .submit-button {
+        height: 50px;
+    }
+}
+
+/* auth-reset-step-one — 源码对照 pages/member/reset/src/StepOne.vue */
+.pg-auth-reset-step-one {
+
+    .content {
+        width: 380px;
+        padding: 0 20px;
+        font-size: 14px;
+
+        .form-box {
+            .form-item {
+                display: flex;
+                width: 100%;
+                flex-direction: column;
+                row-gap: 10px;
+                margin-top: 20px;
+                .el-input__wrapper {
+                    padding: 14px 15px;
+                    border-radius: 4px;
+                    box-shadow: none;
+                    border: 1px solid #c2c4cc;
+                    transition: border-color 0.3s;
+                    &:hover {
+                        border-color: currentcolor;
+                    }
+                    &:focus-within {
+                        border-color: currentcolor;
+                    }
+                }
+                .el-input__inner {
+                    font-size: 15px !important;
+                    color: #333;
+                    &::placeholder {
+                        color: currentcolor;
+                    }
+                }
+
+                .form-item-label {
+                    font-weight: 600;
+                    padding-left: 2px;
+                    color: #1a1a1a;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+
+                    .special {
+                        font-weight: 500;
+                        color: var(--general);
+                        cursor: pointer;
+                    }
+                }
+                .form-item-input {
+                    position: relative;
+                    margin-bottom: 10px;
+                    .error-notice {
+                        position: absolute;
+                        top: 43px;
+                        color: rgba(250, 44, 25, 1);
+                        padding-top: 10px;
+                    }
+                }
+            }
+        }
+    }
+
+    .input-border-style {
+        height: 50px;
+    }
+    .area-code-input {
+        .el-input__inner {
+            margin-left: 10px;
+        }
+    }
+
+    .area-code-select {
+        width: 60px;
+        padding: 10px 0;
+        .el-select__wrapper {
+            box-shadow: none !important;
+        }
+    }
+
+    .label {
+        position: absolute;
+        left: -117px;
+        width: 100px;
+        text-align: right;
+        color: #666;
+    }
+    .submit-button {
+        height: 50px;
+    }
+    .register-menu {
+        .menu {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            gap: 25px;
+            .menu-item {
+                position: relative;
+                height: 40px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transition: font-size 0.1s;
+                font-size: 16px;
+
+                &.active {
+                    color: #1a1a1a;
+                }
+                @keyframes growWidth {
+                    from {
+                        width: 0px;
+                    }
+                    to {
+                        width: 30px; /* 这里的宽度可以根据实际需要调整 */
+                    }
+                }
+                .line {
+                    height: 3px;
+                    background-color: #1a1a1a;
+                    border-radius: 10px;
+                    position: absolute;
+                    bottom: -10px;
+                    left: calc(50% - 15px);
+                    transition:
+                        left 0.3s,
+                        width 0.3s; /* 添加过渡效果，使平移动画更平滑 */
+                    animation: growWidth 0.3s forwards; /* 添加动画效果 */
+                }
+            }
+        }
+    }
+
+    .slide-fade-enter-active {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .slide-fade-leave-active {
+        transition: none;
+    }
+
+    .slide-fade-enter-from,
+    .slide-fade-leave-to {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+
+    .slide-fade2-enter-active {
+        transition: all 0.35s ease-in-out;
+    }
+
+    .slide-fade2-leave-active {
+        transition: none;
+    }
+
+    .slide-fade2-enter-from,
+    .slide-fade2-leave-to {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+
+    .btn-box {
+        padding: 20px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        row-gap: 15px;
+    }
+    .el-input__inner {
+        &::placeholder {
+            color: #505259 !important;
+        }
+        .code-btn {
+            font-size: 15px !important;
+        }
+    }
+    .el-select__wrapper {
+        font-size: 15px;
+    }
+}
+
+/* auth-reset-step-two — 源码对照 pages/member/reset/src/StepTow.vue */
+.pg-auth-reset-step-two {
+
+    .content {
+        width: 380px;
+        padding: 0 20px;
+        font-size: 14px;
+
+        .form-box {
+            .form-item {
+                display: flex;
+                width: 100%;
+                flex-direction: column;
+                row-gap: 10px;
+                margin-top: 20px;
+                .el-input__wrapper {
+                    padding: 14px 15px;
+                    border-radius: 4px;
+                    box-shadow: none;
+                    border: 1px solid #c2c4cc;
+                    transition: border-color 0.3s;
+                    &:hover {
+                        border-color: currentcolor;
+                    }
+                    &:focus-within {
+                        border-color: currentcolor;
+                    }
+                }
+                .el-input__inner {
+                    font-size: 15px !important;
+                    color: #333;
+                    &::placeholder {
+                        color: currentcolor;
+                    }
+                }
+
+                .form-item-label {
+                    font-weight: 600;
+                    padding-left: 2px;
+                    color: #1a1a1a;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+
+                    .special {
+                        font-weight: 500;
+                        color: var(--general);
+                        cursor: pointer;
+                    }
+                }
+
+                .form-item-input {
+                    position: relative;
+                    margin-bottom: 10px;
+                    .error-notice {
+                        position: absolute;
+                        top: 43px;
+                        color: rgba(250, 44, 25, 1);
+                        padding-top: 10px;
+                    }
+                }
+            }
+        }
+    }
+    .btn-box {
+        padding: 20px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        row-gap: 15px;
+    }
+    .input-border-style {
+        height: 50px;
+    }
+    .area-code-input {
+        .el-input__inner {
+            margin-left: 10px;
+        }
+    }
+
+    .area-code-select {
+        width: 60px;
+        padding: 10px 0;
+        .el-select__wrapper {
+            box-shadow: none !important;
+        }
+    }
+
+    .label {
+        position: absolute;
+        left: -117px;
+        width: 100px;
+        text-align: right;
+        color: #666;
+    }
+    .submit-button {
+        height: 50px;
+    }
+    .el-input__inner {
+        &::placeholder {
+            color: #505259 !important;
+        }
+    }
+}
+

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Card, Modal, Toast } from '@douyinfe/semi-ui';
+import { Button, Modal, Toast } from '@douyinfe/semi-ui';
+import Right from '@icon-park/react/es/icons/Right';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
@@ -166,31 +167,50 @@ export default function SecurityClient() {
   };
 
   return (
-    <Card className="member-card security-card" title={t('账户安全')} loading={loading}>
-      <ul className="security-list">
-        <li>
-          <span className="security-list__label">{t('手机')}</span>
-          <span className="security-list__value">{mask(user.mobile)}</span>
-          <button type="button" className="security-list__action" onClick={() => openBind('mobile')}>{user.mobile ? t('换绑') : '绑定'}</button>
-        </li>
-        <li>
-          <span className="security-list__label">{t('邮箱')}</span>
-          <span className="security-list__value">{mask(user.email)}</span>
-          <button type="button" className="security-list__action" onClick={() => openBind('email')}>{user.email ? t('换绑') : '绑定'}</button>
-        </li>
-        <li>
-          <span className="security-list__label">{t('登录密码')}</span>
-          <span className="security-list__value">{t('已设置')}</span>
-          <button type="button" className="security-list__action" onClick={() => setPwdOpen(true)}>{t('修改')}</button>
-        </li>
-      </ul>
-      <div className="security-tips">
-        <b>{t('安全服务提示')}</b>
-        <p>{t('1. 注意防范进入钓鱼网站，不要轻信各种即时通讯工具发送的商品或支付链接，谨防网购诈骗。')}</p>
-        <p>{t('2. 建议您安装杀毒软件，并定期更新操作系统等软件补丁，确保账户及交易安全。')}</p>
+    <div className="mp-security-info">
+      <div className="info-rowSecuity">
+        <div className="title-or-tabs">
+          <span>{t('账户安全')}</span>
+        </div>
+        {loading && <div className="no-result">{t('加载中')}</div>}
+        <div className="security-info" hidden={loading}>
+          <ul className="table">
+            <li className="col">
+              <div className="title">{t('手机')}</div>
+              <div className="input-box">
+                <div className="account">{mask(user.mobile)}</div>
+                <div className="action-box block-color" role="button" tabIndex={0} onClick={() => openBind('mobile')}>{user.mobile ? t('换绑') : '绑定'}</div>
+                <Right size={24} />
+              </div>
+            </li>
+            <li className="col">
+              <div className="title">{t('邮箱')}</div>
+              <div className="input-box">
+                <div className="account">{mask(user.email)}</div>
+                <div className="action-box block-color" role="button" tabIndex={0} onClick={() => openBind('email')}>{user.email ? t('换绑') : '绑定'}</div>
+                <Right size={24} />
+              </div>
+            </li>
+            <li className="col">
+              <div className="title">{t('登录密码')}</div>
+              <div className="input-box">
+                <div className="account" />
+                <div className="action-box block-color" role="button" tabIndex={0} onClick={() => setPwdOpen(true)}>{t('修改')}</div>
+                <Right size={24} />
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div className="security-info" style={{ marginTop: 20 }}>
+          <div className="bordered-div">
+            <div className="title">{t('安全服务提示')}</div>
+            <p>{t('1. 注意防范进入钓鱼网站，不要轻信各种即时通讯工具发送的商品或支付链接，谨防网购诈骗')}。</p>
+            <p>{t('2. 建议您安装杀毒软件，并定期更新操作系统等软件补丁，确保账户及交易安全')}。</p>
+          </div>
+        </div>
       </div>
 
-      <Modal title={t('修改登录密码')} visible={pwdOpen} onCancel={() => setPwdOpen(false)} footer={null}>
+      <Modal className="mp-security-dialog" title={t('修改登录密码')} visible={pwdOpen} onCancel={() => setPwdOpen(false)} footer={null}>
         <div className="security-form">
           <label>{t('验证码')}</label>
           <div className="security-form__row">
@@ -205,7 +225,7 @@ export default function SecurityClient() {
         </div>
       </Modal>
 
-      <Modal title={bindType === 'mobile' ? t('手机换绑') : '邮箱换绑'} visible={!!bindType} onCancel={() => setBindType(null)} footer={null}>
+      <Modal className="mp-security-dialog" title={bindType === 'mobile' ? t('手机换绑') : '邮箱换绑'} visible={!!bindType} onCancel={() => setBindType(null)} footer={null}>
         <div className="security-form">
           {bindStep === 1 ? (
             <>
@@ -235,6 +255,6 @@ export default function SecurityClient() {
           )}
         </div>
       </Modal>
-    </Card>
+    </div>
   );
 }

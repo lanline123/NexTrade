@@ -1,0 +1,495 @@
+/**
+ * 帮助中心 / 文章 版式（对齐旧版 view/pc/pages/article/issue/*.vue、pages/article/news/*.vue）
+ *
+ * 旧版这些区块写在 SFC 的 scoped style 里，新版在此集中还原：
+ * - .content / .box.left(240px) / .box.right(flex:1, 1px #eee, padding 20) —— issue/Index.vue:185-206
+ * - .right-title(18px/700 #333)、.zzfw-menu(4 列，图标块 65×65)、.rmwt-menu(2 列，行高 50)
+ * - .help_division 虚线分隔、.bzfl tab + 列表
+ * 取值尽量与旧版一致；旧版依赖 Element Plus 变量的位置改用本站主题变量兜底。
+ */
+
+.issue-page {
+  padding-bottom: 50px;
+  background: #f5f6fa;
+}
+
+.issue-content {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.issue-col-left {
+  box-sizing: border-box;
+  width: 240px;
+  flex-shrink: 0;
+  /* 白卡与内边距由内部的 .menu-list 自己承担（旧版就是 .menu-list 一层卡片） */
+}
+
+.issue-col-right {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* ---------- 左侧帮助分类（旧版 IssueLeftMenu.vue 的折叠面板） ---------- */
+.menu-list {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 8px 24px;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.menu-list .menu {
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* 旧版共享的 CustomCollapse 带上下 1px 横线，这里只留中间的分隔线 */
+.menu-list .cc-collapse-item {
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.menu-list .cc-collapse-item:last-child {
+  border-bottom: 0;
+}
+
+.menu-list .cc-collapse-item__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.menu-list .cc-collapse-item__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #333;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.menu-list .cc-collapse-item__text:hover {
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+.menu-list .cc-collapse-item__toggle {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.menu-list .cc-collapse-item__toggle:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.menu-list .collapse-icon {
+  flex-shrink: 0;
+  color: #999;
+  transition: transform 0.3s ease-in-out;
+}
+
+.menu-list .collapse-icon.is-active {
+  transform: rotate(180deg);
+}
+
+.menu-list .min-menu {
+  display: flex;
+  flex-direction: column;
+  padding-left: 40px;
+  font-size: 14px;
+}
+
+.menu-list .min-menu .item-menu {
+  width: 100%;
+  height: 55px;
+  line-height: 55px;
+  overflow: hidden;
+  color: #666;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.menu-list .min-menu .item-menu:hover,
+.menu-list .min-menu .item-menu.pitch-on {
+  color: var(--general, #165dff);
+}
+
+.menu-list .cc-collapse-item.is-disabled .cc-collapse-item__text {
+  color: #bbb;
+}
+
+/* ---------- 右侧板块标题 / 分隔线 ---------- */
+.issue-col-right .right-title {
+  color: #333;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.issue-col-right .right-title + .zzfw-menu,
+.issue-col-right .right-title + .zzfw-menu,
+.issue-col-right .right-title + .rmwt-menu,
+.issue-col-right .right-title + .bzfl {
+  margin-top: 16px;
+}
+
+.help_division {
+  margin: 20px 0;
+  border-top: 1px dashed #e5e5e5;
+}
+
+/* ---------- 自助服务 ---------- */
+.zzfw-menu {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.zzfw-menu-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 100px;
+  padding: 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.zzfw-menu-item:hover {
+  background: #f7f8fa;
+}
+
+.zzfw-menu-item .left_info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 65px;
+  min-height: 65px;
+  border-radius: 8px;
+  /* 旧版是 65×65 的透明底线性图标（selfS_*.png），这里保持无底色，只有图标本身 */
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+.zzfw-menu-item .left_info svg {
+  display: block;
+}
+
+.right-info {
+  font-size: 12px;
+  line-height: 2;
+}
+
+.right-info ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.right-info li.big {
+  color: #333;
+}
+
+.right-info li.min {
+  color: #a8a8a8;
+}
+
+/* ---------- 热门问题 ---------- */
+.rmwt-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+}
+
+.rmwt-menu-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 50px;
+  min-width: 0;
+}
+
+.help_hot_index {
+  display: inline-block;
+  width: 19px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: #f3f6f8;
+  color: #888;
+  font-size: 12px;
+  line-height: 14px;
+  text-align: center;
+}
+
+.help_hot_text {
+  overflow: hidden;
+  color: #333;
+  font-size: 14px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.help_hot_text:hover {
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+/* ---------- 帮助分类 tab + 列表 ---------- */
+.bzfl-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bzfl-menu-item {
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: #f5f6fa;
+  color: #555;
+  font-size: 14px;
+  line-height: 22px;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.bzfl-menu-item:hover,
+.bzfl-menu-item.check-tab {
+  background: var(--pc-primary, var(--general, #165dff));
+  color: #fff;
+  font-weight: 600;
+}
+
+.bzfl-list {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.bzfl-list-item {
+  position: relative;
+  display: block;
+  padding-left: 14px;
+  overflow: hidden;
+  color: #555;
+  font-size: 14px;
+  line-height: 32px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bzfl-list-item::before {
+  position: absolute;
+  top: 14px;
+  left: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: #c9ced6;
+  content: '';
+}
+
+.bzfl-list-item:hover {
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+.bzfl-empty {
+  color: #999;
+  font-size: 13px;
+  line-height: 40px;
+}
+
+/* ---------- 帮助文章详情（旧版 issue/Info.vue） ---------- */
+.issue-article__title {
+  margin: 0 0 16px;
+  color: #333;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 30px;
+}
+
+.issue-article__body {
+  color: #555;
+  font-size: 14px;
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+
+.issue-article__body img {
+  max-width: 100%;
+  height: auto;
+}
+
+.issue-article__body p {
+  margin: 0 0 10px;
+}
+
+.issue-article__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  color: #888;
+  font-size: 13px;
+}
+
+.issue-article__nav a {
+  max-width: 46%;
+  overflow: hidden;
+  color: #555;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue-article__nav a:hover {
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+.issue-list {
+  margin-top: 4px;
+}
+
+.issue-list-item {
+  position: relative;
+  display: block;
+  padding: 10px 0 10px 14px;
+  overflow: hidden;
+  border-bottom: 1px dashed #eee;
+  color: #333;
+  font-size: 14px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue-list-item::before {
+  position: absolute;
+  top: 19px;
+  left: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: #c9ced6;
+  content: '';
+}
+
+.issue-list-item:hover {
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+.issue-list-item .time {
+  float: right;
+  margin-left: 16px;
+  color: #b0b6c0;
+  font-size: 12px;
+}
+
+.issue-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding-top: 18px;
+  font-size: 14px;
+}
+
+.issue-pagination a {
+  color: #555;
+  text-decoration: none;
+}
+
+.issue-pagination a:hover {
+  color: var(--pc-primary, var(--general, #165dff));
+}
+
+.issue-pagination .is-disabled {
+  color: #c4c9d1;
+}
+
+.issue-empty {
+  padding: 60px 0;
+  color: #999;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ---------- 宽度收敛：平板 / 手机不能横向滚动 ---------- */
+@media (max-width: 1024px) {
+  .issue-content {
+    flex-direction: column;
+  }
+
+  .issue-col-left {
+    width: 100%;
+  }
+
+  .zzfw-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .issue-content {
+    gap: 12px;
+  }
+
+  .issue-col-right {
+    padding: 14px;
+  }
+
+  .zzfw-menu {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rmwt-menu {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .zzfw-menu-item {
+    min-height: 76px;
+  }
+
+  .left_info {
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .bzfl-list {
+    padding: 8px 10px;
+  }
+
+  .issue-article__nav a {
+    max-width: 100%;
+  }
+}

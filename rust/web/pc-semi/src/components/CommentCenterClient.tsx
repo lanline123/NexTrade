@@ -1,29 +1,30 @@
 'use client';
 
 /**
- * 评价晒单（PC 会员中心）
+ * 评价晒单（PC 会员中心）—— Semi Design 现代化版
  * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/comment/List.vue
  *
- * 旧版三个 Tab 与接口：
- * - 待评价(0)：GET /api/user/order/list，参数 { page, size, commentStatus: 0 }
- * - 待晒单(1)：GET /api/user/comment/showedList?isShowed=0，参数 { page, size }
- * - 已评价(2)：GET /api/user/comment/list，参数 { page, size }
- * 顶部角标：GET /api/user/comment/subNum → { awaitComment, showPics, commented }
+ * 功能 1:1 保留：
+ * - 三个 Tab（待评价 / 待晒单 / 晒单评价）+ subNum 角标
+ *   待评价(0)：GET user/order/list {commentStatus:0}；待晒单(1)：user/comment/showedList {isShowed:0}；
+ *   已评价(2)：user/comment/list
+ * - D1146 评价总开关：关闭时页面保留、内容区空态；?orderType= 初始化 Tab
+ * - 待评价/待晒单：订单卡（订单号/下单时间/商品行/收货人/总额/去评价或待晒单入口）
+ * - 已评价：MemberCommentList 卡片流（星级/标签/晒图预览/客服答复）
+ * - Semi Pagination + Skeleton + Empty
  *
- * 样式对齐 /member/order/list 的 pc-order-panel 面板（下划线 Tab / 发丝线卡片 / 数字分页）。
- *
- * 注意：三个 Tab 的角标与左侧会员导航角标不是同一个数：
- * - Tab 角标来自 `user/comment/subNum`（待评价 / 待晒单 / 已评价），
- * - 左侧「评价晒单」角标来自 `user/order/orderNum.awaitComment`（仅待评价）。
- * 两者都由「已完成且未评价」订单驱动，需与后端 orderNum 口径保持一致。
+ * 角标口径说明：Tab 角标来自 user/comment/subNum；左侧会员导航角标来自
+ * user/order/orderNum.awaitComment——两者都由「已完成且未评价」订单驱动。
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button, Spin, Toast } from '@douyinfe/semi-ui';
+import { useRouter } from 'next/navigation';
+import { Button, Empty, Image, Pagination, Rating, Skeleton, Tabs, Tag, Toast } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 import MemberCommentList, { MemberCommentItem } from '@/components/MemberCommentList';
 
 import { useTranslation } from 'react-i18next';
+
 type TabKey = 'pending' | 'showed' | 'commented';
 
 interface OrderItem {
@@ -54,10 +55,8 @@ interface CommentReply {
 }
 
 interface CommentRow {
-  commentId?: number;
   productId?: number;
   productName?: string;
-  productSn?: string;
   picThumb?: string;
   commentRank?: number;
   content?: string;
@@ -65,8 +64,6 @@ interface CommentRow {
   status?: number;
   statusText?: string;
   username?: string;
-  isAnonymous?: number;
-  avatar?: string;
   commentTag?: string[];
   skuData?: Array<{ name?: string; value?: string }>;
   showPics?: Array<{ picUrl?: string; picThumb?: string }>;
@@ -101,7 +98,9 @@ function skuText(sku: OrderItem['skuData']): string {
 }
 
 export default function CommentCenterClient({ initialTab }: { initialTab?: TabKey }) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
+  const router = useRouter();
+  const go = (href: string) => router.push(href);
   const [tab, setTab] = useState<TabKey>(initialTab && TABS.some((item) => item.key === initialTab) ? initialTab : 'pending');
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [comments, setComments] = useState<CommentRow[]>([]);
@@ -156,132 +155,143 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
       .catch((error) => {
         setOrders([]);
         setComments([]);
-        Toast.error({ content: error instanceof Error ? error.message : '评价列表加载失败' });
+        Toast.error({ content: error instanceof Error ? error.message : t('评价列表加载失败') });
       })
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, page, commentEnabled]);
 
-  const pages = Math.max(1, Math.ceil(total / size));
-
-  const renderPagination = () =>
-    total > size ? (
-      <div className="pc-order-panel__foot">
-        <div className="pc-pagination">
-          {Array.from({ length: pages }).map((_, index) => (
-            <button key={index} type="button" className={index + 1 === page ? 'is-active' : ''} onClick={() => setPage(index + 1)}>
-              {index + 1}
-            </button>
-          ))}
-        </div>
-      </div>
-    ) : null;
+  const countOf = (key: TabKey) =>
+    key === 'pending'
+      ? Number(subNum.awaitComment || 0)
+      : key === 'showed'
+        ? Number(subNum.showPics || 0)
+        : Number(subNum.commented || 0);
 
   return (
-    <div className="member-orders comment-center">
-      <div className="pc-order-panel">
-        <div className="pc-order-panel__head">
-          <div className="member-orders__tabs">
-            {TABS.map((item) => {
-              const count = item.key === 'pending' ? subNum.awaitComment : item.key === 'showed' ? subNum.showPics : subNum.commented;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={tab === item.key ? 'is-active' : ''}
-                  onClick={() => {
-                    setPage(1);
-                    setTab(item.key);
-                  }}
-                >
-                  {item.label}
-                  {Number(count || 0) > 0 ? <span className="member-orders__num">{count}</span> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+    <div className="mcc">
+      {/* 工具条：三 Tab + 角标 */}
+      <div className="mcc-toolbar">
+        <Tabs
+          type="button"
+          activeKey={tab}
+          onChange={(key) => {
+            setPage(1);
+            setTab(key as TabKey);
+          }}
+        >
+          {TABS.map((item) => (
+            <Tabs.TabPane
+              key={item.key}
+              itemKey={item.key}
+              tab={
+                <span className="mol-tab">
+                  {t(item.label)}
+                  {countOf(item.key) > 0 ? <span className="mol-tab__num">{countOf(item.key)}</span> : null}
+                </span>
+              }
+            />
+          ))}
+        </Tabs>
+      </div>
 
-        <div className="pc-order-panel__body">
-          {commentEnabled === 0 ? (
-            <div className="comment-empty">
-              <p>{t('评价功能已关闭')}</p>
+      {commentEnabled === 0 ? (
+        /* D1146：评价功能关闭时保留页面、内容区换空态 */
+        <div className="mcc mcc--state">
+          <Empty title={t('评价功能已关闭')} description={t('如需评价商品，请联系商家开启评价功能')} />
+        </div>
+      ) : (
+        <div className="mcc-body">
+          {loading ? (
+            <div className="mcc-skeleton">
+              {[0, 1, 2].map((index) => (
+                <div key={index} className="mcc-skeleton__card">
+                  <Skeleton active loading placeholder={<Skeleton.Paragraph rows={3} style={{ padding: '16px 16px 8px' }} />} />
+                </div>
+              ))}
             </div>
-          ) : loading ? (
-            <div className="member-orders__loading"><Spin size="large" /></div>
-          ) : tab !== 'commented' ? (
-            orders.length ? (
-              <div className="member-orders__list">
-                {orders.map((item, index) => {
-                  const totalCount = (item.items || []).reduce((sum, product) => sum + Number(product.quantity || 0), 0);
-                  return (
-                    <article className="member-order" key={item.orderId || index}>
-                      <header className="member-order__head">
-                        <span className={`member-order__status ${tab === 'pending' ? 'is-s0' : 'is-s2'}`}>
-                          {tab === 'pending' ? t('待评价') : '待晒单'}
-                        </span>
-                        <span className="member-order__sn">{item.orderSn || '-'}</span>
-                        <span className="comment-center__consignee">收货人：{item.consignee || '-'}</span>
-                        <span className="member-order__time">{item.addTime || ''}</span>
-                        <Link className="member-order__detail" href={`/member/order/info?id=${item.orderId || ''}`} target="_blank">{t('订单详情')}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </Link>
-                      </header>
-                      {(item.items || []).map((product, productIndex) => (
-                        <div className="member-order__shop" key={productIndex}>
-                          <Link
-                            href={product.productId ? `/product/${product.productId}` : '/search'}
-                            target="_blank"
-                            className="member-order__shop-main"
-                          >
-                            <img src={product.picThumb || product.productImage || ''} alt={product.productName || ''} />
-                            <div className="member-order__shop-text">
-                              <div className="member-order__shop-name">{product.productName || t('商品')}</div>
-                              {skuText(product.skuData) ? <div className="member-order__shop-sku">{skuText(product.skuData)}</div> : null}
-                            </div>
-                          </Link>
-                          <div className="member-order__shop-price">
-                            <span>¥ {money(product.price)}</span>
-                            <span className="member-order__qty">×{product.quantity || 1}</span>
-                          </div>
-                        </div>
-                      ))}
-                      <footer className="member-order__foot">
-                        <div className="member-order__total">
-                          <span>共 {totalCount} 件</span>
-                          <span className="member-order__total-label">{t('合计')}</span>
-                          <b>¥ {money(item.totalAmount)}</b>
-                        </div>
-                        <div className="member-order__bot-actions">
-                          <Link href={`/member/comment/info?orderId=${item.orderId || ''}`}>
-                            <Button size="small" theme="solid" type="primary">{tab === 'pending' ? t('去评价') : '去晒单'}</Button>
-                          </Link>
-                        </div>
-                      </footer>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="member-orders__empty">
-                <p className="member-orders__empty-title">{tab === 'pending' ? t('当前筛选下还没有任何订单哦!') : '暂无待晒单订单'}</p>
-                <p className="member-orders__empty-sub">{t('现在就去：')}<Link href="/">{t('选购商品')}</Link>
-                </p>
-              </div>
-            )
-          ) : comments.length ? (
-            /* 已评价列表（CommentList.vue 对照 → MemberCommentList.tsx） */
+          ) : tab === 'commented' ? (
             <MemberCommentList comments={comments as MemberCommentItem[]} />
+          ) : orders.length ? (
+            orders.map((item, index) => (
+              <div className="mcc-card" key={item.orderId || index}>
+                <div className="mcc-card__head">
+                  <div className="mcc-card__head-left">
+                    <span className="mcc-card__label">{t('订单号')}：</span>
+                    <Link className="mcc-card__sn" href={`/member/order/info?id=${item.orderId || ''}`} target="_blank">
+                      {item.orderSn}
+                    </Link>
+                    {item.addTime ? <span className="mcc-card__time">{item.addTime}</span> : null}
+                  </div>
+                  <Link className="mcc-card__detail" href={`/member/order/info?id=${item.orderId || ''}`} target="_blank">
+                    {t('订单详情')}
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </Link>
+                </div>
+
+                <div className="mcc-card__items">
+                  {(item.items || []).map((product, productIndex) => (
+                    <div className="mcc-item" key={`${product.productId || productIndex}-${productIndex}`}>
+                      <Link
+                        className="mcc-item__picwrap"
+                        href={product.productId ? `/product/${product.productId}` : '/search'}
+                        target="_blank"
+                        title={product.productName || ''}
+                      >
+                        <img
+                          className="mcc-item__pic"
+                          src={product.picThumb || product.productImage || ''}
+                          alt={product.productName || ''}
+                          loading="lazy"
+                        />
+                      </Link>
+                      <div className="mcc-item__main">
+                        <Link
+                          className="mcc-item__name"
+                          href={product.productId ? `/product/${product.productId}` : '/search'}
+                          target="_blank"
+                        >
+                          <span className="mol-item__name-text">{product.productName}</span>
+                        </Link>
+                        {skuText(product.skuData) ? <div className="mcc-item__sku">{skuText(product.skuData)}</div> : null}
+                      </div>
+                      <div className="mcc-item__right">
+                        <span className="mcc-item__qty">×{product.quantity}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mcc-card__foot">
+                  <div className="mcc-card__meta">
+                    <span>{t('收货人')}：{item.consignee || '-'}</span>
+                    <span>
+                      {t('订单总额')}：
+                      <b className="mcc-card__amount">¥{money(item.totalAmount)}</b>
+                    </span>
+                  </div>
+                  <div className="mcc-card__actions">
+                    <Button theme="solid" type="primary" onClick={() => go(`/member/comment/info?id=${item.orderId || ''}`)}>
+                      {tab === 'pending' ? t('去评价') : t('待晒单')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
           ) : (
-            <div className="member-orders__empty">
-              <p className="member-orders__empty-title">{t('暂无已评价记录')}</p>
-              <p className="member-orders__empty-sub">{t('现在就去：')}<Link href="/">{t('选购商品')}</Link>
-              </p>
+            <div className="mcc mcc--state">
+              <Empty title={t('当前筛选下还没有任何订单')} description={t('去逛逛，发现心仪商品')} />
+              <Button theme="solid" type="primary" onClick={() => go('/')}>{t('去选购')}</Button>
             </div>
           )}
-        </div>
 
-        {commentEnabled !== 0 && !loading ? renderPagination() : null}
-      </div>
+          {total > size ? (
+            <div className="mol-pager">
+              <Pagination total={total} pageSize={size} currentPage={page} onPageChange={(next) => setPage(next)} />
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

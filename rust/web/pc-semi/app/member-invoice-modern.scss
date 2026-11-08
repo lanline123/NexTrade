@@ -1,0 +1,329 @@
+/**
+ * 增票资质 · Semi Design 现代化样式（.miq 命名空间）
+ *
+ * 与订单列表现代化（.mol）同一套设计语言：白卡 + 圆角 + 浅描边 + Semi 变量。
+ * 旧版复刻样式（member-pages.scss 的 .mp-userinvoice-info 系）保留未删，用于回滚。
+ */
+
+.miq {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+/* ---------- 页头：标题级页签行（恢复旧版 title-or-tabs 的骨架与分量） ---------- */
+.miq-tabs {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  border-bottom: 1px solid #f2f3f5;
+}
+
+.miq-tab {
+  display: inline-block;
+  padding: 12px 2px 14px;
+  color: var(--semi-color-text-1);
+  font-size: 16px;
+  line-height: 24px;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    color: var(--semi-color-primary);
+  }
+
+  &--active {
+    color: var(--semi-color-text-0);
+    font-weight: 600;
+    border-bottom-color: var(--semi-color-primary);
+  }
+}
+
+/* ---------- 通用卡片 ---------- */
+.miq-card {
+  background: var(--semi-color-bg-2, #fff);
+  border: 1px solid #eef0f3;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.miq-card__title {
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--semi-color-text-0);
+  border-bottom: 1px solid #f2f3f5;
+}
+
+.miq-card__title-extra {
+  margin-left: 6px;
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.miq-card__body {
+  padding: 20px;
+}
+
+/* ---------- 状态卡（按状态着色的浅色底，Tag 上 / 说明下） ---------- */
+.miq-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  border: 1px solid #eef0f3;
+  border-radius: 10px;
+  background: #fafbfc;
+}
+
+/* 各状态的浅色语义底（与 Tag 色同族，视觉一体） */
+.miq-hero--1 {
+  background: rgba(59, 189, 70, 0.06);
+  border-color: rgba(59, 189, 70, 0.22);
+}
+
+.miq-hero--2 {
+  background: rgba(252, 136, 0, 0.06);
+  border-color: rgba(252, 136, 0, 0.22);
+}
+
+.miq-hero--3 {
+  background: rgba(249, 57, 32, 0.05);
+  border-color: rgba(249, 57, 32, 0.2);
+}
+
+.miq-hero__main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.miq-hero__desc {
+  color: var(--semi-color-text-1);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.miq-hero__reject {
+  max-width: 640px;
+}
+
+/* ---------- 提示（轻量信息卡） ---------- */
+.miq-tips {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--semi-color-fill-0);
+  border: 1px solid #f2f3f5;
+}
+
+.miq-tips__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: var(--semi-color-text-1);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.miq-tips__list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--semi-color-text-2);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+/* ---------- 表单 ---------- */
+.miq-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+}
+
+.miq-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.miq-field__label {
+  color: var(--semi-color-text-1);
+  font-size: 14px;
+  font-weight: 500;
+
+  &::after {
+    content: '*';
+    margin-left: 2px;
+    color: var(--semi-color-danger);
+  }
+}
+
+.miq-form__agree {
+  margin-top: 4px;
+}
+
+.miq-agree-link {
+  color: var(--semi-color-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.miq-form__actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 900px) {
+  .miq-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= 发票申请列表（.moi，复用 .miq/.mol 基础类） ================= */
+
+.moi-card .mol-card__head-left {
+  align-items: baseline;
+}
+
+.moi-meta-label {
+  color: var(--semi-color-text-2);
+  font-size: 13px;
+  flex: none;
+}
+
+.moi-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.miq-empty {
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  background: var(--semi-color-bg-2, #fff);
+  border-radius: 10px;
+}
+
+/* ---------- 弹窗 ---------- */
+.moi-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.moi-dialog__title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--semi-color-text-0);
+}
+
+.moi-dialog__title-extra {
+  margin-left: 6px;
+  color: var(--semi-color-text-2);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.moi-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 62vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.moi-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #f2f3f5;
+  padding-top: 12px;
+}
+
+.moi-meta-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--semi-color-fill-0);
+  color: var(--semi-color-text-1);
+  font-size: 13px;
+
+  a {
+    color: var(--semi-color-primary);
+    text-decoration: none;
+  }
+}
+
+.moi-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moi-extra {
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  line-height: 20px;
+
+  a {
+    color: var(--semi-color-primary);
+  }
+
+  &--warn {
+    color: var(--semi-color-warning);
+  }
+}
+
+.moi-notes {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--semi-color-fill-0);
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  line-height: 22px;
+
+  p {
+    margin: 0;
+  }
+
+  .moi-notes--price {
+    color: var(--semi-color-danger);
+  }
+}
+
+.moi-imgs__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}

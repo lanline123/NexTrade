@@ -108,45 +108,116 @@ export default function ResetPasswordClient() {
   };
 
   return (
-    <main className="pc-login-page">
-      <div className="pc-login-brand">
-        <div className="pc-login-brand__logo">W</div>
-        <h1>{t('万物新生')}</h1>
-        <p>{t('退役动力电池循环利用产业服务平台')}</p>
-        <div className="pc-login-brand__points">
-          <span>{t('安全合规')}</span>
-          <span>{t('高效协同')}</span>
-          <span>{t('绿色循环')}</span>
-        </div>
-      </div>
-      <div className="pc-login-card pc-login-native">
-        <h2>{t('找回密码')}</h2>
-        <p>{step === 1 ? t('验证手机号后设置新密码') : '设置新的登录密码'}</p>
-        {step === 1 ? (
-          <form onSubmit={verify}>
-            <label htmlFor="reset-mobile">{t('手机号码')}</label>
-            <input id="reset-mobile" value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder={t('请输入手机号')} autoComplete="tel" />
-            <label htmlFor="reset-code">{t('验证码')}</label>
-            <div className="pc-reset-code-row">
-              <input id="reset-code" value={code} onChange={(event) => setCode(event.target.value)} placeholder={t('请输入验证码')} />
-              <button type="button" disabled={countdown > 0} onClick={() => void sendCode()}>{countdown > 0 ? `${countdown}s` : '获取验证码'}</button>
+    <div className="pg-auth-reset">
+      {/* 源码 pages/member/reset/index.vue：.full-height-div > .register-info > .title + StepOne/StepTow 的 .content */}
+      <div className="full-height-div">
+        <div className="register-info">
+          <div className="title">{t('找回密码')}</div>
+
+          <div className="content">
+            <div className="form-box">
+              {step === 1 ? (
+                <>
+                  <div className="form-item">
+                    <div className="form-item-label">{t('手机号码')}</div>
+                    <div className="form-item-input area-code-input">
+                      <div className="el-input input-border-style">
+                        <input
+                          id="reset-mobile"
+                          className="el-input__inner"
+                          value={mobile}
+                          onChange={(event) => setMobile(event.target.value)}
+                          placeholder={t('手机号码')}
+                          autoComplete="tel"
+                        />
+                      </div>
+                      <div className="error-notice" />
+                    </div>
+                  </div>
+                  <div className="form-item">
+                    <div className="form-item-label">{t('验证码')}</div>
+                    <div className="form-item-input">
+                      <div className="el-input input-border-style">
+                        <input
+                          id="reset-code"
+                          className="el-input__inner"
+                          value={code}
+                          onChange={(event) => setCode(event.target.value)}
+                          placeholder={t('验证码')}
+                        />
+                        <span className="el-input__suffix mobile-code-text">
+                          <button className="el-button" type="button" disabled={countdown > 0} onClick={() => void sendCode()}>
+                            {countdown > 0 ? `${countdown}s` : t('获取验证码')}
+                          </button>
+                        </span>
+                      </div>
+                      <div className="error-notice" />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="form-item">
+                    <div className="form-item-label">{t('新密码')}</div>
+                    <div className="form-item-input area-code-input">
+                      <div className="el-input input-border-style">
+                        <input
+                          id="reset-password"
+                          className="el-input__inner"
+                          type="password"
+                          value={password}
+                          onChange={(event) => setPassword(event.target.value)}
+                          placeholder={t('新密码')}
+                          autoComplete="new-password"
+                        />
+                      </div>
+                      <div className="error-notice" />
+                    </div>
+                  </div>
+                  <div className="form-item">
+                    <div className="form-item-label">{t('确认新密码')}</div>
+                    <div className="form-item-input area-code-input">
+                      <div className="el-input input-border-style">
+                        <input
+                          id="reset-password2"
+                          className="el-input__inner"
+                          type="password"
+                          value={password2}
+                          onChange={(event) => setPassword2(event.target.value)}
+                          placeholder={t('确认新密码')}
+                          autoComplete="new-password"
+                        />
+                      </div>
+                      <div className="error-notice" />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            {error ? <div className="pc-login-native__error">{error}</div> : null}
-            <button type="submit" disabled={loading}>{loading ? t('验证中...') : '下一步'}</button>
-          </form>
-        ) : (
-          <form onSubmit={reset}>
-            <label htmlFor="reset-password">{t('新密码')}</label>
-            <input id="reset-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('请输入新密码')} autoComplete="new-password" />
-            <label htmlFor="reset-password2">{t('确认密码')}</label>
-            <input id="reset-password2" type="password" value={password2} onChange={(event) => setPassword2(event.target.value)} placeholder={t('请再次输入新密码')} autoComplete="new-password" />
-            {error ? <div className="pc-login-native__error">{error}</div> : null}
-            <button type="submit" disabled={loading}>{loading ? t('提交中...') : '重置密码'}</button>
-          </form>
-        )}
-        <div className="pc-login-tip">{t('想起密码了？')}<Link href="/login">{t('返回登录')}</Link>
+
+            {error ? <div className="error-notice">{error}</div> : null}
+
+            <div className="btn-box">
+              <button
+                className="el-button submit-button"
+                type="button"
+                disabled={loading}
+                style={{ width: '100%' }}
+                onClick={(event) => (step === 1 ? void verify(event as unknown as React.FormEvent) : void reset(event as unknown as React.FormEvent))}
+              >
+                {step === 1 ? (loading ? t('验证中...') : t('下 一 步')) : loading ? t('提交中...') : t('确 认')}
+              </button>
+            </div>
+          </div>
+
+          <div className="login-box">
+            <Link className="font-color" href="/login">
+              {t('返回登录')}
+            </Link>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
+

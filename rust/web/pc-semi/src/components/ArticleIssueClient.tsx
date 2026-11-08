@@ -1,99 +1,75 @@
 'use client';
 
 /**
- * 帮助中心交互
+ * 帮助中心「帮助分类」Tab 切换。
  * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/article/issue/Index.vue
- * - 左侧分类菜单（IssueLeftMenu）
- * - 帮助分类 Tab 切换（bzfl-menu）+ 分类下文章列表（bzfl-list）
- * - 热门问题（rmwt-menu）
+ *   .bzfl-menu 分类标签（旧版 @mouseover="checkTab(item)"）
+ *   .bzfl-list 当前分类下的文章
+ * 左侧分类菜单已由服务端组件 HelpCategoryMenu 渲染，此处只管 tab + 列表。
  */
 import { useState } from 'react';
 import Link from 'next/link';
-
 import { useTranslation } from 'react-i18next';
-interface Article {
-  articleId?: number;
-  articleTitle?: string;
-  [key: string]: unknown;
-}
-interface Category {
-  articleCategoryId?: number;
-  articleCategoryName?: string;
-  categorySn?: string;
-  articles?: Article[];
-  [key: string]: unknown;
-}
+
+import type { HelpArticle, HelpCategory } from './HelpCategoryMenu';
+import { categoryKey } from './HelpCategoryMenu';
 
 export default function ArticleIssueClient({
   categories,
   currentCategoryId,
 }: {
-  categories: Category[];
+  categories: HelpCategory[];
   currentCategoryId: string;
 }) {
-    const { t } = useTranslation();
-  const initial = categories.find((item) => item.categorySn === currentCategoryId || String(item.articleCategoryId) === currentCategoryId)
-    || categories[0];
-  const [activeSn, setActiveSn] = useState(String(initial?.categorySn ?? initial?.articleCategoryId ?? ''));
+  const { t } = useTranslation();
+  const initial =
+    categories.find((item) => item.categorySn === currentCategoryId || String(item.articleCategoryId) === currentCategoryId) ||
+    categories[0];
+  const [activeKey, setActiveKey] = useState(categoryKey(initial ?? {}));
 
-  const active = categories.find((item) => String(item.categorySn ?? item.articleCategoryId ?? '') === activeSn) || initial;
-  const articles = (active?.articles || []) as Article[];
-  const hot = categories.flatMap((item) => (item.articles || []) as Article[]).slice(0, 8);
+  const active = categories.find((item) => categoryKey(item) === activeKey) ?? initial;
+  const articles = (Array.isArray(active?.articles) ? active?.articles : []) as HelpArticle[];
+
+  if (!categories.length) return null;
 
   return (
-    <div className="pc-article-issue">
-      <aside className="pc-article-issue__side">
-        <b>{t('帮助分类')}</b>
-        {categories.map((item) => {
-          const key = String(item.categorySn ?? item.articleCategoryId ?? '');
+    <div className="bzfl">
+      <div className="bzfl-menu" role="tablist">
+        {categories.map((category) => {
+          const key = categoryKey(category);
+          const checked = key === activeKey;
           return (
             <button
               key={key}
               type="button"
-              className={activeSn === key ? 'is-active' : ''}
-              onClick={() => setActiveSn(key)}
+              role="tab"
+              aria-selected={checked}
+              className={`bzfl-menu-item${checked ? ' check-tab' : ''}`}
+              onMouseEnter={() => setActiveKey(key)}
+              onFocus={() => setActiveKey(key)}
+              onClick={() => setActiveKey(key)}
             >
-              {item.articleCategoryName}
+              {category.articleCategoryName}
             </button>
           );
         })}
-      </aside>
+      </div>
 
-      <div className="pc-article-issue__main">
-        <div className="pc-article-issue__tabs">
-          {categories.map((item) => {
-            const key = String(item.categorySn ?? item.articleCategoryId ?? '');
-            return (
-              <button
-                key={key}
-                type="button"
-                className={activeSn === key ? 'is-active' : ''}
-                onClick={() => setActiveSn(key)}
-              >
-                {item.articleCategoryName}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="pc-article-issue__list">
-          {articles.length ? articles.map((article) => (
-            <Link key={article.articleId} href={`/article/issue/info?articleId=${article.articleId}`} target="_blank">
+      <div className="bzfl-list">
+        {articles.length ? (
+          articles.map((article) => (
+            <Link
+              key={String(article.articleId)}
+              className="bzfl-list-item"
+              href={`/article/issue/info?articleId=${article.articleId}`}
+              target="_blank"
+            >
               {article.articleTitle}
             </Link>
-          )) : <span className="pc-article-issue__empty">{t('该分类暂无文章')}</span>}
-        </div>
-
-        {hot.length ? (
-          <div className="pc-article-issue__hot">
-            <b>{t('热门问题')}</b>
-            {hot.map((article) => (
-              <Link key={`hot-${article.articleId}`} href={`/article/issue/info?articleId=${article.articleId}`} target="_blank">
-                {article.articleTitle} →
-              </Link>
-            ))}
-          </div>
-        ) : null}
+          ))
+        ) : (
+          <span className="bzfl-empty">{t('该分类暂无文章')}</span>
+        )}
       </div>
     </div>
   );

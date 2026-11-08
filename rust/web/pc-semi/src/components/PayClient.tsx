@@ -731,254 +731,273 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
   const isApplePay = payType.toLowerCase() === 'applepay';
 
   return (
-    <div className="pc-pay">
-      <Card className="pc-pay__card">
-        <div className="pc-pay__success">{t('您的订单已成功提交，请付款！')}</div>
-        <div className="pc-pay__amount">
-          <span>{t('需支付')}</span>
-          <b>¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
-        </div>
-        <div className="pc-pay__order">
-          <span>{t('订单号')}</span>
-          <b>{order.orderSn || '-'}</b>
-        </div>
+    <div className="mp-pay">
+      {/* 旧版 pages/order/pay.vue 结构：CommonPageContainer > .success_txt / .price_box / .pay_type_box / .btn_box */}
+      <div className="success_txt">{t('您的订单已成功提交，请付款')}！</div>
 
-        {offlineMode ? (
-          <div className="pc-pay__offline">
-            <div className="pc-pay__offline-tabs">
-              {offlineEntries.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  className={activeOffline && activeOffline.key === tab.key ? 'is-active' : ''}
-                  onClick={() => setOfflineTab(tab.key)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            {activeOffline ? (
-              <div
-                className="pc-pay__offline-content"
-                // 源码：offlinePaymentList 为后台配置 HTML，直接 v-html 渲染
-                dangerouslySetInnerHTML={{ __html: String((info?.offlinePaymentList || {})[activeOffline.key] || '') }}
-              />
-            ) : null}
-            {claimStatus === 0 && claimDetail ? (
-              <div className="pc-pay__claim-status">
-                <Typography.Text type="tertiary">认款状态：{claimDetail.statusName || t('等待财务审核')}</Typography.Text>
-                {claimDetail.transferTime ? <div>转账时间：{formatTransferTime(claimDetail.transferTime)}</div> : null}
-                {claimDetail.payerName ? <div>付款人：{claimDetail.payerName}</div> : null}
-                {claimDetail.bankSerialNo ? <div>转账流水号：{claimDetail.bankSerialNo}</div> : null}
-                {claimDetail.rejectReason ? <div className="pc-pay__claim-reject">驳回原因：{claimDetail.rejectReason}</div> : null}
-              </div>
-            ) : null}
-            <div className="pc-pay__offline-claim-action">
-              <Button theme="solid" type="primary" size="large" onClick={openOfflineClaim}>
-                {claimButtonText}
-              </Button>
-            </div>
-            <p className="pc-pay__offline-tips">{t('请按上方账户信息完成汇款，并提交付款凭证，财务核对后完成认款。')}</p>
+      <div className="price_box">
+        <div className="num_box">
+          <div className="tit">{t('需支付')}：</div>
+          <span className="price">¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</span>
+        </div>
+        <div className="order_num">
+          <div className="tit">{t('订单号')}：</div>
+          <div className="num hand-pointer">
+            <Link href={`/member/order/info?id=${order.orderId ?? orderId}`} target="_blank">
+              {order.orderSn || '-'}
+            </Link>
           </div>
-        ) : null}
+        </div>
+      </div>
 
-        {onlineMode && methods.length ? (
-          <div className="pc-pay__methods">
-            <div className="pc-pay__methods-head">
+      {onlineMode && methods.length ? (
+        <div className="pay_type_box payment-methods-box">
+          <div className="payment-section platform-payment-box">
+            <div className="tit_row">
               <h3>{t('平台支付')}</h3>
               <p>{t('支持所有银行卡或信用卡，更迅速、安全')}</p>
             </div>
-            <div className="pc-pay__method-grid">
+            <div className="type_tab">
               {methods.map((method) => (
-                <button
+                <div
                   key={method.type}
-                  type="button"
-                  className={`pc-pay__method${method.type === payType ? ' is-active' : ''}`}
+                  className={`tab flex align-center${method.type === payType ? ' active' : ''}`}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setPayType(method.type)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') setPayType(method.type);
+                  }}
                 >
-                  <ChannelIcon type={method.type} />
-                  <span>{method.label}</span>
-                </button>
+                  <div className="check">
+                    <span />
+                  </div>
+                  <div className="cont">
+                    <ChannelIcon type={method.type} />
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-        ) : null}
-
-        {isApplePay ? (
-          <div className="pc-pay__applepay-panel">
-            <div className="pc-pay__label">{t('Apple Pay 支付参数')}</div>
-            <div className="pc-pay__applepay-grid">
-              <span>countryCode</span><b>CN</b>
-              <span>currencyCode</span><b>CNY</b>
-              <span>supportedNetworks</span><b>visa / masterCard / chinaUnionPay</b>
-              <span>merchantCapabilities</span><b>supports3DS</b>
-              <span>total</span><b>{order.shopName || order.orderSn || 'Apple Pay'} · ¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
-            </div>
-            {appleSupported ? (
-              <Button theme="solid" type="primary" loading={applePaying} onClick={launchApplePay}>
-                {applePaying ? t('支付中...') : '拉起 Apple Pay'}
-              </Button>
-            ) : (
-              <Typography.Text type="tertiary">当前环境不支持 Apple Pay，请在 Safari / Apple 设备中打开本页支付。</Typography.Text>
-            )}
-          </div>
-        ) : null}
-
-        {qr ? (
-          <div className="pc-pay__qr">
-            <Typography.Text type="tertiary">{qrTips}</Typography.Text>
-            <div className="pc-pay__qr-image">
-              <img src={qr} alt={t('支付二维码')} width={260} height={260} />
-            </div>
-            <Button size="small" theme="borderless" onClick={stopPayAndReload}>{t('取消扫码')}</Button>
-          </div>
-        ) : null}
-
-        <div className="pc-pay__actions">
-          {offlineMode ? null : (
-            <Button theme="solid" type="primary" size="large" loading={paying || applePaying} disabled={!payType || !!qr} onClick={pay}>
-              {selectedMethod ? t('去付款（{m}）', { m: selectedMethod.label }) : '去付款'}
-            </Button>
-          )}
-          <Link href="/member/order/list">
-            <Button size="large">{t('查看订单')}</Button>
-          </Link>
         </div>
-      </Card>
+      ) : null}
+
+      {offlineMode ? (
+        <div className="pay_type_box">
+          <div className="tig-tabs">
+            {offlineEntries.map((tab) => (
+              <a
+                key={tab.key}
+                className={`tab${activeOffline && activeOffline.key === tab.key ? ' active' : ''}`}
+                onClick={() => setOfflineTab(tab.key)}
+              >
+                {tab.label}
+              </a>
+            ))}
+          </div>
+          {activeOffline ? (
+            <div
+              className="offline-pay-content"
+              // 源码：offlinePaymentList 为后台配置 HTML，直接 v-html 渲染
+              dangerouslySetInnerHTML={{ __html: String((info?.offlinePaymentList || {})[activeOffline.key] || '') }}
+            />
+          ) : null}
+          {claimStatus === 0 && claimDetail ? (
+            <div className="pc-pay__claim-status">
+              <Typography.Text type="tertiary">认款状态：{claimDetail.statusName || t('等待财务审核')}</Typography.Text>
+              {claimDetail.transferTime ? <div>转账时间：{formatTransferTime(claimDetail.transferTime)}</div> : null}
+              {claimDetail.payerName ? <div>付款人：{claimDetail.payerName}</div> : null}
+              {claimDetail.bankSerialNo ? <div>转账流水号：{claimDetail.bankSerialNo}</div> : null}
+              {claimDetail.rejectReason ? <div className="pc-pay__claim-reject">驳回原因：{claimDetail.rejectReason}</div> : null}
+            </div>
+          ) : null}
+          <div className="offline-claim-action">
+            <Button theme="solid" type="primary" size="large" onClick={openOfflineClaim}>
+              {claimButtonText}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* 以下两块（Apple Pay 参数面板、扫码二维码）旧版 pay.vue 里没有对应结构，属于新版自有能力，未做旧版化 */}
+      {isApplePay ? (
+        <div className="pc-pay__applepay-panel">
+          <div className="pc-pay__label">{t('Apple Pay 支付参数')}</div>
+          <div className="pc-pay__applepay-grid">
+            <span>countryCode</span><b>CN</b>
+            <span>currencyCode</span><b>CNY</b>
+            <span>supportedNetworks</span><b>visa / masterCard / chinaUnionPay</b>
+            <span>merchantCapabilities</span><b>supports3DS</b>
+            <span>total</span><b>{order.shopName || order.orderSn || 'Apple Pay'} · ¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
+          </div>
+          {appleSupported ? (
+            <Button theme="solid" type="primary" loading={applePaying} onClick={launchApplePay}>
+              {applePaying ? t('支付中...') : '拉起 Apple Pay'}
+            </Button>
+          ) : (
+            <Typography.Text type="tertiary">当前环境不支持 Apple Pay，请在 Safari / Apple 设备中打开本页支付。</Typography.Text>
+          )}
+        </div>
+      ) : null}
+
+      {qr ? (
+        <div className="pc-pay__qr">
+          <Typography.Text type="tertiary">{qrTips}</Typography.Text>
+          <div className="pc-pay__qr-image">
+            <img src={qr} alt={t('支付二维码')} width={260} height={260} />
+          </div>
+          <Button size="small" theme="borderless" onClick={stopPayAndReload}>{t('取消扫码')}</Button>
+        </div>
+      ) : null}
+
+      {offlineMode ? null : (
+        <div className="btn_box">
+          <div
+            className={`btn${paying || applePaying ? ' btn-loading' : ''}${!payType || !!qr ? ' is-disabled' : ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              if (!paying && !applePaying && payType && !qr) void pay();
+            }}
+          >
+            <span>{paying || applePaying ? `${t('支付中')}...` : t('去付款')}</span>
+            {!paying && !applePaying ? <i className="iconfont-pc icon-yuanjiaojiantouyou" /> : null}
+          </div>
+        </div>
+      )}
 
       <Modal
         visible={claimOpen}
-        title={t('填写付款确认')}
+        title={null}
+        header={null}
+        footer={null}
         width={520}
         onCancel={() => setClaimOpen(false)}
-        footer={
-          <div className="pc-pay__claim-footer">
-            <Button onClick={() => setClaimOpen(false)}>{t('取消')}</Button>
-            <Button theme="solid" type="primary" loading={claimSubmitting} onClick={submitOfflineClaim}>{t('确认')}</Button>
-          </div>
-        }
       >
-        <div className="pc-pay__claim-form">
-          <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">{t('付款金额')}</span>
-            <b>¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
-          </div>
-          <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">{t('转账时间')}</span>
-            <input
-              className="pc-pay__claim-datetime"
-              type="datetime-local"
-              value={claimTransferTime.replace(' ', 'T')}
-              max={localNowForInput()}
-              onChange={(event) => setClaimTransferTime(String(event.target.value || '').replace('T', ' '))}
-            />
-          </div>
-          <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">{t('付款人姓名')}</span>
-            <Input value={claimPayerName} onChange={(value) => setClaimPayerName(String(value || ''))} placeholder={t('请输入')} />
-          </div>
-          <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">{t('转账流水号')}</span>
-            <Input value={claimBankSerialNo} onChange={(value) => setClaimBankSerialNo(String(value || ''))} placeholder={t('请填写')} />
-          </div>
-          <div className="pc-pay__claim-row">
-            <span className="pc-pay__claim-label">{t('付款凭证')}</span>
-            <div className="pc-pay__claim-upload">
-              {claimVouchers.map((url) => (
-                <div key={url} className="pc-pay__claim-thumb">
-                  <img src={url} alt={t('付款凭证')} />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setClaimVouchers((list) => {
-                        const next = list.filter((item) => item !== url);
-                        vouchersRef.current = next;
-                        return next;
-                      })
-                    }
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-              {claimVouchers.length < OFFLINE_MAX_FILES ? (
-                <button type="button" className="pc-pay__claim-add" onClick={() => fileInputRef.current?.click()}>
-                  {claimUploading ? t('上传中...') : '+'}
-                </button>
-              ) : null}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/gif,image/webp,image/tiff"
-                multiple
-                style={{ display: 'none' }}
-                onChange={(event) => {
-                  const files = Array.from(event.target.files || []);
-                  event.target.value = '';
-                  const remaining = Math.max(0, OFFLINE_MAX_FILES - vouchersRef.current.length);
-                  files.slice(0, remaining).forEach((file) => void uploadVoucher(file));
-                }}
-              />
+        <div className="mp-pay-dialog">
+          <div className="el-dialog">
+            <div className="el-dialog__header">
+              <span className="el-dialog__title">{t('填写付款确认')}</span>
             </div>
-            <div className="pc-pay__claim-tip">{t('最多上传5张，单张不超过2M')}</div>
+            <div className="el-dialog__body">
+              <form className="el-form offline-claim-form" onSubmit={(event) => event.preventDefault()}>
+                <div className="el-form-item">
+                  <div className="el-form-item__label">{t('付款金额')}</div>
+                  <div className="el-form-item__content">
+                    <span className="offline-claim-amount">¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</span>
+                  </div>
+                </div>
+                <div className="el-form-item">
+                  <div className="el-form-item__label">{t('转账时间')}</div>
+                  <div className="el-form-item__content">
+                    <div className="el-input">
+                      <input
+                        className="el-input__inner"
+                        type="datetime-local"
+                        value={claimTransferTime.replace(' ', 'T')}
+                        max={localNowForInput()}
+                        onChange={(event) => setClaimTransferTime(String(event.target.value || '').replace('T', ' '))}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="el-form-item">
+                  <div className="el-form-item__label">{t('付款人姓名')}</div>
+                  <div className="el-form-item__content">
+                    <div className="el-input">
+                      <input
+                        className="el-input__inner"
+                        value={claimPayerName}
+                        placeholder={t('请输入')}
+                        onChange={(event) => setClaimPayerName(String(event.target.value || ''))}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="el-form-item">
+                  <div className="el-form-item__label">{t('转账流水号')}</div>
+                  <div className="el-form-item__content">
+                    <div className="el-input">
+                      <input
+                        className="el-input__inner"
+                        value={claimBankSerialNo}
+                        placeholder={t('请填写')}
+                        onChange={(event) => setClaimBankSerialNo(String(event.target.value || ''))}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="el-form-item">
+                  <div className="el-form-item__label">{t('付款凭证')}</div>
+                  <div className="el-form-item__content">
+                    <div className="offline-claim-upload-wrap">
+                      <input
+                        ref={fileInputRef}
+                        className="offline-native-file-input"
+                        type="file"
+                        accept="image/png,image/jpeg,image/gif,image/webp,image/tiff"
+                        multiple
+                        onChange={(event) => {
+                          const files = Array.from(event.target.files || []);
+                          event.target.value = '';
+                          const remaining = Math.max(0, OFFLINE_MAX_FILES - vouchersRef.current.length);
+                          files.slice(0, remaining).forEach((file) => void uploadVoucher(file));
+                        }}
+                      />
+                      <div
+                        className={`offline-claim-uploader${claimVouchers.length >= OFFLINE_MAX_FILES ? ' is-limit-reached' : ''}`}
+                      >
+                        {claimVouchers.map((url) => (
+                          <div key={url} className="el-upload-list__item">
+                            <img src={url} alt={t('付款凭证')} />
+                            <span
+                              className="el-upload-list__item-delete"
+                              role="button"
+                              tabIndex={0}
+                              onClick={() =>
+                                setClaimVouchers((list) => {
+                                  const next = list.filter((item) => item !== url);
+                                  vouchersRef.current = next;
+                                  return next;
+                                })
+                              }
+                            >
+                              ×
+                            </span>
+                          </div>
+                        ))}
+                        {claimVouchers.length < OFFLINE_MAX_FILES ? (
+                          <span
+                            className="offline-claim-upload-trigger"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            {claimUploading ? t('上传中...') : '+'}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="offline-claim-upload-tip">{t('最多上传5张')}</div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="el-dialog__footer">
+              <button type="button" className="btn" onClick={() => setClaimOpen(false)}>
+                {t('取消')}
+              </button>
+              <button
+                type="button"
+                className={`btn info${claimSubmitting ? ' btn-loading' : ''}`}
+                onClick={() => void submitOfflineClaim()}
+              >
+                {t('确认')}
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
-
-      <style>{`
-        /* 图标渠道选择 */
-        .pc-pay__methods-head h3 { margin: 0; font-size: 16px; color: #1a1a1a; }
-        .pc-pay__methods-head p { margin: 4px 0 12px; font-size: 12px; color: #8a919f; }
-        .pc-pay__method-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-        .pc-pay__method {
-          display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-          border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;
-          cursor: pointer; font-size: 14px; color: #1a1a1a;
-        }
-        .pc-pay__method.is-active { border-color: var(--pc-primary); box-shadow: 0 0 0 2px rgba(var(--general-rgb), 0.12); }
-        .pc-pay__applepay-panel { margin-top: 16px; padding: 16px; border: 1px dashed #dcdcdc; border-radius: 8px; background: #fafbfc; }
-        .pc-pay__applepay-grid {
-          display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px;
-          font-size: 13px; color: #333; margin: 10px 0 14px; word-break: break-all;
-        }
-        .pc-pay__applepay-grid span { color: #8a919f; }
-        /* 线下汇款 */
-        .pc-pay__offline-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-        .pc-pay__offline-tabs button {
-          border: 1px solid #e5e7eb; border-radius: 6px; background: #fff;
-          padding: 8px 16px; font-size: 14px; color: #1a1a1a; cursor: pointer;
-        }
-        .pc-pay__offline-tabs button.is-active { border-color: var(--pc-primary); color: var(--pc-primary); background: var(--pc-primary-soft); }
-        .pc-pay__offline-content { padding: 12px; border: 1px solid #f0f0f0; border-radius: 8px; background: #fafbfc; font-size: 14px; line-height: 24px; color: #333; }
-        .pc-pay__offline-claim-action { margin-top: 16px; }
-        .pc-pay__offline-tips { margin-top: 10px; color: #8a919f; font-size: 12px; }
-        .pc-pay__qr { text-align: center; margin-top: 16px; }
-        .pc-pay__qr-image { margin-top: 10px; }
-        /* 认款弹层 */
-        .pc-pay__claim-footer { display: flex; justify-content: flex-end; gap: 8px; }
-        .pc-pay__claim-form { display: flex; flex-direction: column; gap: 12px; }
-        .pc-pay__claim-row { display: flex; align-items: flex-start; gap: 12px; }
-        .pc-pay__claim-label { flex: 0 0 92px; font-size: 14px; color: #333; line-height: 32px; }
-        .pc-pay__claim-datetime {
-          flex: 1; height: 32px; border: 1px solid #dcdcdc; border-radius: 6px;
-          padding: 0 10px; font-size: 14px; box-sizing: border-box;
-        }
-        .pc-pay__claim-upload { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
-        .pc-pay__claim-thumb { position: relative; width: 72px; height: 72px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
-        .pc-pay__claim-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .pc-pay__claim-thumb button {
-          position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; padding: 0;
-          border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #fff;
-          font-size: 12px; line-height: 18px; cursor: pointer;
-        }
-        .pc-pay__claim-add {
-          width: 72px; height: 72px; border: 1px dashed #dcdcdc; border-radius: 6px;
-          background: #fafbfc; color: #8a919f; font-size: 24px; cursor: pointer;
-        }
-        .pc-pay__claim-tip { color: #8a919f; font-size: 12px; margin-top: 6px; }
-        .pc-pay__claim-status { margin-top: 12px; padding: 12px; border-radius: 8px; background: #f5f8ff; color: #333; font-size: 13px; line-height: 22px; }
-        .pc-pay__claim-reject { color: #f5222d; }
-      `}</style>
     </div>
   );
 }

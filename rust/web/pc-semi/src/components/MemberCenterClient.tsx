@@ -1,15 +1,20 @@
 'use client';
 
 /**
- * 会员中心
+ * 会员中心（现代化仪表盘改版）
  * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/index.vue
- * 结构（原版）：
- *   .infout      头像 60 + 昵称 28px + 等级/认证 + 入口（编辑个人资料 / 账户 / 我的地址）
- *   .userTotu    浅灰底卡片行：我的订单标题块 + 待付款 / 待收货 / 评论 / 售后 计数块（224×60 白卡）
- *   .userBottom  三张浅灰卡：优惠券 N / 心愿单 / 浏览记录
- *   ProdSwiper   精选好物：getProductIds → product/product/list，12/页 + 滚动加载
- * 接口：user/user/memberCenter、user/order/orderNum、common/config/base、
- *       common/recommend/getProductIds、product/product/list
+ * 样式：app/member-home.scss（.mh-*，手工维护；替代旧 .mc-* 结构）
+ *
+ * 设计语言（与登录页毛玻璃改版一致）：
+ *   .mh-hero      主题渐变欢迎横幅：头像 + 昵称/认证徽章 + 时段问候 +
+ *                 资产统计（余额/积分/优惠券）+ 资料快捷入口（ghost 胶囊）
+ *   .mh-card      白卡「我的订单」：卡头（全部订单 →）+ 待付款/待收货/评论/售后 四状态块
+ *   .mh-card      白卡「快捷入口」：优惠券/心愿单/浏览记录/我的地址/账户安全/发票申请 六宫格
+ *   .mh-recommend 精选好物：getProductIds → product/product/list，12/页 + 滚动加载（沿用 ProductCard）
+ *
+ * 数据与逻辑未改动，接口与旧版一一对应：
+ * user/user/memberCenter、user/order/orderNum、common/config/base、
+ * common/recommend/getProductIds、product/product/list。
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -19,7 +24,15 @@ import Coupon from '@icon-park/react/es/icons/Coupon';
 import Heart from '@icon-park/react/es/icons/Heart';
 import History from '@icon-park/react/es/icons/History';
 import Right from '@icon-park/react/es/icons/Right';
-import Order from '@icon-park/react/es/icons/Order';
+import Wallet from '@icon-park/react/es/icons/Wallet';
+import Truck from '@icon-park/react/es/icons/Truck';
+import Comments from '@icon-park/react/es/icons/Comments';
+import HeadsetOne from '@icon-park/react/es/icons/HeadsetOne';
+import SettingTwo from '@icon-park/react/es/icons/SettingTwo';
+import Security from '@icon-park/react/es/icons/Security';
+import Bill from '@icon-park/react/es/icons/Bill';
+import User from '@icon-park/react/es/icons/User';
+import Point from '@icon-park/react/es/icons/Point';
 import ProductCard from '@/components/product/ProductCard';
 import { useProductColumns } from '@/components/product/use-product-columns';
 import '@/components/product/product-card.scss';
@@ -57,9 +70,20 @@ interface RecommendProduct {
   productPrice?: number | string;
 }
 
-function count(value: unknown): string {
+/** 金额展示：保留两位小数（余额） */
+function money(value: unknown): string {
   const num = Number(value || 0);
-  return num > 0 ? String(num) : '-';
+  return Number.isFinite(num) ? num.toFixed(2) : '0.00';
+}
+
+/** 时段问候（useEffect 里计算，避免 SSR/CSR 渲染结果不一致） */
+function greetingByHour(hour: number): string {
+  if (hour < 6) return '夜深了';
+  if (hour < 9) return '早上好';
+  if (hour < 12) return '上午好';
+  if (hour < 14) return '中午好';
+  if (hour < 18) return '下午好';
+  return '晚上好';
 }
 
 export default function MemberCenterClient() {
@@ -75,10 +99,16 @@ export default function MemberCenterClient() {
   const [commentEnabled, setCommentEnabled] = useState(1);
   /** 原版 commonStore.closeAuth：B2B 认证入口开关 */
   const [closeAuth, setCloseAuth] = useState(0);
+  /** 时段问候（客户端挂载后计算，默认空不渲染问候行） */
+  const [greeting, setGreeting] = useState('');
   const pageRef = useRef(0);
   const idsRef = useRef('');
   const loadingRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setGreeting(greetingByHour(new Date().getHours()));
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -169,19 +199,19 @@ export default function MemberCenterClient() {
 
   if (loading) {
     return (
-      <div className="mc-skeleton">
-        <div className="mc-skeleton__user"><Skeleton.Avatar size="large" /><Skeleton.Title style={{ width: 180 }} /><Skeleton.Paragraph rows={1} style={{ width: 320 }} /></div>
-        <div className="mc-skeleton__row">{[0, 1, 2, 3].map((i) => <Skeleton.Title key={i} style={{ width: '100%', height: 60 }} />)}</div>
-        <div className="mc-skeleton__row">{[0, 1, 2].map((i) => <Skeleton.Title key={i} style={{ width: '100%', height: 64 }} />)}</div>
+      <div className="mh-skeleton">
+        <div className="mh-skeleton__hero"><Skeleton.Avatar size="large" /><Skeleton.Title style={{ width: 200 }} /><Skeleton.Paragraph rows={1} style={{ width: 360 }} /></div>
+        <div className="mh-skeleton__row">{[0, 1, 2, 3].map((i) => <Skeleton.Title key={i} style={{ width: '100%', height: 88 }} />)}</div>
+        <div className="mh-skeleton__row">{[0, 1, 2, 3, 4, 5].map((i) => <Skeleton.Title key={i} style={{ width: '100%', height: 72 }} />)}</div>
       </div>
     );
   }
 
   if (needLogin) {
     return (
-      <Card className="mc-card mc-login">
+      <Card className="mh-login">
         <h2>{t('登录后查看会员中心')}</h2>
-        <Link href="/login?redirect=/member" className="mc-login__btn">{t('去登录')}</Link>
+        <Link href="/login?redirect=/member" className="mh-login__btn">{t('去登录')}</Link>
       </Card>
     );
   }
@@ -191,96 +221,143 @@ export default function MemberCenterClient() {
   const showAuthBadge = IS_B2B && closeAuth === 1;
 
   return (
-    <div className="mc">
-      {/* 用户信息（原版 .infout） */}
-      <section className="mc-user">
-        <div className={`mc-user__avatar${info.avatar ? '' : ' is-empty'}`}>
-          {info.avatar ? <img src={info.avatar} alt="" /> : <span>{(info.nickname || t('会')).slice(0, 1)}</span>}
-        </div>
-        <div className="mc-user__col">
-          <div className="mc-user__name">
-            <span>{info.nickname || t('会员')}</span>
-            {info.rankIco ? <img className="mc-user__rank" src={info.rankIco} alt="" /> : null}
-            {showAuthBadge ? (
-              <Link
-                href="/member/usercertification/info"
-                className={`mc-user__auth${verified ? ' is-verified' : ''}`}
-                title={verified ? t('已认证') : '未认证'}
-              >
-                <i className="mc-user__auth-ico" aria-hidden="true">
-                  <svg viewBox="0 0 48 48" aria-hidden="true">
-                    <path d="M12.5 15h6.3l9.2 15.6L25.2 36z" fill="#fff" />
-                    <path d="M32.2 15h5.4l-7 12.8-3-5.4z" fill="#fff" />
-                  </svg>
-                </i>
-                <span>{verified ? t('已认证') : '未认证'}</span>
-              </Link>
-            ) : null}
+    <div className="mh">
+      {/* ---------------- 欢迎横幅：问候 + 资产 + 资料入口 ---------------- */}
+      <section className="mh-hero">
+        <span className="mh-hero__deco mh-hero__deco--1" aria-hidden />
+        <span className="mh-hero__deco mh-hero__deco--2" aria-hidden />
+        <div className="mh-hero__user">
+          <div className={`mh-hero__avatar${info.avatar ? '' : ' is-empty'}`}>
+            {info.avatar ? <img src={info.avatar} alt="" /> : <span>{(info.nickname || t('会')).slice(0, 1)}</span>}
           </div>
-          <div className="mc-user__links">
-            <Link href="/member/profile">{t('编辑个人资料')}</Link>
-            <Link href="/member/security">{t('账户')}</Link>
-            <Link href="/member/address/list">{t('我的地址')}</Link>
+          <div className="mh-hero__who">
+            <div className="mh-hero__name">
+              <span>{info.nickname || t('会员')}</span>
+              {info.rankIco ? <img className="mh-hero__rank" src={info.rankIco} alt="" /> : null}
+              {showAuthBadge ? (
+                <Link
+                  href="/member/usercertification/info"
+                  className={`mh-hero__auth${verified ? ' is-verified' : ''}`}
+                  title={verified ? t('已认证') : '未认证'}
+                >
+                  <i className="mh-hero__auth-ico" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" aria-hidden="true">
+                      <path d="M12.5 15h6.3l9.2 15.6L25.2 36z" fill="#fff" />
+                      <path d="M32.2 15h5.4l-7 12.8-3-5.4z" fill="#fff" />
+                    </svg>
+                  </i>
+                  <span>{verified ? t('已认证') : '未认证'}</span>
+                </Link>
+              ) : null}
+            </div>
+            <div className="mh-hero__greeting">
+              {greeting ? <span>{t(greeting)}，</span> : null}
+              <span>{t('欢迎回来')}</span>
+            </div>
+            <div className="mh-hero__links">
+              <Link href="/member/profile" className="mh-hero__link"><User size={15} />{t('编辑个人资料')}</Link>
+              <Link href="/member/security" className="mh-hero__link"><Security size={15} />{t('账户安全')}</Link>
+              <Link href="/member/address/list" className="mh-hero__link"><SettingTwo size={15} />{t('我的地址')}</Link>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* 订单快捷入口（原版 .userTotu） */}
-      <section className="mc-orders">
-        <Link href="/member/order/list" className="mc-orders__title">
-          <Order size={20} />
-          <span>{t('我的订单')}</span>
-          <Right size={14} />
-        </Link>
-        <Link href="/member/order/list?type=awaitPay" className="mc-orders__item">
-          <b>{count(orderNum.awaitPay)}</b>
-          <span>{t('待付款')}</span>
-        </Link>
-        <Link href="/member/order/list?type=awaitReceived" className="mc-orders__item">
-          <b>{count(orderNum.awaitReceived)}</b>
-          <span>{t('待收货')}</span>
-        </Link>
-        {/* D1146：评价功能关闭时不展示「评论」入口 */}
-        {commentEnabled === 1 ? (
-          <Link href="/member/comment/list" className="mc-orders__item">
-            <b>{count(orderNum.awaitComment)}</b>
-            <span>{t('评论')}</span>
+        {/* 资产统计（可点击跳转对应页面） */}
+        <div className="mh-hero__assets">
+          <Link href="/member/account/detail" className="mh-hero__asset">
+            <b>¥ {money(info.balance)}</b>
+            <span>{t('账户余额')}</span>
           </Link>
-        ) : null}
-        <Link href="/member/return/log" className="mc-orders__item">
-          <b>{count(orderNum.awaitAftersalesCollect ?? orderNum.awaitAftersales)}</b>
-          <span>{t('售后')}</span>
-        </Link>
+          <Link href="/member/point/list" className="mh-hero__asset">
+            <b>{Number(info.points || 0)}</b>
+            <span>{t('我的积分')}</span>
+          </Link>
+          <Link href="/member/coupon/list" className="mh-hero__asset">
+            <b>{Number(info.coupon || info.awaitCoupon || 0)}</b>
+            <span>{t('优惠券')}</span>
+          </Link>
+        </div>
       </section>
 
-      {/* 三张快捷卡（原版 .userBottom） */}
-      <section className="mc-cards">
-        <Link href="/member/coupon/list" className="mc-cards__item">
-          <div className="mc-cards__top">
-            <span className="mc-cards__label"><Coupon size={20} />{t('优惠券')}<em>{count(info.awaitCoupon ?? info.coupon)}</em></span>
-            <Right size={14} />
-          </div>
-          <div className="mc-cards__sub">{t('查看优惠券')}</div>
-        </Link>
-        <Link href="/member/collectproduct/list" className="mc-cards__item">
-          <div className="mc-cards__top">
-            <span className="mc-cards__label"><Heart size={20} />{t('心愿单')}</span>
-            <Right size={14} />
-          </div>
-          <div className="mc-cards__sub">{t('查看心愿单')}</div>
-        </Link>
-        <Link href="/member/browsinghistory/list" className="mc-cards__item">
-          <div className="mc-cards__top">
-            <span className="mc-cards__label"><History size={20} />{t('浏览记录')}</span>
-            <Right size={14} />
-          </div>
-          <div className="mc-cards__sub">{t('查看浏览记录')}</div>
-        </Link>
+      {/* ---------------- 我的订单：四状态块 ---------------- */}
+      <section className="mh-card">
+        <div className="mh-card__head">
+          <span className="mh-card__title"><Wallet size={18} />{t('我的订单')}</span>
+          <Link href="/member/order/list" className="mh-card__more">{t('全部订单')}<Right size={13} /></Link>
+        </div>
+        <div className="mh-orders">
+          <Link href="/member/order/list?type=awaitPay" className="mh-orders__item">
+            <span className="mh-orders__ico">
+              <Wallet size={24} />
+              {Number(orderNum.awaitPay || 0) > 0 ? <em>{Number(orderNum.awaitPay)}</em> : null}
+            </span>
+            <span className="mh-orders__label">{t('待付款')}</span>
+          </Link>
+          <Link href="/member/order/list?type=awaitReceived" className="mh-orders__item">
+            <span className="mh-orders__ico">
+              <Truck size={24} />
+              {Number(orderNum.awaitReceived || 0) > 0 ? <em>{Number(orderNum.awaitReceived)}</em> : null}
+            </span>
+            <span className="mh-orders__label">{t('待收货')}</span>
+          </Link>
+          {/* D1146：评价功能关闭时不展示「评论」入口 */}
+          {commentEnabled === 1 ? (
+            <Link href="/member/comment/list" className="mh-orders__item">
+              <span className="mh-orders__ico">
+                <Comments size={24} />
+                {Number(orderNum.awaitComment || 0) > 0 ? <em>{Number(orderNum.awaitComment)}</em> : null}
+              </span>
+              <span className="mh-orders__label">{t('待评价')}</span>
+            </Link>
+          ) : null}
+          <Link href="/member/return/log" className="mh-orders__item">
+            <span className="mh-orders__ico">
+              <HeadsetOne size={24} />
+              {Number(orderNum.awaitAftersalesCollect ?? (orderNum.awaitAftersales || 0)) > 0 ? (
+                <em>{Number(orderNum.awaitAftersalesCollect ?? orderNum.awaitAftersales)}</em>
+              ) : null}
+            </span>
+            <span className="mh-orders__label">{t('退换/售后')}</span>
+          </Link>
+        </div>
       </section>
 
-      {/* 精选好物（原版 ProdSwiper）—— 商品卡统一走 ProductCard */}
+      {/* ---------------- 快捷入口：六宫格 ---------------- */}
+      <section className="mh-card">
+        <div className="mh-card__head">
+          <span className="mh-card__title"><Point size={18} />{t('常用服务')}</span>
+        </div>
+        <div className="mh-quick">
+          <Link href="/member/coupon/list" className="mh-quick__item">
+            <span className="mh-quick__ico"><Coupon size={22} /></span>
+            <span className="mh-quick__label">{t('优惠券')}</span>
+          </Link>
+          <Link href="/member/collectproduct/list" className="mh-quick__item">
+            <span className="mh-quick__ico"><Heart size={22} /></span>
+            <span className="mh-quick__label">{t('心愿单')}</span>
+          </Link>
+          <Link href="/member/browsinghistory/list" className="mh-quick__item">
+            <span className="mh-quick__ico"><History size={22} /></span>
+            <span className="mh-quick__label">{t('浏览记录')}</span>
+          </Link>
+          <Link href="/member/address/list" className="mh-quick__item">
+            <span className="mh-quick__ico"><SettingTwo size={22} /></span>
+            <span className="mh-quick__label">{t('我的地址')}</span>
+          </Link>
+          <Link href="/member/security" className="mh-quick__item">
+            <span className="mh-quick__ico"><Security size={22} /></span>
+            <span className="mh-quick__label">{t('账户安全')}</span>
+          </Link>
+          <Link href="/member/orderinvoice/list" className="mh-quick__item">
+            <span className="mh-quick__ico"><Bill size={22} /></span>
+            <span className="mh-quick__label">{t('发票申请')}</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* ---------------- 精选好物（原版 ProdSwiper）—— 商品卡统一走 ProductCard ---------------- */}
       {recommend.length ? (
-        <section className="mc-recommend">
+        <section className="mh-recommend">
           <h2 className="com-pc-title">{t('精选好物')}</h2>
           <div
             className="product-card-grid"
@@ -291,7 +368,7 @@ export default function MemberCenterClient() {
               <ProductCard key={`${row.productId}-${index}`} product={row} />
             ))}
           </div>
-          <div ref={sentinelRef} className="mc-recommend__more">
+          <div ref={sentinelRef} className="mh-recommend__more">
             {recommendLoading ? <span>{t('加载中…')}</span> : hasMore ? <span>{t('上滑加载更多')}</span> : <span>{t('没有更多喽~')}</span>}
           </div>
         </section>

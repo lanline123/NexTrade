@@ -17,7 +17,7 @@ export default async function OrderInvoicePage() {
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('发票申请')}>
-    <OrderInvoiceClient />
+          <OrderInvoiceClient />
         </MemberShell>
       </main>
       <PcFooter />

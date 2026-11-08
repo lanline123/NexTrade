@@ -211,6 +211,63 @@ export default async function ShopSearchRedirect({
     </nav>
   ) : null;
 
+  /**
+   * 旧版 UI（?ui=old）：源码 ShopSearchLayoutClassic.vue 的模板是
+   *   页头 + ShopHeader（.shop-ref-header）+ .container > .page-info > CatGoodsList + 页脚
+   * 没有左侧分类树、没有属性栏、没有排序条（排序/筛选都在 CatGoodsList 自己的筛选面板里），
+   * 所以旧版这里直接出 .goods-list__box > .goods-list-c > .wrap（复用 ProductGrid）＋分页。
+   */
+  if (isClassic) {
+    return (
+      <div className="pg-shop-search-classic">
+        <PcHeader config={header as any} />
+        <ShopHeader shopInfo={shopInfo} siteLogo={undefined} isShopSearchPage showShopSearch={false} />
+        <div className="container">
+          <div className="page-info">
+            <div className={`goods-list__box${products.records.length ? '' : ' goods-list__box--empty'}`}>
+              <div className="goods-list-c">
+                <ProductGrid products={products.records} gridClassName="wrap" />
+              </div>
+            </div>
+            {products.records.length > 0 && pages > 1 ? (
+              <div className="pagination">
+                <nav className="el-pagination">
+                  {page > 1 ? (
+                    <Link href={hrefFor({ page: page - 1 })} className="btn-prev">
+                      {'<'}
+                    </Link>
+                  ) : (
+                    <span className="btn-prev disabled">{'<'}</span>
+                  )}
+                  {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
+                    const next = index + 1;
+                    return next === page ? (
+                      <span className="number active" key={next}>
+                        {next}
+                      </span>
+                    ) : (
+                      <Link href={hrefFor({ page: next })} className="number" key={next}>
+                        {next}
+                      </Link>
+                    );
+                  })}
+                  {page < pages ? (
+                    <Link href={hrefFor({ page: page + 1 })} className="btn-next">
+                      {'>'}
+                    </Link>
+                  ) : (
+                    <span className="btn-next disabled">{'>'}</span>
+                  )}
+                </nav>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        <PcFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="shop-search-page" style={{ background: '#f5f5f5', minHeight: '100vh' }}>
       <PcHeader config={header as any} />

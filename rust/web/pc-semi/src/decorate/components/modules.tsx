@@ -7,6 +7,8 @@ import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 import { formatPrice } from '@/lib/currency';
 import { imageFormat } from '@/lib/image';
+import { urlFormat } from '@/lib/link';
+import FormatPrice from '@/components/FormatPrice';
 import { ensureCatIcoCss } from '@/lib/cat-icon-css';
 import type { DecorateModule, PageModule } from '../types';
 import { imageUrl } from './common';
@@ -1089,6 +1091,22 @@ function BuyIcon({ buyBtnStyle }: { buyBtnStyle: number }) {
   return <span className="dec-buy-btn__text">{buyBtnStyle >= 7 ? '马上抢' : '购买'}</span>;
 }
 
+/** 旧版 CountDown 默认插槽的 days/hours/minutes/seconds：把剩余毫秒拆成四段。 */
+export function countdownParts(remainingMs: number) {
+  const total = Math.max(0, Math.floor(remainingMs / 1000));
+  return {
+    days: Math.floor(total / 86400),
+    hours: Math.floor((total % 86400) / 3600),
+    minutes: Math.floor((total % 3600) / 60),
+    seconds: total % 60,
+  };
+}
+
+/** 两位补零（旧版 CountDown 内部就是 padStart(2, "0")）。 */
+function pad2(n: number) {
+  return String(n).padStart(2, '0');
+}
+
 /* ======================= 3. pc-home-quick-nav ======================= */
 
 /** PcQuickNav.vue：items[]（picTitle/picThumb/picUrl/picLink）、style{containerAlign,itemGap,
@@ -1118,20 +1136,29 @@ function QuickNav({ module }: ModuleProps) {
   };
   return (
     <div className="dec-pc-home-quick-nav" style={cssVars}>
-      <div className="nav_container fs_mod">
-        {items.map((item, index) => (
-          <a
-            key={item.picId ?? index}
-            className="dec-pc-home-quick-nav__item"
-            href={navHref(item.picLink) || '#'}
-            target="_blank"
-            rel="noreferrer"
-            title={item.picTitle ?? ''}
-          >
-            {picSrc(item) ? <img className="dec-pc-home-quick-nav__icon" src={picSrc(item)} alt="" loading="lazy" /> : null}
-            {item.picTitle ? <span className="dec-pc-home-quick-nav__text">{item.picTitle}</span> : null}
-          </a>
-        ))}
+      {/* PcQuickNav.vue:3 的 el-scrollbar 两层包裹（wrap-class / view-class 是旧版给的类名）。
+          旧版这里有横向滚动容器，样式见 PcQuickNav.vue:102-109 与 decorate-source.scss 的
+          __scroll-wrap / __scroll-view 两条规则。 */}
+      <div className="el-scrollbar">
+        <div className="el-scrollbar__wrap dec-pc-home-quick-nav__scroll-wrap">
+          <div className="el-scrollbar__view dec-pc-home-quick-nav__scroll-view">
+            <div className="nav_container fs_mod">
+              {items.map((item, index) => (
+                <a
+                  key={item.picId ?? index}
+                  className="dec-pc-home-quick-nav__item"
+                  href={navHref(item.picLink) || '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={item.picTitle ?? ''}
+                >
+                  {picSrc(item) ? <img className="dec-pc-home-quick-nav__icon" src={picSrc(item)} alt="" /> : null}
+                  {item.picTitle ? <span className="dec-pc-home-quick-nav__text">{item.picTitle}</span> : null}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1403,6 +1430,13 @@ function HomeHero({ module }: ModuleProps) {
     const num = Number(value ?? 0);
     return Number.isFinite(num) ? num.toFixed(2) : '0.00';
   };
+  /** 旧版 PcHomeHero.vue:1020 splitWanSuffix：万/亿/K/M/B 后缀单独一个 span */
+  const splitWanSuffix = (value: string): { value: string; suffix: string } => {
+    const match = value.match(/^(.*?)([万亿KMB])$/);
+    return match ? { value: match[1], suffix: match[2] } : { value, suffix: '' };
+  };
+  const balanceDisplay = splitWanSuffix(assetMoney(profile?.balance));
+  const pointsDisplay = splitWanSuffix(assetNumber(profile?.points));
   const needWideAssets = assetMoney(profile?.balance).length >= 7 || assetNumber(profile?.points).length >= 7;
 
   const { index: bannerIndex, setIndex: setBannerIndex, setPaused: setBannerPaused } = useCarousel(banners.length, 4500);
@@ -1658,6 +1692,7 @@ function HomeHero({ module }: ModuleProps) {
             {premiumShow ? (
               <div
                 className={`dec-pc-home-hero__premium-member${premiumMember.description ? '' : ' is-title-only'}`}
+                style={{ backgroundImage: "url('/assets/images/decorate/pcHome/premium-member-entry.png')" }}
                 title={premiumMember.description || premiumMember.title}
                 onClick={() => openLink(premiumMember.link)}
               >
@@ -1699,11 +1734,21 @@ function HomeHero({ module }: ModuleProps) {
                   <div className="dec-pc-home-hero__asset-label">{t('优惠券')}</div>
                 </Link>
                 <Link className="dec-pc-home-hero__asset-item" href="/member/balance" title={t('余额 ¥{n}', { n: assetMoney(profile?.balance) })}>
-                  <div className="dec-pc-home-hero__asset-num">{assetMoney(profile?.balance)}</div>
+                  <div className="dec-pc-home-hero__asset-num">
+                    <span className="dec-pc-home-hero__asset-num-value">{balanceDisplay.value}</span>
+                    {balanceDisplay.suffix ? (
+                      <span className="dec-pc-home-hero__asset-num-suffix">{balanceDisplay.suffix}</span>
+                    ) : null}
+                  </div>
                   <div className="dec-pc-home-hero__asset-label">{t('余额')}</div>
                 </Link>
                 <Link className="dec-pc-home-hero__asset-item" href="/member/points" title={t('积分 {n}', { n: assetNumber(profile?.points) })}>
-                  <div className="dec-pc-home-hero__asset-num">{assetNumber(profile?.points)}</div>
+                  <div className="dec-pc-home-hero__asset-num">
+                    <span className="dec-pc-home-hero__asset-num-value">{pointsDisplay.value}</span>
+                    {pointsDisplay.suffix ? (
+                      <span className="dec-pc-home-hero__asset-num-suffix">{pointsDisplay.suffix}</span>
+                    ) : null}
+                  </div>
                   <div className="dec-pc-home-hero__asset-label">{t('积分')}</div>
                 </Link>
               </div>
@@ -1948,6 +1993,7 @@ function Seckill({ module }: ModuleProps) {
   const countdown = now && remaining > 0
     ? `${String(Math.floor(remaining / 3600000)).padStart(2, '0')}:${String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0')}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}`
     : '';
+  const cdParts = remaining > 0 ? countdownParts(remaining) : null;
   const titleBg = title.titleBackground2
     ? `linear-gradient(to right, ${title.titleBackground || ''}, ${title.titleBackground2})`
     : title.titleBackground || '';
@@ -1996,17 +2042,23 @@ function Seckill({ module }: ModuleProps) {
                 </div>
                 <div className="seckill-top-right" style={{ color: title.moreColor || '#1a1a1a' }}>
                   {Number(title.showMore) === 1 ? (
-                    <a className="seckill-more" href={navHref(title.moreLink) || '/seckill/list'}>{title.moreLink?.title || t('更多')}<i className="iconfont-pc icon-login-jt" /></a>
+                    <a className="seckill-more-link" href={navHref(title.moreLink) || '/seckill/list'}>{title.moreLink?.title || t('更多')}<i className="iconfont-pc icon-login-jt" /></a>
                   ) : null}
                   {countdown ? (
                     <div className="seckill-count-down">
                       <div className="countdown-box">
                         <span className="countdown-text">{title.countdownLabel || t('距结束')}:</span>
-                        <span className="countdown-item">{countdown.split(':')[0]}</span>
-                        <span className="countdown-separator-text">:</span>
-                        <span className="countdown-item">{countdown.split(':')[1]}</span>
-                        <span className="countdown-separator-text">:</span>
-                        <span className="countdown-item">{countdown.split(':')[2]}</span>
+{cdParts && cdParts.days > 0 ? (
+                          <>
+                            <span className={`countdown-item${String(cdParts.days).length > 2 ? ' days' : ''}`}>{cdParts.days}</span>
+                            <span className="countdown-separator-text">{t('天')}</span>
+                          </>
+                        ) : null}
+                        <span className="countdown-item">{cdParts ? pad2(cdParts.hours) : ''}</span>
+                        <span className="countdown-separator">:</span>
+                        <span className="countdown-item">{cdParts ? pad2(cdParts.minutes) : ''}</span>
+                        <span className="countdown-separator">:</span>
+                        <span className="countdown-item">{cdParts ? pad2(cdParts.seconds) : ''}</span>
                       </div>
                     </div>
                   ) : null}
@@ -2042,18 +2094,32 @@ function Seckill({ module }: ModuleProps) {
                           </div>
                         </Link>
                         <div className="item-info" style={{ padding: Number(module.goodsNamePadding) === 1 ? '0 10px' : undefined }}>
-                          {showName ? <div className="item-name seckill-item__name" style={{ textAlign: Number(module.textAlign) === 2 ? 'center' : 'left' }}>{product.productName}</div> : null}
+                          {showName ? (
+                            <div className="item-name seckill-item__name" style={{ textAlign: Number(module.textAlign) === 2 ? 'center' : 'left' }}>
+                              <Link
+                                className="item-name-a"
+                                href={product.seoLink || `/product/${product.productId ?? ''}`}
+                                target="_blank"
+                              >
+                                {product.productName}
+                              </Link>
+                            </div>
+                          ) : null}
                         </div>
                         {showPrice ? (
                           <div className="price-container">
-                            <div className="seckill-item__price">
+                            <div className="item-action seckill-item__price">
                               <div className="price-stack">
-                                <span className="price price-miaosha">{formatPrice(product.seckillPrice ?? product.productPrice)}</span>
-                                {Number(product.productPrice || product.marketPrice) > 0 ? <s className="price price-origin">{formatPrice(product.productPrice ?? product.marketPrice)}</s> : null}
+                                <div className="item-price">
+                                  <span className="price price-miaosha">{formatPrice(product.seckillPrice ?? product.productPrice)}</span>
+                                </div>
+                                {Number(product.productPrice || product.marketPrice) > 0 ? (
+                                  <span className="price price-origin">{formatPrice(product.productPrice ?? product.marketPrice)}</span>
+                                ) : null}
                               </div>
                             </div>
                             <div className="buy-container">
-                              <div className="buy">
+                              <div className="item-buy">
                                 <button
                                   type="button"
                                   className={`view_detail${productSoldOut(product) ? ' disabled' : ''}`}
@@ -2149,6 +2215,7 @@ function Groupon({ module }: ModuleProps) {
   const countdown = now && remaining > 0
     ? `${String(Math.floor(remaining / 3600000)).padStart(2, '0')}:${String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0')}:${String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}`
     : '';
+  const cdParts = remaining > 0 ? countdownParts(remaining) : null;
   const titleBg = title.titleBackground2
     ? `linear-gradient(to right, ${title.titleBackground || ''}, ${title.titleBackground2})`
     : title.titleBackground || '';
@@ -2221,16 +2288,36 @@ function Groupon({ module }: ModuleProps) {
                   <div className="groupon-count-down" style={{ color: title.moreColor || '#1a1a1a' }}>
                     <div className="countdown-box">
                       <span className="countdown-text">{title.countdownLabel || t('距结束')}:</span>
-                      <span className="countdown-item">{countdown.split(':')[0]}</span>
-                      <span className="countdown-separator-text">:</span>
-                      <span className="countdown-item">{countdown.split(':')[1]}</span>
-                      <span className="countdown-separator-text">:</span>
-                      <span className="countdown-item">{countdown.split(':')[2]}</span>
+{cdParts && cdParts.days > 0 ? (
+                        <>
+                          <span className={`countdown-item${String(cdParts.days).length > 2 ? ' days' : ''}`}>{cdParts.days}</span>
+                          <span className="countdown-separator-text">{t('天')}</span>
+                        </>
+                      ) : null}
+                      <span className="countdown-item">{cdParts ? pad2(cdParts.hours) : ''}</span>
+                      <span className="countdown-separator">:</span>
+                      <span className="countdown-item">{cdParts ? pad2(cdParts.minutes) : ''}</span>
+                      <span className="countdown-separator">:</span>
+                      <span className="countdown-item">{cdParts ? pad2(cdParts.seconds) : ''}</span>
                     </div>
                   </div>
                 ) : null}
+                {/* 旧版 PcGrouponLegacy.vue:96-105：标题右侧“更多链接”，groupon-more-link */}
+                {String(title.showMore) === '1' || title.showMore === true ? (
+                  <a
+                    className="groupon-more-link"
+                    href={navHref(title.moreLink) || '/group/list'}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: title.moreColor || '#1a1a1a' }}
+                  >
+                    <span>{title.moreLink?.title || t('更多')}</span>
+                    <i className="iconfont-pc icon-login-jt" />
+                  </a>
+                ) : null}
               </div>
             ) : null}
+            <div className="groupon_list_wrap">
             <div className={`goods-ad-warp${style === 6 ? ' has-nav' : ''}`} style={{ padding: goodsPadding ? `${goodsPadding}px` : '0' }}>
               <SwiperNav
                 visible={style === 6 && notEnded.length > 6}
@@ -2238,7 +2325,7 @@ function Groupon({ module }: ModuleProps) {
                 onNext={() => grouponScrollRef.current?.scrollBy({ left: grouponScrollRef.current.clientWidth * 0.6, behavior: 'smooth' })}
               />
               <div
-                className={`goods-ad-con${style === 6 ? ' is-swiper' : ''}`}
+                className={`goods-ad-con${style === 6 ? ' is-swiper groupon_list' : ''}`}
                 ref={grouponScrollRef}
                 style={{ gap: `${goodsPadding}px`, gridTemplateColumns: style === 6 ? undefined : `repeat(${columns}, minmax(0, 1fr))` }}
               >
@@ -2281,7 +2368,7 @@ function Groupon({ module }: ModuleProps) {
                               <div className="priceBoxNum">
                                 <span className="minGrouponPrice">{formatPrice(item.minGrouponPrice ?? item.grouponPrice)}</span>
                                 <div className="old">
-                                  <s>{formatPrice(item.productPrice)}</s>
+                                  <span>{formatPrice(item.productPrice)}</span>
                                 </div>
                               </div>
                               <div className="text">{t('拼')}</div>
@@ -2290,7 +2377,7 @@ function Groupon({ module }: ModuleProps) {
                             <div className="groupon-item__price" style={{ flexDirection: Number(module.textAlign) === 1 ? 'row' : 'column' }}>
                               <div className="price-wrapper">
                                 <span className="price price-miaosha">{formatPrice(item.minGrouponPrice ?? item.grouponPrice)}</span>
-                                {Number(item.productPrice) > 0 ? <s className="price price-origin">{formatPrice(item.productPrice)}</s> : null}
+                                {Number(item.productPrice) > 0 ? <span className="price price-origin">{formatPrice(item.productPrice)}</span> : null}
                               </div>
                               <div className="buy">
                                 <button
@@ -2313,6 +2400,7 @@ function Groupon({ module }: ModuleProps) {
                   </div>
                 ))}
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -3376,7 +3464,7 @@ function ProductGroup({ module }: ModuleProps) {
                               void buyProduct(product);
                             }}
                           >
-                            <span className="dec-product-group__cart-inner">
+                            <span className="dec-product-group__cart-inner dec-product-group__cart-icon">
                               {Number(module.buyBtnStyle?.btnType ?? 1) === 2 ? (
                                 <BuyIconCart />
                               ) : Number(module.buyBtnStyle?.btnType ?? 1) === 3 ? (
@@ -3440,6 +3528,503 @@ function BuyIconCartCircle() {
   );
 }
 
+/**
+ * pcCatProductNormal —— 逐字照抄 components/home/CatProductNormal.vue:1-54。
+ *
+ * 旧版 DOM（精确到层级与文本节点）：
+ *   .mod_columns_wrap
+ *     .mod_columns_floor
+ *       .floor_tit.acea-row.row-between-wrapper[style=linear-gradient(30deg,color,color2)]
+ *         h4.acea-row.row-middle
+ *           a[title=module.title][href=list?seoLink&id=categoryId] → {{module.title}}
+ *           span.iconfont-pc.icon-yuanjiaojiantouyou.f10.ml10
+ *         .keywords
+ *           ul.acea-row.row-middle
+ *             li × childCategoryList.slice(0,6)          → a[title=categoryName] → {{categoryName}} + 文本 "|"
+ *       .acea-row
+ *         .left_slider → swiper(picList, fade, delay 5000, 圆点 activeBulletStyle=color)
+ *           li → a[title=picTitle][href=picLink]
+ *                  p.caption[style=color] → {{picTitle}}
+ *                  p.sub_tit            → {{$t(picDesc)}}
+ *                  span.pic-img-box > img[alt=picTitle][src=picUrl]
+ *         .pro_con_warp
+ *           .pro_con.acea-row
+ *             .pro_wrap × picList2 全部（index<4 才有 <a>，其余留空壳 —— 旧版 v-if 位置）
+ *               a[title=picTitle][href=picLink]
+ *                 p.pro_tit     → {{picTitle}}
+ *                 p.pro_sub_tit[style=color] → {{$t(picDesc)}}
+ *                 span.pic-img-box.pic-img-box--small > img[alt=picTitle][src=picUrl]
+ *
+ * 注意：旧版 Normal **不渲染商品列表**（productList 只在 interface 里声明，模板无消费点），
+ * 所以这里也不拉商品接口。左右两块宽度由样式决定（左 218 / 右 372，楼层 590~608×430）。
+ * 轮播用自研轻量实现（Next 栈未引入 Swiper），但保留 `.swiper / .swiper-slide /
+ * .swiper-pagination-bullet` 类名，旧版样式就挂在这些选择器上。
+ */
+function ContractCatProductNormal({ module }: ModuleProps) {
+  const { t } = useTranslation();
+  const titleRaw = module.title;
+  const titleText = typeof titleRaw === 'string' ? titleRaw : ((titleRaw?.titleText as string) || '');
+  const color = typeof module.color === 'string' ? module.color : '';
+  const color2 = typeof module.color2 === 'string' ? module.color2 : '';
+  const picList: any[] = Array.isArray(module.picList)
+    ? module.picList
+    : Array.isArray(module.banner?.picList)
+      ? module.banner.picList
+      : [];
+  const picList2: any[] = Array.isArray(module.picList2) ? module.picList2 : [];
+  const childCategoryList: any[] = Array.isArray(module.childCategoryList) ? module.childCategoryList : [];
+
+  // 旧版 homeCatWrap = { autoplay: { delay: 5000 }, effect: 'fade' }（CatProductNormal.vue:59-66）
+  const { index, setIndex, setPaused } = useCarousel(picList.length, 5000);
+
+  const leftConStyle = { background: `linear-gradient(30deg, ${color} 0%, ${color2} 100%)` };
+  const textColorStyle = color ? { color } : undefined;
+  // 旧版 renderBullet 把 color 直接写进每个圆点的 inline style（含 active，故 active 也会是同一个色）
+  const bulletStyle = color ? { color, backgroundColor: color } : undefined;
+
+  return (
+    <div className="mod_columns_wrap">
+      <div className="mod_columns_floor">
+        <div className="floor_tit acea-row row-between-wrapper" style={leftConStyle}>
+          <h4 className="acea-row row-middle">
+            <a
+              title={titleText}
+              href={urlFormat({ path: 'list', seoLink: module.seoLink, id: module.categoryId })}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {titleText}
+            </a>
+            <span className="iconfont-pc icon-yuanjiaojiantouyou f10 ml10" />
+          </h4>
+          <div className="keywords">
+            <ul className="acea-row row-middle">
+              {childCategoryList.slice(0, 6).map((item: any, index2: number) => (
+                <li key={index2}>
+                  <a
+                    href={urlFormat({ path: 'list', seoLink: item?.seoLink, id: item?.categoryId })}
+                    title={item?.categoryName}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {item?.categoryName}
+                  </a>
+                  {' | '}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="acea-row">
+          {picList.length ? (
+            <div
+              className="left_slider"
+              onMouseEnter={() => setPaused(true)}
+              onMouseLeave={() => setPaused(false)}
+            >
+              <div className="swiper" style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <div className="swiper-wrapper" style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  {picList.map((item: any, index2: number) => (
+                    <div
+                      className={`swiper-slide${index2 === index ? ' swiper-slide-active' : ''}`}
+                      key={index2}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        opacity: index2 === index ? 1 : 0,
+                        transition: 'opacity 0.5s',
+                      }}
+                    >
+                      <li>
+                        <a title={item?.picTitle} href={urlFormat(item?.picLink) || '#'} target="_blank" rel="noreferrer">
+                          <p className="caption" style={textColorStyle}>
+                            {item?.picTitle}
+                          </p>
+                          <p className="sub_tit">{item?.picDesc ? t(item.picDesc) : ''}</p>
+                          <span className="pic-img-box">
+                            <img alt={item?.picTitle} src={picSrc(item)} loading="lazy" />
+                          </span>
+                        </a>
+                      </li>
+                    </div>
+                  ))}
+                </div>
+                <div className="swiper-pagination">
+                  {picList.map((_: any, index2: number) => (
+                    <span
+                      key={index2}
+                      className={`swiper-pagination-bullet${index2 === index ? ' swiper-pagination-bullet-active' : ''}`}
+                      style={bulletStyle}
+                      onClick={() => setIndex(index2)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="left_slider" />
+          )}
+          <div className="pro_con_warp">
+            <div className="pro_con acea-row">
+              {picList2.map((item: any, index2: number) => (
+                <div className="pro_wrap" key={index2}>
+                  {index2 < 4 ? (
+                    <a title={item?.picTitle} href={urlFormat(item?.picLink) || '#'} target="_blank" rel="noreferrer">
+                      <p className="pro_tit">{item?.picTitle}</p>
+                      <p className="pro_sub_tit" style={textColorStyle}>
+                        {item?.picDesc ? t(item.picDesc) : ''}
+                      </p>
+                      <span className="pic-img-box pic-img-box--small">
+                        <img alt={item?.picTitle} src={picSrc(item)} loading="lazy" />
+                      </span>
+                    </a>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * pcImageAd（老链）—— 逐字照抄 components/home/ImageAd.vue:1-11。
+ *
+ *   div[style=width:100%]
+ *     .module-pic-list[style=padding-top:boxPaddingTop;padding-bottom:boxPaddingBottom]
+ *       .module-pic-list-item × picList
+ *         a[href=picLink][target=_blank] > img.module-img[alt=picTitle][title=picTitle][loading=lazy]
+ *
+ * 与新版注册表里的 `ImageAd`（kebab `pc-image-ad`，七种栅格/轮播排版）不是同一个东西：
+ * 老链 ImageAd.vue 只有「一列图片顺序铺开」，样式只有 `.module-img{width:100%;height:auto}`。
+ * 所以老链单独走这个组件，新版 `pc-image-ad` 的 ImageAd 一行不动。
+ */
+function ContractImageAd({ module }: ModuleProps) {
+  const picList: any[] = Array.isArray(module.picList) ? module.picList : [];
+  const frame = (module.frame || {}) as Record<string, any>;
+  const padTop = Number(frame.boxPaddingTop);
+  const padBottom = Number(frame.boxPaddingBottom);
+  // 旧版 boxstyle 是模板字符串，缺值时拼出 "padding-top: undefinedpx"，浏览器直接忽略
+  const boxStyle: Record<string, string> = {};
+  if (Number.isFinite(padTop)) boxStyle.paddingTop = `${padTop}px`;
+  if (Number.isFinite(padBottom)) boxStyle.paddingBottom = `${padBottom}px`;
+  return (
+    <div style={{ width: '100%' }}>
+      <div className="module-pic-list" style={boxStyle}>
+        {picList.map((item: any, index: number) => (
+          <div className="module-pic-list-item" key={index}>
+            <a href={urlFormat(item?.picLink) || '#'} target="_blank" rel="noreferrer">
+              <img
+                className="module-img"
+                alt={item?.picTitle}
+                title={item?.picTitle}
+                loading="lazy"
+                src={picSrc(item)}
+              />
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * pcCatProductSimple —— 旧版 `components/home/CatProductSimple.vue` 的逐条复刻。
+ *
+ * 旧版模板 1-55 行的 DOM：
+ *   .simple-goodsbox（v-if productList.length > 0，没有商品整块不渲染）
+ *     > .head-title（.tit + a.more[target=_blank] + 右箭头 svg）
+ *     > .contnt[.product-small__wrap 当 baseStyle == 2]
+ *       > .left（v-if baseStyle == 2）> a.imgs > img
+ *       > .right > .goods-wrap（grid repeat(4)）
+ *         > a.item > .pic（img + img.product-style-border）
+ *                 > .info（.name / .desc / .price-box > .newprice + .oldprice）
+ *
+ * 取数对应关系：旧版 `useComProParams(modelValue.products)` → `useDecorateProductList`；
+ * 旧版 `useProductStyle(productList)`（活动边框图）→ `useProductStyleMap`。
+ * 样式在 app/decorate-source.scss（由 gen-decorate-scss.mjs 从同名 .vue 搬来，
+ * 作用域 `.pc-home .simple-goodsbox`，等价旧版 scoped 的 data-v）。
+ */
+function ContractCatProductSimple({ module }: ModuleProps) {
+  const { t } = useTranslation();
+  const config = (module.product as Record<string, any>) || {};
+  const { products } = useDecorateProductList(config, 4, module.shopId);
+  const styleMap = useProductStyleMap(products as any) as Record<string, { borderImage?: string }>;
+  const titleRaw = module.title;
+  const titleText =
+    typeof titleRaw === 'string' ? titleRaw : ((titleRaw as Record<string, any>)?.titleText as string) || '';
+  const baseStyle = Number(module.baseStyle);
+  const pics: any[] = (module.picList as any[]) || [];
+  const firstPic = pics[0];
+
+  if (!products.length) return null;
+
+  return (
+    <div className="simple-goodsbox">
+      <div className="head-title">
+        <div className="tit">{titleText}</div>
+        <a className="more" href={navHref(module.moreLink) || '#'} target="_blank" rel="noreferrer">
+          {t('更多')}
+          <svg width="15" height="17" viewBox="0 0 1024 1024">
+            <path
+              d="M329.354 820.029c-6.006 6.002-9.38 14.144-9.38 22.635s3.374 16.633 9.38 22.635c12.508 12.483 32.761 12.483 45.269 0l341.333-340.821c6.003-5.994 9.376-14.13 9.376-22.613s-3.373-16.619-9.376-22.613l-341.333-341.888c-12.508-12.483-32.761-12.483-45.269 0-6.006 6.002-9.38 14.144-9.38 22.635s3.374 16.633 9.38 22.635l318.72 319.232-318.72 318.165z"
+              fill="#000000"
+              fillOpacity="0.2"
+            />
+          </svg>
+        </a>
+      </div>
+      <div className={`contnt${baseStyle === 2 ? ' product-small__wrap' : ''}`}>
+        {baseStyle === 2 ? (
+          <div className="left">
+            {firstPic ? (
+              <a className="imgs" href={navHref(firstPic.picLink) || '#'} target="_blank" rel="noreferrer">
+                <img src={picSrc(firstPic)} alt={titleText} />
+              </a>
+            ) : null}
+          </div>
+        ) : null}
+        <div className="right">
+          <div className="goods-wrap">
+            {products.map((item: any) => {
+              const border = styleMap?.[item.productId]?.borderImage;
+              return (
+                <a
+                  className="item"
+                  key={item.productId}
+                  href={urlFormat({ path: 'product', seoLink: item.seoLink, sn: item.productSn })}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <div className="pic">
+                    <img src={picSrc(item)} alt={item.productName || ''} />
+                    {border ? <img className="product-style-border" src={border} alt={item.productName || ''} /> : null}
+                  </div>
+                  <div className="info">
+                    <div className="name">{item.productName}</div>
+                    <div className="desc">{t(item.productBrief ?? '')}</div>
+                    <div className="price-box">
+                      <div className="newprice">
+                        <FormatPrice value={item.productPrice} fontSize="16px" />
+                      </div>
+                      {item.marketPrice && Number(item.marketPrice) > 0 ? (
+                        <div className="oldprice">
+                          <FormatPrice value={item.marketPrice} />
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * pcRecommendProduct —— 旧版 components/home/RecommendProduct.vue 的逐条复刻（「猜你喜欢」）。
+ *
+ * DOM（类名与层级照抄旧版；CSS 由 scripts/gen-decorate-scss.mjs 的 HOME_FILE_PREFIX
+ * 登记 RecommendProduct.vue → mod_you_like，逐条顶层规则加 `.pc-home .mod_you_like` 前缀）：
+ *   .mod_you_like
+ *     > h3.com-pc-title                     （titleName 有值才渲染）
+ *     > .you_like_list > ul > li > .item
+ *         > .flip_wrap
+ *             > .pro_pic > a.pro_pic_link > img + img.product-style-border
+ *             > .pro_name > a > (span.cycleBuyTag…)＋商品名
+ *             > FormatPrice.pro_price
+ *         > .operate_area                    （CSS 里默认 display:none，`.item:hover` 才 display:flex）
+ *             > a.not_interest.left-span > a 查看详情
+ *             > 有 SKU：a > div.view_detail ／ 无 SKU：购买按钮 > span.view_detail
+ *     > div（滚动监听锚点）> .loading-con > .gif-loading ／ .load-end-con
+ *
+ * 取数：`product/product/list`，参数与旧版一致（selectType 1→ids，2→categoryId，3→introType），
+ * 每页 size = min(20, maxNum - 20*(page-1))，滚到锚点再取下一页。
+ */
+function ContractRecommendProduct({ module }: ModuleProps) {
+  const { t } = useTranslation();
+  const config = (module.products || {}) as Record<string, any>;
+  const selectType = Number(config.productSelectType) || 0;
+  const ids: unknown[] = Array.isArray(config.productIds) ? config.productIds : [];
+  // 旧版 maxNum：按 id 选时等于 id 个数，否则取后台配的 productNumber
+  const maxNum = selectType === 1 ? ids.length : Math.max(0, px(config.productNumber, 0));
+
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  // 旧版 isLoading 初值就是 true：首屏先显示 .gif-loading
+  const [loading, setLoading] = useState(true);
+  // 旧版 isloadEnd 只声明、从未置 true ⇒ `.load-end-con` 实际永不出现；保留同名字段与判断以保持结构一致
+  const [loadEnd] = useState(false);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const pageRef = useRef(1);
+  const loadingRef = useRef(false);
+  const noMoreRef = useRef(false);
+  const countRef = useRef(0);
+  const styleMap = useProductStyleMap(products as any) as Record<string, { borderImage?: string }>;
+
+  /** 旧版 size：page*20 < maxNum ? 20 : maxNum - 20*(page-1) */
+  const sizeOf = (pageNo: number): number => (20 * pageNo < maxNum ? 20 : Math.max(0, maxNum - 20 * (pageNo - 1)));
+
+  /** 旧版 params：1→ids，2→categoryId，3→introType；page/size 每次覆盖 */
+  const buildParams = (pageNo: number): Record<string, unknown> => {
+    const params: Record<string, unknown> = { page: pageNo, size: sizeOf(pageNo) };
+    if (selectType === 1) params.ids = ids.join(',');
+    else if (selectType === 2) params.categoryId = config.productCategoryId;
+    else if (selectType === 3) params.introType = config.productTag;
+    return params;
+  };
+
+  const requestPage = async (pageNo: number): Promise<void> => {
+    if (loadingRef.current || noMoreRef.current) return;
+    const size = sizeOf(pageNo);
+    if (size <= 0) {
+      noMoreRef.current = true;
+      return;
+    }
+    loadingRef.current = true;
+    setLoading(true);
+    try {
+      const data = await apiGet<{ records?: ProductItem[] }>('product/product/list', buildParams(pageNo));
+      const records = Array.isArray(data?.records) ? data.records : [];
+      pageRef.current = pageNo;
+      countRef.current = pageNo === 1 ? records.length : countRef.current + records.length;
+      setProducts((previous) => (pageNo === 1 ? records : [...previous, ...records]));
+      // 旧版：一次不到一页就认为没有更多
+      if (records.length < size) noMoreRef.current = true;
+    } catch {
+      noMoreRef.current = true;
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    noMoreRef.current = false;
+    loadingRef.current = false;
+    pageRef.current = 1;
+    countRef.current = 0;
+    setProducts([]);
+    void requestPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(config)]);
+
+  const requestRef = useRef(requestPage);
+  requestRef.current = requestPage;
+
+  /** 旧版 handleScroll：滚过锚点 且 条数 < maxNum 且 不在加载 且 没有更多 时翻页 */
+  useEffect(() => {
+    const onScroll = () => {
+      const anchor = anchorRef.current;
+      if (!anchor) return;
+      if (noMoreRef.current || loadingRef.current) return;
+      if (countRef.current >= maxNum) return;
+      if (window.scrollY + window.innerHeight > anchor.offsetTop + anchor.offsetHeight) {
+        void requestRef.current(pageRef.current + 1);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [maxNum]);
+
+  // 旧版 utils/getBuyText：1=加入购物车，5/6=立即预约，其余=立即购买
+  const buyTextOf = (type: unknown): string => {
+    const n = Number(type ?? 1);
+    if (n === 1) return t('加入购物车');
+    if (n === 5 || n === 6) return t('立即预约');
+    return t('立即购买');
+  };
+
+  return (
+    <div className="mod_you_like">
+      {module.titleName ? <h3 className="com-pc-title">{String(module.titleName)}</h3> : null}
+      <div className="you_like_list">
+        <ul>
+          {products.map((product, index) => {
+            const href = productDetailHref(product);
+            const productId = (product as any).productId;
+            const name = product.productName || '';
+            const cycleBuy =
+              Number((product as any).deliveryMode) === 2 ? Number((product as any).deliveryType) : 0;
+            const hasSku = productSkuList(product).length > 0;
+            return (
+              <li key={product.productSn || productId || index}>
+                <div className="item">
+                  <div className="flip_wrap">
+                    <div className="pro_pic">
+                      <Link className="pro_pic_link" href={href} target="_blank">
+                        <img
+                          src={product.picUrl || product.picThumb || ''}
+                          alt={name}
+                          loading="lazy"
+                        />
+                        {styleMap[productId]?.borderImage ? (
+                          <img className="product-style-border" src={styleMap[productId].borderImage} alt={name} />
+                        ) : null}
+                      </Link>
+                    </div>
+                    <div className="pro_name">
+                      <Link href={href} target="_blank">
+                        {cycleBuy === 1 ? <span className="cycleBuyTag">{t('周期购')}</span> : null}
+                        {cycleBuy === 2 ? <span className="cycleBuyTag">{t('次卡兑换')}</span> : null}
+                        {name}
+                      </Link>
+                    </div>
+                    <FormatPrice className="pro_price" value={(product as any).productPrice} />
+                  </div>
+                  <div className="operate_area">
+                    {/* 旧版这里是 NuxtLink 套 NuxtLink（a 套 a）；HTML 不允许 a 套 a，浏览器会拆开导致
+                        React 水合失败，所以外层改成 span，类名 not_interest left-span 与旧版一致
+                        （CSS 里 `.not_interest > a` 仍然命中里面那个链接）。 */}
+                    <span className="not_interest left-span">
+                      <Link href={href} target="_blank">
+                        {t('查看详情')}
+                      </Link>
+                    </span>
+                    {hasSku ? (
+                      <Link href={href} target="_blank">
+                        <div className="view_detail">{buyTextOf((product as any).productType)}</div>
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        className="view_detail"
+                        disabled={Number((product as any).productStock) === 0}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          void buyProduct(product, { isQuick: Number((product as any).productType ?? 1) !== 1 ? 1 : 0 });
+                        }}
+                      >
+                        <span>{buyTextOf((product as any).productType)}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <div ref={anchorRef}>
+        {loading ? (
+          <div className="loading-con">
+            <div className="gif-loading" />
+          </div>
+        ) : null}
+        {loadEnd ? <div className="load-end-con">{t('没有更多喽')}~</div> : null}
+      </div>
+    </div>
+  );
+}
+
 /* ======================= 10. 契约渲染（原版 camelCase type） ======================= */
 
 /** 契约渲染计划的目标组件表：键与 contract.ts 的 ContractRenderPlan.component 对应。 */
@@ -3453,6 +4038,11 @@ export const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Ele
   ImageAd,
   ContractBanner,
   ContractCatProduct,
+  ContractCatProductWide,
+  ContractCatProductNormal,
+  ContractImageAd,
+  ContractCatProductSimple,
+  ContractRecommendProduct,
   ContractCategoryHot,
   ContractCustomAd,
   ContractCustomAd1,
@@ -3468,43 +4058,105 @@ export const CONTRACT_COMPONENTS: Record<string, (props: ModuleProps) => JSX.Ele
   Spacer,
 };
 
-/** pcBanner bannerStyle=1：picList 首图主图 + picList2 小图列 + picList3 图标行（原版轮播降级为静态图）。 */
+/**
+ * pcBanner bannerStyle=1 —— 逐字照抄 components/home/Banner.vue（`bannerStyle == 1` 分支，:4-70）：
+ *   .banner.container > .inner > .acea-row.row-between-wrapper
+ *     .left   → CommonAllCate（分类菜单；C 端由 PcHeader 承载，这里只留同宽空框）
+ *     .middle > .acea-row
+ *       .sliderBannerWrapper > .slider.sliderBanner > .slider_list > .slider_wrapper
+ *         > li.slider_item > a.item__ad_lk > img.item-img                  ← picList
+ *       .sliderRecommendWrapper > .slider.sliderRecommend > .slider_list > .slider_wrapper
+ *         > li.slider_item > .item-recommend > a.recommend-item
+ *             > img.recommend-item__image                                 ← picList2，每屏 3 张（旧版 groupArray 步长 3）
+ *     .right  → CommonSmallPersonalCenter（只搬 .vip-list > .lysy 图标行，用 picList3）
+ * 原版这三块是 swiper 轮播，静态页只渲染第一屏；类名、层级与旧版一致。
+ */
 function ContractBanner({ module }: ModuleProps) {
   const main: any[] = module.main || [];
   const recommend: any[] = module.recommend || [];
   const icons: any[] = module.icons || [];
+  if (!main.length && !recommend.length && !icons.length) return null;
   const hero = main[0];
-  if (!hero && !recommend.length && !icons.length) return null;
+  const firstSlide = recommend.slice(0, 3);
   return (
-    <Container module={FLAT_FRAME}>
-      <div style={{ display: 'flex', gap: 16, alignItems: 'stretch' }}>
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          {hero ? (
-            <a href={navHref(hero.picLink) || '#'} target="_blank" rel="noreferrer">
-              <img src={picSrc(hero)} alt={hero.picTitle || ''} style={{ width: '100%', display: 'block', borderRadius: 8 }} />
-            </a>
-          ) : null}
-        </div>
-        {recommend.length ? (
-          <div style={{ width: 252, flexShrink: 0, display: 'grid', gap: 8, alignContent: 'start' }}>
-            {recommend.slice(0, 4).map((pic: any, index: number) => (
-              <a key={index} href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer">
-                <img src={picSrc(pic)} alt={pic.picTitle || ''} style={{ width: '100%', display: 'block', borderRadius: 8 }} />
-              </a>
-            ))}
+    <div className="banner container">
+      <div className="inner">
+        <div className="acea-row row-between-wrapper">
+          <div className="left" />
+          <div className="middle">
+            <div className="acea-row">
+              {hero ? (
+                <div className="sliderBannerWrapper">
+                  <div className="slider sliderBanner">
+                    <div className="slider_list">
+                      <div className="slider_wrapper">
+                        <li className="slider_item">
+                          <a
+                            className="item__ad_lk"
+                            href={navHref(hero.picLink) || '#'}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={hero.picTitle || ''}
+                            aria-label={hero.picTitle || ''}
+                          >
+                            <img className="item-img" src={picSrc(hero)} alt={hero.picTitle || ''} loading="lazy" />
+                          </a>
+                        </li>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              {firstSlide.length ? (
+                <div className="sliderRecommendWrapper">
+                  <div className="slider sliderRecommend">
+                    <div className="slider_list">
+                      <div className="slider_wrapper">
+                        <li className="slider_item">
+                          <div className="item-recommend">
+                            {firstSlide.map((pic: any, index: number) => (
+                              <a
+                                key={pic.picId ?? index}
+                                className="recommend-item"
+                                href={navHref(pic.picLink) || '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={pic.picTitle || ''}
+                                aria-label={pic.picTitle || ''}
+                              >
+                                <img className="recommend-item__image" src={picSrc(pic)} alt={pic.picTitle || ''} loading="lazy" />
+                              </a>
+                            ))}
+                          </div>
+                        </li>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
-        ) : null}
-      </div>
-      {icons.length ? (
-        <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-          {icons.map((pic: any, index: number) => (
-            <a key={index} href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer" style={{ flex: 1 }}>
-              <img src={picSrc(pic)} alt={pic.picTitle || ''} style={{ width: '100%', display: 'block' }} />
-            </a>
-          ))}
+          <div className="right">
+            {icons.length ? (
+              <div className="small-personal_center">
+                <div className="vip-list acea-row">
+                  {icons.map((pic: any, index: number) => (
+                    <div className="lysy" key={pic.picId ?? index}>
+                      <a href={navHref(pic.picLink) || '#'} target="_blank" rel="noreferrer" title={pic.picTitle || ''}>
+                        <div>
+                          <img style={{ width: 32, height: 32 }} src={picSrc(pic)} alt={pic.picTitle || ''} loading="lazy" />
+                        </div>
+                        <p>{pic.picTitle}</p>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
-      ) : null}
-    </Container>
+      </div>
+    </div>
   );
 }
 
@@ -3620,6 +4272,296 @@ function ContractCatProduct({ module }: ModuleProps) {
   );
 }
 
+/* ============ 旧版 components/swiper/SpecialSwiper.vue（模板里的 <SwiperSpecialSwiper>） ============ */
+
+/** 旧版 SlideStyle（SpecialSwiper.vue:44-52）。 */
+type SlideStyle = {
+  width: string;
+  height: string;
+  left: string;
+  top: string;
+  opacity: number;
+  zIndex: number;
+};
+
+/** 旧版 defaultStyles（SpecialSwiper.vue:59-66）。 */
+const SWIPER_BASE_STYLE: SlideStyle = {
+  width: '195px',
+  height: '225px',
+  left: '0px',
+  top: '0px',
+  opacity: 1,
+  zIndex: 100,
+};
+
+/**
+ * 旧版 updateSlideStyles（SpecialSwiper.vue:67-99）逐行照抄：
+ * 当前张 195×225 居中；前一张 155×225 / left 20 / top -18 / 0.5；后一张 175×225 / left 10 / top -10 / 0.8；其余透明。
+ */
+function swiperSlideStyles(count: number, current: number): SlideStyle[] {
+  const out: SlideStyle[] = [];
+  for (let index = 0; index < count; index += 1) {
+    if (index === current) {
+      out[index] = { ...SWIPER_BASE_STYLE };
+    } else if (index === current - 1 || (current === 0 && index === count - 1)) {
+      out[index] = { width: '155px', height: '225px', left: '20px', top: '-18px', opacity: 0.5, zIndex: 80 };
+    } else if (index === current + 1 || (current === count - 1 && index === 0)) {
+      out[index] = { width: '175px', height: '225px', left: '10px', top: '-10px', opacity: 0.8, zIndex: 90 };
+    } else {
+      out[index] = { ...SWIPER_BASE_STYLE, opacity: 0, zIndex: 0 };
+    }
+  }
+  return out;
+}
+
+/**
+ * 旧版 components/swiper/SpecialSwiper.vue —— 模板里写作 <SwiperSpecialSwiper>，
+ * 靠 Nuxt 的目录前缀（components/swiper/）自动注册，所以按组件名 grep 旧仓库搜不到。
+ * 130×130 三张图层叠轮播，3 秒自动切换、悬停暂停（SpecialSwiper.vue:1-22 / 126-133）。
+ */
+function ContractSpecialSwiper({ slides, activeColor }: { slides: any[]; activeColor?: string }) {
+  const { t } = useTranslation();
+  const list = Array.isArray(slides) ? slides : [];
+  const [current, setCurrent] = useState(0);
+  const timer = useRef<number | undefined>(undefined);
+
+  const stopAutoPlay = () => {
+    if (timer.current !== undefined) {
+      window.clearInterval(timer.current);
+      timer.current = undefined;
+    }
+  };
+  const startAutoPlay = () => {
+    stopAutoPlay();
+    if (list.length > 1) {
+      timer.current = window.setInterval(() => {
+        setCurrent((prev) => (prev + 1 + list.length) % list.length);
+      }, 3000);
+    }
+  };
+
+  useEffect(() => {
+    setCurrent(0);
+    startAutoPlay();
+    return stopAutoPlay;
+    // 只在张数变化时重建定时器（旧版 slides 是 props 静态值）
+  }, [list.length]);
+
+  const navigate = (direction: number) => {
+    if (!list.length) return;
+    setCurrent((prev) => (prev + direction + list.length) % list.length);
+  };
+
+  const styles = swiperSlideStyles(list.length, current);
+
+  return (
+    <div className="floor-slider" onMouseOver={stopAutoPlay} onMouseOut={startAutoPlay}>
+      <ul className="slides">
+        {list.map((slide: any, index: number) => (
+          <li key={index} className="slide" style={styles[index]}>
+            <a className="a-cat" title="" href={urlFormat(slide?.picLink) || '#'} target="_blank" rel="noreferrer">
+              <p className="caption" style={activeColor ? { color: activeColor } : undefined}>{slide?.picTitle}</p>
+              <p className="sub_tit">{slide?.picDesc ? t(slide.picDesc) : ''}</p>
+              <img
+                src={imageFormat(slide?.picUrl || slide?.picThumb || '')}
+                alt={slide?.picTitle || ''}
+                height={130}
+                width={130}
+              />
+            </a>
+            <div className="color_mask_4 color_mask" style={{ opacity: 0 }} />
+          </li>
+        ))}
+      </ul>
+      <div className="turn_show">
+        <div className="prev_btn" onClick={() => navigate(-1)}>&lt;</div>
+        <div className="show_num">
+          <span>{current + 1}</span> / <em>{list.length}</em>
+        </div>
+        <div className="next_btn" onClick={() => navigate(1)}>&gt;</div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ 旧版 components/home/CatProductWide.vue（pcCatProductWide） ============ */
+
+/**
+ * pcCatProductWide —— 逐字照抄 components/home/CatProductWide.vue:2-95（旧版无媒体查询）：
+ *   .floor-wide__box > .mod_index_floor
+ *     .left_con（linear-gradient(30deg, color, color2)）
+ *       h4 > a.acea-row.row-center-wrapper（标题 + i.iconfont-pc.icon-yuanjiaojiantouyou.f10.ml10）
+ *       p.en_tit + <SwiperSpecialSwiper> + .comment.acea-row.row-middle（.comment_left.icon-pinlun + .comment_list > ul > li.ellipsis）
+ *     .center_con
+ *       .keywords > ul.acea-row.row-middle > li（childCategoryList 前 8 个，竖线分隔）
+ *       .center_goods > .acea-row > .pro_wrap（picList2 前 6 张：p.pro_tit + p.pro_sub_tit + span.pic-img-box--small > img.pro_image）
+ *     .hot_con
+ *       p.hot_tit + .rank_list > ul > li > a.pro_img.acea-row.row-between
+ *         > span.pro_image_wrap（img.pro_image 60×60 + 可选 img.product-style-border）
+ *         > .rank_detail（p.pro_name.line2 [+ span.presale-text] + <FormatPrice class="pro_price">）
+ * 旧版此模块没有 TotalContainer 包裹，所以这里也不加 Container。
+ */
+function ContractCatProductWide({ module }: ModuleProps) {
+  const { t } = useTranslation();
+  const titleRaw = module.title;
+  const titleText = typeof titleRaw === 'string' ? titleRaw : ((titleRaw?.titleText as string) || '');
+  const color = typeof module.color === 'string' ? module.color : '';
+  const color2 = typeof module.color2 === 'string' ? module.color2 : '';
+  const enTitle = typeof module.enTitle === 'string' ? module.enTitle : '';
+  const picList: any[] = module.banner?.picList || (Array.isArray(module.picList) ? module.picList : []);
+  const picList2: any[] = Array.isArray(module.picList2) ? module.picList2 : [];
+  const linkList: any[] = Array.isArray(module.linkList) ? module.linkList : [];
+  const childCategoryList: any[] = Array.isArray(module.childCategoryList) ? module.childCategoryList : [];
+
+  // 旧版 useComProParams({ productSelectType: 1, productIds }) + computed list 取前 5 个；
+  // 契约层已按「有 productIds 就用 ids，否则用 categoryId」算好 module.product，优先用它。
+  const { products } = useDecorateProductList(
+    module.product || { productSelectType: 1, productIds: module.productIds },
+    5,
+    module.shopId,
+  );
+  const styleMap = useProductStyleMap(products as any) as Record<string, { borderImage?: string }>;
+  const list: any[] = products.length > 5 ? products.slice(0, 5) : products;
+
+  const leftConStyle = { background: `linear-gradient(30deg, ${color} 0%, ${color2} 100%)` };
+  const textColorStyle = color ? { color } : undefined;
+
+  return (
+    <div className="floor-wide__box">
+      <div className="mod_index_floor">
+        <div className="left_con" style={leftConStyle}>
+          <h4>
+            <a
+              className="acea-row row-center-wrapper"
+              title={titleText}
+              href={urlFormat({ path: 'list', seoLink: module.seoLink, id: module.categoryId })}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <div className="">{titleText}</div>
+              <i className="iconfont-pc icon-yuanjiaojiantouyou f10 ml10" />
+            </a>
+          </h4>
+          <p className="en_tit">{enTitle ? t(enTitle) : ''}</p>
+          <ContractSpecialSwiper slides={picList} activeColor={color} />
+          <div className="comment acea-row row-middle">
+            <div className="comment_left" style={color ? { borderColor: color } : undefined}>
+              <i className="iconfont-pc icon-pinlun" />
+            </div>
+            <div className="comment_list">
+              <ul>
+                {linkList.map((item: any, index: number) => (
+                  <li className="ellipsis" key={index}>
+                    <a
+                      target="_blank"
+                      rel="noreferrer"
+                      title={item?.linkTitle ? t(item.linkTitle) : ''}
+                      href={urlFormat(item?.link) || '#'}
+                    >
+                      {item?.linkTitle ? t(item.linkTitle) : ''}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="center_con">
+          <div className="keywords">
+            <ul className="acea-row row-middle">
+              {childCategoryList.map((item: any, index: number) => (
+                <li key={index}>
+                  {index < 8 ? (
+                    <>
+                      {index !== 0 && index < 8 ? '|' : ''}
+                      <a
+                        className="a-hot"
+                        title={item?.categoryName}
+                        href={urlFormat({ path: 'list', seoLink: item?.seoLink, id: item?.categoryId })}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {item?.categoryName}
+                      </a>
+                    </>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="center_goods">
+            <div className="acea-row">
+              {picList2.map((item: any, index: number) => (
+                <div className="pro_wrap" key={index}>
+                  {index < 6 ? (
+                    <a title={item?.picTitle} target="_blank" rel="noreferrer" href={urlFormat(item?.picLink) || '#'}>
+                      <p className="pro_tit">{item?.picTitle}</p>
+                      <p className="pro_sub_tit" style={textColorStyle}>{item?.picDesc ? t(item.picDesc) : ''}</p>
+                      <span className="pic-img-box--small">
+                        <img
+                          className="pro_image"
+                          loading="lazy"
+                          src={picSrc(item)}
+                          alt={item?.productName || ''}
+                        />
+                      </span>
+                    </a>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="hot_con">
+          <p className="hot_tit">{t('热门商品')}</p>
+          <div className="rank_list">
+            <ul>
+              {list.map((item: any) => {
+                const border = styleMap?.[item.productId]?.borderImage;
+                return (
+                  <li key={item.productId}>
+                    <a
+                      className="pro_img acea-row row-between"
+                      title={item.productName}
+                      target="_blank"
+                      rel="noreferrer"
+                      href={urlFormat({ path: 'product', seoLink: item.seoLink, sn: item.productSn })}
+                    >
+                      <span className="pro_image_wrap">
+                        <img
+                          className="pro_image"
+                          loading="lazy"
+                          alt={item.productName}
+                          src={picSrc(item)}
+                          height={60}
+                          width={60}
+                        />
+                        {item.productId && border ? (
+                          <img className="product-style-border" src={border} alt="" />
+                        ) : null}
+                      </span>
+                      <div className="rank_detail">
+                        <p className="pro_name line2">
+                          {item.saleMode || item.productSaleMode ? (
+                            <span className="presale-text">{t('预售')}</span>
+                          ) : null}
+                          {item.saleMode || item.productSaleMode ? <span>|</span> : null}
+                          {item.productName}
+                        </p>
+                        <FormatPrice className="pro_price" value={item.productPrice} />
+                      </div>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** pcCategoryNav / pcCategoryNav3 / pcCatWide 共用：热门分类卡片（category/hot），可按 catIds 过滤。 */
 function ContractCategoryHot({ module }: ModuleProps) {
     const { t } = useTranslation();
@@ -3669,123 +4611,245 @@ function ContractCategoryHot({ module }: ModuleProps) {
   );
 }
 
-/** pcCustomAd1 / pcCustomAd2 共用：可选链接行 + 三组图片顺次平铺。 */
+/**
+ * pcCustomAd2 —— 逐字照抄 components/home/CustomAd2.vue:
+ *   .mod_global_imported > .acea-row
+ *     ├ .global_food.acea-row（旧版写死渐变底 #b96131 → #6a452b）
+ *     │   ├ .left_banner > a > img.img + .banner_link > ul.acea-row > li > a（linkList 前 6 条）
+ *     │   └ .center_con.acea-row
+ *     │       ├ .left_con > .global_shoppe > a.global_pic               ← picList2[0]
+ *     │       │            + .pro_item_wrap > .pro_shoppe ×2            ← picList2[1..2]
+ *     │       └ .right_con > .pro_shoppe ×2                             ← picList2[3..4]
+ *     └ .global_category > ul.acea-row > li.jk_1..n > a.global_a
+ *          > p.pro_tit + p.pro_sub_tit + p.pro_color + img.img          ← picList3
+ * 主图 mainPicture = picList（旧版是单个对象，不是数组；两种形态都兼容）。
+ */
 function ContractCustomAd({ module }: ModuleProps) {
-  const groups: any[][] = module.groups || [];
+  const { t } = useTranslation();
   const links: Array<{ link: string; text: string }> = module.links || [];
-  const hasPics = groups.some((group) => group.length);
-  if (!hasPics && !links.length) return null;
+  const raw = module.picList;
+  const mainPicture = Array.isArray(raw) ? raw[0] : raw;
+  const second: any[] = module.picList2 || [];
+  const third: any[] = module.picList3 || [];
+  if (!mainPicture && !second.length && !third.length) return null;
+
+  /** .pro_shoppe / .global_pic 内部的 <a>：标题 + 副标题 + 图（旧版逐字，三处复用）。 */
+  const proLink = (pic: any, className?: string) =>
+    pic ? (
+      <a
+        className={className}
+        href={navHref(pic.picLink) || '#'}
+        target="_blank"
+        rel="noreferrer"
+        title={pic.picTitle || ''}
+      >
+        <p className="pro_tit">{pic.picTitle || ''}</p>
+        <p className="pro_sub_tit">{t(pic.picDesc || '')}</p>
+        <img className="img" src={picSrc(pic)} alt={pic.picTitle || ''} loading="lazy" />
+      </a>
+    ) : null;
+
   return (
-    <Container module={FLAT_FRAME}>
-      {links.length ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '0 0 10px', fontSize: 13, color: '#666' }}>
-          {links.map((item, index) => (
-            <a key={index} href={navHref(item.link) || '#'}>{item.text}</a>
-          ))}
+    <div className="mod_global_imported">
+      <div className="acea-row">
+        <div className="global_food acea-row" style={{ background: 'linear-gradient(#b96131 0%, #6a452b 100%)' }}>
+          <div className="left_banner">
+            {mainPicture ? (
+              <a
+                href={navHref(mainPicture.picLink) || '#'}
+                target="_blank"
+                rel="noreferrer"
+                title={mainPicture.picTitle || ''}
+              >
+                <img
+                  className="img"
+                  src={picSrc(mainPicture)}
+                  alt={mainPicture.picTitle || ''}
+                  style={{ width: 316, height: 450 }}
+                  loading="lazy"
+                />
+              </a>
+            ) : null}
+            <div className="banner_link">
+              <ul className="acea-row">
+                {links.map((item, index) => (
+                  <li key={index}>
+                    {index < 6 ? (
+                      <a href={navHref(item.link) || '#'} target="_blank" rel="noreferrer" title={t(item.text || '')}>
+                        {t(item.text || '')}
+                      </a>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="center_con acea-row">
+            <div className="left_con">
+              <div className="global_shoppe">{proLink(second[0], 'global_pic')}</div>
+              <div className="pro_item_wrap">
+                <div className="pro_shoppe">{proLink(second[1])}</div>
+                <div className="pro_shoppe">{proLink(second[2])}</div>
+              </div>
+            </div>
+            <div className="right_con">
+              <div className="pro_shoppe">{proLink(second[3])}</div>
+              <div className="pro_shoppe">{proLink(second[4])}</div>
+            </div>
+          </div>
         </div>
-      ) : null}
-      {groups.map((group, index) => (group.length ? <ImageAd key={index} module={{ picList: group, frame: FLAT_FRAME }} /> : null))}
-    </Container>
+        <div className="global_category">
+          <ul className="acea-row">
+            {third.map((pic: any, index: number) => (
+              <li className={`jk_${index + 1}`} key={pic.picId ?? index}>
+                <a
+                  className="global_a"
+                  href={navHref(pic.picLink) || '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={pic.picTitle || ''}
+                >
+                  <p className="pro_tit">{pic.picTitle || ''}</p>
+                  <p className="pro_sub_tit">{t(pic.picDesc || '')}</p>
+                  <p className="pro_color" />
+                  <img className="img" src={picSrc(pic)} alt={pic.picTitle || ''} loading="lazy" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }
 
-/** pcCustomAd1 专用：CustomAd1.vue 固定三列编辑版式 ——
- *  左大图(picList[0] 270x400) + 中「每日推荐」(picList2：banner + 行卡) + 右「热销精品」
- *  (picList3：banner + 两行卡 + 底部两张 GO >> 图)，标题条金色 #dfa747 / 橙色 #f39156。 */
+/**
+ * pcCustomAd1 —— 逐字照抄 components/home/CustomAd1.vue（:2-123）：
+ *   .mod_on_new
+ *     ├ .left_banner > a > img.img                                     ← picList[0]
+ *     ├ .brand_buy.mr10
+ *     │   ├ h4 > em > u.left_triangle + u.right_triangle + i.iconfont-pc.icon-jingpin + span（每日推荐）
+ *     │   └ .acea-row.row-middle
+ *     │       ├ a.brand_banner > img.img                                ← picList2[0]
+ *     │       └ .brand_right > ul > li > a > p.pro_tit + p.pro_sub_tit + img.img(90×90)   ← picList2[1..]
+ *     └ .brand_buy.life_pie
+ *         ├ h4 > em > …icon-jingpintuijian + span（热销精品）
+ *         ├ .acea-row.row-middle[style height:230px]
+ *         │   ├ a.brand_banner > img.img + p.pro_tit + p.pro_sub_tit     ← picList3[0]
+ *         │   └ .brand_right > ul > li ×2 > a > p.pro_tit + p.pro_sub_tit + img.img(90×90)  ← picList3[1..2]
+ *         └ .life_pic > a.shp_a ×2 > img.img + p.shp_p.shp_pp + p.go.shp_p（GO >>）          ← picList3[3..4]
+ */
 function ContractCustomAd1({ module }: ModuleProps) {
   const { t } = useTranslation();
   const left: any[] = module.picList || [];
   const rec: any[] = module.picList2 || [];
   const hot: any[] = module.picList3 || [];
   if (!left.length && !rec.length && !hot.length) return null;
-  const pic = (item: any) => item?.picUrl || item?.picThumb || '';
   const href = (item: any) => navHref(item?.picLink) || '#';
-  const SectionTit = ({ text, icon, tone }: { text: string; icon: string; tone: string }) => (
-    <h4 className="dec-ad1__tit">
-      <em style={{ background: tone, borderTopColor: tone }}>
-        <u className="dec-ad1__tri-l" style={{ borderBottomColor: tone }} />
-        <u className="dec-ad1__tri-r" style={{ borderBottomColor: tone }} />
-        <i className={`iconfont-pc ${icon}`} />
-        <span>{text}</span>
-      </em>
-    </h4>
-  );
+
+  /** 右侧「行卡」：pro_tit + pro_sub_tit + 90×90 图（旧版三处逐字复用）。 */
+  const rowCard = (item: any) =>
+    item ? (
+      <a href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
+        <p className="pro_tit">{item?.picTitle || ''}</p>
+        <p className="pro_sub_tit">{t(item?.picDesc || '')}</p>
+        <img
+          className="img"
+          src={picSrc(item)}
+          alt={item?.picTitle || ''}
+          style={{ width: 90, height: 90 }}
+          loading="lazy"
+        />
+      </a>
+    ) : null;
+
   return (
-    <Container module={FLAT_FRAME}>
-      <div className="dec-ad1">
-        {/* 左：大图 270x400 */}
-        <div className="dec-ad1__left">
-          {left[0] ? (
-            <a href={href(left[0])} target="_blank" rel="noreferrer" title={left[0]?.picTitle || ''}>
-              <img className="dec-ad1__left-img" src={pic(left[0])} alt={left[0]?.picTitle || ''} />
-            </a>
-          ) : null}
-        </div>
-        {/* 中：每日推荐（picList2[0] 竖图 + picList2[1..] 行卡） */}
-        {rec.length ? (
-          <div className="dec-ad1__panel dec-ad1__mr10">
-            <SectionTit text={t('每日推荐')} icon="icon-jingpin" tone="#dfa747" />
-            <div className="dec-ad1__panel-body">
-              {rec[0] ? (
-                <a className="dec-ad1__banner" href={href(rec[0])} target="_blank" rel="noreferrer" title={rec[0]?.picTitle || ''}>
-                  <img className="dec-ad1__banner-img" src={pic(rec[0])} alt={rec[0]?.picTitle || ''} />
-                </a>
-              ) : null}
-              <div className="dec-ad1__rows">
-                <ul>
-                  {rec.slice(1).map((item, index) => (
-                    <li key={index}>
-                      <a href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
-                        <p className="dec-ad1__row-tit">{item?.picTitle || ''}</p>
-                        <p className="dec-ad1__row-sub">{item?.picDesc || ''}</p>
-                        <img className="dec-ad1__row-img" src={pic(item)} alt={item?.picTitle || ''} />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        ) : null}
-        {/* 右：热销精品（picList3[0] banner + [1]/[2] 行卡 + [3]/[4] GO >> 图） */}
-        {hot.length ? (
-          <div className="dec-ad1__panel">
-            <SectionTit text={t('热销精品')} icon="icon-jingpintuijian" tone="#f39156" />
-            <div className="dec-ad1__panel-body dec-ad1__panel-body--hot">
-              {hot[0] ? (
-                <a className="dec-ad1__banner dec-ad1__banner--hot" href={href(hot[0])} target="_blank" rel="noreferrer" title={hot[0]?.picTitle || ''}>
-                  <img className="dec-ad1__banner-img" src={pic(hot[0])} alt={hot[0]?.picTitle || ''} />
-                  <p className="dec-ad1__row-tit">{hot[0]?.picTitle || ''}</p>
-                  <p className="dec-ad1__row-sub">{hot[0]?.picDesc || ''}</p>
-                </a>
-              ) : null}
-              <div className="dec-ad1__rows">
-                <ul>
-                  {hot.slice(1, 3).map((item, index) => (
-                    <li key={index}>
-                      <a href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
-                        <p className="dec-ad1__row-tit">{item?.picTitle || ''}</p>
-                        <p className="dec-ad1__row-sub">{item?.picDesc || ''}</p>
-                        <img className="dec-ad1__row-img" src={pic(item)} alt={item?.picTitle || ''} />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="dec-ad1__life">
-              {hot.slice(3, 5).map((item, index) => (
-                <a key={index} className="dec-ad1__life-item" href={href(item)} target="_blank" rel="noreferrer" title={item?.picTitle || ''}>
-                  <img className="dec-ad1__life-img" src={pic(item)} alt={item?.picTitle || ''} />
-                  <p className="dec-ad1__life-tit">{item?.picTitle || ''}</p>
-                  <p className="dec-ad1__life-go">GO<em> &gt;&gt;</em></p>
-                </a>
-              ))}
-            </div>
-          </div>
+    <div className="mod_on_new">
+      <div className="left_banner">
+        {left[0] ? (
+          <a href={href(left[0])} target="_blank" rel="noreferrer" title={left[0]?.picTitle || ''}>
+            <img
+              className="img"
+              src={picSrc(left[0])}
+              alt={left[0]?.picTitle || ''}
+              style={{ background: '#eee' }}
+              loading="lazy"
+            />
+          </a>
         ) : null}
       </div>
-    </Container>
+
+      <div className="brand_buy mr10">
+        <h4>
+          <em>
+            <u className="left_triangle" />
+            <u className="right_triangle" />
+            <i className="iconfont-pc icon-jingpin" />
+            <span>{t('每日推荐')}</span>
+          </em>
+        </h4>
+        <div className="acea-row row-middle">
+          {rec[0] ? (
+            <a className="brand_banner" href={href(rec[0])} target="_blank" rel="noreferrer" title={rec[0]?.picTitle || ''}>
+              <img className="img" src={picSrc(rec[0])} alt={rec[0]?.picTitle || ''} loading="lazy" />
+            </a>
+          ) : null}
+          <div className="brand_right">
+            <ul>
+              {rec.map((item: any, index: number) =>
+                index === 0 ? null : <li key={item?.picId ?? index}>{rowCard(item)}</li>,
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="brand_buy life_pie">
+        <h4>
+          <em>
+            <u className="left_triangle" />
+            <u className="right_triangle" />
+            <i className="iconfont-pc icon-jingpintuijian" />
+            <span>{t('热销精品')}</span>
+          </em>
+        </h4>
+        <div className="acea-row row-middle" style={{ height: 230 }}>
+          {hot[0] ? (
+            <a className="brand_banner" href={href(hot[0])} target="_blank" rel="noreferrer" title={hot[0]?.picTitle || ''}>
+              <img className="img" src={picSrc(hot[0])} alt={hot[0]?.picTitle || ''} loading="lazy" />
+              <p className="pro_tit">{hot[0]?.picTitle || ''}</p>
+              <p className="pro_sub_tit">{t(hot[0]?.picDesc || '')}</p>
+            </a>
+          ) : null}
+          <div className="brand_right">
+            <ul>
+              <li>{rowCard(hot[1])}</li>
+              <li>{rowCard(hot[2])}</li>
+            </ul>
+          </div>
+        </div>
+        <div className="life_pic">
+          {hot.slice(3, 5).map((item: any, index: number) =>
+            item ? (
+              <a
+                key={item?.picId ?? index}
+                className="shp_a"
+                href={href(item)}
+                target="_blank"
+                rel="noreferrer"
+                title={item?.picTitle || ''}
+              >
+                <img className="img" src={picSrc(item)} alt={item?.picTitle || ''} loading="lazy" />
+                <p className="shp_p shp_pp">{item?.picTitle || ''}</p>
+                <p className="go shp_p">
+                  GO<em className="index_iconfont"> &gt;&gt;</em>
+                </p>
+              </a>
+            ) : null,
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

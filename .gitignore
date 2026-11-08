@@ -62,3 +62,10 @@ rust/web/admin-semi/shot-*.png
 
 # electron/electron-builder noise logs
 debug.log
+
+# pc-semi local migration/audit scratch (2026-11-08, kept on disk only)
+.zcode/
+rust/web/pc-semi/.tmp-*
+rust/web/pc-semi/checks/
+rust/web/pc-semi/scripts/_*
+rust/web/pc-semi/m\[1\])

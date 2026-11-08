@@ -19,7 +19,12 @@ export default async function ClaimInfoPage({ searchParams }: { searchParams?: {
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('认款信息')}>
-    <OfflineClaimClient orderId={orderId} />
+          {/* 旧版 claimInfo.vue：CommonPageContainer > .menu(MemberNav) + .info-row */}
+          <div className="mp-claim-info">
+            <div className="info-row">
+              <OfflineClaimClient orderId={orderId} />
+            </div>
+          </div>
         </MemberShell>
       </main>
       <PcFooter />

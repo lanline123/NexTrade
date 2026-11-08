@@ -1,46 +1,63 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import PcHeader from '@/components/PcHeaderWithData';
-import PcFooter from '@/components/PcFooter';
 import { getPcHeader } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
 /**
- * 招商专用头部导航（源码 java.../view/pc/pages/join/joinHeader.vue：
- * zs-nav / nav-slide / slide-to-${activeTab}）。旧实现是 redirect('/join')，
- * 这里恢复独立页面，供旧链接与装修预览访问。
+ * 招商专用头部导航。
+ * 源码对照：view/pc/pages/join/joinHeader.vue（<template> 类名逐条照抄）
+ * 样式：app/join-page.scss → .pg-join-join-header
+ *
+ *   .header > .top-area.container > .wrapper
+ *       > .logo > a.alv1 > img
+ *       > .zs-nav > .nav-slide.slide-to-{activeTab}(+plan-active/standard-active/process-active) + ul > li(.current) > a
  */
 export const dynamic = 'force-dynamic';
 
-const NAV = [
-  { label: '招商首页', href: '/join' },
-  { label: '招商介绍', href: '/join/intro' },
-  { label: '投资计划', href: '/join/plan' },
-  { label: '入驻流程', href: '/join/process' },
-  { label: '招商标准', href: '/join/standard' },
+export const metadata: Metadata = { title: '招商入驻 · 万物新生' };
+
+const TABS = [
+  { name: '', title: '招商首页', link: '/join' },
+  { name: 'plan', title: '招商计划', link: '/join/plan' },
+  { name: 'standard', title: '招商标准', link: '/join/standard' },
+  { name: 'process', title: '入驻流程', link: '/join/process' },
+  { name: 'intro', title: '我要入驻', link: '/join/intro' },
 ];
 
+const ACTIVE_CLASS: Record<string, string> = {
+  plan: 'plan-active',
+  standard: 'standard-active',
+  process: 'process-active',
+};
+
 export default async function JoinHeaderPage() {
-    const t = getServerT();
+  const t = getServerT();
   const header = await getPcHeader().catch(() => null);
+  const actActive = ACTIVE_CLASS.plan;
   return (
-    <>
-      <PcHeader config={header as any} />
-      <main className="pc-static-page">
-        <div className="pc-container">
-          <nav className="zs-nav" style={{ display: 'flex', gap: 24, padding: '16px 0', borderBottom: '1px solid #eee' }}>
-            {NAV.map((item) => (
-              <Link key={item.href} href={item.href} className="nav-slide" style={{ color: '#344054', fontSize: 14 }}>
-                {item.label}
+    <div className="pg-join-join-header">
+      <div className="header">
+        <div className="top-area container">
+          <div className="wrapper">
+            <div className="logo">
+              <Link href="/" className="alv1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={(header as any)?.siteLogo || '/assets/images/logo.png'} alt="" />
               </Link>
-            ))}
-          </nav>
-          <section className="legacy-home__floor" style={{ marginTop: 20 }}>
-            <h1>{t('招商入驻')}</h1>
-            <p>{t('选择上方栏目查看招商介绍、投资计划、入驻流程与招商标准。')}</p>
-          </section>
+            </div>
+            <div className="zs-nav">
+              <div className={`nav-slide slide-to-${''}${actActive ? ` ${actActive}` : ''}`} />
+              <ul>
+                {TABS.map((tab) => (
+                  <li key={tab.name || 'index'} className={tab.name === 'plan' ? 'current' : ''}>
+                    <Link href={tab.link}>{t(tab.title)}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
-      </main>
-      <PcFooter />
-    </>
+      </div>
+    </div>
   );
 }

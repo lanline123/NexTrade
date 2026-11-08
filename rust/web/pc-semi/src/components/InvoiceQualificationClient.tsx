@@ -1,22 +1,30 @@
 'use client';
 
 /**
- * 增票资质（对照旧版 `pc/pages/member/userinvoice/Info.vue`）。
+ * 增票资质（对照旧版 `pc/pages/member/userInvoice/Info.vue`）—— Semi Design 现代化版
  *
- * 旧版能力：顶部页签（发票申请 / 增票资质）+ 温馨提示 + 资质状态 + 只读资质信息 + 编辑表单。
- * 状态语义（UserInvoiceVO.status）：0 未申请专用发票 / 1 审核通过 / 2 已申请，待审核 / 3 审核未通过。
+ * 功能 1:1 保留：
+ * - 顶部页签（发票申请 / 增票资质，路由切换）
+ * - 状态语义（UserInvoiceVO.status）：0 未申请 / 1 审核通过 / 2 待审核 / 3 审核未通过
+ * - 无资质或审核未通过时直接进入编辑态；只读态展示已过审资质
+ * - 六项必填 + 税号/电话/账号禁止中文校验；提交前须勾选《增票资质确认书》
+ * - 首次申请走 create（isAdd=1），已有记录走 update
  *
- * 接口：
- * - `GET  user/invoice/detail` 增票资质详情
- * - `POST user/invoice/create` 首次申请（status 0）
- * - `POST user/invoice/update` 修改并重新审核（status ≠ 0）
+ * 现代化（2026-11）：状态卡（浅色语义底 + Tag 在上说明在下）+ Semi Tag/Banner/
+ * Descriptions/Input/Checkbox/Skeleton；旧 el-form 手搓结构移除（member-pages.scss
+ * 的 .mp-userinvoice-info 块保留未删，用于回滚）。
+ *
+ * ⚠️ 保护标记（见 docs/pc-parity-notes.md「现代化保护区」）：本组件是用户指定的
+ * Semi 现代化最终形态，请勿在后续轮次中回退为 el-form 旧版复刻结构。
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button, Card, Checkbox, Input, Toast } from '@douyinfe/semi-ui';
+import { Banner, Button, Checkbox, Descriptions, Input, Skeleton, Tag, Toast } from '@douyinfe/semi-ui';
+import { IconInfoCircle } from '@douyinfe/semi-icons';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+
 interface InvoiceForm {
   invoiceId?: number;
   status?: number;
@@ -30,45 +38,30 @@ interface InvoiceForm {
   companyAccount?: string;
 }
 
-/** 状态 → 文案 / 色调 / 说明（色调对应 SCSS 的 `is-*` 修饰类） */
-const STATUS_META: Record<number, { text: string; tone: string; desc: string }> = {
-  0: { text: '未申请专用发票', tone: 'idle', desc: '您尚未提交增值税专用发票资质，填写并提交后我们会在一个工作日内完成审核。' },
-  1: { text: '审核通过', tone: 'ok', desc: '您的增票资质已通过审核，下单结算时可直接申请开具增值税专用发票。' },
-  2: { text: '已申请，待审核', tone: 'wait', desc: '资质已提交，我们会在一个工作日内完成审核，期间暂不可修改。' },
-  3: { text: '审核未通过', tone: 'bad', desc: '很抱歉，本次资质未通过审核，请根据驳回原因修改后重新提交。' },
+/** 状态 → 文案 / Tag 色 / 说明（tag 取值限定 Semi TagColor） */
+const STATUS_META: Record<number, { text: string; tag: 'grey' | 'green' | 'orange' | 'red'; desc: string }> = {
+  0: { text: '未申请专用发票', tag: 'grey', desc: '您尚未提交增值税专用发票资质，填写并提交后我们会在一个工作日内完成审核。' },
+  1: { text: '审核通过', tag: 'green', desc: '您的增票资质已通过审核，下单结算时可直接申请开具增值税专用发票。' },
+  2: { text: '已申请，待审核', tag: 'orange', desc: '资质已提交，我们会在一个工作日内完成审核，期间暂不可修改。' },
+  3: { text: '审核未通过', tag: 'red', desc: '很抱歉，本次资质未通过审核，请根据驳回原因修改后重新提交。' },
 };
 
-/** 表单字段（顺序即渲染顺序；wide 占满两列） */
+/** 表单字段（wide 占满整行；noChinese 对应旧版 createNoChineseValidator） */
 const FIELDS: Array<{
   key: keyof InvoiceForm;
-  label: string;
-  placeholder: string;
-  /** 旧版 rules：六项均必填 */
-  required: boolean;
-  /** 旧版 createNoChineseValidator：税号 / 电话 / 账号不允许中文 */
-  noChinese?: boolean;
   wide?: boolean;
+  noChinese?: boolean;
 }> = [
-  { key: 'companyName', label: '单位名称', placeholder: '请输入单位名称', required: true, wide: true },
-  { key: 'companyCode', label: '纳税人识别码', placeholder: '请输入纳税人识别码', required: true, noChinese: true },
-  { key: 'companyPhone', label: '注册电话', placeholder: '请输入注册电话', required: true, noChinese: true },
-  { key: 'companyAddress', label: '注册地址', placeholder: '请输入注册地址', required: true, wide: true },
-  { key: 'companyBank', label: '开户银行', placeholder: '请输入开户银行', required: true },
-  { key: 'companyAccount', label: '银行账户', placeholder: '请输入银行账户', required: true, noChinese: true },
-];
-
-/** 只读展示字段（顺序照抄旧版 el-form-item 顺序） */
-const READONLY_FIELDS: Array<{ key: keyof InvoiceForm; label: string; wide?: boolean; mono?: boolean }> = [
-  { key: 'companyName', label: '单位名称', wide: true },
-  { key: 'companyCode', label: '纳税人识别码', mono: true },
-  { key: 'companyPhone', label: '注册电话', mono: true },
-  { key: 'companyAddress', label: '注册地址', wide: true },
-  { key: 'companyBank', label: '开户银行' },
-  { key: 'companyAccount', label: '银行账户', mono: true },
+  { key: 'companyName', wide: true },
+  { key: 'companyCode', noChinese: true },
+  { key: 'companyPhone', noChinese: true },
+  { key: 'companyAddress', wide: true },
+  { key: 'companyBank' },
+  { key: 'companyAccount', noChinese: true },
 ];
 
 export default function InvoiceQualificationClient() {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
   const [form, setForm] = useState<InvoiceForm>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -98,15 +91,24 @@ export default function InvoiceQualificationClient() {
   const toggleEdit = (next: boolean) => {
     setAgreed(false);
     setEditing(next);
+    if (next === false) load();
   };
 
   const submit = async () => {
+    const labels: Record<string, string> = {
+      companyName: t('单位名称'),
+      companyCode: t('纳税人识别码'),
+      companyAddress: t('注册地址'),
+      companyPhone: t('注册电话'),
+      companyBank: t('开户银行'),
+      companyAccount: t('银行账户'),
+    };
     for (const field of FIELDS) {
       const value = String(form[field.key] ?? '').trim();
-      if (field.required && !value) return Toast.error({ content: `${field.label}不能为空` });
-      if (field.noChinese && /[\u4e00-\u9fa5]/.test(value)) return Toast.error({ content: `${field.label}格式不正确` });
+      if (!value) return Toast.error({ content: `${labels[field.key]}${t('不能为空')}` });
+      if (field.noChinese && /[\u4e00-\u9fa5]/.test(value)) return Toast.error({ content: `${labels[field.key]}${t('格式不正确')}` });
     }
-    if (!agreed) return Toast.error({ content: '需要勾选确认才能继续' });
+    if (!agreed) return Toast.error({ content: t('需要勾选确认才能继续') });
 
     setSaving(true);
     try {
@@ -120,142 +122,138 @@ export default function InvoiceQualificationClient() {
       } else {
         await apiPost('user/invoice/update', { invoiceId: form.invoiceId, ...payload });
       }
-      Toast.success({ content: '操作成功' });
+      Toast.success({ content: t('操作成功') });
       setAgreed(false);
       setEditing(false);
       load();
     } catch (error) {
-      Toast.error({ content: error instanceof Error ? error.message : '提交失败' });
+      Toast.error({ content: error instanceof Error ? error.message : t('提交失败') });
     } finally {
       setSaving(false);
     }
   };
 
   const status = Number(form.status || 0);
-  const meta = STATUS_META[status] || STATUS_META[0];
   const hasRecord = Boolean(form.companyName);
-  const readonly = !editing && hasRecord;
+  const meta = STATUS_META[status] || STATUS_META[0];
+
+  const readonlyData = [
+    { key: t('单位名称'), value: String(form.companyName ?? '') },
+    { key: t('纳税人识别码'), value: String(form.companyCode ?? '') },
+    { key: t('注册地址'), value: String(form.companyAddress ?? '') },
+    { key: t('注册电话'), value: String(form.companyPhone ?? '') },
+    { key: t('开户银行'), value: String(form.companyBank ?? '') },
+    { key: t('银行账户'), value: String(form.companyAccount ?? '') },
+  ];
+
+  const editFields: Array<{ key: keyof InvoiceForm; label: string; placeholder: string; wide?: boolean; noChinese?: boolean }> = [
+    { key: 'companyName', label: t('单位名称'), placeholder: t('请输入单位名称'), wide: true },
+    { key: 'companyCode', label: t('纳税人识别码'), placeholder: t('请输入纳税人识别码'), noChinese: true },
+    { key: 'companyPhone', label: t('注册电话'), placeholder: t('请输入注册电话'), noChinese: true },
+    { key: 'companyAddress', label: t('注册地址'), placeholder: t('请输入注册地址'), wide: true },
+    { key: 'companyBank', label: t('开户银行'), placeholder: t('请输入开户银行') },
+    { key: 'companyAccount', label: t('银行账户'), placeholder: t('请输入银行账户'), noChinese: true },
+  ];
 
   return (
-    <Card className="member-card invq">
-      {/* 旧版 MemberTopMenu：发票申请 / 增票资质 —— 收进卡片顶栏，与下方内容同属一块 */}
-      <div className="invq-head">
-        <nav className="invq-tabs">
-          <Link href="/member/orderinvoice/list" className="invq-tabs__item">{t('发票申请')}</Link>
-          <Link href="/member/userinvoice/info" className="invq-tabs__item is-active">{t('增票资质')}</Link>
-        </nav>
+    <div className="miq">
+      {/* 顶部页签（发票申请 / 增票资质）—— 路由切换 */}
+      <div className="miq-tabs">
+        <Link className="miq-tab" href="/member/orderinvoice/list">{t('发票申请')}</Link>
+        <span className="miq-tab miq-tab--active">{t('增票资质')}</span>
       </div>
 
       {loading ? (
-        <div className="invq-skeleton">
-          <span className="invq-skeleton__bar invq-skeleton__bar--title" />
-          <span className="invq-skeleton__bar" />
-          <span className="invq-skeleton__bar invq-skeleton__bar--short" />
+        <div className="miq-card">
+          <Skeleton active loading placeholder={<Skeleton.Paragraph rows={5} style={{ padding: 16 }} />} />
         </div>
       ) : (
         <>
-          {/* 顶部：标题 + 状态徽标 + 主操作 */}
-          <header className="invq-hero">
-            <div className="invq-hero__main">
-              <span className="invq-hero__eyebrow">{t('增值税专用发票')}</span>
-              <h2 className="invq-hero__title">{t('您的增票资质')}</h2>
-              <div className={`invq-badge is-${meta.tone}`}>
-                <i className="invq-badge__dot" />
-                {meta.text}
-              </div>
-              <p className="invq-hero__desc">{meta.desc}</p>
-            </div>
-            <div className="invq-hero__actions">
-              {readonly ? (
-                <Button theme="solid" type="primary" onClick={() => toggleEdit(true)}>
-                  {status === 0 ? t('添加增票资质') : '修改并重新审核'}
-                </Button>
+          {/* 状态卡：浅色状态底 + Tag 在上、说明在下 */}
+          <div className={`miq-hero miq-hero--${status}`}>
+            <div className="miq-hero__main">
+              <Tag size="large" color={meta.tag}>{t(meta.text)}</Tag>
+              <div className="miq-hero__desc">{t(meta.desc)}</div>
+              {status === 3 && String(form.applyReply ?? '').trim() ? (
+                <Banner
+                  className="miq-hero__reject"
+                  type="danger"
+                  closeIcon={null}
+                  description={`${t('审核失败原因')}：${form.applyReply}`}
+                />
               ) : null}
             </div>
-          </header>
+            {!editing ? (
+              <Button theme="solid" type="primary" onClick={() => toggleEdit(true)}>
+                {status === 0 ? t('添加增票资质') : t('修改并重新审核')}
+              </Button>
+            ) : null}
+          </div>
 
-          {/* 温馨提示（旧版 .tips 的 3 条 + 1 条总则） */}
-          <section className="invq-notice">
-            <span className="invq-notice__badge">!</span>
-            <div className="invq-notice__body">
-              <b>{t('温馨提示')}</b>
-              <ul>
-                <li>{t('我们会在一个工作日内完成审核工作。')}</li>
-                <li>{t('资质审核结果查询时间：')}<em>{t('资质上传一到两个工作日后即可查询')}</em>。
-                </li>
-                <li>{t('注意：有效增值税专用发票开票资质仅为一个。')}</li>
-              </ul>
+          {/* 温馨提示（轻量信息卡，不用 Banner 的重色块） */}
+          <div className="miq-tips">
+            <div className="miq-tips__title">
+              <IconInfoCircle size="small" />
+              {t('温馨提示')}
             </div>
-          </section>
+            <ul className="miq-tips__list">
+              <li>{t('我们会在一个工作日内完成审核工作')}。</li>
+              <li>{t('资质审核结果查询时间')}：{t('资质上传一到两个工作日后即可查询')}。</li>
+              <li>{t('注意有效增值税专用发票开票资质仅为一个')}。</li>
+            </ul>
+          </div>
 
-          {/* 审核未通过原因（旧版 status === 3） */}
-          {status === 3 && form.applyReply ? (
-            <div className="invq-alert">
-              <span className="invq-alert__label">{t('审核失败原因')}</span>
-              <p className="invq-alert__text">{form.applyReply}</p>
+          {/* 只读资质（已过审且非编辑态） */}
+          {!editing && hasRecord ? (
+            <div className="miq-card">
+              <div className="miq-card__title">{t('填写增票资质信息')}</div>
+              <div className="miq-card__body">
+                <Descriptions align="left" size="medium" data={readonlyData} />
+              </div>
             </div>
           ) : null}
 
-          {/* 只读态：资质信息 */}
-          {readonly ? (
-            <section className="invq-panel">
-              <div className="invq-panel__head">
-                <h3>{t('资质信息')}</h3>
-                <span>{t('以下为已提交的增票资质内容')}</span>
+          {/* 编辑表单 */}
+          {editing ? (
+            <form className="miq-card miq-form" onSubmit={(event) => event.preventDefault()}>
+              <div className="miq-card__title">
+                {t('填写增票资质信息')}
+                <span className="miq-card__title-extra">（{t('所有信息均为必填')}）</span>
               </div>
-              <dl className="invq-grid">
-                {READONLY_FIELDS.map((field) => (
-                  <div
-                    key={field.key}
-                    className={`invq-grid__item${field.wide ? ' is-wide' : ''}`}
-                  >
-                    <dt>{field.label}</dt>
-                    <dd className={field.mono ? 'is-mono' : undefined}>
-                      {String(form[field.key] ?? '') || '-'}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ) : (
-            /* 编辑态：填写资质信息 */
-            <section className="invq-panel">
-              <div className="invq-panel__head">
-                <h3>{t('填写增票资质信息')}</h3>
-                <span>{t('所有信息均为')}<em>{t('必填')}</em>
-                </span>
+              <div className="miq-card__body">
+                <div className="miq-form__grid">
+                  {editFields.map((field) => (
+                    <div key={field.key} className={`miq-field${field.wide ? ' miq-field--wide' : ''}`}>
+                      <label className="miq-field__label">{field.label}</label>
+                      <Input
+                        value={String(form[field.key] ?? '')}
+                        placeholder={field.placeholder}
+                        onChange={(value) => update(field.key, value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="miq-form__agree">
+                  <Checkbox checked={agreed} onChange={(event) => setAgreed(Boolean(event.target.checked))}>
+                    {t('我已阅读并同意')}
+                    <Link className="miq-agree-link" target="_blank" href="/member/userinvoice/confirminfo">
+                      《{t('增票资质确认书')}》
+                    </Link>
+                  </Checkbox>
+                </div>
+                <div className="miq-form__actions">
+                  <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>
+                    {t('确认')}
+                  </Button>
+                  {hasRecord ? (
+                    <Button theme="light" onClick={() => toggleEdit(false)}>{t('取消')}</Button>
+                  ) : null}
+                </div>
               </div>
-              <div className="invq-form">
-                {FIELDS.map((field) => (
-                  <label
-                    key={field.key}
-                    className={`invq-field${field.wide ? ' is-wide' : ''}`}
-                  >
-                    <span className="invq-field__label">
-                      {field.label}
-                      {field.required ? <i>*</i> : null}
-                    </span>
-                    <Input
-                      size="large"
-                      value={String(form[field.key] ?? '')}
-                      placeholder={field.placeholder}
-                      onChange={(value) => update(field.key, value)}
-                    />
-                  </label>
-                ))}
-              </div>
-              <div className="invq-agree">
-                <Checkbox checked={agreed} onChange={(event) => setAgreed(Boolean(event.target.checked))}>{t('我已阅读并同意')}</Checkbox>
-                <Link href="/member/userinvoice/confirminfo" target="_blank" className="invq-agree__link">{t('《增票资质确认书》')}</Link>
-              </div>
-              <div className="invq-actions">
-                <Button theme="solid" type="primary" loading={saving} onClick={() => void submit()}>{t('确认')}</Button>
-                <Button onClick={() => toggleEdit(false)}>{t('取消')}</Button>
-              </div>
-            </section>
-          )}
+            </form>
+          ) : null}
         </>
       )}
-    </Card>
+    </div>
   );
 }

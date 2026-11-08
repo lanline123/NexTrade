@@ -23,16 +23,32 @@ interface ProductGridProps {
   showSales?: boolean;
   /** 搜索装修 showShopTag：为 true 且商品带店铺信息时展示店铺角标。 */
   showShopTag?: boolean;
+  /**
+   * 额外挂到网格根节点上的旧版类名。
+   * 旧版 pages/search/components/CatGoodsList.vue 的结构是
+   * .goods-list__box > .goods-list-c > .wrap，.wrap 才是网格本体
+   * （grid-template-columns: repeat(var(--search-grid-columns, 5), minmax(0, 1fr))），
+   * 所以搜索页把 wrap 传进来。
+   */
+  gridClassName?: string;
+  /** 旧版 SearchProductCard.vue 的 fixed-name-two-lines：搜索页固定两行名称。 */
+  fixedNameTwoLines?: boolean;
 }
 
-export default function ProductGrid({ products, showSales = false, showShopTag = false }: ProductGridProps) {
+export default function ProductGrid({
+  products,
+  showSales = false,
+  showShopTag = false,
+  gridClassName,
+  fixedNameTwoLines = false,
+}: ProductGridProps) {
     const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement | null>(null);
   const columns = useProductColumns(gridRef);
 
   return (
     <div
-      className="product-card-grid"
+      className={`product-card-grid${gridClassName ? ` ${gridClassName}` : ''}`}
       ref={gridRef}
       style={{ '--you-like-columns': columns } as React.CSSProperties}
     >
@@ -42,9 +58,11 @@ export default function ProductGrid({ products, showSales = false, showShopTag =
           product={product as ProductCardItem}
           salesMode={showSales ? 'sales' : 'stock'}
           showShopTag={showShopTag}
+          fixedNameTwoLines={fixedNameTwoLines}
+          activityInfo={(product as ProductCardItem).activityInfo}
         />
       ))}
-      {!products.length ? <div className="pc-list-empty">{t('没有找到商品')}</div> : null}
+      {!products.length ? <div className="search-empty"><span className="search-empty__text">{t('没有找到商品')}</span></div> : null}
     </div>
   );
 }

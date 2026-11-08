@@ -21,7 +21,12 @@ export default async function CommentCenterPage({ searchParams }: { searchParams
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('评价晒单')}>
-    <CommentCenterClient initialTab={initialTab} />
+          {/* 旧版 List.vue：CommonPageContainer > .menu(MemberNav) + .info-row.collection-store */}
+          <div className="mp-comment-list">
+            <div className="info-row collection-store">
+              <CommentCenterClient initialTab={initialTab} />
+            </div>
+          </div>
         </MemberShell>
       </main>
       <PcFooter />

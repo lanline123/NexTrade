@@ -132,6 +132,19 @@ export async function getIntegralName(fallback = '积分'): Promise<string> {
   return header;
 }
 
+/** 搜索页风格系统配置（admin 装修『搜索页风格』写入：1=经典版 classic，2=新版 modern）。 */
+export async function getSearchStyle(): Promise<{ searchStyleType: number }> {
+  try {
+    const response = await fetch(`${SERVER_API_BASE}/api/common/config/searchStyle`, {
+      next: { revalidate: 300 },
+    });
+    const data = await readData<{ searchStyleType?: number }>(response);
+    return { searchStyleType: Number(data?.searchStyleType) === 2 ? 2 : 1 };
+  } catch {
+    return { searchStyleType: 1 };
+  }
+}
+
 export interface ProductDetailResponse {
   item: Record<string, any>;
   skuList: Array<Record<string, any>>;
@@ -174,8 +187,12 @@ export async function getProductDetailStyle(): Promise<ProductUiStyle> {
   }
 }
 
-/** 源码：本地可通过 ?uiStyle=old|new|overseas 预览三种风格 */
+/**
+ * 源码 pages/item/[id].vue：?uiStyle= 仅在 import.meta.dev 生效，
+ * 生产一律以后台 productDetailStyleType 为准，避免 URL 参数覆盖后台配置。
+ */
 export function resolveUiStyle(param: string | undefined | null, configured: ProductUiStyle): ProductUiStyle {
+  if (process.env.NODE_ENV === 'production') return configured;
   const value = String(param || '').toLowerCase();
   if (value === 'old' || value === 'new' || value === 'overseas') return value;
   return configured;

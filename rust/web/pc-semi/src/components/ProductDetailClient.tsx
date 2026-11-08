@@ -44,7 +44,10 @@ interface SkuValue {
   value: string;
   attributesId: number;
   stock: number;
+  /** 规格原图（attrPic）：切到 624px 主图位时用，避免 200px 缩略图被拉伸发糊 */
   pic?: string;
+  /** 规格缩略图（attrPicThumb）：仅用于 80px 规格按钮 */
+  picThumb?: string;
 }
 
 interface SkuGroup {
@@ -144,7 +147,8 @@ function buildSkuGroups(detail: ProductDetailResponse): SkuGroup[] {
           value: String(value?.attrValue ?? ''),
           attributesId: Number(value?.attributesId ?? 0),
           stock: Number(value?.skuStock ?? -1),
-          pic: value?.attrPicThumb || value?.attrPic,
+          pic: value?.attrPic || value?.attrPicThumb || '',
+          picThumb: value?.attrPicThumb || value?.attrPic || '',
         }))
         .filter((value) => value.value),
     }))
@@ -205,7 +209,7 @@ export default function ProductDetailClient({
   const [commentEnabled, setCommentEnabled] = useState(1);
 
   // —— 评价 / 咨询 ——
-  const [tab, setTab] = useState<'detail' | 'params' | 'comment' | 'consult'>('detail');
+  const [tab, setTab] = useState<'detail' | 'comment' | 'consult' | 'service'>('detail');
   const [commentStat, setCommentStat] = useState<Record<string, any>>({});
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [commentTotal, setCommentTotal] = useState(0);
@@ -295,7 +299,8 @@ export default function ProductDetailClient({
   const skuDisabled = selectedSku?.isEnabled === 0;
   const price = livePrice ?? selectedSku?.skuPrice ?? selectedSku?.price ?? item.productPrice;
   const requireSku = skuGroups.length > 0 && !selectedSku;
-  const mainImage = skuPic || selectedSku?.picThumb || selectedSku?.picUrl || pictures[activeImage]?.picUrl || pictures[activeImage]?.picThumb || '';
+  // 优先原图：picThumb 是 200px 缩略图，放进 624px 主图位会明显发糊
+  const mainImage = skuPic || selectedSku?.picUrl || selectedSku?.picThumb || pictures[activeImage]?.picUrl || pictures[activeImage]?.picThumb || '';
 
   const wholesalePriceList = useMemo(() => {
     const raw = (item as any).wholesalePriceList ?? (detail as any).wholesalePriceList;
@@ -832,24 +837,41 @@ export default function ProductDetailClient({
     </div>
   );
 
-  /** 源码 ProductShopInfo / OverseasShopInfo */
+  /**
+   * 源码 pages/item/src/Product.vue 377 `.shop-info` 里是 components/product/ShopInfo.vue。
+   * 类名照抄该文件：`.shop-info-wrap > .shop-main > .shop-logo + .name-warp(.name-link >
+   * .name > .name-arrow + .shop-badge / .shop-rate > .rate-score …) + .shop-actions(.button-wrap >
+   * .tig-button-no-ripple.action-btn > .button-content)`。
+   */
   const shopCard = shopInfo ? (
-    <div className="pds-shop">
-      <div className="pds-shop__logo">
-        {pickString(shopInfo, ['shopLogo']) ? <img src={pickString(shopInfo, ['shopLogo'])} alt="" /> : null}
-      </div>
-      <div className="pds-shop__info">
-        <div className="pds-shop__name">
-          <b>{pickString(shopInfo, ['shopTitle'], '店铺')}</b>
-          {pickString(shopInfo, ['shopBadge']) ? <Tag color="orange">{pickString(shopInfo, ['shopBadge'])}</Tag> : null}
+    <div className="shop-info mp-shop-info">
+      <div className="shop-info-wrap">
+        <div className="shop-main">
+          <div className="shop-logo">
+            {pickString(shopInfo, ['shopLogo']) ? <img className="img" src={pickString(shopInfo, ['shopLogo'])} alt="" /> : null}
+          </div>
+          <div className="name-warp">
+            <div className="name-link">
+              <div className="name">
+                {shopId > 0 ? <Link href={`/shop/${shopId}`}>{pickString(shopInfo, ['shopTitle'], '店铺')}</Link> : pickString(shopInfo, ['shopTitle'], '店铺')}
+                <i className="name-arrow" />
+                {pickString(shopInfo, ['shopBadge']) ? <span className="shop-badge">{pickString(shopInfo, ['shopBadge'])}</span> : null}
+              </div>
+              <div className="shop-rate">
+                <span className="rate-score">{pickString(shopInfo, ['shopDetailedAddress'], '')}</span>
+              </div>
+            </div>
+          </div>
+          <div className="shop-actions">
+            {shopId > 0 ? (
+              <div className="button-wrap">
+                <button type="button" className="tig-button-no-ripple action-btn">
+                  <span className="button-content">{t('进入店铺')}</span>
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
-        <div className="pds-shop__meta">
-          {pickString(shopInfo, ['shopDetailedAddress'], '')}
-          {pickString(shopInfo, ['kefuPhone'], '') ? t('· 客服 {p}', { p: pickString(shopInfo, ['kefuPhone']) }) : ''}
-        </div>
-      </div>
-      <div className="pds-shop__actions">
-        {shopId > 0 ? <Link href={`/shop/${shopId}`}><Button size="small">{t('进入店铺')}</Button></Link> : null}
       </div>
     </div>
   ) : null;
@@ -901,29 +923,64 @@ export default function ProductDetailClient({
   );
 
   /** 经典版画廊下方 share_wish：商品编号 / 收藏 / 分享 */
+  /** 源码 385 `.share_wish.flex`：386 `.product-number` + 388 `.product-tools`（390 收藏图标） */
   const galleryMeta = (
-    <div className="pds-gallery-meta">
-      <span className="pds-gallery-meta__sn" title={item.productSn || ''}>商品编号：{item.productSn || '-'}</span>
-      <div className="pds-gallery-meta__tools">
-        <button type="button" onClick={() => void collect()} disabled={collecting}>
-          {collected ? '已收藏' : '收藏'}
-        </button>
-        <button type="button" onClick={() => void openShare()}>{t('分享')}</button>
+    <div className="share_wish flex">
+      <span className="product-number" title={item.productSn || ''}>
+        商品编号：{item.productSn || '-'}
+      </span>
+      <div className="product-tools">
+        <span
+          className={`iconfont-pc collect ico-color ${collected ? 'icon-yishoucang' : 'icon-shoucang'}`}
+          onClick={() => void collect()}
+        >
+          <i>{collected ? '已收藏' : '收藏'}</i>
+        </span>
+        <button type="button" className="hand-pointer" onClick={() => void openShare()}>{t('分享')}</button>
       </div>
     </div>
   );
 
-  /** 源码 product_name：标签 + 名称 + 卖点 */
+  /** 源码 overseas/Thumb.vue:39-42：跨境版收藏心形浮在主图右上角（经典版才放画廊下方 share_wish） */
+  const collectButton = (
+    <button
+      type="button"
+      className={`pds-os__collect${collected ? ' is-collected' : ''}`}
+      onClick={() => void collect()}
+      aria-label={collected ? t('已收藏') : t('收藏')}
+      title={collected ? t('已收藏') : t('收藏')}
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill={collected ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.8-7.7 1.1-1.1a5.5 5.5 0 0 0 0-7.8z" />
+      </svg>
+    </button>
+  );
+
+  /** 源码 416 `.product_name`：417 `.name` / 420 `.productName > .tagName`(预售) + 424 `p.desc` */
   const heading = (
-    <div className="pds-heading">
-      <div className="pds-tags">
-        {item.isNew ? <Tag color="blue">{t('新品')}</Tag> : null}
-        {item.isHot ? <Tag color="orange">{t('热销')}</Tag> : null}
-        {detail.deliveryModeText ? <Tag color="green">{detail.deliveryModeText}</Tag> : null}
-        {outOfStock ? <Tag color="red">{t('已售罄')}</Tag> : null}
-      </div>
-      <h1>{item.productName}</h1>
-      {item.productBrief ? <p className="pds-brief">{item.productBrief}</p> : null}
+    <div className="product_name">
+      {/* 源码 overseas/ProductInfo.vue .product_name 只有预售才带 .tagName，
+          跨境版普通商品不显示「新品 / 热销 / 普通商品」这类前缀标签 */}
+      {uiStyle !== 'overseas' && item.isNew ? <span className="tagName">{t('新品')}</span> : null}
+      {uiStyle !== 'overseas' && item.isHot ? <span className="tagName">{t('热销')}</span> : null}
+      {uiStyle !== 'overseas' && detail.deliveryModeText ? <span className="tagName">{detail.deliveryModeText}</span> : null}
+      {outOfStock ? <span className="tagName">{t('已售罄')}</span> : null}
+      {/*
+        旧版 417/420 两个分支按 isPresale 切换；新版详情接口没有预售字段，
+        所以固定走非预售分支 `.name`（预售版是 `.productName > .tagName`）。
+      */}
+      <div className="name">{item.productName}</div>
+      {item.productBrief ? <p className="desc">{item.productBrief}</p> : null}
     </div>
   );
 
@@ -1004,20 +1061,64 @@ export default function ProductDetailClient({
     </>
   );
 
+  /**
+   * 源码 components/product/ProductInfo.vue 123–157 `.basic.bg`：市场价 / 本站价 / 评价 / 优惠活动；
+   * 237–263 `.basic-info`：销量 / 服务。旧版老 UI 分支（`uiVersion !== 'new'`）的标记结构。
+   * 价格用旧版 FormatPrice 的产物结构 `<div class="price align-bottom"><div class="util">…`
+   */
   const priceBlock = (
     <>
-      <div className="pds-price">
-        <span className="pds-price__label">{t('本站价：')}</span>
-        <b className="pds-price__value">¥{yuan(price)}</b>
-        {Number(item.marketPrice) > 0 ? <del className="pds-price__origin">¥{yuan(item.marketPrice)}</del> : null}
+      <div className="basic bg">
+        {Number(item.marketPrice) > 0 ? (
+          <div className="item">
+            <div className="tit">{t('市场价')}：</div>
+            <div className="market_price">
+              <div className="price align-bottom" style={{ textDecoration: 'line-through' }}>
+                <div className="util">¥</div>
+                <div className="num">{yuan(item.marketPrice)}</div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        <div className="item">
+          <div className="tit">{t('本站价')}：</div>
+          <div className="price1">
+            <div className="price align-bottom">
+              <div className="util">¥</div>
+              <div className="num">{yuan(price)}</div>
+            </div>
+          </div>
+          {commentTotal > 0 ? (
+            <div className="rank-info">
+              <div className="tit2">{t('评价')}：</div>
+              <div className="star">
+                <span className={`icon-star icon-star-${commentAverage || 5}`} />
+              </div>
+              <div className="evaluate">
+                {t('已有')} <span className="font-color"> {commentTotal}</span> {t('人评价')}，{commentGoodPercent}% {t('好评')}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        {coupons.length ? (
+          <div className="item">
+            <div className="tit">{t('优惠活动')}：</div>
+            <div className="coupon-list-wrap">
+              {coupons.map((coupon: any, index: number) => (
+                <span className="lyecsquan" key={coupon.couponId ?? index}>
+                  {coupon.couponName || coupon.name || t('优惠券')}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
-      <div className="pds-pills">
-        {coupons.length ? <span className="pds-pill">{t('满折')}</span> : null}
-        {seckillPrice !== null ? <span className="pds-pill">{t('限时秒杀')}</span> : null}
-        {grouponInfo ? <span className="pds-pill">{t('满赠')}</span> : null}
-        <a className="pds-pill__more" href="#pds-sec-detail">更多优惠 &gt;</a>
+      <div className="basic-info">
+        <div className="item">
+          <div className="tit">{t('销量')}：</div>
+          <div className="num">{item.virtualSales ?? item.sales ?? 0} {t('件')}</div>
+        </div>
       </div>
-      <div className="pds-sales">{t('销量：')}<b>{item.virtualSales ?? item.sales ?? 0}</b>{t('件')}</div>
     </>
   );
 
@@ -1125,96 +1226,136 @@ export default function ProductDetailClient({
     </div>
   ) : null;
 
-  /** 源码 ProductSku / OverseasProductInfo 规格区 */
+  /**
+   * 源码 components/product/ProductSku.vue（老 UI 分支）：`.product-sku-info > .sku-item
+   * > .sku-header(.tit + .attrWidth) + .flex.flex-wrap > .sku-tag(.checked/.disabled)`
+   */
   const sku = skuGroups.length ? (
-    <div className="pds-sku">
-      {skuGroups.map((group) => (
-        <div key={group.name} className="pds-sku__group">
-          <span className="pds-sku__label">{group.name}</span>
-          <div className="pds-sku__list">
-            {group.values.map((value) => {
-              const active = selected[group.name] === value.value;
-              const soldOut = value.stock === 0;
-              return (
-                <Button
-                  key={`${group.name}-${value.value}-${value.attributesId}`}
-                  theme={active ? 'solid' : 'light'}
-                  type={active ? 'primary' : 'tertiary'}
-                  disabled={soldOut}
-                  onClick={() => toggleSpec(group, value)}
-                >
-                  {value.pic ? <img src={value.pic} alt="" className="pds-sku__pic" /> : null}
-                  {value.value}
-                  {soldOut ? '（缺货）' : ''}
-                </Button>
-              );
-            })}
+    // 源码 components/product/ProductSku.vue 跨境分支：
+    // .product-sku-info-overseas > .sku-item.flex.align-start > .tit + .sku-tag.flex-wrap > .tag
+    // 注意 .sku-tag 是「容器」，.tag 才是「按钮」；旧实现把两者用反了，
+    // 导致 core-pages.scss 的 .sku-tag .tag{border/80px 图} 全部不命中，
+    // 带图规格散成「一排图 + 一排字」。
+    <div className="mp-product-sku">
+      <div className="product-sku-info product-sku-info-overseas">
+        {skuGroups.map((group) => (
+          <div key={group.name} className="sku-item flex align-start">
+            <div className="tit">{group.name}：</div>
+            <div className="sku-tag flex-wrap">
+              {group.values.map((value) => {
+                const active = selected[group.name] === value.value;
+                const soldOut = value.stock === 0;
+                return (
+                  <div
+                    key={`${group.name}-${value.value}-${value.attributesId}`}
+                    className={`tag${active ? ' checked' : ''}${soldOut ? ' disabled outstock' : ''}`}
+                    onClick={() => { if (!soldOut) toggleSpec(group, value); }}
+                  >
+                    {value.pic ? (
+                      <div className="sku-tag__pic">
+                        <img src={value.picThumb || value.pic} alt="" />
+                        <p className="attrWidth">{value.value}</p>
+                      </div>
+                    ) : (
+                      <div><p>{value.value}</p></div>
+                    )}
+                    {active ? <i className="iconfont-pc icon-gou" /> : null}
+                    {soldOut ? <span className="outstock">{t('缺货')}</span> : null}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   ) : skuList.length > 1 ? (
-    <div className="pds-sku">
-      <div className="pds-sku__group">
-        <span className="pds-sku__label">{t('规格')}</span>
-        <div className="pds-sku__list">
-          {skuList.map((skuRow) => (
-            <Button
-              key={skuRow.skuId}
-              theme={Number(skuRow.skuId) === Number(skuId) ? 'solid' : 'light'}
-              type={Number(skuRow.skuId) === Number(skuId) ? 'primary' : 'tertiary'}
-              disabled={Number(skuRow.skuStock ?? 0) <= 0 || skuRow.isEnabled === 0}
-              onClick={() => {
-                const nextSkuId = Number(skuRow.skuId);
-                setSkuId(nextSkuId);
-                setQuantity(1);
-                setSkuPic(skuRow.picThumb || skuRow.picUrl || '');
-                if (typeof window !== 'undefined') {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('skuId', String(nextSkuId));
-                  window.history.replaceState({ ...window.history.state }, '', url.href);
-                }
-              }}
-            >
-              {(skuRow.skuData || []).map((entry) => `${entry.name || ''}：${entry.value || ''}`).join(' / ') || t('规格 {id}', { id: skuRow.skuId })}
-            </Button>
-          ))}
+    <div className="mp-product-sku">
+      <div className="product-sku-info product-sku-info-overseas">
+        <div className="sku-item flex align-start">
+          <div className="tit">{t('规格')}：</div>
+          <div className="sku-tag flex-wrap">
+            {skuList.map((skuRow) => {
+              const active = Number(skuRow.skuId) === Number(skuId);
+              const soldOut = Number(skuRow.skuStock ?? 0) <= 0 || skuRow.isEnabled === 0;
+              return (
+                <div
+                  key={skuRow.skuId}
+                  className={`tag${active ? ' checked' : ''}${soldOut ? ' disabled outstock' : ''}`}
+                onClick={() => {
+                  if (soldOut) return;
+                  const nextSkuId = Number(skuRow.skuId);
+                  setSkuId(nextSkuId);
+                  setQuantity(1);
+                  setSkuPic(skuRow.picUrl || skuRow.picThumb || '');
+                  if (typeof window !== 'undefined') {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('skuId', String(nextSkuId));
+                    window.history.replaceState({ ...window.history.state }, '', url.href);
+                  }
+                }}
+              >
+                {(skuRow.skuData || []).map((entry) => `${entry.name || ''}：${entry.value || ''}`).join(' / ') || t('规格 {id}', { id: skuRow.skuId })}
+                {active ? <i className="iconfont-pc icon-gou" /> : null}
+              </div>
+            );
+          })}
         </div>
       </div>
-    </div>
-  ) : null;
-
-  const wholesale = wholesalePriceList.length ? (
-    <div className="pds-sku pds-wholesale">
-      <span className="pds-sku__label">{t('批量采购')}</span>
-      <table className="account-table">
-        <thead><tr><th>{t('起订数量')}</th><th>{t('批发价')}</th></tr></thead>
-        <tbody>
-          {wholesalePriceList.map((tier, index) => (
-            <tr key={index}>
-              <td>{pickNumber(tier, ['minNum', 'min_num', 'startNum', 'start_num'], 0)}+</td>
-              <td className="is-income">¥ {yuan(pick(tier, ['price', 'wholesalePrice', 'wholesale_price'], 0))}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  ) : null;
-
-  const qty = (
-    <div className="pds-qty">
-      <span className="pds-qty__label">{t('数量')}</span>
-      <div className="pds-stepper">
-        <button type="button" disabled={outOfStock || quantity <= 1} onClick={() => changeQuantity(Math.max(1, quantity - 1))}>−</button>
-        <input
-          value={quantity}
-          inputMode="numeric"
-          onChange={(event) => changeQuantity(Math.max(1, Math.min(maxQuantity, Number(event.target.value.replace(/\D/g, '')) || 1)))}
-        />
-        <button type="button" disabled={outOfStock || quantity >= maxQuantity} onClick={() => changeQuantity(Math.min(maxQuantity, quantity + 1))}>＋</button>
       </div>
-      <span className="pds-qty__stock">件（库存：{stock > 0 ? '充足' : '不足'}）</span>
-      {limit > 0 ? <span className="pds-limit">限购 {limit} 件</span> : null}
+    </div>
+  ) : null;
+
+  /**
+   * 源码 components/product/B2bSku.vue（第 2–23 行，老 UI 分支）：
+   * `.b2b-sku > .b2b-sku-content > .sku-item(.title + .price-box(.stock) + .num)`。
+   * 逐档价格用旧版 FormatPrice 的产物结构。
+   */
+  const wholesale = wholesalePriceList.length ? (
+    <div className="mp-b2b-sku">
+      <div className="b2b-sku">
+      <div className="b2b-sku-content">
+        {wholesalePriceList.map((tier, index) => {
+          const tierNum = pickNumber(tier, ['minNum', 'min_num', 'startNum', 'start_num'], 0);
+          const tierPrice = pick(tier, ['price', 'wholesalePrice', 'wholesale_price'], 0);
+          return (
+            <div className="sku-item" key={index}>
+              <div className="title">{tierNum ? `${tierNum}${t('件起')}` : t('批量价')}</div>
+              <div className="price-box">
+                <div className="price align-bottom">
+                  <div className="util">¥</div>
+                  <div className="num">{yuan(tierPrice)}</div>
+                </div>
+                <div className="stock">{stock}{t('件可售')}</div>
+              </div>
+              <div className="num">
+                <InputNumber min={0} max={stock} value={0} disabled />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      </div>
+    </div>
+  ) : null;
+
+  /** 源码 ProductInfo.vue 284–320 老 UI 分支：`.number-box > .title + .con`（标题带冒号，输入框后跟库存） */
+  const qty = (
+    <div className="number-box">
+      <div className="title">{t('数量')}：</div>
+      <div className="con">
+        <InputNumber
+          min={1}
+          max={maxQuantity}
+          value={quantity}
+          disabled={outOfStock}
+          onChange={(value) => changeQuantity(Math.max(1, Math.min(maxQuantity, Number(value) || 1)))}
+        />
+        <span className="stock-text">
+          {t('件')}
+          {limit > 0 ? `（${t('限购')} ${limit} ${t('件')}）` : ''}
+        </span>
+      </div>
     </div>
   );
 
@@ -1225,30 +1366,42 @@ export default function ProductDetailClient({
    */
   const qtyBlock = isB2BMode && b2bTabIndex === 1 ? b2bPanel : qty;
 
-  /** 源码 Buy / FloatBuyBar / #overseas-product-buy-actions */
+  // 旧版 ProductInfo 用 product.productType 判断预约商品（5/6）；新接口字段同名，缺失时按普通商品处理
+  const isReservation = Number((item as any).productType) === 5 || Number((item as any).productType) === 6;
+
+  /**
+   * 源码 components/product/ProductInfo.vue 350–463：`.add_cart` 内是 ProductBuy（Buy.vue）
+   * 包住的旧版按钮 —— `.buy(.disabled) > .buy-btn`（加购）/ `.buy > .buy-btn.buynow`（立即购买）；
+   * 售罄且非预约商品时换成 `.buy-btn.buynow` 的「查看其他商品」跳 /search。
+   */
   const actions = (
-    <div className="pds-actions">
-      <Button
-        size="large"
-        theme="solid"
-        type="primary"
-        icon={<IconCart />}
-        loading={adding}
-        disabled={outOfStock || skuDisabled || requireSku}
-        onClick={() => void add()}
-      >{t('加入购物车')}</Button>
-      <Button
-        size="large"
-        theme="light"
-        type="primary"
-        icon={<IconCreditCard />}
-        disabled={outOfStock || skuDisabled || requireSku}
-        onClick={() => void add('buy')}
-      >{t('立即购买')}</Button>
-      <Button size="large" loading={collecting} onClick={() => void collect()}>
-        {collected ? '已收藏' : '收藏'}
-      </Button>
-      <Button size="large" onClick={() => void openShare()}>{t('分享')}</Button>
+    <div className="add_cart">
+      {outOfStock && !isReservation ? (
+        <div className="buy">
+          <Link href="/search">
+            <button type="button" className="buy-btn buynow">{t('查看其他商品')}</button>
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div
+            className={`buy mp-buy${outOfStock || skuDisabled || requireSku ? ' disabled' : ''}`}
+            onClick={() => { if (!outOfStock && !skuDisabled && !requireSku) void add(); }}
+          >
+            <button type="button" className="buy-btn" disabled={outOfStock || skuDisabled || requireSku}>
+              {adding ? t('加入中…') : t('加入购物车')}
+            </button>
+          </div>
+          <div
+            className={`buy mp-buy${outOfStock || skuDisabled || requireSku ? ' disabled' : ''}`}
+            onClick={() => { if (!outOfStock && !skuDisabled && !requireSku) void add('buy'); }}
+          >
+            <button type="button" className="buy-btn buynow" disabled={outOfStock || skuDisabled || requireSku}>
+              {isReservation ? t('立即预约') : t('立即购买')}
+            </button>
+          </div>
+        </>
+      )}
       <RawImageDownloadButton productId={productId} shopId={shopId || undefined} />
     </div>
   );
@@ -1260,23 +1413,28 @@ export default function ProductDetailClient({
     </>
   );
 
-  /** 源码服务说明（新版分段卡片 / 跨境 accordion） */
+  /**
+   * 源码 ProductInfo.vue 527 附近的 `.serviceAction`：旧版把服务说明做成售后气泡。
+   * ⚠️ 这里的四条文案是占位（新接口里还没有 serviceList 字段），结构用旧版类名，
+   * 等接口补 serviceList 后应改成从数据渲染。
+   */
   const services = (
-    <div className="pds-accordion">
-      {[
-        { key: 'ship', title: '售全球', desc: '支持全国及海外配送，具体运费以下单结算为准。' },
-        { key: 'fast', title: '24小时发货', desc: '现货商品付款后 24 小时内发出，节假日顺延。' },
-        { key: 'refund', title: '7天无理由退换货', desc: '签收后 7 天内，商品不影响二次销售可申请退换。' },
-        { key: 'ontime', title: '准时到达', desc: '超时未送达可联系客服协调处理。' },
-      ].map((row) => (
-        <div className={`pds-accordion__row${openService === row.key ? ' is-open' : ''}`} key={row.key}>
-          <button type="button" onClick={() => setOpenService(openService === row.key ? null : row.key)}>
-            <span>{row.title}</span>
-            <i>{openService === row.key ? '⌃' : '⌄'}</i>
-          </button>
-          {openService === row.key ? <p>{row.desc}</p> : null}
-        </div>
-      ))}
+    <div className="serviceAction">
+      <div className="goods_desc shouhou advisory" id="shouhou">
+        {[
+          { key: 'ship', title: '售全球', desc: '支持全国及海外配送，具体运费以下单结算为准。' },
+          { key: 'fast', title: '24小时发货', desc: '现货商品付款后 24 小时内发出，节假日顺延。' },
+          { key: 'refund', title: '7天无理由退换货', desc: '签收后 7 天内，商品不影响二次销售可申请退换。' },
+          { key: 'ontime', title: '准时到达', desc: '超时未送达可联系客服协调处理。' },
+        ].map((row) => (
+          <div className={`item${openService === row.key ? ' is-open' : ''}`} key={row.key}>
+            <div className="tit hand-pointer" onClick={() => setOpenService(openService === row.key ? null : row.key)}>
+              {row.title}
+            </div>
+            {openService === row.key ? <div className="desc_text">{row.desc}</div> : null}
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -1386,39 +1544,96 @@ export default function ProductDetailClient({
     </div>
   );
 
-  /** 经典版 / 国内标准版：Tab 切换式详情（源码 ProductDetailTabs / ProductDetailNew） */
+  /**
+   * 经典版：源码 pages/item/src/ProductDetailTabs.vue（289 行）的 Tab 区。
+   * `.lyecs_main > .goods_tab_wrap.sticky-element > .tabs > ul.flex > li > a.tab_a(.current) > span`
+   * 内容区 `.goods_desc(.paidcontent/.shouhou/.goods_ask) > .tab_title > h2 > span.icon`，
+   * 产品详情里先 `.goods_description`（付费内容）→ `.shuxin.flex`（属性）→ `.goods_description`（富文本）。
+   * 旧版没有单独「规格参数」Tab，属性是 `.shuxin` 放在产品详情里，所以这里也不单列。
+   */
   const tabs = (
-    <div className="pds-tabs">
-      <div className="pds-tabs__nav">
-        {([
-          { key: 'detail', label: t('商品详情') },
-          { key: 'params', label: t('规格参数') },
-          { key: 'comment', label: t('商品评价({n})', { n: commentTotal }) },
-          { key: 'consult', label: t('商品咨询({n})', { n: consultTotal }) },
-        ] as const).map((entry) => (
-          <button
-            key={entry.key}
-            type="button"
-            className={tab === entry.key ? 'is-active' : ''}
-            onClick={() => setTab(entry.key)}
-          >
-            {t(entry.label)}
-          </button>
-        ))}
+    // 生成样式为 .mp-product-tabs { .lyecs_main { ... } }，必须父子嵌套（对齐旧版组件根结构）
+    <div className="mp-product-tabs">
+      <div className="lyecs_main">
+      <div className="goods_tab_wrap sticky-element">
+        <div className="tabs">
+          <ul className="flex">
+            <li onClick={() => setTab('detail')}>
+              <a href="javascript:;" tab-data="info" className={`tab_a${tab === 'detail' ? ' current' : ''}`}>
+                <span>{t('产品详情')}</span>
+              </a>
+            </li>
+            {commentEnabled === 1 ? (
+              <li onClick={() => setTab('comment')}>
+                <a href="javascript:;" tab-data="com" className={`tab_a${tab === 'comment' ? ' current' : ''}`}>
+                  <span>{t('用户评价')}<em>({commentTotal})</em></span>
+                </a>
+              </li>
+            ) : null}
+            <li onClick={() => setTab('consult')}>
+              <a href="javascript:;" tab-data="ask" className={`tab_a${tab === 'consult' ? ' current' : ''}`}>
+                <span>{t('商品咨询')}<em>({consultTotal})</em></span>
+              </a>
+            </li>
+            <li onClick={() => setTab('service')}>
+              <a href="javascript:;" tab-data="ser" className={`tab_a${tab === 'service' ? ' current' : ''}`}>
+                <span>{t('售后服务')}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div className="pds-tabs__body">
-        {tab === 'detail' ? (
-          <Card className="pds-card" title={t('商品详情')}>
-            {descContent}
-            <div className="pds-back"><Link href="/">{t('返回首页')}</Link></div>
-          </Card>
-        ) : tab === 'params' ? (
-          <Card className="pds-card" title={t('规格参数')}>{paramsContent}</Card>
-        ) : tab === 'comment' ? (
-          <Card className="pds-card" title={t('商品评价')}>{commentContent}</Card>
-        ) : (
-          <Card className="pds-card" title={t('商品咨询')}>{consultContent}</Card>
-        )}
+
+      {tab === 'detail' ? (
+        <div className="goods_desc paidcontent" id="xiangqing">
+          {detail.attrList?.normal?.length ? (
+            <ul className="shuxin flex">
+              {detail.attrList.normal.map((attr: any, index: number) => (
+                <li key={index}>
+                  {attr.attrName}：{(attr.attrList || []).map((row: any) => row.attrValue).join(' ')}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <div className="goods_description">
+            {(detail.descArr || []).map((desc, index) =>
+              desc.type === 'pic' || desc.pic ? (
+                <img className="el-img" key={index} src={desc.pic} alt={item.productName || ''} />
+              ) : desc.html ? (
+                <div className="desc-text-item" key={index} dangerouslySetInnerHTML={{ __html: desc.html }} />
+              ) : null,
+            )}
+            {!detail.descArr?.length ? <p className="pds-empty">{t('暂无详情')}</p> : null}
+          </div>
+        </div>
+      ) : null}
+
+      {tab === 'comment' && commentEnabled === 1 ? (
+        <div className="goods_desc" id="pingjia">
+          <div className="tab_title">
+            <h2><span className="icon" />{t('用户评价')}</h2>
+          </div>
+          {commentContent}
+        </div>
+      ) : null}
+
+      {tab === 'consult' ? (
+        <div className="goods_desc goods_ask" id="zixun">
+          <div className="tab_title">
+            <h2><span className="icon" />{t('商品咨询')}</h2>
+          </div>
+          {consultContent}
+        </div>
+      ) : null}
+
+      {tab === 'service' ? (
+        <div className="goods_desc shouhou" id="shouhou">
+          <div className="tab_title">
+            <h2><span className="icon" />{t('售后服务')}</h2>
+          </div>
+          {services}
+        </div>
+      ) : null}
       </div>
     </div>
   );
@@ -1532,6 +1747,7 @@ export default function ProductDetailClient({
     shareSocial,
     shopCard,
     gallery,
+    collectButton,
     galleryMeta,
     heading,
     promos,

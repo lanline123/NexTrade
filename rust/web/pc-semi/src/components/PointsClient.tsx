@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button, Card } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
@@ -24,14 +24,7 @@ interface PointResult {
 type TypeFilter = 'all' | 'income' | 'expense';
 
 const PAGE_SIZE = 30;
-const TABS: Array<{ key: TypeFilter; label: string }> = [
-  { key: 'all', label: '全部' },
-  { key: 'income', label: '收入' },
-  { key: 'expense', label: '支出' },
-];
 
-const thStyle: CSSProperties = { textAlign: 'left', padding: '15px 10px', border: '1px solid #ddd', fontSize: 14, background: '#f5f6fa' };
-const tdStyle: CSSProperties = { padding: '15px 10px', border: '1px solid #ddd', fontSize: 14 };
 
 export default function PointsClient({
   /** 站点积分名称（旧版 commonStore.integralName） */
@@ -119,80 +112,64 @@ export default function PointsClient({
   });
 
   return (
-    <div className="member-points">
-      <Card className="member-points__summary">
-        <span>{t('当前{name}', { name })}</span>
-        <b>{totalPoints}</b>
-      </Card>
-      <Card className="member-card" title={t('{name}明细', { name })}>
-        <div className="member-points__tabs" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setTypeFilter(tab.key)}
-              style={{
-                padding: '6px 18px',
-                cursor: 'pointer',
-                borderRadius: 4,
-                border: '1px solid #ddd',
-                background: typeFilter === tab.key ? '#a9781b' : '#fff',
-                color: typeFilter === tab.key ? '#fff' : '#333',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        {loading ? (
-          <p>{t('积分记录加载中...')}</p>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
-            <thead>
-              <tr>
-                <th style={{ ...thStyle, width: 160 }}>{t('操作时间')}</th>
-                <th style={{ ...thStyle, width: 80 }}>{t('类型')}</th>
-                <th style={{ ...thStyle, width: 80 }}>{name}</th>
-                <th style={thStyle}>{t('备注')}</th>
-              </tr>
-            </thead>
+    <div className="info-row mp-point-list">
+      <div className="title-or-tabs">
+        <span>{t('{name}明细', { name })}</span>
+      </div>
+      <div className="point-info">
+        <table className="custom-table">
+          <thead className="table-header">
+            <tr>
+              <th className="header-cell header-cell-first" style={{ width: 160 }}>{t('操作时间')}</th>
+              <th className="header-cell" style={{ width: 80 }}>{t('类型')}</th>
+              <th className="header-cell" style={{ width: 80 }}>{name}</th>
+              <th className="header-cell header-cell-last">{t('备注')}</th>
+            </tr>
+          </thead>
+          {filteredRows.length ? (
             <tbody>
-              {filteredRows.length ? (
-                filteredRows.map((row, index) => (
-                  <tr key={row.logId || index}>
-                    <td style={tdStyle}>{row.changeTime || '-'}</td>
-                    <td style={tdStyle}>{row.changeTypeName || row.changeDesc || t('积分变动')}</td>
-                    <td style={{ ...tdStyle, color: Number(row.points) >= 0 ? '#c0392b' : '#2e8b57', fontWeight: 600 }}>
-                      {Number(row.points) >= 0 ? '+' : ''}{row.points}
-                    </td>
-                    <td style={tdStyle}>{row.changeDesc || '-'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td style={{ ...tdStyle, textAlign: 'center', height: 150, fontSize: 20 }} colSpan={4}>{t('您还没有{name}明细', { name })}</td>
+              {filteredRows.map((row, index) => (
+                <tr key={row.logId || index}>
+                  <td>{row.changeTime || '-'}</td>
+                  <td>{row.changeTypeName || row.changeDesc || t('积分变动')}</td>
+                  <td className="font-color">{row.points}</td>
+                  <td>{row.changeDesc || '-'}</td>
                 </tr>
-              )}
+              ))}
             </tbody>
-            <tfoot>
+          ) : (
+            <tbody>
               <tr>
-                <td style={{ ...tdStyle, background: '#f5f6fa', borderTop: '1px solid #ddd' }} colSpan={4}>
-                  {t('您的当前{name}为：', { name })}<b>{totalPoints}</b>
-                </td>
+                <td className="no-table-result" colSpan={4}>{loading ? '' : t('您还没有{name}明细', { name })}</td>
               </tr>
-            </tfoot>
-          </table>
-        )}
-      </Card>
-      {total > PAGE_SIZE ? (
-        <div className="pc-pagination">
-          {Array.from({ length: Math.ceil(total / PAGE_SIZE) }).map((_, index) => (
-            <button key={index} type="button" className={index + 1 === page ? 'is-active' : ''} onClick={() => setPage(index + 1)}>
-              {index + 1}
-            </button>
-          ))}
-        </div>
-      ) : null}
+            </tbody>
+          )}
+          <tfoot className="table-footer">
+            <tr>
+              <td colSpan={4}>
+                {t('您的当前{name}为', { name })}：<span className="font-color">{totalPoints}</span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        {total > PAGE_SIZE ? (
+          <div className="el-page">
+            <div className="pagination">
+              <button type="button" disabled={page <= 1} aria-label={t('上一页')} onClick={() => setPage(page - 1)}>
+                {'<'}
+              </button>
+              {Array.from({ length: Math.ceil(total / PAGE_SIZE) }).map((_, index) => (
+                <button key={index} type="button" className={index + 1 === page ? 'is-active' : ''} onClick={() => setPage(index + 1)}>
+                  {index + 1}
+                </button>
+              ))}
+              <button type="button" disabled={page >= Math.ceil(total / PAGE_SIZE)} aria-label={t('下一页')} onClick={() => setPage(page + 1)}>
+                {'>'}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

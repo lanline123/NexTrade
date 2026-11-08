@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Button, Checkbox, InputNumber, Modal, Toast } from '@douyinfe/semi-ui';
+import { Checkbox, InputNumber, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
+import { formatDateTime } from '@/lib/datetime';
 import PresaleSteps from '@/components/PresaleSteps';
 
 import { useTranslation } from 'react-i18next';
@@ -553,16 +554,50 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
     }
   };
 
-  if (loading) return <div className="pc-co-state">{t('结算数据加载中...')}</div>;
+  // 旧版 check.vue 没有空态/未登录页，外层壳照旧版走，文案放 .form_item > .top_row > .tit 里，
+  // 这样间距、字体、白卡背景都还是 check.less 的既有规则，不自造新外壳。
+  if (loading) {
+    return (
+      <div className="order-check-page mp-check">
+        <div className="flex_csb container">
+          <div className="orderConfirmCon">
+            <div className="orderConfirmConTop">
+              <div className="form_item">
+                <div className="top_row">
+                  <div className="tit">{t('结算数据加载中...')}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (needLogin) {
     return (
-      <div className="pc-co-state">
-        <h2>{t('登录后结算')}</h2>
-        <p>{t('请先登录账号，再确认收货地址和支付方式。')}</p>
-        <Link href="/login?redirect=/cart">
-          <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
-        </Link>
+      <div className="order-check-page mp-check">
+        <div className="flex_csb container">
+          <div className="orderConfirmCon">
+            <div className="orderConfirmConTop">
+              <div className="form_item">
+                <div className="top_row">
+                  <div className="tit">{t('登录后结算')}</div>
+                </div>
+                <div className="from">
+                  <p>{t('请先登录账号，再确认收货地址和支付方式。')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="money_info">
+              <div className="submit">
+                <Link href="/login?redirect=/cart">
+                  <button type="button" className="btn buy-btn">{t('去登录')}</button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -577,646 +612,904 @@ export default function CheckoutClient({ cartIds, flowType = 1 }: { cartIds: num
   const submitDisabled = !items.length || (needAddress && !addressId) || !payTypeId || !shippingType;
 
   return (
-    <div className="pc-co">
-      <div className="pc-co__main">
-        {/* 收货地址 */}
-        <section className="pc-co-card">
-          <div className="pc-co-card__head">
-            <h2>{t('收货地址')}</h2>
-            <button type="button" className="pc-co-link" onClick={() => setAddressOpen(true)}>{t('更改')}<span className="pc-co-caret">›</span>
-            </button>
-          </div>
-          {selectedAddress ? (
-            <div className="pc-co-address">
-              <div className="pc-co-address__line">
-                <b>{selectedAddress.consignee || '-'}</b>
-                <span>
-                  {selectedAddress.mobileAreaCode ? `+${selectedAddress.mobileAreaCode} ` : ''}
-                  {selectedAddress.mobile || '-'}
-                </span>
-                {Number(selectedAddress.isInvalid) ? <em className="pc-co-invalid">{t('无效地址')}</em> : null}
-              </div>
-              <p>{selectedAddress.formattedAddress || selectedAddress.fullAddress || [selectedAddress.regionName, selectedAddress.address].filter(Boolean).join(' ')}</p>
-              {selectedAddress.email || selectedAddress.telephone ? (
-                <small>
-                  {selectedAddress.email || '-'} {selectedAddress.telephone ? ` / ${selectedAddress.telephone}` : ''}
-                </small>
-              ) : null}
-            </div>
-          ) : (
-            <div className="pc-co-address pc-co-address--empty">{t('暂无收货地址，')}<Link href="/member/address">{t('去添加地址')}</Link>
-            </div>
-          )}
-          {showDeliveryOption ? (
-            <p className="pc-co-hint">
-              {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? t('门店自提') : '配送')}
-              {fieldValue(deliveryOption, ['storeName', 'pickupName']) ? `：${fieldValue(deliveryOption, ['storeName', 'pickupName'])}` : ''}
-              {fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address']) ? ` · ${fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address'])}` : ''}
-            </p>
-          ) : null}
-        </section>
-
-        {/* 支付方式 */}
-        <section className="pc-co-card">
-          <div className="pc-co-card__head">
-            <h2>{t('支付方式')}</h2>
-          </div>
-          {payments.length ? (
-            <div className="pc-co-pay">
-              {payments.map((payment) => (
-                <button
-                  key={payment.typeId}
-                  type="button"
-                  className={`pc-co-pay__item${payTypeId === payment.typeId ? ' is-active' : ''}`}
-                  onClick={() => setPayTypeId(payment.typeId)}
-                >
-                  {payment.icon ? <img src={payment.icon} alt="" /> : null}
-                  <span>{payment.typeName || payment.name || t('支付方式 {id}', { id: payment.typeId })}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="pc-co-hint">{t('暂无可用支付方式')}</p>
-          )}
-        </section>
-
-        {/* 商品：按店铺分组 */}
-        {(data?.cartList || []).map((group) => {
-          const groupOptions =
-            shippingData[String(group.shopId)] ||
-            ((data?.item?.storeShippingType as Record<string, ShippingTypeOption[]>) || {})[String(group.shopId)] ||
-            [];
-          const selected = (shippingType as Record<string, { typeId?: number }>)[String(group.shopId)];
-          return (
-            <section className="pc-co-card" key={`shop-${group.shopId}`}>
-              <div className="pc-co-shop">
-                <span>{Number(group.shopId) === 0 ? t('自营') : t('商家：{name}', { name: group.shopTitle || '' })}</span>
-              </div>
-
-              {Number(group.noShipping) === 1 ? (
-                <div className="pc-co-ship">
-                  <span className="pc-co-ship__label">{t('配送')}</span>
-                  <em className="pc-co-ship__tab is-active">{t('无需配送')}</em>
+    <div className="order-check-page mp-check">
+      <div className="flex_csb container">
+        <div className="orderConfirmCon">
+          {/* 收货地址：旧版 pages/order/src/Address.vue —— .form_item > .top_row(.tit + .add_btn) + .addressManage */}
+          <div className="orderConfirmConTop">
+            <div className="form_item mp-check-address">
+              <div className="top_row flex justify-between" style={{ paddingBottom: 0 }}>
+                <div className="tit">{t('收货地址')}</div>
+                <div className="add_btn" onClick={() => setAddressOpen(true)}>
+                  <span className="flex_cc">{t('更改')}</span>
                 </div>
-              ) : groupOptions.length ? (
-                <div className="pc-co-ship">
-                  <span className="pc-co-ship__label">{t('配送')}</span>
-                  {groupOptions.map((option, index) => {
-                    const typeId = Number(option.shippingTypeId || option.typeId || 0);
-                    const active = Number(selected?.typeId || 0) === typeId;
-                    return (
-                      <button
-                        key={`${typeId}-${index}`}
-                        type="button"
-                        className={`pc-co-ship__tab${active ? ' is-active' : ''}`}
-                        onClick={() => onChangeShipping(group.shopId, option)}
-                      >
-                        {option.shippingTypeName || option.typeName || t('配送 {id}', { id: typeId })}
-                      </button>
-                    );
-                  })}
+              </div>
+              {selectedAddress ? (
+                <div className="addressManage">
+                  <div className="addressManage_name">
+                    <span>{selectedAddress.consignee || '-'}</span>
+                    {Number(selectedAddress.isInvalid) ? (
+                      <span className="invalid-tag">{t('无效地址')}</span>
+                    ) : null}
+                  </div>
+                  <div className="info">
+                    <span>{selectedAddress.regionName}</span>
+                    <span>&nbsp;{selectedAddress.address}</span>
+                    {selectedAddress.mobile ? (
+                      <span>
+                        &nbsp;
+                        {selectedAddress.mobileAreaCode ? `+${selectedAddress.mobileAreaCode} ` : ''}
+                        {selectedAddress.mobile}
+                      </span>
+                    ) : null}
+                  </div>
+                  {showDeliveryOption ? (
+                    <div className="info">
+                      <span>
+                        {fieldValue(deliveryOption, ['deliveryTypeName']) || (selfPickup ? t('门店自提') : '配送')}
+                        {fieldValue(deliveryOption, ['storeName', 'pickupName'])
+                          ? `：${fieldValue(deliveryOption, ['storeName', 'pickupName'])}`
+                          : ''}
+                        {fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address'])
+                          ? ` · ${fieldValue(deliveryOption, ['storeAddress', 'pickupAddress', 'address'])}`
+                          : ''}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
-                <div className="pc-co-ship">
-                  <span className="pc-co-ship__label">{t('配送')}</span>
-                  <em className="pc-co-ship__error">{t('该收货地址不支持配送')}</em>
+                <div className="no-result">
+                  <span>{t('暂无收货地址')}</span>
                 </div>
               )}
+            </div>
+          </div>
 
-              <div className="pc-co-goods">
-                {(group.carts || []).map((product) => {
-                  const percent = discountPercent(product.price, product.productPrice);
-                  return (
-                    <div className="pc-co-goods__row" key={product.cartId}>
-                      <div className="pc-co-goods__main">
-                        <img src={product.picThumb || ''} alt={product.productName || ''} />
-                        <div className="pc-co-goods__info">
-                          <div className="pc-co-goods__name">
-                            {percent > 0 ? <em className="pc-co-badge">优惠{percent}%</em> : null}
-                            {product.productName}
-                          </div>
-                          {(product.skuData || []).length ? (
-                            <div className="pc-co-goods__sku">
-                              {(product.skuData || []).map((sku, index) => (
-                                <div key={`${sku.name}-${index}`}>
-                                  <span>{sku.name}：</span>
-                                  {sku.value}
-                                </div>
-                              ))}
-                            </div>
-                          ) : null}
-                          {(product.extraSkuData || []).length ? (
-                            <div className="pc-co-goods__extra">
-                              {(product.extraSkuData || []).map((attr, index) => (
-                                <div key={`${attr.attrName}-${index}`}>
-                                  <span>{attr.attrName}</span>
-                                  <i />
-                                  <b>{attr.attrValue}</b>
-                                  {Number(attr.attrPrice || 0) !== 0 ? <em>¥{money(attr.attrPrice)}</em> : null}
-                                </div>
-                              ))}
-                            </div>
-                          ) : null}
-                          {activityList(product.activityInfo).length ? (
-                            <div className="pc-co-goods__promo">
-                              {activityList(product.activityInfo).map((activity, index) => (
-                                <span key={`${activity.promotionId}-${index}`}>
-                                  {Number(activity.type) === 1 ? t('秒杀价') : '限时折扣'}
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className="pc-co-goods__price">¥ {money(product.price)}</div>
-                      <div className="pc-co-goods__qty">x{product.quantity || 1}</div>
-                    </div>
-                  );
-                })}
+          {/* 支付方式：旧版 pages/order/src/PayType.vue —— .form_item > .top_row + .pay_type > .el-radio-group */}
+          <div className="orderConfirmConTop">
+            <div className="form_item mp-check-paytype">
+              <div className="top_row">
+                <div className="tit">{t('确认支付方式')}</div>
               </div>
+              <div className="pay_type">
+                {payments.length ? (
+                  <div className="el-radio-group" style={{ display: 'grid' }}>
+                    {payments.map((payment) => {
+                      const active = payTypeId === payment.typeId;
+                      return (
+                        <label
+                          key={payment.typeId}
+                          className={`el-radio${active ? ' is-checked' : ''}`}
+                          onClick={() => setPayTypeId(payment.typeId)}
+                        >
+                          <span className={`el-radio__input${active ? ' is-checked' : ''}`}>
+                            <span className="el-radio__inner" />
+                          </span>
+                          <span className="el-radio__label">
+                            {payment.icon ? <img src={payment.icon} alt="" style={{ width: 24, height: 24, marginRight: 6 }} /> : null}
+                            {payment.typeName || payment.name || t('支付方式 {id}', { id: payment.typeId })}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                {payTypeId === 0 ? (
+                  <span className="errInfo red" style={{ display: 'inline', margin: 0, lineHeight: '15px' }}>
+                    {t('请选择支付方式')}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
-              {(group.gift || []).length ? (
-                <div className="pc-co-gift">
-                  <div className="pc-co-gift__title">{t('赠品')}</div>
-                  <div className="pc-co-gift__list">
-                    {(group.gift || []).map((gift, index) => (
-                      <div className="pc-co-gift__item" key={`${gift.giftId}-${index}`}>
-                        <img src={gift.picThumb || gift.image || ''} alt={gift.productName || ''} />
-                        <div>
-                          <p>{gift.productName}</p>
-                          {(gift.skuData || []).length ? <small>{(gift.skuData || []).map((sku: any) => sku.value).join(' / ')}</small> : null}
-                          <em>x{gift.num || 1}</em>
+          {/* 商品：旧版 check.vue 每个店铺一个 .orderConfirmConTop > .form_item > .product_detail */}
+          {(data?.cartList || []).map((group) => {
+            const groupOptions =
+              shippingData[String(group.shopId)] ||
+              ((data?.item?.storeShippingType as Record<string, ShippingTypeOption[]>) || {})[String(group.shopId)] ||
+              [];
+            const selected = (shippingType as Record<string, { typeId?: number }>)[String(group.shopId)];
+            return (
+              <div className="orderConfirmConTop" key={`shop-${group.shopId}`}>
+                <div className="form_item">
+                  <div className="product_detail">
+                    <div className="shop_name">
+                      {Number(group.shopId) === 0 ? t('自营') : group.shopTitle || ''}
+                    </div>
+
+                    {Number(group.noShipping) === 1 ? (
+                      <div className="delivery">
+                        <div className="tit">{t('配送')}</div>
+                        <div className="no_delivery">
+                          <span className="errInfo red">{t('无需配送')}</span>
                         </div>
                       </div>
-                    ))}
+                    ) : groupOptions.length ? (
+                      <div className="delivery">
+                        <div className="tit">{t('配送')}</div>
+                        <div className="delivery_tags flex_cc">
+                          {groupOptions.map((option, index) => {
+                            const typeId = Number(option.shippingTypeId || option.typeId || 0);
+                            const active = Number(selected?.typeId || 0) === typeId;
+                            return (
+                              <div
+                                className={`pay_tab flex align-center${active ? ' active' : ''}`}
+                                key={`${typeId}-${index}`}
+                                onClick={() => onChangeShipping(group.shopId, option)}
+                              >
+                                <span>{option.shippingTypeName || option.typeName || t('配送 {id}', { id: typeId })}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="delivery">
+                        <div className="tit">{t('配送')}</div>
+                        <div className="no_delivery">
+                          <span className="errInfo red">{t('该收货地址不支持配送')}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="detail">
+                      {(group.carts || []).map((product) => {
+                        const percent = discountPercent(product.price, product.productPrice);
+                        const skuText = (product.skuData || []).map((sku) => sku.value).filter(Boolean).join(' / ');
+                        return (
+                          <div className="list flex align-start" key={product.cartId}>
+                            <div className="flex align-start">
+                              <div className="pic">
+                                <Link href={`/product/${product.productId}`}>
+                                  <img src={product.picThumb || ''} alt={product.productName || ''} />
+                                </Link>
+                              </div>
+                              <div className="describe flex flex-column">
+                                <div className="name ellipsis">
+                                  <Link href={`/product/${product.productId}`}>
+                                    {percent > 0 ? (
+                                      <span className="seckill-item-discount">
+                                        <span className="discount-txt">{t('优惠 {percent}%', { percent })}</span>
+                                      </span>
+                                    ) : null}
+                                    {product.productName}
+                                  </Link>
+                                </div>
+                                {skuText ? (
+                                  <div className="mt10 sku-name-box">
+                                    <div className="sku-name-item">
+                                      <span className="sku-name">{skuText}</span>
+                                    </div>
+                                  </div>
+                                ) : null}
+                                {(product.extraSkuData || []).length ? (
+                                  <div className="extraskudata">
+                                    {(product.extraSkuData || []).map((attr, index) => (
+                                      <div className="extraskudata-item" key={`${attr.attrName}-${index}`}>
+                                        <div className="title">{attr.attrName}</div>
+                                        <div className="line-box">
+                                          <div className="line" />
+                                        </div>
+                                        <div className="content">
+                                          <span className="content-text">{attr.attrValue}</span>
+                                          {Number(attr.attrPrice || 0) !== 0 ? <>¥ {money(attr.attrPrice)}</> : null}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : null}
+                                {activityList(product.activityInfo).length ? (
+                                  <div className="activity-box">
+                                    <div className="promotion">
+                                      <div className="ticket-content">
+                                        {activityList(product.activityInfo).map((activity, index) => (
+                                          <span className="discount-txt" key={`${activity.promotionId}-${index}`}>
+                                            {Number(activity.type) === 1 ? t('秒杀价') : '限时折扣'}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                            <div className="money">¥ {money(product.price)}</div>
+                            <div className="quantity">x{product.quantity || 1}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {(group.gift || []).length ? (
+                      <div className="gift-box">
+                        <div className="gift-title">{t('赠品')}</div>
+                        <div className="gift-content">
+                          {(group.gift || []).map((gift, index) => (
+                            <div className="gift-content-item" key={`${gift.giftId}-${index}`}>
+                              <div className="gift-item-left">
+                                <div className="gift-img">
+                                  <img src={gift.picThumb || gift.image || ''} alt={gift.productName || ''} />
+                                </div>
+                              </div>
+                              <div className="gift-item-right">
+                                <div className="gift-item-name">{gift.productName}</div>
+                                {(gift.skuData || []).length ? (
+                                  <div className="sku-card">
+                                    {(gift.skuData || []).map((sku: any, skuIndex: number) => (
+                                      <div className="sku-item" key={`${sku.name}-${skuIndex}`}>
+                                        {sku.name}：{sku.value}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : null}
+                                <div className="gift-item-num">x{gift.num || 1}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
-              ) : null}
-            </section>
-          );
-        })}
+              </div>
+            );
+          })}
 
-        {/* 预售 */}
-        {presale ? (
-          <section className="pc-co-card">
-            <div className="pc-co-card__head">
-              <h2>{t('预售信息')}</h2>
+          {/* 预售步骤条：旧版 .orderConfirmConTop.presale-steps */}
+          {presale ? (
+            <div className="orderConfirmConTop presale-steps">
+              <PresaleSteps productPresale={presale} presaleStatus={0} total={total} />
             </div>
-            {/* 预售步骤条（源码 pages/order/src/presaleSteps.vue，三段式定金→尾款→发货 + 规则浮层） */}
-            <PresaleSteps productPresale={presale} presaleStatus={0} total={total} />
-            <div className="pc-co-presale">
-              {Number(total.actualPayDepositAmount || 0) > 0 ? (
-                <div>
-                  <span>{t('应付定金')}</span>
-                  <b>¥ {money(total.actualPayDepositAmount)}</b>
-                </div>
-              ) : null}
-              {fieldValue(presale, ['depositAmount', 'presaleDepositAmount']) ? (
-                <div>
-                  <span>{t('定金')}</span>
-                  <b>¥ {money(fieldValue(presale, ['depositAmount', 'presaleDepositAmount']))}</b>
-                </div>
-              ) : null}
-              {fieldValue(presale, ['presalePrice', 'presalePriceAmount']) ? (
-                <div>
-                  <span>{t('预售价')}</span>
-                  <b>¥ {money(fieldValue(presale, ['presalePrice', 'presalePriceAmount']))}</b>
-                </div>
-              ) : null}
-              {fieldValue(presale, ['tailAmount', 'balanceAmount']) ? (
-                <div>
-                  <span>{t('尾款')}</span>
-                  <b>¥ {money(fieldValue(presale, ['tailAmount', 'balanceAmount']))}</b>
-                </div>
-              ) : null}
-            </div>
-            <p className="pc-co-hint">预售订单按定金/尾款规则支付，具体时间以商品页说明为准。</p>
-          </section>
-        ) : null}
+          ) : null}
 
-        {/* 订单备注 */}
-        <section className="pc-co-card">
-          <div className="pc-co-card__head">
-            <h2>{t('订单备注')}</h2>
-          </div>
-          <div className="pc-co-note">
-            <textarea
-              rows={2}
-              maxLength={50}
-              value={buyerNote}
-              placeholder={t('提示：请勿填写有关支付、收货、发票方面的信息')}
-              onChange={(event) => changeNote(event.target.value)}
-            />
-            <span>{buyerNote.length}/50</span>
-          </div>
-        </section>
-
-        {/* 优惠券（旧版 CouponInfo.vue：可用/不可用切换） */}
-        {!giftCardMode && data?.couponList ? (
-          <section className="pc-co-card">
-            <div className="pc-co-card__head">
-              <h2>{t('优惠券')}</h2>
-              <div className="pc-co-tabs">
-                <button type="button" className={couponTab === 0 ? 'is-active' : ''} onClick={() => setCouponTab(0)}>{t('可用')}<em>{coupons.length}</em>
-                </button>
-                <button type="button" className={couponTab === 1 ? 'is-active' : ''} onClick={() => setCouponTab(1)}>{t('不可用')}<em>{disableCoupons.length}</em>
-                </button>
+          {/* 订单备注：旧版 .form_item > .add_remark > .a_rmk_tit + el-input */}
+          <div className="orderConfirmConTop">
+            <div className="form_item">
+              <div className="add_remark">
+                <div className="a_rmk_tit">{t('订单备注')}</div>
+                <div className="el-textarea">
+                  <textarea
+                    className="el-textarea__inner"
+                    rows={2}
+                    maxLength={50}
+                    value={buyerNote}
+                    placeholder={t('提示：请勿填写有关支付、收货、发票方面的信息')}
+                    onChange={(event) => changeNote(event.target.value)}
+                  />
+                </div>
               </div>
             </div>
+          </div>
 
-            {couponTab === 0 ? (
-              coupons.length ? (
-                <div className="pc-co-coupon-grid">
-                  {coupons.map((coupon) => {
-                    const userCouponId = Number(coupon.userCouponId || 0);
-                    const active = userCouponIds.includes(userCouponId);
-                    return (
-                      <label className={`pc-co-coupon${active ? ' is-active' : ''}`} key={userCouponId}>
-                        <Checkbox checked={active} onChange={() => toggleCoupon(coupon)} />
-                        <div className="pc-co-coupon__amount">
-                          {Number(coupon.couponType) === 1 || Number(coupon.couponMoney || 0) > 0 ? (
-                            <>
-                              <small>¥</small>
-                              <b>{money(coupon.couponMoney)}</b>
-                            </>
-                          ) : (
-                            <>
-                              <b>{coupon.couponDiscount || '-'}</b>
-                              <small>{t('折')}</small>
-                            </>
-                          )}
-                        </div>
-                        <div className="pc-co-coupon__main">
-                          <b>{coupon.couponName || t('优惠券')}</b>
-                          <small className="pc-co-coupon__time">
-                            {coupon.startDate ? t('{a} 至 {b}', { a: coupon.startDate, b: coupon.endDate || '' }) : t('{b} 前有效', { b: coupon.endDate || '' })}
-                          </small>
-                          {coupon.couponDesc ? <em>{coupon.couponDesc}</em> : null}
-                        </div>
-                      </label>
-                    );
-                  })}
+          {/* 优惠券：旧版 pages/order/src/CouponInfo.vue —— .check-box(.tit + .radio-group) + .from_list > .coupon-box > .coupon_list */}
+          {!giftCardMode && data?.couponList ? (
+            <div className="orderConfirmConTop mp-check-coupon">
+              <div className="check-box">
+                <div className="tit">{t('优惠券')}</div>
+                <div>
+                  <div className="radio-group">
+                    <div className={`item${couponTab === 0 ? ' active' : ''}`} onClick={() => setCouponTab(0)}>
+                      {t('可用')}
+                    </div>
+                    <div className={`item${couponTab === 1 ? ' active' : ''}`} onClick={() => setCouponTab(1)}>
+                      {t('不可用')}
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className="pc-co-coupons__empty">{t('没有可用的优惠券')}</div>
-              )
-            ) : disableCoupons.length ? (
-              <div className="pc-co-coupon-grid">
-                {disableCoupons.map((coupon, index) => (
-                  <div className="pc-co-coupon is-disabled" key={`${coupon.userCouponId}-${index}`}>
-                    <Checkbox checked={false} disabled />
-                    <div className="pc-co-coupon__amount">
-                      {Number(coupon.couponType) === 1 || Number(coupon.couponMoney || 0) > 0 ? (
-                        <>
-                          <small>¥</small>
-                          <b>{money(coupon.couponMoney)}</b>
-                        </>
+              </div>
+              <div className="from_list">
+                <div className="arrow" />
+                <div className="coupon-box">
+                  <div className="coupon_list">
+                    {couponTab === 0 ? (
+                      coupons.length ? (
+                        coupons.map((coupon) => {
+                          const userCouponId = Number(coupon.userCouponId || 0);
+                          const active = userCouponIds.includes(userCouponId);
+                          return (
+                            <div
+                              className="coupon-container"
+                              key={userCouponId}
+                              onClick={() => toggleCoupon(coupon)}
+                            >
+                              <Checkbox checked={active} onChange={() => toggleCoupon(coupon)} />
+                              <div>
+                                <div className={`coupon-info${coupon.couponDesc ? ' border' : ''}`}>
+                                  <div className="coupon-off-text">
+                                    <div className="top">
+                                      {Number(coupon.couponType) === 1 || Number(coupon.couponMoney || 0) > 0 ? (
+                                        <div className="price">¥ {money(coupon.couponMoney)}</div>
+                                      ) : (
+                                        <div className="discount">{coupon.couponDiscount || '-'}</div>
+                                      )}
+                                      <div className="desc">
+                                        <div className="name">{coupon.couponName}</div>
+                                      </div>
+                                    </div>
+                                    {formatDateTime(coupon.startDate) ? (
+                                      <div className="time-wrap">
+                                        {formatDateTime(coupon.startDate)} {t('至')} {formatDateTime(coupon.endDate)}
+                                      </div>
+                                    ) : (
+                                      <div className="time-wrap">
+                                        {formatDateTime(coupon.endDate)} {t('前有效')}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {coupon.couponDesc ? <div className="coupon-desc">{coupon.couponDesc}</div> : null}
+                              </div>
+                            </div>
+                          );
+                        })
                       ) : (
-                        <>
-                          <b>{coupon.couponDiscount || '-'}</b>
-                          <small>{t('折')}</small>
-                        </>
+                        <div className="couponShop">
+                          <span>{t('没有可用的优惠券')}</span>
+                        </div>
+                      )
+                    ) : disableCoupons.length ? (
+                      disableCoupons.map((coupon, index) => (
+                        <div className="coupon-containerOne" key={`${coupon.userCouponId}-${index}`}>
+                          <Checkbox checked={false} disabled />
+                          <div>
+                            <div className={`coupon-info${coupon.couponDesc ? ' border' : ''}`}>
+                              <div className="coupon-off-text">
+                                <div className="top">
+                                  {Number(coupon.couponType) === 1 || Number(coupon.couponMoney || 0) > 0 ? (
+                                    <div className="price">¥ {money(coupon.couponMoney)}</div>
+                                  ) : (
+                                    <div className="discount">{coupon.couponDiscount || '-'}</div>
+                                  )}
+                                  <div className="desc">
+                                    <div className="name">{coupon.couponName}</div>
+                                  </div>
+                                </div>
+                                {formatDateTime(coupon.startDate) ? (
+                                  <div className="time-wrap">
+                                    {formatDateTime(coupon.startDate)} {t('至')} {formatDateTime(coupon.endDate)}
+                                  </div>
+                                ) : (
+                                  <div className="time-wrap">
+                                    {formatDateTime(coupon.endDate)} {t('前有效')}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {coupon.couponDesc ? <div className="coupon-desc">{coupon.couponDesc}</div> : null}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="couponShop">
+                        <span>{t('没有可用的优惠券')}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 积分：旧版 .from > .check-boxPoint + .from_list > .integral > .inp_box */}
+          {!giftCardMode && flowType === 1 ? (
+            <div className="orderConfirmConTop mp-check-integral">
+              <div className="from">
+                <div className="check-boxPoint flex">
+                  <span className="tit">{t('使用积分')}</span>
+                  <div>
+                    <span className="font-color">
+                      {t('当前账户共')}
+                      {accountPoints}
+                      {t('积分')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="from_list">
+                <div className="integral flex">
+                  <div className="tit" />
+                  <div className="inp_box">
+                    <div className="inp">
+                      <InputNumber
+                        min={0}
+                        max={availablePoints}
+                        value={usePoint}
+                        disabled={availablePoints <= 0}
+                        onChange={(value) =>
+                          setUsePoint(Math.max(0, Math.min(availablePoints, Math.floor(Number(value) || 0))))
+                        }
+                        onBlur={() => void updateCheck({ usePoint })}
+                      />
+                    </div>
+                    {Number(total.pointsAmount || 0) > 0 ? (
+                      <div className="tips">
+                        {t('共抵扣')}
+                        <span className="red">¥ {money(total.pointsAmount)}</span>
+                      </div>
+                    ) : null}
+                    <div className="tips">
+                      {t('该订单最多可用 {a} 积分', { a: availablePoints })}
+                      <Link href="/article/issue?articleId=7" target="_blank">
+                        <span className="font-color">{t('【如何获得积分?】')}</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 余额：旧版 .form_item > .top_row(.tit) + .from > .check-box.flex.align-center */}
+          {!giftCardMode && titleText ? (
+            <div className="orderConfirmConTop">
+              <div className="form_item">
+                <div className="top_row">
+                  <div className="tit">{t('余额')}</div>
+                </div>
+                <div className="from">
+                  <div className="check-box flex align-center">
+                    <Checkbox
+                      checked={useBalance > 0}
+                      disabled={availableBalance <= 0}
+                      onChange={(event) => toggleBalance(Boolean(event.target.checked))}
+                    >
+                      <span className="tit">{t('使用余额')}</span>
+                    </Checkbox>
+                    <div>
+                      <span className="font-color">
+                        {t('当前账户余额')} ¥ {money(availableBalance)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 发票：旧版 .form_item > .top_row.flex.align-end(.tit + .tips) + .from > .invoice-box */}
+          {!giftCardMode ? (
+            <div className="orderConfirmConTop mp-check-invoice">
+              <div className="form_item">
+                <div className="top_row flex align-end">
+                  <div className="tit">{t('发票信息')}</div>
+                  <div className="tips">{t('开企业抬头发票须填写纳税人识别号，以免影响报销')}</div>
+                </div>
+                <div className="from">
+                  <div className="flex align-center invoice-box">
+                    <div className="title flex align-center">
+                      <span>{invoiceSummary}</span>
+                      {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 1 ? (
+                        <span>{t('个人')}</span>
+                      ) : null}
+                      {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 2 ? (
+                        <span>{t('企业')}</span>
+                      ) : null}
+                    </div>
+                    <div className="type">
+                      <span>{invoiceData.companyName || ''}</span>
+                    </div>
+                    <div className="btn hand-pointer" onClick={() => void openInvoice()}>
+                      {t('修改')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 账期：旧版 .form_item > .top_row(.tit) + .from > .check-box(.credit-disabled) */}
+          {canUseCredit ? (
+            <div className="orderConfirmConTop">
+              <div className="form_item">
+                <div className="top_row">
+                  <div className="tit">{t('账期')}</div>
+                </div>
+                <div className="from">
+                  <div className={`check-box flex align-center${creditDisabled ? ' credit-disabled' : ''}`}>
+                    <Checkbox
+                      checked={useCredit === 1}
+                      disabled={creditDisabled}
+                      onChange={(event) => changeCredit(Boolean(event.target.checked))}
+                    >
+                      <span className="tit">{t('账期支付')}</span>
+                    </Checkbox>
+                    <div>
+                      <span className="font-color">
+                        {creditInfo?.disableReason
+                          ? creditInfo.disableReason
+                          : `${t('当前可用额度')} ¥ ${money(creditInfo?.availableAmount)}`}
+                      </span>
+                    </div>
+                    {Number(creditInfo?.settlementDays || 0) > 0 ? (
+                      <div>
+                        <span className="font-color">
+                          {t('账期')} {creditInfo?.settlementDays} {t('天')}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* 右栏：订单详情（源码 pages/order/check.vue 361–572） */}
+        <div className="money_info">
+          <div className="money_title">{t('订单详情')}</div>
+          <div className="total_list">
+            <div className="discount">
+              <div className="flex justify-between">
+                <div className="total_text">{t('商品总价：')}</div>
+                <div>¥ {money(total.productAmount)}</div>
+              </div>
+              {Number(total.serviceFee || 0) > 0 ? (
+                <div className="flex justify-between">
+                  <div className="total_text">{t('附加费用：')}</div>
+                  <div>¥ {money(total.serviceFee)}</div>
+                </div>
+              ) : null}
+              {Number(total.balance || 0) > 0 && useBalance > 0 ? (
+                <div className="flex justify-between">
+                  <div className="total_text">{t('使用余额：')}</div>
+                  <div>- ¥ {money(total.balance)}</div>
+                </div>
+              ) : null}
+              {Number(total.giftCardAmount || 0) > 0 ? (
+                <div className="flex justify-between">
+                  <div className="total_text">{t('使用礼品卡：')}</div>
+                  <div>- ¥ {money(total.giftCardAmount)}</div>
+                </div>
+              ) : null}
+              {Number(total.pointsAmount || 0) > 0 && flowType !== 3 ? (
+                <div className="flex justify-between">
+                  <div className="total_text">{t('积分减免：')}</div>
+                  <div>- ¥ {money(total.pointsAmount)}</div>
+                </div>
+              ) : null}
+              <div className="discount-content">
+                {Number(total.discounts || 0) > 0 ? (
+                  <div className="flex justify-between discount-item-box">
+                    <div className="item-label">{t('共优惠')}</div>
+                    <div className="item-value discounts-value">- ¥ {money(total.discounts)}</div>
+                  </div>
+                ) : null}
+                <div className="flex justify-between discount-item-box">
+                  <div className="item-label">{t('商品总额')}</div>
+                  <div className="item-value">¥ {money(total.productAmount)}</div>
+                </div>
+                {Number(total.discountCouponAmount || 0) > 0 ? (
+                  <div className="flex justify-between discount-item-box">
+                    <div className="item-label">{t('优惠券')}</div>
+                    <div className="item-value discounts-value">- ¥ {money(total.discountCouponAmount)}</div>
+                  </div>
+                ) : null}
+                {Number(total.discountDiscountAmount || 0) > 0 ? (
+                  <div className="flex justify-between discount-item-box">
+                    <div className="item-label">{t('其他优惠')}</div>
+                    <div className="item-value discounts-value">- ¥ {money(total.discountDiscountAmount)}</div>
+                  </div>
+                ) : null}
+                {needShipping ? (
+                  <div className={`discount-item-box${needShipping ? ' border-bottom' : ''}`}>
+                    <div className="flex">
+                      <div className="item-label">{t('快递：')}</div>
+                      <div className="tip-item">
+                        <span className="freight-icon" />
+                        <div className="ui-tips">
+                          <span className="ui-tips-arrow" />
+                          <div className="ui-tips-main">
+                            <div className="tit">{t('各店铺运费明细')}</div>
+                            <div className="goods_list">
+                              {Object.entries((total.storeShippingFee as Record<string, unknown>) || {}).map(
+                                ([shopId, fee]) => (
+                                  <div className="goods_col" key={`freight-${shopId}`}>
+                                    <div className="shop_name">
+                                      {Number(shopId) === 0 ? t('自营') : t('店铺 {id}', { id: shopId })}
+                                    </div>
+                                    <div className="list">
+                                      <div className="txt">
+                                        ¥ {money(fee)}
+                                        <span className="free-text">{Number(fee) > 0 ? '' : t('（包邮）')}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {Number(total.shippingFee || 0) > 0 ? (
+                        <div className="item-value">¥ {money(total.shippingFee)}</div>
+                      ) : (
+                        <div className="item-value">{updating ? '-' : '包邮'}</div>
                       )}
                     </div>
-                    <div className="pc-co-coupon__main">
-                      <b>{coupon.couponName || t('优惠券')}</b>
-                      <small className="pc-co-coupon__time">
-                        {coupon.startDate ? t('{a} 至 {b}', { a: coupon.startDate, b: coupon.endDate || '' }) : t('{b} 前有效', { b: coupon.endDate || '' })}
-                      </small>
-                      {coupon.couponDesc ? <em>{coupon.couponDesc}</em> : null}
-                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="pc-co-coupons__empty">{t('没有不可用的优惠券')}</div>
-            )}
-          </section>
-        ) : null}
-
-        {/* 积分 */}
-        {!giftCardMode && flowType === 1 ? (
-          <section className="pc-co-card">
-            <div className="pc-co-card__head">
-              <h2>{t('使用积分')}</h2>
-              <span className="pc-co-card__sub">{t('当前账户共')}<b>{accountPoints}</b>{t('积分')}</span>
-            </div>
-            <div className="pc-co-points">
-              <InputNumber
-                min={0}
-                max={availablePoints}
-                value={usePoint}
-                disabled={availablePoints <= 0}
-                onChange={(value) => setUsePoint(Math.max(0, Math.min(availablePoints, Math.floor(Number(value) || 0))))}
-                onBlur={() => void updateCheck({ usePoint })}
-              />
-              <div className="pc-co-points__tips">
-                {Number(total.pointsAmount || 0) > 0 ? <span>共抵扣 ¥ {money(total.pointsAmount)}</span> : null}
-                <span>该订单最多可用 {availablePoints} 积分</span>
-                <Link href="/article/issue?articleId=7" target="_blank" className="pc-co-link">{t('【如何获得积分?】')}</Link>
+                ) : null}
+                {showTaxAmount ? (
+                  <div className="discount-item-box">
+                    <div className="item-label tax-item-label">
+                      <span>{t('税费：')}</span>
+                    </div>
+                    <div className="item-value">¥ {money(total.taxRateAmount)}</div>
+                  </div>
+                ) : null}
+                {Number(total.discountAfter || 0) > 0 ? (
+                  <div className="discount-item-box">
+                    <div className="item-label">{t('合计')}</div>
+                    <div className="item-value">¥ {money(total.discountAfter)}</div>
+                  </div>
+                ) : null}
               </div>
             </div>
-          </section>
-        ) : null}
-
-        {/* 余额 */}
-        {!giftCardMode && titleText ? (
-          <section className="pc-co-card">
-            <div className="pc-co-card__head">
-              <h2>{t('余额')}</h2>
-            </div>
-            <div className="pc-co-check">
-              <Checkbox checked={useBalance > 0} disabled={availableBalance <= 0} onChange={(event) => toggleBalance(Boolean(event.target.checked))}>{t('使用余额')}</Checkbox>
-              <span className="pc-co-card__sub">{t('当前账户余额')}<b>{money(availableBalance)}</b>
-              </span>
-            </div>
-          </section>
-        ) : null}
-
-        {/* 发票 */}
-        {!giftCardMode ? (
-          <section className="pc-co-card">
-            <div className="pc-co-card__head">
-              <h2>{t('发票信息')}</h2>
-              <span className="pc-co-card__sub">{t('开企业抬头发票须填写纳税人识别号，以免影响报销')}</span>
-            </div>
-            <div className="pc-co-invoice">
-              <span>{invoiceSummary}</span>
-              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 1 ? <em>{t('个人')}</em> : null}
-              {Number(invoiceData.invoiceType) === 1 && Number(invoiceData.titleType) === 2 ? <em>{t('企业')}</em> : null}
-              {invoiceData.companyName ? <span>{invoiceData.companyName}</span> : null}
-              <button type="button" className="pc-co-link" onClick={() => void openInvoice()}>{t('修改')}</button>
-            </div>
-          </section>
-        ) : null}
-
-        {/* 账期 */}
-        {canUseCredit ? (
-          <section className="pc-co-card">
-            <div className="pc-co-card__head">
-              <h2>{t('账期')}</h2>
-            </div>
-            <div className="pc-co-check">
-              <Checkbox checked={useCredit === 1} disabled={creditDisabled} onChange={(event) => changeCredit(Boolean(event.target.checked))}>{t('账期支付')}</Checkbox>
-              <span className="pc-co-card__sub">
-                {creditInfo?.disableReason ? creditInfo.disableReason : <>{t('当前可用额度')}<b>{money(creditInfo?.availableAmount)}</b></>}
-              </span>
-              {Number(creditInfo?.settlementDays || 0) > 0 ? <span className="pc-co-card__sub">账期 {creditInfo?.settlementDays} 天</span> : null}
-            </div>
-          </section>
-        ) : null}
-      </div>
-
-      {/* 右栏：订单详情 */}
-      <aside className="pc-co__summary">
-        <h2 className="pc-co-summary__title">{t('订单详情')}</h2>
-        <div className="pc-co-summary__list">
-          <div className="pc-co-line pc-co-line--label">
-            <span>{t('商品总价：')}</span>
-            <b>¥ {money(total.productAmount)}</b>
           </div>
-          {Number(total.serviceFee || 0) > 0 ? (
-            <div className="pc-co-line">
-              <span>{t('附加费用：')}</span>
-              <b>¥ {money(total.serviceFee)}</b>
+
+          {needShipping && Number(total.shippingFee || 0) <= 0 && total.storeShippingFee ? (
+            <div className="complete">
+              {`运费明细：`}
+              {Object.entries(total.storeShippingFee as Record<string, unknown>).map(([shopId, fee]) => (
+                <span key={shopId}>
+                  {Number(shopId) === 0 ? t('自营') : t('店铺 {id}', { id: shopId })} ¥{money(fee)}
+                </span>
+              ))}
             </div>
           ) : null}
-          {Number(total.balance || 0) > 0 && useBalance > 0 ? (
-            <div className="pc-co-line">
-              <span>{t('使用余额：')}</span>
-              <b className="is-deduct">- ¥ {money(total.balance)}</b>
+
+          {orderSendPoint > 0 ? (
+            <div className="complete">
+              {`*该订单完成后，您将预计获得 ${orderSendPoint} 积分`}
             </div>
           ) : null}
-          {Number(total.giftCardAmount || 0) > 0 ? (
-            <div className="pc-co-line">
-              <span>{t('使用礼品卡：')}</span>
-              <b className="is-deduct">- ¥ {money(total.giftCardAmount)}</b>
+
+          <div className="total_fee flex justify-between">
+            <div className="flex total_fee-box">
+              <div className="unpaidamount-label">{t('仍需支付')}：</div>
+              {flowType === 3 ? (
+                <div className="points-box">
+                  <div className="points-value">
+                    {total.exchangePoints}
+                    <div className="points-text">{t('积分')}</div>
+                  </div>
+                  <div className="symbol">+</div>
+                </div>
+              ) : null}
             </div>
-          ) : null}
-          {Number(total.pointsAmount || 0) > 0 && flowType !== 3 ? (
-            <div className="pc-co-line">
-              <span>{t('积分减免：')}</span>
-              <b className="is-deduct">- ¥ {money(total.pointsAmount)}</b>
+            <div className="price">
+              <div className="util">¥</div>
+              <div className="num">{money(payAmount)}</div>
             </div>
-          ) : null}
-          <div className="pc-co-line--group">
-            {Number(total.discounts || 0) > 0 ? (
-              <div className="pc-co-line">
-                <span>{t('共优惠')}</span>
-                <b className="is-deduct">- ¥ {money(total.discounts)}</b>
-              </div>
-            ) : null}
-            <div className="pc-co-line">
-              <span>{t('商品总额')}</span>
-              <b>¥ {money(total.productAmount)}</b>
-            </div>
-            {Number(total.discountCouponAmount || 0) > 0 ? (
-              <div className="pc-co-line">
-                <span>{t('优惠券')}</span>
-                <b className="is-deduct">- ¥ {money(total.discountCouponAmount)}</b>
-              </div>
-            ) : null}
-            {Number(total.discountDiscountAmount || 0) > 0 ? (
-              <div className="pc-co-line">
-                <span>{t('其他优惠')}</span>
-                <b className="is-deduct">- ¥ {money(total.discountDiscountAmount)}</b>
-              </div>
-            ) : null}
-            {needShipping ? (
-              <div className="pc-co-line">
-                <span>{t('快递：')}</span>
-                {Number(total.shippingFee || 0) > 0 ? (
-                  <b>¥ {money(total.shippingFee)}</b>
-                ) : (
-                  <b className="is-free">{updating ? '-' : '包邮'}</b>
-                )}
-              </div>
-            ) : null}
-            {showTaxAmount ? (
-              <div className="pc-co-line">
-                <span>{t('税费：')}</span>
-                <b>¥ {money(total.taxRateAmount)}</b>
-              </div>
-            ) : null}
-            {Number(total.discountAfter || 0) > 0 ? (
-              <div className="pc-co-line">
-                <span>{t('合计')}</span>
-                <b>¥ {money(total.discountAfter)}</b>
-              </div>
-            ) : null}
           </div>
-        </div>
 
-        {needShipping && Number(total.shippingFee || 0) <= 0 && total.storeShippingFee ? (
-          <p className="pc-co-summary__hint">
-            运费明细：
-            {Object.entries(total.storeShippingFee as Record<string, unknown>).map(([shopId, fee]) => (
-              <span key={shopId}>
-                {Number(shopId) === 0 ? t('自营') : t('店铺 {id}', { id: shopId })} ¥{money(fee)}
-              </span>
-            ))}
-          </p>
-        ) : null}
-
-        {orderSendPoint > 0 ? (
-          <p className="pc-co-summary__point">*该订单完成后，您将预计获得 {orderSendPoint} 积分</p>
-        ) : null}
-
-        <div className="pc-co-summary__total">
-          <span>{t('仍需支付：')}</span>
-          {flowType === 3 ? (
-            <span className="pc-co-summary__exchange">
-              {total.exchangePoints} <small>{t('积分')}</small> +
-            </span>
-          ) : null}
-          <b>¥ {money(payAmount)}</b>
-        </div>
-
-        <Button
-          className="pc-co-submit"
-          theme="solid"
-          type="primary"
-          size="large"
-          block
-          loading={submitting}
-          disabled={submitDisabled}
-          onClick={submit}
-        >
-          {isDepositPresale ? t('支付定金') : '立即下单'}
-        </Button>
-      </aside>
-
-      {/* 地址选择弹窗（旧版 Address.vue） */}
-      <Modal title={t('收货地址')} visible={addressOpen} onCancel={() => setAddressOpen(false)} footer={null} width={880}>
-        <p className="pc-co-hint">{t('不同地区的配送选项和配送速度可能会有所不同')}</p>
-        <div className="pc-co-address-list">
-          {addresses.map((item) => (
+          <div className="submit">
             <button
               type="button"
-              key={item.addressId}
-              className={`pc-co-address-card${item.addressId === addressId ? ' is-active' : ''}`}
-              onClick={() => onChangeAddress(item.addressId)}
+              className="btn buy-btn"
+              disabled={submitDisabled || submitting}
+              onClick={submit}
             >
-              <div className="pc-co-address__line">
-                <b>{item.consignee || '-'}</b>
-                <span>
-                  {item.mobileAreaCode ? `+${item.mobileAreaCode} ` : ''}
-                  {item.mobile || '-'}
-                </span>
-                {Number(item.isInvalid) ? <em className="pc-co-invalid">{t('无效地址')}</em> : null}
-              </div>
-              <p>{item.formattedAddress || item.fullAddress || [item.regionName, item.address].filter(Boolean).join(' ')}</p>
-              <small>
-                {item.email || '-'} / {item.telephone || '-'}
-              </small>
-              {Number(item.isSelected) === 1 ? <em className="pc-co-default">{t('默认地址')}</em> : null}
+              {submitting ? t('提交中…') : isDepositPresale ? t('支付定金') : t('立即下单')}
             </button>
-          ))}
-          {!addresses.length ? <p className="pc-co-hint">{t('暂无收货地址')}</p> : null}
+          </div>
         </div>
-        <div className="pc-co-address-actions">
-          <Link href="/member/address">
-            <Button theme="light">{t('管理地址')}</Button>
-          </Link>
-          <Button theme="borderless" onClick={() => void loadAddresses()}>{t('刷新地址')}</Button>
+      </div>
+
+      {/* 地址选择弹窗（旧版 pages/order/src/Address.vue 的 el-dialog：.address-info > .tips + .card-list > ul.card） */}
+      <Modal
+        title={t('收货地址')}
+        visible={addressOpen}
+        onCancel={() => setAddressOpen(false)}
+        footer={null}
+        width={880}
+      >
+        <div className="address-info">
+          <div className="tips">{t('不同地区的配送选项和配送速度可能会有所不同')}</div>
+          <div className="card-list">
+            {addresses.length ? (
+              addresses.map((item) => (
+                <ul
+                  className={`card${Number(item.addressId) === addressId ? ' selected' : ''}`}
+                  key={item.addressId}
+                  onClick={() => onChangeAddress(item.addressId)}
+                >
+                  <li className="first">
+                    <div className="top-info">
+                      <div className="name">
+                        <span>{item.consignee || '-'}</span>
+                      </div>
+                      <div className="mobile">
+                        <span style={{ marginRight: 8 }}>
+                          {item.mobileAreaCode ? `+${item.mobileAreaCode} ` : ''}
+                          {item.mobile || '-'}
+                        </span>
+                        {Number(item.isInvalid) ? <span className="invalid-tag">{t('无效地址')}</span> : null}
+                      </div>
+                    </div>
+                    <div className="address">
+                      {item.formattedAddress ||
+                        item.fullAddress ||
+                        [item.regionName, item.address].filter(Boolean).join(' ')}
+                    </div>
+                    <div className="other">
+                      <div>{item.email || '-'}</div>
+                      <div>{item.telephone || '-'}</div>
+                    </div>
+                    <div className="bottom-operation">
+                      <div className="is-default">
+                        <span className="el-checkbox">
+                          <span className={`el-checkbox__input${Number(item.isSelected) === 1 ? ' is-checked' : ''}`}>
+                            <span className="el-checkbox__inner" />
+                          </span>
+                          <span className="el-checkbox__label">{t('默认地址')}</span>
+                        </span>
+                      </div>
+                      <div className="operation">
+                        <Link href="/member/address">{t('编辑')}</Link>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              ))
+            ) : (
+              <div className="no-result">
+                <span>{t('暂无收货地址')}</span>
+              </div>
+            )}
+          </div>
+          <div className="title-or-tabs">
+            <Link href="/member/address">
+              <button type="button" className="el-button el-button--default btn">
+                <span>{t(' + 添加新地址')}</span>
+              </button>
+            </Link>
+            <button type="button" className="el-button el-button--default btn" onClick={() => void loadAddresses()}>
+              <span>{t('刷新地址')}</span>
+            </button>
+          </div>
         </div>
       </Modal>
 
-      {/* 发票弹窗 */}
-      <Modal title={t('发票信息')} visible={invoiceOpen} onCancel={() => setInvoiceOpen(false)} onOk={confirmInvoice} okText="保存" cancelText="取消" width={560}>
-        <div className="pc-invoice-form">
-          <div className="pc-invoice-form__row">
-            <span>{t('发票类型')}</span>
-            <select
-              value={invoiceForm.invoiceType}
-              onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceType: Number(event.target.value) }))}
-            >
-              <option value={0}>{t('不开发票')}</option>
-              <option value={1}>{t('电子普通发票')}</option>
-              <option value={2} disabled={!invoiceQualified}>
-                增值税专用发票{invoiceQualified ? '' : '（需资质审核）'}
-              </option>
-            </select>
+      {/* 发票弹窗（旧版 el-form.form-body） */}
+      <Modal
+        title={t('发票信息')}
+        visible={invoiceOpen}
+        onCancel={() => setInvoiceOpen(false)}
+        onOk={confirmInvoice}
+        okText="保存"
+        cancelText="取消"
+        width={560}
+      >
+        <form className="el-form form-body">
+          <div className="el-form-item">
+            <label className="el-form-item__label">{t('发票类型')}</label>
+            <div className="el-form-item__content">
+              <select
+                className="el-select"
+                value={invoiceForm.invoiceType}
+                onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceType: Number(event.target.value) }))}
+              >
+                <option value={0}>{t('不开发票')}</option>
+                <option value={1}>{t('电子普通发票')}</option>
+                <option value={2} disabled={!invoiceQualified}>
+                  增值税专用发票{invoiceQualified ? '' : '（需资质审核）'}
+                </option>
+              </select>
+            </div>
           </div>
           {Number(invoiceForm.invoiceType) !== 0 ? (
             <>
-              <div className="pc-invoice-form__row">
-                <span>{t('抬头类型')}</span>
-                <select
-                  value={invoiceForm.titleType}
-                  onChange={(event) => setInvoiceForm((prev) => ({ ...prev, titleType: Number(event.target.value) }))}
-                >
-                  <option value={1}>{t('个人')}</option>
-                  <option value={2}>{t('企业')}</option>
-                </select>
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('抬头类型')}</label>
+                <div className="el-form-item__content">
+                  <select
+                    className="el-select"
+                    value={invoiceForm.titleType}
+                    onChange={(event) => setInvoiceForm((prev) => ({ ...prev, titleType: Number(event.target.value) }))}
+                  >
+                    <option value={1}>{t('个人')}</option>
+                    <option value={2}>{t('企业')}</option>
+                  </select>
+                </div>
               </div>
-              <div className="pc-invoice-form__row">
-                <span>{Number(invoiceForm.titleType) === 1 ? t('个人名称') : '企业名称'}</span>
-                <input
-                  value={String(invoiceForm.companyName || '')}
-                  onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyName: event.target.value }))}
-                />
+              <div className="el-form-item">
+                <label className="el-form-item__label">
+                  {Number(invoiceForm.titleType) === 1 ? t('个人名称') : '企业名称'}
+                </label>
+                <div className="el-form-item__content">
+                  <input
+                    className="el-input__inner"
+                    value={String(invoiceForm.companyName || '')}
+                    onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyName: event.target.value }))}
+                  />
+                </div>
               </div>
               {Number(invoiceForm.titleType) === 2 || Number(invoiceForm.invoiceType) === 2 ? (
-                <div className="pc-invoice-form__row">
-                  <span>{t('纳税人识别号')}</span>
-                  <input
-                    value={String(invoiceForm.companyCode || '')}
-                    onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyCode: event.target.value }))}
-                  />
+                <div className="el-form-item">
+                  <label className="el-form-item__label">{t('纳税人识别号')}</label>
+                  <div className="el-form-item__content">
+                    <input
+                      className="el-input__inner"
+                      value={String(invoiceForm.companyCode || '')}
+                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyCode: event.target.value }))}
+                    />
+                  </div>
                 </div>
               ) : null}
               {Number(invoiceForm.invoiceType) === 2 ? (
                 <>
-                  <div className="pc-invoice-form__row">
-                    <span>{t('单位地址')}</span>
-                    <input
-                      value={String(invoiceForm.companyAddress || '')}
-                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAddress: event.target.value }))}
-                    />
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">{t('单位地址')}</label>
+                    <div className="el-form-item__content">
+                      <input
+                        className="el-input__inner"
+                        value={String(invoiceForm.companyAddress || '')}
+                        onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAddress: event.target.value }))}
+                      />
+                    </div>
                   </div>
-                  <div className="pc-invoice-form__row">
-                    <span>{t('单位电话')}</span>
-                    <input
-                      value={String(invoiceForm.companyPhone || '')}
-                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyPhone: event.target.value }))}
-                    />
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">{t('单位电话')}</label>
+                    <div className="el-form-item__content">
+                      <input
+                        className="el-input__inner"
+                        value={String(invoiceForm.companyPhone || '')}
+                        onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyPhone: event.target.value }))}
+                      />
+                    </div>
                   </div>
-                  <div className="pc-invoice-form__row">
-                    <span>{t('开户银行')}</span>
-                    <input
-                      value={String(invoiceForm.companyBank || '')}
-                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyBank: event.target.value }))}
-                    />
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">{t('开户银行')}</label>
+                    <div className="el-form-item__content">
+                      <input
+                        className="el-input__inner"
+                        value={String(invoiceForm.companyBank || '')}
+                        onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyBank: event.target.value }))}
+                      />
+                    </div>
                   </div>
-                  <div className="pc-invoice-form__row">
-                    <span>{t('银行账户')}</span>
-                    <input
-                      value={String(invoiceForm.companyAccount || '')}
-                      onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAccount: event.target.value }))}
-                    />
+                  <div className="el-form-item">
+                    <label className="el-form-item__label">{t('银行账户')}</label>
+                    <div className="el-form-item__content">
+                      <input
+                        className="el-input__inner"
+                        value={String(invoiceForm.companyAccount || '')}
+                        onChange={(event) => setInvoiceForm((prev) => ({ ...prev, companyAccount: event.target.value }))}
+                      />
+                    </div>
                   </div>
                 </>
               ) : null}
-              <div className="pc-invoice-form__row">
-                <span>{t('收票人邮箱')}</span>
-                <input
-                  value={String(invoiceForm.email || '')}
-                  placeholder={t('选填，用于接收电子发票')}
-                  onChange={(event) => setInvoiceForm((prev) => ({ ...prev, email: event.target.value }))}
-                />
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('收票人邮箱')}</label>
+                <div className="el-form-item__content">
+                  <input
+                    className="el-input__inner"
+                    value={String(invoiceForm.email || '')}
+                    placeholder={t('选填，用于接收电子发票')}
+                    onChange={(event) => setInvoiceForm((prev) => ({ ...prev, email: event.target.value }))}
+                  />
+                </div>
               </div>
-              <div className="pc-invoice-form__row">
-                <span>{t('发票内容')}</span>
-                <input
-                  value={String(invoiceForm.invoiceContent || '')}
-                  onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceContent: event.target.value }))}
-                />
+              <div className="el-form-item">
+                <label className="el-form-item__label">{t('发票内容')}</label>
+                <div className="el-form-item__content">
+                  <input
+                    className="el-input__inner"
+                    value={String(invoiceForm.invoiceContent || '')}
+                    onChange={(event) => setInvoiceForm((prev) => ({ ...prev, invoiceContent: event.target.value }))}
+                  />
+                </div>
               </div>
             </>
           ) : null}
-          {!invoiceQualified ? <p className="pc-co-hint">{t('增值税专用发票需先在会员中心完成增票资质审核。')}</p> : null}
-        </div>
+          {!invoiceQualified ? (
+            <div className="el-form-item">
+              <div className="el-form-item__content">{t('增值税专用发票需先在会员中心完成增票资质审核。')}</div>
+            </div>
+          ) : null}
+        </form>
       </Modal>
     </div>
   );

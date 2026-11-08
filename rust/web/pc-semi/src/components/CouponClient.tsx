@@ -4,40 +4,47 @@
  * 我的优惠券（PC 会员中心）
  * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/coupon/List.vue
  * 卡片：components/member/coupon/CouponCard.vue → 新版 MemberCouponCard.tsx
- * 删除确认：components/member/DeleteRecord.vue → 新版 MemberDeleteConfirm.tsx
  *
- * 旧版页面要素：
- * - 优惠券码手动添加（addCoupon）+ 删除（delCoupon）+ 「领取更多优惠券」外链；
- * - 每张券用 CouponCard 渲染（面额/折扣、名称、有效期、使用状态按钮）。
+ * 旧版页面要素（与旧版 DOM 一一对应）：
+ * - 标题行 `.title-or-tabs.bw`：card-title「我的优惠券」+ 右侧「领取更多优惠券」
+ *   外链（iconfont-pc icon-wodeyouhuiquan 图标 + 文案，新标签页打开 /coupon/list）；
+ * - `.coupon-item-list` 两列栅格，CouponCard 直接作栅格子项；
+ * - `.el-page` 分页（旧版 filterParams size=10）；
+ * - 空态：empty-box.png + 「您还没有优惠券」。
+ *
+ * 注意：旧版 List.vue 里 import 的 addCoupon / delCoupon / DeleteRecord 以及
+ * form.couponSn、addCouponFun 均未被模板使用（死代码，旧版页面没有券码兑换输入框、
+ * 也没有删除按钮），新版保持同样的可见行为，不渲染这些入口。
  *
  * 后端契约：
- * - GET  /user/coupon/list    我已领取的券（routes/marketing/coupon.rs → UserCouponVO）
- * - POST /user/coupon/claim   券码兑换
- * - POST /user/coupon/del     删除已领取券
+ * - GET /user/coupon/list → PageResult<UserCouponVO>（records/total）；
+ *   startDate/endDate 为秒级时间戳，卡片内用 formatDateTime 格式化。
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button, Card, Input, Toast } from '@douyinfe/semi-ui';
-import { apiGet, apiPost } from '@/lib/client-api';
+import { Button, Card, Toast } from '@douyinfe/semi-ui';
+import { apiGet } from '@/lib/client-api';
 import MemberCouponCard, { MemberCouponCardData } from '@/components/MemberCouponCard';
-import MemberDeleteConfirm from '@/components/MemberDeleteConfirm';
 
 import { useTranslation } from 'react-i18next';
 
 export default function CouponClient() {
     const { t } = useTranslation();
     const [rows, setRows] = useState<MemberCouponCardData[]>([]);
-    const [couponSn, setCouponSn] = useState('');
-    const [tab, setTab] = useState('all');
     const [loading, setLoading] = useState(true);
     const [needLogin, setNeedLogin] = useState(false);
-    /** 待删除的券 id */
-    const [deleteId, setDeleteId] = useState(0);
+    /** 页码 / 每页条数 / 总数（旧版 filterParams：page=1, size=10） */
+    const [page, setPage] = useState(1);
+    const [size] = useState(10);
+    const [total, setTotal] = useState(0);
 
-    const load = () => {
+    const load = (nextPage = page) => {
         setLoading(true);
-        apiGet<{ records?: MemberCouponCardData[] }>('user/coupon/list', { page: 1, size: 20 })
-            .then((result) => setRows(result.records || []))
+        apiGet<{ records?: MemberCouponCardData[]; total?: number }>('user/coupon/list', { page: nextPage, size })
+            .then((result) => {
+                setRows(result.records || []);
+                setTotal(Number(result.total || 0));
+            })
             .catch((error) => {
                 const message = error instanceof Error ? error.message : '';
                 setNeedLogin(message.includes('登录') || message.includes('401'));
@@ -45,63 +52,29 @@ export default function CouponClient() {
             .finally(() => setLoading(false));
     };
 
+    const goPage = (nextPage: number) => {
+        setPage(nextPage);
+        load(nextPage);
+    };
+
+    const pages = Math.max(1, Math.ceil(total / size));
+
+    /** 旧版 Pagination 的页码：最多 5 个，当前页居中 */
+    const pageNumbers = () => {
+        const count = Math.min(5, pages);
+        const start = Math.max(1, Math.min(page - 2, pages - count + 1));
+        return Array.from({ length: count }, (_, index) => start + index);
+    };
+
     useEffect(() => {
-        load();
+        load(1);
     }, []);
-
-    const claim = async () => {
-        const value = couponSn.trim();
-        if (!value) {
-            Toast.warning({ content: '请输入优惠券码' });
-            return;
-        }
-        try {
-            // 后端 `POST /user/coupon/claim` 的入参是 `UserCouponClaimDTO.couponId`（必填 i32，
-            // 见 crates/core/src/models/marketing/coupon.rs），旧版 PC 传的是 `couponSn`，
-            // 与 Java `UserCouponClaimParam.couponId` 一致 —— 两者都只认主键。
-            // 这里兼容两种输入：纯数字按 couponId 领取，非数字按券码提交（由后端返回参数错误）。
-            const numeric = Number(value);
-            const payload = Number.isFinite(numeric) && /^\d+$/.test(value)
-                ? { couponId: numeric }
-                : { couponSn: value };
-            await apiPost('user/coupon/claim', payload);
-            Toast.success({ content: '领取成功' });
-            setCouponSn('');
-            load();
-        } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '领取失败' });
-        }
-    };
-
-    const couponState = (coupon: MemberCouponCardData): string => {
-        const name = coupon.statusName || '';
-        if (name.includes('过期')) return 'expired';
-        if (name.includes('已使用') || name.includes('使用')) return 'used';
-        if (name.includes('未')) return 'unused';
-        if (coupon.status === 2) return 'used';
-        if (coupon.status === 3) return 'expired';
-        return 'unused';
-    };
-
-    const visibleRows = rows.filter((coupon) => tab === 'all' || couponState(coupon) === tab);
-
-    const remove = async () => {
-        if (!deleteId) return;
-        try {
-            await apiPost('user/coupon/del', { id: deleteId });
-            Toast.success({ content: '删除成功' });
-            setDeleteId(0);
-            load();
-        } catch (error) {
-            Toast.error({ content: error instanceof Error ? error.message : '删除失败' });
-        }
-    };
 
     if (needLogin) {
         return (
             <Card className="cart-state">
                 <h2>{t('登录后查看优惠券')}</h2>
-                <Link href="/login?redirect=/member/coupon">
+                <Link href="/login?redirect=/member/coupon/list">
                     <Button theme="solid" type="primary" size="large">{t('去登录')}</Button>
                 </Link>
             </Card>
@@ -109,52 +82,57 @@ export default function CouponClient() {
     }
 
     return (
-        <div className="member-coupon">
-            <div className="member-coupon__toolbar">
-                <div className="member-coupon__claim">
-                    <Input value={couponSn} onChange={setCouponSn} placeholder={t('输入优惠券码')} />
-                    <Button theme="solid" type="primary" onClick={claim}>{t('兑换')}</Button>
-                </div>
-                <Link href="/coupon/list">{t('领取更多优惠券 →')}</Link>
+        <div className="info-row mp-coupon-list">
+            <div className="title-or-tabs bw">
+                <span className="card-title">{t('我的优惠券')}</span>
+                <Link href="/coupon/list" target="_blank">
+                    <i className="iconfont-pc icon-wodeyouhuiquan" />
+                    {t('领取更多优惠券')}
+                </Link>
             </div>
 
-            <div className="member-coupon__tabs">
-                {[
-                    { key: 'all', label: '全部' },
-                    { key: 'unused', label: '未使用' },
-                    { key: 'used', label: '已使用' },
-                    { key: 'expired', label: '已过期' },
-                ].map((item) => (
-                    <button key={item.key} type="button" className={tab === item.key ? 'is-active' : ''} onClick={() => setTab(item.key)}>
-                        {item.label}
-                    </button>
-                ))}
-            </div>
-
-            {loading ? (
-                <Card className="member-card">{t('优惠券加载中...')}</Card>
-            ) : visibleRows.length ? (
-                <div className="member-coupon__list">
-                    {visibleRows.map((coupon) => (
-                        <div className="member-coupon__item" key={coupon.id}>
-                            <MemberCouponCard coupon={coupon} />
-                            <button type="button" className="member-coupon__del" onClick={() => setDeleteId(coupon.id ?? 0)}>
-                                {t('删除')}
-                            </button>
+            <div className="coupon-list">
+                <div className="coupon-item-list">
+                    {total > 0 ? (
+                        <>
+                            {rows.map((coupon) => (
+                                <MemberCouponCard key={coupon.id} coupon={coupon} />
+                            ))}
+                            {pages > 1 ? (
+                                <div className="el-page">
+                                    <div className="pagination">
+                                        <button type="button" disabled={page <= 1} aria-label={t('上一页')} onClick={() => goPage(page - 1)}>
+                                            {'<'}
+                                        </button>
+                                        {pageNumbers().map((number) => (
+                                            <button
+                                                type="button"
+                                                key={number}
+                                                className={number === page ? 'is-active' : ''}
+                                                onClick={() => goPage(number)}
+                                            >
+                                                {number}
+                                            </button>
+                                        ))}
+                                        <button type="button" disabled={page >= pages} aria-label={t('下一页')} onClick={() => goPage(page + 1)}>
+                                            {'>'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : null}
+                        </>
+                    ) : (
+                        <div className="no-result">
+                            {loading ? null : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <img className="empty-img" src="/assets/images/empty-box.png" alt="" />
+                                    <div className="empty-text">{t('您还没有优惠券')}</div>
+                                </div>
+                            )}
                         </div>
-                    ))}
+                    )}
                 </div>
-            ) : (
-                <Card className="member-card">{t('您还没有优惠券')}</Card>
-            )}
-
-            {/* 删除优惠券二次确认（DeleteRecord 对照） */}
-            <MemberDeleteConfirm
-                visible={Boolean(deleteId)}
-                text={t('您确认要删除该优惠券吗？')}
-                onCancel={() => setDeleteId(0)}
-                onConfirm={remove}
-            />
+            </div>
         </div>
     );
 }

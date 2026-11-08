@@ -181,9 +181,16 @@ export default function PcSearchBox({
 
           {searchType !== 'shop' ? <PcImageSearchEntry /> : null}
 
-          <div className="search-submit" role="button" tabIndex={0} style={submitStyle} onClick={() => submit()}>
-            <Search size={18} />
-          </div>
+          <button
+            type="button"
+            className="search-submit"
+            style={submitStyle}
+            aria-label={t('搜索')}
+            title={t('搜索')}
+            onClick={() => submit()}
+          >
+            <Search size={18} aria-hidden="true" />
+          </button>
         </div>
       </div>
 

@@ -2,12 +2,9 @@ import Link from 'next/link';
 import { getFooterData } from '@/lib/api';
 import { imageFormat } from '@/lib/image';
 import { navLinkHref, sanitizeLinkUrl } from '@/lib/link';
-import PcLocaleSelect from '@/components/PcLocaleSelect';
 import CookieSettingsLink from '@/components/CookieSettingsLink';
 
 import { getServerT } from '@/i18n/server';
-/** 跨境版构建（与 PayClient 的 IS_OVERSEAS 约定一致）：Footer 语言/货币 toolbar 仅跨境显示 */
-const IS_OVERSEAS = process.env.NEXT_PUBLIC_PC_OVERSEAS !== '0';
 
 function articleHref(articleId: unknown): string {
   return `/article/issue/info?articleId=${encodeURIComponent(String(articleId ?? ''))}`;
@@ -15,7 +12,7 @@ function articleHref(articleId: unknown): string {
 
 export default async function PcFooter({ showFriendly = false }: { showFriendly?: boolean }) {
     const t = getServerT();
-  const { config, bottomNav, friendLinks, helpCategories, currencies } = await getFooterData();
+  const { config, bottomNav, friendLinks, helpCategories } = await getFooterData();
   const icp = config?.shopIcpNo as string | undefined;
   const icpUrl = (config?.shopIcpNoUrl as string | undefined) || 'https://beian.miit.gov.cn/';
   const phone = config?.kefuPhone as string | undefined;
@@ -41,14 +38,7 @@ export default async function PcFooter({ showFriendly = false }: { showFriendly?
 
   return (
     <footer className="pc-footer">
-      {IS_OVERSEAS ? (
-        <div className="pc-footer__toolbar">
-          <div className="pc-container pc-footer__toolbar-inner">
-            <PcLocaleSelect showLang showCurrency={false} initialCurrencies={currencies as any} />
-            <PcLocaleSelect showLang={false} showCurrency initialCurrencies={currencies as any} />
-          </div>
-        </div>
-      ) : null}
+      {/* 语言/货币切换工具条已按需求移除（跨境版原有两个 PcLocaleSelect 并排悬浮在 footer 顶部） */}
 
       {helpCategories.length ? (
         <div className="pc-footer__help">

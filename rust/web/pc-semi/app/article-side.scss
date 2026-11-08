@@ -1,0 +1,130 @@
+/**
+ * 资讯中心左侧「文章分类」侧栏。
+ * 样式逐条对照旧版 view/pc/pages/article/news/List.vue 的 scoped <style>：
+ *   .content { display:flex; gap:20px; margin-top:20px }
+ *   .box     { background:#fff; padding:30px }
+ *   .right   { width:300px }
+ *   .right .title { color:#333; font-size:14px; font-weight:700; height:24px; line-height:24px }
+ *   ul li    { line-height:30px; color:#888; font-size:14px; display:flex; flex-direction:column; cursor:pointer }
+ *   .min-title { display:flex; width:100%; align-items:center; justify-content:space-between }
+ *   .min-list { margin-left:10px } / .min-list .orange { color:#bbb; font-size:12px; nowrap/ellipsis; width:214px; line-height:2 }
+ *   .left_more { width:30px; height:30px }  ← 旧版是 click.jpg 精灵图箭头，仓库里没有该图，这里用 CSS 三角箭头代替
+ *   .orange:hover { color: var(--general) }
+ *
+ * 注意：globals.scss 里已有 `.article-side a { display:block; padding:9px 0 }`（文章列表通用），
+ * 旧版侧栏的链接没有内边距，所以下面用 `.article-side.article-side a` 提高权重把它按旧版清零。
+ */
+
+.article-side.article-side {
+  width: 300px;
+  flex-shrink: 0;
+  padding: 30px;
+  box-sizing: border-box;
+  height: fit-content;
+  background: #fff;
+}
+
+.article-side .title {
+  color: #333;
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  height: 24px;
+  line-height: 24px;
+}
+
+.article-side.article-side ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.article-side.article-side ul > li {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #888;
+  font-size: 14px;
+  line-height: 30px;
+}
+
+.article-side .min-title {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.article-side.article-side .min-title a {
+  display: block;
+  padding: 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.article-side .min-title .orange {
+  color: #888;
+  font-size: 14px;
+}
+
+.article-side .min-list {
+  margin-left: 10px;
+}
+
+.article-side.article-side .min-list a {
+  display: inline-block;
+  padding: 0;
+}
+
+.article-side.article-side .min-list .orange {
+  display: inline-block;
+  width: 214px;
+  color: #bbb;
+  font-size: 12px;
+  line-height: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.article-side .orange:hover {
+  color: var(--general, #165dff);
+}
+
+/* 展开/收起按钮：旧版 30×30 的箭头精灵图（click.jpg 的 15px -17px / 15px 11px 两帧） */
+.article-side .left_more {
+  position: relative;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.article-side .left_more::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid #999;
+  border-bottom: 1px solid #999;
+  transform: translate(-50%, -65%) rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.article-side .left_more.left_ma::after {
+  transform: translate(-50%, -35%) rotate(-135deg);
+}
+
+@media (max-width: 900px) {
+  .article-side.article-side {
+    width: 100%;
+    padding: 20px;
+  }
+}

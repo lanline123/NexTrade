@@ -6,10 +6,27 @@ import { getPcHeader, getShopCategories, getShopDecorate, getShopDetail, getShop
 import ShopHomepageClient from '@/components/ShopHomepageClient';
 import ShopHeader from '@/components/ShopHeader';
 import ShopCategoryMenu from '@/components/ShopCategoryMenu';
+import ProductGrid from '@/components/ProductGrid';
 
 import { getServerT } from '@/i18n/server';
 export const dynamic = 'force-dynamic';
 
+/**
+ * 店铺页 /shop/[id]
+ * 源码对照：view/pc/pages/shop/[id].vue（薄壳）→ 有装修走 ShopHomepage，否则 ShopDefaultPage
+ * 样式：app/shop-page.scss → .pg-shop-default-page
+ *
+ * 默认页结构（ShopDefaultPage.vue <template>）：
+ *   .shop-default-page
+ *     > 页头
+ *     > ShopRefHeader（.shop-ref-header）
+ *     > .container.main-content
+ *         > .sidebar > ShopCategoryMenu
+ *         > .right-content
+ *             > .shop-sort-bar > span.sort-link(.cur_sort) 综合/销量/新品/价格(+.sort-arrow)
+ *             > CatGoodsList（.goods-list__box > .goods-list-c > .wrap）+ .pagination
+ *     > 页脚
+ */
 interface PageProps {
   params: { id: string };
   searchParams?: { [key: string]: string | string[] | undefined };
@@ -37,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ShopDetailPage({ params, searchParams }: PageProps) {
-    const t = getServerT();
+  const t = getServerT();
   const shopId = Number(params.id) || 0;
   const page = Math.max(1, Number(readParam(searchParams?.page)) || 1);
   const categoryId = readParam(searchParams?.categoryId);
@@ -90,20 +107,22 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
     ],
   };
   const shopSchema = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([shopJsonLd, shopBreadcrumbJsonLd]) }} />;
-  const hrefFor = (nextPage = page, nextCat = categoryId, nextSort = sort) => {
+  const hrefFor = (nextPage = page, nextCat = categoryId, nextSort = sort, nextOrder = order) => {
     const query = new URLSearchParams();
     if (nextCat) query.set('categoryId', nextCat);
     if (nextSort) query.set('sort', nextSort);
+    if (nextSort === 'price' && nextOrder) query.set('order', nextOrder);
     if (minPrice) query.set('minPrice', minPrice);
     if (maxPrice) query.set('maxPrice', maxPrice);
     if (nextPage > 1) query.set('page', String(nextPage));
     return query.toString() ? `/shop/${shopId}?${query.toString()}` : `/shop/${shopId}`;
   };
-  const sortHref = (key: string) => hrefFor(1, categoryId, key);
+  const sortHref = (key: string) => hrefFor(1, categoryId, key, key === 'price' ? 'desc' : '');
+  const priceAsc = sort === 'price' && order === 'asc';
 
   if (hasDecorate) {
     return (
-      <div className="shop-detail-page">
+      <div className="pg-shop-default-page">
         {shopSchema}
         <PcHeader config={header as any} />
         <main className="shop-decoration-page">
@@ -117,91 +136,98 @@ export default async function ShopDetailPage({ params, searchParams }: PageProps
   }
 
   return (
-    <div className="shop-detail-page">
+    <div className="pg-shop-default-page">
       {shopSchema}
-      <PcHeader config={header as any} />
-      <main className="shop-detail-main">
-        <div className="shop-detail-container">
-          {/* 源码 pages/shop/src/ShopRefHeader.vue：店铺头部（logo/搜索/资质/粉丝/客服/关注） */}
-          <ShopHeader
-            shopInfo={{
-              shopId,
-              shopTitle: shop?.shopTitle,
-              shopLogo: shop?.shopLogo,
-              collectCount: shop?.collectCount,
-              collectShop: Boolean((shop as any)?.collectShop),
-              businessLicensePic: (shop as any)?.businessLicensePic,
-              tipNames: shop?.shopStar ? [`${Number(shop.shopStar).toFixed(1)} 分`] : [],
-            }}
-            siteLogo={undefined}
-          />
+      <div className="shop-default-page">
+        <PcHeader config={header as any} />
+        {/* 源码 pages/shop/src/ShopRefHeader.vue：店铺头部（logo/搜索/资质/粉丝/客服/关注） */}
+        <ShopHeader
+          shopInfo={{
+            shopId,
+            shopTitle: shop?.shopTitle,
+            shopLogo: shop?.shopLogo,
+            collectCount: shop?.collectCount,
+            collectShop: Boolean((shop as any)?.collectShop),
+            businessLicensePic: (shop as any)?.businessLicensePic,
+            shopStar: Number(shop?.shopStar || 0),
+            tipNames: shop?.shopStar ? [`${Number(shop.shopStar).toFixed(1)} 分`] : [],
+          }}
+          siteLogo={undefined}
+          showShopSearch={false}
+        />
 
-          <div className="shop-detail-body">
+        <div className="container main-content">
+          <div className="sidebar">
             <ShopCategoryMenu shopId={shopId} categories={categories as any} currentCategoryId={categoryId} />
+          </div>
 
-            <section className="shop-detail-products">
-              <div className="shop-detail-sort">
-                <Link href={sortHref('')} className={!sort ? 'is-active' : ''}>{t('综合')}</Link>
-                <Link href={sortHref('sale')} className={sort === 'sale' ? 'is-active' : ''}>{t('销量')}</Link>
-                <Link href={sortHref('time')} className={sort === 'time' ? 'is-active' : ''}>{t('新品')}</Link>
-                <Link href={sortHref('price')} className={sort === 'price' ? 'is-active' : ''}>{t('价格')}</Link>
-                {/* 旧版 ShopFilter：店内商品价格区间筛选 */}
-                <form action={`/shop/${shopId}`} method="get" className="shop-detail-priceform">
-                  {categoryId ? <input type="hidden" name="categoryId" value={categoryId} /> : null}
-                  {sort ? <input type="hidden" name="sort" value={sort} /> : null}
-                  {order ? <input type="hidden" name="order" value={order} /> : null}
-                  <input type="number" name="minPrice" placeholder={t('最低价')} defaultValue={minPrice} min="0" />
-                  <span>—</span>
-                  <input type="number" name="maxPrice" placeholder={t('最高价')} defaultValue={maxPrice} min="0" />
-                  <button type="submit">{t('确定')}</button>
-                </form>
+          <div className="right-content">
+            <div className="shop-sort-bar">
+              <Link href={sortHref('')} className={`sort-link${!sort ? ' cur_sort' : ''}`}>
+                {t('综合')}
+              </Link>
+              <Link href={sortHref('sale')} className={`sort-link${sort === 'sale' ? ' cur_sort' : ''}`}>
+                {t('销量')}
+              </Link>
+              <Link href={sortHref('time')} className={`sort-link${sort === 'time' ? ' cur_sort' : ''}`}>
+                {t('新品')}
+              </Link>
+              <Link
+                href={priceAsc ? sortHref('price') : hrefFor(1, categoryId, 'price', 'asc')}
+                className={`sort-link${sort === 'price' ? ' cur_sort' : ''}`}
+              >
+                {t('价格')}
+                <span className="sort-arrow">
+                  <i className={`iconfont-pc icon-shangjiantou1${priceAsc ? ' active' : ''}`} />
+                  <i className={`iconfont-pc icon-xiajiantou1${sort === 'price' && !priceAsc ? ' active' : ''}`} />
+                </span>
+              </Link>
+            </div>
+
+            {/* 旧版 CatGoodsList.vue：.goods-list__box > .goods-list-c > .wrap */}
+            <div className={`goods-list__box${products.records.length ? '' : ' goods-list__box--empty'}`}>
+              <div className="goods-list-c">
+                <ProductGrid products={products.records as any} gridClassName="wrap" />
               </div>
-              {products.records.length ? (
-                <ul className="shop-detail-grid">
-                  {products.records.map((product: any) => (
-                    <li key={product.productId}>
-                      {/* 源码 pages/shop/src/CatGoodsList.vue 商品卡字段 */}
-                      <Link href={`/product/${product.productId}`} className="shop-detail-card" target="_blank">
-                        <div className="shop-detail-card__img">
-                          <img src={product.picThumb || product.picUrl || ''} alt={product.productName || ''} loading="lazy" />
-                          {Number(product.productSaleMode || 0) > 0 ? <span className="shop-detail-card__badge">{t('预售')}</span> : null}
-                        </div>
-                        <div className="shop-detail-card__name">{product.productName}</div>
-                        <div className="shop-detail-card__price">
-                          ¥ {Number(product.productPrice || product.price || 0).toFixed(2)}
-                          {Number(product.marketPrice || 0) > Number(product.productPrice || 0) ? (
-                            <s className="shop-detail-card__market">¥ {Number(product.marketPrice).toFixed(2)}</s>
-                          ) : null}
-                        </div>
-                        <div className="shop-detail-card__meta">
-                          {product.saleCount !== undefined ? <span>已售 {Number(product.saleCount || 0)}</span> : null}
-                          {Array.isArray(product.promotionList) && product.promotionList.length ? (
-                            <span className="shop-detail-card__promo">
-                              {product.promotionList.slice(0, 2).map((promo: any, index: number) => (
-                                <em key={index}>{String(promo?.type === 2 ? t('券') : promo?.name || promo?.title || t('促销'))}</em>
-                              ))}
-                            </span>
-                          ) : null}
-                        </div>
+            </div>
+
+            {products.records.length > 0 && pages > 1 ? (
+              <div className="pagination">
+                <nav className="el-pagination">
+                  {page > 1 ? (
+                    <Link href={hrefFor(page - 1)} className="btn-prev">
+                      {'<'}
+                    </Link>
+                  ) : (
+                    <span className="btn-prev disabled">{'<'}</span>
+                  )}
+                  {Array.from({ length: Math.min(pages, 8) }).map((_, index) => {
+                    const next = index + 1;
+                    return next === page ? (
+                      <span className="number active" key={next}>
+                        {next}
+                      </span>
+                    ) : (
+                      <Link href={hrefFor(next)} className="number" key={next}>
+                        {next}
                       </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="shop-detail-empty">{t('暂无商品')}</div>
-              )}
-              {products.records.length > 0 && pages > 1 ? (
-                <nav className="shop-detail-pagination">
-                  {page > 1 ? <Link href={hrefFor(page - 1)}>{t('上一页')}</Link> : <span className="is-disabled">{t('上一页')}</span>}
-                  <span>{page} / {pages}</span>
-                  {page < pages ? <Link href={hrefFor(page + 1)}>{t('下一页')}</Link> : <span className="is-disabled">{t('下一页')}</span>}
+                    );
+                  })}
+                  {page < pages ? (
+                    <Link href={hrefFor(page + 1)} className="btn-next">
+                      {'>'}
+                    </Link>
+                  ) : (
+                    <span className="btn-next disabled">{'>'}</span>
+                  )}
                 </nav>
-              ) : null}
-            </section>
+              </div>
+            ) : null}
           </div>
         </div>
-      </main>
-      <PcFooter />
+
+        <PcFooter />
+      </div>
     </div>
   );
 }

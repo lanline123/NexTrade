@@ -52,44 +52,62 @@ export default function AfterSalesListClient() {
     );
   }
 
+  /**
+   * 对照旧版 `pages/member/return/List.vue`：
+   * `.info-row > .title-or-tabs > .tag-and-input > .tig-tabs` + `.return-content > table.custom-table`。
+   * 旧版这一页列的是「订单编号 / 订单商品 / 发货时间」（按订单聚合），新版接口返回的是售后单，
+   * 所以列名沿用同一套表头样式，内容换成「售后单号 / 订单商品 / 申请时间」。
+   */
   return (
-    <div className="member-aftersales">
-      {loading ? (
-        <Card className="member-card">{t('售后记录加载中...')}</Card>
-      ) : rows.length ? (
-        <div className="member-aftersales__list">
-          {rows.map((record) => (
-            <Card key={record.aftersaleId} className="member-aftersales__card">
-              <div className="member-aftersales__head">
-                <b>{record.aftersalesTypeName || t('售后申请')}</b>
-                <span>{record.statusName || t('处理中')}</span>
-                <span>{record.addTime}</span>
-              </div>
-              <div className="member-aftersales__meta">
-                <span>售后单号：{record.aftersalesSn || '-'}</span>
-                <span>订单号：{record.orderSn || '-'}</span>
-                <span>退款金额：¥ {Number(record.refundAmount || 0).toFixed(2)}</span>
-              </div>
-              <div className="member-aftersales__items">
-                {(record.aftersalesItems || record.items || []).map((item, index) => (
-                  <div key={index} className="member-aftersales__item">
-                    <img src={item.picThumb || ''} alt={item.productName || ''} />
-                    <span>{item.productName}</span>
-                    <span>× {item.quantity}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="member-aftersales__actions">
-                <Link href={`/member/aftersales/detail?id=${record.aftersaleId}`}>
-                  <Button size="small" theme="borderless" type="primary">{t('查看详情')}</Button>
-                </Link>
-              </div>
-            </Card>
-          ))}
+    <div className="info-row mp-return-list">
+      <div className="title-or-tabs">
+        <div className="tag-and-input">
+          <div className="tig-tabs">
+            <div className="tab active">
+              <p>
+                <span>{t('售后列表')}</span>
+              </p>
+            </div>
+          </div>
         </div>
-      ) : (
-        <Card className="member-card">{t('暂无已申请退换货订单')}</Card>
-      )}
+      </div>
+      <div className="return-content">
+        {rows.length ? (
+          <table className="custom-table">
+            <thead className="table-header">
+              <tr>
+                <th className="header-cell header-cell-first" style={{ width: 200 }}>{t('售后单号')}</th>
+                <th className="header-cell">{t('订单商品')}</th>
+                <th className="header-cell" style={{ width: 140 }}>{t('申请时间')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((record) => (
+                <tr key={record.aftersaleId}>
+                  <td>{record.aftersalesSn || '-'}</td>
+                  <td>
+                    <div className="product-list">
+                      <div>
+                        <img className="img" src={(record.aftersalesItems || record.items || [])[0]?.picThumb || ''} alt="" />
+                        <Link href={`/member/aftersales/detail?id=${record.aftersaleId}`}>
+                          <Button type="primary" theme="solid">{t('详情')}</Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{record.addTime || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="no-result">
+            <div>
+              <span>{loading ? '' : t('暂无已申请退换货订单')}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

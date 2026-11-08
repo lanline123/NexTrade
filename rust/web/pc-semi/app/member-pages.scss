@@ -1,0 +1,3711 @@
+/**
+ * 会员中心子页样式 —— 由 scripts/gen-member-pages-scss.mjs 从旧版 .vue 的 <style> 块生成。
+ *
+ * 规则：逐字符搬运，不新增、不改写任何声明；只做三件事：
+ *   1. 去掉 <style scoped> 的 @import "/assets/css/member/member"（已由 member-order.scss 全局提供）；
+ *   2. 把 :deep(X) 展开成 X（Vue scoped 编译后就是后代选择器）；
+ *   3. 每个文件整体包一层页面选择器 mp-xxx，代替旧版 scoped 的 data-v 属性隔离。
+ */
+
+/* ---------- pages/member/address/List.vue ---------- */
+.mp-address-list {
+  .card-title {
+      font-size: 18px !important;
+      font-weight: 700 !important;
+      color: #1a1a1a !important;
+  }
+
+  .btn {
+      height: 28px;
+  }
+
+  .address-info {
+      background: #fff;
+      border: 0;
+
+      .el-checkbox__inner {
+          height: 18px;
+          width: 18px;
+          border-width: 2px;
+          border-radius: 2.5px;
+      }
+      .el-checkbox__inner::after {
+          width: 4px;
+          height: 8px;
+          border-width: 2px;
+      }
+
+      .card-list {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          padding: 10px 0;
+
+          .el-page,
+          .no-result {
+              grid-column: 1 / -1;
+          }
+
+          .card {
+              box-sizing: border-box;
+              border: 1px solid #e0e1e5;
+              padding: 15px;
+              overflow: hidden;
+              line-height: 2;
+              border-radius: 4px;
+              &.selected {
+                  border: 1px solid var(--main-bg);
+              }
+
+              .first {
+                  .top-info {
+                      display: flex;
+                      align-items: center;
+                      font-size: 16px;
+                      font-weight: 700;
+                      line-height: 20px;
+                      text-align: left;
+                      color: #000;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      .mobile {
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          margin-left: 8px;
+                          font-size: 14px;
+                          font-weight: 400;
+                          line-height: 18px;
+                          text-align: left;
+                          color: #1a1a1a;
+                          white-space: nowrap;
+                      }
+                  }
+                  .address {
+                      margin-top: 8px;
+                      font-size: 14px;
+                      font-weight: 400;
+                      line-height: 18px;
+                      height: 36px;
+                      text-align: left;
+                      display: -webkit-box;
+                      line-clamp: 2;
+                      -webkit-line-clamp: 2;
+                      -webkit-box-orient: vertical;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      color: #505259;
+                      word-break: break-all;
+                  }
+                  .other {
+                      display: flex;
+                      align-items: center;
+                      column-gap: 8px;
+                      margin-top: 8px;
+                      font-size: 14px;
+                      font-weight: 400;
+                      line-height: 18px;
+                      height: 24px;
+                      text-align: left;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      color: #505259;
+                      word-break: break-all;
+                  }
+                  .bottom-operation {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      height: 24px;
+                      .is-default {
+                          .el-checkbox__label {
+                              color: #1a1a1a;
+                              font-size: 14px;
+                          }
+                      }
+                      .operation {
+                          display: flex;
+                          align-items: center;
+                          color: #1a1a1a;
+                          column-gap: 8px;
+
+                          .dialog-link,
+                          .btn-link {
+                              display: inline-flex !important;
+                              align-items: center;
+                              justify-content: center;
+                              width: 20px;
+                              height: 20px;
+                              line-height: 1 !important;
+                              cursor: pointer;
+                          }
+                      }
+                  }
+              }
+
+              .ju {
+                  display: flex;
+
+                  & > div {
+                      flex: 1;
+                  }
+              }
+
+              .operation {
+                  color: #005ea7;
+                  cursor: pointer;
+              }
+          }
+      }
+  }
+
+  .invalid-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      height: 20px;
+      padding: 0 8px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 18px;
+      color: #cc0c1c;
+      background: rgba(204, 12, 28, 0.08);
+  }
+
+  .new-address {
+      border-radius: 4px;
+      border: 1px solid #cc0c1c;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 16px;
+      text-align: left;
+      color: #cc0c1c;
+      background-color: #fff;
+  }
+  .new-address:hover {
+      background-color: rgba(204, 12, 28, 0.04);
+  }
+  .el-select__wrapper {
+      box-shadow: 0 0 0 1px var(--el-border-color) inset;
+  }
+}
+
+/* ---------- pages/member/address/EditRegion.vue ---------- */
+.mp-address-edit {
+  .ant-form-item-control {
+      flex-direction: inherit;
+      width: 100%;
+  }
+
+  .ant-form-item-control-input {
+      margin-right: 10px;
+  }
+
+  .ant-form-item {
+      margin-bottom: 14px;
+  }
+
+  .ant-form-margin-offset {
+      display: none;
+  }
+
+  .ant-form-item-explain {
+      line-height: 30px;
+  }
+
+  .ant-form-item-has-error .select_region {
+      border-color: #ff4d4f;
+  }
+
+  .address_from {
+      .from_item {
+          display: flex;
+          margin-bottom: 10px;
+
+          .tit {
+              display: inline-block;
+              font-family: "宋体";
+              margin-right: 5px;
+              width: 85px;
+              text-align: right;
+              line-height: 30px;
+          }
+
+          .inp {
+              span {
+                  color: #888888;
+                  margin-left: 5px;
+              }
+
+              select {
+                  margin-right: 10px;
+              }
+          }
+
+          .btn_box {
+              display: flex;
+              margin-top: 10px;
+              margin-bottom: 10px;
+
+              .btn {
+                  background: #ff6c6c;
+                  border: 1px solid #ff5e5e;
+                  color: #fff;
+                  cursor: pointer;
+                  border-radius: 2px;
+                  display: inline-block;
+                  height: 16px;
+                  line-height: 16px;
+                  padding: 10px 25px;
+                  text-align: center;
+                  text-decoration: none;
+                  font-size: 14px;
+                  margin-right: 20px;
+              }
+
+              .info {
+                  background: #f7f7f7;
+                  border: 1px solid #ddd;
+                  color: #666;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/coupon/List.vue ---------- */
+.mp-coupon-list {
+  .bw {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      & > a {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          cursor: pointer;
+      }
+  }
+
+  .coupon-list {
+      background: #fff;
+      border: 0;
+
+      .coupon-item-list {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          padding: 20px 0 10px 0;
+          box-sizing: border-box;
+          gap: 16px;
+
+          // CouponCard 根节点固定 475px，此处让它填满栅格轨道
+          .coupon-container {
+              width: 100%;
+          }
+
+          .el-page,
+          .no-result {
+              grid-column: 1 / -1;
+          }
+
+          .card-false {
+              background-color: #c3c3c3; /* 淡蓝色背景 */
+
+              & > .type-bottom {
+                  background: url("/assets/images/user/coupon20160715.png") repeat scroll -3px -317px;
+                  height: 3px;
+                  overflow: hidden;
+                  position: absolute;
+                  bottom: 0;
+                  width: 244px;
+              }
+          }
+
+          .card-true {
+              background-color: #74d2d4; /* 淡蓝色背景 */
+
+              & > .type-bottom {
+                  background: url("/assets/images/user/coupon20160715.png") repeat scroll -3px -303px;
+                  height: 3px;
+                  overflow: hidden;
+                  position: absolute;
+                  bottom: 0;
+                  width: 244px;
+              }
+          }
+
+          .card {
+              width: 300px;
+              height: 150px;
+              position: relative; /* 设置相对定位 */
+              overflow: hidden; /* 确保所有内容都在边框内部 */
+              cursor: pointer;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              color: white;
+              gap: 4px;
+
+              .c-price {
+                  line-height: 1;
+
+                  .coupon_discount {
+                      font-size: 60px;
+
+                      & > span {
+                          font-size: 24px;
+                      }
+                  }
+              }
+
+              .c-time-true {
+                  color: #197f81;
+              }
+
+              .c-time-false {
+                  color: #fff;
+              }
+
+              .triangle {
+                  width: 65px; /* 充满父元素 */
+                  height: 65px; /* 充满父元素 */
+                  overflow: hidden; /* 确保只显示一半内容 */
+                  position: absolute; /* 相对于父元素定位 */
+                  top: 0;
+                  left: 0;
+                  transform-origin: 0 0; /* 旋转的基点是左上角 */
+              }
+              .triangle-effective {
+                  width: 65px;
+                  height: 65px;
+                  overflow: hidden;
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  -webkit-clip-path: polygon(100% 0, 0 0, 0 100%);
+                  clip-path: polygon(100% 0, 0 0, 0 100%);
+                  background: #ffea00;
+                  .effective {
+                      margin-top: 8px;
+                      margin-left: -4px;
+                      color: #6a6964;
+                      transform: rotate(-45deg);
+                  }
+              }
+          }
+
+          .card::before {
+              content: "";
+              position: absolute;
+              top: -30px; /* 半圆的大小，确保其部分在 div 外部 */
+              left: 50%; /* 放置在 div 的中心 */
+              width: 40px; /* 半圆的宽度 */
+              height: 40px; /* 半圆的高度 */
+              margin-left: -20px; /* 将半圆向左移动，以便它居中 */
+              border-radius: 20px; /* 顶部圆角形成半圆 */
+              background-color: white; /* 与页面背景相同的颜色 */
+
+              border-bottom: none; /* 移除半圆底部的边框 */
+          }
+
+          .triangle-right {
+              position: absolute;
+              top: 0;
+              right: 0;
+              width: 35px; /* 充满父元素 */
+              height: 35px; /* 充满父元素 */
+              clip-path: polygon(100% 0, 100% 100%, 0 0); /* 创建一个右上角三角形 */
+              opacity: 0; /* 默认不显示 */
+              transition:
+                  transform 0.3s ease-in-out,
+                  opacity 0.3s ease-in-out; /* 动画效果 */
+          }
+
+          .card:hover .triangle-right {
+              width: 35px; /* 悬停时三角形展开 */
+              opacity: 1; /* 悬停时显示 */
+          }
+      }
+
+      .have-been-used {
+          background: url("/assets/images/user/coupon20160715.png") repeat scroll 0 0;
+          display: block;
+          height: 66px;
+          left: 0;
+          overflow: hidden;
+          position: absolute;
+          top: 0;
+          width: 65px;
+      }
+
+      .be-about-to-expire {
+          background: url("/assets/images/user/coupon20160715.png") repeat scroll -100px 0;
+          display: block;
+          height: 66px;
+          left: 0;
+          overflow: hidden;
+          position: absolute;
+          top: 0;
+          width: 65px;
+      }
+
+      .have-expired {
+          background: url("/assets/images/user/coupon20160715.png") repeat scroll -172px 0;
+          display: block;
+          height: 66px;
+          left: 0;
+          overflow: hidden;
+          position: absolute;
+          top: 0;
+          width: 65px;
+      }
+
+      .c-del {
+          background: url("/assets/images/user/coupon20160715.png") repeat scroll -261px 0;
+          display: block;
+          height: 35px;
+          left: 0;
+          overflow: hidden;
+          position: absolute;
+          top: 0;
+          width: 35px;
+      }
+  }
+}
+
+/* ---------- components/member/coupon/CouponCard.vue ---------- */
+.mp-coupon-card {
+  .coupon-container {
+      box-sizing: border-box;
+      width: 475px;
+      height: fit-content;
+      min-height: 108px;
+      border-radius: 6px;
+      padding: 11px;
+      border: 1px solid var(--main-bg);
+      border-left-width: 4px;
+      .coupon-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          padding-bottom: 8px;
+          &.border {
+              border-bottom: .5px dashed var(--main-bg);
+              margin-bottom: 8px;
+          }
+          .coupon-off-text {
+              .top {
+                  display: flex;
+                  align-items: baseline;
+                  .price {
+                      .util {
+                          color: var(--main-bg);
+                      }
+                      .num{
+                          color: var(--main-bg);
+                      }
+                  }
+                  .discount {
+                      font-size: 24px;
+                      color: var(--main-bg);
+                      font-weight: 400;
+                  }
+                  .desc {
+                      display: flex;
+                      margin-left: 3px;
+                      font-size: 14px;
+                      color: var(--main-bg);
+                      width: 0;
+                      flex: 1;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      .name {
+                          margin-left: 10px;
+                          white-space: nowrap;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                      }
+                  }
+              }
+              .time-wrap {
+                  height: auto;
+                  font-size: 12px;
+                  line-height: 16px;
+                  border-radius: 4px;
+                  padding: 4px;
+                  color: #c99227;
+                  background-color: #fff8ea;
+              }
+          }
+          .use-btn {
+              min-width: 48px !important;
+              height: 20px;
+              padding: 0 4px;
+              border-radius: 4px;
+              border: 1px solid var(--main-bg);
+              color: var(--main-bg);
+              text-align: center;
+              line-height: 20px;
+              font-weight:500;
+              cursor: not-allowed;
+
+              &.enabel {
+                  cursor: pointer;
+                  &:hover {
+                      background: var(--primary-light-9);
+                  }
+              }
+          }
+          .disable-btn{
+              border-color: #888b94;
+              color: #888b94;
+          }
+      }
+
+      .coupon-desc {
+          height: auto;
+          font-size: 12px;
+          line-height: 16px;
+          color: #888b94;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+      }
+
+      &.disable {
+          border-color: #c3c3c3;
+          .coupon-info {
+              &.border {
+                  border-color: #c3c3c3;
+              }
+          }
+          .coupon-off-text {
+              .top {
+                  .price {
+                      .util {
+                          color: #c3c3c3;
+                      }
+                      .num{
+                          color: #c3c3c3;
+                      }
+                  }
+                  .discount {
+                      color: #c3c3c3;
+                  }
+                  .desc {
+                      color: #c3c3c3;
+                  }
+              }
+              .time-wrap {
+                  color: #c3c3c3;
+                  background-color: #f0f0f0;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/collectProduct/List.vue ---------- */
+.mp-collect-product {
+  .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+
+
+  .collect-product {
+      width: 1008px !important;
+      .title-or-tabs {
+          .tag-and-input {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              width: 100%;
+              margin-left: 20px;
+
+              .tig-tabs {
+                  & > div {
+                      color: #333333;
+                      font-size: 16px;
+                      font-weight: 400;
+                      letter-spacing: 0;
+                      display: inline-block;
+                  }
+              }
+
+              .tig-font-style {
+                  font-size: 14px;
+              }
+
+              .image {
+                  margin-bottom: 20px;
+              }
+
+              .input {
+                  display: flex;
+                  align-items: center;
+              }
+          }
+      }
+      .page-body {
+          margin-top: 24px;
+          .collect-list-content {
+              display: grid;
+              grid-template-columns: repeat(var(--collect-columns, 4), minmax(0, 1fr));
+              gap: 8px;
+              align-content: start;
+
+              // 分页/空状态占满整行，不参与商品列
+              .el-page,
+              .no-result {
+                  grid-column: 1 / -1;
+              }
+
+              // 卡片填满弹性列宽、图片随列宽保持正方形（覆盖 ProductCard 的固定 240px）
+              .product-card-container {
+                  width: 100%;
+              }
+              .product-card-container .pro_pic {
+                  width: 100%;
+                  height: auto;
+                  aspect-ratio: 1 / 1;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/collectShop/List.vue ---------- */
+.mp-collect-shop {
+  .collect-product {
+      .title-or-tabs {
+          .tag-and-input {
+              display: flex;
+              height: 32px;
+              flex-direction: row;
+              justify-content: space-between;
+              width: 100%;
+
+              .tig-tabs {
+                  & > div {
+                      color: #333333;
+                      font-size: 16px;
+                      font-weight: 400;
+                      letter-spacing: 0;
+                      display: inline-block;
+                  }
+              }
+
+              .tig-font-style {
+                  font-size: 14px;
+              }
+
+              .image {
+                  margin-bottom: 20px;
+              }
+
+              .input {
+                  display: flex;
+                  align-items: center;
+              }
+          }
+      }
+
+      .collect-list-content {
+          background-color: #ffffff;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 20px;
+
+          .card {
+              border: 1px solid #eee;
+              width: 100%;
+              display: flex;
+              height: 260px;
+
+              .left-card {
+                  width: 260px;
+                  display: flex;
+                  box-sizing: border-box;
+                  flex-direction: column;
+                  border-right: 1px solid #eee;
+                  position: relative; /* 容器需要相对定位 */
+                  padding-top: 24px; /* 为内div预留空间，保持布局不变 */
+
+                  .inner-div {
+                      position: absolute; /* 绝对定位，相对于最近的已定位祖先（这里是.outer-div） */
+                      top: 0; /* 紧贴在.outer-div的顶部 */
+                      left: 0;
+                      width: 100%; /* 可以根据需要调整宽度 */
+                      height: 24px;
+                      line-height: 24px;
+                      background-color: rgba(0, 0, 0, 0.5); /* 示例背景色 */
+                      display: none; /* 默认隐藏 */
+                      transition: opacity 0.3s ease; /* 添加过渡效果 */
+                      cursor: pointer;
+                      color: white;
+                      text-align: center;
+                  }
+
+                  .logo {
+                      height: 60px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+
+                      .image {
+                          width: 60px;
+                          height: 60px;
+                      }
+                  }
+
+                  .title {
+                      text-align: center;
+                      font-size: 14px;
+                      color: #333333;
+                      height: 40px;
+                      line-height: 40px;
+                      font-weight: bold;
+                      white-space: nowrap; /* 不换行 */
+                      overflow: hidden; /* 隐藏超出容器的内容 */
+                      text-overflow: ellipsis; /* 超出部分用省略号表示 */
+                      flex: 1;
+                  }
+
+                  .operation-card {
+                      height: 34px;
+                      cursor: pointer;
+                      background-color: #f9f9f9;
+                      border-top: 1px solid #eee;
+                      font-size: 12px;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      color: #666666;
+                      line-height: 34px;
+
+                      .butt1 {
+                          border-right: 1px solid #eee;
+                      }
+
+                      .butt {
+                          flex: 1;
+                          text-align: center;
+                          align-items: center;
+                          display: flex;
+                          justify-content: center;
+                          gap: 8px;
+                      }
+                  }
+              }
+
+              .right-card {
+                  flex: 1;
+                  padding: 15px;
+                  box-sizing: border-box;
+                  display: flex;
+                  flex-direction: column;
+
+                  .top-bar {
+                      display: flex;
+                      flex-direction: row;
+                      justify-content: space-between;
+                      align-items: center;
+                      margin-bottom: 15px;
+
+                      .left-bar {
+                          display: flex;
+
+                          .inner-div {
+                              flex: 1; /* 让每个子div占据相等空间 */
+                              border: 1px solid #dddddd;
+                              padding: 0 14px;
+                              height: 25px;
+                              line-height: 25px;
+                              text-align: center;
+                              transition: border-color 0.3s; /* 平滑过渡效果 */
+                              cursor: pointer;
+                              margin-right: -1px;
+                          }
+
+                          .inner-div-hover {
+                              border: 1px solid var(--general);
+                              z-index: 10;
+                          }
+                      }
+
+                      .right-bar {
+                          display: flex;
+
+                          .inner-div {
+                              flex: 1; /* 让每个子div占据相等空间 */
+                              border: 1px solid #dddddd;
+                              padding: 0 14px;
+                              height: 25px;
+                              line-height: 25px;
+                              text-align: center;
+                              transition: border-color 0.3s; /* 平滑过渡效果 */
+                              cursor: pointer;
+                              margin-right: -1px;
+                          }
+                      }
+                  }
+
+                  .product-list {
+                      display: flex;
+                      flex-direction: row;
+                      margin-top: 20px;
+
+                      .product-card {
+                          width: 20%;
+                          height: 100%;
+                          display: flex;
+                          flex-direction: column;
+                          align-items: center;
+                          gap: 20px;
+
+                          .product-img-wrap {
+                              position: relative;
+                              width: 100px;
+                              height: 100px;
+                          }
+
+                          .image {
+                              width: 100%;
+                              height: 100%;
+                          }
+
+                          .product-style-border {
+                              position: absolute;
+                              left: 0;
+                              top: 0;
+                              width: 100%;
+                              height: 100%;
+                              pointer-events: none;
+                              object-fit: fill;
+                          }
+
+                          .product_price {
+                              text-align: center;
+                          }
+                      }
+                  }
+              }
+          }
+
+          .card:hover .inner-div {
+              display: block; /* 鼠标悬停时显示 */
+              opacity: 1; /* 可选：渐显效果 */
+          }
+      }
+  }
+
+  .no-data {
+      display: flex;
+      flex: 1;
+      font-size: 16px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 50px;
+  }
+}
+
+/* ---------- pages/member/point/List.vue ---------- */
+.mp-point-list {
+  .point-info {
+      background: #fff;
+      border: 0;
+      // padding: 20px 20px;
+
+      .custom-table {
+          width: 100%;
+          border-collapse: collapse;
+          border: 1px solid #ddd;
+      }
+
+      .table-header {
+          height: 48px;
+          background-color: #f5f6fa;
+      }
+
+      .header-cell {
+          border: 1px solid #ddd;
+          border-right: none;
+          padding: 8px 10px;
+          text-align: left;
+      }
+
+      .header-cell-first {
+          border-left: none;
+      }
+
+      .header-cell-last {
+          border-right: 1px solid #ddd;
+      }
+
+      table td,
+      .header-cell {
+          border: 1px solid #ddd;
+          padding: 15px 10px;
+          text-align: left;
+          font-size: 14px;
+      }
+
+      .table-footer td {
+          text-align: left;
+          background-color: #f5f6fa;
+          border-top: 1px solid #ddd;
+      }
+
+      .no-table-result {
+          text-align: center;
+          height: 150px;
+          font-size: 20px;
+      }
+  }
+}
+
+/* ---------- pages/member/account/Deposit.vue ---------- */
+.mp-account-deposit {
+  .account-deposit-content {
+      background: #fff;
+      border: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+
+      .title {
+          color: #333;
+          font-size: 18px;
+          font-weight: 400;
+          margin-right: 10px;
+      }
+
+      .info {
+          color: #999;
+          font-size: 12px;
+      }
+
+      .go-pay {
+          width: 90px;
+          height: 30px;
+          line-height: 30px;
+      }
+
+      .pay-list {
+          display: flex;
+          gap: 10px;
+          width: 800px;
+
+          .pay {
+              width: 170px;
+              height: 50px;
+              display: flex;
+              border: 1px solid #d9d9d9;
+          }
+      }
+
+      .card-list {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-content: flex-start;
+          gap: 10px;
+
+          .card {
+              width: 32%;
+              height: 60px;
+              position: relative; /* 为了绝对定位内部的三角形 */
+              cursor: pointer; /* 可选，鼠标悬停时显示为指针 */
+              color: #1a1a1a;
+              text-align: center;
+              padding: 15px 0;
+              border: 1px solid #ddd;
+              font-weight: 700;
+              font-size: 20px;
+              display: flex;
+              flex-direction: column;
+              line-height: 1.5;
+              justify-content: center;
+
+              .el-input__inner{
+                  font-size: 14px;
+              }
+
+              span {
+                  font-size: 14px;
+              }
+
+              .tips {
+                  font-size: 14px;
+                  font-weight: 300;
+              }
+          }
+
+          .selected {
+              border-color: var(--general); /* 选中状态下边框变红 */
+          }
+
+          .selected::after {
+              content: "";
+              position: absolute;
+              bottom: 0; /* 三角形在右下角，但留有一点间距 */
+              right: 0;
+              width: 0;
+              height: 0;
+              border-left: 20px solid transparent;
+              border-top: 20px solid transparent;
+              border-bottom: 20px solid var(--general); /* 三角形大小和颜色 */
+              font-size: 20px; /* 勾的大小 */
+              line-height: 40px; /* 根据三角形大小调整，确保勾垂直居中 */
+              text-align: center;
+              transform: rotate(-0deg); /* 调整勾的位置和角度 */
+          }
+
+          .selected::before {
+              content: "✔";
+              color: var(--main-text); /* 勾的颜色 */
+              font-size: 10px; /* 勾的大小 */
+              position: absolute;
+              bottom: 5px; /* 调整勾在三角形内的垂直位置 */
+              right: 0; /* 调整勾在三角形内的水平位置 */
+              transform: translateX(0%) translateY(50%); /* 微调勾的位置 */
+              z-index: 100;
+          }
+      }
+
+      .tj-submit {
+          margin-top: 30px;
+      }
+  }
+
+  .bom-div {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+  .cont {
+      width: 136px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      & > img {
+          max-width: 100%;
+          max-height: 35px;
+          object-fit: contain;
+      }
+  }
+}
+
+/* ---------- pages/member/account/Detail.vue ---------- */
+.mp-account-detail {
+  .account-detail-content {
+      background: #fff;
+      border: 0;
+      // padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+
+      .tips {
+          display: flex;
+          justify-content: flex-end;
+          color: #999999;
+
+          & > a {
+              color: var(--general);
+              margin-right: 5px;
+          }
+      }
+
+      .money {
+          display: flex;
+          gap: 10px;
+
+          & > div {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              margin: 20px;
+              color: #474e5d;
+              line-height: 1.5;
+          }
+
+          .td1-title {
+              font-weight: 700;
+              font-size: 16px;
+          }
+
+          .td2-title {
+              line-height: 2;
+              font-size: 14px;
+
+              li {
+                  display: flex;
+                  align-items: center;
+
+                  .td2-ico1 {
+                      background: url("/assets/images/user/slice-s924f6ceef1.png") repeat scroll 0 -338px;
+                      height: 14px;
+                      width: 15px;
+                  }
+
+                  .td2-ico2 {
+                      background: url("/assets/images/user/slice-s924f6ceef1.png") repeat scroll 0 -355px;
+                      height: 14px;
+                      width: 15px;
+                  }
+
+                  .mr10 {
+                      margin-right: 10px;
+                  }
+              }
+          }
+
+          .td3-title {
+              display: flex;
+
+              .history {
+                  margin-top: 10px;
+                  text-align: center;
+
+                  & > a {
+                      color: var(--general);
+                      font-size: 14px;
+                  }
+              }
+          }
+      }
+
+      .table {
+          width: 100%;
+          margin-top: 10px;
+          font-size: 14px;
+          text-align: center;
+          color: #1a1a1a;
+
+          .table-header {
+              background-color: #f5f6fa;
+              height: 50px;
+              font-size: 14px;
+
+              .header-cell {
+                  font-weight: 700;
+              }
+          }
+
+          .body-tr {
+              box-sizing: border-box;
+              text-align: center;
+              line-height: 75px;
+              height: 75px;
+              border-bottom: 0.5px solid #f2f2f2;
+
+              .price {
+                  display: flex;
+                  justify-content: center;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/account/Log.vue ---------- */
+.mp-account-log {
+  .account-detail-content {
+      background: #fff;
+      border: 0;
+      padding:0 10px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+
+      .table {
+          width: 100%;
+          font-size: 14px;
+          text-align: center;
+          color: #1a1a1a;
+
+          .table-header {
+              background-color: #f5f6fa;
+              height: 50px;
+              font-size: 14px;
+
+              .header-cell {
+                  font-weight: 700;
+              }
+          }
+
+          .body-tr {
+              box-sizing: border-box;
+              text-align: center;
+              line-height: 75px;
+              height: 75px;
+              border-bottom: 0.5px solid #f2f2f2;
+
+              .price {
+                  display: flex;
+                  justify-content: center;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/account/Raplytocard.vue ---------- */
+.mp-account-raplyto {
+  .account-raplytocard-content {
+      background: #fff;
+      border: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #1a1a1a;
+
+      .tips {
+          font-size: 12px;
+          color: #a5a5a5;
+          margin-left: 100px;
+          margin-bottom: 20px;
+      }
+
+      .empty-method {
+          font-size: 13px;
+          color: #a5a5a5;
+      }
+
+      .card {
+          width: 120px;
+          height: 36px;
+          line-height: 36px;
+          position: relative; /* 为了绝对定位内部的三角形 */
+          cursor: pointer; /* 可选，鼠标悬停时显示为指针 */
+          color: #1a1a1a;
+          text-align: center;
+          border-radius: 4px;
+          overflow: hidden;
+          border: 1px solid #ddd;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+      }
+
+      .selected {
+          border-color: var(--general); /* 选中状态下边框变红 */
+      }
+
+      .selected::after {
+          content: "";
+          position: absolute;
+          bottom: 0; /* 三角形在右下角，但留有一点间距 */
+          right: 0;
+          width: 0;
+          height: 0;
+          border-left: 16px solid transparent;
+          border-top: 16px solid transparent;
+          border-bottom: 16px solid var(--general); /* 三角形大小和颜色 */
+          text-align: center;
+          transform: rotate(-0deg); /* 调整勾的位置和角度 */
+      }
+
+      .selected::before {
+          content: "✔";
+          color: var(--main-text); /* 勾的颜色 */
+          font-size: 8px; /* 勾的大小 */
+          position: absolute;
+          bottom: 5px; /* 调整勾在三角形内的垂直位置 */
+          right: 0; /* 调整勾在三角形内的水平位置 */
+          transform: translateX(0%) translateY(50%); /* 微调勾的位置 */
+          z-index: 100;
+      }
+
+      .form-body {
+          width: 440px;
+          font-size: 14px;
+      }
+
+      .withdraw-desc-item {
+          align-items: flex-start;
+
+          .el-form-item__label {
+              height: auto;
+              line-height: 1.6;
+          }
+
+          .el-form-item__content {
+              display: block;
+              line-height: 1.6;
+              align-items: stretch;
+          }
+      }
+
+      .withdraw-desc {
+          display: block;
+          width: 100%;
+          font-size: 14px;
+          color: #333;
+          line-height: 1.6;
+          word-break: break-word;
+          white-space: normal;
+
+          h1,
+          h2,
+          h3,
+          h4,
+          h5,
+          h6 {
+              margin: 0 0 12px;
+              line-height: 1.3;
+              font-weight: 700;
+          }
+
+          h1 {
+              font-size: 28px;
+          }
+
+          h2 {
+              font-size: 22px;
+          }
+
+          h3 {
+              font-size: 18px;
+          }
+
+          h4,
+          h5,
+          h6 {
+              font-size: 16px;
+          }
+
+          p,
+          div {
+              margin: 0 0 8px;
+              line-height: 1.6;
+              white-space: normal;
+          }
+
+          p:last-child,
+          div:last-child {
+              margin-bottom: 0;
+          }
+
+          ul,
+          ol {
+              margin: 0;
+              padding-left: 1.6em;
+          }
+
+          ul {
+              list-style: disc;
+          }
+
+          ol {
+              list-style: decimal;
+          }
+
+          li {
+              display: list-item;
+              margin: 0 0 6px;
+              line-height: 1.6;
+          }
+
+          li::marker {
+              color: inherit;
+          }
+
+          ul > li {
+              list-style: disc;
+          }
+
+          ol > li {
+              list-style: decimal;
+          }
+
+          strong,
+          b {
+              font-weight: 700;
+          }
+
+          em,
+          i {
+              font-style: italic;
+          }
+
+          u {
+              text-decoration: underline;
+          }
+
+          a {
+              color: var(--general);
+          }
+
+          img {
+              max-width: 100%;
+              height: auto;
+              object-fit: contain;
+              display: block;
+              margin: 8px 0;
+          }
+
+          table {
+              width: 100%;
+              border-collapse: collapse;
+          }
+      }
+      .el-form-item__label {
+          font-size: 14px;
+          color: #1a1a1a;
+      }
+      .el-input__inner {
+          font-size: 14px;
+          color: #1a1a1a;
+      }
+      .el-textarea__inner {
+          font-size: 14px;
+          color: #1a1a1a;
+      }
+      .el-select__wrapper {
+          font-size: 14px;
+          color: #1a1a1a;
+      }
+  }
+}
+
+/* ---------- pages/member/account/CardManagement.vue ---------- */
+.mp-account-card {
+  .account-detail-content {
+      background: #fff;
+      border: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+
+      .table {
+          width: 100%;
+          margin-top: 10px;
+          font-size: 14px;
+          color: #1a1a1a;
+
+          .table-header {
+              background-color: #f5f6fa;
+              height: 50px;
+              font-size: 14px;
+
+              .header-cell {
+                  font-weight: 700;
+                  text-align: center;
+              }
+          }
+
+          .body-tr {
+              height: 70px;
+              text-align: center;
+              box-sizing: border-box;
+              border-bottom: 0.5px solid #f2f2f2;
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/account/src/InfoCard.vue ---------- */
+.mp-account-infocard {
+  .cu {
+      cursor: pointer;
+  }
+  .info-card {
+      .el-overlay {
+          z-index: 500 !important;
+      }
+  }
+}
+
+/* ---------- pages/member/return/List.vue ---------- */
+.mp-return-list {
+  .return-content {
+      background: #fff;
+      border: 0;
+      font-size: 14px;
+      // padding: 20px;
+
+      .custom-table {
+          width: 100%;
+          border-collapse: collapse;
+          border: 1px solid #ddd;
+      }
+
+      .table-header {
+          height: 50px;
+          background-color: #f5f6fa;
+      }
+
+      .header-cell {
+          border: 1px solid #ddd;
+          border-right: none;
+          padding: 8px 10px;
+          text-align: left;
+      }
+
+      .header-cell-first {
+          border-left: none;
+      }
+
+      .header-cell-last {
+          border-right: 1px solid #ddd;
+      }
+
+      table td,
+      .header-cell {
+          border: 1px solid #ddd;
+          padding: 8px 10px;
+          text-align: left;
+      }
+
+      .table-footer td {
+          text-align: left;
+          background-color: #fcfcfc;
+          border-top: 1px solid #ddd;
+      }
+
+      .product-list {
+          display: flex;
+          flex-direction: row;
+          width: 100%;
+          gap: 20px;
+
+          flex-wrap: wrap;
+
+          & > div {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              gap: 10px;
+          }
+
+          .img {
+              width: 60px;
+              height: 60px;
+              border: 0.8px solid #eee;
+              border-radius: 4px;
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/return/Info.vue ---------- */
+.mp-return-info {
+  .log-return-content {
+      background: #fff;
+      border: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      min-height: 340px;
+
+      .file-card {
+          margin: 30px;
+
+          .form-body {
+              width: 600px;
+              margin-top: 20px;
+
+              .a-btn {
+                  color: #005ea7;
+                  margin-left: 6px;
+              }
+          }
+      }
+
+      .info-card {
+          margin: 0 30px 30px 30px;
+          box-sizing: border-box;
+          border-collapse: collapse; /* 边框合并为单一边框 */
+
+          .table-header {
+              background-color: #f5f5f5;
+              border: 1px solid #ddd;
+          }
+
+          .header-cell {
+              border: 1px solid #ddd;
+              padding: 8px 10px;
+              box-sizing: border-box;
+              text-align: center;
+          }
+
+          /* 设置单元格样式 */
+
+          td {
+              border: 1px solid #e8e8e8; /* 单元格边框颜色 */
+              padding: 10px; /* 单元格内边距 */
+              text-align: center;
+              .pro_pic {
+                  min-width: 40px;
+                  max-width: 40px;
+                  min-height: 40px;
+                  max-height: 40px;
+              }
+              .text-ellipsis {
+                  line-height: 1.8;
+                  display: flex;
+                  justify-content: flex-start;
+                  text-align: left;
+                  .name {
+                      font-weight: 600;
+                      //color: var(--general);
+                  }
+              }
+
+              .nuxt {
+                  display: flex;
+                  gap: 10px;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/return/Log.vue ---------- */
+.mp-return-log {
+  .order-table {
+      color: #666;
+      border: 1px solid #eee;
+      width: 100%;
+      background-color: #f5f6fa;
+      height: 40px;
+      line-height: 40px;
+      margin-bottom: 15px;
+
+      & > thead > tr > th {
+          padding-left: 10px;
+      }
+
+      .order-tr {
+          background-color: white;
+          box-sizing: border-box;
+
+          .column-1 {
+              width: 64%;
+              border: 1px solid #eee;
+
+              .nuxt {
+                  display: flex;
+                  gap: 10px;
+                  flex: 1;
+              }
+
+              .product-info {
+                  flex: 1;
+                  min-width: 0;
+                  max-width: 400px;
+              }
+
+              .product-name {
+                  display: -webkit-box;
+                  -webkit-box-orient: vertical;
+                  -webkit-line-clamp: 2;
+                  line-clamp: 2;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  line-height: 20px;
+                  max-height: 40px;
+                  word-break: break-word;
+              }
+
+              .sku {
+                  margin-top: 4px;
+                  font-size: 12px;
+                  line-height: 20px;
+                  color: #999;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+              }
+
+              & > div {
+                  padding: 15px;
+                  box-sizing: border-box;
+                  display: flex;
+                  align-items: center;
+                  flex-direction: row;
+                  border-bottom: 1px solid #eee;
+                  width: 100%;
+
+                  & > span {
+                      flex: 1;
+                      margin-left: 10px;
+                      line-height: 2;
+                  }
+
+                  & > div {
+                      margin-left: 10px;
+                      width: 60px;
+                      text-align: center;
+                  }
+              }
+
+              & > div:last-child {
+                  border-bottom: none;
+              }
+          }
+
+          .column-2-4 {
+              width: 12%;
+
+              border: 1px solid #eee;
+
+              & > div {
+                  display: flex;
+                  height: 100%;
+                  box-sizing: border-box;
+                  justify-content: center;
+                  align-items: center;
+              }
+
+              a {
+                  cursor: pointer;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/return/LogInfo.vue ---------- */
+.mp-return-loginfo {
+  .log-return-content {
+      .return-status-header {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          column-gap: 20px;
+          margin-bottom: 20px;
+
+          .status-title {
+              grid-column: 1;
+              grid-row: 1;
+              font-size: 20px;
+              font-weight: 700;
+              color: #1a1a1a;
+              line-height: 1.2;
+          }
+
+          .status-sub {
+              grid-column: 1;
+              grid-row: 2;
+              margin-top: 8px;
+              font-size: 13px;
+              color: #8b8e97;
+
+              .countdown-text {
+                  color: #cc0c1c;
+                  font-weight: 600;
+              }
+          }
+
+          .header-actions {
+              grid-column: 2;
+              grid-row: 1;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+          }
+      }
+
+      background: #fff;
+      border: 0;
+      padding: 0 0 20px;
+      box-sizing: border-box;
+      min-height: 340px;
+
+      .file-card {
+          margin: 0 0 30px;
+          padding: 20px;
+          background-color: #fafafa;
+
+          .form-body {
+              width: 600px;
+              margin-top: 20px;
+
+              .a-btn {
+                  color: #005ea7;
+                  margin-left: 6px;
+              }
+          }
+      }
+
+      .info-card {
+          margin: 0 0 30px;
+          box-sizing: border-box;
+          border-collapse: collapse; /* 边框合并为单一边框 */
+
+          .table-header {
+              background-color: #f5f5f5;
+              border: 1px solid #ddd;
+          }
+
+          .header-cell {
+              border: 1px solid #ddd;
+              border-right: none;
+              padding: 8px 10px;
+              box-sizing: border-box;
+              text-align: left;
+          }
+
+          /* 设置单元格样式 */
+
+          td {
+              border: 1px solid #e8e8e8; /* 单元格边框颜色 */
+              padding: 10px; /* 单元格内边距 */
+          }
+
+          /* 设置左侧列宽度 */
+
+          td:first-child {
+              width: 120px; /* 左侧列宽度 */
+          }
+      }
+
+      .application-picture {
+          display: flex;
+          gap: 8px;
+          cursor: pointer;
+      }
+  }
+
+  .info-card {
+      margin: 0 0 30px;
+      box-sizing: border-box;
+      border-collapse: collapse; /* 边框合并为单一边框 */
+
+      .table-header {
+          background-color: #f5f5f5;
+      }
+
+      .header-cell {
+          border: 1px solid #ddd;
+          padding: 8px 10px;
+          box-sizing: border-box;
+          text-align: left;
+      }
+
+      /* 设置单元格样式 */
+
+      td {
+          border: 1px solid #e8e8e8; /* 单元格边框颜色 */
+          padding: 10px; /* 单元格内边距 */
+
+          .nuxt {
+              display: flex;
+              gap: 10px;
+
+              .pro_pic {
+                  width: 40px;
+                  height: 40px;
+              }
+
+              .product-info {
+                  flex: 1;
+                  min-width: 0;
+              }
+
+              .product-name {
+                  display: -webkit-box;
+                  -webkit-box-orient: vertical;
+                  -webkit-line-clamp: 2;
+                  line-clamp: 2;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  line-height: 20px;
+                  max-height: 40px;
+                  word-break: break-word;
+              }
+
+              .sku {
+                  margin-top: 4px;
+                  font-size: 12px;
+                  line-height: 20px;
+                  color: #999;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+              }
+          }
+      }
+  }
+
+  .image {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+
+  .bt-image {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      gap: 8px;
+
+      .bt-img {
+          width: 80px;
+          height: 80px;
+          cursor: pointer;
+      }
+  }
+}
+
+/* ---------- pages/member/pin/List.vue ---------- */
+.mp-pin-list {
+  .pin-list {
+      .tag-and-input {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+
+          .image {
+              margin-bottom: 20px;
+          }
+
+          .input {
+              display: flex;
+              align-items: center;
+          }
+      }
+
+      .pale-green {
+          background-color: #e5f8e0 !important;
+      }
+
+      .order-table {
+          color: #666;
+          border: 1px solid #eee;
+          width: 100%;
+          background-color: #f7f7f7;
+          height: 40px;
+          line-height: 40px;
+
+          & > thead > tr > th {
+              padding-left: 10px;
+          }
+
+          .order-tr {
+              background-color: white;
+
+              .column-1 {
+                  width: 52%;
+                  border: 1px solid #eee;
+
+                  & > div {
+                      padding: 15px;
+                      box-sizing: border-box;
+                      display: flex;
+                      align-items: center;
+                      flex-direction: row;
+                      border-bottom: 1px solid #eee;
+                      width: 100%;
+
+                      & > img {
+                          max-width: 40px;
+                          min-width: 40px;
+                          max-height: 40px;
+                          min-height: 40px;
+                      }
+
+                      & > span {
+                          flex: 1;
+                          margin-left: 10px;
+                          line-height: 2;
+                      }
+
+                      & > div {
+                          margin-left: 10px;
+                          width: 60px;
+                          text-align: center;
+                      }
+                  }
+
+                  & > div:last-child {
+                      border-bottom: none;
+                  }
+              }
+
+              .column-2-4 {
+                  width: 12%;
+                  border: 1px solid #eee;
+
+                  & > div {
+                      display: flex;
+                      height: 100%;
+                      padding: 20px 0;
+                      box-sizing: border-box;
+                      flex-direction: column;
+                      justify-content: flex-start;
+                      align-items: center;
+                      color: #aaaaaa;
+
+                      & > .black {
+                          color: black;
+                      }
+
+                      & > .money {
+                          text-align: center;
+                          width: 80%;
+                          border-bottom: 1px solid #e5e5e5;
+                      }
+
+                      & > div {
+                          line-height: 2;
+                      }
+                  }
+
+                  a {
+                      cursor: pointer;
+                  }
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/pin/Group.vue ---------- */
+.mp-pin-group {
+  .group-info-body {
+      background-color: white;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+
+      .group-info {
+          width: 1190px;
+
+          .title {
+              margin: 30px 0 20px;
+              padding: 10px;
+              box-sizing: border-box;
+              background-color: #f7f7f7;
+              gap: 30px;
+              display: flex;
+              flex-direction: row;
+
+              & > img {
+                  height: 150px;
+                  width: 150px;
+              }
+
+              .title-info {
+                  width: 100%;
+                  display: flex;
+                  flex-direction: column;
+
+                  .wire {
+                      border-bottom: 1px solid #dfdfdf;
+                      padding: 10px 0 20px;
+                      width: 100%;
+                  }
+
+                  h2 {
+                      font-size: 22px;
+                      font-weight: 700;
+                  }
+
+                  .info {
+                      margin: 10px 0;
+                      font-size: 14px;
+                  }
+              }
+          }
+
+          .user {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              gap: 20px;
+
+              .avatar-list {
+                  display: flex;
+                  width: 100%;
+                  justify-content: center;
+                  flex-direction: row;
+                  align-items: center;
+
+                  .avatar-container {
+                      position: relative;
+                      box-sizing: border-box;
+
+                      display: inline-block;
+
+                      .circle {
+                          width: 100px;
+                          height: 100px;
+                          background-color: #f8f8f8;
+                          border: 1px solid #e4e4e4;
+                          border-radius: 50%;
+                          overflow: hidden;
+
+                          .tips {
+                              position: absolute;
+                              top: 0;
+                              right: 0;
+                              padding: 0 8px;
+
+                              color: white;
+                              line-height: 22px;
+                              border-radius: 22px;
+                              background-color: #f98825;
+                          }
+
+                          & > img {
+                              width: 100px;
+                              height: 100px;
+                          }
+                      }
+                  }
+
+                  .username {
+                      width: 100px;
+                      text-align: center;
+                      color: #999999;
+                      margin-top: -20px;
+                  }
+
+                  .group-line {
+                      border-bottom: 1px solid #ddd;
+                      width: 60px;
+                      height: 3px;
+                  }
+              }
+
+              .message {
+                  font-size: 14px;
+                  line-height: 1.8;
+              }
+          }
+
+          .time {
+              margin: 30px 0 20px;
+              padding: 10px;
+              box-sizing: border-box;
+              background-color: #f7f7f7;
+              display: flex;
+              color: #999999;
+              justify-content: center;
+              font-size: 16px;
+              align-items: center;
+              gap: 5px;
+
+              & > div {
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 4px;
+                  line-height: 30px;
+                  text-align: center;
+                  color: white;
+                  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 1) 50%);
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/group/List.vue ---------- */
+.mp-group-list {
+
+}
+
+/* ---------- pages/member/group/Info.vue ---------- */
+.mp-group-info {
+  .order-info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .lr {
+          display: flex;
+
+          .order-left {
+              flex: 1;
+              line-height: 3;
+
+              & > div {
+                  display: flex;
+              }
+          }
+
+          .order-right {
+              display: flex;
+              gap: 10px;
+              flex-wrap: wrap;
+              width: 200px;
+              justify-content: flex-end;
+          }
+      }
+
+      .sub-title {
+          color: #333333;
+          font-size: 16px;
+          font-weight: 400;
+          letter-spacing: 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+
+          .sub-title-l {
+              color: #333333;
+          }
+      }
+
+      .order-ul {
+          li {
+              line-height: 3;
+              color: #666;
+
+              span {
+                  color: #333333;
+              }
+          }
+
+          &.virtualsample-box {
+              .virtualsample-item {
+                  display: flex;
+
+                  .item {
+                      padding-right: 10px;
+
+                      &:last-child {
+                          padding-right: 0;
+                      }
+                  }
+              }
+          }
+      }
+
+      .order-table-info {
+          width: 100%;
+          margin: 10px auto;
+          background-color: #fcfcfc;
+          border-collapse: collapse;
+          border: 1px solid #eee;
+
+          .receipt-header {
+              line-height: 2;
+              border-bottom: 1px solid #eeeeee;
+
+              & > th {
+                  padding: 10px;
+              }
+          }
+
+          .receipt-body {
+              background-color: white;
+              border: 1px solid #eeeeee;
+
+              .receipt-item {
+                  padding: 10px;
+                  border: 1px solid #f0f1f2;
+                  color: #1a1a1a;
+                  font-size: 14px;
+                  .product-info {
+                      display: flex;
+                      align-items: flex-start;
+                      gap: 10px;
+                      flex-wrap: nowrap;
+                      img {
+                          height: 60px;
+                          width: 60px;
+                          border-radius: 4px;
+                          margin-right: 10px;
+                      }
+                  }
+
+                  /* 商品信息区域可收缩，长文本在右侧区域内换行 */
+                  .product-info > div:last-child {
+                      flex: 1;
+                      min-width: 0;
+                      overflow-wrap: anywhere;
+                  }
+
+                  /* 商品名称最多两行，超出显示省略号 */
+                  .product-info__name {
+                      display: -webkit-box;
+                      -webkit-box-orient: vertical;
+                      -webkit-line-clamp: 2;
+                      line-clamp: 2;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      word-break: break-word;
+                      line-height: 1.4;
+                      max-height: calc(1.4em * 2);
+                      margin: 0;
+                  }
+                  .el-button {
+                      font-size: 14px !important;
+                  }
+              }
+
+
+              .sku-style {
+                  width: 100%;
+                  display: flex;
+                  flex-direction: column;
+
+                  & > div {
+                      width: 100%;
+                  }
+              }
+
+              & > td:first-child > div {
+                  & > img {
+                      height: 60px;
+                      width: 60px;
+                  }
+
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 20px;
+                  flex-wrap: wrap;
+              }
+
+              .operation {
+                  width: 80px;
+              }
+          }
+
+          .receipt-footer {
+              border-bottom: 1px dashed #e8e8e8;
+
+              .receipt-footer-it {
+                  text-align: right;
+                  padding: 10px;
+                  line-height: 2;
+
+                  .item {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      line-height: 28px;
+                  }
+
+                  .two {
+                      color: #888;
+                      font-size: 14px;
+                  }
+              }
+          }
+      }
+  }
+
+  .group-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 0;
+
+      .group-steps-content {
+          width: 80%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+
+          .group-steps-item {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
+
+              span {
+                  font-size: 16px;
+              }
+          }
+      }
+  }
+
+  .group-sub-title {
+      border-bottom: 1px solid #f4f4f4;
+      padding-bottom: 20px;
+  }
+
+  .group-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 0;
+      overflow-x: auto;
+
+      &::-webkit-scrollbar {
+          display: none;
+      }
+
+      .group-content-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+          padding: 0 20px;
+
+          .group-content-item-image {
+              background-color: #f4f4f4;
+              position: relative;
+              width: 68px;
+              height: 68px;
+              border-radius: 50%;
+
+              .iconBox {
+                  position: absolute;
+                  left: 50%;
+                  top: 50%;
+                  transform: translate(-50%, -50%);
+                  font-size: 28px;
+                  color: #c3c3c3;
+              }
+
+              .group-content-item-image-img {
+                  width: 68px;
+                  height: 68px;
+                  border-radius: 50%;
+                  overflow: hidden;
+
+                  img {
+                      width: 100%;
+                      height: 100%;
+                      object-fit: contain;
+                  }
+              }
+
+              .group-content-item-image-mask {
+                  position: absolute;
+                  bottom: 0;
+                  right: 50%;
+                  transform: translateX(50%) translateY(70%);
+                  background-color: var(--main-bg);
+                  color: #fff;
+                  border-radius: 2px;
+                  padding: 2.5px 4px;
+                  z-index: 999;
+                  white-space: nowrap;
+              }
+          }
+
+          span {
+              display: inline-block;
+              font-size: 14px;
+              font-weight: bold;
+              color: #9a9a9a;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              max-width: 5em;
+          }
+
+          &:first-child .group-content-item-image {
+              border: 2px solid var(--main-bg);
+          }
+      }
+  }
+
+  .invite-dialog-content {
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .invite-dialog-input {
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+  }
+}
+
+/* ---------- pages/member/comment/List.vue ---------- */
+.mp-comment-list {
+  .table-header {
+      height: 48px;
+      font-size: 14px;
+      .icon {
+          margin-top: 2px;
+          margin-left: 3px;
+      }
+      &:hover {
+          a {
+              color: var(--general);
+          }
+          .icon {
+              color: var(--general);
+          }
+      }
+  }
+  .collection-store {
+      .title-or-tabs {
+          .tag-and-input {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              width: 100%;
+
+              .tig-font-style {
+                  font-size: 18px;
+                  // font-weight: 700;
+              }
+
+              .image {
+                  margin-bottom: 20px;
+              }
+
+              .input {
+                  display: flex;
+                  align-items: center;
+              }
+          }
+      }
+
+      .order-table {
+          color: #666;
+          border: 1px solid #eee;
+          width: 100%;
+          margin-top: 20px;
+          background-color: #f5f6fa;
+          height: 40px;
+          line-height: 40px;
+          padding-left: 10px;
+          font-size: 14px;
+
+          & > thead > tr > th {
+              padding: 0 16px;
+          }
+
+          .order-tr {
+              background-color: white;
+
+              .column-1 {
+                  width: 55%;
+                  border: 1px solid #eee;
+                  .productName {
+                      flex: 1;
+                      line-height: 20px;
+                  }
+
+                  & > div {
+                      padding: 15px;
+                      box-sizing: border-box;
+                      display: flex;
+                      align-items: center;
+                      flex-direction: row;
+                      border-bottom: 1px solid #eee;
+                      width: 100%;
+
+                      & > div {
+                          margin-left: 10px;
+                          width: 60px;
+                          text-align: center;
+                      }
+                  }
+
+                  & > div:last-child {
+                      border-bottom: none;
+                  }
+              }
+
+              .column-2-4 {
+                  width: 18%;
+                  border: 1px solid #eee;
+                  .el-button {
+                      font-size: 14px;
+                  }
+
+                  & > div {
+                      display: flex;
+                      height: 100%;
+                      padding: 20px 0;
+                      box-sizing: border-box;
+                      flex-direction: column;
+                      justify-content: flex-start;
+                      align-items: center;
+                      color: #aaaaaa;
+                      gap: 8px;
+
+                      & > .black {
+                          color: black;
+                          text-align: right;
+                          padding-right: 16px;
+                      }
+
+                      & > .money {
+                          text-align: center;
+                          width: 80%;
+                          border-bottom: 1px solid #e5e5e5;
+                      }
+
+                      & > div {
+                          line-height: 2;
+                      }
+                  }
+
+                  a {
+                      cursor: pointer;
+                  }
+              }
+          }
+      }
+  }
+  .black {
+      width: 150px;
+      color: black;
+      text-align: right;
+  }
+  .flex_cc {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+  }
+}
+
+/* ---------- pages/member/comment/Info.vue ---------- */
+.mp-comment-info {
+  .white-card {
+      background: #ffffff;
+      margin-bottom: 20px;
+      display: flex;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 14px;
+      padding: 10px 18px;
+  }
+
+  .collection {
+      width: 100%;
+
+      .nav {
+          background: #ffffff;
+          margin-bottom: 20px;
+          display: flex;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 10px 18px;
+          align-items: center;
+
+          .collection-list-tag {
+              border: 0;
+              flex: 1;
+              display: flex;
+              flex-direction: row;
+              gap: 20px;
+              line-height: 32px;
+              font-size: 14px;
+              cursor: pointer;
+          }
+      }
+  }
+
+  .product-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 280px;
+      text-align: center;
+      line-height: 3;
+      padding: 30px;
+      border-right: 1px solid #e8e8e8;
+      box-sizing: border-box;
+      .el-rate .el-rate__text {
+          color: #666 !important;
+      }
+      img {
+          width: 100px;
+          height: 100px;
+      }
+  }
+
+  .product-right {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      width: 600px;
+      padding: 20px;
+      gap: 20px;
+
+      & > div {
+          display: flex;
+          flex-direction: column;
+      }
+
+      // D1146：匿名勾选与掩码名同行展示，对齐 H5 写法，故覆盖上面的纵向排列
+      & > div.anonymous-row {
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+
+          .el-checkbox__label {
+              font-size: 12px;
+              color: #999999;
+          }
+          .anonymous-name {
+              color: #666666;
+          }
+      }
+
+      .lab-text {
+          min-width: 80px;
+          line-height: 2;
+      }
+      .tips {
+          display: block;
+          background: none repeat scroll 0 0 var(--tag-bg);
+          border: 1px solid var(--tag-text);
+          color: var(--tag-text);
+          line-height: 24px;
+          clear: both;
+          padding: 2px 6px;
+      }
+  }
+
+  .label-list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+
+      .label-item {
+          padding: 6px;
+          cursor: pointer;
+          height: 16px;
+          white-space: nowrap;
+          display: flex;
+          gap: 8px;
+      }
+      .label-item-txt {
+          border: 1px solid #eee;
+          line-height: 18px;
+          background: #eee;
+          margin-bottom: 5px;
+          margin-right: 5px;
+          height: 18px;
+          padding: 6px 9px;
+          white-space: nowrap;
+      }
+      .label-edit {
+          padding: 6px;
+          cursor: pointer;
+          height: 18px;
+          white-space: nowrap;
+          display: flex;
+          gap: 8px;
+          border: 1px solid #ccc;
+          div {
+              width: 16px;
+              height: 18px;
+              background: url("/assets/images/user/cicon.png") no-repeat scroll 4px -58px #fff;
+          }
+      }
+      .label-edit-input {
+          display: flex;
+          align-items: center;
+          width: 150px;
+          border: 2px solid var(--general);
+          p {
+              width: 70px;
+              height: 26px;
+              line-height: 26px;
+              cursor: pointer;
+              text-align: center;
+              color: var(--main-text);
+              background-color: var(--general);
+          }
+          .el-input__wrapper {
+              height: 24px;
+              box-shadow: none !important;
+          }
+      }
+  }
+}
+
+/* ---------- components/member/comment/CommentList.vue ---------- */
+.mp-comment-card {
+  .comment-list-ov {
+      .title-or-tabs {
+          .tag-and-input {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              width: 100%;
+
+              .tig-font-style {
+                  font-size: 14px;
+              }
+
+              .image {
+                  margin-bottom: 20px;
+              }
+
+              .input {
+                  display: flex;
+                  align-items: center;
+              }
+          }
+      }
+
+      .comment-card {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          border-bottom: 1px solid #eeeeee;
+          padding: 10px;
+
+          .comment-card-evaluate {
+              display: flex;
+              color: #666;
+              margin-bottom: 10px;
+              flex-direction: column;
+              gap: 8px;
+              .option {
+                  display: flex;
+                  gap: 8px;
+              }
+              .right-tag {
+                  display: flex;
+                  flex: 1;
+                  flex-wrap: wrap;
+                  gap: 8px;
+
+                  .evaluate-tips {
+                      background-color: #eeeeee;
+                      padding: 2px 4px;
+                      white-space: nowrap;
+                  }
+              }
+          }
+
+          .comment-image-info {
+              display: flex;
+              gap: 10px;
+              flex-direction: row;
+
+              .img-div {
+                  flex: 0 0 60px;
+              }
+
+              .right-div {
+                  display: flex;
+                  flex: 1 1 auto;
+                  gap: 10px;
+                  color: #999999;
+                  flex-direction: column;
+                  overflow: auto;
+
+                  .text {
+                      flex: 1 0 auto;
+                      overflow-wrap: break-word;
+                      word-wrap: break-word;
+                  }
+
+                  .print-out {
+                      display: flex;
+                      gap: 4px;
+                      flex-wrap: wrap;
+
+                      .img {
+                          cursor: pointer;
+                          width: 80px;
+                          height: 80px;
+                          border: 1px solid #eee;
+                          margin-right: 5px;
+                          flex-wrap: wrap;
+                      }
+                  }
+
+                  .reply {
+                      margin: 5px 0 5px 0;
+                      padding: 10px;
+                      background: none repeat scroll 0 0 var(--tag-bg);
+                      border-radius: 8px;
+                      -moz-border-radius: 8px;
+                      -webkit-border-radius: 6px;
+                      clear: both;
+                      color: var(--tag-text);
+                      border: 1px dashed var(--tag-bg);
+                      line-height: 1.75;
+
+                      .text {
+                          color: black;
+                          display: block;
+                      }
+                  }
+              }
+          }
+      }
+
+      .page-info-body {
+          & > div:last-child {
+              border-bottom: none;
+          }
+      }
+  }
+  .image {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+}
+
+/* ---------- pages/member/orderInvoice/List.vue ---------- */
+.mp-orderinvoice-list {
+  .finished-order-content {
+      background: #fff;
+      border: 0;
+
+      .table-head {
+          background: #f3f3f3;
+          height: 42px;
+          padding: 0 0 0 8px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          text-align: center;
+
+          & > div:first-child {
+              width: 100%;
+          }
+
+          .item-op {
+              width: 150px;
+              font-weight: 600;
+          }
+      }
+
+      .custom-table {
+          width: 100%;
+          border-collapse: collapse;
+          border: 1px solid #eee;
+
+          .table-header {
+              background-color: #f8f8f8;
+          }
+
+          .header-cell {
+              color: #999;
+              height: 40px;
+              border: 1px solid #ddd;
+              border-right: none;
+              border-bottom: none;
+              padding: 8px 10px;
+              box-sizing: border-box;
+              text-align: left;
+          }
+
+          .header-cell-first {
+              border-left: none;
+          }
+
+          .header-cell-last {
+              border-right: 1px solid #ddd;
+          }
+
+          .body-tr {
+              box-sizing: border-box;
+              text-align: center;
+
+              .image {
+                  width: 42px;
+                  transition: opacity 0.2s linear;
+                  border: 0.8px solid #eee;
+              }
+
+              & > td:first-child {
+                  text-align: left;
+                  padding: 10px;
+                  display: flex;
+                  gap: 10px;
+              }
+          }
+      }
+
+      .cup {
+          cursor: pointer;
+      }
+  }
+}
+
+/* ---------- pages/member/orderInvoice/Info.vue ---------- */
+.mp-orderinvoice-info {
+  .message {
+      font-size: 12px;
+  }
+
+  .audit-status {
+      background: none repeat scroll 0 0 #fffdee;
+      border: 1px solid #edd28b;
+      padding: 10px;
+      font-size: 12px;
+
+      line-height: 2;
+      text-align: left;
+      margin: 26px;
+  }
+
+  .invoice-img {
+      width: 100px;
+      height: 100px;
+      margin-right: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      cursor: pointer;
+  }
+
+  .no-invoice {
+      margin-left: 100px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #666;
+      line-height: 2.5;
+      text-align: left;
+
+      p {
+          font-size: 14px;
+      }
+  }
+}
+
+/* ---------- components/invoice/InvoiceDialog.vue ---------- */
+.mp-invoice-dialog {
+  .message {
+      font-size: 12px;
+  }
+
+  .audit-status {
+      background: none repeat scroll 0 0 #fffdee;
+      border: 1px solid #edd28b;
+      padding: 10px;
+      font-size: 12px;
+
+      line-height: 2;
+      text-align: left;
+      margin: 26px;
+  }
+
+  .no-invoice {
+      margin-left: 100px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #666;
+      line-height: 2.5;
+      text-align: left;
+
+      p {
+          font-size: 14px;
+      }
+  }
+
+  .invoice-img {
+      width: 100px;
+      height: 100px;
+      margin-right: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      cursor: pointer;
+  }
+}
+
+/* ---------- pages/member/userInvoice/Info.vue ---------- */
+.mp-userinvoice-info {
+  .invoice-info-content {
+      background: #fff;
+      border: 0;
+      padding: 20px 0;
+      margin-bottom: 10px;
+      line-height: 1.5;
+
+      .title-tips {
+          color: #999999;
+          margin-bottom: 10px;
+      }
+
+      .tips {
+          font-size: 14px;
+      }
+
+      .mb-tips {
+          color: #999999;
+          margin-bottom: 10px;
+      }
+
+      .remind-box {
+          margin-top: 20px;
+          background: none repeat scroll 0 0 #fffdee;
+          border: 1px solid #edd28b;
+          padding: 10px;
+
+          .error-info {
+              font-size: 14px;
+              color: #666;
+              margin-top: 10px;
+          }
+      }
+
+      .update {
+          cursor: pointer;
+          color: #09f;
+      }
+
+      .form-body {
+          width: 500px;
+
+          .el-form-item__label {
+              white-space: nowrap;
+          }
+      }
+
+      .form-item {
+          & > .label {
+              width: 100px;
+              text-align: right;
+          }
+      }
+  }
+
+  .bt-content {
+      min-height: 340px;
+  }
+
+  .gray {
+      color: #999999;
+  }
+
+  .orange {
+      color: #ff6c00;
+  }
+
+  .green {
+      color: green;
+  }
+
+  .red {
+      color: red;
+  }
+}
+
+/* ---------- pages/member/userInvoice/confirmInfo.vue ---------- */
+.mp-userinvoice-confirm {
+  .container {
+      margin-top: 32px;
+  }
+  .confirm-info-content {
+      background: #fff;
+      border: 0;
+      padding: 20px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+
+      .tips {
+          line-height: 3;
+          color: #666;
+
+          .title {
+              font-size: 18px;
+              width: 100%;
+              text-align: center;
+              font-weight: bold;
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/userMessage/List.vue ---------- */
+.mp-usermessage-list {
+  .message_center {
+      align-items: flex-start;
+      padding-top: 20px;
+      padding-bottom: 50px;
+      .mc_side_bar {
+          width: 216px;
+          flex-shrink: 0;
+          margin-right: 16px;
+          background-color: #fff;
+          border-radius: 8px;
+          padding: 12px 0;
+          .nav_card {
+              .nav_group__title {
+                  padding: 8px 24px;
+                  font-size: 16px;
+                  color: #333;
+                  font-weight: 600;
+              }
+              .nav_item {
+                  height: 40px;
+                  margin: 4px 0;
+                  padding: 0 24px 0 36px;
+                  display: flex;
+                  align-items: center;
+                  color: #666;
+                  font-size: 15px;
+                  cursor: pointer;
+                  transition: all 0.2s;
+                  .nav_item__name {
+                      flex: 1;
+                  }
+                  &:hover:not(.active) {
+                      background-color: #fafafa;
+                      color: var(--general);
+                  }
+                  &.active {
+                      color: var(--general);
+                      font-weight: 500;
+                      background-color: color-mix(in srgb, var(--general) 8%, transparent);
+                  }
+              }
+          }
+      }
+      .msg_list {
+          flex: 1;
+          min-width: 0;
+          background-color: #fff;
+          border-radius: 8px;
+          padding: 20px;
+          .msg_list__toolbar {
+              gap: 10px;
+          }
+          .list {
+              margin-top: 20px;
+              .item {
+                  margin-bottom: 14px;
+                  .msg_card {
+                      position: relative;
+                      cursor: pointer;
+                      padding: 16px 20px;
+                      border: 1px solid #eee;
+                      border-radius: 8px;
+                      background-color: #fff;
+                      transition: box-shadow 0.2s;
+                      &:hover {
+                          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                          .msg_card__del {
+                              opacity: 1;
+                          }
+                      }
+                      .msg_card__head {
+                          display: flex;
+                          align-items: center;
+                          justify-content: space-between;
+                      }
+                      .msg_card__source {
+                          display: flex;
+                          align-items: center;
+                          .msg_card__icon {
+                              width: 26px;
+                              height: 26px;
+                              border-radius: 8px;
+                              background-color: var(--general);
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+                              margin-right: 8px;
+                              i {
+                                  color: #fff;
+                                  font-size: 15px;
+                              }
+                          }
+                          .msg_card__label {
+                              font-size: 14px;
+                              color: #333;
+                              font-weight: 500;
+                          }
+                          .msg_card__dot {
+                              width: 7px;
+                              height: 7px;
+                              border-radius: 50%;
+                              background-color: #e4393c;
+                              margin-left: 8px;
+                          }
+                      }
+                      .msg_card__date {
+                          font-size: 13px;
+                          color: #999;
+                      }
+                      .msg_card__title {
+                          margin-top: 12px;
+                          font-size: 16px;
+                          font-weight: bold;
+                          color: #222;
+                          line-height: 1.5;
+                      }
+                      .msg_card__txt {
+                          margin-top: 8px;
+                          color: #666;
+                          font-size: 14px;
+                          line-height: 22px;
+                      }
+                      .msg_card__del {
+                          position: absolute;
+                          right: 20px;
+                          bottom: 16px;
+                          color: #bbb;
+                          opacity: 0;
+                          cursor: pointer;
+                          transition: color 0.2s;
+                          &:hover {
+                              color: var(--general);
+                          }
+                      }
+                  }
+                  &.is-unread {
+                      .msg_card {
+                          background-color: #fafbff;
+                          border-color: #e6ebff;
+                      }
+                  }
+                  &.is-read {
+                      .msg_card__label {
+                          font-weight: 400;
+                          color: #666;
+                      }
+                  }
+              }
+              .el-page {
+                  margin-top: 20px;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/security/Info.vue ---------- */
+.mp-security-info {
+  .security-info {
+      background: #fff;
+      border: 0;
+
+      .table:last-child {
+          display: flex;
+          flex-direction: column;
+
+          .col {
+              height: 60px;
+              border-radius: 8px;
+              background-color: rgb(247, 248, 252);
+              margin-bottom: 10px;
+              display: flex;
+              -webkit-box-pack: justify;
+              justify-content: space-between;
+              -webkit-box-align: center;
+              align-items: center;
+              cursor: pointer;
+              padding: 0 10px;
+
+              .title {
+                  font-size: 14px;
+                  width: 120px;
+                  color: #1a1a1a;
+              }
+
+              .input-box {
+                  width: 100%;
+                  flex: 1 1 auto;
+                  display: flex;
+                  align-items: center;
+
+                  .account {
+                      flex: 1 1 auto;
+                      font-size: 14px;
+                      color: #8a919f;
+                  }
+
+                  .action-box {
+                      margin-left: 16px;
+                      white-space: nowrap;
+                      font-weight: bold;
+                      font-size: 14px;
+                      cursor: pointer;
+                  }
+              }
+          }
+      }
+  }
+
+  .bordered-div {
+      position: relative; /* 设置相对定位 */
+      border: 1px solid #ddd; /* 黑色边框 */
+      width: 100%; /* 设置 div 宽度 */
+      padding: 20px;
+      line-height: 3;
+      box-sizing: border-box;
+  }
+
+  .bordered-div .title {
+      position: absolute; /* 绝对定位标题 */
+      top: -1.5em; /* 将标题向上移动，使其部分在 div 外 */
+      left: 20px; /* 标题距离左侧 20px */
+      background: white; /* 背景色设置为白色，与页面背景相同 */
+      // padding: 0 15px; /* 标题内边距 */
+      color: #666666;
+      font-weight: bold;
+      font-size: 12px;
+  }
+
+  /* 使用伪元素来创建顶部边框的断开效果 */
+
+  .bordered-div::before {
+      content: ""; /* 伪元素内容为空 */
+      position: absolute;
+      top: 0;
+      left: 15px; /* 略小于标题的左边距，确保平滑过渡 */
+      width: calc(20px + 10px); /* 标题左边距加上标题内边距的总和 */
+      height: 2px; /* 与边框厚度相同 */
+      background: white; /* 背景色设置为白色，以覆盖边框 */
+  }
+  .info-rowSecuity {
+      width: 100%;
+      height: fit-content;
+      background: #fff;
+      padding: 0 32px 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      .title-or-tabs {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 72px;
+
+          span {
+              color: #000;
+              font-size: 24px;
+              font-weight: 600;
+              line-height: 24px;
+              letter-spacing: 0;
+              display: inline-block;
+          }
+      }
+  }
+  .block-color {
+      color: #1a1a1a;
+  }
+}
+
+/* ---------- pages/member/security/dialogInfo.vue ---------- */
+.mp-security-dialog {
+  .security-info {
+      background: #fff;
+      border: 0;
+      text-transform: none !important;
+
+      .table:last-child {
+          display: flex;
+          flex-direction: column;
+
+          .col {
+              height: 60px;
+              border-radius: 8px;
+              background-color: rgb(247, 248, 252);
+              margin-bottom: 10px;
+              display: flex;
+              -webkit-box-pack: justify;
+              justify-content: space-between;
+              -webkit-box-align: center;
+              align-items: center;
+              cursor: pointer;
+              padding: 0 10px;
+
+              .title {
+                  font-size: 14px;
+                  width: 120px;
+                  color: #1a1a1a;
+              }
+
+              .input-box {
+                  width: 100%;
+                  flex: 1 1 auto;
+                  display: flex;
+                  align-items: center;
+
+                  .account {
+                      flex: 1 1 auto;
+                      font-size: 14px;
+                      color: #8a919f;
+                  }
+
+                  .action-box {
+                      margin-left: 16px;
+                      white-space: nowrap;
+                      font-weight: bold;
+                      font-size: 14px;
+                      cursor: pointer;
+                  }
+              }
+          }
+      }
+  }
+
+  .bordered-div {
+      position: relative; /* 设置相对定位 */
+      border: 1px solid #ddd; /* 黑色边框 */
+      width: 100%; /* 设置 div 宽度 */
+      padding: 20px;
+      line-height: 3;
+      box-sizing: border-box;
+  }
+
+  .bordered-div .title {
+      position: absolute; /* 绝对定位标题 */
+      top: -1.5em; /* 将标题向上移动，使其部分在 div 外 */
+      left: 20px; /* 标题距离左侧 20px */
+      background: white; /* 背景色设置为白色，与页面背景相同 */
+      // padding: 0 15px; /* 标题内边距 */
+      color: #666666;
+      font-weight: bold;
+      font-size: 12px;
+  }
+
+  /* 使用伪元素来创建顶部边框的断开效果 */
+
+  .bordered-div::before {
+      content: ""; /* 伪元素内容为空 */
+      position: absolute;
+      top: 0;
+      left: 15px; /* 略小于标题的左边距，确保平滑过渡 */
+      width: calc(20px + 10px); /* 标题左边距加上标题内边距的总和 */
+      height: 2px; /* 与边框厚度相同 */
+      background: white; /* 背景色设置为白色，以覆盖边框 */
+  }
+  .info-rowSecuity {
+      width: 100%;
+      height: fit-content;
+      background: #fff;
+      padding: 0 16px 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      .title-or-tabs {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 72px;
+
+          span {
+              color: #000;
+              font-size: 24px;
+              font-weight: 600;
+              line-height: 24px;
+              letter-spacing: 0;
+              display: inline-block;
+          }
+      }
+  }
+  .block-color {
+      color: #1a1a1a;
+  }
+  .security-dialog-container {
+      width: 100%;
+  }
+}
+
+/* ---------- pages/member/browsingHistory/List.vue ---------- */
+.mp-browsing-list {
+  // .info-row {
+  //     box-sizing: content-box;
+  //     width: 1008px !important;
+  //     flex-shrink: 0;
+  // }
+
+  // .card-title {
+  //     white-space: nowrap;
+  //     font-size: 18px !important;
+  //     font-weight: 700 !important;
+  //     color: #1a1a1a !important;
+  // }
+  .collect-product {
+      width: 1008px !important;
+      .title-or-tabs {
+          .tag-and-input {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              width: 100%;
+              margin-left: 20px;
+
+              .tig-tabs {
+                  & > div {
+                      color: #333333;
+                      font-size: 16px;
+                      font-weight: 400;
+                      letter-spacing: 0;
+                      display: inline-block;
+                  }
+              }
+
+              .tig-font-style {
+                  font-size: 14px;
+              }
+
+              .image {
+                  margin-bottom: 20px;
+              }
+
+              .input {
+                  display: flex;
+                  align-items: center;
+              }
+          }
+      }
+      .page-body {
+          margin-top: 24px;
+          .collect-list-content {
+              display: grid;
+              grid-template-columns: repeat(var(--collect-columns, 4), minmax(0, 1fr));
+              gap: 8px;
+              align-content: start;
+
+              // 分页/空状态占满整行，不参与商品列
+              .el-page,
+              .no-result {
+                  grid-column: 1 / -1;
+              }
+
+              // 卡片填满弹性列宽、图片随列宽保持正方形（覆盖 ProductCard 的固定 240px）
+              .product-card-container {
+                  width: 100%;
+              }
+              .product-card-container .pro_pic {
+                  width: 100%;
+                  height: auto;
+                  aspect-ratio: 1 / 1;
+              }
+          }
+      }
+  }
+}
+
+/* ---------- pages/member/order/claimInfo.vue ---------- */
+.mp-claim-info {
+  .right-info { justify-content: space-between; align-items: center; }
+  .header-actions { display: flex; gap: 10px; }
+  .claim-page { min-height: 420px; padding: 0; background: #fff; color: #333; font-size: 14px; }
+  .claim-summary { padding-bottom: 0; }.summary-row { line-height: 3; }.summary-row > span + span { margin-left: 40px; }.summary-label { color: #666; }.summary-value { font-weight: 700; color: #666; }.status-tip { margin-top: 0; color: #666; line-height: 3; }.reject-reason { color: #666; }
+  .detail-section { padding-top: 10px; }.sub-title { color: #333; font-size: 16px; font-weight: 400; letter-spacing: 0; display: inline-block; }.detail-grid { display: block; margin-top: 20px; }.claim-row { display: flex; min-height: 0; align-items: baseline; line-height: 3; }.claim-row > span:first-child { flex: 0 0 90px; color: #666; }.claim-row > :not(:first-child) { margin-left: 10px; }.claim-row b { flex: 0 1 auto; color: #333; font-weight: 400; word-break: break-all; }.voucher-row { align-items: flex-start; padding-top: 20px; }.voucher-list { display: flex; flex-wrap: wrap; gap: 10px; }.voucher-image { width: 96px; height: 96px; border: 1px solid #e8e8e8; border-radius: 4px; cursor: pointer; }.empty-text { color: #999; }
+  .edit-form { max-width: 680px; margin-top: 20px; }.claim-upload-wrap { width: 100%; }.native-file-input { display: none; }.upload-tip { margin-top: 6px; color: #999; font-size: 12px; }.claim-upload-trigger { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; cursor: pointer; }.claim-uploader.is-limit-reached .el-upload--picture-card { display: none; }.claim-uploader { display: flex; flex-wrap: wrap; align-items: flex-start; }.claim-uploader .el-upload--picture-card, .claim-uploader .el-upload-list--picture-card .el-upload-list__item { width: 80px; height: 80px; margin: 0 8px 8px 0; }.page-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  .claim-uploader .el-upload-list__item-status-label { display: none !important; }
+}

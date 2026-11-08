@@ -18,7 +18,7 @@
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button, Card, Toast } from '@douyinfe/semi-ui';
+import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
@@ -202,127 +202,231 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
   };
 
   return (
-    <Card className="member-card comment-info-card" loading={loading}>
-      {items.length ? items.map((item, index) => (
-        <section className="comment-item" key={`${item.orderId}-${item.itemId}-${item.productId}`}>
-          <div className="comment-item__head">
-            <Link href={`/product/${item.productId}`}>
-              <img src={item.picThumb || ''} alt={item.productName || ''} />
-              <span>{item.productName || t('商品')}</span>
+    <div className="collection">
+      {/* 旧版 Info.vue: .nav > .title-or-tabs > span.card-title */}
+      <div className="nav">
+        <div className="title-or-tabs">
+          <span className="card-title">{t('订单评价')}</span>
+        </div>
+      </div>
+
+      {items.map((item, index) => (
+        <div className="white-card" key={`${item.orderId}-${item.itemId}-${item.productId}`}>
+          {/* 旧版 Info.vue: .product-left > a.nuxt > div > img / div > div > a / div > FormatPrice */}
+          <div className="product-left">
+            <Link
+              className="nuxt"
+              href={item.productId ? `/product/${item.productId}` : '/search'}
+              target="_blank"
+              title={item.productName || ''}
+            >
+              <div>
+                <img src={item.picThumb || ''} alt={item.productName || ''} />
+              </div>
+              <div>
+                <div style={{ lineHeight: 2 }}>
+                  <a>{item.productName || t('商品')}</a>
+                </div>
+                <div>
+                  <span style={{ color: '#ED3B3B', fontSize: '14px', lineHeight: '16px' }}>
+                    ¥{Number(item.price || 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </Link>
           </div>
-          <div className="comment-item__stars">
-            <span>{t('商品评分')}：</span>
-            {[1, 2, 3, 4, 5].map((value) => (
-              <button
-                key={value}
-                type="button"
-                disabled={Boolean(item.isCommentInfo)}
-                className={value <= (forms[index]?.rank || 0) ? 'is-active' : ''}
-                onClick={() => setForms({ ...forms, [index]: { ...forms[index], rank: value } })}
-              >★</button>
-            ))}
-            {/* 旧版 Info.vue：el-rate `:texts="desc" show-text` 星级文字 */}
-            <span className="comment-item__rank-text">
-              {forms[index]?.rank ? t(RANK_TEXTS[forms[index].rank - 1]) : ''}
-            </span>
-          </div>
-          {/* 源码 comment/Info.vue：评价标签 + 自定义标签 + 晒单图片 */}
-          <div className="comment-item__tags">
-            <span>{t('评价标签')}：</span>
-            {(forms[index]?.tagPool || []).map((tag) => {
-              const picked = (forms[index]?.tags || []).includes(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  disabled={Boolean(item.isCommentInfo)}
-                  className={picked ? 'is-active' : ''}
-                  onClick={() => toggleTag(index, tag)}
-                >
-                  {tag}
-                </button>
-              );
-            })}
-            {/* 旧版 Info.vue:70-79：label-edit / label-edit-input 自定义标签 */}
-            {!item.isCommentInfo ? (
-              forms[index]?.customTagOpen ? (
-                <span className="comment-item__custom-tag">
-                  <input
-                    value={forms[index]?.customTagInput || ''}
-                    autoFocus
-                    placeholder={t('请输入自定义标签')}
-                    onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], customTagInput: event.target.value } })}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        addCustomTag(index);
-                      }
-                    }}
-                  />
-                  <button type="button" onClick={() => addCustomTag(index)}>{t('确定')}</button>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="comment-item__custom-add"
-                  onClick={() => setForms({ ...forms, [index]: { ...forms[index], customTagOpen: true } })}
-                >
-                  {t('自定义')}
-                </button>
-              )
-            ) : null}
-          </div>
 
-          {!item.isCommentInfo ? (
-            <div className="comment-item__pics">
-              {(forms[index]?.pics || []).map((pic, picIndex) => (
-                <span className="comment-item__pic" key={picIndex}>
-                  <img src={String(pic.picThumb || pic.picUrl || '')} alt={t('晒单')} />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const current = forms[index]?.pics || [];
-                      setForms({ ...forms, [index]: { ...forms[index], pics: current.filter((_, i) => i !== picIndex) } });
-                    }}
-                  >×</button>
-                </span>
-              ))}
-              {(forms[index]?.pics || []).length < 9 ? (
-                <label className="comment-item__pic-pick">{t('+ 晒单')}<input
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    hidden
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) void uploadPic(index, file);
-                      event.target.value = '';
-                    }}
-                  />
-                </label>
-              ) : null}
+          {/* 旧版 Info.vue: .product-right */}
+          <div className="product-right">
+            <div>
+              <span className="lab-text">{t('商品评分')}：</span>
+              <span>
+                <div className={item.isCommentInfo ? 'el-rate is-disabled' : 'el-rate'}>
+                  {[1, 2, 3, 4, 5].map((value) => {
+                    const picked = value <= (forms[index]?.rank || 0);
+                    return (
+                      <span
+                        key={value}
+                        className="el-rate__item"
+                        onClick={() => {
+                          if (item.isCommentInfo) return;
+                          setForms({ ...forms, [index]: { ...forms[index], rank: value } });
+                        }}
+                      >
+                        <span className={picked ? 'el-rate__icon is-active' : 'el-rate__icon'}>★</span>
+                      </span>
+                    );
+                  })}
+                  <span className="el-rate__text">{forms[index]?.rank ? t(RANK_TEXTS[forms[index].rank - 1]) : ''}</span>
+                </div>
+              </span>
             </div>
-          ) : null}
 
-                  <textarea
-                    value={forms[index]?.content || ''}
-                    disabled={Boolean(item.isCommentInfo)}
-                    onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], content: event.target.value } })}
-                    placeholder={t('商品是否给力？快分享你的购买心得吧~')}
-                    rows={5}
-                  />
-                  {!item.isCommentInfo ? (
-                    <div className="comment-item__foot">
-                      {/* D1146：匿名开关关闭时不展示匿名勾选 */}
-                      {anonymousEnabled === 1 ? (
-                        <label><input type="checkbox" checked={forms[index]?.anonymous || false} onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], anonymous: event.target.checked } })} />{t('匿名评价')}</label>
-                      ) : null}
-                      <Button theme="solid" type="primary" loading={saving === index} onClick={() => void submit(item, index)}>{t('提交评价')}</Button>
+            <div>
+              <div className="lab-text">{t('评价标签')}：</div>
+              {!item.isCommentInfo ? (
+                <div className="label-list">
+                  {(forms[index]?.tagPool || []).map((tag) => (
+                    <div
+                      key={tag}
+                      className="label-item"
+                      style={{ border: (forms[index]?.tags || []).includes(tag) ? ' 2px solid var(--general)' : ' 1px solid #ccc' }}
+                      onClick={() => toggleTag(index, tag)}
+                    >
+                      <span>{t(tag)}</span>
                     </div>
-                  ) : <div className="comment-item__done">{t('已评价')}</div>}
-        </section>
-      )) : <div className="comment-empty">{t('暂无可评价商品')}</div>}
-      <div className="comment-info-back"><Link href="/member/comment">{t('返回评价中心')}</Link></div>
-    </Card>
+                  ))}
+                  {forms[index]?.customTagOpen ? (
+                    <div className="label-edit-input">
+                      <div>
+                        <div className="el-input">
+                          <div className="el-input__wrapper">
+                            <input
+                              className="el-input__inner"
+                              autoFocus
+                              value={forms[index]?.customTagInput || ''}
+                              onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], customTagInput: event.target.value } })}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                  event.preventDefault();
+                                  addCustomTag(index);
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p onClick={() => addCustomTag(index)}>{t('确定')}</p>
+                    </div>
+                  ) : (
+                    <div
+                      className="label-edit"
+                      onClick={() => setForms({ ...forms, [index]: { ...forms[index], customTagOpen: true } })}
+                    >
+                      <div></div>
+                      <p>{t('自定义')}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="label-list">
+                  {(forms[index]?.tags || []).map((tag) => (
+                    <div className="label-item-txt" key={tag}>
+                      <span>{tag}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="lab-text">{t('购物心得')}：</div>
+              <textarea
+                cols={50}
+                name="content"
+                rows={5}
+                style={{ border: '1px solid #d9d9d9', padding: '4px' }}
+                placeholder={t('商品是否给力？快分享你的购买心得吧~')}
+                value={forms[index]?.content || ''}
+                disabled={Boolean(item.isCommentInfo)}
+                onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], content: event.target.value } })}
+              />
+            </div>
+
+            <div>
+              <div className="lab-text">{t('晒单')}：</div>
+              {!item.isShowed ? (
+                /* 旧版 UploadImage（el-upload picture-card，最多 9 张，jpeg/png） */
+                <div className="el-upload el-upload--picture-card">
+                  <div className="el-upload-list el-upload-list--picture-card">
+                    {(forms[index]?.pics || []).map((pic, picIndex) => (
+                      <div className="el-upload-list__item" key={picIndex}>
+                        <img className="el-upload-list__item-thumbnail" src={String(pic.picThumb || pic.picUrl || '')} alt="" />
+                        <span className="el-upload-list__item-actions">
+                          <span
+                            className="el-upload-list__item-delete"
+                            onClick={() => {
+                              const current = forms[index]?.pics || [];
+                              setForms({ ...forms, [index]: { ...forms[index], pics: current.filter((_, i) => i !== picIndex) } });
+                            }}
+                          >
+                            ×
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {(forms[index]?.pics || []).length < 9 ? (
+                    <div className="el-upload__trigger">
+                      <label>
+                        +
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png"
+                          hidden
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) void uploadPic(index, file);
+                            event.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div>
+                  {(forms[index]?.pics || []).map((pic, picIndex) => (
+                    <img
+                      key={picIndex}
+                      src={String(pic.picThumb || pic.picUrl || '')}
+                      alt=""
+                      loading="lazy"
+                      style={{ height: '80px', width: '80px', transition: 'opacity 0.2s linear', marginRight: '10px' }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {anonymousEnabled === 1 && !item.isCommentInfo ? (
+              <div className="anonymous-row">
+                <label className="el-checkbox">
+                  <span className="el-checkbox__input">
+                    <input
+                      type="checkbox"
+                      checked={forms[index]?.anonymous || false}
+                      onChange={(event) => setForms({ ...forms, [index]: { ...forms[index], anonymous: event.target.checked } })}
+                    />
+                  </span>
+                  <span className="el-checkbox__label">{t('匿名评价')}</span>
+                </label>
+              </div>
+            ) : null}
+
+            <div>
+              <button
+                type="button"
+                className="el-button el-button--primary"
+                disabled={saving === index}
+                onClick={() => void submit(item, index)}
+              >
+                {t('提交评价')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {!loading && !items.length ? (
+        <div className="no-result">
+          <div>
+            <ul>
+              <li>{t('暂无可评价商品')}</li>
+            </ul>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }

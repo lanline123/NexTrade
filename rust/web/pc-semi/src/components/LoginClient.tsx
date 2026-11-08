@@ -1,17 +1,27 @@
 'use client';
 
 /**
- * PC 登录
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/pages/member/Login.vue
- *          components/member/login/BaseLogin.vue（loginMode=1 经典）
- *          components/member/login/OverseasLogin.vue（loginMode=2 现代）
- * 装修：home/home/pcLogin → loginMode / backgroundPic / backgroundColor
- * 接口：POST /api/user/login/signin、POST /api/user/login/sendMobileCode、GET /api/user/login/getWxLoginUrl
+ * PC 登录（毛玻璃卡片改版）
+ *
+ * 布局：后台装修配置的背景图（home/home/pcLogin → backgroundPic）全屏铺底，
+ * 登录卡片改为磨砂玻璃质感（backdrop-filter blur + 半透明白 + 大圆角），
+ * 靠右悬浮（对齐旧版现代风的卡片位）；顶栏融入背景（logo 毛玻璃胶囊 + 右上注册入口），
+ * 无独立头部条。无背景图时由 CSS 主题色柔光渐变兜底。
+ * 样式：app/auth-modern.scss（.pg-login-glass / .login-glass__*，手工维护）。
+ * 旧版经典/现代双皮肤（BaseLogin.vue / OverseasLogin.vue）的忠实移植样式仍保留在
+ * app/auth-page.scss（.pg-auth-login），如需回退可参照 git 历史。
+ *
+ * 逻辑与旧版一一对应，未改动：
+ * - 普通登录 / 手机登录双页签；协议勾选；
+ * - 登录接口 POST /api/user/login/signin，code=1002 弹滑块验证（VerifySlide）后带 verifyToken 重试；
+ * - 微信扫码：GET /api/user/login/getWxLoginUrl + wechatEvent 轮询；
+ * - 第三方 OAuth（Google/Facebook/Twitter-X）按钮组。
  */
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Button, Toast } from '@douyinfe/semi-ui';
+import { Toast } from '@douyinfe/semi-ui';
 import type { PcLoginDecorate } from '@/lib/api';
+import { imageFormat } from '@/lib/image';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
@@ -69,12 +79,24 @@ function redirectAfterLogin() {
   window.location.replace(target);
 }
 
-export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | null }) {
+export default function LoginClient({
+  shopName = '万物新生',
+  shopLogo = '',
+  shopRegClosed = 0,
+  decorate,
+}: {
+  /** 店铺名称（logo 缺省时展示文字），来自 common/config/base */
+  shopName?: string;
+  /** 店铺 logo（毛玻璃胶囊内展示） */
+  shopLogo?: string;
+  /** 后台注册开关：0 = 允许注册（展示注册入口） */
+  shopRegClosed?: number;
+  /** 登录页装修配置：backgroundPic / backgroundColor 决定整页背景 */
+  decorate?: PcLoginDecorate | null;
+}) {
     const { t } = useTranslation();
-  /** 源码 loginMode：1 经典 / 2 现代；默认现代 */
-  const loginMode = Number(decorate?.loginMode ?? 2) === 1 ? 1 : 2;
 
-  const [tab, setTab] = useState<'normal' | 'mobile'>(loginMode === 1 ? 'normal' : 'normal');
+  const [tab, setTab] = useState<'normal' | 'mobile'>('normal');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [mobile, setMobile] = useState('');
@@ -104,11 +126,11 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     if (poll.current) clearInterval(poll.current);
   }, []);
 
+  /** 整页背景：装修配置的背景图 cover 铺底 + 背景色兜底 */
   const bgUrl = decorate?.backgroundPic?.picUrl || '';
-  const bgColor = decorate?.backgroundColor || '';
-  const warpStyle: React.CSSProperties = {
+  const bgStyle: React.CSSProperties = {
     backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
-    backgroundColor: bgColor || undefined,
+    backgroundColor: decorate?.backgroundColor || undefined,
   };
 
   /**
@@ -214,98 +236,188 @@ export default function LoginClient({ decorate }: { decorate: PcLoginDecorate | 
     }
   };
 
-  const card = (
-    <>
-      {wechatMode ? (
-        <div className="pdp-login__wechat">
-          <div className="pdp-login__wechat-title">{t('请使用微信移动端扫描二维码')}</div>
-          {wechatQr && !wechatExpired ? (
-            <img src={wechatQr} alt={t('微信二维码')} />
-          ) : (
-            <div className="pdp-login__wechat-empty">{wechatExpired ? t('二维码已失效') : '加载中...'}</div>
-          )}
-          <div className="pdp-login__wechat-actions">
-            <Button onClick={() => void openWechat()}>{t('刷新二维码')}</Button>
-            <Button onClick={() => { setWechatMode(false); if (poll.current) clearInterval(poll.current); }}>{t('返回')}</Button>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="pdp-login__head">
-            <h1>{loginMode === 1 ? t('欢迎登录') : '登录'}</h1>
-            <div className="pdp-login__register">{t('没有账号？')}<Link href="/register">{t('去注册')}</Link>
-            </div>
-          </div>
-
-          {/* 经典：普通登录 / 手机登录；现代：密码登录 / 验证码登录 */}
-          <div className="pdp-login__tabs">
-            <button type="button" className={tab === 'normal' ? 'is-active' : ''} onClick={() => { setTab('normal'); setError(''); }}>
-              {loginMode === 1 ? t('普通登录') : '密码登录'}
-            </button>
-            <button type="button" className={tab === 'mobile' ? 'is-active' : ''} onClick={() => { setTab('mobile'); setError(''); }}>
-              {loginMode === 1 ? t('手机登录') : '验证码登录'}
-            </button>
-          </div>
-
-          <form onSubmit={submit} className="pdp-login__form">
-            {tab === 'normal' ? (
-              <>
-                <input className="pdp-login__input" value={username} onChange={(event) => setUsername(event.target.value)} placeholder={t('用户名/手机/邮箱')} />
-                <input className="pdp-login__input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('密码')} />
-                <div className="pdp-login__forget"><Link href="/member/reset">{t('忘记密码？')}</Link></div>
-              </>
-            ) : (
-              <>
-                <div className="pdp-login__row">
-                  <select className="pdp-login__area" value={areaCode} onChange={(event) => setAreaCode(event.target.value)}>
-                    <option value="+86">(+86)</option>
-                    <option value="+61">(+61)</option>
-                  </select>
-                  <input className="pdp-login__input" value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder={t('手机号')} maxLength={11} />
-                </div>
-                <div className="pdp-login__row">
-                  <input className="pdp-login__input" value={mobileCode} onChange={(event) => setMobileCode(event.target.value)} placeholder={t('请输入验证码')} maxLength={8} />
-                  <Button disabled={countdown > 0} onClick={() => void sendCode()}>{countdown > 0 ? `${countdown}s` : '获取验证码'}</Button>
-                </div>
-              </>
-            )}
-
-            <label className="pdp-login__agree">
-              <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
-              <span>{t('我已阅读并同意')}<Link href="/article/issue/info?articleSn=fwxy" target="_blank">{t('《服务协议》')}</Link>{t('和')}<Link href="/article/issue/info?articleSn=ysxy" target="_blank">{t('《隐私协议》')}</Link>
-              </span>
-            </label>
-
-            {error ? <div className="pdp-login__error">{error}</div> : null}
-
-            <Button htmlType="submit" theme="solid" type="primary" size="large" block loading={loading}>{t('登录')}</Button>
-          </form>
-
-          <div className="pdp-login__other">
-            <button type="button" onClick={() => void openWechat()}>{t('微信扫码登录')}</button>
-          </div>
-
-          {/* 第三方登录（源码 OverseasLogin.vue:117-127 Google / Facebook / Twitter-X） */}
-          <OauthButtons switches={oauthSwitches} onStart={startOauth} />
-        </>
-      )}
-    </>
-  );
-
   return (
-    <div
-      className={`pdp-login pdp-login--${loginMode === 1 ? 'classic' : 'modern'}`}
-      style={warpStyle}
-    >
-      {loginMode === 1 ? (
-        <div className="pdp-login__center">
-          <div className="pdp-login__card">{card}</div>
+    <div className="pg-login-glass" style={bgStyle}>
+      {/* 通栏毛玻璃头部（对齐旧版 LoginHeader 内容：logo + 欢迎语 + 注册互链），
+          半透明模糊浮在背景图之上，避免独立白条造成的割裂感 */}
+      <header className="login-glass__topbar">
+        <Link href="/" className="login-glass__logo">
+          {shopLogo ? (
+            <img src={imageFormat(shopLogo)} alt={shopName} />
+          ) : (
+            <span className="login-glass__logo-text">{shopName}</span>
+          )}
+        </Link>
+        <div className="login-glass__topbar-info">
+          <span className="login-glass__welcome">{t('您好，欢迎光临')}{shopName}{t('！')}</span>
+          {shopRegClosed === 0 ? (
+            <Link className="login-glass__switch" href="/register">{t('没有账号？注册新用户！')}</Link>
+          ) : null}
         </div>
-      ) : (
-        <div className="pdp-login__center pdp-login__center--modern">
-          <div className="pdp-login__card">{card}</div>
+      </header>
+
+      <div className="login-glass__stage">
+        <div className="login-glass__card">
+          {wechatMode ? (
+            <div className="login-glass__wechat-panel">
+              <h2 className="login-glass__title login-glass__title--center">{t('请使用微信扫码安全登录')}</h2>
+              {wechatQr && !wechatExpired ? (
+                <img className="login-glass__qr" src={wechatQr} alt={t('微信二维码')} />
+              ) : (
+                <div className="login-glass__qr login-glass__qr--empty">{wechatExpired ? t('二维码已失效') : t('加载中...')}</div>
+              )}
+              <div className="login-glass__wechat-actions">
+                <button type="button" className="login-glass__btn-secondary" onClick={() => void openWechat()}>
+                  {t('刷新二维码')}
+                </button>
+                <button
+                  type="button"
+                  className="login-glass__btn-secondary"
+                  onClick={() => {
+                    setWechatMode(false);
+                    if (poll.current) clearInterval(poll.current);
+                  }}
+                >
+                  {t('返回')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h2 className="login-glass__title">{t('欢迎登录')}</h2>
+
+              <div className="login-glass__tabs">
+                <button
+                  type="button"
+                  className={`login-glass__tab${tab === 'normal' ? ' is-active' : ''}`}
+                  onClick={() => {
+                    setTab('normal');
+                    setError('');
+                  }}
+                >
+                  {t('普通登录')}
+                </button>
+                <button
+                  type="button"
+                  className={`login-glass__tab${tab === 'mobile' ? ' is-active' : ''}`}
+                  onClick={() => {
+                    setTab('mobile');
+                    setError('');
+                  }}
+                >
+                  {t('手机登录')}
+                </button>
+              </div>
+
+              <form className="login-glass__form-body" onSubmit={submit}>
+                {tab === 'normal' ? (
+                  <>
+                    <label className="login-glass__field">
+                      <img className="login-glass__field-icon" src="/assets/images/user/login/ico_user.png" alt="" />
+                      <input
+                        className="login-glass__field-input"
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                        placeholder={t('用户名/手机/邮箱')}
+                        aria-label={t('用户名/手机/邮箱')}
+                      />
+                    </label>
+                    <label className="login-glass__field">
+                      <img className="login-glass__field-icon" src="/assets/images/user/login/ico_pwd.png" alt="" />
+                      <input
+                        className="login-glass__field-input"
+                        type="password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        placeholder={t('密码')}
+                        aria-label={t('密码')}
+                      />
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label className="login-glass__field login-glass__field--select">
+                      <select
+                        className="login-glass__field-select"
+                        value={areaCode}
+                        onChange={(event) => setAreaCode(event.target.value)}
+                        aria-label={t('区号')}
+                      >
+                        <option value="+86">(+86)</option>
+                        <option value="+61">(+61)</option>
+                      </select>
+                    </label>
+                    <label className="login-glass__field">
+                      <img className="login-glass__field-icon" src="/assets/images/user/login/iconfont-shouji.png" alt="" />
+                      <input
+                        className="login-glass__field-input"
+                        value={mobile}
+                        onChange={(event) => setMobile(event.target.value)}
+                        placeholder={t('您的手机号')}
+                        aria-label={t('您的手机号')}
+                        maxLength={11}
+                      />
+                    </label>
+                    <label className="login-glass__field">
+                      <img className="login-glass__field-icon" src="/assets/images/user/login/iconfont-duanxin.png" alt="" />
+                      <input
+                        className="login-glass__field-input"
+                        value={mobileCode}
+                        onChange={(event) => setMobileCode(event.target.value)}
+                        placeholder={t('请输入验证码')}
+                        aria-label={t('请输入验证码')}
+                        maxLength={8}
+                      />
+                      <button className="login-glass__code-btn" type="button" disabled={countdown > 0} onClick={() => void sendCode()}>
+                        {countdown > 0 ? `${countdown}s` : t('获取验证码')}
+                      </button>
+                    </label>
+                  </>
+                )}
+
+                {error ? <div className="login-glass__error">{error}</div> : null}
+
+                <div className="login-glass__agree">
+                  <label className="login-glass__checkbox">
+                    <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
+                    <span>{t('我已阅读并同意')}</span>
+                  </label>
+                  <Link className="login-glass__agree-link" href="/article/issue/info?articleSn=fwxy" target="_blank">
+                    {t('《服务协议》')}
+                  </Link>
+                  <span>{t('和')}</span>
+                  <Link className="login-glass__agree-link" href="/article/issue/info?articleSn=ysxy" target="_blank">
+                    {t('《隐私协议》')}
+                  </Link>
+                </div>
+
+                <button className="login-glass__submit" type="submit" disabled={!agreed || loading}>
+                  {loading ? t('登录中...') : t('登录')}
+                </button>
+
+                {tab === 'normal' ? (
+                  <div className="login-glass__forgot">
+                    <Link href="/member/reset">{t('忘记密码？')}</Link>
+                  </div>
+                ) : null}
+              </form>
+
+              <div className="login-glass__divider">
+                <span>{t('合作网站账号登录')}</span>
+              </div>
+              <div className="login-glass__social">
+                <button className="login-glass__wechat" type="button" onClick={() => void openWechat()}>
+                  <img src="/assets/images/user/login/ico_wx.png" width={26} height={26} alt={t('微信扫码登录')} />
+                </button>
+              </div>
+
+              {/* 第三方登录（源码 OverseasLogin.vue:117-127 Google / Facebook / Twitter-X） */}
+              <OauthButtons switches={oauthSwitches} onStart={startOauth} />
+            </>
+          )}
         </div>
-      )}
+      </div>
+
       {/* 滑块行为验证码（源码 BaseLogin.vue 的 <Verify mode="pop" captchaType="blockPuzzle">） */}
       <VerifySlide
         open={verifyOpen}

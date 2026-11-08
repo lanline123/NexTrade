@@ -1,22 +1,36 @@
 'use client';
 
 /**
- * 会员评价列表（已评价订单的商品评价卡片流）
- * 源码对照：java-b2b2c-overseas-v5.8.61/view/pc/components/member/comment/CommentList.vue
+ * 会员评价卡片流（已评价 / 已晒单）—— Semi Design 现代化版
+ * 源码对照：view/pc/components/member/comment/CommentList.vue
  *
- * 旧版 CommentList.vue 在 pages/member/comment/List.vue 的「已评价」Tab 里渲染：
- * - 每条评价卡片：评价星级（icon-star-N）+ 评价时间 + 评价标签（commentTag）；
- * - 商品缩略图 + 商品名 + 评价正文（content）+ 晒单图片（showPics，可点击预览）；
- * - 客服答复区块（reply.content + reply.addTime）。
+ * 功能 1:1 保留：星级、评价标签、商品行、评价内容、晒图、客服答复。
+ * 现代化：金色图标星级（Semi Rating disabled 态会整体变灰）、评价标签 Tag 化、
+ * Semi Image 晒图（内置点击预览，替换原手写遮罩 lightbox）、客服答复浅底块。
  *
- * 后端契约：`GET /user/comment/list`（routes/catalog/comment.rs）返回 CommentVO：
- * commentId / commentRank / content / commentTag[] / showPics[] / replies[] /
- * productName / productSn / picThumb / addTime / username / isAnonymous / avatar。
+ * ⚠️ 保护标记（见 docs/pc-parity-notes.md「现代化保护区」）：本组件是用户指定的
+ * Semi 现代化最终形态，请勿在后续轮次中回退为 .mp-comment-card 旧版复刻结构。
  */
 import Link from 'next/link';
-import { Image } from '@douyinfe/semi-ui';
+import { IconStar, IconStarStroked } from '@douyinfe/semi-icons';
+import { Image, Tag } from '@douyinfe/semi-ui';
 
 import { useTranslation } from 'react-i18next';
+
+/** 只读星级：实心/描边图标行，保持金色观感 */
+function StarRank({ rank }: { rank: number }) {
+  return (
+    <span className="mcl-stars" aria-label={`${rank}`}>
+      {[1, 2, 3, 4, 5].map((star) =>
+        star <= rank ? (
+          <IconStar key={star} size="small" className="mcl-stars__on" />
+        ) : (
+          <IconStarStroked key={star} size="small" className="mcl-stars__off" />
+        ),
+      )}
+    </span>
+  );
+}
 
 export interface MemberCommentItem {
   commentId?: number;
@@ -33,6 +47,7 @@ export interface MemberCommentItem {
   commentTag?: string[];
   showPics?: Array<{ picUrl?: string; picThumb?: string }>;
   replies?: Array<{ commentId?: number; content?: string; addTime?: string; kefuName?: string }>;
+  reply?: { commentId?: number; content?: string; addTime?: string; kefuName?: string };
   kefuName?: string;
 }
 
@@ -40,63 +55,56 @@ export default function MemberCommentList({ comments }: { comments: MemberCommen
   const { t } = useTranslation();
 
   return (
-    <div className="member-comment-list">
+    <div className="mcl">
       {comments.map((item, index) => {
-        const author = Number(item.isAnonymous) === 1 ? t('匿名用户') : item.username || t('会员');
-        const pics = (item.showPics || []).map((pic) => pic.picUrl || pic.picThumb || '').filter(Boolean);
         const rank = Math.min(5, Math.max(0, Number(item.commentRank || 0)));
+        const pics = (item.showPics || []).map((pic) => pic.picUrl || pic.picThumb || '').filter(Boolean);
+        const reply = (item.replies && item.replies[0]) || item.reply;
         return (
-          <article className="member-comment-list__card" key={item.commentId || index}>
-            <header className="member-comment-list__head">
-              <div className="member-comment-list__option">
-                <span>{t('评价')}：</span>
-                <span className={`member-comment-list__star is-${rank}`} aria-label={t('评分 {v} 星', { v: rank })}>
-                  {'★'.repeat(rank)}
-                  {'☆'.repeat(5 - rank)}
-                </span>
-                <span className="member-comment-list__time">{item.addTime || ''}</span>
-              </div>
-              <div className="member-comment-list__tags">
-                {(item.commentTag || []).map((tag) => <span key={tag}>{tag}</span>)}
-              </div>
-            </header>
-            <div className="member-comment-list__body">
+          <div className="mcl-card" key={item.commentId || index}>
+            {/* 头：商品 + 星级 + 时间 */}
+            <div className="mcl-card__head">
               <Link
-                className="member-comment-list__thumb"
+                className="mcl-card__product"
                 href={item.productId ? `/product/${item.productId}` : '/search'}
                 target="_blank"
                 title={item.productName || ''}
               >
-                <img src={item.picThumb || ''} alt={item.productName || ''} />
+                <img className="mcl-card__pic" src={item.picThumb || ''} alt={item.productName || ''} loading="lazy" />
+                <span className="mcl-card__pname">[{t('商品评论')}] {item.productName}</span>
               </Link>
-              <div className="member-comment-list__main">
-                <div className="member-comment-list__product">[{t('商品评论')}] {item.productName || ''}</div>
-                {item.content ? <div className="member-comment-list__content">{item.content}</div> : null}
-                {pics.length ? (
-                  <div className="member-comment-list__pics">
-                    {pics.map((src, picIndex) => (
-                      <Image
-                        key={src + picIndex}
-                        className="member-comment-list__pic"
-                        src={src}
-                        width={80}
-                        height={80}
-                        preview={{ src: pics, currentIndex: picIndex }}
-                        style={{ cursor: 'pointer' }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-                {(item.replies || []).map((reply, replyIndex) => (
-                  <div className="member-comment-list__reply" key={reply.commentId || replyIndex}>
-                    <span className="member-comment-list__reply-name">{reply.kefuName || item.kefuName || t('客服答复')}：</span>
-                    <span className="member-comment-list__reply-text">{reply.content || ''}</span>
-                    <span className="member-comment-list__reply-time">{reply.addTime || ''}</span>
-                  </div>
-                ))}
+              <div className="mcl-card__meta">
+                <StarRank rank={rank} />
+                {item.addTime ? <span className="mcl-card__time">{item.addTime}</span> : null}
               </div>
             </div>
-          </article>
+
+            {/* 评价内容 */}
+            <div className="mcl-card__body">
+              {item.content ? <div className="mcl-card__content">{item.content}</div> : null}
+              {(item.commentTag || []).length ? (
+                <div className="mcl-card__tags">
+                  {(item.commentTag || []).map((tag) => (
+                    <Tag size="small" color="grey" key={tag}>{tag}</Tag>
+                  ))}
+                </div>
+              ) : null}
+              {pics.length ? (
+                <div className="mcl-card__pics">
+                  {pics.map((src, picIndex) => (
+                    <Image key={`${src}-${picIndex}`} width={80} height={80} src={src} alt="" style={{ borderRadius: 8 }} />
+                  ))}
+                </div>
+              ) : null}
+              {reply ? (
+                <div className="mcl-card__reply">
+                  <span className="mcl-card__reply-name">{t('客服答复')}：</span>
+                  <span className="mcl-card__reply-text">{reply.content}</span>
+                  {reply.addTime ? <span className="mcl-card__reply-time">{reply.addTime}</span> : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
         );
       })}
     </div>

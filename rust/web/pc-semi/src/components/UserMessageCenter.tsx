@@ -12,8 +12,7 @@
  *       POST /api/user/message/updateMessageRead（单条已读）
  */
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Button, Card, Toast } from '@douyinfe/semi-ui';
+import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
@@ -97,54 +96,62 @@ export default function UserMessageCenter() {
   const totalPages = Math.max(1, Math.ceil(total / size));
 
   return (
-    <div className="msg-center">
-      <aside className="msg-center__side">
-        <b className="msg-center__side-title">{t('消息中心')}</b>
-        <div className="msg-center__side-item is-active">{t('账户信息')}</div>
-      </aside>
-
-      <div className="msg-center__main">
-        <div className="msg-center__toolbar">
-          <Button theme={onlyUnread ? 'solid' : 'light'} type={onlyUnread ? 'primary' : 'tertiary'} onClick={() => setOnlyUnread((value) => !value)}>{t('只看未读')}</Button>
-          <Button onClick={() => void markAllRead()}>{t('全部标记为已读')}</Button>
+    <div className="mp-usermessage-list">
+      <div className="message_center">
+        <div className="mc_side_bar">
+          <div className="nav_card">
+            <div className="nav_group__title">{t('消息中心')}</div>
+            <div className="nav_item active">
+              <span className="nav_item__name">{t('账户信息')}</span>
+            </div>
+          </div>
         </div>
 
-        {loading ? <Card className="cart-state">{t('加载中...')}</Card> : null}
-
-        {!loading && !messages.length ? <Card className="cart-state">{t('暂无消息')}</Card> : null}
-
-        {!loading && messages.map((item) => (
-          <div
-            className={`msg-card${item.isRead ? ' is-read' : ' is-unread'}`}
-            key={item.messageId}
-            onClick={() => void readItem(item)}
-          >
-            <div className="msg-card__head">
-              <span className="msg-card__source">{t('系统通知')}</span>
-              <span className="msg-card__date">{item.addTimeDate || item.addTime || ''}</span>
-            </div>
-            <h3 className="msg-card__title">
-              {!item.isRead ? <i className="msg-card__dot" /> : null}
-              {item.title || t('消息')}
-            </h3>
-            <p className="msg-card__text">{item.content || ''}</p>
-            <button
-              type="button"
-              className="msg-card__del"
-              onClick={(event) => { event.stopPropagation(); void remove(item.messageId); }}
-            >{t('删除')}</button>
+        <div className="msg_list">
+          <div className="flex justify-end msg_list__toolbar">
+            <button type="button" className="mp-el-button" onClick={() => setOnlyUnread((value) => !value)}>{t('只看未读')}</button>
+            <button type="button" className="mp-el-button" onClick={() => void markAllRead()}>{t('全部标记为已读')}</button>
           </div>
-        ))}
+          <div className="list">
 
-        {totalPages > 1 ? (
-          <div className="comment-pagination">
-            <button type="button" disabled={page <= 1} onClick={() => void load(page - 1, onlyUnread)}>{t('上一页')}</button>
-            <span>{page} / {totalPages}</span>
-            <button type="button" disabled={page >= totalPages} onClick={() => void load(page + 1, onlyUnread)}>{t('下一页')}</button>
+            {loading ? <div className="no-result">{t('加载中...')}</div> : null}
+
+            {!loading && !messages.length ? <div className="no-result">{t('暂无消息')}</div> : null}
+
+            {!loading && messages.map((item) => (
+              <div className={`item ${item.isRead ? 'is-read' : 'is-unread'}`} key={item.messageId} onClick={() => void readItem(item)}>
+                <div className="msg_card">
+                  <div className="msg_card__head">
+                    <div className="msg_card__source">
+                      <span className="msg_card__icon"><i className="iconfont-pc icon-xiaoxi" /></span>
+                      <span className="msg_card__label">{t('系统通知')}</span>
+                      {!item.isRead ? <span className="msg_card__dot" /> : null}
+                    </div>
+                    <div className="msg_card__date">{item.addTimeDate || item.addTime || ''}</div>
+                  </div>
+                  <h3 className="msg_card__title">{item.title || t('消息')}</h3>
+                  <p className="msg_card__txt">{item.content || ''}</p>
+                  <button
+                    type="button"
+                    className="msg_card__del"
+                    aria-label={t('删除')}
+                    onClick={(event) => { event.stopPropagation(); void remove(item.messageId); }}
+                  >×</button>
+                </div>
+              </div>
+            ))}
+
+            {totalPages > 1 ? (
+              <div className="el-page flex justify-end">
+                <div className="pagination">
+                  <button type="button" aria-label={t('上一页')} disabled={page <= 1} onClick={() => void load(page - 1, onlyUnread)}>{'<'}</button>
+                  <span className="total">{page} / {totalPages}</span>
+                  <button type="button" aria-label={t('下一页')} disabled={page >= totalPages} onClick={() => void load(page + 1, onlyUnread)}>{'>'}</button>
+                </div>
+              </div>
+            ) : null}
           </div>
-        ) : null}
-
-        <div className="comment-info-back"><Link href="/member">{t('返回会员中心')}</Link></div>
+        </div>
       </div>
     </div>
   );

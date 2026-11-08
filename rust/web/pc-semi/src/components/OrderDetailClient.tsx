@@ -140,8 +140,6 @@ function copyText(text: string) {
   Toast.error({ content: '当前浏览器不支持复制' });
 }
 
-const STEPS = ['下单', '付款', '发货', '收货', '完成'];
-
 const STATUS_DESC = [
   '您的订单已提交成功，请尽快完成付款哦！',
   '感谢您在本店的购物，您的订单已提交成功，我们会尽快为您发货！',
@@ -263,7 +261,6 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
   const items = detail.items || [];
   const orderStatus = Number(detail.orderStatus ?? -1);
   const payStatus = Number(detail.payStatus ?? 0);
-  const activeStep = orderStatus <= 0 ? 1 : orderStatus === 1 ? 2 : orderStatus === 2 ? 3 : orderStatus >= 5 ? 5 : 0;
   const orderType = Number(detail.orderType ?? 0);
   const orderSource = String(detail.orderSource || '');
   const isGiftCardProduct = items.some((item) => item.productType === 7 || item.productType === 8);
@@ -319,17 +316,34 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
     isGiftCardExchange ? t('礼品卡兑换') : Number(detail.payTypeId) === 1 ? t('在线支付') : Number(detail.payTypeId) === 2 ? t('货到付款') : '线下支付';
 
   return (
-    <div className="member-order-detail">
-      {/* 订单头部（OrderInfoHeader.vue） */}
-      <Card className="member-card">
-        <div className="member-order-detail__head">
-          <div>
-            <span className="member-order__status">{detail.orderStatusName || t('订单')}</span>
-            <h2>订单号：{detail.orderSn}</h2>
-            {detail.shop?.shopTitle ? <p>下单门店：{detail.shop.shopTitle}</p> : null}
-            <p>下单时间：{detail.addTime || '-'}</p>
-            {detail.joinStatusDesc ? <p>拼团状态：{detail.joinStatusDesc}</p> : null}
-            {detail.orderStatusTip ? <p className="member-order-detail__tip">{detail.orderStatusTip}</p> : null}
+    <div className="info-row">
+      <div className="title-or-tabs right-info">
+        <span>{t('订单详情')}</span>
+        <div>
+          <Link href={`/member/feedback/asklist?orderId=${detail.orderId || orderId}&orderSn=${detail.orderSn || ''}`}>
+            <Button>{t('订单留言/咨询')}</Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="order-info">
+        {/* 订单头部（OrderInfoHeader.vue）：.page-info-body.lr → .order-left / .order-right */}
+        <div className="page-info-body lr">
+          <div className="order-left">
+            <div>
+              <span>
+                {t('订单号')}：<strong>{detail.orderSn}</strong>
+              </span>
+              {detail.shop?.shopTitle ? (
+                <span style={{ marginLeft: 40 }}>
+                  {t('下单门店')}：<span className="font-color">{detail.shop.shopTitle}</span>
+                </span>
+              ) : null}
+              <span style={{ marginLeft: 40 }}>
+                {t('订单状态')}：<strong>{detail.orderStatusName || t('订单')}{detail.joinStatusDesc ? `（${detail.joinStatusDesc}）` : ''}</strong>
+              </span>
+            </div>
+            {detail.orderStatusTip ? <div>{detail.orderStatusTip}</div> : null}
             {detail.cancelRemark ? <p>取消原因：{detail.cancelRemark}</p> : null}
             {isGiftCardProduct ? (
               <p className="member-order-detail__tip">{t('为了您的财产安全，请妥善保管卡密信息，切勿将卡号、卡密、二维码截图等任何信息发送他人，谨防上当受骗!')}</p>
@@ -358,7 +372,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
             ) : null}
             {!showPayCountdown && !actionEnabled(actions, 'toPay') ? <p>{detail.orderStatusTip || STATUS_DESC[orderStatus] || ''}</p> : null}
           </div>
-          <div className="member-order-detail__actions">
+          <div className="order-right">
             {actionEnabled(actions, 'cancelOrder') ? (
               <Button type="danger" onClick={() => setCancelVisible(true)}>{t('取消订单')}</Button>
             ) : null}
@@ -392,56 +406,52 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
           </div>
         </div>
 
-        <div className="member-order-steps">
-          {STEPS.map((step, index) => (
-            <div key={step} className={`member-order-steps__item${index < activeStep ? ' is-active' : ''}`}>
-              <span className="member-order-steps__dot">{index + 1}</span>
-              <span>{step}</span>
-            </div>
-          ))}
-        </div>
-
         {/* 预售状态步骤条（源码 pages/member/order/src/OrderStatusSteps.vue → PresaleSteps） */}
         {detail.isPresale && detail.presaleInfo ? (
-          <div className="member-order-detail__presale">
-            <div className="member-order-detail__sub-title">{t('预售状态')}</div>
-            <PresaleSteps
-              productPresale={detail.presaleInfo as unknown as Record<string, any>}
-              presaleStatus={Number(detail.presaleInfo.presaleStatus ?? 0)}
-              total={detail as unknown as Record<string, any>}
-              deliveryType={presaleDeliveryType}
-            />
+          <div className="page-info-body">
+            <div className="sub-title">{t('预售状态')}</div>
+            <div className="presale-steps">
+              <PresaleSteps
+                productPresale={detail.presaleInfo as unknown as Record<string, any>}
+                presaleStatus={Number(detail.presaleInfo.presaleStatus ?? 0)}
+                total={detail as unknown as Record<string, any>}
+                deliveryType={presaleDeliveryType}
+              />
+            </div>
           </div>
         ) : null}
-      </Card>
 
-      {/* 订单信息（OrderDeliveryInfo.vue） */}
-      <Card className="member-card" title={t('订单信息')}>
-        <div className="member-order-detail__address">
-          {(detail.userAddress || detail.consignee || detail.mobile) && orderSource !== 'pos' ? (
-            <span>收货信息：{detail.userAddress} {detail.consignee} {detail.mobile}</span>
-          ) : null}
-          {isPickupOrder && detail.pickupDetail ? (
-            <span>自提信息：{String((detail.pickupDetail as any).pickupName || '')} {String((detail.pickupDetail as any).address || '')}</span>
-          ) : null}
-          {detail.shippingTypeName ? <span>配送方式：{detail.shippingTypeName}</span> : null}
-          {showDeliveryStaff ? (
-            <span>配送员：{deliveryOrderInfo?.staffName || '-'} {deliveryOrderInfo?.staffPhone || ''}</span>
-          ) : null}
-          <span>支付方式：{payText}</span>
-          {detail.trackingNo ? <span>物流：{detail.logisticsName || '-'} {detail.trackingNo}</span> : null}
-          {virtualSampleItem?.virtualSample ? (
-            <span className="member-order__virtual" dangerouslySetInnerHTML={{ __html: virtualSampleItem.virtualSample }} />
-          ) : null}
+        {/* 订单信息（OrderDeliveryInfo.vue）：.sub-title + ul.order-ul */}
+        <div className="page-info-body">
+          <div className="sub-title">{t('订单信息')}</div>
+          <ul className="order-ul" style={{ marginTop: 20 }}>
+            {(detail.userAddress || detail.consignee || detail.mobile) && orderSource !== 'pos' ? (
+              <li>收货信息：<span>{detail.userAddress} {detail.consignee} {detail.mobile}</span></li>
+            ) : null}
+            {isPickupOrder && detail.pickupDetail ? (
+              <li>自提信息：<span>{String((detail.pickupDetail as any).pickupName || '')} {String((detail.pickupDetail as any).address || '')}</span></li>
+            ) : null}
+            {detail.shippingTypeName ? <li>配送方式：<span>{detail.shippingTypeName}</span></li> : null}
+            {showDeliveryStaff ? (
+              <li>配送员：<span>{deliveryOrderInfo?.staffName || '-'} {deliveryOrderInfo?.staffPhone || ''}</span></li>
+            ) : null}
+            <li>支付方式：<span>{payText}</span></li>
+            {detail.trackingNo ? <li>物流：<span>{detail.logisticsName || '-'} {detail.trackingNo}</span></li> : null}
+            {virtualSampleItem?.virtualSample ? (
+              <li className="virtualsample">
+                虚拟内容：
+                <span className="virtualsample-value" dangerouslySetInnerHTML={{ __html: virtualSampleItem.virtualSample }} />
+              </li>
+            ) : null}
+          </ul>
         </div>
-      </Card>
 
-      {/* 商品明细（OrderProductTable.vue） */}
-      <Card className="member-card" title={t('订单商品')}>
-        <div className="member-order-table">
-          <table>
+        {/* 商品明细（OrderProductTable.vue）：table.order-table-info */}
+        <div className="page-info-body">
+          <div className="sub-title">{t('订单商品')}</div>
+          <table className="order-table-info">
             <thead>
-              <tr>
+              <tr className="receipt-header">
                 <th>{t('商品名称')}</th>
                 <th>{t('商品价格')}</th>
                 <th>{t('购买数量')}</th>
@@ -451,34 +461,39 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
             </thead>
             <tbody>
               {items.map((item, index) => (
-                <tr key={item.itemId || index}>
-                  <td>
-                    <div className="member-order__product-main">
-                      <img src={item.picThumb || item.productPicThumb || item.picUrl || ''} alt={item.productName || ''} />
-                      <div>
-                        <Link href={item.productId ? `/product/${item.productId}` : '/search'}>{item.productName}</Link>
+                <tr key={item.itemId || index} className="receipt-body">
+                  <td className="receipt-item">
+                    <div className="product-cell">
+                      <img className="img-border" src={item.picThumb || item.productPicThumb || item.picUrl || ''} alt={item.productName || ''} />
+                      <div className="product-cell__info">
+                        <div className="product-cell__name">
+                          <Link href={item.productId ? `/product/${item.productId}` : '/search'}>{item.productName}</Link>
+                        </div>
                         {item.skuData ? (
-                          <div className="member-order__skus">
+                          <div className="sku-style">
                             {Array.isArray(item.skuData)
-                              ? item.skuData.map((sku, skuIndex) => <span key={skuIndex}>{sku.name}：{sku.value}</span>)
-                              : <span>{item.skuData}</span>}
+                              ? item.skuData.map((sku, skuIndex) => <div key={skuIndex}>{sku.name}：{sku.value}</div>)
+                              : <div>{item.skuData}</div>}
                           </div>
                         ) : null}
                         {(item.extraSkuData || []).map((attr, attrIndex) => (
-                          <div key={attrIndex} className="member-order__extra">
-                            {attr.attrName}：{attr.attrValue}
-                            {Number(attr.attrPrice || 0) > 0 ? ` (+¥${money(attr.attrPrice)})` : ''}
+                          <div key={attrIndex} className="extraskudata extraskudata-item">
+                            <div className="title">{attr.attrName}</div>
+                            <div className="content">
+                              <span className="content-text">{attr.attrValue}</span>
+                              {Number(attr.attrPrice || 0) > 0 ? <span className="num">+¥{money(attr.attrPrice)}</span> : null}
+                            </div>
                           </div>
                         ))}
-                        {item.productSn ? <div className="member-order-detail__product-sn">货号：{item.productSn}</div> : null}
+                        {item.productSn ? <div className="sku-style">货号：{item.productSn}</div> : null}
                       </div>
                     </div>
                   </td>
-                  <td>¥ {money(item.price)}</td>
-                  <td>{item.quantity}</td>
-                  <td>¥ {money(item.subtotal ?? Number(item.price || 0) * Number(item.quantity || 0))}</td>
+                  <td className="receipt-item price">¥ {money(item.price)}</td>
+                  <td className="receipt-item price">{item.quantity}</td>
+                  <td className="receipt-item price">¥ {money(item.subtotal ?? Number(item.price || 0) * Number(item.quantity || 0))}</td>
                   {showItemAftersalesAction ? (
-                    <td>
+                    <td className="receipt-item operation">
                       {item.isGift === 0 && Number(item.quantity || 0) > Number(item.aftersalesNumber || 0) && !item.aftersalesItem ? (
                         <Link href={`/member/return/info?orderId=${detail.orderId || orderId}&itemId=${item.itemId || ''}`}>
                           <Button size="small">{t('申请售后')}</Button>
@@ -494,88 +509,142 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
               ))}
             </tbody>
             <tfoot>
-              <tr>
-                <td colSpan={showItemAftersalesAction ? 5 : 4}>
-                  <div className="member-order-amounts">
-                    <span>商品总价：¥ {money(detail.productAmount)}</span>
-                    {Number(detail.serviceFee || 0) > 0 ? <span>附加费用：¥ {money(detail.serviceFee)}</span> : null}
-                    {showShippingFee ? (
-                      <span>
-                        {shippingFeeLabel}：{Number(detail.shippingFee || 0) > 0 ? `¥ ${money(detail.shippingFee)}` : shippingFeeFreeText}
-                      </span>
-                    ) : null}
-                    {Number(detail.balance || 0) > 0 ? <span>使用余额：¥ {money(detail.balance)}</span> : null}
-                    {Number(detail.pointsAmount || 0) > 0 ? <span>积分减免：¥ {money(detail.pointsAmount)}</span> : null}
-                    {Number(detail.discountAmount || 0) > 0 ? <span>其他优惠：- ¥ {money(detail.discountAmount)}</span> : null}
-                    {Number(detail.couponAmount || 0) > 0 ? <span>优惠券优惠：- ¥ {money(detail.couponAmount)}</span> : null}
-                    {Number(detail.unpaidAmount || 0) > 0 ? <span>待支付金额：¥ {money(detail.unpaidAmount)}</span> : null}
-                    {Number(detail.creditAmount || 0) > 0 ? <span>账期金额：¥ {money(detail.creditAmount)}</span> : null}
-                    {Number(detail.onlinePaidAmount || 0) > 0 ? <span>线上支付：¥ {money(detail.onlinePaidAmount)}</span> : null}
-                    {Number(detail.offlinePaidAmount || 0) > 0 ? <span>线下支付：¥ {money(detail.offlinePaidAmount)}</span> : null}
-                    <span className="total">{payStatus === 2 ? t('实付款') : '应付款'}：<b>¥ {money(detail.totalAmount)}</b></span>
+              <tr className="receipt-footer">
+                <td colSpan={showItemAftersalesAction ? 2 : 1}></td>
+                <td className="receipt-footer-it one" colSpan={showItemAftersalesAction ? 3 : 3}>
+                  <div className="item">
+                    <div className="label">商品总价：</div>
+                    <div className="text">¥ {money(detail.productAmount)}</div>
+                  </div>
+                  {Number(detail.serviceFee || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">附加费用：</div>
+                      <div className="text">¥ {money(detail.serviceFee)}</div>
+                    </div>
+                  ) : null}
+                  {showShippingFee ? (
+                    <div className="item">
+                      <div className="label">{shippingFeeLabel}：</div>
+                      <div className="text">{Number(detail.shippingFee || 0) > 0 ? `¥ ${money(detail.shippingFee)}` : shippingFeeFreeText}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.balance || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">使用余额：</div>
+                      <div className="text">¥ {money(detail.balance)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.pointsAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">积分减免：</div>
+                      <div className="text">¥ {money(detail.pointsAmount)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.discountAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">其他优惠：</div>
+                      <div className="text">- ¥ {money(detail.discountAmount)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.couponAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">优惠券优惠：</div>
+                      <div className="text">- ¥ {money(detail.couponAmount)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.unpaidAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">待支付金额：</div>
+                      <div className="text">¥ {money(detail.unpaidAmount)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.creditAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">账期金额：</div>
+                      <div className="text">¥ {money(detail.creditAmount)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.onlinePaidAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">线上支付：</div>
+                      <div className="text">¥ {money(detail.onlinePaidAmount)}</div>
+                    </div>
+                  ) : null}
+                  {Number(detail.offlinePaidAmount || 0) > 0 ? (
+                    <div className="item">
+                      <div className="label">线下支付：</div>
+                      <div className="text">¥ {money(detail.offlinePaidAmount)}</div>
+                    </div>
+                  ) : null}
+                  <div className="item">
+                    <span>{payStatus === 2 ? t('实付款') : '应付款'}：</span>
+                    <b style={{ fontSize: 20, color: 'var(--price, #cc0c1c)' }}>¥ {money(detail.totalAmount)}</b>
                   </div>
                 </td>
               </tr>
             </tfoot>
           </table>
         </div>
-      </Card>
 
-      {/* 卡券信息（OrderEcard.vue） */}
-      {ecardItems.length ? (
-        <Card className="member-card" title={t('卡券信息')}>
-          {ecardItems.map((item, index) => (
-            <div key={index} className="member-order__ecard">
-              <div className="member-order__ecard-title">{item.productName}</div>
-              <div className="member-order__ecard-list">
-                {(item.eCard || []).map((card, cardIndex) => (
-                  <div key={cardIndex} className="member-order__ecard-item">
-                    <span>{t('卡号：')}<b>{card.cardNumber}</b></span>
-                    <span>{t('卡密：')}<b>{card.cardPassword || card.cardPwd}</b></span>
-                    <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || card.cardPwd || ''}`)}>{t('复制')}</Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </Card>
-      ) : null}
-
-      {/* 礼品卡信息（OrderGiftCard.vue） */}
-      {giftCardInfo.length ? (
-        <Card className="member-card" title={t('卡片信息（共 {n} 张）', { n: detail.giftCardOrder?.num ?? giftCardInfo.length })}>
-          <div className="member-order__giftcards">
-            {giftCardInfo.map((card, index) => (
-              <div key={card.giftCardsId || index} className="member-order__giftcard">
-                <div>{t('卡号：')}<b>{card.cardNumber}</b></div>
-                <div>{t('卡密：')}<b>{card.cardPassword}</b></div>
-                <div>状态：{card.statusName || (card.status === 0 ? t('未使用') : '已使用')}</div>
-                <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || ''}`)}>{t('复制卡号卡密')}</Button>
+        {/* 卡券信息（OrderEcard.vue） */}
+        {ecardItems.length ? (
+          <div className="page-info-body">
+            <div className="sub-title">{t('卡券信息')}</div>
+            {ecardItems.map((item, index) => (
+              <div key={index} className="member-order__ecard">
+                <div className="member-order__ecard-title">{item.productName}</div>
+                <div className="member-order__ecard-list">
+                  {(item.eCard || []).map((card, cardIndex) => (
+                    <div key={cardIndex} className="member-order__ecard-item">
+                      <span>{t('卡号：')}<b>{card.cardNumber}</b></span>
+                      <span>{t('卡密：')}<b>{card.cardPassword || card.cardPwd}</b></span>
+                      <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || card.cardPwd || ''}`)}>{t('复制')}</Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-        </Card>
-      ) : null}
+        ) : null}
 
-      {detail.buyerNote ? (
-        <Card className="member-card" title={t('买家留言')}>
-          {detail.buyerNote}
-        </Card>
-      ) : null}
-
-      {detail.invoiceData ? (
-        <Card className="member-card" title={t('发票信息')}>
-          <div className="member-order-detail__address">
-            {detail.invoiceData.invoiceTitle || detail.invoiceData.title ? <span>抬头：{detail.invoiceData.invoiceTitle || detail.invoiceData.title}</span> : null}
-            {detail.invoiceData.taxNo ? <span>税号：{detail.invoiceData.taxNo}</span> : null}
-            {detail.invoiceData.invoiceType ? <span>类型：{detail.invoiceData.invoiceType}</span> : null}
+        {/* 礼品卡信息（OrderGiftCard.vue） */}
+        {giftCardInfo.length ? (
+          <div className="page-info-body">
+            <div className="sub-title">{t('卡片信息（共 {n} 张）', { n: detail.giftCardOrder?.num ?? giftCardInfo.length })}</div>
+            <div className="member-order__giftcards">
+              {giftCardInfo.map((card, index) => (
+                <div key={card.giftCardsId || index} className="member-order__giftcard">
+                  <div>{t('卡号：')}<b>{card.cardNumber}</b></div>
+                  <div>{t('卡密：')}<b>{card.cardPassword}</b></div>
+                  <div>状态：{card.statusName || (card.status === 0 ? t('未使用') : '已使用')}</div>
+                  <Button size="small" onClick={() => copyText(`${card.cardNumber || ''} ${card.cardPassword || ''}`)}>{t('复制卡号卡密')}</Button>
+                </div>
+              ))}
+            </div>
           </div>
-        </Card>
-      ) : null}
+        ) : null}
 
-      <div className="member-order-detail__links">
-        <Link href={`/member/feedback/asklist?orderId=${detail.orderId || orderId}&orderSn=${detail.orderSn || ''}`}>订单留言/咨询</Link>
-        <Link href="/member/order/list" className="member-order-detail__back">{t('返回订单列表')}</Link>
+        {detail.buyerNote ? (
+          <div className="page-info-body">
+            <div className="sub-title">{t('买家留言')}</div>
+            <div>{detail.buyerNote}</div>
+          </div>
+        ) : null}
+
+        {detail.invoiceData ? (
+          <div className="page-info-body">
+            <div className="sub-title">{t('发票信息')}</div>
+            <ul className="order-ul">
+              {detail.invoiceData.invoiceTitle || detail.invoiceData.title ? <li>抬头：<span>{detail.invoiceData.invoiceTitle || detail.invoiceData.title}</span></li> : null}
+              {detail.invoiceData.taxNo ? <li>税号：<span>{detail.invoiceData.taxNo}</span></li> : null}
+              {detail.invoiceData.invoiceType ? <li>类型：<span>{detail.invoiceData.invoiceType}</span></li> : null}
+            </ul>
+          </div>
+        ) : null}
+
+        <div className="member-order-detail__links">
+          <Link href="/member/order/list" className="member-order-detail__back">{t('返回订单列表')}</Link>
+        </div>
       </div>
 
       {/* 取消订单原因（CancelOrderReasonDialog.vue） */}

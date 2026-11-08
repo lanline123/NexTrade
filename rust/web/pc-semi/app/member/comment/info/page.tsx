@@ -19,7 +19,12 @@ export default async function CommentInfoPage({ searchParams }: { searchParams?:
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('评价晒单')}>
-    <CommentInfoClient orderId={orderId} />
+          {/* 旧版 Info.vue：CommonPageContainer > .menu(MemberNav) + .info-row > .collection */}
+          <div className="mp-comment-info">
+            <div className="info-row">
+              <CommentInfoClient orderId={orderId} />
+            </div>
+          </div>
         </MemberShell>
       </main>
       <PcFooter />

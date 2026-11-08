@@ -156,100 +156,96 @@ export default function AddressClient() {
     }
 
     return (
-        <div className="member-address">
-            <div className="member-address__head">
-                <span className="member-address__title">{t('地址')}</span>
-                <Button className="member-address__add" icon={<Plus size={14} />} onClick={openCreate}>{t('添加新地址')}</Button>
+        <div className="info-row mp-address-list">
+            <div className="title-or-tabs">
+                <span className="card-title">{t('地址')}</span>
+                <Button className="btn new-address" icon={<Plus size={14} />} onClick={openCreate}>{t('添加新地址')}</Button>
             </div>
 
-            {loading ? (
-                <div className="member-address__loading">{t('加载中...')}</div>
-            ) : rows.length ? (
-                <>
-                    <ul className="member-address__list">
-                        {rows.map((address) => {
-                            const selected = Number(address.isSelected) === 1;
-                            return (
-                                <li key={address.addressId} className={`member-address__card${selected ? ' is-selected' : ''}`}>
-                                    <div className="member-address__top">
-                                        <div className="member-address__name">{address.consignee || '-'}</div>
-                                        <div className="member-address__mobile">
-                                            <span>
-                                                {address.mobileAreaCode ? `+${address.mobileAreaCode} ` : ''}
-                                                {address.mobile || '-'}
-                                            </span>
-                                            {Number(address.isInvalid) === 1 ? <span className="member-address__invalid">{t('无效地址')}</span> : null}
-                                        </div>
-                                    </div>
-                                    <div className="member-address__region">{regionText(address) || '-'}</div>
-                                    <div className="member-address__other">
-                                        <div>{address.email || '-'}</div>
-                                        <div>{address.telephone || '-'}</div>
-                                    </div>
-                                    <div className="member-address__bottom">
-                                        <button
-                                            type="button"
-                                            className={`member-address__default${selected ? ' is-checked' : ''}`}
-                                            aria-pressed={selected}
-                                            onClick={() => {
-                                                if (!selected) void setDefault(address.addressId);
-                                            }}
-                                        >
-                                            <span className="member-address__default-box" aria-hidden="true" />
-                                            <span>{t('默认地址')}</span>
+            <div className="address-info">
+                <div className="card-list">
+                    {loading ? (
+                        <div className="no-result">{t('加载中...')}</div>
+                    ) : rows.length ? (
+                        <>
+                            {rows.map((address) => {
+                                const selected = Number(address.isSelected) === 1;
+                                return (
+                                    <ul key={address.addressId} className={`card${selected ? ' selected' : ''}`}>
+                                        <li className="first">
+                                            <div className="top-info">
+                                                <div className="name">{address.consignee || '-'}</div>
+                                                <div className="mobile">
+                                                    <span>
+                                                        {address.mobileAreaCode ? `+${address.mobileAreaCode} ` : ''}
+                                                        {address.mobile || '-'}
+                                                    </span>
+                                                    {Number(address.isInvalid) === 1 ? <span className="invalid-tag">{t('无效地址')}</span> : null}
+                                                </div>
+                                            </div>
+                                            <div className="address">{regionText(address) || '-'}</div>
+                                            <div className="other">
+                                                <div>{address.email || '-'}</div>
+                                                <div>{address.telephone || '-'}</div>
+                                            </div>
+                                            <div className="bottom-operation">
+                                                <div className="is-default">
+                                                    <button
+                                                        type="button"
+                                                        className={`mp-checkbox${selected ? ' is-checked' : ''}`}
+                                                        aria-pressed={selected}
+                                                        onClick={() => {
+                                                            if (!selected) void setDefault(address.addressId);
+                                                        }}
+                                                    >
+                                                        <span className="mp-checkbox__box" aria-hidden="true" />
+                                                        <span className="mp-checkbox__label">{t('默认地址')}</span>
+                                                    </button>
+                                                </div>
+                                                <div className="operation">
+                                                    <button type="button" className="btn-link" title={t('编辑')} aria-label={t('编辑')} onClick={() => openEdit(address)}>
+                                                        <Edit size={20} />
+                                                    </button>
+                                                    <button type="button" className="btn-link" title={t('删除')} aria-label={t('删除')} onClick={() => setDeleteId(address.addressId)}>
+                                                        <Delete size={20} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                );
+                            })}
+                            {pages > 1 ? (
+                                <div className="el-page">
+                                    <div className="pagination">
+                                        <button type="button" disabled={page <= 1} aria-label={t('上一页')} onClick={() => goPage(page - 1)}>
+                                            {'<'}
                                         </button>
-                                        <div className="member-address__ops">
-                                            <button type="button" className="member-address__op" title={t('编辑')} aria-label={t('编辑')} onClick={() => openEdit(address)}>
-                                                <Edit size={20} />
+                                        {pageNumbers().map((number) => (
+                                            <button
+                                                type="button"
+                                                key={number}
+                                                className={number === page ? 'is-active' : ''}
+                                                onClick={() => goPage(number)}
+                                            >
+                                                {number}
                                             </button>
-                                            <button type="button" className="member-address__op" title={t('删除')} aria-label={t('删除')} onClick={() => setDeleteId(address.addressId)}>
-                                                <Delete size={20} />
-                                            </button>
-                                        </div>
+                                        ))}
+                                        <button type="button" disabled={page >= pages} aria-label={t('下一页')} onClick={() => goPage(page + 1)}>
+                                            {'>'}
+                                        </button>
                                     </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                    {pages > 1 ? (
-                        <div className="member-address__pager">
-                            <button
-                                type="button"
-                                className="member-address__page-btn"
-                                disabled={page <= 1}
-                                aria-label={t('上一页')}
-                                onClick={() => goPage(page - 1)}
-                            >
-                                ‹
-                            </button>
-                            {pageNumbers().map((number) => (
-                                <button
-                                    type="button"
-                                    key={number}
-                                    className={`member-address__page-btn${number === page ? ' is-active' : ''}`}
-                                    onClick={() => goPage(number)}
-                                >
-                                    {number}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                className="member-address__page-btn"
-                                disabled={page >= pages}
-                                aria-label={t('下一页')}
-                                onClick={() => goPage(page + 1)}
-                            >
-                                ›
-                            </button>
+                                </div>
+                            ) : null}
+                        </>
+                    ) : (
+                        <div className="no-result">
+                            <img className="empty-img" src="/assets/images/empty-box.png" alt="" />
+                            <div className="empty-text">{t('暂无收货地址')}</div>
                         </div>
-                    ) : null}
-                </>
-            ) : (
-                <div className="member-address__empty">
-                    <img className="member-address__empty-img" src="/assets/images/empty-box.png" alt="" />
-                    <div className="member-address__empty-text">{t('暂无收货地址')}</div>
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* 新增 / 编辑收货地址（DialogEditRegion + EditRegion 对照） */}
             <MemberAddressDialog

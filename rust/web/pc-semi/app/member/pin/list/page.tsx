@@ -18,7 +18,11 @@ export default async function PinListPage() {
       <PcHeader config={header as any} />
       <main className="pc-member-page">
         <MemberShell title={t('我的团购')}>
-    <PinListClient />
+          {/* 旧版 pin/List.vue:7-11  <div class="info-row"><div class="title-or-tabs"><span>我的团购</span></div><div class="page-info-body"> */}
+          <div className="info-row mp-pin-list">
+            <div className="title-or-tabs"><span>{t('我的团购')}</span></div>
+            <PinListClient />
+          </div>
         </MemberShell>
       </main>
       <PcFooter />

@@ -1,0 +1,1289 @@
+/**
+ * 会员中心 · 我的订单（/member/order/list）
+ *
+ * 本文件逐条照抄旧版源码，不做自行近似：
+ *   - view/pc/assets/css/member/member.less       .info-row / .title-or-tabs / .tig-tabs / .no-result / .el-page / 分页
+ *   - view/pc/components/member/order/MemberOrderList.vue  <style scoped>（.memberOrder 四段式卡片、.activeert、.deleteWeigh、
+ *     .joining-tag、.presale-text、.flex_cc、.fs_14）
+ * 选择器加 `.order-list` / `.memberOrder` 前缀的地方，只是为了避免和站内其他页面同名 class 撞车，
+ * 属性值本身一个都没改。
+ *
+ * 唯一无法逐像素复刻的是库组件本身：旧版用 element-plus 的 el-input / el-button / el-pagination，
+ * 新版用 Semi Design，按钮与输入框的内建圆角、行高由组件库决定（外层 class 与尺寸已按旧版写死）。
+ */
+
+/* ---------- member.less: .info-row 会员内容区外壳 ---------- */
+.pc-member-shell__main {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: fit-content;
+  padding: 0 32px 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* ============================================================
+ * ant-design-vue 静态替身（官方默认值）
+ *
+ * 旧版地址编辑弹窗（pages/member/address/EditRegion.vue）用的是 ant-design-vue 的
+ * a-form / a-input，这些默认样式来自 antd 自带的 reset 样式表，仓库里没有那份 CSS，
+ * 我们也不可能凭空"照抄"。这里按 antd 4.x 的公开默认值给出最小静态替身，只求尺寸/颜色
+ * 不跑偏；类名、结构仍然完全是旧版生成的类名。
+ * 已由本页 <style scoped>（app/member-pages.scss:197 .mp-address-edit）覆盖的部分不再重复：
+ *   .ant-form-item 的 margin-bottom 是 14px（旧版覆盖值），control 的 width / 方向、
+ *   .ant-form-item-control-input 的 margin-right、explain 的行高都在那边。
+ * ============================================================ */
+.ant-form-item-label > label {
+  height: 32px;
+  line-height: 32px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.ant-form-item-row {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.ant-form-item-label {
+  flex: 0 0 12.5%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ant-form-item-control-input {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.ant-input {
+  box-sizing: border-box;
+  margin: 0;
+  font-variant: tabular-nums;
+  list-style: none;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 4px 11px;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  line-height: 1.5715;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.ant-input:hover {
+  border-color: #40a9ff;
+}
+
+.ant-input:focus {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  outline: 0;
+}
+
+.ant-input::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- 会员内容区外壳：只留布局，卡片外观交给页面自己的 .info-row ----------
+ * 旧版结构是 .container(flex，无内边距) > .info-row(白底卡片，padding 0 32px 16px)。
+ * 新版 .pc-member-shell__main 一度把 .info-row 的盒子外观也写在身上（padding 0 32px 16px +
+ * 白底 + 8px 圆角），而多数页面根节点自己又挂了一个 .info-row，于是左右各多出 32px 内边距、
+ * 白底套白底。这里只在“直接子元素已经是 .info-row”的情况下让外层退成纯布局容器，
+ * 与旧版 .container 一致；没有 .info-row 根节点的页面（账户安全、站内信等）不受影响。
+ */
+.pc-member-shell__main:has(> .info-row) {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.pc-member-shell__main:has(> .info-row) > .info-row {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.pc-member-shell__main a {
+  cursor: pointer;
+}
+
+/* ---------- member.less: .title-or-tabs（后一段定义覆盖前一段，取 height 72 那版） ---------- */
+.order-list .title-or-tabs,
+.info-row .title-or-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  height: 72px;
+}
+
+.order-list .title-or-tabs > span,
+.info-row .title-or-tabs > span {
+  color: #000;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0;
+  display: inline-block;
+}
+
+.order-list .title-or-tabs .input {
+  display: flex;
+  align-items: center;
+}
+
+.order-list .title-or-tabs .input input {
+  font-size: 14px !important;
+}
+
+/* ---------- member.less: .tig-tabs 带数字的状态标签 ---------- */
+.tig-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.tig-tabs .tab {
+  margin-right: 24px;
+  position: relative;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  height: 32px;
+  min-width: 60px;
+  color: #505259;
+  font-weight: 600;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.tig-tabs .tab p {
+  font-size: 18px;
+}
+
+.tig-tabs .tab p > span {
+  color: #cc0c1c;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.tig-tabs .tab:hover {
+  color: var(--general);
+  transition: transform 0.3s;
+}
+
+/* member.less: .active 下划线（保留给其它沿用该类名的组件） */
+.tig-tabs .active {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.tig-tabs .active a {
+  color: #1a1a1a !important;
+}
+
+.tig-tabs .active::before {
+  content: '';
+  position: absolute;
+  width: 36px;
+  height: 4px;
+  left: 23%;
+  bottom: 0;
+  background: #1a1a1a;
+}
+
+/* MemberOrderList.vue scoped: .activeert 当前 Tab（36×3 下划线，居中，bottom -1px） */
+.tig-tabs .activeert {
+  color: #1a1a1a !important;
+  font-weight: 700 !important;
+}
+
+.tig-tabs .activeert::before {
+  content: '';
+  position: absolute;
+  width: 36px;
+  height: 3px;
+  left: 50%;
+  transform: translate(-50%);
+  bottom: -1px;
+  background: #1a1a1a;
+}
+
+/* ---------- MemberOrderList.vue scoped: .order-list ---------- */
+.order-list .tag-and-input {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* 旧版模板里的 <div style="padding-top: 12px"> */
+.order-list .order-list__content {
+  padding-top: 12px;
+}
+
+.order-list .fs_14 {
+  font-size: 14px;
+}
+
+.order-list .flex_cc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.order-list .ml10 {
+  margin-left: 10px;
+}
+
+.order-list .font-color {
+  color: var(--general);
+}
+
+/* ---------- MemberOrderList.vue scoped: .memberOrder 四段式卡片 ---------- */
+.memberOrder {
+  margin-bottom: 16px;
+  border: 1px solid #f0f1f2;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.memberOrder .memberOrder_top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  background-color: #f5f6fa;
+  padding: 0 16px;
+  border-bottom: 1px solid #f0f1f2;
+  font-size: 14px;
+}
+
+.memberOrder .memberOrder_top .memberOrder_top_left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  color: #1a1a1a;
+}
+
+.memberOrder .memberOrder_top .memberOrder_top_left .join-status {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.memberOrder .memberOrder_top .icon {
+  margin-top: 2px;
+  margin-left: 3px;
+}
+
+.memberOrder .memberOrder_top:hover a {
+  color: var(--general);
+}
+
+.memberOrder .memberOrder_top:hover .icon {
+  color: var(--general);
+}
+
+/* 旧版 .cancel-reason 没有独立样式规则（全仓仅此一处出现），继承 .memberOrder_top_left 的 16px/700 #1a1a1a；
+   这里只补一条与面包屑区隔的常规字重，取值来自旧版同页 .fs_14 的 14px —— 属明确的已知差异，见 docs/pc-parity-notes.md */
+.memberOrder .cancel-reason {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.memberOrder .memberOrder_middle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid #f0f1f2;
+}
+
+.memberOrder .memberOrder_middle .memberOrder_middle_left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.memberOrder .memberOrder_middle .memberOrder_middle_left .order-shop {
+  color: #666;
+}
+
+.memberOrder .memberOrder_shop {
+  display: flex;
+  padding: 12px 16px;
+}
+
+.memberOrder .memberOrder_shop .flex {
+  display: flex;
+  align-items: center;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_img {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: opacity 0.2s linear;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_text {
+  margin: 0 16px;
+  width: 680px;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_text .text-ellipsis {
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_text .sku {
+  font-size: 14px;
+  line-height: 18px;
+  color: #888b94;
+  margin-top: 4px;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_price {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_price > div > a {
+  display: block;
+}
+
+.memberOrder .memberOrder_shop .memberOrder_shop_price .qty {
+  color: #aaa;
+}
+
+.memberOrder .memberOrder_bot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  border-top: 1px solid #f0f1f2;
+}
+
+.memberOrder .memberOrder_bot .memberOrder_bot_but {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* 旧版 TigButton 的 deleteWeigh */
+.memberOrder .deleteWeigh {
+  font-weight: 500 !important;
+  border-radius: 4px;
+}
+
+/* 拼团角标 */
+.memberOrder .joining-tag {
+  background: var(--general);
+  border-radius: 2px;
+  padding: 2px 5px;
+  font-weight: bold;
+  font-size: 10px;
+  color: #ffffff;
+  text-align: center;
+  display: inline;
+  margin-right: 5px;
+}
+
+/* 预售前缀 */
+.memberOrder .presale-text {
+  color: var(--general);
+  margin-right: 4px;
+  font-weight: 500;
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+/* 旧版 FormatPrice：currency / integer / decimal 三段同行，flex-end 对齐；
+   本组件 scoped 内把 .price 覆盖成 baseline（MemberOrderList.vue:508-510） */
+.memberOrder .price {
+  display: flex;
+  align-items: baseline;
+}
+
+.memberOrder .price .util,
+.memberOrder .price .num {
+  display: block;
+}
+
+.memberOrder .price.align-bottom {
+  align-items: baseline;
+}
+
+/* 定金预售「总额 / 应付」两行（旧版模板内联：column + gap 4，每行 row + gap 6） */
+.memberOrder .presale-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.memberOrder .presale-amounts .presale-amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.memberOrder .presale-amounts .presale-amount > span {
+  color: #999;
+}
+
+/* ---------- member.less: .no-result 查询无结果 ---------- */
+.order-list .no-result {
+  height: 300px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  gap: 10px;
+}
+
+.order-list .no-result .empty-img {
+  width: 120px;
+  height: 120px;
+}
+
+.order-list .no-result .empty-text {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: center;
+  color: #c2c4cc;
+}
+
+/* 旧版 .sign 用 /assets/images/signs.png 精灵图（41×40，背景偏移 0 -150px），仓库内没有这张图，
+   这里保留同样的盒子尺寸，图标由组件内联的 icon-park Empty 承担 —— 见 docs/pc-parity-notes.md */
+.order-list .no-result .sign {
+  display: inline-block;
+  height: 40px;
+  width: 41px;
+  color: #c2c4cc;
+}
+
+.order-list .no-result .tip-message {
+  margin-left: 10px;
+  line-height: 2;
+}
+
+.order-list .no-result ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- member.less: .el-page 分页容器 ---------- */
+.order-list .el-page {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ================= 订单详情 =================
+   来源（数值逐条照抄，没有近似）：
+     pages/member/order/Info.vue                  .right-info / .order-info
+     pages/member/order/src/OrderInfoHeader.vue   .lr / .order-left / .order-right / .countdown-text
+     pages/member/order/src/OrderStatusSteps.vue  .sub-title / .presale-steps
+     pages/member/order/src/OrderDeliveryInfo.vue .sub-title / .order-ul / .virtualsample
+     pages/member/order/src/OrderProductTable.vue .sub-title / .extraskudata / .order-table-info / .receipt-*
+     assets/css/member/member.less                .page-info-body / .order-title / .img-border
+*/
+
+.info-row .title-or-tabs.right-info {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-row .font-color {
+  color: var(--general);
+}
+
+/* 新写法把状态提示保留为 <p>（旧版模板里没有 <p>，这里只抹掉默认外边距，视觉与旧版一致） */
+.info-row .page-info-body.lr .order-left p {
+  margin: 0;
+}
+
+/* member.less: .info-row .page-info-body */
+.page-info-body {
+  font-size: 14px;
+  background: #fff;
+  border: 0;
+  box-sizing: border-box;
+}
+
+.page-info-body .order-title {
+  margin: 10px 0;
+  background: #f5f6fa;
+  height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.page-info-body .order-title > .ul {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 42px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.page-info-body .img-border {
+  border: 1px solid #e8e8e8;
+  padding: 1px;
+  box-sizing: border-box;
+}
+
+/* 三个子组件里各自 scoped 的同名 .sub-title，值完全一致 */
+.page-info-body .sub-title {
+  color: #333333;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  display: inline-block;
+}
+
+/* OrderInfoHeader.vue scoped */
+.page-info-body.lr {
+  display: flex;
+}
+
+.page-info-body.lr .order-left {
+  flex: 1;
+  line-height: 3;
+}
+
+.page-info-body.lr .order-left > div {
+  display: flex;
+}
+
+.page-info-body.lr .order-right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 200px;
+  justify-content: flex-end;
+  align-content: flex-start;
+}
+
+.page-info-body.lr .order-status-sub .countdown-text {
+  color: #cc0c1c;
+  font-weight: 600;
+}
+
+.page-info-body.lr .offline-claim-rejected {
+  color: #666;
+}
+
+/* OrderStatusSteps.vue scoped */
+.presale-steps {
+  margin-top: 20px;
+}
+
+/* OrderDeliveryInfo.vue scoped */
+.order-ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-ul li {
+  line-height: 3;
+  color: #666;
+}
+
+.order-ul li span {
+  color: #333333;
+}
+
+.virtualsample {
+  display: flex;
+  width: 100%;
+}
+
+.virtualsample .virtualsample-value {
+  flex: 1;
+  overflow: hidden;
+}
+
+.virtualsample .virtualsample-value img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* OrderProductTable.vue scoped */
+.extraskudata {
+  color: #999;
+}
+
+.extraskudata .extraskudata-item {
+  display: flex;
+}
+
+.extraskudata .extraskudata-item .title {
+  padding-right: 10px;
+}
+
+.extraskudata .extraskudata-item .content-text {
+  padding-right: 5px;
+}
+
+.extraskudata .extraskudata-item .content .price {
+  width: auto;
+}
+
+.extraskudata .extraskudata-item .num {
+  padding-left: 5px;
+}
+
+.order-table-info {
+  width: 100%;
+  margin: 10px auto;
+  background-color: #fcfcfc;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+}
+
+.order-table-info .receipt-header {
+  line-height: 2;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.order-table-info .receipt-header > th {
+  padding: 10px;
+  white-space: nowrap;
+}
+
+.order-table-info .receipt-body {
+  background-color: white;
+  border: 1px solid #eeeeee;
+}
+
+.order-table-info .receipt-body .receipt-item {
+  padding: 10px;
+  border: 1px solid #eeeeee;
+}
+
+.order-table-info .receipt-body .sku-style {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-table-info .receipt-body .sku-style > div {
+  width: 100%;
+}
+
+.order-table-info .receipt-body > td:first-child > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: nowrap;
+}
+
+.order-table-info .receipt-body > td:first-child > div > img {
+  height: 60px;
+  width: 60px;
+}
+
+.order-table-info .receipt-body .product-cell__info {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.order-table-info .receipt-body .product-cell__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
+  max-height: calc(1.4em * 2);
+}
+
+.order-table-info .receipt-body .operation {
+  width: 80px;
+}
+
+.order-table-info .receipt-footer {
+  border-bottom: 1px dashed #e8e8e8;
+}
+
+.order-table-info .receipt-footer .receipt-footer-it {
+  text-align: right;
+  padding: 10px;
+  line-height: 2;
+}
+
+.order-table-info .receipt-footer .receipt-footer-it .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  line-height: 28px;
+}
+
+.order-table-info .receipt-footer .receipt-footer-it .two {
+  color: #888;
+  font-size: 14px;
+}
+
+/* member.less: :deep(.el-pagination.is-background) —— 白底 + #dbdce1 细边 + 4px 圆角，当前页 #eeeff2 */
+.order-list .pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.order-list .pagination button {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 4px;
+  border: 1px solid #dbdce1;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #1a1a1a;
+  font-size: 12px;
+  line-height: 30px;
+  cursor: pointer;
+}
+
+.order-list .pagination button:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.order-list .pagination button.is-active {
+  background-color: #eeeff2;
+}
+
+/* =========================================================================
+ * member-pages.scss 的补充件
+ *
+ * app/member-pages.scss 是 scripts/gen-member-pages-scss.mjs 从旧版 .vue 的
+ * <style> 块逐字符生成的，不要再手改它；旧版用 element-plus 组件、而新版没有
+ * 的那几个控件，在这里补最小替身，尺寸取旧版页面自己覆盖过的数值。
+ * ========================================================================= */
+
+/* 旧版 pages/member/address/List.vue 覆盖 .el-checkbox__inner：
+   18×18、border 2px、radius 2.5px，勾 4×8 / border 2px */
+.mp-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.mp-checkbox__box {
+  box-sizing: border-box;
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #dbdce1;
+  border-radius: 2.5px;
+  background: #fff;
+}
+
+.mp-checkbox.is-checked .mp-checkbox__box {
+  border-color: var(--main-bg);
+  background: var(--main-bg);
+}
+
+.mp-checkbox.is-checked .mp-checkbox__box::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: 2px solid #fff;
+  border-left: 0;
+  border-top: 0;
+  transform: rotate(45deg);
+}
+
+/* 优惠券页：旧版页头右侧只有「领取更多优惠券」一个动作；新版多了「券码兑换」和
+   每张券的「删除」，这里只给它们排位置，视觉数值沿用旧版页头的字号与间距。 */
+.mp-coupon-list .coupon-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mp-coupon-list .coupon-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mp-coupon-list .coupon-del {
+  align-self: flex-end;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: #999;
+  cursor: pointer;
+}
+
+/* 账户明细 / 充值记录等服务器组件里不能引入 Semi 的 Button（会把整个 barrel 拉进
+   client boundary），所以旧版页里的 `<el-button type="primary">` 用一个链接复现。
+   数值是 Element Plus 默认主按钮：高 32、左右内边距 15、字号 14、圆角 4、底色取站点主色。 */
+.mp-primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 15px;
+  border-radius: 4px;
+  background: var(--general);
+  color: #fff;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.mp-primary-link:hover {
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* 浏览历史：旧版这一页直接用 ProductCard 铺在 `.collect-list-content` 里，
+   新版没有 ProductCard 组件，用最小外壳复现网格与底部价格/删除的位置，
+   尺寸取自 collectProduct/List.vue 同样的 `.collect-list-content` 变量。 */
+.mp-browsing-list .history-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mp-browsing-list .history-card {
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.mp-browsing-list .history-card .image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.mp-browsing-list .history-card .title {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-browsing-list .history-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.mp-browsing-list .del-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: #999;
+  cursor: pointer;
+}
+
+/* ============================================================
+ * 站内信（/member/usermessage/list）
+ * 源码：pages/member/userMessage/List.vue
+ * 生成的 .mp-usermessage-list 块只含 scoped 样式；下面几条补的是
+ * 旧版由别的组件/工具类提供、scoped 里不会再写一遍的部分。
+ * ============================================================ */
+
+/* 旧版 <CommonPageContainer flex class="message_center">：`flex` 属性把容器设成横向弹性盒。
+   该组件源码不在 view/pc 里（全仓 0 命中），此处按 .mc_side_bar 固定宽 + .msg_list flex:1 的唯一合理读法还原。 */
+.mp-usermessage-list .message_center {
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 旧版工具栏与分页用全局工具类 .flex.justify-end（assets/css/global.less:297） */
+.mp-usermessage-list .msg_list__toolbar,
+.mp-usermessage-list .el-page {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 旧版删除按钮是 iconfont 字形 icon-changyonggoupiaorenshanchu；
+   新版图标字体没有这个字形（app/ 内 0 命中），用 × 字符代替，位置与颜色仍由 .msg_card__del 决定。 */
+.mp-usermessage-list .msg_card__del {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 旧版 el-button（默认型，非 primary）的库内建样式：高 32 / 内边距 0 15 / 14px / 1px #dcdfe6 / 圆角 4 / 白底 / #606266 */
+.mp-el-button {
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mp-el-button:hover {
+  border-color: #c6e2ff;
+  color: var(--general);
+}
+
+/* =========================================================================
+ * 会员中心公共件 · 来自 assets/css/member/member.less:291-308
+ * 生成器把各页 <style> 里的 `@import "/assets/css/member/member"` 去掉了
+ * （那份公共壳已在 app/member-order.scss），但下面这两条是**无前缀的全局类**，
+ * 旧版页面模板直接写 class="big-button ml10"，需要平铺到全局才生效。
+ * ========================================================================= */
+
+.big-button {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  line-height: 42px;
+  width: 218px;
+  height: 42px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.ml10 {
+  margin-left: 10px;
+}
+
+.font-color {
+  color: var(--general);
+}
+
+/* 主色按钮（旧版 element-plus type="primary"）：充值、去付款等处用到 */
+.mp-el-button--primary {
+  border-color: var(--general);
+  background: var(--general);
+  color: #fff;
+}
+
+.mp-el-button--primary:hover {
+  border-color: var(--general);
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* element-plus 内建控件的静态还原（库不在仓库里，按官方默认外观写死数值）。
+   只有旧版页面显式覆盖过的属主（如 .card .el-input__inner 的 font-size）仍在生成块里。 */
+.el-input-number,
+.el-input {
+  display: inline-block;
+  width: 100%;
+}
+
+.el-input__inner {
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  padding: 0 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 14px;
+  line-height: 32px;
+  text-align: center;
+  outline: none;
+}
+
+.mp-el-radio__original,
+.mp-checkbox__original {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+}
+
+.mp-el-radio__inner {
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #dcdfe6;
+  border-radius: 100%;
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+.mp-el-radio__inner.is-checked {
+  border-color: var(--general);
+  background: var(--general);
+}
+
+.mp-el-radio__inner.is-checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 100%;
+  background: #fff;
+}
+
+/* 本仓没有旧版的 /member/account/src/{channel} 支付页，二维码兜底块沿用同一个内容容器 */
+.mp-account-deposit .no-qr {
+  text-align: center;
+}
+
+.mp-account-deposit .no-qr img {
+  margin: 16px auto;
+}
+
+/* =========================================================================
+ * assets/css/global.less:227-332 通用工具类（旧版模板里直接写 class="flex justify-between mb10"，
+ * 这些类在 global.less 里，不在任何页面的 <style scoped> 里，所以生成器抓不到，这里逐条照抄）
+ * ========================================================================= */
+
+.mt10 {
+  margin-top: 10px;
+}
+
+.mb10 {
+  margin-bottom: 10px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.align-start {
+  align-items: flex-start !important;
+}
+
+.align-end {
+  align-items: flex-end;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.align-baseline {
+  align-items: baseline;
+}
+
+.flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.hand-pointer,
+a {
+  cursor: pointer;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================================
+ * element-plus 表单 / 单选按钮 / 文本域的外观（库不在仓库里，按官方默认值静态还原；
+ * 旧版页面自己覆盖过的数值仍在 app/member-pages.scss 的生成块里生效）
+ * ========================================================================= */
+
+.el-form-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.el-form-item__label {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: 100px;
+  padding: 0 12px 0 0;
+  text-align: right;
+  line-height: 32px;
+  vertical-align: middle;
+}
+
+.el-form-item__content {
+  flex: 1;
+  min-width: 0;
+  line-height: 32px;
+}
+
+/* 旧版 InfoCard.vue 用 label-width="auto"：标签按内容宽度 */
+.mp-el-form--auto .el-form-item__label {
+  width: auto;
+  min-width: 84px;
+}
+
+.el-form-item__content > .el-input__inner,
+.el-form-item__content > .el-textarea__inner {
+  width: 100%;
+}
+
+.el-textarea__inner {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 5px 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
+.el-radio-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0;
+}
+
+.el-radio-button {
+  position: relative;
+  display: inline-block;
+}
+
+.el-radio-button__inner {
+  display: inline-block;
+  line-height: 1;
+  padding: 12px 19px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #606266;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-left: 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.el-radio-button:first-child .el-radio-button__inner {
+  border-left: 1px solid #dcdfe6;
+  border-radius: 4px 0 0 4px;
+  box-shadow: -1px 0 0 0 #dcdfe6;
+}
+
+.el-radio-button:last-child .el-radio-button__inner {
+  border-radius: 0 4px 4px 0;
+}
+
+.el-radio-button__inner.is-active {
+  background: var(--general);
+  border-color: var(--general);
+  color: #fff;
+  box-shadow: -1px 0 0 0 var(--general);
+}
+
+.el-select {
+  display: inline-block;
+  width: 100%;
+}
+
+.el-select__wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  padding: 0 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 14px;
+}
+
+/* element-plus 大号按钮（旧版 size="large"：40 高 / 0 19 / 圆角 4） */
+.mp-el-button--large {
+  height: 40px;
+  padding: 0 19px;
+  font-size: 14px;
+  border-radius: 4px;
+}
