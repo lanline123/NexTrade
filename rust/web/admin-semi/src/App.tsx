@@ -46,6 +46,7 @@ import NoticeSettings from './pages/NoticeSettings';
 import WithdrawalSettings from './pages/WithdrawalSettings';
 import ProfitSharingSettings from './pages/ProfitSharingSettings';
 import DepositSettings from './pages/DepositSettings';
+import KefuSettings from './pages/KefuSettings';
 import ShopSettings from './pages/ShopSettings';
 import StoreSettings from './pages/StoreSettings';
 import StoreTips from './pages/StoreTips';
@@ -1243,13 +1244,16 @@ export default function App() {
       {page === 'vendorProductManage' && <VendorProducts />}
       {page === 'vendorOrderManage' && <VendorOrders />}
       {/* storeSettingsManage 有专用页面 StoreSettings（自带完整 sections/renderers），
-          避免与通用 AutoConfigPage 同页重复渲染两份表单。 */}
-      {configPages[page] && page !== 'storeSettingsManage' && (
+          避免与通用 AutoConfigPage 同页重复渲染两份表单。
+          kefuSetting 同理走专用 KefuSettings（对齐旧版 ServiceSettings.vue 的
+          按钮式客服选择 + 按类型条件渲染 + 敏感值编辑弹窗）。 */}
+      {configPages[page] && page !== 'storeSettingsManage' && page !== 'kefuSetting' && (
         <AutoConfigPage
           {...configPages[page]}
           onSaved={page === 'globalSetting' ? (values) => applyAndStore(values) : undefined}
         />
       )}
+      {page === 'kefuSetting' && <KefuSettings />}
       {page === 'afterSaleService' && (
         <AgreementPage code="afterSalesService" title="售后服务" description="配置售后服务协议内容与启用状态。" />
       )}

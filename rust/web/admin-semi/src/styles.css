@@ -8268,6 +8268,239 @@ body {
   height: 32px;
 }
 
+/* ============================== 客服设置（对齐旧版 ServiceSettings.vue） ============================== */
+
+.kefu-setting-page {
+  padding: 0 20px 80px;
+}
+
+.kefu-setting-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kefu-setting-card {
+  background: var(--semi-color-bg-0);
+  border: 1px solid var(--semi-color-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 24px 28px 28px;
+  transition: box-shadow 0.2s ease;
+}
+
+.kefu-setting-card:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.kefu-setting-card-head {
+  padding-bottom: 20px;
+}
+
+.kefu-setting-card-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--semi-color-text-0);
+}
+
+.kefu-setting-card-desc {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--semi-color-text-2);
+}
+
+.kefu-setting-field {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 22px;
+}
+
+.kefu-setting-field:last-child {
+  margin-bottom: 0;
+}
+
+.kefu-setting-field > label {
+  text-align: right;
+  font-size: 14px;
+  line-height: 32px;
+  color: var(--semi-color-text-1);
+  word-break: break-word;
+}
+
+/* Semi Radio 的圆点按默认 20px 行高定位，行高被抬高后需在 radio 行内重新居中，
+   否则圆点会高于右侧文字约 6px；行高统一到 32px 与左侧标签同一节奏 */
+.kefu-setting-control .semi-radio {
+  align-items: center;
+  line-height: 32px;
+}
+
+.kefu-setting-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.kefu-setting-extra-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 客服选择：可选中卡片网格（现代选择器样式） */
+.kefu-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.kefu-type-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--semi-color-fill-0);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kefu-type-card:hover {
+  border-color: var(--semi-color-primary-disabled, var(--semi-color-border));
+  background: var(--semi-color-fill-1);
+}
+
+.kefu-type-card.is-selected {
+  background: var(--semi-color-primary-light-default);
+  border-color: var(--semi-color-primary);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+}
+
+.kefu-type-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--semi-color-text-0);
+}
+
+.kefu-type-card.is-selected .kefu-type-card-name {
+  color: var(--semi-color-primary);
+}
+
+.kefu-type-card-desc {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--semi-color-text-2);
+}
+
+.kefu-type-card-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--semi-color-primary);
+  color: var(--semi-color-bg-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 按类型切换的条件配置区：轻入场动效 */
+.kefu-setting-type-panel {
+  animation: kefu-panel-in 0.2s ease;
+}
+
+@keyframes kefu-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kefu-setting-extra {
+  margin: 0;
+  color: var(--semi-color-text-2);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.kefu-setting-secret {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kefu-setting-secret-value {
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 20px;
+  padding: 5px 12px;
+  background: var(--semi-color-fill-0);
+  border-radius: 6px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  color: var(--semi-color-text-0);
+}
+
+.kefu-setting-actions {
+  position: fixed;
+  bottom: 0;
+  left: 296px;
+  right: 16px;
+  z-index: 99;
+  height: 60px;
+  background: var(--semi-color-bg-0);
+  border-top: 1px solid var(--semi-color-border);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 24px;
+}
+
+.kefu-setting-actions .semi-button {
+  border-radius: 8px;
+  min-width: 96px;
+}
+
+@media only screen and (max-width: 900px) {
+  .kefu-setting-field {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .kefu-setting-field label {
+    text-align: left;
+    line-height: 22px;
+  }
+
+  .kefu-setting-actions {
+    left: 16px;
+    padding-left: 16px;
+  }
+}
+
+body[theme-mode='dark'] .kefu-setting-actions {
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.35);
+}
+
 /* ============================== 客服工作台 ============================== */
 
 /* 独立全屏版（对齐旧版 /im 专属布局：新标签打开，无后台侧边栏） */
