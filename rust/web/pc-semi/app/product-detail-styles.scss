@@ -692,24 +692,33 @@
     flex: 0 0 496px;
     width: 496px;
     position: sticky;
-    top: 12px;
+    /* 吸顶偏移 = 固定头部 116px（公告条 + 主头部）+ 12px 间隙，
+       否则卡片顶部会被头部盖住 */
+    top: 128px;
     display: flex;
     flex-direction: column;
     align-self: flex-start;
-    max-height: calc(100vh - 24px);
+    max-height: calc(100vh - 140px);
+    /* 现代化：右栏整体卡片化（白色买盒，细边 + 轻阴影） */
+    border: 1px solid #eef0f3;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -18px rgba(16, 24, 40, 0.12);
+    padding-top: 18px;
+    box-sizing: border-box;
   }
   .pds-os__scroll {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
   }
-  .pds-os__details { padding: 0 16px 8px; }
+  .pds-os__details { padding: 0 20px 8px; }
   .pds-os__actions {
     flex: 0 0 auto;
     position: relative;
     z-index: 2;
     margin-top: 12px;
-    padding: 0 16px 8px;
+    padding: 0 20px 16px;
     background: #fff;
   }
   .pds-os__actions .pds-actions { margin: 0; }
@@ -940,14 +949,28 @@
      国内标准版 .new-ui 竖排），在这里统一写 row 会覆盖掉国内标准版原版设计。 */
 
   /* 服务说明：新版把原版 el-collapse 手风琴简化成 4 个 .item，
-     没有旧 CSS 可命中，这里补成横排服务条（避免 4 行竖排占满右栏） */
+     没有旧 CSS 可命中，这里补成横排服务条（避免 4 行竖排占满右栏）；
+     对勾前缀呼应原版服务气泡的「保障」语义 */
   .serviceAction .goods_desc.shouhou {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 18px;
+    gap: 10px 20px;
 
     .item { display: flex; align-items: center; }
+    .item .tit {
+      display: flex;
+      align-items: center;
+      color: #4b4b4b;
+      font-size: 13px;
+      &::before {
+        content: '✓';
+        margin-right: 5px;
+        color: var(--general, var(--pds-primary, #1a1a1a));
+        font-size: 12px;
+        font-weight: 700;
+      }
+    }
   }
 }
 
@@ -1029,34 +1052,106 @@
     &.is-collected { color: #ff4040; }
   }
 
-  /* ---- 右栏信息：商品名 18px 粗体、价格区去掉「本站价：」标签 ---- */
+  /* ---- 右栏信息：现代化设计 —— 价格面板 / 规格栅格 / 现代步进器 / 服务胶囊 ---- */
   .pds-os__details {
     .product_name {
       .name {
-        padding-bottom: 12px;
+        padding-bottom: 10px;
         color: #000;
         font-size: 18px;
         font-weight: 700;
         line-height: 1.5;
       }
-      .desc { padding: 4px 0 8px; color: #ff4040; font-size: 12px; }
+      .desc { padding: 2px 0 10px; color: #ff4040; font-size: 12px; }
     }
     .basic {
-      margin: 0 0 12px;
-      padding: 0;
-      background: transparent;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      background: var(--pds-soft, #f7f8fa);
+      border-radius: 12px;
+      box-sizing: border-box;
 
       .item { margin: 0; padding: 0; }
-      /* 原版跨境版是 .item.main-price-box > .price1，没有「本站价：」前缀 */
+      /* 原版跨境版没有「市场价：/本站价：」前缀标签 */
       .item > .tit { display: none; }
+      /* 主价 + 划线市场价 + 折扣角标同一基线行；价格用主题色建立视觉焦点 */
+      .item.main-price-box {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        column-gap: 10px;
+        row-gap: 4px;
+
+        .price1 .price {
+          color: var(--general, var(--pds-primary));
+          .util { color: inherit; font-size: 20px; font-weight: 700; line-height: 1; }
+          .num { color: inherit; font-size: 30px; font-weight: 700; line-height: 1; letter-spacing: -0.01em; }
+        }
+        .market_price { color: #98a2b3; }
+        .pds-os__discount {
+          align-self: center;
+          padding: 2px 8px;
+          border-radius: 999px;
+          background: #fff1f0;
+          color: #ff4d4f;
+          font-size: 12px;
+          font-weight: 600;
+          line-height: 16px;
+        }
+      }
+      /* 「已售 N 件」小灰字行 */
+      .item.pds-os__sold {
+        margin-top: 8px;
+        .num { color: #888b94; font-size: 12px; line-height: 1; }
+      }
     }
-    /* 原版「已售 107 件」是小灰字单行；新版 .basic-info 默认块级会拆成两行 */
-    .basic-info .item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: #888b94;
-      font-size: 12px;
+    /* 规格栅格：标签在上、值在下，两列排布替代旧的左右对齐行 */
+    .pds-attrs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+      margin-top: 0;
+      padding: 0;
+      border: 0;
+
+      > div { display: block; padding: 0; }
+      span { display: block; flex: none; width: auto; margin: 0 0 2px; color: #888b94; font-size: 12px; }
+      b { display: block; color: #1a1a1a; font-weight: 600; font-size: 14px; line-height: 20px; }
+    }
+    /* 数量行：细分隔线 + 白底描边步进器（Semi wrapper，core-pages 的 120px 规则
+       写给旧版 el-input-number 不会命中） */
+    .number-box {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #f0f1f4;
+
+      .title { color: #888b94; font-size: 13px; line-height: 34px; }
+      .con { gap: 8px; }
+      .con .semi-input-wrapper {
+        width: 128px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #fff;
+
+        &:hover { border-color: var(--general, var(--pds-primary)); }
+      }
+      .stock-text { color: #98a2b3; font-size: 12px; }
+    }
+    /* 服务说明：灰底圆角胶囊条 + 主题色对勾 */
+    .serviceAction {
+      margin-top: 14px;
+
+      .goods_desc.shouhou {
+        padding: 10px 14px;
+        background: var(--pds-soft, #f7f8fa);
+        border-radius: 10px;
+
+        .item .tit {
+          color: #4b4b4b;
+          font-size: 13px;
+          &::before { color: var(--general, var(--pds-primary)); }
+        }
+      }
     }
   }
 
@@ -1081,7 +1176,7 @@
   .pds-os__section { padding: 20px 0 28px; border-bottom: 1px solid #f0f0f0; }
   .pds-os__section-title { margin-bottom: 12px; font-size: 15px; }
 
-  /* ---- 购买按钮：立即购买（主题色）在左 + 加入购物车（黑）在右，48px 通栏 ---- */
+  /* ---- 购买按钮：立即购买（主题色渐变）在左 + 加入购物车（黑）在右，48px 通栏 ---- */
   .pds-os__actions .add_cart {
     flex-direction: row-reverse; // DOM 是 加购 → 立即购买，反转让立即购买在左
     gap: 10px;
@@ -1089,19 +1184,32 @@
     .buy { flex: 1 1 0; min-width: 0; }
     .buy-btn {
       height: 48px;
-      border-radius: 4px;
+      border-radius: 10px;
       font-size: 16px;
       font-weight: 700;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     }
     .buy-btn:not(.buynow) {
       background: #1a1a1a;
       border-color: #1a1a1a;
       color: #fff;
+
+      &:hover:not(:disabled) { background: #333; opacity: 1; }
     }
     .buy-btn.buynow {
-      background: var(--general, var(--pds-primary));
-      border-color: var(--general, var(--pds-primary));
+      border: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%),
+        var(--general, var(--pds-primary));
       color: #fff;
+      box-shadow: 0 6px 16px -6px rgba(var(--general-rgb, 101, 196, 170), 0.55);
+
+      &:hover:not(:disabled) {
+        opacity: 1;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px -6px rgba(var(--general-rgb, 101, 196, 170), 0.6);
+      }
+      &:active:not(:disabled) { transform: translateY(0); }
     }
   }
 }

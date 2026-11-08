@@ -770,6 +770,14 @@ export default function ProductDetailClient({
   const commentGoodPercent = pickString(commentStat, ['goodPercent'], '0.00');
   const commentAverage = pickNumber(commentStat, ['averageRank'], 0);
 
+  /** 跨境版折扣角标：现价 / 市场价 → 「x.x折」，无市场价或现价不低于市场价时不展示 */
+  const discountFold = useMemo(() => {
+    const market = Number(item.marketPrice);
+    const current = Number(price);
+    if (!(market > 0) || !(current > 0) || current >= market) return '';
+    return String(Math.round((current / market) * 100) / 10);
+  }, [item.marketPrice, price]);
+
   // —— 跨境版锚点长滚动：点击定位 + 滚动高亮（源码 changeType / sectionRefs / tab-main）——
   const [activeAnchor, setActiveAnchor] = useState('detail');
   // 与下方 sections 顺序一致（评价/售后受开关控制；此处先于 sections 声明，避免引用未初始化变量）
@@ -1065,8 +1073,61 @@ export default function ProductDetailClient({
    * 源码 components/product/ProductInfo.vue 123–157 `.basic.bg`：市场价 / 本站价 / 评价 / 优惠活动；
    * 237–263 `.basic-info`：销量 / 服务。旧版老 UI 分支（`uiVersion !== 'new'`）的标记结构。
    * 价格用旧版 FormatPrice 的产物结构 `<div class="price align-bottom"><div class="util">…`
+   *
+   * 跨境版分流：overseas/ProductInfo.vue 204–224 的 `.item.main-price-box` 是
+   * 「主价（24/36px）+ 划线市场价」同一基线行，销量是「已售 N 件」小灰字行；
+   * 与经典版「市场价：/本站价：」标签行式结构不同，故按 uiStyle 分别渲染。
    */
-  const priceBlock = (
+  const priceBlock =
+    uiStyle === 'overseas' ? (
+      <div className="basic">
+        <div className="item main-price-box">
+          <div className="price1">
+            <div className="price align-bottom">
+              <div className="util">¥</div>
+              <div className="num">{yuan(price)}</div>
+            </div>
+          </div>
+          {Number(item.marketPrice) > 0 ? (
+            <div className="market_price">
+              <div className="price align-bottom" style={{ textDecoration: 'line-through' }}>
+                <div className="util">¥</div>
+                <div className="num">{yuan(item.marketPrice)}</div>
+              </div>
+            </div>
+          ) : null}
+          {discountFold ? <span className="pds-os__discount">{discountFold}{t('折')}</span> : null}
+        </div>
+        {commentTotal > 0 ? (
+          <div className="item">
+            <div className="rank-info">
+              <div className="star">
+                <span className={`icon-star icon-star-${commentAverage || 5}`} />
+              </div>
+              <div className="evaluate">
+                {t('已有')} <span className="font-color"> {commentTotal}</span> {t('人评价')}，{commentGoodPercent}% {t('好评')}
+              </div>
+            </div>
+          </div>
+        ) : null}
+        <div className="item pds-os__sold">
+          <div className="num">
+            {t('已售')} {item.virtualSales ?? item.sales ?? 0} {t('件')}
+          </div>
+        </div>
+        {coupons.length ? (
+          <div className="item">
+            <div className="coupon-list-wrap">
+              {coupons.map((coupon: any, index: number) => (
+                <span className="lyecsquan" key={coupon.couponId ?? index}>
+                  {coupon.couponName || coupon.name || t('优惠券')}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    ) : (
     <>
       <div className="basic bg">
         {Number(item.marketPrice) > 0 ? (
@@ -1120,7 +1181,7 @@ export default function ProductDetailClient({
         </div>
       </div>
     </>
-  );
+    );
 
   const attrs = detail.attrList?.normal?.length ? (
     <div className="pds-attrs">
