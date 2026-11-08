@@ -8482,13 +8482,14 @@ body[theme-mode='dark'] .kefu-setting-actions {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--semi-color-bg-0);
+  background: var(--semi-color-fill-0);
 }
 .kefu-workbench-standalone-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px;
+  padding: 10px 20px;
+  background: var(--semi-color-bg-0);
   border-bottom: 1px solid var(--semi-color-border);
   flex-shrink: 0;
 }
@@ -8506,7 +8507,7 @@ body[theme-mode='dark'] .kefu-setting-actions {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 96px);
-  padding: 12px 16px;
+  padding: 12px 16px 16px;
   box-sizing: border-box;
 }
 
@@ -8514,7 +8515,7 @@ body[theme-mode='dark'] .kefu-setting-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0 12px;
+  padding: 4px 0 12px;
 }
 
 .kefu-status-label {
@@ -8529,16 +8530,23 @@ body[theme-mode='dark'] .kefu-setting-actions {
   min-height: 0;
 }
 
-.kefu-conversation-panel {
-  width: 320px;
-  flex-shrink: 0;
+/* 三栏面板：白底卡片 + 细边 + 轻投影 */
+.kefu-conversation-panel,
+.kefu-message-panel,
+.kefu-side-panel {
   background: var(--semi-color-bg-0);
   border: 1px solid var(--semi-color-border);
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  min-height: 0;
+}
+
+.kefu-conversation-panel {
+  width: 300px;
+  flex-shrink: 0;
   padding: 10px;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 .kefu-conversation-list {
@@ -8550,10 +8558,11 @@ body[theme-mode='dark'] .kefu-setting-actions {
 .kefu-conversation-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 6px;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
 .kefu-conversation-item:hover {
@@ -8564,6 +8573,10 @@ body[theme-mode='dark'] .kefu-setting-actions {
   background: var(--semi-color-primary-light-default);
 }
 
+.kefu-conversation-item.is-active .kefu-conversation-title {
+  color: var(--semi-color-primary);
+}
+
 .kefu-conversation-meta {
   flex: 1;
   min-width: 0;
@@ -8572,6 +8585,7 @@ body[theme-mode='dark'] .kefu-setting-actions {
 .kefu-conversation-name {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 6px;
   font-size: 13px;
 }
@@ -8585,7 +8599,7 @@ body[theme-mode='dark'] .kefu-setting-actions {
 
 .kefu-conversation-time {
   color: var(--semi-color-text-2);
-  font-size: 12px;
+  font-size: 11px;
   flex-shrink: 0;
 }
 
@@ -8607,38 +8621,65 @@ body[theme-mode='dark'] .kefu-setting-actions {
   visibility: visible;
 }
 
+/* 中栏：消息窗 */
 .kefu-message-panel {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--semi-color-bg-0);
-  border: 1px solid var(--semi-color-border);
-  border-radius: 8px;
-  padding: 12px;
-  min-height: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .kefu-message-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-bottom: 10px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--semi-color-border);
-  font-weight: 500;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Semi Spin 以「包裹层 + .semi-spin-children」两层渲染列表，会打断面板的 flex 高度链，
+   导致消息区不内部滚动、整页被撑到 5000px+；两层统一恢复为可收缩的 flex 列。 */
+.kefu-conversation-panel > .semi-spin,
+.kefu-message-panel > .semi-spin,
+.kefu-side-panel > .semi-spin,
+.kefu-conversation-panel > .semi-spin > .semi-spin-children,
+.kefu-message-panel > .semi-spin > .semi-spin-children,
+.kefu-side-panel > .semi-spin > .semi-spin-children {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .kefu-message-list {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 4px;
-  min-height: 200px;
+  padding: 16px 20px;
+  min-height: 160px;
+}
+
+/* 旧版表情图片（emojiHtml：白名单 [表情名] → oss 表情图，20x20） */
+.kefu-emoji {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin: 0 1px;
+}
+
+/* 历史会话详情弹窗的消息列表同样经 Spin 包裹，恢复块级宽度避免收缩 */
+.semi-modal .semi-spin > .kefu-message-list {
+  width: 100%;
 }
 
 .kefu-message-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .kefu-message-row.is-mine {
@@ -8646,15 +8687,23 @@ body[theme-mode='dark'] .kefu-setting-actions {
 }
 
 .kefu-message-bubble {
-  max-width: 68%;
+  max-width: min(68%, 560px);
   background: var(--semi-color-fill-0);
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 12px;
+  padding: 8px 12px;
   font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* 气泡圆角朝头像一侧收窄（现代 IM 惯例） */
+.kefu-message-row:not(.is-mine) .kefu-message-bubble {
+  border-top-left-radius: 4px;
 }
 
 .kefu-message-row.is-mine .kefu-message-bubble {
   background: var(--semi-color-primary-light-default);
+  border-top-right-radius: 4px;
 }
 
 .kefu-message-time {
@@ -8663,9 +8712,199 @@ body[theme-mode='dark'] .kefu-setting-actions {
   margin-top: 4px;
 }
 
+.kefu-message-row.is-mine .kefu-message-time {
+  text-align: right;
+}
+
 .kefu-send-box {
   border-top: 1px solid var(--semi-color-border);
-  padding-top: 10px;
+  padding: 12px 16px 14px;
+  flex-shrink: 0;
+}
+
+.kefu-send-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+/* 右栏：客户资料 + 最近订单（旧版 OrderImList 侧栏） */
+.kefu-side-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.kefu-customer-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--semi-color-fill-0);
+  flex-shrink: 0;
+}
+
+.kefu-customer-name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kefu-customer-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--semi-color-text-2);
+}
+
+.kefu-side-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.kefu-order-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--semi-color-fill-0);
+  padding: 3px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.kefu-order-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--semi-color-text-2);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.kefu-order-tab.is-active {
+  background: var(--semi-color-bg-0);
+  color: var(--semi-color-primary);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.kefu-order-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kefu-order-card {
+  border: 1px solid var(--semi-color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+.kefu-order-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--semi-color-text-2);
+}
+
+.kefu-order-card-lines {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.kefu-order-card-line {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.kefu-order-card-label {
+  flex-shrink: 0;
+}
+
+.kefu-order-card-value {
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.kefu-order-status {
+  color: var(--semi-color-warning);
+  font-size: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.kefu-order-goods {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.kefu-order-goods img {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--semi-color-border);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.kefu-order-goods-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--semi-color-text-1);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+
+.kefu-order-summary {
+  text-align: right;
+  font-size: 12px;
+  color: var(--semi-color-text-1);
+  margin-top: 8px;
+}
+
+.kefu-order-summary strong {
+  color: var(--semi-color-danger);
+  font-weight: 600;
+}
+
+.kefu-order-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--semi-color-border);
 }
 
 .kefu-product-card {
@@ -8674,9 +8913,25 @@ body[theme-mode='dark'] .kefu-setting-actions {
   align-items: center;
   background: var(--semi-color-bg-0);
   border: 1px solid var(--semi-color-border);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 8px;
   max-width: 260px;
+}
+
+/* 窄屏降级：优先收窄右栏与会话栏 */
+@media (max-width: 1440px) {
+  .kefu-side-panel {
+    width: 280px;
+  }
+  .kefu-conversation-panel {
+    width: 260px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .kefu-side-panel {
+    display: none;
+  }
 }
 
 /* ============================== 店铺设置/信息表单 ============================== */

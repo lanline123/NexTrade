@@ -50,14 +50,6 @@ import type { ColumnConfig } from '../framework/types';
 
 /* ============================== 类型 ============================== */
 
-/** 常用表情（旧版 Emoji.vue 面板的精简集，插入即随文本消息发送）。 */
-const EMOJI_LIST = [
-  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜', '🤔', '😐',
-  '😴', '🙄', '😔', '😭', '😡', '🥳', '😱', '🤗', '🙏', '👍',
-  '👎', '👌', '✌️', '🤝', '💪', '❤️', '💔', '🌹', '🎉', '🎁',
-  '💰', '🛒', '📦', '🚚', '⭐', '🔥', '❓', '❗', '✅', '❌',
-];
-
 interface ImUserVO {
   userId?: number;
   username?: string;
@@ -132,6 +124,83 @@ type Translate = (key: string, params?: Record<string, string | number>) => stri
 
 /* ============================== 通用 ============================== */
 
+/**
+ * 旧版表情码表（components/emoji/src/emojiElements.ts 139 项逐字对齐）：
+ * 消息文本中白名单 `[表情名]` 渲染为 oss 表情图（旧版 emojiHtml 同款）。
+ */
+const EMOJI_CODES: Array<[string, string]> = [
+  ['微笑', '1'], ['龇牙', '2'], ['色', '3'], ['发呆', '4'], ['可怜', '5'],
+  ['流泪', '6'], ['害羞', '7'], ['闭嘴', '8'], ['睡', '9'], ['吃瓜群众', '10'],
+  ['尴尬', '11'], ['发怒', '12'], ['调皮', '13'], ['撇嘴', '14'], ['思考', '15'],
+  ['不失礼貌的微笑', '16'], ['奸笑', '17'], ['抓狂', '18'], ['吐', '19'], ['偷笑', '20'],
+  ['愉快', '21'], ['白眼', '22'], ['傲慢', '23'], ['困', '24'], ['灵光一现', '25'],
+  ['流汗', '26'], ['憨笑', '27'], ['捂脸', '28'], ['奋斗', '29'], ['咒骂', '30'],
+  ['疑问', '31'], ['嘘', '32'], ['晕', '33'], ['衰', '34'], ['骷髅', '35'],
+  ['敲打', '36'], ['再见', '37'], ['擦汗', '38'], ['抠鼻', '39'], ['泣不成声', '40'],
+  ['坏笑', '41'], ['左哼哼', '42'], ['右哼哼', '43'], ['打哈欠', '44'], ['鄙视', '45'],
+  ['委屈', '46'], ['快哭了', '47'], ['摸头', '48'], ['阴险', '49'], ['亲亲', '50'],
+  ['机智', '51'], ['得意', '52'], ['大金牙', '53'], ['拥抱', '54'], ['大笑', '55'],
+  ['送心', '56'], ['震惊', '57'], ['酷拽', '58'], ['尬笑', '59'], ['大哭', '60'],
+  ['哭笑', '61'], ['做鬼脸', '62'], ['红脸', '63'], ['鼓掌', '64'], ['恐惧', '65'],
+  ['斜眼', '66'], ['嘿哈', '67'], ['惊讶', '68'], ['绝望的凝视', '69'], ['囧', '70'],
+  ['皱眉', '71'], ['耶', '72'], ['石化', '73'], ['我想静静', '74'], ['吐血', '75'],
+  ['互粉', '76'], ['互相关注', '77'], ['加好友', '78'], ['强', '79'], ['钱', '80'],
+  ['飞吻', '81'], ['打脸', '82'], ['惊恐', '83'], ['悠闲', '84'], ['泪奔', '85'],
+  ['舔屏', '86'], ['紫薇别走', '87'], ['听歌', '88'], ['难过', '89'], ['生病', '90'],
+  ['绿帽子', '91'], ['如花', '92'], ['惊喜', '93'], ['吐彩虹', '94'], ['吐舌', '95'],
+  ['无辜呆', '96'], ['看', '97'], ['白眼的狗', '98'], ['黑脸', '99'], ['猪头', '100'],
+  ['熊吉', '101'], ['不看', '102'], ['玫瑰', '103'], ['凋谢', '104'], ['嘴唇', '105'],
+  ['爱心', '106'], ['心碎', '107'], ['赞', '108'], ['弱', '109'], ['握手', '110'],
+  ['ok', '111'], ['谢谢', '112'], ['比心', '113'], ['碰拳', '114'], ['击掌', '115'],
+  ['左', '116'], ['右', '117'], ['力量', '118'], ['胜利', '119'], ['抱拳', '120'],
+  ['勾引', '121'], ['拳头', '122'], ['庆祝', '123'], ['礼物', '124'], ['红包', '125'],
+  ['18禁', '126'], ['去污粉', '127'], ['666', '128'], ['给力', '129'], ['v5', '130'],
+  ['菜刀', '131'], ['炸弹', '132'], ['便便', '133'], ['月亮', '134'], ['太阳', '135'],
+  ['发', '136'], ['黄瓜', '137'], ['西瓜', '138'], ['啤酒', '139'],
+];
+
+const EMOJI_ID_BY_NAME = new Map<string, string>(EMOJI_CODES);
+
+const emojiImgSrc = (id: string) => `https://oss.tigshop.com/official/emoji/${id}.png`;
+
+/** 文本切分：白名单 `[表情名]` 段 vs 普通文本段（未识别的码保持原样文本）。 */
+interface EmojiSegment {
+  type: 'text' | 'emoji';
+  value: string;
+}
+
+function splitEmojiSegments(input: string): EmojiSegment[] {
+  const segments: EmojiSegment[] = [];
+  const re = /\[([^\[\]]+)\]/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(input))) {
+    if (match.index > last) segments.push({ type: 'text', value: input.slice(last, match.index) });
+    const id = EMOJI_ID_BY_NAME.get(match[1]);
+    if (id) segments.push({ type: 'emoji', value: id });
+    else segments.push({ type: 'text', value: match[0] });
+    last = re.lastIndex;
+  }
+  if (last < input.length) segments.push({ type: 'text', value: input.slice(last) });
+  return segments;
+}
+
+/** 按旧版 emojiHtml 规则渲染文本（React 片段实现，等价 escapeHtml + 白名单替换）。 */
+const EmojiText = ({ text }: { text: string }) => {
+  const segments = splitEmojiSegments(text || '');
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.type === 'emoji' ? (
+          <img key={index} className="kefu-emoji" src={emojiImgSrc(segment.value)} alt="" />
+        ) : (
+          <span key={index}>{segment.value}</span>
+        ),
+      )}
+    </>
+  );
+};
+
 const STATUS_OPTIONS = [
   { value: 1, label: '在线' },
   { value: 2, label: '忙碌' },
@@ -142,6 +211,24 @@ const servantStatusLabel = (value: number | undefined, t: Translate) => {
   const found = STATUS_OPTIONS.find((item) => item.value === value);
   return found ? t(found.label) : t('未知');
 };
+
+/** 右栏订单状态页签（旧版 OrderImList.vue checkTabs 的 orderStatus 映射逐项对齐）。 */
+const ORDER_TABS: Array<{ key: number; label: string; status: number | string }> = [
+  { key: 1, label: '全部', status: -1 },
+  { key: 2, label: '未完成', status: '0,1,2' },
+  { key: 3, label: '已完成', status: 5 },
+  { key: 4, label: '已关闭', status: '3,4,-2' },
+];
+
+interface OrderImRow extends Record<string, any> {
+  orderId?: number;
+  orderSn?: string;
+  addTime?: string;
+  orderStatusName?: string;
+  totalAmount?: number | string;
+  adminNote?: string;
+  items?: Array<{ picThumb?: string; picUrl?: string; productName?: string }>;
+}
 
 /** 会话列表项的预览文案（取 lastMessage 最后一条）。 */
 const conversationPreview = (row: ConversationRow, t: Translate) => {
@@ -220,7 +307,11 @@ const MessageBubbleContent = ({ content }: { content?: ContentVO }) => {
       </div>
     );
   }
-  return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{content.content || ''}</span>;
+  return (
+    <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+      <EmojiText text={content.content || ''} />
+    </span>
+  );
 };
 
 /* ============================== 客服工作台 ============================== */
@@ -252,9 +343,15 @@ export function KefuWorkbench() {
   // 新消息提示音（旧版 promptTone.vue：收到新客户消息时短提示）
   const lastMsgIdRef = useRef<number | null>(null);
   const lastMsgCountRef = useRef(0);
-  // 表情面板 + 会员订单侧栏
+  // 表情面板 + 右栏会员订单（旧版 OrderImList）
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const [userOrders, setUserOrders] = useState<Array<Record<string, any>>>([]);
+  const [orderTab, setOrderTab] = useState(1);
+  const [userOrders, setUserOrders] = useState<OrderImRow[]>([]);
+  const [orderTotal, setOrderTotal] = useState(0);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderRefresh, setOrderRefresh] = useState(0);
+  const [remarkModal, setRemarkModal] = useState<{ id: number; value: string } | null>(null);
+  const [remarkSaving, setRemarkSaving] = useState(false);
 
   /** 收到新客户消息时播放短提示音（WebAudio 合成，无需音频资源）。 */
   const playMessageTone = useCallback(() => {
@@ -432,28 +529,59 @@ export function KefuWorkbench() {
     }
   };
 
-  /** 会话客户的最近订单（旧版 OrderImList：工作台内查会员订单）。 */
+  /** 会话客户的最近订单（旧版 OrderImList：右栏 + 状态页签 + 备注入口）。 */
   useEffect(() => {
     if (!activeId) {
       setUserOrders([]);
+      setOrderTotal(0);
       return;
     }
     const userId = conversations.find((row) => (row.conversationId ?? row.id) === activeId)?.userId;
     if (!userId) {
       setUserOrders([]);
+      setOrderTotal(0);
       return;
     }
     let alive = true;
-    apiGet<{ records?: Array<Record<string, any>> }>('/order/order/list', { userId, page: 1, size: 5 })
+    setOrderLoading(true);
+    const status = ORDER_TABS.find((tab) => tab.key === orderTab)?.status ?? -1;
+    apiGet<{ records?: OrderImRow[]; total?: number }>('/order/order/list', {
+      userId,
+      orderStatus: status,
+      page: 1,
+      size: 20,
+      sortField: 'addTime',
+      sortOrder: 'desc',
+    })
       .then((result) => {
         if (!alive) return;
         setUserOrders(result?.records || []);
+        setOrderTotal(Number(result?.total || 0));
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (alive) setOrderLoading(false);
+      });
     return () => {
       alive = false;
     };
-  }, [activeId, conversations]);
+  }, [activeId, conversations, orderTab, orderRefresh]);
+
+  /** 订单备注（旧版 EditRemark：/order/order/setAdminNote）。 */
+  const saveRemark = async () => {
+    if (!remarkModal) return;
+    setRemarkSaving(true);
+    try {
+      await apiPost('/order/order/setAdminNote', { id: remarkModal.id, adminNote: remarkModal.value });
+      Toast.success({ content: t('备注已保存') });
+      setRemarkModal(null);
+      setOrderRefresh((count) => count + 1);
+    } catch (error) {
+      Toast.error({ content: error instanceof Error ? error.message : t('保存失败') });
+    } finally {
+      setRemarkSaving(false);
+    }
+  };
 
   const removeConversation = async (row: ConversationRow) => {
     try {
@@ -687,6 +815,7 @@ export function KefuWorkbench() {
               <div className="kefu-send-box">
                 {emojiOpen && (
                   <div
+                    className="kefu-emoji-panel"
                     style={{
                       display: 'grid',
                       gridTemplateColumns: 'repeat(10, 1fr)',
@@ -695,17 +824,18 @@ export function KefuWorkbench() {
                       border: '1px solid var(--semi-color-border)',
                       borderRadius: 6,
                       marginBottom: 8,
-                      maxHeight: 132,
+                      maxHeight: 156,
                       overflowY: 'auto',
                     }}
                   >
-                    {EMOJI_LIST.map((emoji) => (
+                    {EMOJI_CODES.map(([name, id]) => (
                       <span
-                        key={emoji}
-                        style={{ cursor: 'pointer', fontSize: 18, textAlign: 'center' }}
-                        onClick={() => setDraft((prev) => prev + emoji)}
+                        key={id}
+                        title={name}
+                        style={{ cursor: 'pointer', textAlign: 'center', lineHeight: 0 }}
+                        onClick={() => setDraft((prev) => `${prev}[${name}]`)}
                       >
-                        {emoji}
+                        <img className="kefu-emoji" src={emojiImgSrc(id)} alt={name} />
                       </span>
                     ))}
                   </div>
@@ -717,7 +847,7 @@ export function KefuWorkbench() {
                   placeholder={t('请输入消息内容，Enter 发送')}
                   onEnterPress={() => sendMessage()}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                <div className="kefu-send-actions">
                   <Button
                     theme="borderless"
                     onClick={() => setEmojiOpen((open) => !open)}
@@ -729,34 +859,94 @@ export function KefuWorkbench() {
                     {t('发送')}
                   </Button>
                 </div>
-                {/* 会员最近订单（旧版 OrderImList） */}
-                {userOrders.length > 0 && (
-                  <div
-                    style={{
-                      marginTop: 10,
-                      border: '1px solid var(--semi-color-border)',
-                      borderRadius: 6,
-                      padding: 8,
-                      maxHeight: 150,
-                      overflowY: 'auto',
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: 'var(--semi-color-text-2)', marginBottom: 6 }}>{t('客户最近订单')}</div>
-                    {userOrders.map((order) => (
-                      <div
-                        key={order.orderId}
-                        style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, lineHeight: '22px' }}
-                      >
-                        <span className="mono">{order.orderSn}</span>
-                        <span>¥ {Number(order.totalAmount || 0).toFixed(2)}</span>
-                        <Tag size="small">{order.orderStatusName || '-'}</Tag>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </>
           )}
+        </div>
+
+        {/* 最右栏：客户资料 + 最近订单（旧版 OrderImList 侧栏，订单状态页签逐项对齐） */}
+        <div className="kefu-side-panel">
+          <div className="kefu-customer-card">
+            <Avatar src={activeConversation?.user?.avatar} size="default" alt="">
+              {(activeConversation?.user?.nickname || activeConversation?.user?.username || '?').slice(0, 1)}
+            </Avatar>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="kefu-customer-name">
+                {activeConversation?.user?.nickname ||
+                  activeConversation?.user?.username ||
+                  `#${activeConversation?.userId ?? activeId ?? '--'}`}
+              </div>
+              <div className="kefu-customer-meta">
+                {activeConversation?.userFrom ? <Tag size="small">{activeConversation.userFrom}</Tag> : null}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {t('客户名称')}：{activeConversation?.user?.username || '--'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="kefu-side-section-title">
+            <span>{t('最近订单')}</span>
+            <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--semi-color-text-2)' }}>
+              {t('共{n}单', { n: orderTotal })}
+            </span>
+          </div>
+          <div className="kefu-order-tabs">
+            {ORDER_TABS.map((tab) => (
+              <span
+                key={tab.key}
+                className={`kefu-order-tab ${orderTab === tab.key ? 'is-active' : ''}`}
+                onClick={() => setOrderTab(tab.key)}
+              >
+                {t(tab.label)}
+              </span>
+            ))}
+          </div>
+          <Spin spinning={orderLoading}>
+            <div className="kefu-order-list">
+              {userOrders.length === 0 && !orderLoading && (
+                <Empty description={t('暂无订单～')} style={{ padding: '32px 0' }} />
+              )}
+              {userOrders.map((order) => (
+                <div key={order.orderId} className="kefu-order-card">
+                  <div className="kefu-order-card-top">
+                    <div className="kefu-order-card-lines">
+                      <div className="kefu-order-card-line">
+                        <span className="kefu-order-card-label">{t('订单编号：')}</span>
+                        <span className="kefu-order-card-value mono">{order.orderSn}</span>
+                      </div>
+                      <div className="kefu-order-card-line">
+                        <span className="kefu-order-card-label">{t('下单时间：')}</span>
+                        <span className="kefu-order-card-value">{order.addTime || '--'}</span>
+                      </div>
+                    </div>
+                    <span className="kefu-order-status">{order.orderStatusName || ''}</span>
+                  </div>
+                  <div className="kefu-order-goods">
+                    {(order.items?.[0]?.picThumb || order.items?.[0]?.picUrl) ? (
+                      <img src={order.items?.[0]?.picThumb || order.items?.[0]?.picUrl} alt="" />
+                    ) : null}
+                    <div className="kefu-order-goods-name">{order.items?.[0]?.productName || '--'}</div>
+                  </div>
+                  <div className="kefu-order-summary">
+                    {t('共{n}件商品，实付{price}', {
+                      n: (order.items || []).length,
+                      price: `¥${Number(order.totalAmount || 0).toFixed(2)}`,
+                    })}
+                  </div>
+                  <div className="kefu-order-foot">
+                    <Button
+                      theme="borderless"
+                      type="primary"
+                      size="small"
+                      onClick={() => setRemarkModal({ id: Number(order.orderId), value: String(order.adminNote || '') })}
+                    >
+                      {t('备注')}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Spin>
         </div>
       </div>
 
@@ -773,6 +963,24 @@ export function KefuWorkbench() {
           rowKey={(record?: WaitServantRow, index?: number) => String(record?.id ?? index ?? 0)}
           pagination={false}
           columns={queueColumns as any}
+        />
+      </Modal>
+
+      {/* 订单备注（旧版 EditRemark 抽屉的精简弹窗：改管理员备注） */}
+      <Modal
+        title={t('编辑备注')}
+        visible={Boolean(remarkModal)}
+        onCancel={() => setRemarkModal(null)}
+        onOk={() => void saveRemark()}
+        okButtonProps={{ loading: remarkSaving }}
+        width={520}
+      >
+        <TextArea
+          rows={4}
+          maxLength={200}
+          value={remarkModal?.value || ''}
+          onChange={(next) => setRemarkModal((current) => (current ? { ...current, value: next } : current))}
+          placeholder={t('请输入备注')}
         />
       </Modal>
     </div>
