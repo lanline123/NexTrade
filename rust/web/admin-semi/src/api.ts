@@ -5,6 +5,24 @@ export interface LoginResult {
   adminType?: string;
 }
 
+/**
+ * 根级契约路径（IM 客服域 `/im/**`）：原 Java 控制器 `@RequestMapping`
+ * 不带 `/adminapi` 前缀，后端同样注册在根级（见 admin lib.rs 根级路由注释），
+ * 生产 nginx 按 `X-Client-Type: admin` 头把 `/im` 分流到管理端 8080。
+ */
+function isRootContractPath(path: string): boolean {
+  return path === '/im' || path.startsWith('/im/');
+}
+
+function resolveBase(path: string): string {
+  return isRootContractPath(path) ? '' : API_BASE;
+}
+
+function requestHeaders(path: string, extra: Record<string, string>): Record<string, string> {
+  if (!isRootContractPath(path)) return extra;
+  return { 'X-Client-Type': 'admin', ...extra };
+}
+
 async function readJson(res: Response) {
   const text = await res.text();
   try {
@@ -128,11 +146,11 @@ export async function apiGet<T>(path: string, params?: Record<string, unknown>):
     }
   });
   const suffix = query.toString() ? `?${query.toString()}` : '';
-  const res = await fetch(`${API_BASE}${basePath}${suffix}`, {
-    headers: {
+  const res = await fetch(`${resolveBase(basePath)}${basePath}${suffix}`, {
+    headers: requestHeaders(basePath, {
       Authorization: `Bearer ${getToken()}`,
       ...getContextHeaders(),
-    },
+    }),
   });
   const json = await readJson(res);
   if (res.status === 401 || json.code === 401) {
@@ -147,13 +165,13 @@ export async function apiGet<T>(path: string, params?: Record<string, unknown>):
 }
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${resolveBase(path)}${path}`, {
     method: 'POST',
-    headers: {
+    headers: requestHeaders(path, {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${getToken()}`,
       ...getContextHeaders(),
-    },
+    }),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const json = await readJson(res);

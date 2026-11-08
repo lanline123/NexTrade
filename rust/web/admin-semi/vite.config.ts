@@ -120,6 +120,19 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // IM 客服域走根级契约路径（不带 /adminapi），生产 nginx 按
+      // X-Client-Type: admin 头分流到管理端 8080
+      '/im': {
+        target: 'https://battery.recy.cc',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/ws': {
+        target: 'https://battery.recy.cc',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
     },
   },
 });

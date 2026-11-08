@@ -44,7 +44,7 @@ import {
   Toast,
 } from '@douyinfe/semi-ui';
 import { IconSearch, IconRefresh } from '@douyinfe/semi-icons';
-import { apiGet, apiPost } from '../api';
+import { apiGet, apiPost, getToken } from '../api';
 import { useI18n } from '../i18n';
 import type { ColumnConfig } from '../framework/types';
 
@@ -356,9 +356,11 @@ export function KefuWorkbench() {
   useEffect(() => {
     loadServantStatus();
     loadConversations();
-    // WebSocket（尽力而为，失败自动退回轮询）
+    // WebSocket（尽力而为，失败自动退回轮询）；管理端 WS 在 8080，
+    // 需带 token + platform=admin（生产 nginx 按该参数分流）
     try {
-      const wsUrl = `${location.origin.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:')}/ws`;
+      const wsParams = new URLSearchParams({ token: getToken() || '', platform: 'admin' });
+      const wsUrl = `${location.origin.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:')}/ws?${wsParams.toString()}`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = () => {
         loadConversations(true);
