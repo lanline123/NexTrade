@@ -99,34 +99,8 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
 }
 
-.login-tabs {
-  display: flex;
-  gap: 36px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #f2f3f5;
-}
-
-.login-tabs span {
-  position: relative;
-  padding: 12px 0 16px;
-  color: #646a73;
-  font-size: 16px;
-}
-
-.login-tabs .is-active {
-  color: #1456f0;
-  font-weight: 600;
-}
-
-.login-tabs .is-active::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: #1456f0;
-}
+/* 旧版 .login-tabs 下划线样式块已删除：新版分段控件见 5138 行起的 .login-tabs 定义，
+   其中 .is-active::after 曾因新版 button 无 position:relative 而泄漏为整卡片底部蓝线 */
 
 .login-card .semi-form-field {
   margin-bottom: 22px;
