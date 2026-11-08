@@ -8,6 +8,12 @@ import {
 export interface NavItem {
   key: string;
   label: string;
+  /**
+   * 旧版 meta.blank：点击在新标签打开独立页（客服工作台 /im），见旧
+   * asyncRoutes/common/customerService.ts。这类入口不作为所在分组的落地页，
+   * 一级菜单点击时按旧版 resolveAccessibleRedirect 语义跳过。
+   */
+  blank?: boolean;
   children?: NavItem[];
 }
 
@@ -27,7 +33,8 @@ export const navGroups: NavGroup[] = [
     "items": [
       {
         "key": "customerService0",
-        "label": "客服工作台"
+        "label": "客服工作台",
+        "blank": true
       },
       {
         "key": "customerService1",
@@ -36,6 +43,16 @@ export const navGroups: NavGroup[] = [
           {
             "key": "kefuHistoryList",
             "label": "历史会话列表"
+          }
+        ]
+      },
+      {
+        "key": "customerService3",
+        "label": "客服管理",
+        "children": [
+          {
+            "key": "kefuManageList",
+            "label": "客服列表"
           }
         ]
       },
@@ -50,16 +67,6 @@ export const navGroups: NavGroup[] = [
           {
             "key": "kefuAccountInfo",
             "label": "账户信息"
-          }
-        ]
-      },
-      {
-        "key": "customerService3",
-        "label": "客服管理",
-        "children": [
-          {
-            "key": "kefuManageList",
-            "label": "客服列表"
           }
         ]
       },

@@ -370,7 +370,10 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
                     }}
                     onClick={() => {
                       if (suppressClickRef.current) return;
-                      const first = group.items[0];
+                      // 旧版一级菜单点击按 resolveAccessibleRedirect 落到分组内
+                      // 第一个可用页面（跳过 meta.blank 的新标签入口），客服组
+                      // 因此落在历史会话列表而不是新开的客服工作台。
+                      const first = group.items.find((item) => !item.blank) ?? group.items[0];
                       openPage(first.children?.[0]?.key || first.key);
                     }}
                   >
