@@ -7,6 +7,8 @@ import ProductDetailClient from '@/components/ProductDetailClient';
 import { ProductSkeleton } from '@/components/product/ProductLayouts';
 import VisitLogger from '@/components/VisitLogger';
 import { extractProductSnFromSlug, getPcHeader, getProductDetailStyle, loadProductBySlug, resolveUiStyle, type ProductUiStyle } from '@/lib/api';
+import { cookies } from 'next/headers';
+import { currencyCodeFrom } from '@/lib/currency';
 
 /**
  * 商品详情页（服务端）
@@ -64,6 +66,20 @@ export default async function ProductDetailView({
   ]);
   const uiStyle: ProductUiStyle = resolveUiStyle(uiStyleParam, configuredStyle);
   const item = detail.item;
+  // 结构化数据的价格按当前换币后的币种输出（与页面展示一致）
+  let currencyRate = 1;
+  let currencyCode = 'CNY';
+  try {
+    const raw = cookies().get('currentCurrencyData')?.value;
+    if (raw) {
+      const parsed = JSON.parse(decodeURIComponent(raw));
+      const rate = Number(parsed?.rate);
+      if (Number.isFinite(rate) && rate > 0) currencyRate = rate;
+      currencyCode = currencyCodeFrom(parsed?.name, parsed?.symbol);
+    }
+  } catch {
+    /* cookie 缺失/损坏按人民币 */
+  }
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -73,8 +89,8 @@ export default async function ProductDetailView({
     sku: item?.productSn,
     offers: {
       '@type': 'Offer',
-      price: Number(item?.productPrice || 0),
-      priceCurrency: 'CNY',
+      price: Number((Number(item?.productPrice || 0) * currencyRate).toFixed(2)),
+      priceCurrency: currencyCode,
       availability: Number(item?.stock || 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       url: `${SITE_URL}/product/${segments.join('/')}`,
     },

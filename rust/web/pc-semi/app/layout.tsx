@@ -130,19 +130,21 @@ const organizationJsonLd = {
   areaServed: 'CN',
 };
 
-const websiteJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE_NAME,
-  url: SITE_URL,
-  inLanguage: 'zh-CN',
-  description: SITE_DESCRIPTION,
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${SITE_URL}/search?keyword={search_term_string}`,
-    'query-input': 'required name=search_term_string',
-  },
-};
+function websiteJsonLd(lang: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    inLanguage: lang,
+    description: SITE_DESCRIPTION,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SITE_URL}/search?keyword={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
 
 /** 转义 `<` 与行分隔符，避免 JSON 提前结束内联 script */
 function serializeHeaderBootstrap(data: unknown): string {
@@ -203,7 +205,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           type="application/json"
           dangerouslySetInnerHTML={{ __html: serializeHeaderBootstrap(headerBootstrap) }}
         />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, websiteJsonLd]) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationJsonLd, websiteJsonLd(serverLang)]) }} />
         <I18nProvider>
           {children}
           {/* 移动端浏览器自动跳 H5（autoRedirect=1 时，对齐旧版 app.vue handlerToMobile） */}

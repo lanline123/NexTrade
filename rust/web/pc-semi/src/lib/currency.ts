@@ -8,6 +8,8 @@
  */
 
 interface CurrencyCookieData {
+  id?: number;
+  name?: string;
   symbol?: string;
   rate?: string | number;
 }
@@ -54,7 +56,48 @@ function resolveCurrency(): { symbol: string; rate: number } {
   return { symbol, rate: Number.isFinite(rate) && rate > 0 ? rate : 1 };
 }
 
-/** 只取符号（价格输入框、独立 `.util` 前缀等场景）。 */
+/** 币种名称/符号 → ISO 代码（JSON-LD / 结构化数据用；按名称优先，避免 ¥/JPY 与 ￥/CNY 混淆）。 */
+const NAME_TO_CODE: Record<string, string> = {
+  美元: 'USD',
+  人民币: 'CNY',
+  欧元: 'EUR',
+  英镑: 'GBP',
+  日元: 'JPY',
+  瑞士法郎: 'CHF',
+  加拿大元: 'CAD',
+  澳大利亚元: 'AUD',
+  新加坡元: 'SGD',
+  港元: 'HKD',
+  韩元: 'KRW',
+};
+
+const SYMBOL_TO_CODE: Record<string, string> = {
+  $: 'USD',
+  '￥': 'CNY',
+  '¥': 'JPY',
+  '€': 'EUR',
+  '£': 'GBP',
+  CHF: 'CHF',
+  'C$': 'CAD',
+  'A$': 'AUD',
+  'S$': 'SGD',
+  'HK$': 'HKD',
+  '₩': 'KRW',
+};
+
+export function currencyCodeFrom(name?: string | null, symbol?: string | null): string {
+  const byName = NAME_TO_CODE[String(name || '').trim()];
+  if (byName) return byName;
+  return SYMBOL_TO_CODE[String(symbol || '').trim()] || 'CNY';
+}
+
+/** 当前币种的 ISO 代码（客户端读 cookie；SSR 场景请直接读 cookie 快照）。 */
+export function currencyCode(): string {
+  const cookie = typeof document !== 'undefined' ? readCurrencyCookie() : null;
+  return cookie ? currencyCodeFrom(cookie.name, cookie.symbol) : 'CNY';
+}
+
+/** 仅取符号（价格输入框、独立 `.util` 前缀等场景）。 */
 export function currencySymbol(): string {
   return resolveCurrency().symbol;
 }

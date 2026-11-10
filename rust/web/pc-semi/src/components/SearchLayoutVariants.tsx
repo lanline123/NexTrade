@@ -16,6 +16,7 @@ import ProductGrid from '@/components/ProductGrid';
 import type { ProductListItem } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
+import { currencySymbol } from '@/lib/currency';
 export interface SearchAttrItem {
   name?: string;
   values?: Array<{ value?: string }>;
@@ -157,9 +158,9 @@ function PriceForm({ ctx, className = '' }: { ctx: SearchLayoutContext; classNam
       {ctx.serializeSelectedAttrs(ctx.selectedAttrs).map((item) => (
         <input key={item} type="hidden" name="attr" value={item} />
       ))}
-      <input type="text" name="min" placeholder={t('¥最低价')} defaultValue={ctx.min} className={bare ? '' : 'pc-search-price-input'} />
+      <input type="text" name="min" placeholder={`${currencySymbol()} ${t('¥最低价').replace(/^[¥￥]\s*/, '')}`} defaultValue={ctx.min} className={bare ? '' : 'pc-search-price-input'} />
       <span> - </span>
-      <input type="text" name="max" placeholder={t('¥最高价')} defaultValue={ctx.max} className={bare ? '' : 'pc-search-price-input'} />
+      <input type="text" name="max" placeholder={`${currencySymbol()} ${t('¥最高价').replace(/^[¥￥]\s*/, '')}`} defaultValue={ctx.max} className={bare ? '' : 'pc-search-price-input'} />
       <button type="submit">{t('确定')}</button>
     </form>
   );
