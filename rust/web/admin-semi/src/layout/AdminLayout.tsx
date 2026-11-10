@@ -502,6 +502,7 @@ export default function AdminLayout({ page, layout = 'default', logo, onPageChan
             </Badge>
             <VoiceBroadcast />
             <Button
+              icon={<IconShoppingBag />}
               theme="borderless"
               className="topbar-text-btn"
               onClick={() => window.open(mallUrl, '_blank', 'noopener')}
