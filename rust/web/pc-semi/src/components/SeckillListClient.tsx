@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { SeckillRecord } from '@/lib/api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface Props {
   records: SeckillRecord[];
   total: number;
@@ -22,11 +23,6 @@ function soldPercent(item: SeckillRecord): number {
   const stock = Number(item.seckillStock || 0);
   const total = sold + stock;
   return total > 0 ? Math.round((sold / total) * 100) : 0;
-}
-
-function priceText(value: number | string | undefined): string {
-  const n = Number(value || 0);
-  return Number.isFinite(n) ? n.toFixed(2) : '0.00';
 }
 
 export default function SeckillListClient({ records, total, page, size }: Props) {
@@ -149,7 +145,7 @@ export default function SeckillListClient({ records, total, page, size }: Props)
               </Link>
               <div className="seckill-card__operation">
                 <div className="seckill-card__price">
-                  <div className="seckill-card__price-main"><small>¥</small>{priceText(item.seckillPrice)}</div>
+                  <div className="seckill-card__price-main">{formatPrice(item.seckillPrice)}</div>
                   <div className="seckill-card__sell">
                     <span>已售{percent}%</span>
                     <div className="seckill-progress"><i style={{ width: `${percent}%` }} /></div>

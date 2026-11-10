@@ -21,6 +21,7 @@ import MemberLogisticsDialog from '@/components/MemberLogisticsDialog';
 import PresaleSteps from '@/components/PresaleSteps';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface OrderItem {
   itemId?: number;
   productId?: number;
@@ -481,7 +482,7 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                             <div className="title">{attr.attrName}</div>
                             <div className="content">
                               <span className="content-text">{attr.attrValue}</span>
-                              {Number(attr.attrPrice || 0) > 0 ? <span className="num">+¥{money(attr.attrPrice)}</span> : null}
+                              {Number(attr.attrPrice || 0) > 0 ? <span className="num">+{formatPrice(attr.attrPrice)}</span> : null}
                             </div>
                           </div>
                         ))}
@@ -489,9 +490,9 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                       </div>
                     </div>
                   </td>
-                  <td className="receipt-item price">¥ {money(item.price)}</td>
+                  <td className="receipt-item price">{formatPrice(item.price)}</td>
                   <td className="receipt-item price">{item.quantity}</td>
-                  <td className="receipt-item price">¥ {money(item.subtotal ?? Number(item.price || 0) * Number(item.quantity || 0))}</td>
+                  <td className="receipt-item price">{formatPrice(item.subtotal ?? Number(item.price || 0) * Number(item.quantity || 0))}</td>
                   {showItemAftersalesAction ? (
                     <td className="receipt-item operation">
                       {item.isGift === 0 && Number(item.quantity || 0) > Number(item.aftersalesNumber || 0) && !item.aftersalesItem ? (
@@ -514,71 +515,71 @@ export default function OrderDetailClient({ orderId }: { orderId: number }) {
                 <td className="receipt-footer-it one" colSpan={showItemAftersalesAction ? 3 : 3}>
                   <div className="item">
                     <div className="label">商品总价：</div>
-                    <div className="text">¥ {money(detail.productAmount)}</div>
+                    <div className="text">{formatPrice(detail.productAmount)}</div>
                   </div>
                   {Number(detail.serviceFee || 0) > 0 ? (
                     <div className="item">
                       <div className="label">附加费用：</div>
-                      <div className="text">¥ {money(detail.serviceFee)}</div>
+                      <div className="text">{formatPrice(detail.serviceFee)}</div>
                     </div>
                   ) : null}
                   {showShippingFee ? (
                     <div className="item">
                       <div className="label">{shippingFeeLabel}：</div>
-                      <div className="text">{Number(detail.shippingFee || 0) > 0 ? `¥ ${money(detail.shippingFee)}` : shippingFeeFreeText}</div>
+                      <div className="text">{Number(detail.shippingFee || 0) > 0 ? `${formatPrice(detail.shippingFee)}` : shippingFeeFreeText}</div>
                     </div>
                   ) : null}
                   {Number(detail.balance || 0) > 0 ? (
                     <div className="item">
                       <div className="label">使用余额：</div>
-                      <div className="text">¥ {money(detail.balance)}</div>
+                      <div className="text">{formatPrice(detail.balance)}</div>
                     </div>
                   ) : null}
                   {Number(detail.pointsAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">积分减免：</div>
-                      <div className="text">¥ {money(detail.pointsAmount)}</div>
+                      <div className="text">{formatPrice(detail.pointsAmount)}</div>
                     </div>
                   ) : null}
                   {Number(detail.discountAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">其他优惠：</div>
-                      <div className="text">- ¥ {money(detail.discountAmount)}</div>
+                      <div className="text">-{formatPrice(detail.discountAmount)}</div>
                     </div>
                   ) : null}
                   {Number(detail.couponAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">优惠券优惠：</div>
-                      <div className="text">- ¥ {money(detail.couponAmount)}</div>
+                      <div className="text">-{formatPrice(detail.couponAmount)}</div>
                     </div>
                   ) : null}
                   {Number(detail.unpaidAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">待支付金额：</div>
-                      <div className="text">¥ {money(detail.unpaidAmount)}</div>
+                      <div className="text">{formatPrice(detail.unpaidAmount)}</div>
                     </div>
                   ) : null}
                   {Number(detail.creditAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">账期金额：</div>
-                      <div className="text">¥ {money(detail.creditAmount)}</div>
+                      <div className="text">{formatPrice(detail.creditAmount)}</div>
                     </div>
                   ) : null}
                   {Number(detail.onlinePaidAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">线上支付：</div>
-                      <div className="text">¥ {money(detail.onlinePaidAmount)}</div>
+                      <div className="text">{formatPrice(detail.onlinePaidAmount)}</div>
                     </div>
                   ) : null}
                   {Number(detail.offlinePaidAmount || 0) > 0 ? (
                     <div className="item">
                       <div className="label">线下支付：</div>
-                      <div className="text">¥ {money(detail.offlinePaidAmount)}</div>
+                      <div className="text">{formatPrice(detail.offlinePaidAmount)}</div>
                     </div>
                   ) : null}
                   <div className="item">
                     <span>{payStatus === 2 ? t('实付款') : '应付款'}：</span>
-                    <b style={{ fontSize: 20, color: 'var(--price, #cc0c1c)' }}>¥ {money(detail.totalAmount)}</b>
+                    <b style={{ fontSize: 20, color: 'var(--price, #cc0c1c)' }}>{formatPrice(detail.totalAmount)}</b>
                   </div>
                 </td>
               </tr>

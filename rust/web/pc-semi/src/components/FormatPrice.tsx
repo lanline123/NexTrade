@@ -1,5 +1,7 @@
 'use client';
 
+import { splitCurrencyPrice } from '@/lib/currency';
+
 /**
  * 价格展示（对照旧版 `view/pc/components/format/Price.vue`）
  *
@@ -10,7 +12,7 @@
 export interface FormatPriceProps {
   /** 金额，字符串或数字 */
   value: number | string | undefined;
-  /** 币种符号，默认 ¥ */
+  /** 覆盖币种符号（默认跟随当前换币设置） */
   currency?: string;
   /** 整数段字号：旧版用 `:fontStyle="{ fontSize: '24px', fontWeight: '400' }"` 传进来 */
   fontSize?: string;
@@ -18,23 +20,17 @@ export interface FormatPriceProps {
   className?: string;
 }
 
-/** 与后端金额一致：保留两位小数，去掉末尾 0 */
-function splitPriceParts(value: number | string | undefined): { integer: string; decimals: string } {
-  const numeric = Number(value ?? 0);
-  const safe = Number.isFinite(numeric) ? numeric : 0;
-  const [integer = '0', decimals = ''] = safe.toFixed(2).split('.');
-  return { integer, decimals: decimals === '00' ? '' : decimals };
-}
-
-export default function FormatPrice({ value, currency = '¥', fontSize, fontWeight, className }: FormatPriceProps) {
-  const { integer, decimals } = splitPriceParts(value);
+export default function FormatPrice({ value, currency, fontSize, fontWeight, className }: FormatPriceProps) {
+  const parts = splitCurrencyPrice(value);
+  const symbol = currency || parts.symbol;
+  const decimals = parts.decimals === '.00' ? '' : parts.decimals;
   const fontStyle = fontSize || fontWeight ? { fontSize, fontWeight } : undefined;
   const rootStyle = fontStyle || undefined;
 
   return (
     <div className={`price align-bottom${className ? ` ${className}` : ''}`} style={rootStyle}>
-      <div className="util align-bottom">{currency}</div>
-      <div className="num">{integer}</div>
+      <div className="util align-bottom">{symbol}</div>
+      <div className="num">{parts.integer}</div>
       {decimals ? <div className="num decimal">{decimals}</div> : null}
     </div>
   );

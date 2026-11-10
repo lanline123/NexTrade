@@ -9,6 +9,7 @@ import '@/components/product/product-card.scss';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { splitCurrencyPrice } from '@/lib/currency';
 /**
  * 购物车 —— 结构沿用 java-b2b2c-overseas-v5.8.61/view/pc/pages/cart/index.vue，
  *            视觉层为 Semi Design 现代主题。
@@ -150,14 +151,6 @@ function getDiscount(currentPrice: number, originalPrice: number): number {
 const SETTLE_FOLD_LIMIT = 8;
 
 /** 原版 splitPriceParts：整数位 + 两位小数（含前导点） */
-function splitPrice(value: unknown): { integer: string; decimals: string } {
-  const raw = value === null || value === undefined ? '' : String(value);
-  if (!raw) return { integer: '0', decimals: '.00' };
-  if (!/^(\d+)(\.\d+)?$/.test(raw)) return { integer: '0', decimals: '.00' };
-  const [integer, decimals] = Number(raw).toFixed(2).split('.');
-  return { integer, decimals: `.${decimals}` };
-}
-
 /**
  * 复刻 components/format/Price.vue（FormatPrice）
  * 结构：<div class="price align-bottom"><div class="util">￥</div><div class="num">1</div><div class="num decimal">.00</div></div>
@@ -173,12 +166,12 @@ function Price({
   fontStyle?: React.CSSProperties;
   className?: string;
 }) {
-  const { integer, decimals } = splitPrice(value);
+  const { symbol, integer, decimals } = splitCurrencyPrice(value);
   const hasCurrencyStyle = currencyStyle && Object.keys(currencyStyle).length > 0;
   return (
     <div className={className ? `price align-bottom ${className}` : 'price align-bottom'}>
       <div className="util align-bottom" style={hasCurrencyStyle ? currencyStyle : fontStyle}>
-        ￥
+        {symbol || '￥'}
       </div>
       <div className="num" style={fontStyle}>
         {integer}

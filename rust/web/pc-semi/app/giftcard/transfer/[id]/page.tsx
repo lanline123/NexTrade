@@ -7,6 +7,7 @@ import GiftCardClaimClient from '@/components/GiftCardClaimClient';
 import { getGiftCardDetail, getPcHeader } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -128,7 +129,7 @@ export default async function GiftCardTransferPage({ params }: PageProps) {
                               <div className="product-name line1">{product.productName}</div>
                             </Link>
                             <div className="product-price">
-                              <span className="product-price-num">¥{Number(product.skuPrice || product.productPrice || 0).toFixed(2)}</span>
+                              <span className="product-price-num">{formatPrice(Number(product.skuPrice || product.productPrice || 0))}</span>
                               <div className="product-num">x1</div>
                             </div>
                           </div>

@@ -5,6 +5,7 @@ import GrouponCountdown from '@/components/GrouponCountdown';
 import { getGrouponRecordDetail, getShopDetail } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '邀请好友参团 · 万物新生' };
 
@@ -69,11 +70,10 @@ export default async function GroupInvitePage({ searchParams }: { searchParams?:
                   <div className="price-info">
                     <span className="group-price">
                       {t('拼团价')}:
-                      <span className="groupPriceCom">¥{Number(detail?.minGrouponPrice || 0).toFixed(2)}</span>
+                      <span className="groupPriceCom">{formatPrice(Number(detail?.minGrouponPrice || 0))}</span>
                     </span>
                     <span className="original-price">
-                      <span style={{ fontSize: 16, color: '#999', textDecoration: 'line-through' }}>
-                        ¥{Number(detail?.productPrice || 0).toFixed(2)}
+                      <span style={{ fontSize: 16, color: '#999', textDecoration: 'line-through' }}>{formatPrice(Number(detail?.productPrice || 0))}
                       </span>
                     </span>
                   </div>

@@ -38,6 +38,7 @@ import { useProductColumns } from '@/components/product/use-product-columns';
 import '@/components/product/product-card.scss';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 /** 原版 ProdSwiper 的 PAGE_SIZE */
 const PAGE_SIZE = 12;
 /** 原版 utils/util.ts isB2B()：跨境 B2C 构建为 false，企业认证徽章不渲染 */
@@ -265,7 +266,7 @@ export default function MemberCenterClient() {
         {/* 资产统计（可点击跳转对应页面） */}
         <div className="mh-hero__assets">
           <Link href="/member/account/detail" className="mh-hero__asset">
-            <b>¥ {money(info.balance)}</b>
+            <b>{formatPrice(info.balance)}</b>
             <span>{t('账户余额')}</span>
           </Link>
           <Link href="/member/point/list" className="mh-hero__asset">

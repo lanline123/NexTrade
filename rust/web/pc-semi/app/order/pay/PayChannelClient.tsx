@@ -16,6 +16,7 @@ import { Card, Toast, Typography } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { currencySymbol } from '@/lib/currency';
 type Brand = 'alipay' | 'wechat' | 'paypal' | 'stripe' | 'huifu' | 'lakala' | 'yeepay' | 'yabanpay' | 'yunpay';
 
 interface PayOrder {
@@ -99,7 +100,7 @@ function PayFormatPrice({ value }: { value: number | string | undefined }) {
   const decimal = dot >= 0 ? text.slice(dot + 1) : '';
   return (
     <span className="price align-bottom" style={{ display: 'inline-flex', alignItems: 'flex-end', color: 'var(--price, #e01222)', fontSize: 18, lineHeight: 1 }}>
-      <span className="util" style={{ marginRight: 2, fontSize: 14 }}>¥</span>
+      <span className="util" style={{ marginRight: 2, fontSize: 14 }}>{currencySymbol()}</span>
       <span className="num" style={{ fontSize: 18 }}>{integer}</span>
       {decimal ? <span className="num decimal" style={{ fontSize: 18 }}>.{decimal}</span> : null}
     </span>

@@ -6,6 +6,7 @@ import GrouponCountdown from '@/components/GrouponCountdown';
 import { getGrouponBanners, getGrouponItems, getPcHeader } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '拼团 · 万物新生', description: '拼团活动商品列表。' };
 
@@ -103,8 +104,8 @@ export default async function JoiningPage({ searchParams }: PageProps) {
                           </div>
                           <div className="priceBox">
                             <div className="priceBoxNum">
-                              <span className="minGrouponPrice">¥{Number(item.grouponPrice || 0).toFixed(2)}</span>
-                              <div className="old">¥{Number(item.productPrice || 0).toFixed(2)}</div>
+                              <span className="minGrouponPrice">{formatPrice(Number(item.grouponPrice || 0))}</span>
+                              <div className="old">{formatPrice(Number(item.productPrice || 0))}</div>
                             </div>
                             <div
                               className="text"

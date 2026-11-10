@@ -7,6 +7,7 @@ import TermPaySettlementButton from '@/components/TermPaySettlementButton';
 import MemberShell from '@/components/MemberShell';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '账期支付 · 万物新生', robots: { index: false, follow: false } };
 
@@ -30,8 +31,8 @@ export default async function TermPayPage({ searchParams }: PageProps) {
               {detail ? (
       <>
         <section className="term-summary">
-          <div><span>{t('授信额度')}</span><b>¥ {Number(detail.creditLimit || 0).toFixed(2)}</b></div>
-          <div><span>{t('可用额度')}</span><b>¥ {Number(detail.availableAmount || 0).toFixed(2)}</b></div>
+          <div><span>{t('授信额度')}</span><b>{formatPrice(Number(detail.creditLimit || 0))}</b></div>
+          <div><span>{t('可用额度')}</span><b>{formatPrice(Number(detail.availableAmount || 0))}</b></div>
           <div><span>{t('结算周期')}</span><b>{settlementText} / {detail.settlementDays || 30} 天</b></div>
           <div><span>{t('剩余天数')}</span><b>{detail.remainingDays ?? '-'} 天</b></div>
         </section>
@@ -65,7 +66,7 @@ export default async function TermPayPage({ searchParams }: PageProps) {
               </div>
               <div className="term-order__amount">
                 <span>共 {order.totalQuantity || 0} 件</span>
-                <b>¥ {Number(order.creditAmount || 0).toFixed(2)}</b>
+                <b>{formatPrice(Number(order.creditAmount || 0))}</b>
               </div>
             </div>
           </article>

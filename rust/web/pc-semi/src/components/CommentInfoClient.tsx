@@ -22,6 +22,7 @@ import { Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface CommentItem {
   productId: number;
   orderId: number;
@@ -228,8 +229,7 @@ export default function CommentInfoClient({ orderId }: { orderId: number }) {
                   <a>{item.productName || t('商品')}</a>
                 </div>
                 <div>
-                  <span style={{ color: '#ED3B3B', fontSize: '14px', lineHeight: '16px' }}>
-                    ¥{Number(item.price || 0).toFixed(2)}
+                  <span style={{ color: '#ED3B3B', fontSize: '14px', lineHeight: '16px' }}>{formatPrice(Number(item.price || 0))}
                   </span>
                 </div>
               </div>

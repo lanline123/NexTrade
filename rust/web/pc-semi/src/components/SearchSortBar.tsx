@@ -22,6 +22,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
+import { currencySymbol } from '@/lib/currency';
 export interface SortLink {
   key: string;
   label: string;
@@ -138,12 +139,12 @@ export default function SearchSortBar({
                 ))}
                 <div className="interval-sort__input-row">
                   <div className="interval-sort__input-box">
-                    <span className="interval-sort__currency">¥</span>
+                    <span className="interval-sort__currency">{currencySymbol()}</span>
                     <input type="text" name="min" defaultValue={minValue} placeholder={t('最低价')} />
                   </div>
                   <span className="interval-sort__separator">-</span>
                   <div className="interval-sort__input-box">
-                    <span className="interval-sort__currency">¥</span>
+                    <span className="interval-sort__currency">{currencySymbol()}</span>
                     <input type="text" name="max" defaultValue={maxValue} placeholder={t('最高价')} />
                   </div>
                 </div>

@@ -26,6 +26,7 @@ import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatPrice } from '@/lib/currency';
 interface Claim {
   claimId?: number;
   orderId?: number;
@@ -195,7 +196,7 @@ export default function MemberOfflineClaimDialog({
         <div className="member-claim__form">
           <div className="member-claim__row">
             <label>{t('付款金额')}</label>
-            <span className="member-claim__readonly">¥ {Number(claim.claimedAmount || 0).toFixed(2)}</span>
+            <span className="member-claim__readonly">{formatPrice(Number(claim.claimedAmount || 0))}</span>
           </div>
           <div className="member-claim__row">
             <label>{t('转账时间')}</label>
@@ -264,7 +265,7 @@ export default function MemberOfflineClaimDialog({
           <section className="member-claim__section">
             <h3>{t('付款信息')}</h3>
             <div className="member-claim__grid">
-              <div className="member-claim__grid-row"><span>{t('付款金额')}：</span><b>¥ {Number(claim.claimedAmount || 0).toFixed(2)}</b></div>
+              <div className="member-claim__grid-row"><span>{t('付款金额')}：</span><b>{formatPrice(Number(claim.claimedAmount || 0))}</b></div>
               <div className="member-claim__grid-row"><span>{t('转账时间')}：</span><b>{formatTransferTime(claim.transferTime) || '-'}</b></div>
               <div className="member-claim__grid-row"><span>{t('付款人')}：</span><b>{claim.payerName || '-'}</b></div>
               <div className="member-claim__grid-row"><span>{t('转账流水号')}：</span><b>{claim.bankSerialNo || '-'}</b></div>

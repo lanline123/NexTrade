@@ -8,6 +8,7 @@ import PinGroupTime from '@/components/PinGroupTime';
 import { getGrouponRecordDetail, getPcHeader } from '@/lib/api';
 import { getServerT } from '@/i18n/server';
 
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '拼团详情 · 万物新生', robots: { index: false, follow: false } };
 
@@ -60,11 +61,11 @@ export default async function PinGroupPage({ searchParams }: { searchParams?: { 
                     <div className="wire"></div>
                     <div className="info">
                       {required || 2} {t('人团，拼团价')}：
-                      <span style={{ color: '#ED3B3B', fontSize: '30px', fontWeight: 700 }}>¥{money(groupPrice)}</span>
+                      <span style={{ color: '#ED3B3B', fontSize: '30px', fontWeight: 700 }}>{formatPrice(groupPrice)}</span>
                       {t('单购价')}：
-                      <span style={{ color: '#333', fontSize: '14px', fontWeight: 'normal' }}>¥{money(singlePrice)}</span>
+                      <span style={{ color: '#333', fontSize: '14px', fontWeight: 'normal' }}>{formatPrice(singlePrice)}</span>
                       ，{t('组团采购省')}
-                      <span style={{ color: '#ED3B3B', fontSize: '14px' }}>¥{money(save)}</span>
+                      <span style={{ color: '#ED3B3B', fontSize: '14px' }}>{formatPrice(save)}</span>
                       ，{' '}
                       <Link href={detail?.productId ? `/product/${detail.productId}` : '/member/pin/list'} style={{ textDecoration: 'underline' }}>
                         {t('查看商品详情')}

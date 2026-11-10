@@ -8,6 +8,7 @@ import type { HomeDecorateResponse } from '@/decorate/types';
 import PcFooter from '@/components/PcFooter';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { alternates: { canonical: '/' } };
 
@@ -45,7 +46,7 @@ async function LegacyHome() {
     <Link className="legacy-home__card" key={`${row.productId || row.productSn || index}`} href={`/product/${row.productId || row.productSn || ''}`}>
       <img src={String(row.picThumb || row.picUrl || '')} alt={String(row.productName || '')} loading="lazy" />
       <strong>{String(row.productName || '')}</strong>
-      <b>¥ {Number(row.productPrice || 0).toFixed(2)}</b>
+      <b>{formatPrice(Number(row.productPrice || 0))}</b>
     </Link>
   );
   return (

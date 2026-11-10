@@ -7,6 +7,7 @@ import { IconArrowRight, IconOrderedList, IconUser } from '@douyinfe/semi-icons'
 import { apiGet } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface MemberInfo {
   userId?: number;
   username?: string;
@@ -109,7 +110,7 @@ export default function MemberClient() {
         <div className="member-stats">
           <Card className="member-stat">
             <span>{t('账户余额')}</span>
-            <b>¥ {Number(info?.balance || 0).toFixed(2)}</b>
+            <b>{formatPrice(Number(info?.balance || 0))}</b>
           </Card>
           <Card className="member-stat">
             <span>{t('积分')}</span>

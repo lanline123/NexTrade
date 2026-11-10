@@ -6,6 +6,7 @@ import { Button, Modal, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface GiftCardProduct {
   productId?: number;
   productName?: string;
@@ -271,7 +272,7 @@ export default function GiftCardClaimClient({ giftCardSn, isExchange, status }: 
               <div style={{ fontSize: 12, opacity: 0.85, marginTop: 6 }}>{expireText}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 13 }}>{t('面额：')}<b style={{ fontSize: 20 }}>¥ {faceValue !== undefined && faceValue !== '' && !Number.isNaN(Number(faceValue)) ? Number(faceValue).toFixed(2) : '--'}</b></div>
+              <div style={{ fontSize: 13 }}>{t('面额：')}<b style={{ fontSize: 20 }}>{faceValue !== undefined && faceValue !== '' && !Number.isNaN(Number(faceValue)) ? formatPrice(faceValue) : '--'}</b></div>
               <div style={{ fontSize: 12, marginTop: 4, opacity: 0.85 }}>卡号状态：{displayStatus}</div>
             </div>
           </div>
@@ -323,7 +324,7 @@ export default function GiftCardClaimClient({ giftCardSn, isExchange, status }: 
                     {product.picUrl ? <img src={product.picUrl} alt={product.productName || ''} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : null}
                   </div>
                   <div style={{ padding: 8, fontSize: 13 }}>{product.productName || t('兑换商品')}</div>
-                  <div style={{ padding: '0 8px 8px', color: '#a9781b', fontWeight: 600 }}>¥ {Number(product.skuPrice || product.productPrice || 0).toFixed(2)}</div>
+                  <div style={{ padding: '0 8px 8px', color: '#a9781b', fontWeight: 600 }}>{formatPrice(Number(product.skuPrice || product.productPrice || 0))}</div>
                 </div>
               </Link>
             ))}

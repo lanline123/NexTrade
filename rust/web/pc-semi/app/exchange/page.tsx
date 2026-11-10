@@ -5,6 +5,7 @@ import PcFooter from '@/components/PcFooter';
 import { getExchangeList, getIntegralName, getPcHeader } from '@/lib/api';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -86,11 +87,11 @@ export default async function ExchangePage({ searchParams }: PageProps) {
                           </Link>
                         </p>
                         <p className="market_price">
-                          {t('原价')}：¥{Number(item.productPrice || 0).toFixed(2)}
+                          {t('原价')}：{formatPrice(Number(item.productPrice || 0))}
                         </p>
                         <p className="exchange_price">
                           {integralName}
-                          {t('价')}：¥{Number(item.discountsPrice || 0).toFixed(2)} +&nbsp;
+                          {t('价')}：{formatPrice(Number(item.discountsPrice || 0))} +&nbsp;
                           <span>{Number(item.exchangeIntegral || 0)}</span> {integralName}
                         </p>
                         <Link href={`/exchange/${item.id}`} target="_blank">

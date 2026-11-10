@@ -7,6 +7,7 @@ import ArticleSideNav from '@/components/ArticleSideNav';
 import type { SideNavArticle } from '@/components/ArticleSideNav';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = { title: '资讯中心 · 万物新生' };
@@ -90,7 +91,7 @@ export default async function ArticleNewsPage({ searchParams }: PageProps) {
                         <Link key={row.productId} className="article-product" href={`/product/${row.productId}`}>
                           <img src={row.picThumb || row.picUrl || ''} alt={row.productName || ''} />
                           <span>{row.productName || ''}</span>
-                          <b>¥ {Number(row.productPrice || 0).toFixed(2)}</b>
+                          <b>{formatPrice(Number(row.productPrice || 0))}</b>
                         </Link>
                       );
                     })}

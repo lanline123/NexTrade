@@ -46,6 +46,35 @@ export function readCurrencyCookie(): CurrencyCookieData | null {
 const HAS_CURRENCY_SIGN = /[¥￥$€£]/;
 const CNY_PREFIX = /^\s*[¥￥]\s*/;
 
+/** 当前币种符号与汇率（SSR 用 layout 注入的快照，客户端读 cookie）。 */
+function resolveCurrency(): { symbol: string; rate: number } {
+  const cookie = typeof document !== 'undefined' ? readCurrencyCookie() : null;
+  const symbol = (typeof document !== 'undefined' ? cookie?.symbol : SSR_SYMBOL) || SSR_SYMBOL || '¥';
+  const rate = Number(typeof document !== 'undefined' ? cookie?.rate : SSR_RATE);
+  return { symbol, rate: Number.isFinite(rate) && rate > 0 ? rate : 1 };
+}
+
+/** 只取符号（价格输入框、独立 `.util` 前缀等场景）。 */
+export function currencySymbol(): string {
+  return resolveCurrency().symbol;
+}
+
+/** 只取换算后的数字（两位小数、不带符号），供保留旧版 `.util`/`.num` 三段结构的组件使用。 */
+export function formatAmount(value: unknown): string {
+  if (value === undefined || value === null || value === '') return '';
+  const text = String(value).replace(CNY_PREFIX, '');
+  const num = Number(extractNumeric(text));
+  if (!Number.isFinite(num)) return '';
+  const { rate } = resolveCurrency();
+  return (num * rate).toFixed(2);
+}
+
+/** 从「¥123.00」「$123.00」等文本里取出数字；纯数字原样返回。 */
+function extractNumeric(text: string): string {
+  const match = text.match(/-?\d+(?:,\d{3})*(?:\.\d+)?/);
+  return match ? match[0].replace(/,/g, '') : text;
+}
+
 /**
  * 格式化价格：符号 + 汇率换算 + 两位小数。
  * 返回纯文本（旧版 Price.vue 是 DOM 结构，新版调用处按需拆分）。
@@ -61,15 +90,10 @@ export function formatPrice(value: unknown): string {
   } else if (HAS_CURRENCY_SIGN.test(text)) {
     return text;
   }
-  const num = Number(text);
+  const num = Number(extractNumeric(text));
   if (!Number.isFinite(num)) return String(value);
-
-  const cookie = typeof document !== 'undefined' ? readCurrencyCookie() : null;
-  // SSR（document 不存在）用 layout 注入的服务端 cookie 快照；客户端读实时 cookie
-  const symbol = (typeof document !== 'undefined' ? cookie?.symbol : SSR_SYMBOL) || SSR_SYMBOL || '¥';
-  const rate = Number(typeof document !== 'undefined' ? cookie?.rate : SSR_RATE);
-  const converted = Number.isFinite(rate) && rate > 0 ? num * rate : num;
-  return `${symbol}${converted.toFixed(2)}`;
+  const { symbol, rate } = resolveCurrency();
+  return `${symbol}${(num * rate).toFixed(2)}`;
 }
 
 /** 三段式价格（符号 / 整数 / 小数），供保留旧版排版结构的组件使用。 */

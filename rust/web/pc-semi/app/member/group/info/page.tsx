@@ -8,6 +8,7 @@ import { getGrouponRecordDetail, getPcHeader } from '@/lib/api';
 import MemberShell from '@/components/MemberShell';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '拼团详情 · 万物新生', robots: { index: false, follow: false } };
 
@@ -51,8 +52,8 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
                 拼团状态：{detail.joinStatusDesc || (joinStatus === 1 ? t('拼团中') : joinStatus === 2 ? t('已成团') : '已结束')}
                 {joinStatus === 1 ? t('，还差 {n} 人成团', { n: remain }) : ''}
               </div>
-              <div className="groupon-detail__price">{t('拼团价：')}<b>¥ {money(detail.minGrouponPrice)}</b>
-                <s className="groupon-detail__origin">原价 ¥ {money(detail.productPrice)}</s>
+              <div className="groupon-detail__price">{t('拼团价：')}<b>{formatPrice(detail.minGrouponPrice)}</b>
+                <s className="groupon-detail__origin">原价{formatPrice(detail.productPrice)}</s>
               </div>
               <div className="groupon-detail__meta">
                 {required ? <span>{required} 人团</span> : null}
@@ -144,24 +145,24 @@ export default async function GrouponInfoPage({ searchParams }: { searchParams?:
                         <span>{item.productName || t('商品')}</span>
                       </div>
                     </td>
-                    <td>¥ {money(item.price)}</td>
+                    <td>{formatPrice(item.price)}</td>
                     <td>{Number(item.num || item.quantity || 0)}</td>
-                    <td>¥ {money(item.subtotal ?? Number(item.price || 0) * Number(item.num || item.quantity || 0))}</td>
+                    <td>{formatPrice(item.subtotal ?? Number(item.price || 0) * Number(item.num || item.quantity || 0))}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             <div className="groupon-order__amounts">
-              <div><span>{t('商品总价')}</span><b>¥ {money(order.productAmount)}</b></div>
-              {Number(order.shippingFee || 0) > 0 ? <div><span>{t('运费')}</span><b>+ ¥ {money(order.shippingFee)}</b></div> : null}
-              {Number(order.serviceFee || 0) > 0 ? <div><span>{t('附加费用')}</span><b>+ ¥ {money(order.serviceFee)}</b></div> : null}
-              {Number(order.couponAmount || 0) > 0 ? <div className="is-discount"><span>{t('优惠券优惠')}</span><b>- ¥ {money(order.couponAmount)}</b></div> : null}
-              {Number(order.discountAmount || 0) > 0 ? <div className="is-discount"><span>{t('其他优惠')}</span><b>- ¥ {money(order.discountAmount)}</b></div> : null}
-              {Number(order.pointsAmount || 0) > 0 ? <div className="is-discount"><span>{t('积分抵扣')}</span><b>- ¥ {money(order.pointsAmount)}</b></div> : null}
-              {Number(order.balance || 0) > 0 ? <div className="is-discount"><span>{t('使用余额')}</span><b>- ¥ {money(order.balance)}</b></div> : null}
-              {Number(order.unpaidAmount || 0) > 0 ? <div><span>{t('待支付金额')}</span><b>¥ {money(order.unpaidAmount)}</b></div> : null}
-              <div className="groupon-order__total"><span>{t('实付款')}</span><b>¥ {money(order.totalAmount)}</b></div>
+              <div><span>{t('商品总价')}</span><b>{formatPrice(order.productAmount)}</b></div>
+              {Number(order.shippingFee || 0) > 0 ? <div><span>{t('运费')}</span><b>+{formatPrice(order.shippingFee)}</b></div> : null}
+              {Number(order.serviceFee || 0) > 0 ? <div><span>{t('附加费用')}</span><b>+{formatPrice(order.serviceFee)}</b></div> : null}
+              {Number(order.couponAmount || 0) > 0 ? <div className="is-discount"><span>{t('优惠券优惠')}</span><b>-{formatPrice(order.couponAmount)}</b></div> : null}
+              {Number(order.discountAmount || 0) > 0 ? <div className="is-discount"><span>{t('其他优惠')}</span><b>-{formatPrice(order.discountAmount)}</b></div> : null}
+              {Number(order.pointsAmount || 0) > 0 ? <div className="is-discount"><span>{t('积分抵扣')}</span><b>-{formatPrice(order.pointsAmount)}</b></div> : null}
+              {Number(order.balance || 0) > 0 ? <div className="is-discount"><span>{t('使用余额')}</span><b>-{formatPrice(order.balance)}</b></div> : null}
+              {Number(order.unpaidAmount || 0) > 0 ? <div><span>{t('待支付金额')}</span><b>{formatPrice(order.unpaidAmount)}</b></div> : null}
+              <div className="groupon-order__total"><span>{t('实付款')}</span><b>{formatPrice(order.totalAmount)}</b></div>
             </div>
           </section>
         ) : null}

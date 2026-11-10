@@ -30,6 +30,7 @@ import { Spin, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { currencySymbol } from '@/lib/currency';
 /** 后端默认 size=15（CollectListQuery::page_params），与原版不传 size 时一致 */
 const PAGE_SIZE = 15;
 const GRID_GAP = 8;
@@ -348,7 +349,7 @@ export default function CollectProductClient() {
                   <div className="collect-card__tag-slot" />
                   <div className="collect-card__price-row">
                     <div className="collect-card__price">
-                      <span className="collect-card__currency">¥</span>
+                      <span className="collect-card__currency">{currencySymbol()}</span>
                       <b>{money.int}</b>
                       {money.dec ? <span className="collect-card__decimals">.{money.dec}</span> : null}
                     </div>

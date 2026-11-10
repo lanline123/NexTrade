@@ -34,6 +34,7 @@ import MemberOfflineClaimDialog from '@/components/MemberOfflineClaimDialog';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatPrice } from '@/lib/currency';
 type TabKey = 'all' | 'awaitPay' | 'awaitShipping' | 'awaitReceived' | 'awaitComment';
 
 interface OrderItem {
@@ -464,7 +465,7 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
                           {isDepositPresaleOrder(order) && index === 0 ? null : (
                             <>
                               <Link title={item.productName} href={productHref(item)} target="_blank">
-                                <span className="mol-item__price">¥{money(item.price)}</span>
+                                <span className="mol-item__price">{formatPrice(item.price)}</span>
                               </Link>
                               <Link title={item.productName} href={productHref(item)} target="_blank">
                                 <span className="mol-item__qty">×{item.quantity}</span>
@@ -490,18 +491,18 @@ export default function MemberOrderList({ initialType }: { initialType?: string 
                         <div className="mol-presale">
                           <div className="mol-presale__row">
                             <span>{t('总额')}</span>
-                            <b>¥{money(order.totalAmount)}</b>
+                            <b>{formatPrice(order.totalAmount)}</b>
                           </div>
                           <div className="mol-presale__row mol-presale__row--due">
                             <span>{t('应付')}</span>
-                            <b>¥{money(order.unpaidAmount)}</b>
+                            <b>{formatPrice(order.unpaidAmount)}</b>
                           </div>
                         </div>
                       ) : (
                         <>
                           <span className="mol-card__count">{t('共{{count}}件', { count: totalCount })}</span>
                           <span className="mol-card__sum">
-                            {t('合计')}：<b>¥{money(order.totalAmount)}</b>
+                            {t('合计')}：<b>{formatPrice(order.totalAmount)}</b>
                           </span>
                         </>
                       )}

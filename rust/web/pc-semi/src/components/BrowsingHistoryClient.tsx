@@ -25,6 +25,7 @@ import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
 
+import { currencySymbol } from '@/lib/currency';
 const GRID_GAP = 8;
 const CARD_MIN_WIDTH = 240;
 const MIN_COLUMNS = 4;
@@ -232,7 +233,7 @@ export default function BrowsingHistoryClient() {
                   <div className="collect-card__tag-slot" />
                   <div className="collect-card__price-row">
                     <div className="collect-card__price">
-                      <span className="collect-card__currency">¥</span>
+                      <span className="collect-card__currency">{currencySymbol()}</span>
                       <b>{money.int}</b>
                       {money.dec ? <span className="collect-card__decimals">.{money.dec}</span> : null}
                     </div>

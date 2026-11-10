@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ShopListItem } from '@/lib/api';
 
+import { formatPrice } from '@/lib/currency';
 /**
  * 店铺街行卡片：右侧热销商品横向滚动条。
  * 源码对照：view/pc/pages/shop/src/ShopList.vue（<template> 类名逐条照抄）
@@ -75,7 +76,7 @@ export default function ShopProductList({ products }: { products: ListingProduct
                 </Link>
               </div>
               <div className="product-price">
-                <span className="pro_price">¥ {Number(product.productPrice || 0).toFixed(2)}</span>
+                <span className="pro_price">{formatPrice(product.productPrice)}</span>
               </div>
             </div>
           ))

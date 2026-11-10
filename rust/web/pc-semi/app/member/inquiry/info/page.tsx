@@ -6,6 +6,7 @@ import InquiryReplyClient from '@/components/InquiryReplyClient';
 import MemberShell from '@/components/MemberShell';
 
 import { getServerT } from '@/i18n/server';
+import { formatPrice } from '@/lib/currency';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: '咨询详情 · 万物新生', robots: { index: false, follow: false } };
 
@@ -43,10 +44,10 @@ export default async function InquiryInfoPage({ searchParams }: { searchParams?:
         <div>
           <b>{item.product?.productName || t('商品')}</b>
           {Number(item.product?.marketPrice || 0) > 0 ? (
-            <span className="inquiry-detail__market">市场价 ¥ {Number(item.product.marketPrice).toFixed(2)}</span>
+            <span className="inquiry-detail__market">市场价{formatPrice(Number(item.product.marketPrice))}</span>
           ) : null}
           {Number(item.product?.productPrice || 0) > 0 ? (
-            <span className="inquiry-detail__shop-price">¥ {Number(item.product.productPrice).toFixed(2)}</span>
+            <span className="inquiry-detail__shop-price">{formatPrice(Number(item.product.productPrice))}</span>
           ) : null}
           <span>{item.createTime || ''}</span>
         </div>

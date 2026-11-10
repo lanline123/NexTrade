@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface Claim {
   claimId?: number;
   orderId?: number;
@@ -295,7 +296,7 @@ export default function OfflineClaimClient({ orderId }: { orderId: number }) {
               <div className="detail-grid">
                 <div className="claim-row">
                   <span>{t('付款金额')}：</span>
-                  <b style={{ color: 'var(--price)', fontSize: '16px' }}>¥ {Number(claim.claimedAmount || 0).toFixed(2)}</b>
+                  <b style={{ color: 'var(--price)', fontSize: '16px' }}>{formatPrice(Number(claim.claimedAmount || 0))}</b>
                 </div>
                 <div className="claim-row">
                   <span>{t('转账时间')}：</span>

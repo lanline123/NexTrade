@@ -24,6 +24,7 @@ import { Button, Card, Input, Modal, Toast, Typography } from '@douyinfe/semi-ui
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 type PaymentMethod = string | { type?: string; name?: string; typeName?: string };
 
 interface PayPresaleInfo {
@@ -126,10 +127,6 @@ function canUseApplePay(): boolean {
   } catch {
     return false;
   }
-}
-
-function formatAmount(value: number | string | undefined): string {
-  return Number(value ?? 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function pad(value: number): string {
@@ -738,7 +735,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
       <div className="price_box">
         <div className="num_box">
           <div className="tit">{t('需支付')}：</div>
-          <span className="price">¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</span>
+          <span className="price">{formatPrice(order.unpaidAmount ?? order.orderAmount)}</span>
         </div>
         <div className="order_num">
           <div className="tit">{t('订单号')}：</div>
@@ -828,7 +825,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
             <span>currencyCode</span><b>CNY</b>
             <span>supportedNetworks</span><b>visa / masterCard / chinaUnionPay</b>
             <span>merchantCapabilities</span><b>supports3DS</b>
-            <span>total</span><b>{order.shopName || order.orderSn || 'Apple Pay'} · ¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</b>
+            <span>total</span><b>{order.shopName || order.orderSn || 'Apple Pay'} · {formatPrice(order.unpaidAmount ?? order.orderAmount)}</b>
           </div>
           {appleSupported ? (
             <Button theme="solid" type="primary" loading={applePaying} onClick={launchApplePay}>
@@ -884,7 +881,7 @@ export default function PayClient({ orderId, defaultChannel }: { orderId: number
                 <div className="el-form-item">
                   <div className="el-form-item__label">{t('付款金额')}</div>
                   <div className="el-form-item__content">
-                    <span className="offline-claim-amount">¥ {formatAmount(order.unpaidAmount ?? order.orderAmount)}</span>
+                    <span className="offline-claim-amount">{formatPrice(order.unpaidAmount ?? order.orderAmount)}</span>
                   </div>
                 </div>
                 <div className="el-form-item">

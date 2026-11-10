@@ -21,6 +21,7 @@ import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { currencySymbol, formatAmount } from '@/lib/currency';
 interface Coupon {
   couponId: number;
   couponName?: string;
@@ -156,8 +157,8 @@ export default function CouponCenterClient() {
               <div className="coupon-center__value">
                 {Number(coupon.couponType) === 1 ? (
                   <b>
-                    <small>¥</small>
-                    {Number(coupon.couponMoney || 0).toFixed(0)}
+                    <small>{currencySymbol()}</small>
+                    {formatAmount(coupon.couponMoney)}
                   </b>
                 ) : (
                   <b>

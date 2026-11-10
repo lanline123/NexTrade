@@ -6,6 +6,7 @@ import { Button, Card } from '@douyinfe/semi-ui';
 import { apiGet } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface AccountLog {
   logId?: number;
   amount?: string;
@@ -50,7 +51,7 @@ export default function BalanceClient() {
     <div className="member-balance">
       <Card className="member-points__summary">
         <span>{t('账户余额')}</span>
-        <b>¥ {balance.toFixed(2)}</b>
+        <b>{formatPrice(balance)}</b>
       </Card>
       <Card className="member-card" title={t('余额明细')}>
         {loading ? (
@@ -64,7 +65,7 @@ export default function BalanceClient() {
                   <span>{row.addTime} {row.postscript ? `· ${row.postscript}` : ''}</span>
                 </div>
                 <b className={Number(row.amount) >= 0 ? 'is-plus' : 'is-minus'}>
-                  {Number(row.amount) >= 0 ? '+' : ''}¥ {Number(row.amount || 0).toFixed(2)}
+                  {Number(row.amount) >= 0 ? '+' : ''}{formatPrice(Number(row.amount || 0))}
                 </b>
               </div>
             ))}

@@ -6,6 +6,7 @@ import { apiGet, apiPost } from '@/lib/client-api';
 import { EMOJI_BASE, emojiElements, splitEmoji } from '@/components/emojiElements';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface Conversation {
   conversationId?: number;
   shopId?: number;
@@ -459,7 +460,7 @@ export default function ChatClient() {
                                     </div>
                                     <div className="product-info">
                                       <div className="product-name">{String(product.productName || product.name || '')}</div>
-                                      <div className="product-price">¥{Number(product.price || 0).toFixed(2)}</div>
+                                      <div className="product-price">{formatPrice(Number(product.price || 0))}</div>
                                     </div>
                                   </div>
                                 ) : order ? (
@@ -471,8 +472,7 @@ export default function ChatClient() {
                                       <div className="order-info">
                                         <div className="order-name">{String(order.productName || '')}</div>
                                         <div className="order-detail">
-                                          {t('共')} {String(order.productNum || '')} {t('件商品')}，{t('合计')} ¥
-                                          {Number(order.totalAmount || order.orderAmount || 0).toFixed(2)}
+                                          {t('共')} {String(order.productNum || '')} {t('件商品')}，{t('合计')}{formatPrice(Number(order.totalAmount || order.orderAmount || 0))}
                                         </div>
                                       </div>
                                     </div>
@@ -599,7 +599,7 @@ export default function ChatClient() {
                         <img className="product-img" src={String(pendingProduct.picUrl || '')} alt="" />
                         <div className="product-details">
                           <div className="product-name">{String(pendingProduct.productName || '')}</div>
-                          <div className="product-price">¥{Number(pendingProduct.productPrice || 0).toFixed(2)}</div>
+                          <div className="product-price">{formatPrice(Number(pendingProduct.productPrice || 0))}</div>
                         </div>
                       </a>
                     </div>
@@ -618,8 +618,7 @@ export default function ChatClient() {
                           <img className="product-img" src={String(pendingOrder.picUrl || '')} alt="" />
                           <div className="order-details">
                             <div className="order-name">{String(pendingOrder.productName || '')}</div>
-                            <div className="order-detail">
-                              ¥{Number(pendingOrder.totalAmount || 0).toFixed(2)}
+                            <div className="order-detail">{formatPrice(Number(pendingOrder.totalAmount || 0))}
                             </div>
                           </div>
                         </div>

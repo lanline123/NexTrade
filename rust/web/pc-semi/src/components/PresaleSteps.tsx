@@ -18,6 +18,7 @@ import { Popover } from '@douyinfe/semi-ui';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatPrice } from '@/lib/currency';
 interface PresaleStepsProps {
   /** 预售信息（productPresale） */
   productPresale?: Record<string, any> | null;
@@ -224,7 +225,7 @@ export default function PresaleSteps({ productPresale, presaleStatus = 0, total,
               <div className={`pc-presale-steps__dot${currentStatus >= 0 ? ' is-active is-completed' : ''}`} />
               <div className={`pc-presale-steps__text${currentStatus === 0 ? ' is-active' : ''}`}>
                 <span className="pc-presale-steps__amount">
-                  {t('全款预售')} ¥ {Number(fullPaymentAmount || 0).toFixed(2)}
+                  {t('全款预售')}{formatPrice(Number(fullPaymentAmount || 0))}
                 </span>{' '}
                 {ruleRef}
               </div>

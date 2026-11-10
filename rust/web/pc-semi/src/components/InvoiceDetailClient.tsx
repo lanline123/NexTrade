@@ -14,6 +14,7 @@ import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface InvoiceDetail {
   id?: number;
   orderId?: number;
@@ -125,8 +126,8 @@ export default function InvoiceDetailClient({ invoiceId, mode }: { invoiceId: st
           <div><dt>{t('订单号')}</dt><dd>
             {detail.orderId ? <Link href={`/member/order/detail?id=${detail.orderId}`}>{detail.orderSn || '-'}</Link> : (detail.orderSn || '-')}
           </dd></div>
-          <div><dt>{t('订单金额')}</dt><dd>¥ {money(detail.totalAmount)}</dd></div>
-          <div><dt>{t('发票金额')}</dt><dd>¥ {money(detail.amount)}</dd></div>
+          <div><dt>{t('订单金额')}</dt><dd>{formatPrice(detail.totalAmount)}</dd></div>
+          <div><dt>{t('发票金额')}</dt><dd>{formatPrice(detail.amount)}</dd></div>
           <div><dt>{t('发票类型')}</dt><dd>{INVOICE_TYPE[Number(detail.invoiceType) || 1]}</dd></div>
           <div><dt>{t('抬头类型')}</dt><dd>{TITLE_TYPE[isSpecial ? 2 : Number(detail.titleType) || 1]}</dd></div>
           {isSpecial || Number(detail.titleType) === 2 ? (

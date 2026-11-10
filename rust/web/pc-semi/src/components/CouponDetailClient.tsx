@@ -11,6 +11,7 @@ import { Button, Card, Toast } from '@douyinfe/semi-ui';
 import Link from 'next/link';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface CouponDetail {
   couponName?: string;
   couponDesc?: string;
@@ -79,7 +80,7 @@ export default function CouponDetailClient({ couponId }: { couponId: string }) {
           {isDiscount ? (
             <span className="pc-coupon-detail__discount">{data.couponDiscount}{t('折')}</span>
           ) : (
-            <span className="pc-coupon-detail__amount">¥{Number(data.couponMoney || 0).toFixed(2)}</span>
+            <span className="pc-coupon-detail__amount">{formatPrice(Number(data.couponMoney || 0))}</span>
           )}
         </div>
       </div>

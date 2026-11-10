@@ -1053,7 +1053,7 @@ export default function ProductDetailClient({
               return (
                 <div className={`pds-coupon${received ? ' is-received' : ''}`} key={coupon.couponId}>
                   <div className="pds-coupon__value">
-                    {Number(coupon.couponType) === 2 ? `${Number(coupon.couponDiscount || 0)}折` : `¥${Number(coupon.couponMoney || 0).toFixed(0)}`}
+                    {Number(coupon.couponType) === 2 ? `${Number(coupon.couponDiscount || 0)}折` : `${formatPrice(coupon.couponMoney || 0)}`}
                   </div>
                   <div className="pds-coupon__desc">{t('满{n}可用', { n: Number(coupon.minOrderAmount || 0).toFixed(0) })}</div>
                   <Button size="small" theme={received ? 'borderless' : 'solid'} type="primary" disabled={received} onClick={() => void claimCoupon(coupon)}>

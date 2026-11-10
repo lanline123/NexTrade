@@ -25,6 +25,7 @@ import { apiGet } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatPrice } from '@/lib/currency';
 interface GrouponRecord {
   grouponPromotionRecordId?: number;
   grouponPromotionItemId?: number;
@@ -213,7 +214,7 @@ export default function MyGrouponClient() {
                     </div>
                     <div className="mgl-item__right">
                       <Link href={href} target="_blank">
-                        <span className="mgl-item__price">¥{money(price)}</span>
+                        <span className="mgl-item__price">{formatPrice(price)}</span>
                       </Link>
                       <span className="mgl-item__qty">×{qty}</span>
                     </div>

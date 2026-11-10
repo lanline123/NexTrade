@@ -24,6 +24,7 @@ import { apiGet, apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
 
+import { formatPrice } from '@/lib/currency';
 interface InvoiceItem {
   productId?: number;
   productName?: string;
@@ -124,7 +125,7 @@ function numField(inv: InvoiceData | null, camel: string, snake = camel, fallbac
 }
 
 function money(value: number | string | undefined): string {
-  return `￥${Number(value || 0).toFixed(2)}`;
+  return formatPrice(value);
 }
 
 /** 旧版图像字段优先级与 List.vue productImage() 一致 */

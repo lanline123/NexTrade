@@ -20,6 +20,7 @@ import { IconCart } from '@douyinfe/semi-icons';
 import { apiPost } from '@/lib/client-api';
 
 import { useTranslation } from 'react-i18next';
+import { formatPrice } from '@/lib/currency';
 interface SkuValue {
   value: string;
   stock: number;
@@ -176,11 +177,11 @@ export default function ExchangeDetailClient({ data }: { data: ExchangeDetailDat
           {deductedAmount > 0 || exchangePrice > 0 ? (
             <>
               <span>+</span>
-              <b>¥ {yuan(deductedAmount || exchangePrice)}</b>
+              <b>{formatPrice(deductedAmount || exchangePrice)}</b>
             </>
           ) : null}
         </div>
-        {marketPrice > 0 ? <div className="exchange-detail-meta">{t('市场价：')}<s>¥ {yuan(marketPrice)}</s></div> : null}
+        {marketPrice > 0 ? <div className="exchange-detail-meta">{t('市场价：')}<s>{formatPrice(marketPrice)}</s></div> : null}
         <div className="exchange-detail-meta">
           库存：
           {stock > 0 ? (

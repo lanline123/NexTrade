@@ -25,6 +25,7 @@ import MemberCommentList, { MemberCommentItem } from '@/components/MemberComment
 
 import { useTranslation } from 'react-i18next';
 
+import { formatPrice } from '@/lib/currency';
 type TabKey = 'pending' | 'showed' | 'commented';
 
 interface OrderItem {
@@ -267,7 +268,7 @@ export default function CommentCenterClient({ initialTab }: { initialTab?: TabKe
                     <span>{t('收货人')}：{item.consignee || '-'}</span>
                     <span>
                       {t('订单总额')}：
-                      <b className="mcc-card__amount">¥{money(item.totalAmount)}</b>
+                      <b className="mcc-card__amount">{formatPrice(item.totalAmount)}</b>
                     </span>
                   </div>
                   <div className="mcc-card__actions">
