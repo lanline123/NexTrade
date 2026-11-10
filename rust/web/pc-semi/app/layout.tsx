@@ -33,6 +33,8 @@ import { getHeaderBootstrap } from '@/lib/api';
 import { PC_HEADER_BOOTSTRAP_ID } from '@/lib/header-bootstrap';
 import { loadTheme } from '@/lib/theme-server';
 import { setServerCurrency } from '@/lib/currency';
+import { normalizeLocale } from '@/i18n/locale';
+import { loadServerLocale } from '@/i18n/server';
 import { setStorageUrl } from '@/lib/image';
 
 const SITE_URL = (process.env.PC_SITE_URL || 'https://battery.recy.cc').replace(/\/$/, '');
@@ -168,7 +170,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const { cookies } = await import('next/headers');
     // html lang SSR 输出（对齐旧版 app.vue htmlAttrs.lang = XLocaleCode）
     const localeCookie = cookies().get('locale')?.value || '';
-    serverLang = localeCookie.toLowerCase().startsWith('en') ? 'en-US' : 'zh-CN';
+    serverLang = normalizeLocale(localeCookie);
     const raw = cookies().get('currentCurrencyData')?.value;
     if (raw) {
       const parsed = JSON.parse(decodeURIComponent(raw));
@@ -180,6 +182,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     /* cookie 缺失时按默认汇率 1 处理 */
   }
   setServerCurrency(serverSymbol || base?.dollarSign, serverRate);
+
+  // 非 zh/en 的翻译不在构建产物里，先按当前语言拉取，保证 SSR 文案即为所选语言
+  await loadServerLocale(serverLang);
 
   return (
     <html lang={serverLang}>

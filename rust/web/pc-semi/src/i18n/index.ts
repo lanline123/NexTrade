@@ -4,15 +4,9 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import zhCN from './locales/zh_cn.json';
 import enUS from './locales/en_us.json';
+import { LOCALE_COOKIE, normalizeLocale, toApiLocale } from './locale';
 
-export const LOCALE_COOKIE = 'locale';
-
-export function normalizeLocale(locale?: string | null): string {
-  const value = String(locale || '').toLowerCase();
-  if (value.startsWith('en')) return 'en-US';
-  if (value.startsWith('zh')) return 'zh-CN';
-  return 'zh-CN';
-}
+export { LOCALE_COOKIE, normalizeLocale } from './locale';
 
 export function readLocaleCookie(): string {
   if (typeof document === 'undefined') return 'zh-CN';
@@ -35,7 +29,8 @@ const instance = i18n.createInstance();
 void instance.use(initReactI18next).init({
   lng: 'zh-CN',
   fallbackLng: 'zh-CN',
-  supportedLngs: ['zh-CN', 'en-US'],
+  // false = 不限制语言集合：后台启用的 ko/ja/es/fr/ru 等语言在加载翻译包后即可生效
+  supportedLngs: false,
   resources,
   // 现有代码以中文原文作为翻译 key，关闭分隔符解析避免「订单/详情」被拆成命名空间。
   keySeparator: false,
@@ -52,15 +47,17 @@ export interface BackendTranslationMap {
 
 export async function loadBackendTranslations(locale: string): Promise<BackendTranslationMap> {
   try {
-    const response = await fetch(`/api/common/i18n/getLocaleTranslations?localeCode=${encodeURIComponent(locale)}`, {
-      credentials: 'include',
-    });
+    const normalized = normalizeLocale(locale);
+    const response = await fetch(
+      `/api/common/i18n/getLocaleTranslations?localeCode=${encodeURIComponent(toApiLocale(normalized))}`,
+      { credentials: 'include' },
+    );
     const json = await response.json();
     const data = json?.data || {};
     const entries = Object.entries(data).filter(([key, value]) => key && typeof value === 'string' && value) as Array<[string, string]>;
     if (!entries.length) return {};
     const map = Object.fromEntries(entries);
-    instance.addResourceBundle(locale, 'translation', map, true, true);
+    instance.addResourceBundle(normalized, 'translation', map, true, true);
     return map;
   } catch {
     return {};

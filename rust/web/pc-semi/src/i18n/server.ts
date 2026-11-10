@@ -2,23 +2,20 @@ import { cookies } from 'next/headers';
 import i18next, { type i18n as I18nInstance } from 'i18next';
 import zhCN from './locales/zh_cn.json';
 import enUS from './locales/en_us.json';
+import { LOCALE_COOKIE, normalizeLocale, toApiLocale } from './locale';
 
 /**
  * Server 组件 / generateMetadata 专用翻译（server-only，客户端组件请用 react-i18next）。
  *
  * 与客户端 src/i18n/index.ts 相同的「中文原文作 key + 扁平字典」口径；
  * 不 import 客户端模块（'use client' 文件不能被 server 侧调用）。
- * 实例按语言缓存（语言只有 zh-CN / en-US 两种），资源内置、同步初始化，
- * 语言来自 locale cookie，与客户端 PcLocaleSelect 写入的 cookie 一致。
+ *
+ * 内置资源只有 zh-CN / en-US；后台启用的其他语言（ko/ja/es/fr/ru/zh-Hant…）
+ * 由 layout 在渲染前调用 loadServerLocale() 拉取并注册到对应语言的实例里，
+ * 实例按语言缓存，互不串扰。
  */
 
-const LOCALE_COOKIE = 'locale';
-
-function normalizeLocale(locale?: string | null): string {
-  const value = String(locale || '').toLowerCase();
-  if (value.startsWith('en')) return 'en-US';
-  return 'zh-CN';
-}
+const API_BASE = (process.env.PC_API_BASE || 'https://battery.recy.cc').replace(/\/$/, '');
 
 const instances = new Map<string, I18nInstance>();
 
@@ -29,7 +26,7 @@ function getInstance(lng: string): I18nInstance {
     instance.init({
       lng,
       fallbackLng: 'zh-CN',
-      supportedLngs: ['zh-CN', 'en-US'],
+      supportedLngs: false,
       resources: {
         'zh-CN': { translation: zhCN as Record<string, string> },
         'en-US': { translation: enUS as Record<string, string> },
@@ -43,6 +40,27 @@ function getInstance(lng: string): I18nInstance {
     instances.set(lng, instance);
   }
   return instance;
+}
+
+/** 拉取后台该语言的翻译并注册进服务端实例（fetch 自带 5 分钟 revalidate 缓存）。 */
+export async function loadServerLocale(locale?: string | null): Promise<void> {
+  const lng = normalizeLocale(locale);
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/common/i18n/getLocaleTranslations?localeCode=${encodeURIComponent(toApiLocale(lng))}`,
+      { next: { revalidate: 300 } },
+    );
+    const json = await response.json();
+    const data = json?.data || {};
+    const map = Object.fromEntries(
+      Object.entries(data).filter(([key, value]) => key && typeof value === 'string' && value),
+    );
+    if (Object.keys(map).length) {
+      getInstance(lng).addResourceBundle(lng, 'translation', map as Record<string, string>, true, true);
+    }
+  } catch {
+    /* 拉取失败时退回内置 zh/en 资源 */
+  }
 }
 
 export type ServerT = (key: string, params?: Record<string, string | number>) => string;
