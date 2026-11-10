@@ -235,8 +235,6 @@ export default function ProductDetailClient({
   // —— 收藏 / 分享 ——
   const [collected, setCollected] = useState(false);
   const [collecting, setCollecting] = useState(false);
-  /** 服务说明手风琴（参考新版样式） */
-  const [openService, setOpenService] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [qrData, setQrData] = useState('');
@@ -1480,29 +1478,31 @@ export default function ProductDetailClient({
   );
 
   /**
-   * 源码 ProductInfo.vue 527 附近的 `.serviceAction`：旧版把服务说明做成售后气泡。
-   * ⚠️ 这里的四条文案是占位（新接口里还没有 serviceList 字段），结构用旧版类名，
-   * 等接口补 serviceList 后应改成从数据渲染。
+   * 服务说明（源码 ProductInfo.vue「服务：」行）：后台按商品配置 `serviceList`，
+   * 每项带 `icoImg` 图标；老 UI 是「图标 + 名称」平铺，不做点击展开。
+   * 商品未配置服务时整块不渲染（与 Java `getServiceList` 一致）。
    */
-  const services = (
+  const serviceItems = Array.isArray(detail.serviceList) ? detail.serviceList : [];
+  const services = serviceItems.length ? (
     <div className="serviceAction">
       <div className="goods_desc shouhou advisory" id="shouhou">
-        {[
-          { key: 'ship', title: '售全球', desc: '支持全国及海外配送，具体运费以下单结算为准。' },
-          { key: 'fast', title: '24小时发货', desc: '现货商品付款后 24 小时内发出，节假日顺延。' },
-          { key: 'refund', title: '7天无理由退换货', desc: '签收后 7 天内，商品不影响二次销售可申请退换。' },
-          { key: 'ontime', title: '准时到达', desc: '超时未送达可联系客服协调处理。' },
-        ].map((row) => (
-          <div className={`item${openService === row.key ? ' is-open' : ''}`} key={row.key}>
-            <div className="tit hand-pointer" onClick={() => setOpenService(openService === row.key ? null : row.key)}>
-              {row.title}
+        {serviceItems.map((row: any, index: number) => {
+          const name = String(row.productServiceName || '');
+          if (!name) return null;
+          const icon = String(row.icoImg || '');
+          const desc = String(row.productServiceDesc || '');
+          return (
+            <div className="item" key={row.productServiceId ?? index}>
+              <div className="tit" title={desc || undefined}>
+                {icon ? <img className="ico" src={icon} alt="" width={15} height={15} /> : null}
+                {name}
+              </div>
             </div>
-            {openService === row.key ? <div className="desc_text">{row.desc}</div> : null}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
-  );
+  ) : null;
 
   // —— 可复用内容：详情描述 / 规格参数 / 评价列表 / 咨询列表 ——
   const descContent = (

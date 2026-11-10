@@ -948,9 +948,7 @@
      .actions .number-box 已按三套风格各自生效（经典版 / 跨境版横排，
      国内标准版 .new-ui 竖排），在这里统一写 row 会覆盖掉国内标准版原版设计。 */
 
-  /* 服务说明：新版把原版 el-collapse 手风琴简化成 4 个 .item，
-     没有旧 CSS 可命中，这里补成横排服务条（避免 4 行竖排占满右栏）；
-     对勾前缀呼应原版服务气泡的「保障」语义 */
+  /* 服务说明：按后台 serviceList 平铺「图标 + 名称」，不做点击展开；无图标时只显示名称 */
   .serviceAction .goods_desc.shouhou {
     display: flex;
     flex-wrap: wrap;
@@ -961,15 +959,15 @@
     .item .tit {
       display: flex;
       align-items: center;
+      gap: 5px;
       color: #4b4b4b;
       font-size: 13px;
-      &::before {
-        content: '✓';
-        margin-right: 5px;
-        color: var(--general, var(--pds-primary, #1a1a1a));
-        font-size: 12px;
-        font-weight: 700;
-      }
+    }
+    .item .ico {
+      width: 15px;
+      height: 15px;
+      object-fit: contain;
+      flex: 0 0 auto;
     }
   }
 }
