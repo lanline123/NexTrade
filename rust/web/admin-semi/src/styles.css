@@ -5171,6 +5171,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 20px;
   margin: 2px 0 22px;
 }
 .login-remember {
