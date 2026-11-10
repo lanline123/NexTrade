@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation';
 import { Toast } from '@douyinfe/semi-ui';
 import Add from '@icon-park/react/es/icons/Add';
 import { apiPost } from '@/lib/client-api';
+import { splitCurrencyPrice } from '@/lib/currency';
 
 import { useTranslation } from 'react-i18next';
 export interface ProductCardItem {
@@ -83,13 +84,6 @@ interface ProductCardProps {
 }
 
 /** 复刻 components/format/Price.vue 的 ￥ / 整数 / 小数 三段结构 */
-function splitPrice(value: unknown): { integer: string; decimals: string } {
-  const raw = String(value ?? '');
-  if (!raw || !/^(\d+)(\.\d+)?$/.test(raw)) return { integer: '0', decimals: '.00' };
-  const [integer, decimals] = Number(raw).toFixed(2).split('.');
-  return { integer, decimals: `.${decimals}` };
-}
-
 function productLink(product: ProductCardItem): string {
   return `/product/${product.productId || ''}`;
 }
@@ -139,7 +133,7 @@ export default function ProductCard({
   const href = productLink(product);
   // 原版 pickPic：picUrl > picThumb（picThumb 是 200px 缩略图，卡片 240px 放大会发虚）
   const image = product.picUrl || product.picThumb || '';
-  const price = splitPrice(product.productPrice ?? product.price);
+  const price = splitCurrencyPrice(product.productPrice ?? product.price);
   const shopTitle = product.shop?.shopTitle || t('官方自营');
 
   async function addToCart(event: React.MouseEvent) {
@@ -289,7 +283,7 @@ export default function ProductCard({
         <div className="price-wrap">
           <div className="box">
             <div className="price align-bottom">
-              <div className="util">￥</div>
+              <div className="util">{price.symbol || '￥'}</div>
               <div className="num">{price.integer}</div>
               {price.decimals ? <div className="num decimal">{price.decimals}</div> : null}
             </div>

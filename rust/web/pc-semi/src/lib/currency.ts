@@ -42,19 +42,27 @@ export function readCurrencyCookie(): CurrencyCookieData | null {
   }
 }
 
-/** 价格已自带货币符号时透传 */
+/** 价格已自带货币符号时透传（但平台基准人民币的 `¥/￥` 前缀要先剥掉再换算） */
 const HAS_CURRENCY_SIGN = /[¥￥$€£]/;
+const CNY_PREFIX = /^\s*[¥￥]\s*/;
 
 /**
  * 格式化价格：符号 + 汇率换算 + 两位小数。
  * 返回纯文本（旧版 Price.vue 是 DOM 结构，新版调用处按需拆分）。
+ *
+ * 装修数据里管理员录入的价格是「¥123.00」这种基准人民币预格式化文本；
+ * 去掉 `¥/￥` 后照常按当前币种换算，不能直接透传，否则换币不生效。
  */
 export function formatPrice(value: unknown): string {
   if (value === undefined || value === null || value === '') return '';
-  const text = String(value);
-  if (HAS_CURRENCY_SIGN.test(text)) return text;
-  const num = Number(value);
-  if (!Number.isFinite(num)) return text;
+  let text = String(value);
+  if (CNY_PREFIX.test(text)) {
+    text = text.replace(CNY_PREFIX, '');
+  } else if (HAS_CURRENCY_SIGN.test(text)) {
+    return text;
+  }
+  const num = Number(text);
+  if (!Number.isFinite(num)) return String(value);
 
   const cookie = typeof document !== 'undefined' ? readCurrencyCookie() : null;
   // SSR（document 不存在）用 layout 注入的服务端 cookie 快照；客户端读实时 cookie
@@ -62,4 +70,18 @@ export function formatPrice(value: unknown): string {
   const rate = Number(typeof document !== 'undefined' ? cookie?.rate : SSR_RATE);
   const converted = Number.isFinite(rate) && rate > 0 ? num * rate : num;
   return `${symbol}${converted.toFixed(2)}`;
+}
+
+/** 三段式价格（符号 / 整数 / 小数），供保留旧版排版结构的组件使用。 */
+export function splitCurrencyPrice(value: unknown): {
+  symbol: string;
+  integer: string;
+  decimals: string;
+} {
+  const formatted = formatPrice(value);
+  const match = formatted.match(/^([^\d\s-]*?)\s*(-?[\d,]+(?:\.(\d+))?)$/);
+  if (!match) return { symbol: '', integer: formatted, decimals: '' };
+  const integer = match[2].replace(/,/g, '');
+  const decimals = `.${(match[3] || '00').padEnd(2, '0').slice(0, 2)}`;
+  return { symbol: match[1], integer, decimals };
 }

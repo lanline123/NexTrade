@@ -7,6 +7,7 @@ import { IconCart, IconCreditCard } from '@douyinfe/semi-icons';
 import type { ProductDetailResponse } from '@/lib/api';
 import { addToCart } from '@/lib/api';
 import { apiGet, apiPost } from '@/lib/client-api';
+import { formatPrice, splitCurrencyPrice } from '@/lib/currency';
 import RawImageDownloadButton from '@/components/RawImageDownloadButton';
 import ProductJoiningClient from '@/components/ProductJoiningClient';
 import ProductCard, { type ProductCardItem } from '@/components/product/ProductCard';
@@ -1002,8 +1003,8 @@ export default function ProductDetailClient({
         <div className="pds-panel pds-panel--seckill">
           <div className="pds-panel__row">
             <Tag color="red">{t('限时秒杀')}</Tag>
-            <b className="pds-panel__price">¥ {yuan(seckillPrice)}</b>
-            {Number(price) > seckillPrice ? <del>¥ {yuan(price)}</del> : null}
+            <b className="pds-panel__price">{formatPrice(seckillPrice)}</b>
+            {Number(price) > seckillPrice ? <del>{formatPrice(price)}</del> : null}
           </div>
           <p className="pds-panel__note">{t('秒杀价随规格变化，实际以下单结算为准')}</p>
         </div>
@@ -1013,7 +1014,7 @@ export default function ProductDetailClient({
         <div className="pds-panel pds-panel--groupon">
           <div className="pds-panel__row">
             <Tag color="orange">{grouponRecordId > 0 ? '好友邀请参团' : '拼团'}</Tag>
-            <b className="pds-panel__price">¥ {yuan(grouponPrice)}</b>
+            <b className="pds-panel__price">{formatPrice(grouponPrice)}</b>
             {grouponNum > 0 ? <span className="pds-panel__note">{grouponNum} 人成团</span> : null}
             {grouponNum > 0 ? <span className="pds-panel__note">已拼 {grouponJoined} 件</span> : null}
           </div>
@@ -1029,8 +1030,8 @@ export default function ProductDetailClient({
         <div className="pds-panel pds-panel--presale">
           <div className="pds-panel__row">
             <Tag color="blue">{t('预售')}</Tag>
-            {presaleDeposit > 0 ? <b>定金 ¥ {yuan(presaleDeposit)}</b> : null}
-            {Number((item as any).prepayPrice) > 0 ? <span>预售价 ¥ {yuan((item as any).prepayPrice)}</span> : null}
+            {presaleDeposit > 0 ? <b>定金 {formatPrice(presaleDeposit)}</b> : null}
+            {Number((item as any).prepayPrice) > 0 ? <span>预售价 {formatPrice((item as any).prepayPrice)}</span> : null}
           </div>
           {presaleInfo && typeof presaleInfo === 'object' ? (
             <p className="pds-panel__note">
@@ -1078,21 +1079,24 @@ export default function ProductDetailClient({
    * 「主价（24/36px）+ 划线市场价」同一基线行，销量是「已售 N 件」小灰字行；
    * 与经典版「市场价：/本站价：」标签行式结构不同，故按 uiStyle 分别渲染。
    */
+  const priceParts = splitCurrencyPrice(price);
+  const marketPriceParts = splitCurrencyPrice(item.marketPrice);
+
   const priceBlock =
     uiStyle === 'overseas' ? (
       <div className="basic">
         <div className="item main-price-box">
           <div className="price1">
             <div className="price align-bottom">
-              <div className="util">¥</div>
-              <div className="num">{yuan(price)}</div>
+              <div className="util">{priceParts.symbol || '¥'}</div>
+              <div className="num">{priceParts.integer}{priceParts.decimals}</div>
             </div>
           </div>
           {Number(item.marketPrice) > 0 ? (
             <div className="market_price">
               <div className="price align-bottom" style={{ textDecoration: 'line-through' }}>
-                <div className="util">¥</div>
-                <div className="num">{yuan(item.marketPrice)}</div>
+                <div className="util">{priceParts.symbol || '¥'}</div>
+                <div className="num">{marketPriceParts.integer}{marketPriceParts.decimals}</div>
               </div>
             </div>
           ) : null}
@@ -1135,8 +1139,8 @@ export default function ProductDetailClient({
             <div className="tit">{t('市场价')}：</div>
             <div className="market_price">
               <div className="price align-bottom" style={{ textDecoration: 'line-through' }}>
-                <div className="util">¥</div>
-                <div className="num">{yuan(item.marketPrice)}</div>
+                <div className="util">{priceParts.symbol || '¥'}</div>
+                <div className="num">{marketPriceParts.integer}{marketPriceParts.decimals}</div>
               </div>
             </div>
           </div>
@@ -1145,8 +1149,8 @@ export default function ProductDetailClient({
           <div className="tit">{t('本站价')}：</div>
           <div className="price1">
             <div className="price align-bottom">
-              <div className="util">¥</div>
-              <div className="num">{yuan(price)}</div>
+              <div className="util">{priceParts.symbol || '¥'}</div>
+              <div className="num">{priceParts.integer}{priceParts.decimals}</div>
             </div>
           </div>
           {commentTotal > 0 ? (
@@ -1220,7 +1224,7 @@ export default function ProductDetailClient({
                 >
                   <span className="pds-extra-attrs__value">{sub.attrValue}</span>
                   {sub.attrPrice !== undefined && sub.attrPrice !== null && sub.attrPrice !== '' ? (
-                    <span className="pds-extra-attrs__price">¥ {Number(sub.attrPrice).toFixed(2)}</span>
+                    <span className="pds-extra-attrs__price">{formatPrice(sub.attrPrice)}</span>
                   ) : null}
                 </button>
               );
@@ -1265,7 +1269,7 @@ export default function ProductDetailClient({
           <div className="pds-b2b__row" key={String(row.skuId ?? index)}>
             <div className="pds-b2b__title">{row.title || t('规格')}</div>
             <div className="pds-b2b__meta">
-              <span className="pds-b2b__price">¥ {Number(row.price || 0).toFixed(2)}</span>
+              <span className="pds-b2b__price">{formatPrice(row.price)}</span>
               <span className="pds-b2b__stock">{t('库存')}：{Number(row.stock || 0)}</span>
             </div>
             <InputNumber
@@ -1281,7 +1285,7 @@ export default function ProductDetailClient({
       {b2bAmount && Number(b2bAmount.count || 0) > 0 ? (
         <div className="pds-b2b__total">
           <span>{t('合计')}{Number(b2bAmount.count || 0)}{t('件')}</span>
-          <span>{t('商品金额')}：¥ {Number(b2bAmount.total || 0).toFixed(2)}</span>
+          <span>{t('商品金额')}：{formatPrice(b2bAmount.total)}</span>
         </div>
       ) : null}
     </div>
@@ -1379,13 +1383,14 @@ export default function ProductDetailClient({
         {wholesalePriceList.map((tier, index) => {
           const tierNum = pickNumber(tier, ['minNum', 'min_num', 'startNum', 'start_num'], 0);
           const tierPrice = pick(tier, ['price', 'wholesalePrice', 'wholesale_price'], 0);
+          const tierParts = splitCurrencyPrice(tierPrice);
           return (
             <div className="sku-item" key={index}>
               <div className="title">{tierNum ? `${tierNum}${t('件起')}` : t('批量价')}</div>
               <div className="price-box">
                 <div className="price align-bottom">
-                  <div className="util">¥</div>
-                  <div className="num">{yuan(tierPrice)}</div>
+                  <div className="util">{priceParts.symbol || '¥'}</div>
+                  <div className="num">{tierParts.integer}{tierParts.decimals}</div>
                 </div>
                 <div className="stock">{stock}{t('件可售')}</div>
               </div>
@@ -1726,7 +1731,7 @@ export default function ProductDetailClient({
           <Link className="pds-rail__item" key={index} href={`/product/${pickNumber(row, ['productId', 'product_id'], 0)}`}>
             <img src={pickString(row, ['picThumb', 'pic_thumb', 'picUrl', 'pic_url'])} alt="" />
             <span>{pickString(row, ['productName', 'product_name'])}</span>
-            <b>¥ {yuan(pick(row, ['productPrice', 'product_price'], 0))}</b>
+            <b>{formatPrice(pick(row, ['productPrice', 'product_price'], 0))}</b>
           </Link>
         )) : <p className="pds-empty">{t('暂无推荐')}</p>}
       </div>
@@ -1780,7 +1785,7 @@ export default function ProductDetailClient({
       <div className="pds-share-modal">
         <textarea
           readOnly
-          value={`${item.productName || ''}，¥${yuan(price)} ${shareUrl}`}
+          value={`${item.productName || ''}，${formatPrice(price)} ${shareUrl}`}
         />
         <div className="pds-share-modal__row">
           <input readOnly value={shareUrl} />
@@ -1789,7 +1794,7 @@ export default function ProductDetailClient({
         {qrData ? <img className="pds-share-modal__qr" src={qrData} alt={t('商品二维码')} /> : null}
         <div className="pds-share-modal__links">
           <a
-            href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(`${item.productName || ''} ¥${yuan(price)}`)}`}
+            href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(`${item.productName || ''} ${formatPrice(price)}`)}`}
             target="_blank"
             rel="noreferrer"
           >{t('分享到微博')}</a>

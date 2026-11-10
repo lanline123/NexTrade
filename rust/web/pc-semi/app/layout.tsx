@@ -162,6 +162,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const base = headerBootstrap?.base;
   setStorageUrl(base?.storageUrl);
   let serverRate: string | number | null = null;
+  let serverSymbol: string | null = null;
   let serverLang = 'zh-CN';
   try {
     const { cookies } = await import('next/headers');
@@ -172,11 +173,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     if (raw) {
       const parsed = JSON.parse(decodeURIComponent(raw));
       serverRate = parsed?.rate ?? null;
+      // 换币后的符号也要用于 SSR，否则首屏先渲染默认 ¥、hydration 后才变成所选币种
+      serverSymbol = parsed?.symbol ?? null;
     }
   } catch {
     /* cookie 缺失时按默认汇率 1 处理 */
   }
-  setServerCurrency(base?.dollarSign, serverRate);
+  setServerCurrency(serverSymbol || base?.dollarSign, serverRate);
 
   return (
     <html lang={serverLang}>
