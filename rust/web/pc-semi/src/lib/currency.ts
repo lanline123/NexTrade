@@ -81,7 +81,7 @@ export function splitCurrencyPrice(value: unknown): {
   const formatted = formatPrice(value);
   const match = formatted.match(/^([^\d\s-]*?)\s*(-?[\d,]+(?:\.(\d+))?)$/);
   if (!match) return { symbol: '', integer: formatted, decimals: '' };
-  const integer = match[2].replace(/,/g, '');
-  const decimals = `.${(match[3] || '00').padEnd(2, '0').slice(0, 2)}`;
+  const [integer, rawDecimals = ''] = match[2].replace(/,/g, '').split('.');
+  const decimals = `.${(rawDecimals || match[3] || '00').padEnd(2, '0').slice(0, 2)}`;
   return { symbol: match[1], integer, decimals };
 }
