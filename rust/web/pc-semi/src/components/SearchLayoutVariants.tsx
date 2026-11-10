@@ -40,6 +40,10 @@ export interface SearchLayoutContext {
   priceRange: string;
   categories: Array<{ id: string; name: string }>;
   brands: Array<{ id: string; name: string; firstWord: string; logo: string }>;
+  /** 当前选中分类的名称（filterSelected.category；filter.category 里没有选中项本身） */
+  catName: string;
+  /** 当前选中品牌的名称，逗号分隔且与 brand 的 id 顺序一致（filterSelected.brand） */
+  brandName: string;
   esAttrs: SearchAttrItem[];
   selectedAttrs: SearchSelectedAttr[];
   records: ProductListItem[];
@@ -88,12 +92,13 @@ function SelectedChips({ ctx }: { ctx: SearchLayoutContext }) {
   const chips: Array<{ label: string; href: string }> = [];
   if (ctx.keyword) chips.push({ label: t('关键词：{kw}', { kw: ctx.keyword }), href: `${ctx.listPath}${ctx.buildQuery({ keyword: undefined }, 1)}` });
   if (ctx.cat) {
-    const name = ctx.categories.find((item) => item.id === ctx.cat)?.name || ctx.cat;
+    const name = ctx.categories.find((item) => item.id === ctx.cat)?.name || ctx.catName || ctx.cat;
     chips.push({ label: t('分类：{name}', { name }), href: `${ctx.listPath}${ctx.buildQuery({ cat: undefined }, 1)}` });
   }
   if (ctx.brand) {
-    ctx.brand.split(',').filter(Boolean).forEach((id) => {
-      const name = ctx.brands.find((item) => item.id === id)?.name || id;
+    const brandNames = ctx.brandName.split(',').map((entry) => entry.trim());
+    ctx.brand.split(',').filter(Boolean).forEach((id, index) => {
+      const name = ctx.brands.find((item) => item.id === id)?.name || brandNames[index] || id;
       const rest = ctx.brand.split(',').filter((entry) => entry && entry !== id).join(',');
       chips.push({ label: t('品牌：{name}', { name }), href: `${ctx.listPath}${ctx.buildQuery({ brand: rest || undefined }, 1)}` });
     });
@@ -280,7 +285,7 @@ export function SearchSideLayout({ ctx }: { ctx: SearchLayoutContext }) {
  */
 export function SearchClassicLayout({ ctx }: { ctx: SearchLayoutContext }) {
     const t = getServerT();
-  const catName = ctx.categories.find((item) => item.id === ctx.cat)?.name || '';
+  const catName = ctx.categories.find((item) => item.id === ctx.cat)?.name || ctx.catName || '';
   const brandIds = ctx.brand.split(',').filter(Boolean);
   const toggleBrandHref = (id: string) => {
     const next = brandIds.includes(id) ? brandIds.filter((item) => item !== id) : [...brandIds, id];

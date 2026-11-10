@@ -464,6 +464,10 @@ export default async function SearchPage(props: PageProps) {
 
   const brands = normalizeBrands(filterResult?.filter);
   const categories = normalizeCategories(filterResult?.filter);
+  // filter.category 只含「子分类/可选分类」，不含当前选中项本身；选中项的名称在 filterSelected。
+  // 已选条件 chip 必须用后者兜底，否则会显示裸 ID（如「分类：978」）。
+  const selectedCatName = String(filterResult?.filterSelected?.category ?? '');
+  const selectedBrandName = String(filterResult?.filterSelected?.brand ?? '');
   const esAttrs = normalizeEsAttrs(esAttrResult, filterResult?.filter?.attrs);
   const records = (productResult?.records || []) as unknown as ProductListItem[];
   const total = Number(productResult?.total || 0);
@@ -632,6 +636,8 @@ export default async function SearchPage(props: PageProps) {
     priceRange,
     categories,
     brands,
+    catName: selectedCatName,
+    brandName: selectedBrandName,
     esAttrs,
     selectedAttrs,
     records,
